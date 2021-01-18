@@ -1110,7 +1110,7 @@ function checkFull(array) {
 }
 
 
-function buildSvgIcon (path, value, lolLevel, pinContainer, svgContainer, widgetName, sourceFlag, countSvgCnt, totalSvgCnt, desc, svgContainerArray) {
+function buildSvgIcon (path, value, lolLevel, pinContainer, svgContainer, widgetName, sourceFlag, countSvgCnt, totalSvgCnt, desc, svgContainerArray, updateSingleMarkerFlag, sUri) {
 
     const LOGLEVEL_INFO = "info";
     const LOGLEVEL_ERROR = "error";
@@ -1137,11 +1137,9 @@ function buildSvgIcon (path, value, lolLevel, pinContainer, svgContainer, widget
         }
     }
 
-  //  var url = new URL(window.location.href);
-  //  var url = new URL(path);
- //   log(url, LOGLEVEL_INFO);
-  //  var tpl = url.searchParams.get("tpl");
     var tpl = path;
+    svgContainer[1] = sUri;
+    svgContainer[2] = updateSingleMarkerFlag;
     log(tpl, LOGLEVEL_INFO);
   //  var val = JSON.stringify({lastValue: url.searchParams.get("val")});
     var val = '{"lastValue":"' + value + '"}';
@@ -1150,12 +1148,9 @@ function buildSvgIcon (path, value, lolLevel, pinContainer, svgContainer, widget
     if (lolLevel) lol = lolLevel;
     log(lol, LOGLEVEL_INFO);
 
-  //  $(function() {
-    ;
-     //   $("body").load(tpl,function(response,status,xhr){
-        svgContainer.load(tpl,function(response,status,xhr){
-    //    $('<div id="' + widgetName + '_svgCtn' + countSvgCnt + '">').load(tpl,function(response,status,xhr){
-
+        svgContainer.load(tpl, function(response,status,xhr){
+            var serviceUri = svgContainer[1];
+            var updateSingleMarker = svgContainer[2];
             svgContainer.hide();
             if(status == "error") {
                 log("Loading failed of static content from \""+tpl+"\". Error message is \""+xhr.status+" "+xhr.statusText+"\". Double check the staticSource configuration parameter. SIOW stops here. Nothing will work.", LOGLEVEL_ERROR);
@@ -1511,39 +1506,36 @@ function buildSvgIcon (path, value, lolLevel, pinContainer, svgContainer, widget
             });
 
             let svgElementHTML = "data:image/svg+xml;base64," + btoa(svgContainer[0].innerHTML.trim().replace(/(\r\n|\n|\r)/gm," "));
-        /*    let svgElementHTMLUTF8 = "data:image/svg+xml;utf8," + (svgContainer[0].innerHTML.trim().replace(/(\r\n|\n|\r)/gm," ")).replaceAll('"', '&quot;');
-            let svgElementHTMLRaw = "data:image/svg+xml;base64," + btoa(svgContainer[0].innerHTML);
-            let svgElementHTMLUTF8Raw = "data:image/svg+xml;utf8," + svgContainer[0].innerHTML;*/
             let stopFlag = 0;
             if (sourceFlag == "selector") {
                 pinContainer.children("a.gisPinLink").children("div.poolIcon").children(0).attr("src", svgElementHTML);
-            //    pinContainer.children("a.gisPinLink").children("div.poolIcon").children(0).attr("src", svgElementHTMLUTF8);
-                //   pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconblack", tpl);
-                //   pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).attr("data-iconwhite", "");
-                //   pinContainer.find('#' + widgetName + '_poolIcon' + i).show();
-                //    iconPath = queries[i].iconPoolImg;
-                //    iconWhitePath = iconWhitePathAuto;
+
             } else if (sourceFlag == "map") {
                 svgContainer.attr("src", svgElementHTML);
-            //    svgContainerArray.push(svgContainer);
              //   console.log("Build Custom SVG Pin # " + countSvgCnt + "for Event: " + desc);
                 svgContainerArray[countSvgCnt-1] = svgContainer;
-                if (svgContainerArray.length == totalSvgCnt && checkFull(svgContainerArray)) {
-                    console.log("Show Custom SVG Pin for Event: " + desc);
+                var srcUrl = null;
+                if (svgContainerArray[countSvgCnt-1]) {
+                    if (svgContainerArray[countSvgCnt-1].length > 0) {
+                        srcUrl = svgContainerArray[countSvgCnt-1][0].attributes['src'].value;
+                    }
+                }
+                if ((svgContainerArray.length == totalSvgCnt && checkFull(svgContainerArray)) || updateSingleMarkerFlag == true) {
+                   // console.log("Show Custom SVG Pin for Event: " + desc);
                     $.event.trigger({
                         type: "updateCustomLeafletMarkers",
                         eventGenerator: $(this),
                         targetWidget: widgetName,
                         desc: desc,
                         id: countSvgCnt,
-                        tpl: tpl
+                        tpl: tpl,
+                        serviceUri: serviceUri,
+                        updateSingleMarkerFlag: updateSingleMarker,
+                        srcUrl: srcUrl
                     });
                 }
-            } else {
-                stopFlag = 2;
             }
          //   svgContainer.hide();
-
         });
  //   });
 

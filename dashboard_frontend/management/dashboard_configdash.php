@@ -262,6 +262,9 @@
   <!--  <script src="https://rawgithub.com/miladjafary/highcharts-plugins/master/js/jalali.js"></script>    -->
     <script src="../js/highcharts-localization.js"></script>
 
+    <!-- New WS -->
+    <script src="https://www.snap4city.org/synoptics/socket.io/socket.io.js"></script>
+
 </head>
 
     <style type="text/css">

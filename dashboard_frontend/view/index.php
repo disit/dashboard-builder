@@ -306,6 +306,14 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
 	<script src="../js/fancytree/jquery.fancytree.js"></script>
 	<!-- <MS -->
 
+    <!-- Hijrah Date -->
+    <script type="text/javascript" src="../js/hijrah-date.js"></script>
+  <!--  <script src="https://rawgithub.com/miladjafary/highcharts-plugins/master/js/jalali.js"></script>    -->
+    <script src="../js/highcharts-localization.js"></script>
+
+    <!-- New WS -->
+   <script src="https://www.snap4city.org/synoptics/socket.io/socket.io.js"></script>
+
     <script type='text/javascript'>
         var array_metrics = new Array();
         var headerFontSize, headerModFontSize, subtitleFontSize, subtitleModFontSize, dashboardId, dashboardName, dashboardOrg, dashboardOrgKbUrl, logoFilename, logoLink,

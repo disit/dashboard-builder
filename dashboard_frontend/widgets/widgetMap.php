@@ -15,6 +15,10 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 include('../config.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
+if (!isset($_SESSION)) {
+    session_start();
+    session_write_close();
+}
 ?>
 
 <style type="text/css">
@@ -176,7 +180,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             var showTitle = "<?= escapeForJS($_REQUEST['showTitle']) ?>";
             var showHeader = null;
             var hasTimer = "<?= escapeForJS($_REQUEST['hasTimer']) ?>";
-            var styleParameters, metricName, udm, udmPos, appId, flowId, nrMetricType,
+            var styleParameters, metricName, udm, udmPos, appId, flowId, nodeId, nrMetricType,
                 sm_field, sizeRowsWidget, sm_based, rowParameters, fontSize, countdownRef, widgetTitle, widgetHeaderColor,
                 widgetHeaderFontColor, showHeader, widgetParameters, chartColor, dataLabelsFontSize, dataLabelsFontColor,
                 chartLabelsFontSize, chartLabelsFontColor, titleWidth, enableFullscreenModal,
@@ -266,6 +270,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             var nodeRedInputName, nrInputId, currentValue, lastValueOk = null;
             var heatmapClick = null;
             var iconTextMod = "null";
+            var keycloak, socket = null;
+            var subscribeFlag, tryingAuth, srvFailure = false;
+            var refreshToken = "<?= $_SESSION['refreshToken'] ?>";
+            var payload = [];
+            var subscribedWsDevices = [];
+            var oParameters = null;
 
 
             function triggerEventOnIotApp(map, latlngStr) {
@@ -353,12 +363,16 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
             function gisPrepareCustomMarker(feature, latlng) {
                 if (feature.properties.altViewMode == "CustomPin") {
+                    if (feature.properties.serviceType == "GovernmentOffice_Civil_registry") {
+                        // Subscribe device to new WS
+                            var updateResponse = subscribeWsDevice(feature.properties.serviceUri, bubbleSelectedMetric[currentCustomSvgLayer], currentCustomSvgLayer);
+                    }
                     countSvgCnt++;
                     let svgContainer = null;
                     let tplPath = feature.properties.iconFilePath;
                     svgContainer = $('<div id="' + widgetName + '_svgCtn' + countSvgCnt + '">');
                     $("#" + widgetName).append(svgContainer);
-                    buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray);
+                    buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, false);
                 }
                 if (feature.properties.pinattr != "pin" && feature.properties.altViewMode != "CustomPin") {
                     var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
@@ -3028,6 +3042,97 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     } else {
                         iconSize = [48, 48];
                     }
+                    if (event.updateSingleMarkerFlag === true) {
+                        if (gisLayersOnMap[currentCustomSvgLayer] != null) {
+                            gisLayersOnMap[currentCustomSvgLayer].eachLayer(function (marker) {
+                                if (marker.feature.properties.serviceUri == event.serviceUri) {
+                                    if (event.tpl.includes("Traffic_Light_SVG.svg") || event.tpl.includes("Thermometer") || event.tpl.includes("27_Blinking_Alarm_SVG.svg") || event.tpl.includes("119_SVG_PM10_level_vertical_bar.svg")) {
+                                        if (event.tpl.includes("Thermometer")) {
+                                            htmlString = "<img src='" + event.srcUrl + "' height='96px'>";
+                                        } else {
+                                            htmlString = "<img src='" + event.srcUrl + "' height='48px'>";
+                                        }
+                                        let icon = L.divIcon({
+                                            //   html: svgContainerArray[cnt][0].innerHTML,
+                                            html: htmlString,
+                                            iconSize: iconSize,
+                                            iconAnchor: [20, 48]
+                                        });
+                                        marker.setIcon(icon);
+                                    } else {
+                                        if (svgContainerArray[event.id-1]) {
+                                            let icon = L.divIcon({
+                                                html: svgContainerArray[event.id - 1][0].innerHTML,
+                                                iconSize: iconSize,
+                                                iconAnchor: [20, 48]
+                                            });
+                                            marker.setIcon(icon);
+                                        }
+                                    }
+                                }
+                            });
+                         //   gisLayersOnMap[currentCustomSvgLayer].addTo(map.defaultMapRef);
+                        }
+                        //    if (event.tpl.includes("value.svg")) {
+                        $('div.leaflet-div-icon').css('background-color', "transparent");
+                        //    }
+                        $('div.leaflet-div-icon').css('border', "0px");
+                      //  currentCustomSvgLayer = null;
+                       svgContainerArray = [];
+                    } else {
+                        if (gisLayersOnMap[currentCustomSvgLayer] != null) {
+                            gisLayersOnMap[currentCustomSvgLayer].eachLayer(function (marker) {
+                                if (svgContainerArray[cnt] != null) {
+                                    if (event.tpl.includes("Traffic_Light_SVG.svg") || event.tpl.includes("Thermometer") || event.tpl.includes("27_Blinking_Alarm_SVG.svg") || event.tpl.includes("119_SVG_PM10_level_vertical_bar.svg")) {
+                                        if (event.tpl.includes("Thermometer")) {
+                                            htmlString = "<img src='" + svgContainerArray[cnt][0].attributes['src'].value + "' height='96px'>";
+                                        } else {
+                                            htmlString = "<img src='" + svgContainerArray[cnt][0].attributes['src'].value + "' height='48px'>";
+                                        }
+                                        let icon = L.divIcon({
+                                            //   html: svgContainerArray[cnt][0].innerHTML,
+                                            html: htmlString,
+                                            iconSize: iconSize,
+                                            iconAnchor: [20, 48]
+                                        });
+                                        marker.setIcon(icon);
+                                    } else {
+                                        let icon = L.divIcon({
+                                            html: svgContainerArray[cnt][0].innerHTML,
+                                            iconSize: iconSize,
+                                            iconAnchor: [20, 48]
+                                        });
+                                        marker.setIcon(icon);
+                                    }
+                                }
+
+                                /*   marker = L.marker(marker._latlng, {
+                                       icon: icon
+                                   }).addTo(map.defaultMapRef);*/
+                                cnt++;
+
+                            });
+                            gisLayersOnMap[currentCustomSvgLayer].addTo(map.defaultMapRef);
+                        }
+                        //    if (event.tpl.includes("value.svg")) {
+                        $('div.leaflet-div-icon').css('background-color', "transparent");
+                        //    }
+                        $('div.leaflet-div-icon').css('border', "0px");
+                     //   currentCustomSvgLayer = null;
+                        svgContainerArray = [];
+                    }
+                });
+
+                $(document).on('updateCustomSingleMarker', function (event) {
+                    //    console.log("Entrato in trigger listener");
+                    let cnt = 0;
+                    let iconSize = [];
+                    let htmlString = "";
+                    if (event.tpl.includes("thermometer") || event.tpl.includes("Thermometer") || event.tpl.includes("SVG_Value.svg")) {
+                        iconSize = [96, 96];
+                    } else {
+                        iconSize = [48, 48];
+                    }
 
                     if (gisLayersOnMap[currentCustomSvgLayer] != null) {
                         gisLayersOnMap[currentCustomSvgLayer].eachLayer(function (marker) {
@@ -3063,9 +3168,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         });
                         gisLayersOnMap[currentCustomSvgLayer].addTo(map.defaultMapRef);
                     }
-                //    if (event.tpl.includes("value.svg")) {
-                        $('div.leaflet-div-icon').css('background-color', "transparent");
-                //    }
+                    //    if (event.tpl.includes("value.svg")) {
+                    $('div.leaflet-div-icon').css('background-color', "transparent");
+                    //    }
                     $('div.leaflet-div-icon').css('border', "0px");
                     currentCustomSvgLayer = null;
                     svgContainerArray = [];
@@ -3789,13 +3894,14 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                             currentCustomSvgLayer = desc;
                                             // Aggiornare totalSvgCnt con la length di fatherJsonNode
                                             totalSvgCnt = fatherGeoJsonNode.features.length;
-                                        //    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
-                                                gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-                                                    pointToLayer: gisPrepareCustomMarker,
-                                                    onEachFeature: onEachFeature
-                                             //   }).addTo(map.defaultMapRef);
-                                                });
-                                        //    }
+
+                                            //    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
+                                            gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
+                                                pointToLayer: gisPrepareCustomMarker,
+                                                onEachFeature: onEachFeature
+                                                //   }).addTo(map.defaultMapRef);
+                                            });
+                                            //    }
 
                                             loadingDiv.empty();
                                             loadingDiv.append(loadOkText);
@@ -5017,7 +5123,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 //Creazione del popup per il pin appena creato
                                 popupText = "<span class='mapPopupTitle'>" + eventColor.toUpperCase() + "</span>" +
                                     "<span class='mapPopupLine'>" + eventStartDate + " - " + eventStartTime + "</span>" +
-                                    "<span class='mapPopupLine'>PEOPLE INVOLVED: " + eventPeopleNumber + "</span>" +
+                                //    "<span class='mapPopupLine'>PEOPLE INVOLVED: " + eventPeopleNumber + "</span>" +
+                                    "<span class='mapPopupLine'>TICKET NUMBER: " + eventPeopleNumber + "</span>" +
                                     "<span class='mapPopupLine'>OPERATOR: " + eventOperatorName.toUpperCase() + "</span>";
 
                                 map.defaultMapRef.addLayer(marker);
@@ -8443,6 +8550,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
                     appId = widgetData.params.appId;
                     flowId = widgetData.params.flowId;
+                    nodeId = widgetData.params.nodeId;
                     nrMetricType = widgetData.params.nrMetricType;
                     sm_based = widgetData.params.sm_based;
                     rowParameters = widgetData.params.rowParameters;
@@ -8473,9 +8581,13 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     sizeRowsWidget = parseInt(widgetData.params.size_rows);
                     styleParameters = JSON.parse(widgetData.params.styleParameters);
                     widgetParameters = JSON.parse(widgetData.params.parameters);
+                    oParameters = widgetData.params.oldParameters;
 
-                    if (metricName != 'Map') {
+                    if (metricName != 'Map' && nodeId != null) {
                         openWs(widgetName);
+                    }
+                    if (socket == null && oParameters == "newWs") {
+                        newWSConnect();
                     }
 
                     setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
@@ -9226,7 +9338,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 //Creazione del popup per il pin appena creato
                                 popupText = "<span class='mapPopupTitle'>" + eventColor.toUpperCase() + "</span>" +
                                     "<span class='mapPopupLine'>" + eventStartDate + " - " + eventStartTime + "</span>" +
-                                    "<span class='mapPopupLine'>PEOPLE INVOLVED: " + eventPeopleNumber + "</span>" +
+                                  //  "<span class='mapPopupLine'>PEOPLE INVOLVED: " + eventPeopleNumber + "</span>" +
+                                    "<span class='mapPopupLine'>TICKET NUMBER: " + eventPeopleNumber + "</span>" +
                                     "<span class='mapPopupLine'>OPERATOR: " + eventOperatorName.toUpperCase() + "</span>";
 
                                 fullscreendefaultMapRef.addLayer(marker);
@@ -11315,6 +11428,143 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 return;
             };
 
+            function newWSConnect() {
+             try {
+                 if (socket == null) {
+                     subscribedWsDevices = [];
+                     socket = io.connect("https://www.snap4city.org/", {"path": "/synoptics/socket.io"});
+                     //    socket = io.connect('https://www.snap4city.org/synoptics/socket.io/socket.io.js');
+
+                     socket.on('connect', () => {
+                         try {
+                             console.log("New WS Connected. Socket ID: " + socket.id);
+
+                             if (refreshToken != null && refreshToken != "") {
+                                 tryingAuth = true;
+                                 $.ajax({
+                                     url: "../controllers/getAccessToken.php",
+                                     data: {
+                                         refresh_token: refreshToken
+                                     },
+                                     type: "GET",
+                                     async: true,
+                                     dataType: 'json',
+                                     success: function (dataSso) {
+                                         try {
+                                             if (socket != null && socket.connected) {
+                                                 socket.emit("authenticate", dataSso.accessToken);
+                                             }
+                                         } catch (errajax) {
+                                             console.log("Error in ajax authencticate: " + errajax.message);
+                                         }
+                                     },
+                                     error: function (errorData) {
+
+                                     }
+                                 });
+                             }
+
+                             socket.on("authenticate", function (data) {
+                                 try {
+                                     console.log(JSON.parse(data))
+                                     // aggiorna var provando a fare authenticate
+                                     tryingAuth = false;
+                                 } catch (errAuth) {
+                                     console.log("Error in authencticate new WS: " + errAuth.message);
+                                 }
+                             });
+
+                             socket.on("subscribe", function (dataSub) {
+                                 try {
+                                     let subscribeObj = JSON.parse(dataSub);
+                                     console.log(subscribeObj);
+                                     if (subscribeObj.status != "OK") {
+
+                                         socket.emit("subscribe", subscribeObj.request);
+
+                                     } else {
+                                         subscribedWsDevices.push(subscribeObj.request);
+                                     }
+                                 } catch (errSub) {
+                                     console.log("Error in subscribe new WS: " + errSub.message);
+                                 }
+                             });
+                         } catch (er) {
+                             consoloe.log("Error on Connect new WS.")
+                         }
+                     });
+
+                     socket.on('disconnect', function (data) {
+                         try {
+                             console.log("DISCONNECTED!");
+                         //    socket = null;
+                          //   newWSConnect();
+                         } catch(errSub) {
+                             console.log("Catch event in disconnect new WS: " + errSub.message);
+                         }
+                     });
+                 }
+             } catch(e) {
+                 console.log("Error in wsConnect.")
+             }
+                
+            }
+
+            function subscribeWsDevice(serviceUri, attr, currentCustomSvgLayer) {
+
+                //    console.log("Subscribe invoked for : " + serviceUri);
+                // Controllo se mi sto autenticando
+                try {
+                    if (tryingAuth != true) {
+                        if (!subscribedWsDevices.includes(serviceUri + " " + attr)) {
+                            socket.off("update " + serviceUri + " " + attr);
+                            socket.on("update " + serviceUri + " " + attr, function (data) {
+                                try {
+                                    let updateObj = JSON.parse(data);
+                                    console.log(updateObj);
+                                    var countCustomPin = 0;
+                                    gisLayersOnMap[currentCustomSvgLayer].eachLayer(function (marker) {
+                                        try {
+                                            countCustomPin++;
+                                            if (marker.feature.properties.serviceUri == serviceUri) {
+                                                let svgContainerUpdt = null;
+                                                //   let tplPath = feature.properties.iconFilePath;
+                                                svgContainerUpdt = $('<div id="' + widgetName + '_svgCtn' + countCustomPin + '">');
+                                                $("#" + widgetName).append(svgContainerUpdt);
+                                                buildSvgIcon(marker.feature.properties.iconFilePath, updateObj.lastValue, 'error', null, svgContainerUpdt, widgetName, "map", countCustomPin, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, true, serviceUri);
+                                            }
+                                        } catch (errlayer) {
+                                            console.log("Error in displaying new marker (new WS): " + errlayer.message);
+                                        }
+                                    });
+                                } catch (errUpdt) {
+                                    console.log("Error in update new WS: " + errUpdt.message);
+                                }
+                            });
+
+                            setTimeout(function () {
+                                try {
+                                    if (!subscribedWsDevices.includes(serviceUri + " " + attr)) {
+                                        socket.emit("subscribe", serviceUri + " " + attr);
+                                    }
+                                } catch (err) {
+                                    console.log("Error in subscribe emit (new WS): " + err.message);
+                                }
+                            }, Math.floor(Math.random() * (1000 - 100 + 1) + 100));
+                        }
+                    } else {
+                        setTimeout(function () {
+                            try {
+                                subscribeWsDevice(serviceUri, attr, currentCustomSvgLayer);
+                            } catch (err) {
+                                console.log("Error in subscribe reattempt (new WS): " + err.message);
+                            }
+                        }, 1000);
+                    }
+                } catch(err) {
+                    console.log("Error in subscribeWsDevice method (new WS): " + err.message);
+                }
+            }
 
             //// 3D Map - CORTI
             layersCreated = []; // layers created but not added to map

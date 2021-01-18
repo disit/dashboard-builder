@@ -73,6 +73,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         var targetsArrayForNotify = [];
         var goesOnMap = false;
 
+        console.log("Widget Operator Events: " + widgetName);
 
         if (url === "null") {
             url = null;
@@ -204,7 +205,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 dataContainer = $('<div class="trafficEventDataContainer"></div>');
                 newRow.append(dataContainer);
 
-                peopleContainer = $("<div class='operatorEventPeopleContainer'><div class='operatorEventLabelContainer centerWithFlex'>people</div><div class='operatorEventDataContainer centerWithFlex'>" + peopleNumber + "</div></div>");
+                peopleContainer = $("<div class='operatorEventPeopleContainer'><div class='operatorEventLabelContainer centerWithFlex'>Ticket</div><div class='operatorEventDataContainer centerWithFlex'>" + peopleNumber + "</div></div>");
                 peopleContainer.addClass(backgroundFieldsClass);
                 dataContainer.append(peopleContainer);
 
