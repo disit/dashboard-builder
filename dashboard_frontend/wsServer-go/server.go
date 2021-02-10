@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"runtime/debug"
 
 	oidc "github.com/coreos/go-oidc"
 	"github.com/go-ini/ini"
@@ -217,13 +218,14 @@ func (manager *ClientManager) start() {
 				if ws.clientWidgets[conn][key].sendingAck {
 					ws.clientWidgets[conn][key].sendingAck = false
 				} else {
-					select {
-					case ws.clientWidgets[conn][key].send <- message:
+					sendOnChannelNoPanic(ws.clientWidgets[conn][key].send, message)
+					//select {
+					//case ws.clientWidgets[conn][key].send <- message:
 						/*default:
 						close(ws.clientWidgets[conn][key].send)
 							closed(ws.clientWidgets[conn][key])
 							delete(ws.clientWidgets, ws.clientWidgets[conn][key].id)*/
-					}
+					//}
 				}
 			}
 			mu.Unlock()
@@ -231,6 +233,18 @@ func (manager *ClientManager) start() {
 	}
 }
 
+// send message on a channel, recover panic if it is closed
+func sendOnChannelNoPanic(c chan []byte,m []byte) {
+        defer func() {
+                if r := recover(); r != nil {
+                        fmt.Println("Recovered write channel panic:\n", string(debug.Stack()))
+                }
+        }()
+	select {
+		case c <- m:
+	}
+}
+ 
 // handler che fà l'upgrade a websocket, reindirizza i client alla registrazione e lancia le routine di read e write.
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {

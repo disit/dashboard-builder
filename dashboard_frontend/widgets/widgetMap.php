@@ -278,12 +278,12 @@ if (!isset($_SESSION)) {
             var oParameters = null;
 
 
-            function triggerEventOnIotApp(map, latlngStr) {
+            function triggerEventOnIotApp(map, message) {
 
                 var data = {
                     "msgType": "SendToEmitter",
                     "widgetUniqueName": widgetName,
-                    "value": latlngStr,
+                    "value": message,
                     "inputName": nodeRedInputName,
                  //   "dashboardId": <? $_REQUEST['id_dashboard'] ?>,
                     "username" : $('#authForm #hiddenUsername').val(),
@@ -363,9 +363,10 @@ if (!isset($_SESSION)) {
             //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
             function gisPrepareCustomMarker(feature, latlng) {
                 if (feature.properties.altViewMode == "CustomPin") {
-                    if (feature.properties.serviceType == "GovernmentOffice_Civil_registry") {
+                 //   if (feature.properties.serviceType == "GovernmentOffice_Civil_registry") {
+                    if(oParameters != null) {
                         // Subscribe device to new WS
-                            var updateResponse = subscribeWsDevice(feature.properties.serviceUri, bubbleSelectedMetric[currentCustomSvgLayer], currentCustomSvgLayer);
+                            var updateResponse = subscribeWsDevice(feature.properties.serviceUri, bubbleSelectedMetric[currentCustomSvgLayer], currentCustomSvgLayer, feature.properties.isMobile);
                     }
                     countSvgCnt++;
                     let svgContainer = null;
@@ -721,121 +722,22 @@ if (!isset($_SESSION)) {
                             //Corpo
                             popupText += '<tbody>';
 
-                            if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
-                                popupText += '<tr><td>Value Name</td><td>' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '<td></tr>';
-                            }
-
-                            if (serviceProperties.hasOwnProperty('website')) {
-                                if ((serviceProperties.website !== '') && (serviceProperties.website !== undefined) && (serviceProperties.website !== 'undefined') && (serviceProperties.website !== null) && (serviceProperties.website !== 'null')) {
-                                    if (serviceProperties.website.includes('http') || serviceProperties.website.includes('https')) {
-                                        popupText += '<tr><td>Website</td><td><a href="' + serviceProperties.website + '" target="_blank">Link</a></td></tr>';
-                                    }
-                                    else {
-                                        popupText += '<tr><td>Website</td><td><a href="' + serviceProperties.website + '" target="_blank">Link</a></td></tr>';
+                            for (var featureKey in serviceProperties) {
+                                if (serviceProperties.hasOwnProperty(featureKey)) {
+                                    if (serviceProperties[featureKey] != null && serviceProperties[featureKey] !== '' && serviceProperties[featureKey] !== ' ' && featureKey !== 'targetWidgets' && featureKey !== 'color1' && featureKey !== 'color2' && featureKey !== 'realtimeAttributes') {
+                                        if (!Array.isArray(serviceProperties[featureKey]) || (Array.isArray(serviceProperties[featureKey] && serviceProperties[featureKey].length > 0))) {
+                                            popupText += '<tr><td>' + featureKey + '</td><td>' + serviceProperties[featureKey] + '</td></tr>';
+                                        }
                                     }
                                 }
-                                else {
-                                    popupText += '<tr><td>Website</td><td>-</td></tr>';
-                                }
                             }
-                            else {
-                                popupText += '<tr><td>Website</td><td>-</td></tr>';
-                            }
-
-                            if (serviceProperties.hasOwnProperty('email')) {
-                                if ((serviceProperties.email !== '') && (serviceProperties.email !== undefined) && (serviceProperties.email !== 'undefined') && (serviceProperties.email !== null) && (serviceProperties.email !== 'null')) {
-                                    popupText += '<tr><td>E-Mail</td><td>' + serviceProperties.email + '<td></tr>';
-                                }
-                                else {
-                                    popupText += '<tr><td>E-Mail</td><td>-</td></tr>';
-                                }
-                            }
-                            else {
-                                popupText += '<tr><td>E-Mail</td><td>-</td></tr>';
-                            }
-
-                            if (serviceProperties.hasOwnProperty('address')) {
-                                if ((serviceProperties.address !== '') && (serviceProperties.address !== undefined) && (serviceProperties.address !== 'undefined') && (serviceProperties.address !== null) && (serviceProperties.address !== 'null')) {
-                                    popupText += '<tr><td>Address</td><td>' + serviceProperties.address + '</td></tr>';
-                                }
-                                else {
-                                    popupText += '<tr><td>Address</td><td>-</td></tr>';
-                                }
-                            }
-                            else {
-                                popupText += '<tr><td>Address</td><td>-</td></tr>';
-                            }
-
-                            if (serviceProperties.hasOwnProperty('civic')) {
-                                if ((serviceProperties.civic !== '') && (serviceProperties.civic !== undefined) && (serviceProperties.civic !== 'undefined') && (serviceProperties.civic !== null) && (serviceProperties.civic !== 'null')) {
-                                    popupText += '<tr><td>Civic n.</td><td>' + serviceProperties.civic + '</td></tr>';
-                                }
-                                else {
-                                    popupText += '<tr><td>Civic n.</td><td>-</td></tr>';
-                                }
-                            }
-                            else {
-                                popupText += '<tr><td>Civic n.</td><td>-</td></tr>';
-                            }
-
-                            if (serviceProperties.hasOwnProperty('cap')) {
-                                if ((serviceProperties.cap !== '') && (serviceProperties.cap !== undefined) && (serviceProperties.cap !== 'undefined') && (serviceProperties.cap !== null) && (serviceProperties.cap !== 'null')) {
-                                    popupText += '<tr><td>C.A.P.</td><td>' + serviceProperties.cap + '</td></tr>';
-                                }
-                            }
-
-                            if (serviceProperties.hasOwnProperty('city')) {
-                                if ((serviceProperties.city !== '') && (serviceProperties.city !== undefined) && (serviceProperties.city !== 'undefined') && (serviceProperties.city !== null) && (serviceProperties.city !== 'null')) {
-                                    popupText += '<tr><td>City</td><td>' + serviceProperties.city + '</td></tr>';
-                                }
-                                else {
-                                    popupText += '<tr><td>City</td><td>-</td></tr>';
-                                }
-                            }
-                            else {
-                                popupText += '<tr><td>City</td><td>-</td></tr>';
-                            }
-
-                            if (serviceProperties.hasOwnProperty('province')) {
-                                if ((serviceProperties.province !== '') && (serviceProperties.province !== undefined) && (serviceProperties.province !== 'undefined') && (serviceProperties.province !== null) && (serviceProperties.province !== 'null')) {
-                                    popupText += '<tr><td>Province</td><td>' + serviceProperties.province + '</td></tr>';
-                                }
-                            }
-
-                            if (serviceProperties.hasOwnProperty('phone')) {
-                                if ((serviceProperties.phone !== '') && (serviceProperties.phone !== undefined) && (serviceProperties.phone !== 'undefined') && (serviceProperties.phone !== null) && (serviceProperties.phone !== 'null')) {
-                                    popupText += '<tr><td>Phone</td><td>' + serviceProperties.phone + '</td></tr>';
-                                }
-                                else {
-                                    popupText += '<tr><td>Phone</td><td>-</td></tr>';
-                                }
-                            }
-                            else {
-                                popupText += '<tr><td>Phone</td><td>-</td></tr>';
-                            }
-
-                            if (serviceProperties.hasOwnProperty('fax')) {
-                                if ((serviceProperties.fax !== '') && (serviceProperties.fax !== undefined) && (serviceProperties.fax !== 'undefined') && (serviceProperties.fax !== null) && (serviceProperties.fax !== 'null')) {
-                                    popupText += '<tr><td>Fax</td><td>' + serviceProperties.fax + '</td></tr>';
-                                }
-                            }
-
-                            if (serviceProperties.hasOwnProperty('note')) {
-                                if ((serviceProperties.note !== '') && (serviceProperties.note !== undefined) && (serviceProperties.note !== 'undefined') && (serviceProperties.note !== null) && (serviceProperties.note !== 'null')) {
-                                    popupText += '<tr><td>Notes</td><td>' + serviceProperties.note + '</td></tr>';
-                                }
-                            }
-
-                            if (serviceProperties.hasOwnProperty('agency')) {
-                                if ((serviceProperties.agency !== '') && (serviceProperties.agency !== undefined) && (serviceProperties.agency !== 'undefined') && (serviceProperties.agency !== null) && (serviceProperties.agency !== 'null')) {
-                                    popupText += '<tr><td>Agency</td><td>' + serviceProperties.agency + '</td></tr>';
-                                }
-                            }
-
-                            if (serviceProperties.hasOwnProperty('code')) {
-                                if ((serviceProperties.code !== '') && (serviceProperties.code !== undefined) && (serviceProperties.code !== 'undefined') && (serviceProperties.code !== null) && (serviceProperties.code !== 'null')) {
-                                    popupText += '<tr><td>Code</td><td>' + serviceProperties.code + '</td></tr>';
-                                }
+                            if (metricName != 'Map' && nodeId != null && serviceProperties["serviceUri"] != null && serviceProperties["serviceUri"] != '') {
+                                let eventJson = new Object();
+                                eventJson.latitude = feature.geometry.coordinates[1];
+                                eventJson.longitude = feature.geometry.coordinates[0];
+                                eventJson.serviceUri = serviceProperties["serviceUri"];
+                                currentValue = JSON.stringify(eventJson);
+                                triggerEventOnIotApp(map.defaultMapRef, currentValue);
                             }
 
                             popupText += '</tbody>';
@@ -3755,7 +3657,7 @@ if (!isset($_SESSION)) {
                                                     delete fatherGeoJsonNode.features[0].properties.typeLabel;
                                                     delete fatherGeoJsonNode.features[0].properties.tipo;
                                                     delete fatherGeoJsonNode.features[0].properties.photoThumbs;
-                                                    delete fatherGeoJsonNode.features[0].properties.serviceUri;
+                                                 //   delete fatherGeoJsonNode.features[0].properties.serviceUri;
                                                     delete fatherGeoJsonNode.features[0].properties.serviceType;
                                                     delete fatherGeoJsonNode.features[0].properties.lastValue;
                                                     delete fatherGeoJsonNode.features[0].properties.multimedia;
@@ -3763,7 +3665,7 @@ if (!isset($_SESSION)) {
                                                     delete fatherGeoJsonNode.features[0].properties.municipality;
                                                     delete fatherGeoJsonNode.features[0].properties.address;
                                                     delete fatherGeoJsonNode.features[0].properties.organization;
-                                                    delete fatherGeoJsonNode.features[0].properties.realtimeAttributes;
+                                                //    delete fatherGeoJsonNode.features[0].properties.realtimeAttributes;
                                                     delete fatherGeoJsonNode.features[0].properties.linkDBpedia;
                                                     delete fatherGeoJsonNode.features[0].properties.avgStars;
                                                     delete fatherGeoJsonNode.features[0].properties.starsCount;
@@ -4212,14 +4114,6 @@ if (!isset($_SESSION)) {
                 });
 
                 $(document).on('addSelectorPin', function (event) {
-
-                /*    if (metricName != 'Map') {
-                        map.defaultMapRef.on('click', function(e) {
-                            currentValue = e.latlng.toString();
-                            //    alert('Map Clicked!');
-                            triggerEventOnIotApp(map.defaultMapRef, e.latlng.toString());
-                        })
-                    }*/
 
                     if (event.target === map.mapName) {
                         if (lastPopup !== null) {
@@ -8682,11 +8576,13 @@ if (!isset($_SESSION)) {
                     populateWidget();
                     //   globalMapView = true;
 
-                    if (metricName != 'Map') {
+                    if (metricName != 'Map' && nodeId != null) {
                         map.defaultMapRef.on('click', function(e) {
-                         //   currentValue = e.latlng.toString();
-                            currentValue = "{'latitude': " + e.latlng.lat + ", 'longitude': " + e.latlng.lng + "}";
                             //    alert('Map Clicked!');
+                            let eventJson = new Object();
+                            eventJson.latitude = e.latlng.lat;
+                            eventJson.longitude = e.latlng.lng;
+                            currentValue = JSON.stringify(eventJson);
                             triggerEventOnIotApp(map.defaultMapRef, currentValue);
                         })
                     }
@@ -11367,6 +11263,15 @@ if (!isset($_SESSION)) {
                         }
                     }
                 }
+            /*    if(msgObj.msgType=="newNRMetricData") {
+                    if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
+                    {
+                        //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+
+                        currentValue = msgObj.newValue;
+
+                    }
+                }*/
             };
 
             var openWsConn = function(widget) {
@@ -11432,7 +11337,8 @@ if (!isset($_SESSION)) {
              try {
                  if (socket == null) {
                      subscribedWsDevices = [];
-                     socket = io.connect("https://www.snap4city.org/", {"path": "/synoptics/socket.io"});
+                 //    socket = io.connect("https://www.snap4city.org/", {"path": "/synoptics/socket.io"});
+                     socket = io.connect("https://www.snap4city.org/", {"path": "/synopticsdev/socket.io"});
                      //    socket = io.connect('https://www.snap4city.org/synoptics/socket.io/socket.io.js');
 
                      socket.on('connect', () => {
@@ -11481,6 +11387,7 @@ if (!isset($_SESSION)) {
                                      if (subscribeObj.status != "OK") {
 
                                          socket.emit("subscribe", subscribeObj.request);
+                                         socket.emit("subscribe", subscribeObj.request.split(" ")[0] + " __location");
 
                                      } else {
                                          subscribedWsDevices.push(subscribeObj.request);
@@ -11510,7 +11417,7 @@ if (!isset($_SESSION)) {
                 
             }
 
-            function subscribeWsDevice(serviceUri, attr, currentCustomSvgLayer) {
+            function subscribeWsDevice(serviceUri, attr, currentCustomSvgLayer, isMobile) {
 
                 //    console.log("Subscribe invoked for : " + serviceUri);
                 // Controllo se mi sto autenticando
@@ -11541,11 +11448,39 @@ if (!isset($_SESSION)) {
                                     console.log("Error in update new WS: " + errUpdt.message);
                                 }
                             });
+                            if (isMobile) {
+                                socket.off("update " + serviceUri + " __location");
+                                socket.on("update " + serviceUri + " __location", function (data) {
+                                    try {
+                                        let updateObj = JSON.parse(data);
+                                        console.log(updateObj);
+                                        var countCustomPin = 0;
+                                        gisLayersOnMap[currentCustomSvgLayer].eachLayer(function (marker) {
+                                            try {
+                                                countCustomPin++;
+                                                if (marker.feature.properties.serviceUri == serviceUri) {
+                                                    if (updateObj.lastValue["latitude"] && updateObj.lastValue["longitude"]) {
+                                                        var newLatLng = new L.LatLng(updateObj.lastValue["latitude"], updateObj.lastValue["longitude"]);
+                                                        marker.setLatLng(newLatLng);
+                                                    }
+                                                }
+                                            } catch (errlayer) {
+                                                console.log("Error in displaying new marker (new WS): " + errlayer.message);
+                                            }
+                                        });
+                                    } catch (errUpdt) {
+                                        console.log("Error in update new WS: " + errUpdt.message);
+                                    }
+                                });
+                            }
 
                             setTimeout(function () {
                                 try {
                                     if (!subscribedWsDevices.includes(serviceUri + " " + attr)) {
                                         socket.emit("subscribe", serviceUri + " " + attr);
+                                        if (isMobile) {
+                                            socket.emit("subscribe", serviceUri + " __location");
+                                        }
                                     }
                                 } catch (err) {
                                     console.log("Error in subscribe emit (new WS): " + err.message);
@@ -11555,7 +11490,7 @@ if (!isset($_SESSION)) {
                     } else {
                         setTimeout(function () {
                             try {
-                                subscribeWsDevice(serviceUri, attr, currentCustomSvgLayer);
+                                subscribeWsDevice(serviceUri, attr, currentCustomSvgLayer, isMobile);
                             } catch (err) {
                                 console.log("Error in subscribe reattempt (new WS): " + err.message);
                             }

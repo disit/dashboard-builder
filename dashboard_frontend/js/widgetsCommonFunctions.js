@@ -712,7 +712,11 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
                             // extractedData[metric[i].metricName] = tmpData;
                         }
                     } else {
-                        extractedData = originalData.realtime.results.bindings[0][metric[i].metricType];
+                        if (originalData.realtime.results.bindings[0][metric[i].metricType] != null) {
+                            extractedData = originalData.realtime.results.bindings[0][metric[i].metricType];
+                        } else {
+                            extractedData.value = null;
+                        }
                         extractedData.metricType = metric[i].metricType;
                         extractedData.metricName = metric[i].metricName;
                         let fatherNode = null;

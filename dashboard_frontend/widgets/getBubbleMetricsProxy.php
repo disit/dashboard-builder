@@ -83,7 +83,11 @@ if (strpos($dataQuery, 'selection=') !== false && strpos($dataQuery, 'categories
 switch($dataOrigin)
 {
     case "Sensor":
-        $serviceUri = get_string_between($dataQuery, "serviceUri=", "&");
+        if (strpos($dataQuery, "&") === false) {
+            $serviceUri = substr($dataQuery, strpos($dataQuery, "serviceUri=")+11);
+        } else {
+            $serviceUri = get_string_between($dataQuery, "serviceUri=", "&");
+        }
 
         $urlToCall = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . $serviceUri . "&format=json";
       //  $urlToCall = $dataQuery;
