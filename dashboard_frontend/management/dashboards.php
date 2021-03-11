@@ -16,6 +16,7 @@
 
 include('../config.php');
 include('process-form.php');
+    include('../TourRepository.php');
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -28,6 +29,8 @@ if (isset($_REQUEST['linkId']) && ctype_alnum($_REQUEST['linkId']))
     $linkIdd = @$_REQUEST['linkId'];
 else
     $linkIdd = 'invalid';
+
+    $tourRepo = new TourRepository($host, $username, $password,$dbname);
 ?>
 
 <!DOCTYPE html>
@@ -116,8 +119,10 @@ else
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
         <!-- Chat CSS -->
-
-    </head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/css/shepherd.min.css">
+        <!--  <link rel="stylesheet" href="../css/shepherd.min.css">  -->
+    <link href="../css/snapTour.css" rel="stylesheet">
+</head>
 
     <style type="text/css">
         .left{
@@ -278,7 +283,7 @@ if (isset($_GET['pageTitle'])) {
     ?>
                                     document.write("<?php echo escapeForJS($_GET['pageTitle']); ?>");
     <?php
-}
+    }
 ?>
                             </script>
                         </div>
@@ -864,6 +869,9 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
     </body>
 </html>
 
+<script src="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/js/shepherd.min.js"></script>
+<!-- <script src="../js/shepherd.min.js"></script> -->
+<script src="../js/snapTour.js"></script>
 <script type='text/javascript'>
     $(document).ready(function ()
     {
@@ -4310,3 +4318,14 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
     }
 
 </script>  
+
+<!--Ricordarsi di rimuovere la condizione sul singolo utente una volta finalizzato il tour -->
+<!-- condizione per utenti non loggati !isset($_SESSION["loggedUsername"]) || $_SESSION["loggedUsername"] == '' -->
+<?php if($_SESSION["loggedUsername"] == 'paolo.disit' || !isset($_SESSION["loggedUsername"]) || $_SESSION["loggedUsername"] == '') : ?>
+<script>
+    $(function() {
+        const steps = JSON.parse('<?= serializeToJsonString($tourRepo->getTourSteps("preRegisterTour"))?>');
+        SnapTour.init(steps);
+    });
+</script>
+<?php endif; ?>

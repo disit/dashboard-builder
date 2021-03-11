@@ -275,7 +275,7 @@ if (!isset($_SESSION)) {
             var refreshToken = "<?= $_SESSION['refreshToken'] ?>";
             var payload = [];
             var subscribedWsDevices = [];
-            var oParameters = null;
+            var wsConnect = null;
 
 
             function triggerEventOnIotApp(map, message) {
@@ -362,9 +362,9 @@ if (!isset($_SESSION)) {
 
             //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
             function gisPrepareCustomMarker(feature, latlng) {
-                if (feature.properties.altViewMode == "CustomPin") {
+                if (feature.properties.altViewMode == "CustomPin" || feature.properties.altViewMode == "DynamicCustomPin") {
                  //   if (feature.properties.serviceType == "GovernmentOffice_Civil_registry") {
-                    if(oParameters != null) {
+                    if(wsConnect != null && altViewMode == "DynamicCustomPin") {
                         // Subscribe device to new WS
                             var updateResponse = subscribeWsDevice(feature.properties.serviceUri, bubbleSelectedMetric[currentCustomSvgLayer], currentCustomSvgLayer, feature.properties.isMobile);
                     }
@@ -375,7 +375,7 @@ if (!isset($_SESSION)) {
                     $("#" + widgetName).append(svgContainer);
                     buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, false);
                 }
-                if (feature.properties.pinattr != "pin" && feature.properties.altViewMode != "CustomPin") {
+                if (feature.properties.pinattr != "pin" && feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
                     var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                     var markerIcon = L.icon({
                         iconUrl: mapPinImg,
@@ -399,7 +399,7 @@ if (!isset($_SESSION)) {
                         iconAnchor: [16, 37]
                     }); */
                     var filePinPath = "../img/outputPngIcons/pin-generico.png";
-                    if(feature.properties.iconFilePath != null && feature.properties.altViewMode != "CustomPin") {
+                    if(feature.properties.iconFilePath != null && feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
                         if (feature.properties.iconFilePath.includes("/nature/")) {
                             filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
                         } else if (feature.properties.iconFilePath.includes("/subnature/")) {
@@ -485,7 +485,7 @@ if (!isset($_SESSION)) {
                 markersCache["" + latLngKey + ""] = marker;
 
                 marker.on('mouseover', function (event) {
-                    if (feature.properties.altViewMode != "CustomPin") {
+                    if (feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
                         if (feature.properties.pinattr != "pin") {
                             var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
                             var hoverIcon = L.icon({
@@ -561,7 +561,7 @@ if (!isset($_SESSION)) {
                 });
 
                 marker.on('mouseout', function (event) {
-                    if (feature.properties.altViewMode != "CustomPin") {
+                    if (feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
                         if (feature.properties.pinattr != "pin") {
                             var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                             var outIcon = L.icon({
@@ -3453,7 +3453,7 @@ if (!isset($_SESSION)) {
                                         //console.log("Service Map selection addition");
                                         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                     }
-                                    if (altViewMode == "Bubble" || altViewMode == "CustomPin") {
+                                    if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode == "DynamicCustomPin") {
                                         query = query + "&valueName=" + bubbleSelectedMetric[desc];
                                     }
                                     query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
@@ -3470,7 +3470,7 @@ if (!isset($_SESSION)) {
                                     query = "<?= $superServiceMapProxy ?>" + encodeServiceUri(query);
                                 }
                                 if (query.includes("&fromTime=")) {
-                                    if (altViewMode == "Bubble" || altViewMode == "CustomPin") {
+                                    if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode == "DynamicCustomPin") {
                                         query = query.split("&fromTime=")[0] + "&valueName=" + bubbleSelectedMetric[desc];
                                     }
                                 } else {
@@ -3731,7 +3731,7 @@ if (!isset($_SESSION)) {
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties.lastValue[bubbleSelectedMetric[desc]];
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]].replace(/"/g, "");
                                                         if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]]))) {
-                                                            if (altViewMode != "CustomPin") {
+                                                            if (altViewMode != "CustomPin" && altViewMode != "DynamicCustomPin") {
                                                                 fatherGeoJsonNode.features.splice(i, 1);
                                                                 continue;
                                                             }
@@ -8475,12 +8475,12 @@ if (!isset($_SESSION)) {
                     sizeRowsWidget = parseInt(widgetData.params.size_rows);
                     styleParameters = JSON.parse(widgetData.params.styleParameters);
                     widgetParameters = JSON.parse(widgetData.params.parameters);
-                    oParameters = widgetData.params.oldParameters;
+                    wsConnect = widgetParameters.wsConnect;
 
                     if (metricName != 'Map' && nodeId != null) {
                         openWs(widgetName);
                     }
-                    if (socket == null && oParameters == "newWs") {
+                    if (socket == null && wsConnect == "yes") {
                         newWSConnect();
                     }
 

@@ -105,7 +105,7 @@
                             $allowedOrgs = $row['organizations'];
 
                             if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
-                                if ($externalApp == 'yes') {
+                                /* if ($externalApp == 'yes') {
                                     if ($openMode == 'newTab') {
                                         if ($linkUrl == 'submenu') {
                                             $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink" target="_blank">' .
@@ -150,7 +150,8 @@
                                             '</div>' .
                                             '</a>';
                                     }
-                                }
+                                } */
+                                $newItem = buildMenuTag($linkUrl,$linkId,null,$openMode,$pageTitle,$externalApp,$icon,$iconColor,$text,true);
                             }
 
                             if((strpos($privileges, "'". ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs=='*' || (strpos($allowedOrgs, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
@@ -188,7 +189,7 @@
                                     $allowedOrgs2 = $row2['organizations'];
 
                                     if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
-                                        if ($externalApp2 == 'yes') {
+                                        /* if ($externalApp2 == 'yes') {
                                             if ($openMode2 == 'newTab') {
                                                 if ($_REQUEST['fromSubmenu'] == false || $_REQUEST['fromSubmenu'] != $linkId) {
                                                     $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $linkId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink" target="_blank">' .
@@ -233,7 +234,9 @@
                                                     '</div>' .
                                                     '</a>';
                                             }
-                                        }
+                                        } */
+                                        $isOpen = $_REQUEST['fromSubmenu'] == true && $_REQUEST['fromSubmenu'] == $linkId;
+                                        $newItem = buildMenuTag($linkUrl2,$linkId2,$linkId,$openMode2,$pageTitle2,$externalApp2,$icon2,$iconColor2,$text2,$isOpen);
                                     }
 
                                     if((strpos($privileges2, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs2=='*' || (strpos($allowedOrgs2, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
@@ -372,45 +375,12 @@
                 $('#mainMenuCnt a.mainMenuSubItemLink').each(function(i){
                     $(this).attr('data-submenuVisible', 'false');
                 });
-                switch($(this).attr('data-openMode'))
-                {
-                    case "iframe":
-                        $('#mainMenuCnt .mainMenuItemCnt').each(function(i){
-                            $(this).removeClass('mainMenuItemCntActive');
-                        });
-                        $(this).find('div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
-                        if($(this).attr('data-externalApp') === 'yes')
-                        {
-                            location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=false";
-                        }
-                        break;
-                        
-                    case "newTab":
-                        var newTab = window.open($(this).attr('data-linkurl') + "?linkId=" + linkId + "&fromSubmenu=false", '_blank');
-                        if(newTab) 
-                        {
-                            newTab.focus();
-                        } 
-                        else
-                        {
-                            alert('Please allow popups for this website');
-                        }
-                        break;
-                        
-                    case "samePage":
-                        $('#mainMenuCnt .mainMenuItemCnt').each(function(i){
-                            $(this).removeClass('mainMenuItemCntActive');
-                        });
-                        $(this).find('div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
-                      //  if (linkUrl.includes("../management/dashboards.php") || linkUrl.includes("../management/microApplications.php") || linkUrl.includes("../management/externalServices.php")) {
-                        // GP COMMENT TEMPORARY
-                            location.href = $(this).attr('data-linkurl') + "?linkId=" + linkId + "&fromSubmenu=false&pageTitle=" + pageTitle;
-                      /*  } else {
-                      // GP UNCOMMENT TEMPORARY
-                            location.href = $(this).attr('data-linkurl') + "?linkId=" + linkId + "&fromSubmenu=false";
-                        }*/
-                        break;    
-                }
+
+                $('#mainMenuCnt .mainMenuItemCnt').each(function(i){
+                    $(this).removeClass('mainMenuItemCntActive');
+                });
+                $(this).find('div.mainMenuItemCnt').addClass("mainMenuItemCntActive");
+                window.open($(this).attr("href"), $(this).attr("target"));
             }
             
             var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#mainMenuCnt .mainMenuUsrCnt').outerHeight() - 30);
@@ -425,42 +395,9 @@
             var linkUrl = $(this).attr('data-linkUrl');
             var submenuId = $(this).attr('data-fathermenuid');
             
-            switch($(this).attr('data-openMode'))
-            {
-                case "iframe":
-                    $('#mainMenuCnt a.mainMenuSubItemLink[data-fathermenuid=' + submenuId + '] .mainMenuSubItemCnt').removeClass('mainMenuItemCntActive');
-                    $(this).find('div.mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
-                    if($(this).attr('data-externalApp') === 'yes')
-                    {
-                        location.href = "iframeApp.php?linkUrl=" + encodeURIComponent(linkUrl) + "&linkId=" + linkId + "&pageTitle=" + pageTitle + "&fromSubmenu=" + submenuId;
-                    }
-                    break;
-
-                case "newTab":
-                    var newTab = window.open($(this).attr('data-linkurl') + "?linkId=" + linkId + "&fromSubmenu=" + submenuId, '_blank');
-                    if(newTab) 
-                    {
-                        newTab.focus();
-                    } 
-                    else
-                    {
-                        alert('Please allow popups for this website');
-                    }
-                    break;
-
-                case "samePage":
-                    $('#mainMenuCnt a.mainMenuSubItemLink[data-fathermenuid=' + submenuId + '] .mainMenuSubItemCnt').removeClass('mainMenuItemCntActive');
-                    $(this).find('div.mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
-                    //  location.href = $(this).attr('data-linkurl') + "?linkId=" + linkId + "&fromSubmenu=" + submenuId;
-                  //  if (linkUrl.includes("../management/dashboards.php") || linkUrl.includes("../management/microApplications.php") || linkUrl.includes("../management/externalServices.php")) {
-                    // GP COMMENT TEMPORARY
-                        location.href = $(this).attr('data-linkurl') + "?linkId=" + linkId + "&fromSubmenu=" + submenuId + "&pageTitle=" + pageTitle;
-                 //   } else {
-                    // GP UNCOMMENT TEMPORARY
-                 //       location.href = $(this).attr('data-linkurl') + "?linkId=" + linkId + "&fromSubmenu=" + submenuId;
-                 //   }
-                    break;    
-            }
+            $('#mainMenuCnt a.mainMenuSubItemLink[data-fathermenuid=' + submenuId + '] .mainMenuSubItemCnt').removeClass('mainMenuItemCntActive');
+            $(this).find('div.mainMenuSubItemCnt').addClass("mainMenuItemCntActive");
+            window.open($(this).attr("href"), $(this).attr("target"));
         });
         
         $(window).resize(function(){

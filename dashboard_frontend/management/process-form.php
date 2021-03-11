@@ -1185,6 +1185,35 @@
                     $styleParameters = json_encode($styleParametersArray);
                 }
 
+                if($type_widget == "widgetCalendar")
+                {
+                    if(isset($_POST['barsColors'])&&($_POST['barsColors']!=""))
+                    {
+                        $temp = json_decode(sanitizeJson($_POST['barsColors']));      // SANITIZE QUI ??
+                        $barsColors = [];
+                        foreach ($temp as $color)
+                        {
+                            array_push($barsColors, $color);
+                        }
+                    }
+
+                    if(isset($_POST['meanSum'])&&($_POST['meanSum']!=""))
+                    {
+                        $meanSum = mysqli_real_escape_string($link, sanitizePostString('meanSum'));
+                    }
+
+                    if(isset($_POST['calendarViewMode'])&&($_POST['calendarViewMode']!=""))
+                    {
+                        $calendarViewMode = mysqli_real_escape_string($link, sanitizePostString('calendarViewMode'));
+                    }
+
+                    $styleParametersArray = array();
+                    $styleParametersArray['barsColors'] = $barsColors;
+                    $styleParametersArray['meanSum'] = $meanSum;
+                    $styleParametersArray['calendarViewMode'] = $calendarViewMode;
+                    $styleParameters = json_encode($styleParametersArray);
+                }
+
                 if($type_widget == "widgetBarSeries")
                 {
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
@@ -2031,8 +2060,8 @@
                     $name_widget = str_replace("\\", '_', $name_widget);
                     $name_widget = str_replace(":", "_", $name_widget);
                 
-                    $insqDbtb3 = "INSERT INTO Dashboard.Config_widget_dashboard(Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal, fontFamily, entityJson, attributeName, creator, creationDate, actuatorTarget, chartColor) " .
-                                 "VALUES($nextId , " . returnManagedStringForDb(escapeForSQL($name_widget, $link)) . ", " . returnManagedNumberForDb(escapeForSQL($id_dashboard, $link)) . ", " . returnManagedStringForDb($id_metric) . ", " . returnManagedStringForDb($type_widget) . ", " . returnManagedNumberForDb($firstFreeRow) . ", " . returnManagedNumberForDb($nCol) . ", " . returnManagedNumberForDb($sizeRowsWidget) . ", " . returnManagedNumberForDb($sizeColumnsWidget) . ", " . returnManagedStringForDb($title_widget) . ", " . returnManagedStringForDb($color_widget) . ", " . returnManagedStringForDb($freq_widget) . ", " . returnManagedStringForDb(escapeForSQL($int_temp_widget, $link)) . ", " . returnManagedStringForDb(escapeForSQL($comune_widget, $link)) . ", " . returnManagedStringForDb($message_widget) . ", " . returnManagedStringForDb($url_widget) . ", " . returnManagedStringForDb(escapeForSQL($parameters, $link)) . ", " . returnManagedStringForDb($frame_color) . ", " . returnManagedStringForDb($inputUdmWidget) . ", " . returnManagedStringForDb($inputUdmPosition) . ", " . returnManagedNumberForDb($fontSize) . ", " . returnManagedStringForDb($fontColor) . ", " . returnManagedStringForDb($controlsPosition) . ", " . returnManagedStringForDb($showTitle) . ", " . returnManagedStringForDb($controlsVisibility) . ", " . returnManagedNumberForDb($zoomFactor) . ", " . returnManagedStringForDb($defaultTab) . ", " . returnManagedStringForDb($zoomControlsColor) . ", " . returnManagedNumberForDb($scaleX) . ", " . returnManagedNumberForDb($scaleY) . ", " . returnManagedStringForDb($headerFontColor) . ", " . returnManagedStringForDb(escapeForSQL($styleParameters, $link)) . ", " . returnManagedStringForDb($infoJson) . ", " . returnManagedStringForDb($serviceUri) . ", " . returnManagedStringForDb($viewMode) . ", " . returnManagedStringForDb($hospitalList) . ", " . returnManagedStringForDb($notificatorRegistered) . ", " . returnManagedStringForDb($notificatorEnabled) . ", " . returnManagedStringForDb($enableFullscreenTab) . ", " . returnManagedStringForDb($enableFullscreenModal) . ", " . returnManagedStringForDb($fontFamily) . ", " . returnManagedStringForDb(escapeForSQL($newOrionEntityJson, $link)) . ", " . returnManagedStringForDb($attributeName) . ", " . returnManagedStringForDb($creator) . ", " . returnManagedStringForDb($creationDate) . ", " . returnManagedStringForDb($actuatorTarget) . ", " . returnManagedStringForDb($chartColor) . ")";
+                    $insqDbtb3 = "INSERT INTO Dashboard.Config_widget_dashboard(Id, name_w, id_dashboard, id_metric, type_w, n_row, n_column, size_rows, size_columns, title_w, color_w, frequency_w, temporal_range_w, temporal_compare_w, municipality_w, infoMessage_w, link_w, parameters, frame_color_w, udm, udmPos, fontSize, fontColor, controlsPosition, showTitle, controlsVisibility, zoomFactor, defaultTab, zoomControlsColor, scaleX, scaleY, headerFontColor, styleParameters, infoJson, serviceUri, viewMode, hospitalList, notificatorRegistered, notificatorEnabled, enableFullscreenTab, enableFullscreenModal, fontFamily, entityJson, attributeName, creator, creationDate, actuatorTarget, chartColor) " .
+                                 "VALUES($nextId , " . returnManagedStringForDb(escapeForSQL($name_widget, $link)) . ", " . returnManagedNumberForDb(escapeForSQL($id_dashboard, $link)) . ", " . returnManagedStringForDb($id_metric) . ", " . returnManagedStringForDb($type_widget) . ", " . returnManagedNumberForDb($firstFreeRow) . ", " . returnManagedNumberForDb($nCol) . ", " . returnManagedNumberForDb($sizeRowsWidget) . ", " . returnManagedNumberForDb($sizeColumnsWidget) . ", " . returnManagedStringForDb($title_widget) . ", " . returnManagedStringForDb($color_widget) . ", " . returnManagedStringForDb($freq_widget) . ", " . returnManagedStringForDb(escapeForSQL($int_temp_widget, $link)) . ", " . returnManagedStringForDb(escapeForSQL($int_comp_widget_m , $link)) . ", " . returnManagedStringForDb(escapeForSQL($comune_widget, $link)) . ", " . returnManagedStringForDb($message_widget) . ", " . returnManagedStringForDb($url_widget) . ", " . returnManagedStringForDb(escapeForSQL($parameters, $link)) . ", " . returnManagedStringForDb($frame_color) . ", " . returnManagedStringForDb($inputUdmWidget) . ", " . returnManagedStringForDb($inputUdmPosition) . ", " . returnManagedNumberForDb($fontSize) . ", " . returnManagedStringForDb($fontColor) . ", " . returnManagedStringForDb($controlsPosition) . ", " . returnManagedStringForDb($showTitle) . ", " . returnManagedStringForDb($controlsVisibility) . ", " . returnManagedNumberForDb($zoomFactor) . ", " . returnManagedStringForDb($defaultTab) . ", " . returnManagedStringForDb($zoomControlsColor) . ", " . returnManagedNumberForDb($scaleX) . ", " . returnManagedNumberForDb($scaleY) . ", " . returnManagedStringForDb($headerFontColor) . ", " . returnManagedStringForDb(escapeForSQL($styleParameters, $link)) . ", " . returnManagedStringForDb($infoJson) . ", " . returnManagedStringForDb($serviceUri) . ", " . returnManagedStringForDb($viewMode) . ", " . returnManagedStringForDb($hospitalList) . ", " . returnManagedStringForDb($notificatorRegistered) . ", " . returnManagedStringForDb($notificatorEnabled) . ", " . returnManagedStringForDb($enableFullscreenTab) . ", " . returnManagedStringForDb($enableFullscreenModal) . ", " . returnManagedStringForDb($fontFamily) . ", " . returnManagedStringForDb(escapeForSQL($newOrionEntityJson, $link)) . ", " . returnManagedStringForDb($attributeName) . ", " . returnManagedStringForDb($creator) . ", " . returnManagedStringForDb($creationDate) . ", " . returnManagedStringForDb($actuatorTarget) . ", " . returnManagedStringForDb($chartColor) . ")";
                     
                     $result4 = mysqli_query($link, $insqDbtb3);
                     
@@ -3056,6 +3085,51 @@
 
         }
 
+        if($type_widget_m == "widgetCalendar")
+        {
+            $styleParametersArrayM = array();
+
+            if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
+            {
+                $temp = json_decode(sanitizeJson($_POST['barsColorsM']));     // SANITIZE QUI ??
+                $barsColorsM = [];
+                foreach ($temp as $color)
+                {
+                    array_push($barsColorsM, $color);
+                }
+            }
+            $styleParametersArrayM['barsColors'] = $barsColorsM;
+
+            if(isset($_POST['meanSum'])&&($_POST['meanSum']!=""))
+            {
+                $meanSum = sanitizePostString('meanSum');
+            }
+            $styleParametersArrayM['meanSum'] = $meanSum;
+
+            if(isset($_POST['calendarViewMode'])&&($_POST['calendarViewMode']!=""))
+            {
+                $calendarViewMode = sanitizePostString('calendarViewMode');
+            }
+            $styleParametersArrayM['calendarViewMode'] = $calendarViewMode;
+
+            $styleParametersM = json_encode($styleParametersArrayM);
+
+            if(isset($_POST['parametersM'])&&($_POST['parametersM']!="")) {
+                $rowParameters = sanitizeJsonRelaxed($_POST['parametersM']);
+                $parametersArray = json_decode($rowParameters, false);
+                for($i = (sizeof($parametersArray)) - 1; $i >= 0; $i--) {
+                    if (isset($parametersArray[$i]->deleted)) {
+                        if ($parametersArray[$i]->deleted == true) {
+                            //   array_map('unlink', glob("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/*"));
+                            unset($parametersArray[$i]);
+                        }
+                    }
+                }
+                $rowParameters = json_encode(array_values($parametersArray));
+                $_POST['parametersM'] = NULL;
+            }
+        }
+
         if($type_widget_m == "widgetBarSeries")
         {
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
@@ -3694,7 +3768,7 @@
         {
             $int_temp_widget_m = mysqli_real_escape_string($link, $_POST['select-IntTemp-Widget-m']);
         }
-        else if ($type_widget_m == 'widgetCurvedLineSeries')
+        else if (($type_widget_m == 'widgetCurvedLineSeries') || ($type_widget_m == 'widgetCalendar'))
         {
             $temporalRangeQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w = '" . escapeForSQL($name_widget_m, $link) . "' AND id_dashboard = '" . escapeForSQL($id_dashboard2, $link) . "'";
             $temporalRangeRs = mysqli_query($link, $temporalRangeQuery);
@@ -3712,6 +3786,30 @@
             $int_temp_widget_m = NULL;
         }
 
+        
+        if(isset($_POST['editWidgetComparePeriod']) && ($_POST['editWidgetComparePeriod'] != "") &&($type_widget_m != 'widgetProtezioneCivile' && $type_widget_m != 'widgetProtezioneCivileFirenze'))
+        {
+            $int_comp_widget_m = mysqli_real_escape_string($link, $_POST['editWidgetComparePeriod']);
+        }
+        else if ($type_widget_m == 'widgetCurvedLineSeries')
+        {
+            $temporalRangeQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w = '" . escapeForSQL($name_widget_m, $link) . "' AND id_dashboard = '" . escapeForSQL($id_dashboard2, $link) . "'";
+            $temporalRangeRs = mysqli_query($link, $temporalRangeQuery);
+
+            if($temporalRangeRs)
+            {
+                $currRow = mysqli_fetch_assoc($temporalRangeRs);
+                if (sizeof($currRow) > 0) {
+                    $int_comp_widget_m = $currRow['temporal_compare_w'];
+                }
+            }
+        }
+        else
+        {
+            $int_comp_widget_m = NULL;
+        }
+        
+        
         if (isset($_POST['inputComuneWidgetM']) && ($_POST['inputComuneWidgetM'] != "") &&($type_widget_m != 'widgetProtezioneCivile' && $type_widget_m != 'widgetProtezioneCivileFirenze'))
         {
             $comune_widget_m = mysqli_real_escape_string($link, sanitizePostString('inputComuneWidgetM'));
@@ -3994,6 +4092,7 @@
                $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m)
                        . ", title_w = " . returnManagedStringForDb(html_entity_decode(escapeForSQL($title_widget_m, $link), ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
                //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
+                       . ", temporal_compare_w = " . returnManagedStringForDb($int_comp_widget_m)
                        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb(escapeForSQL($parametersM, $link)))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM) . ", infoJson = " . returnManagedStringForDb($infoJsonM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
@@ -4004,7 +4103,8 @@
            {
                $upsqDbtb = "UPDATE Dashboard.Config_widget_dashboard SET type_w = " . returnManagedStringForDb($type_widget_m) . ", size_columns = " . returnManagedNumberForDb($col_m) . ", size_rows = " . returnManagedNumberForDb($row_m)
                        . ", title_w = " . returnManagedStringForDb(html_entity_decode(escapeForSQL($title_widget_m, $link), ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
-               //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
+               //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM) 
+                       . ", temporal_compare_w = " . returnManagedStringForDb($int_comp_widget_m)
                        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb(escapeForSQL($parametersM, $link)))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)

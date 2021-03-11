@@ -574,7 +574,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             //    pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '"><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="background-image: url(&quot;../img/widgetSelectorBakcGrnd/cerchio-arancione.svg&quot;); background-repeat: no-repeat; background-position: center center;"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                 // PROVA CON BACKGROUND-COLOR e BORDER-RADIUS!!!
                 if (symbolColor != null) {
-                    if (queries[i].bubble != "CustomPin") {
+                    if (queries[i].bubble != "CustomPin" && queries[i].bubble != "DynamicCustomPin") {
                         pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a id="' + widgetName + '_pinCtn' + i + '" class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '" data-bubbleMode="' + altViewMode + '" data-bubbleSelectedMetric="' + bubbleSelectedMetric + '" data-bubbleMetricsArray="loading available metrics..."><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon" style="background-color: ' + symbolColor + '; border-radius: 50%"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
                     } else {
                         pinContainer = $('<div class="gisPinContainer" data-toggle="tooltip" data-container="body"><a id="' + widgetName + '_pinCtn' + i + '" class="gisPinLink" data-fontColor="' + fontColor + '" data-activeFontColor="' + activeFontColor + '" data-symbolMode="' + symbolMode + '" data-desc="' + desc + '" data-query="' + query + '" data-queryType="' + queryType + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-targets="' + targets + '" data-display="' + display + '" data-onMap="false" data-iconTextMode="' + iconTextDataAttr + '" data-pinattr="' + pinattr + '" data-pincolor="' + newMapPinColor + '" data-symbolcolor="' + symbolColor + '" data-bubbleMode="' + altViewMode + '" data-bubbleSelectedMetric="' + bubbleSelectedMetric + '" data-bubbleMetricsArray="loading available metrics..."><span class="gisPinShowMsg" style="font-size: ' + pinMsgFontSize + 'px">show</span><span class="gisPinHideMsg" style="font-size: ' + pinMsgFontSize + 'px">hide</span><span class="gisPinNoQueryMsg" style="font-size: ' + pinMsgFontSize + 'px">no query</span></span><span class="gisPinNoMapsMsg" style="font-size: ' + pinMsgFontSize + 'px">no maps set</span><i class="material-icons gisPinIcon">navigation</i><div id = "' + widgetName + '_poolIcon_' + i + '" class = "poolIcon"><img class="svg" id="logo"></div><div class="gisPinCustomIcon"><div class="gisPinCustomIconUp"></div><div class="gisPinCustomIconDown"><span><i class="fa fa-check"></i></span></div></div></a><i class="fa fa-circle-o-notch fa-spin gisLoadingIcon"></i><i class="fa fa-close gisLoadErrorIcon"></i></div>');
@@ -615,7 +615,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             //    pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).css('height', ($("#<?= $_REQUEST['name_w'] ?>_content").height()/queries.length) * 1.1);
                 pinContainer.find('#' + widgetName + '_poolIcon_' + i).children(0).css('height', ($("#<?= $_REQUEST['name_w'] ?>_content").height()/queries.length) * 0.9);
 
-                if (queries[i].bubble == 'CustomPin') {
+                if (queries[i].bubble == 'CustomPin' || queries[i].bubble == 'DynamicCustomPin') {
                     svgContainer = $('<div id="' + widgetName + '_svgCtn' + i + '">');
                     pinContainer.append(svgContainer);
                 }
@@ -624,7 +624,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     pinContainer.find('div.gisPinCustomIcon').hide();
                     if (iconTextMode == "Icon Only") {
                         if (queries[i].iconPoolImg) {
-                            if (queries[i].bubble == 'CustomPin') {     // SVG CustomPin Icon MOD
+                            if (queries[i].bubble == 'CustomPin' || queries[i].bubble == 'DynamicCustomPin') {     // SVG CustomPin Icon MOD
                                 let tplPath, icBlck, icWht = "";
                                 if(queries[i].iconPoolImg.split('synopticTemplates/svg')) {
                                     if(queries[i].iconPoolImg.split('synopticTemplates/svg')[1] != null) {
@@ -707,7 +707,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         }
                     } else {
-                        if (queries[i].bubble == 'CustomPin') {     // SVG CustomPin Icon MOD
+                        if (queries[i].bubble == 'CustomPin' || queries[i].bubble == 'DynamicCustomPin') {     // SVG CustomPin Icon MOD
                             let tplPath, icBlck, icWht = "";
                             if (queries[i].iconPoolImg != null) {
                                 if (queries[i].iconPoolImg.split('synopticTemplates/svg')) {
@@ -1000,13 +1000,13 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         $(this).parents("div.gisMapPtrContainer").find("span.gisPinShowMsg").hide();
                         if ($(this).attr("data-symbolMode") === 'auto') {
                             if ($(this).attr("data-iconTextMode") == "text" || $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") == null) {
-                                if ($(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin") {
+                                if ($(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin" || $(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "DynamicCustomPin") {
                                     buildSvgIcon ($(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"), 9999, 'error', $(this).parents("div.gisPinContainer"), $('#' + $(this).parents("div.gisPinContainer").children()[3].id), widgetName, "selector");
                                 } else {
                                     $(this).parents("div.gisMapPtrContainer").find("i.gisPinIcon").show();
                                 }
                             } else {
-                                if ($(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin") {
+                                if ($(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin" || $(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "DynamicCustomPin") {
                                     buildSvgIcon ($(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"), 9999, 'error', $(this).parents("div.gisPinContainer"), $('#' + $(this).parents("div.gisPinContainer").children()[3].id), widgetName, "selector");
                                 } else {
                                     $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src", $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconwhite"))
@@ -1214,8 +1214,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             else {
                                 $(this).attr("data-onMap", "false");
                                 if ($(this).attr("data-symbolMode") === 'auto') {
-                                    if (($(this).attr("data-iconTextMode") == "icon" && $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") != null) || $(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin") {
-                                        if ($(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin") {
+                                    if (($(this).attr("data-iconTextMode") == "icon" && $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") != null) || $(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin" || $(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "DynamicCustomPin") {
+                                        if ($(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "CustomPin" || $(this).parents("div.gisPinContainer").children()[0].attributes['data-bubbleMode'].value == "DynamicCustomPin") {
                                             // Build custom SVG Icon even if text mode is selected for view
                                             buildSvgIcon ($(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"), 0, 'error', $(this).parents("div.gisPinContainer"), $('#' + $(this).parents("div.gisPinContainer").children()[3].id), widgetName, "selector");
                                         } else {
@@ -1334,7 +1334,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             coordsAndType.altViewMode = altViewMode;
             coordsAndType.bubbleSelectedMetric = bubbleSelectedMetric;
 
-            if (altViewMode == "Bubble" || altViewMode == "CustomPin") {
+            if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode == "DynamicCustomPin") {
 
                 $.event.trigger({
                     type: "addBubbleChart",
@@ -1574,6 +1574,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         //	$(this)
                         //document.getElementById(elementId);
                         var fileName = $(this).attr("data-filename");
+                    //    if (iconTextMode != "Text Description") {
                         domtoimage.toPng(this)
                             .then(function (dataUrl) {
                                 var img = new Image();
@@ -1607,6 +1608,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 console.error('oops, something went wrong!', error);
 
                             });
+
+                        // }    // END IF iconTextMode
 
                         var asynchronousFlag = true;
                         //	$('#image0').hide();

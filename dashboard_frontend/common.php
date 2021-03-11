@@ -14,8 +14,96 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
+function buildMenuTag($linkUrl, $linkId, $parentLinkId, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, $isOpen)
+{
+    $isIframe = $externalApp == 'yes' && $openMode == "iframe";
+    $isNewTab = $openMode == "newTab";
+    $classes = "internalLink moduleLink";
+    $target = "_self";
 
-function checkLdapMembership($connection, $userDn, $tool, $baseDn) 
+    $isSubmenu = $parentLinkId != null && trim($parentLinkId) != '';
+    if ($isSubmenu) {
+        $classes = "{$classes} mainMenuSubItemLink";
+    } else {
+        $classes = "{$classes} mainMenuLink";
+    }
+
+    $fromParent = $isSubmenu ? $parentLinkId : "false";
+    $url = addQueryParamsToUrl(
+        buildPlatformUrl($linkUrl, $pageTitle, $openMode),
+        [
+            "linkId" => $linkId,
+            "fromSubmenu" => $fromParent
+        ]
+    );
+    if ($isIframe == true) {
+        $classes = "{$classes} mainMenuIframeLink";
+    } elseif ($isNewTab) {
+        $target = "_blank";
+    }
+
+    $prop = [
+        "href" => $url,
+        "id" => $linkId,
+        "data-externalApp" => $externalApp,
+        "data-openMode" => $openMode,
+        "data-linkUrl" => $linkUrl,
+        "data-pageTitle" => $pageTitle,
+        "data-submenuVisible" => "false",
+        "class" => $classes,
+        "target" => $target
+    ];
+
+    if ($isSubmenu) {
+        $prop["data-fatherMenuId"] = $parentLinkId;
+    }
+
+    $attr = implode(" ", array_map(function ($k, $v) {
+        return "{$k}=\"{$v}\"";
+    }, array_keys($prop), $prop));
+
+    $containerClass = $isSubmenu ? "mainMenuSubItemCnt" : "mainMenuItemCnt";
+    $displayStyle = $isOpen ? "" : 'style="display: none"';
+    $subMenuCaret = $linkUrl == "submenu" ? '<i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' : "";
+    return <<<EOT
+<a $attr>
+    <div class="col-md-12 $containerClass" $displayStyle>
+        <i class="$icon" style="color: $iconColor"></i><span>$text</span>$subMenuCaret
+    </div>
+</a>
+EOT;
+}
+
+function buildPlatformUrl($url, $pageTitle, $openMode)
+{
+    $result = $url;
+    if ($openMode == "iframe") {
+        $result = rawurlencode($result);
+        $result = "iframeApp.php?linkUrl={$result}&pageTitle={$pageTitle}";
+    } elseif ($openMode == "samePage") {
+        if (strpos($result, '?') !== false) {
+            $result = "{$result}&pageTitle={$pageTitle}";
+        } else {
+            $result = "{$result}?pageTitle={$pageTitle}";
+        }
+    }
+
+    return $result;
+}
+
+function addQueryParamsToUrl($url, $queryParams)
+{
+    $paramsString = http_build_query($queryParams);
+
+    $urlHasParams = parse_url($url, PHP_URL_QUERY) != '';
+    if ($urlHasParams) {
+        return "{$url}&{$paramsString}";
+    }
+
+    return "{$url}?{$paramsString}";
+}
+
+function checkLdapMembership($connection, $userDn, $tool, $baseDn)
 {
     $result = ldap_search($connection, $baseDn, '(&(objectClass=posixGroup)(memberUid=' . $userDn . '))');
     $entries = ldap_get_entries($connection, $result);
@@ -173,7 +261,7 @@ function checkSession($role, $redirect = '') {
       if(isset($claims->exp))
         fwrite($f,date('c')." invalid session, expired refresh token, exp: ".($claims->exp-time())." sub: $claims->sub tkn: ".$_SESSION['refreshToken']."\n");
       else
-        fwrite($f,date('c')." invalid session, no refresh token for ".$_SESSION['loggedUsername']."/".$_SESSION['loggedRole']." \n");
+        fwrite($f,date('c')." invalid session, no refresh token for ".$_SESSION['loggedUsername']."/".$_SESSION['loggedRole']."--- SESSION: ".var_export($_SESSION,true)." \n");
       fclose($f);    
   }
   if(!isset($_SESSION['loggedRole']) || !$goodSession) {
@@ -471,4 +559,9 @@ function decryptOSSL($string, $secret_key, $secret_iv, $encrypt_method) {
     $output = openssl_decrypt(base64_decode($string), $encrypt_method, $key, 0, $iv);
 
     return $output;
+}
+
+function serializeToJsonString($obj)
+{
+    return addslashes(json_encode($obj, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK));
 }

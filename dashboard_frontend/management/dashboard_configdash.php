@@ -11890,6 +11890,424 @@
                                     addWidgetRangeTableContainer.hide();
                                     break;
 
+                                case "widgetCalendar":
+                                    var currentParams, i, k, currentFieldIndex, currentSeriesIndex = null;
+                                    var metricId = $('#select-metric').val();
+                                    var metricData = getMetricData(metricId);
+                                    var seriesString = metricData.data[0].commit.author.series;
+                                    var series = jQuery.parseJSON(seriesString);
+                                    var thrTables1 = new Array();
+                                    var thrTables2 = new Array();
+
+                                    //Funzione di settaggio dei globals per il file dashboard_configdash.js
+                                    setGlobals(null, thrTables1, thrTables2, series, $('#select-widget').val());
+
+                                    //Costruzione THRTables vuote
+                                    buildEmptyThrTables();
+
+                                    //Rimozione eventuali campi del subform general per widget process
+                                    removeWidgetProcessGeneralFields("addWidget");
+
+                                    $('#inputUrlWidget').val('none');
+                                    $('#inputUrlWidget').prop("required", false);
+                                    $("#titleLabel").html("Title");
+                                    $("#bckColorLabel").html("Background color");
+                                    $('#inputFontSize').val("10");
+                                    $('#inputFontSize').attr('disabled', false);
+                                    $('#inputFontSize').prop('required', true);
+                                    $('#inputFontColor').val("#000000");
+                                    $('#widgetFontColor').css("background-color", "#000000");
+                                    $("#widgetFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+                                    $('#link_help_modal-add-widget').css("display", "");
+                                    $('#inputUdmWidget').attr('disabled', false);
+                                    $('#inputFrameColorWidget').attr('disabled', false);
+                                    $('#inputFrameColorWidget').val('#eeeeee');
+                                    $('#inputFrameColorWidget').prop('required', false);
+                                    $('#select-IntTemp-Widget').attr('disabled', true);
+                                    $('#select-IntTemp-Widget').prop('required', false);
+                                    $('#inputFreqWidget').attr('disabled', false);
+                                    $('#inputFreqWidget').val(60);
+                                    $('#inputFreqWidget').prop('required', true);
+                                    $('#inputHeaderFontColorWidget').attr('disabled', false);
+                                    $('#inputHeaderFontColorWidget').prop('required', true);
+                                    $('#inputHeaderFontColorWidget').val("#000000");
+                                    $('#widgetHeaderFontColor').css("background-color", "#000000");
+                                    $('#inputUdmWidget').prop("required", false);
+                                    $('#inputUdmWidget').attr("disabled", true);
+                                    $('#inputUdmPosition').prop("required", false);
+                                    $('#inputUdmPosition').attr("disabled", true);
+                                    $('#addWidgetFirstAidHospital').attr("disabled", true);
+                                    $('#addWidgetFirstAidHospital').prop("required", false);
+                                    $('#addWidgetFirstAidHospital').val(-1);
+                                    $('#inputFirstAidRow').hide();
+
+                                    //Proprietà specifiche del widget
+                                    //RIMOZIONE CAMPI PER TUTTI GLI ALTRI WIDGET
+                                    $('#specificWidgetPropertiesDiv .row').remove();
+
+                                    //Proprietà specifiche
+                                    removeWidgetProcessGeneralFields("addWidget");
+
+                                    //Visualizzazione campi specifici per questo widget
+                                    /*var newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan,
+                                        addWidgetRangeTableContainer = null;
+
+                                    //Nuova riga
+                                    //X-Axis dataset
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="xAxisDataset" class="col-md-2 control-label">X-Axis dataset</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select class="form-control" id="xAxisDataset" name="xAxisDataset" required>');
+                                    newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                    newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newSelect.show();
+
+                                    //Line width
+                                    newLabel = $('<label for="lineWidth" class="col-md-2 control-label">Line width</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInput = $('<input type="text" class="form-control" id="lineWidth" name="lineWidth" value="2" required>');
+                                    newInnerDiv.append(newInput);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newInput.show();
+
+                                    //Nuova riga
+                                    //X-Axis labels font size
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label">X-Axis labels font size</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSize" name="rowsLabelsFontSize" value="10" required> ');
+                                    newInnerDiv.append(newInput);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newInput.show();
+
+                                    //X-Axis labels font color
+                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">X-Axis labels font color</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInput = $('<div id="rowsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColor" name="rowsLabelsFontColor" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColor"></i></span></div>');
+                                    newInnerDiv.append(newInput);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    $('#rowsLabelsFontColorContainer').show();
+                                    $('#rowsLabelsFontColor').show();
+                                    $("#widgetRowsLabelsFontColor").css('display', 'block');
+                                    $("#widgetRowsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
+                                    //Nuova riga
+                                    //Y-Axis labels font size
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="colsLabelsFontSize" class="col-md-2 control-label">Y-Axis labels font size</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInput = $('<input type="text" class="form-control" id="colsLabelsFontSize" name="colsLabelsFontSize" value="10" required>');
+                                    newInnerDiv.append(newInput);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newInput.show();
+
+                                    //Y-Axis labels font color
+                                    newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label">Y-Axis labels font color</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInput = $('<div id="colsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="colsLabelsFontColor" name="colsLabelsFontColor" required><span class="input-group-addon"><i id="widgetColsLabelsFontColor"></i></span></div>');
+                                    newInnerDiv.append(newInput);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    $('#colsLabelsFontColorContainer').show();
+                                    $('#colsLabelsFontColor').show();
+                                    $("#widgetColsLabelsFontColor").css('display', 'block');
+                                    $("#widgetColsLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
+                                    //Nuova riga
+                                    //Data labels font size
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label">Data labels font size</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInput = $('<input type="text" class="form-control" id="dataLabelsFontSize" name="dataLabelsFontSize" value="10" required>');
+                                    newInnerDiv.append(newInput);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newInput.show();
+
+                                    //Data labels font color
+                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label">Data labels font color</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInput = $('<div id="dataLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="dataLabelsFontColor" name="dataLabelsFontColor" required><span class="input-group-addon"><i id="widgetDataLabelsFontColor"></i></span></div>');
+                                    newInnerDiv.append(newInput);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    $('#dataLabelsFontColorContainer').show();
+                                    $('#dataLabelsFontColor').show();
+                                    $("#widgetDataLabelsFontColor").css('display', 'block');
+                                    $("#widgetDataLabelsFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
+                                    //Nuova riga
+                                    //Legend font size
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="legendFontSize" class="col-md-2 control-label">Legend font size</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInput = $('<input type="text" class="form-control" id="legendFontSize" name="legendFontSize" value="10" required>  ');
+                                    newInnerDiv.append(newInput);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newInput.show();
+
+                                    //Legend font color
+                                    newLabel = $('<label for="legendFontColor" class="col-md-2 control-label">Legend font color</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInput = $('<div id="legendFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="legendFontColor" name="legendFontColor" required><span class="input-group-addon"><i id="widgetLegendFontColor"></i></span></div>');
+                                    newInnerDiv.append(newInput);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    $('#legendFontColorContainer').show();
+                                    $('#legendFontColor').show();
+                                    $("#widgetLegendFontColor").css('display', 'block');
+                                    $("#widgetLegendFontColor").parent().parent().parent().colorpicker({
+                                        color: "#000000",
+                                        format: "rgba"
+                                    });
+
+                                    //Nuova riga
+                                    //Lines colors
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="barsColorsSelect" class="col-md-2 control-label">Lines colors</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select class="form-control" id="barsColorsSelect" name="barsColorsSelect"></select>');
+                                    newSelect.append('<option value="auto">Automatic</option>');
+                                    newSelect.append('<option value="manual">Manual</option>');
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newSelect.show();
+
+                                    //Chart type
+                                    newLabel = $('<label for="chartType" class="col-md-2 control-label">Chart type</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select class="form-control" id="chartType" name="chartType"></select>');
+                                    newSelect.append("<option value='lines'>Simple lines</option>");
+                                    newSelect.append("<option value='area'>Area lines</option>");
+                                    newSelect.append("<option value='stacked'>Stacked area lines</option>");
+                                    newSelect.val("lines");
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newSelect.show();
+
+                                    //Nuova riga
+                                    //Data labels
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="dataLabels" class="col-md-2 control-label">Data labels</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select class="form-control" id="dataLabels" name="dataLabels"> ');
+                                    newSelect.append('<option value="no">No data labels</option>');
+                                    newSelect.append('<option value="value">Value only</option>');
+                                    newSelect.append('<option value="full">Field name and value</option>');
+                                    newSelect.val("value");
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newSelect.show();
+
+                                    //Contenitore per tabella dei colori
+                                    barsColorsTableContainer = $('<div id="barsColorsTableContainer" class="row rowCenterContent"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(barsColorsTableContainer);
+                                    barsColorsTableContainer.hide();
+
+                                    //Costruiamo la tabella dei colori e il corrispondente JSON una tantum e mostriamola/nascondiamola a seconda di cosa sceglie l'utente, per non perdere eventuali colori immessi in precedenza.
+                                    var colorsTable, newRow, newCell = null;
+                                    var defaultColorsArray = ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
+                                    var colorsArray = new Array();
+
+                                function updateXAxisSelect() {
+                                    var colorsTarget = null;
+                                    colorsTable.find('tr').remove();
+                                    colorsTable.append("<tr><td>Series</td><td>Color</td></tr>");
+
+                                    $('#alrAxisSel').empty();
+
+                                    if ($("#xAxisDataset").val() === series.firstAxis.desc) {
+                                        //Grafico non trasposto
+                                        colorsTarget = series.secondAxis.labels;
+                                        $('#alrAxisSel').append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                    } else {
+                                        //Grafico trasposto
+                                        colorsTarget = series.firstAxis.labels;
+                                        $('#alrAxisSel').append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
+                                    }
+
+                                    alrAxisSelListener();
+
+                                    for (var i in colorsTarget) {
+                                        newRow = $('<tr></tr>');
+                                        newCell = $('<td>' + colorsTarget[i] + '</td>');
+                                        newRow.append(newCell);
+                                        newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                        newRow.append(newCell);
+                                        newRow.find('div.colorPicker').colorpicker({
+                                            color: defaultColorsArray[i % 10],
+                                            format: "rgba"
+                                        });
+                                        newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColors);
+                                        colorsArray.push(defaultColorsArray[i % 10]);
+                                        colorsTable.append(newRow);
+                                    }
+                                    $('label[for="alrFieldSel"]').hide();
+                                    $('#alrFieldSel').hide();
+                                    $('#alrFieldSel').parent().hide();
+                                    $('label[for="alrAxisSel"]').hide();
+                                    $('#alrAxisSel').hide();
+                                    $('#alrAxisSel').parent().hide();
+                                    $('#alrThrSel').val("no");
+                                }
+
+                                function updateWidgetBarSeriesColors(e, params) {
+                                    var newColor = $(this).colorpicker('getValue');
+                                    var index = parseInt($(this).parents('tr').index() - 1);
+                                    colorsArray[index] = newColor;
+                                    $("#barsColors").val(JSON.stringify(colorsArray));
+                                }
+
+                                    $("#xAxisDataset").off();
+                                    $("#xAxisDataset").on("change", updateXAxisSelect);
+
+                                    colorsTable = $("<table id ='colorsTable' class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
+
+                                    updateXAxisSelect();
+
+                                    $("#barsColors").val(JSON.stringify(colorsArray));
+                                    $('#barsColorsTableContainer').append(colorsTable);
+
+                                    $('#barsColorsSelect').change(function () {
+                                        if ($('#barsColorsSelect').val() === "manual") {
+                                            $('#barsColorsTableContainer').show();
+                                        } else {
+                                            $('#barsColorsTableContainer').hide();
+                                        }
+                                    });
+
+                                    //Codice costruzione soglie
+                                    //Nuova riga
+                                    //Set thresholds
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
+                                    newSelect.append('<option value="yes">Yes</option>');
+                                    newSelect.append('<option value="no">No</option>');
+                                    newSelect.val('no');
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.show();
+                                    newInnerDiv.show();
+                                    newSelect.show();
+
+                                    //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
+                                    $('#alrThrSel').change(alrThrSelListener);
+
+                                    //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
+                                    newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label">Thresholds target set</label>');
+                                    newSelect = $('<select class="form-control" id="alrAxisSel" name="alrAxisSel"></select>');
+                                    if ($("#xAxisDataset").val() === series.firstAxis.desc) {
+                                        //No trasposizione
+                                        newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                    } else {
+                                        //Trasposizione
+                                        newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
+                                    }
+                                    alrAxisSelListener();
+                                    newSelect.val(-1);
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.hide();
+                                    newInnerDiv.hide();
+                                    newSelect.hide();
+
+                                    //Nuova riga
+                                    //Threshold field select
+                                    newFormRow = $('<div class="row"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(newFormRow);
+                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label">Thresholds target field</label>');
+                                    newSelect = $('<select class="form-control" id="alrFieldSel" name="alrFieldSel">');
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.hide();
+                                    newInnerDiv.hide();
+                                    newSelect.hide();
+
+                                    //Threshold look&feel
+                                    newLabel = $('<label for="alrLook" class="col-md-2 control-label">Thresholds look&feel</label>');
+                                    newSelect = $('<select class="form-control" id="alrLook" name="alrLook">');
+                                    newSelect.append('<option value="none">Tooltip only</option>');
+                                    newSelect.append('<option value="lines">Lines</option>');
+                                    newSelect.append('<option value="areas">Background areas</option>');
+                                    newSelect.val("lines");
+                                    newInnerDiv = $('<div class="col-md-3"></div>');
+                                    newInnerDiv.append(newSelect);
+                                    newFormRow.append(newLabel);
+                                    newFormRow.append(newInnerDiv);
+                                    newLabel.hide();
+                                    newInnerDiv.hide();
+                                    newSelect.hide();
+
+                                    //Contenitore per tabella delle soglie
+                                    addWidgetRangeTableContainer = $('<div id="addWidgetRangeTableContainer" class="row rowCenterContent"></div>');
+                                    $("#specificWidgetPropertiesDiv").append(addWidgetRangeTableContainer);
+                                    addWidgetRangeTableContainer.hide();*/
+                                    break;
+
                                 case "widgetScatterSeries":
                                     $('#inputUrlWidget').val('none');
                                     $('#inputUrlWidget').prop("required", false);
@@ -17270,7 +17688,7 @@
                                 var entityJson = JSON.parse(data.entityJson);
                                 var attributeName = data.attributeName;
                                 var widgetTypeM = data.type_widget;
-                                if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb" || widgetTypeM == "widgetSelectorTech" || widgetTypeM == "widgetCurvedLineSeries") {
+                    if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb" || widgetTypeM == "widgetSelectorTech" || widgetTypeM == "widgetCurvedLineSeries" || widgetTypeM == "widgetCalendar") {
                                     $("#specificParamsM").css("width", "100%");
                                 }
                                 var paramsRaw = data['param_w'];
@@ -17285,7 +17703,7 @@
                                 var info_mess = data['info_mess'];
                                 $("#inputShowTitleM").val(data['showTitle']);
                                 
-                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries" && widgetTypeM != "widgetRadarSeries"  && widgetTypeM != "widgetGaugeChart" && widgetTypeM != "widgetSpeedometer" && widgetTypeM != "widgetPieChart" && widgetTypeM != "widgetSingleContent" && widgetTypeM != "widgetTable")
+                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries" && widgetTypeM != "widgetRadarSeries"  && widgetTypeM != "widgetGaugeChart" && widgetTypeM != "widgetSpeedometer" && widgetTypeM != "widgetPieChart" && widgetTypeM != "widgetSingleContent" && widgetTypeM != "widgetTable" && widgetTypeM != "widgetCalendar")
                                 {
                                     $('#actuatorTargetM').parents('div.row').show();
                                     if((data.actuatorTarget === 'app'))
@@ -19514,6 +19932,7 @@
                                     $('#select-widget-m').val(data['type_widget']);
                                     $("#inputComuneWidgetM").val(data['municipality_metric_widget']);
                                     $('#select-IntTemp-Widget-m').val(data['temporal_range_widget']);
+                                    $('#editWidgetComparePeriod').val(data['temporal_compare_widget']);
                                     $("#mod-n-metrcis-widget").text("max " + data['number_metrics_widget'] + " metrics");
                                     $("#textarea-metric-widget-m").val('');
                                     $("#inputUdmWidgetM").val(decodeURI(data['udm']));
@@ -20892,7 +21311,7 @@
 
                                                 var svgSingleReadVariablesObj = null;
                                                 var iconPoolDatasetJSONCustom = null;
-                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin") {
+                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin" || editGisParameters.queries[i].bubble == "DynamicCustomPin") {
 
                                                     // RETRIEVE METRICS ARRAY FOR BUBBLE CHART (SERVER SIDE)
                                                     getBubbleMetrics(editGisParameters.queries[i].query, i, function(extractedMetrics) {
@@ -21041,13 +21460,13 @@
                                                     var suggestedIconsList = "";
                                                 }
 
-                                                if (editGisParameters.queries[i].bubble == 'CustomPin') {
+                                                if (editGisParameters.queries[i].bubble == 'CustomPin' || editGisParameters.queries[i].bubble == 'DynamicCustomPin') {
                                                     if (svgArray != null) {
                                                         var    iconPoolDatasetJSON = buildIconsBox("", i, svgArray, newTableRow, newTableCell, widgetId)
                                                     }
                                                 }
 
-                                                if(styleParameters.iconText == "Icon Only" && editGisParameters.queries[i].bubble != 'CustomPin') {
+                                                if(styleParameters.iconText == "Icon Only" && editGisParameters.queries[i].bubble != 'CustomPin' && editGisParameters.queries[i].bubble != 'DynamicCustomPin') {
                                                     var iconPoolDatasetJSON = buildIconsBox(suggestedIconsList, i, allIcons, newTableRow, newTableCell, widgetId);
                                                 }
                                             
@@ -21166,7 +21585,7 @@
                                                         // Set Preview Icon with Default if bubble='None' AND iconPoolImg cotains the substring synopticTemplates/svg
                                                         if (editGisParameters.queries[i].iconPoolImg != null) {
                                                         //    if (editGisParameters.queries[i].bubble == 'None' && editGisParameters.queries[i].iconPoolImg.includes("synopticTemplates/svg")) {
-                                                            if (editGisParameters.queries[i].bubble != 'CustomPin' && editGisParameters.queries[i].iconPoolImg.includes("synopticTemplates/svg")) {
+                                                            if (editGisParameters.queries[i].bubble != 'CustomPin' && editGisParameters.queries[i].bubble != 'DynamicCustomPin' && editGisParameters.queries[i].iconPoolImg.includes("synopticTemplates/svg")) {
                                                                 newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
                                                                 //    $(this).parents('tr').find('div.icons-selector').hide();
                                                                 $(this).parents('tr').find('div.icons-selector').css("display", "none");
@@ -21336,6 +21755,7 @@
                                                 newTableCell.find('select').append('<option value="None">None</option>');
                                                 newTableCell.find('select').append('<option value="Bubble">Bubble</option>');
                                                 newTableCell.find('select').append('<option value="CustomPin">Custom Pin</option>');
+                                                newTableCell.find('select').append('<option value="DynamicCustomPin">Dynamic Custom Pin</option>');
                                                 newTableRow.append(newTableCell);
                                                 newTableCell.find('select').val(editGisParameters.queries[i].bubble);
                                                 newTableCell.find('select').on('change', editGisUpdateParams);
@@ -21345,7 +21765,7 @@
                                                 newTableCell = $('<td class="bubbleMetricsTd"><select id="bubbleMetricsSelect' + i + '" data-param="bubbleMetrics" class="form-control"></select></td>');
                                                 newTableRow.append(newTableCell);
 
-                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin") {
+                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin" || editGisParameters.queries[i].bubble == "DynamicCustomPin") {
                                                     var bubbleMetricsString = $('#' + data.name_widget + '_pinCtn' + i).attr("data-bubblemetricsarray");
                                                     if (bubbleMetricsString === "loading available metrics...") {
                                                         var bubbleMetricsArray = ["loading available metrics...", editGisParameters.queries[i].bubbleMetrics];
@@ -21445,7 +21865,7 @@
                                             // Set Starting Icon (in Icon-Only Modality)
                                                 if (editGisParameters.queries[i].iconPoolImg != null) {
                                                  //   if (editGisParameters.queries[i].bubble == 'CustomPin' || editGisParameters.queries[i].iconPoolImg.includes('synopticTemplates/svg')) {
-                                                    if (editGisParameters.queries[i].bubble == 'CustomPin' && editGisParameters.queries[i].iconPoolImg.split('widgetSelectorIconsPool')[1] == null) {
+                                                    if ((editGisParameters.queries[i].bubble == 'CustomPin' || editGisParameters.queries[i].bubble == 'DynamicCustomPin') && editGisParameters.queries[i].iconPoolImg.split('widgetSelectorIconsPool')[1] == null) {
                                                         picker.setIcon(editGisParameters.queries[i].iconPoolImg);
                                                     } else {
                                                         let iconPathToSet = "";
@@ -21456,7 +21876,7 @@
                                                         picker.setIcon(iconPathToSet);
                                                     }
 
-                                                    if (editGisParameters.queries[i].bubble == "CustomPin") {
+                                                    if (editGisParameters.queries[i].bubble == "CustomPin" || editGisParameters.queries[i].bubble == "DynamicCustomPin") {
                                                         //     newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
                                                         $('div.selector').filter(function () {
                                                             return $(this).attr('data-fip-origin') == 'Selector_poolBtn_' + i;
@@ -25692,7 +26112,414 @@
                                         }
                                         $("#editMultiSeriesQueryTable i.fa-plus").click(addMultiSeriesQueryM);
                                         break;
-                                        
+
+                                        case "widgetCalendar":
+                                            var thrTables1 = new Array();
+                                            var thrTables2 = new Array();
+                                            var thrSeries, i, j, k, min, max, color, newTableRow, newTableCell, currentFieldIndex, currentSeriesIndex, colorsTable, newRow, newCell, newFormRow, newLabel, newInnerDiv, newInputGroup, newSelect, newInput, newSpan, addWidgetRangeTableContainer, barsColorsTableContainerM = null;
+                                            var defaultColorsArray = ['#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'];
+                                            var colorsArray = new Array();
+                                            var metricId = $('#metricWidgetM').val();
+                                            var metricData = getMetricData(metricId);
+                                            if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                                var seriesString = metricData.data[0].commit.author.series;
+                                                var series = jQuery.parseJSON(seriesString);
+                                            } else {
+                                                var seriesDataArray = [];
+                                                var seriesString = "";
+                                                var series = null;
+                                                var rowParamsArray = JSON.parse(rowParams);
+                                                if (serviceUri) {
+                                                    series = jQuery.parseJSON(serviceUri);
+                                                } else {
+                                                    for (var i = 0; i < rowParamsArray.length; i++) {
+                                                        metricLabels = getMetricLabelsForBarSeries(rowParamsArray);
+                                                        deviceLabels = getDeviceLabelsForBarSeries(rowParamsArray);
+                                                        let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+                                                        series = serializeDataForSeries(metricLabels, deviceLabels);
+                                                    }
+                                                }
+                                            }
+
+                                            removeWidgetProcessGeneralFields("editWidget");
+
+                                            /*var metricLabels = [];
+                                            var deviceLabels = [];
+
+                                            if (rowParamsArray) {
+                                                if (!serviceUri) {
+                                                    // Caso New curvedLineSeries primo istanziamento
+                                                    for (n = 0; n < rowParamsArray.length; n++) {
+                                                        if (!metricLabels.includes(rowParamsArray[n].smField)) {
+                                                            metricLabels.push(rowParamsArray[n].smField);
+                                                        }
+
+                                                        if (!deviceLabels.includes(rowParamsArray[n].metricName)) {
+                                                            deviceLabels.push(rowParamsArray[n].metricName);
+                                                        }
+                                                    }
+                                                } else {
+                                                    deviceLabels = series.secondAxis.labels;
+                                                }
+                                            }*/
+
+                                            //Funzione di settaggio dei globals per il file dashboard_configdash.js
+                                            setGlobals(currentParams, thrTables1, thrTables2, series, $('#select-widget-m').val());
+
+                                            //Costruzione THRTables dai parametri provenienti da DB (vuote se non ci sono soglie per quel campo, anche nel caso di nessuna soglia settata in assoluto
+                                            buildThrTablesForEditWidget();
+
+                                            //Rimozione eventuali campi del subform general per widget process
+                                            removeWidgetProcessGeneralFields("editWidget");
+
+                                            setEditMultiSeriesParameters(rowParamsArray);
+
+                                            if(styleParamsRaw !== null) {
+                                                styleParameters = JSON.parse(styleParamsRaw);
+                                            }
+
+                                            $("label[for='inputComuneWidgetM']").css("display", "");
+                                            $("label[for='inputComuneWidgetM']").text("Context");
+                                            $('#link_help_modal-add-widget-m').css("display", "");
+                                            $('#inputComuneWidgetM').attr('disabled', true);
+                                            $("label[for='inputTitleWidgetM']").html("Title");
+                                            $("label[for='inputColorWidgetM']").html("Background color");
+                                            $('#inputTitleWidgetM').attr('disabled', false);
+                                            $('#select-frameColor-Widget-m').attr('disabled', false);
+                                            $('#select-frameColor-Widget-m').prop('required', true);
+                                            $('#select-IntTemp-Widget-m').attr('disabled', true);
+                                            $('#select-IntTemp-Widget-m').prop('required', false);
+                                            $('#inputFreqWidgetM').prop('disabled', false);
+                                            $("#urlWidgetM").prop('disabled', false);
+                                            $('#inputFontSizeM').prop('required', true);
+                                            $('#inputFontSizeM').prop('disabled', false);
+                                            $('#inputFontColorM').prop('required', true);
+                                            $('#inputFontColorM').prop('disabled', false);
+                                            $('#urlWidgetM').attr('disabled', false);
+                                            $('#inputHeaderFontColorWidgetM').attr('disabled', false);
+                                            $('#inputHeaderFontColorWidgetM').prop('required', true);
+                                            $('#inputUdmWidgetM').prop("required", false);
+                                            $('#inputUdmWidgetM').attr("disabled", true);
+                                            $('#inputUdmWidgetM').val("");
+                                            $('#inputUdmPositionM').prop("required", false);
+                                            $('#inputUdmPositionM').attr("disabled", true);
+                                            $('#inputUdmPositionM').val(-1);
+
+                                            //RIMOZIONE CAMPI PER TUTTI GLI ALTRI WIDGET
+                                            $('#specificParamsM .row').remove();
+
+                                            //Visualizzazione campi specifici per questo widget
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+
+                                            newLabel = $('<label for="meanSum" class="col-md-1 control-label">Operazione</label>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newSelect = $('<select class="form-control" id="meanSum" name="meanSum" required>');
+                                            newSelect.append('<option value="sum">Somma</option>');
+                                            newSelect.append('<option value="mean">Media</option>');
+
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            newSelect.show();
+
+                                            $("#meanSum").val(styleParameters.meanSum);
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+
+                                            newLabel = $('<label for="calendarViewMode" class="col-md-1 control-label">Vista</label>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newSelect = $('<select class="form-control" id="calendarViewMode" name="calendarViewMode" required>');
+                                            newSelect.append('<option value="monthly">Mensile</option>');
+                                            newSelect.append('<option value="yearly">Annuale</option>');
+
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            newSelect.show();
+
+                                            $("#calendarViewMode").val(styleParameters.calendarViewMode);
+
+                                            //Parametri specifici del widget
+                                            /*if(styleParamsRaw !== null) {
+                                                $("#xAxisDatasetM").val(styleParameters.xAxisDataset);
+                                                $("#rowsLabelsFontSizeM").val(styleParameters.rowsLabelsFontSize);
+                                                $("#rowsLabelsFontColorM").val(styleParameters.rowsLabelsFontColor);
+                                                $("#widgetRowsLabelsFontColorM").css("background-color", styleParameters.rowsLabelsFontColor);
+                                                $("#widgetRowsLabelsFontColorM").parent().parent().colorpicker({color: styleParameters.rowsLabelsFontColor, format: "rgba"});
+                                                $("#colsLabelsFontSizeM").val(styleParameters.colsLabelsFontSize);
+                                                $("#colsLabelsFontColorM").val(styleParameters.colsLabelsFontColor);
+                                                $("#widgetColsLabelsFontColorM").css("background-color", styleParameters.colsLabelsFontColor);
+                                                $("#widgetColsLabelsFontColorM").parent().parent().colorpicker({color: styleParameters.colsLabelsFontColor, format: "rgba"});
+                                                $("#dataLabelsFontSizeM").val(styleParameters.dataLabelsFontSize);
+                                                $("#dataLabelsFontColorM").val(styleParameters.dataLabelsFontColor);
+                                                $("#widgetDataLabelsFontColorM").css("background-color", styleParameters.dataLabelsFontColor);
+                                                $("#widgetDataLabelsFontColorM").parent().parent().colorpicker({color: styleParameters.dataLabelsFontColor, format: "rgba"});
+                                                $("#legendFontSizeM").val(styleParameters.legendFontSize);
+                                                $("#legendFontColorM").val(styleParameters.legendFontColor);
+                                                $("#widgetLegendFontColorM").css("background-color", styleParameters.legendFontColor);
+                                                $("#widgetLegendFontColorM").parent().parent().colorpicker({color: styleParameters.legendFontColor, format: "rgba"});
+                                                $("#barsColorsSelectM").val(styleParameters.barsColorsSelect);
+                                                $("#chartTypeM").val(styleParameters.chartType);
+                                                $("#dataLabelsM").val(styleParameters.dataLabels);
+                                                $("#lineWidthM").val(styleParameters.lineWidth);
+                                                $("#alrLookM").val(styleParameters.alrLook);
+                                                $("#xAxisLabel").val(styleParameters.xAxisLabel);
+                                                $("#yAxisLabel").val(styleParameters.yAxisLabel);
+                                            }*/
+
+                                            //Contenitore per tabella dei colori
+                                            barsColorsTableContainerM = $('<div id="barsColorsTableContainerM" class="row rowCenterContent"></div>');
+                                            $("#specificParamsM").append(barsColorsTableContainerM);
+
+                                        function updateWidgetBarSeriesColorsM(e, params) {
+                                            var newColor = $(this).colorpicker('getValue');
+                                            var index = parseInt($(this).parents('tr').index() - 1);
+                                            colorsArray[index] = newColor;
+                                            $("#barsColorsM").val(JSON.stringify(colorsArray));
+                                        }
+
+                                            colorsTable = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
+                                            if (series) {
+                                                for (var i in rowParamsArray) {
+                                                    newRow = $('<tr></tr>');
+                                                    newCell = $('<td>' + rowParamsArray[i].metricName + '</td>');
+                                                    newRow.append(newCell);
+                                                    newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                    newRow.append(newCell);
+                                                    //Se l'attuale impostazione è per colori automatici, costruiamo JSON e tabella GUI con impostazioni di default, altrimenti con colori da DB
+                                                    if (styleParameters.barsColorsSelect === 'auto') {
+                                                        newRow.find('div.colorPicker').colorpicker({
+                                                            color: defaultColorsArray[i % 10],
+                                                            format: "rgba"
+                                                        });
+                                                        colorsArray.push(defaultColorsArray[i % 10]);
+                                                    } else {
+                                                        newRow.find('div.colorPicker').colorpicker({
+                                                            color: styleParameters.barsColors[i],
+                                                            format: "rgba"
+                                                        });
+                                                        colorsArray.push(styleParameters.barsColors[i]);
+                                                    }
+
+                                                    newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColorsM);
+                                                    colorsTable.append(newRow);
+                                                }
+                                            }
+
+                                            $("#barsColorsM").val(JSON.stringify(colorsArray));
+                                            $('#barsColorsTableContainerM').append(colorsTable);
+
+                                            //Per prima visualizzazione in edit
+                                            if($('#barsColorsSelectM').val() === "manual") {
+                                                $('#barsColorsTableContainerM').show();
+                                            } else {
+                                                $('#barsColorsTableContainerM').hide();
+                                            }
+
+                                            if (rowParamsArray) {   // For NEW wdgetCurvedLineSeries Only
+                                                //Nuova riga
+                                                //Contenitore per tabella delle query
+                                                var editMultiSeriesQueryTableContainer = $('<div id="editMultiSeriesQueryTableContainer" class="row rowCenterContent"></div>');
+                                                var editMultiSeriesQueryTable = $("<table id='editMultiSeriesQueryTable' data-widgetType='calendar' class='table table-bordered table-condensed thrRangeTable'><col style='width:100px'><col style='width:136px'><col style='width:50px'><col style='width:76px'><col style='width:25px'><tr><td><br>Labels</td><td>Query ID or URI <br>(Empty for Dynamic Data from IOT-Apps)</td><td>Value Type<br>(Mandatory only for MyKPI & Sensor)</td><td><br>Color</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                                editMultiSeriesQueryTableContainer.append(editMultiSeriesQueryTable);
+                                                $("#specificParamsM").append(editMultiSeriesQueryTableContainer);
+
+                                                for (var i = 0; i < rowParamsArray.length; i++) {
+                                                    newTableRow = $('<tr></tr>');
+
+                                                    var placeholderStr = "";
+                                                    if (rowParamsArray[i].label) {
+                                                        placeholderStr = rowParamsArray[i].label;
+                                                    } else {
+                                                        placeholderStr = rowParamsArray[i].metricName + ' - ' + rowParamsArray[i].smField;
+                                                    }
+
+                                                    // Labels CELL
+                                                    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="labels"></a></td>');
+                                                    newTableCell.find('a').editable({
+                                                        emptytext: "Empty",
+                                                        display: function (value, response) {
+                                                            if (value.length > 30) {
+                                                                $(this).html(value.substring(0, 30) + "...");
+                                                            } else {
+                                                                $(this).html(value);
+                                                            }
+                                                        },
+                                                        value: placeholderStr
+                                                    });
+                                                    newTableRow.append(newTableCell);
+
+                                                    // Query ID or URI CELL
+                                                    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="queryIDUrl"></td>');
+                                                    newTableCell.find('a').editable({
+                                                        emptytext: "Empty",
+                                                        display: function (value, response) {
+                                                            if (value.length > 45) {
+                                                                $(this).html(value.substring(0, 45) + "...");
+                                                            } else {
+                                                                $(this).html(value);
+                                                            }
+                                                        },
+                                                        value: rowParamsArray[i].serviceUri
+                                                    });
+                                                    newTableRow.append(newTableCell);
+
+                                                    // Value Type CELL
+                                                    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="valueType"></td>');
+                                                    newTableCell.find('a').editable({
+                                                        emptytext: "Empty",
+                                                        display: function (value, response) {
+                                                            if (value.length > 12) {
+                                                                $(this).html(value.substring(0, 12) + "...");
+                                                            } else {
+                                                                $(this).html(value);
+                                                            }
+                                                        },
+                                                        value: rowParamsArray[i].smField
+                                                    });
+                                                    newTableRow.append(newTableCell);
+
+                                                    function updateWidgetBarSeriesColorsM(e, params) {
+                                                        var newColor = $(this).colorpicker('getValue');
+                                                        var index = parseInt($(this).parents('tr').index() - 1);
+                                                        colorsArray[index] = newColor;
+                                                        $("#barsColorsM").val(JSON.stringify(colorsArray));
+                                                    }
+
+                                                    newTableCell = $('<td><div class="input-group colorPicker" data-param="lineColor"><input type="text" class="input form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
+                                                    newTableRow.append(newTableCell);
+                                                    newTableRow.find('div.colorPicker').colorpicker({
+                                                        color: styleParameters.barsColors[i],
+                                                        format: "rgba"
+                                                    });
+                                                    colorsArray.push(styleParameters.barsColors[i]);
+
+                                                    newTableRow.find('div.colorPicker').on('changeColor', editMultiSeriesUpdateParams);
+                                                    colorsTable.append(newTableRow);
+                                                    newTableRow.append(newTableCell);
+
+                                                    newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
+                                                    newTableCell.find('i').click(delMultiSeriesQueryM);
+                                                    newTableRow.append(newTableCell);
+                                                    newTableRow.find('a.toBeEdited').on('save', editMultiSeriesUpdateParams);
+                                                    $("#editMultiSeriesQueryTable").append(newTableRow);
+                                                }
+                                            }
+
+                                            //Codice di creazione soglie
+                                            //Nuova riga
+                                            //Set thresholds
+                                            /*
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="alrThrSelM" class="col-md-1 control-label">Set thresholds</label>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
+                                            newSelect.append('<option value="yes">Yes</option>');
+                                            newSelect.append('<option value="no">No</option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            newSelect.show();
+
+                                            //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
+                                            newLabel = $('<label for="alrAxisSelM" class="col-md-1 control-label">Thresholds target set</label>');
+                                            newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
+                                            if($("#xAxisDatasetM").val() === series.firstAxis.desc) {
+                                                //No trasposizione
+                                                newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
+                                            } else {
+                                                //Trasposizione
+                                                newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
+                                            }
+                                            newSelect.val(-1);
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.hide();
+                                            newInnerDiv.hide();
+                                            newSelect.hide();
+
+                                            //Nuova riga
+                                            //Threshold field select
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="alrFieldSelM" class="col-md-1 control-label">Thresholds target field</label>');
+                                            newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.hide();
+                                            newInnerDiv.hide();
+                                            newSelect.hide();
+
+                                            //Threshold look&feel
+                                            newLabel = $('<label for="alrLookM" class="col-md-1 control-label">Thresholds look&feel</label>');
+                                            newSelect = $('<select class="form-control" id="alrLookM" name="alrLookM">');
+                                            newSelect.append('<option value="none">Tooltip only</option>');
+                                            newSelect.append('<option value="lines">Lines</option>');
+                                            newSelect.append('<option value="areas">Background areas</option>');
+                                            newSelect.val(styleParameters.alrLook);
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.hide();
+                                            newInnerDiv.hide();
+                                            newSelect.hide();
+
+                                            //Contenitore per tabella delle soglie
+                                            addWidgetRangeTableContainerM = $('<div id="addWidgetRangeTableContainerM" class="row rowCenterContent"></div>');
+                                            $("#specificParamsM").append(addWidgetRangeTableContainerM);
+                                            addWidgetRangeTableContainerM.hide();
+
+                                            //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
+                                            $('#alrThrSelM').change(alrThrFlagMListener);
+                                            */
+
+                                            if(currentParams === null) {
+                                                $('#alrThrSelM').val("no");
+                                                $("label[for='alrAxisSelM']").hide();
+                                                $('#alrAxisSelM').val(-1);
+                                                $('#alrAxisSelM').hide();
+                                                $('#parametersM').val(rowParams);
+                                            } else {
+                                                //ESPOSIZIONE DEI CAMPI
+                                                $('#alrThrSelM').val("yes");
+                                                $('#alrAxisSelM').val(currentParams.thresholdObject.target);
+                                                $("label[for='alrAxisSelM']").show();
+                                                $('#alrAxisSelM').parent().show();
+                                                $('#alrAxisSelM').show();
+                                                $("label[for='alrFieldSelM']").show();
+                                                $('#alrFieldSelM').parent().show();
+                                                $('#alrFieldSelM').show();
+                                                $("label[for='alrLookM']").show();
+                                                $('#alrLookM').parent().show();
+                                                $('#alrLookM').show();
+                                                $('#alrLookM').val(styleParameters.alrLook);
+                                                //POPOLAMENTO DELLA SELECT DEI CAMPI
+                                                alrAxisSelMListener();
+                                                $('#addWidgetRangeTableContainerM').show();
+                                                $('#parametersM').val(JSON.stringify(currentParams));
+                                                //Listener per settaggio/desettaggio campi in base ad asse selezionato
+                                                $('#alrAxisSelM').change(alrAxisSelMListener);
+                                                //Listener per selezione campo
+                                                $('#alrFieldSelM').change(alrFieldSelMListener);
+                                            }
+                                            $("#editMultiSeriesQueryTable i.fa-plus").click(addMultiSeriesQueryM);
+                                            break;
+
                                         case "widgetScatterSeries":
                                         //$("#inputComuneRowM").css("display", "");
                                         $("label[for='inputComuneWidgetM']").css("display", "");
@@ -29301,6 +30128,58 @@
                                         $("#specificParamsM").append(newFormRow);
                                         newLabel.show();
                                         newInnerDiv.show();
+                                        
+                                        newFormRow = $('<div class="row"></div>');
+
+                                        newLabel = $('<label for="editWidgetComparePeriod" class="col-md-2 control-label">Compare Period</label>');
+                                        newInnerDiv = $('<div class="col-md-9"></div>');
+                                        newSelect = $('<select name="editWidgetComparePeriod" class="form-control" id="editWidgetComparePeriod"></select>');
+                                        
+                                        switch ($('#select-IntTemp-Widget-m').val())
+                                        {
+                                            
+                                            case "4 Ore":
+                                                newSelect.append('<option value="4 previous hours">4 previous hours</option>');
+                                                newSelect.append('<option value="4 hours day before">4 hours day before</option>');
+                                                break;
+                                            case "12 Ore":
+                                                newSelect.append('<option value="12 previous hours">12 previous hours</option>');
+                                                newSelect.append('<option value="12 hours day before">12 hours day before</option>');
+                                                break;
+                                            case "Giornaliera":
+                                                newSelect.append('<option value="previous day">previous day</option>');
+                                                newSelect.append('<option value="same day previous week">same day previous week</option>');
+                                                newSelect.append('<option value="same day previous month">same day previous month</option>');
+                                                break;
+                                            case "Settimanale":
+                                                newSelect.append('<option value="previous week">previous week</option>');
+                                                newSelect.append('<option value="previous week starting Monday">previous week starting Monday</option>');
+                                                break;
+                                            case "Mensile":
+                                                newSelect.append('<option value="previous month">previous month</option>');
+                                                newSelect.append('<option value="previous month - day 1">previous month - day 1</option>');
+                                                newSelect.append('<option value="same month prev year - day 1">same month prev year - day 1</option>');
+                                                break;
+                                            case "Semestrale":
+                                                newSelect.append('<option value="previous 6 months">previous 6 months</option>');
+                                                newSelect.append('<option value="previous 6 months - day 1 of prev 6 months">previous 6 months - day 1 of prev 6 months</option>');
+                                                newSelect.append('<option value="same 6 months of prev year - day 1">same 6 months of prev year - day 1</option>');
+                                                newSelect.append('<option value="same 6 months of prev year - day 1 month 1 or 7">same 6 months of prev year - day 1 month 1 or 7</option>');
+                                                break;
+                                            case "Annuale":
+                                                newSelect.append('<option value="previous year">previous year</option>');
+                                                newSelect.append('<option value="previous year - day 1 of prev year">previous year - day 1 of prev year</option>');
+                                                newSelect.append('<option value="previous year - month 1">previous year - month 1</option>');
+                                                break;
+                                        }
+                                       
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newSelect.val(data['temporal_compare_widget']);
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel.show();
+                                        newInnerDiv.show();
                                         break;
                                         
                                     case "widgetEvents":
@@ -30069,7 +30948,7 @@
                                             //Show Orthomaps
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="showOrthomapsM" class="col-md-2 control-label">Show Othomaps Controls</label>');
+                                            newLabel = $('<label for="showOrthomapsM" class="col-md-2 control-label">Show Orthomaps Controls</label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="showOrthomapsM" name="showOrthomapsM"></select>');
                                             newSelect.append('<option style="display:none">');
@@ -30144,6 +31023,28 @@
                                                     $('#defaultOrthomapM').hide();
                                                     $('#defaultOrthomapLabelM').hide();
                                                 }
+                                            });
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="wsConnect" class="col-md-2 control-label">Connect to WS</label>');
+                                            newInnerDiv = $('<div class="col-md-3"></div>');
+                                            newSelect = $('<select class="form-control" id="wsConnect" name="wsConnect"></select>');
+                                            newSelect.append('<option style="display:none">');
+                                            newSelect.append('<option value="yes">Yes</option>');
+                                            newSelect.append('<option value="no">No</option>');
+                                            if (currentParams != null) {
+                                                if (currentParams.wsConnect) {
+                                                    newSelect.val(currentParams.wsConnect);
+                                                }
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            $('#wsConnect').change(function() {
+                                                gisTargetCenterParametersM.wsConnect = $("#wsConnect").val();
+                                                $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
                                             });
                                             
                                             //Nuova riga
@@ -32454,6 +33355,51 @@
             });
         }
 
+        });
+        $('#select-IntTemp-Widget-m').on('change', function(){
+            
+            switch ($(this).find(":selected").val()){
+                case "4 Ore":
+                    $('#editWidgetComparePeriod').empty();
+                    $('#editWidgetComparePeriod').append('<option value="4 previous hours">4 previous hours</option>');
+                    $('#editWidgetComparePeriod').append('<option value="4 hours day before">4 hours day before</option>');
+                    break;
+                case "12 Ore":
+                    $('#editWidgetComparePeriod').empty();
+                    $('#editWidgetComparePeriod').append('<option value="12 previous hours">12 previous hours</option>');
+                    $('#editWidgetComparePeriod').append('<option value="12 hours day before">12 hours day before</option>');
+                    break;
+                case "Giornaliera":
+                    $('#editWidgetComparePeriod').empty();
+                    $('#editWidgetComparePeriod').append('<option value="previous day">previous day</option>');
+                    $('#editWidgetComparePeriod').append('<option value="same day previous week">same day previous week</option>');
+                    $('#editWidgetComparePeriod').append('<option value="same day previous month">same day previous month</option>');
+                    break;
+                case "Settimanale":
+                    $('#editWidgetComparePeriod').empty();
+                    $('#editWidgetComparePeriod').append('<option value="previous week">previous week</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous week starting Monday">previous week starting Monday</option>');
+                    break;
+                case "Mensile":
+                    $('#editWidgetComparePeriod').empty();
+                    $('#editWidgetComparePeriod').append('<option value="previous month">previous month</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous month - day 1">previous month - day 1</option>');
+                    $('#editWidgetComparePeriod').append('<option value="same month prev year - day 1">same month prev year - day 1</option>');
+                    break;
+                case "Semestrale":
+                    $('#editWidgetComparePeriod').empty();
+                    $('#editWidgetComparePeriod').append('<option value="previous 6 months">previous 6 months</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous 6 months - day 1 of prev 6 months">previous 6 months - day 1 of prev 6 months</option>');
+                    $('#editWidgetComparePeriod').append('<option value="same 6 months of prev year - day 1">same 6 months of prev year - day 1</option>');
+                    $('#editWidgetComparePeriod').append('<option value="same 6 months of prev year - day 1 month 1 or 7">same 6 months of prev year - day 1 month 1 or 7</option>');
+                    break;
+                case "Annuale":
+                    $('#editWidgetComparePeriod').empty();
+                    $('#editWidgetComparePeriod').append('<option value="previous year">previous year</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous year - day 1 of prev year">previous year - day 1 of prev year</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous year - month 1">previous year - month 1</option>');
+                    break;
+            }
         });
         </script>	
     </body>

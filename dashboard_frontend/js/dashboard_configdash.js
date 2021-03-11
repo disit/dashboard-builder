@@ -630,13 +630,14 @@ function addGisQueryM()
        newTableCell.find('select').append('<option value="None">None</option>');
        newTableCell.find('select').append('<option value="Bubble">Bubble</option>');
        newTableCell.find('select').append('<option value="CustomPin">Custom Pin</option>');
+       newTableCell.find('select').append('<option value="DynamicCustomPin">Dynamic Custom Pin</option>');
        newTableRow.append(newTableCell);
        newTableCell.find('select').val('No');
        newTableCell.find('select').on('change', editGisUpdateParams);
 
        // Bubble Mterics CELL
     //   newTableCell = $('<div id="bubbleMetricsDiv' + i + '"><td class="bubbleMetricsTd"><select id="bubbleMetricsSelect' + i + '" data-param="bubbleMetrics" class="form-control"></select></td></div>');
-       newTableCell = $('<td class="bubbleMetricsTd"><select id="bubbleMetricsSelect' + i + '" data-param="bubbleMetrics" class="form-control"></select></td>');
+       newTableCell = $('<td class="bubbleMetricsTd"><select id="bubbleMetricsSelect' + ($('#editGisQueryTable tr').length - 1) + '" data-param="bubbleMetrics" class="form-control"></select></td>');
        //    newTableCell.find('select').append('<option value="Default">Yes</option>');
        //    newTableCell.find('select').append('<option value="SymbolColor">No</option>');
        newTableRow.append(newTableCell);
@@ -1056,7 +1057,7 @@ function editGisUpdateParams(e, params)
           newValue = $(this).val();
           let lastValue = editGisParametersLocal.queries[rowIndex].bubble;
           editGisParametersLocal.queries[rowIndex].bubble = newValue;
-          if (newValue == 'Bubble' || newValue == 'CustomPin') {
+          if (newValue == 'Bubble' || newValue == 'CustomPin' || newValue == 'DynamicCustomPin') {
               if (lastValue == null || lastValue == 'None' || lastValue == '') {
                   $('#bubbleMetricsSelect' + rowIndex).empty();
                   $('#bubbleMetricsSelect' + rowIndex).append('<option style="color:darkgrey" value="loading available metrics..." disabled>loading available metrics...</option>');
@@ -1064,10 +1065,15 @@ function editGisUpdateParams(e, params)
 
                   // print loading message
                   var bubbleMetricsString = $('#' + $('#editGisQueryTable').attr('data-name_w') + '_pinCtn' + rowIndex).attr("data-bubblemetricsarray");
-                  if (bubbleMetricsString === "loading available metrics...") {
-                      var bubbleMetricsArray = ["loading available metrics...", editGisParametersLocal.queries[rowIndex].bubbleMetrics];
+                  if (bubbleMetricsString != null) {
+                      if (bubbleMetricsString === "loading available metrics...") {
+                          var bubbleMetricsArray = ["loading available metrics...", editGisParametersLocal.queries[rowIndex].bubbleMetrics];
+                      } else {
+                          var bubbleMetricsArray = bubbleMetricsString.split(",");
+                      }
                   } else {
-                      var bubbleMetricsArray = bubbleMetricsString.split(",");
+                      var bubbleMetricsArray = ["loading available metrics..."];
+                      $('#' + $('#editGisQueryTable').attr('data-name_w') + '_pinCtn' + rowIndex).attr("data-bubblemetricsarray", bubbleMetricsArray)
                   }
 
                   bubbleMetricsArray[rowIndex] = [];
@@ -1282,7 +1288,7 @@ function delGisQueryM(e)
 {
    var delIndex = parseInt($(this).parents('tr').index() - 1);
    
-   //Cancellazione della riga dalla tabella 
+   //Cancellazione della riga dalla tabella
    //$(this).parents('tr').remove();
    $(this).parents('tr').hide();
    

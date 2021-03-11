@@ -16,6 +16,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
     include('../config.php');
+    include('../TourRepository.php');
     if(!isset($_SESSION))
     {
        session_start();
@@ -25,6 +26,7 @@
     
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
+    $tourRepo = new TourRepository($host, $username, $password, $dbname);
 ?>
 
 <!DOCTYPE html>
@@ -99,6 +101,9 @@
         
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/css/shepherd.min.css">
+        <!-- <link rel="stylesheet" href="../css/shepherd.min.css"> -->
+        <link href="../css/snapTour.css" rel="stylesheet">
     </head>
     <body class="guiPageBody">
         <div class="container-fluid">
@@ -228,7 +233,9 @@
         </div>        
     </body>
 </html>
-
+<script src="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/js/shepherd.min.js"></script>
+<!-- <script src="../js/shepherd.min.js"></script> -->
+<script src="../js/snapTour.js"></script>
 <script type='text/javascript'>
     $(document).ready(function ()
     {
@@ -899,4 +906,15 @@
                 }
             });
     });
-</script>  
+</script>
+
+<!--Ricordarsi di rimuovere la condizione sul singolo utente una volta finalizzato il tour -->
+<!-- condizione per utenti non loggati !isset($_SESSION["loggedUsername"]) || $_SESSION["loggedUsername"] == '' -->
+<?php if ($_SESSION["loggedUsername"] == 'paolo.disit' || !isset($_SESSION["loggedUsername"]) || $_SESSION["loggedUsername"] == '') : ?>
+    <script>
+        $(function() {
+            const steps = JSON.parse('<?= serializeToJsonString($tourRepo->getTourSteps("preRegisterTour")) ?>');
+            SnapTour.init(steps);
+        });
+    </script>
+<?php endif; ?>

@@ -1,0 +1,48 @@
+.shepherd-element {
+    max-width: 480px;
+}
+
+.shepherd-element,
+.shepherd-button,
+.shepherd-content,
+.shepherd-has-title .shepherd-content .shepherd-header {
+    border-radius: 0;
+}
+
+.shepherd-text {
+    font-size: 1.3rem;
+}
+
+.shepherd-button {
+    font-weight: bold;
+    color: white;
+}
+
+.shepherd-button.shepherd-prev-btn {
+    margin-right: auto;
+}
+
+.shepherd-button:not(:disabled):hover {
+    background-color: #037ea3;
+    color: white;
+}
+
+.shepherd-has-title .shepherd-content .shepherd-header,
+.shepherd-button {
+    background-color: #00a2d3;
+}
+
+.shepherd-has-title .shepherd-content .shepherd-header .shepherd-title {
+    font-size: 2rem;
+    color: white;
+    font-weight: 600;
+    flex: auto;
+}
+
+.shepherd-has-title .shepherd-content .shepherd-cancel-icon {
+    color: rgb(66 66 66 / 63%);
+}
+
+.shepherd-has-title .shepherd-content .shepherd-header {
+    justify-content: space-between;
+}

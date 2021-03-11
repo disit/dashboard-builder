@@ -150,6 +150,7 @@
         $widgetTypeDbRow = NULL;
         $id_metric = NULL; 
         $widgetWizardSelectedRows = $_REQUEST['widgetWizardSelectedRows'];
+     //   $widgetWizardSelectedRows = json_decode($_REQUEST['widgetWizardSelectedRows'], true);
         // CONTROLLA SE E' ARRAY
         if(!is_array($widgetWizardSelectedRows)) {
             if ($widgetWizardSelectedRows != null) {
@@ -832,7 +833,11 @@
                                         if($widgetTypeDbRow['hasMainWidgetFactory'] == 'yes')
                                         {
                                             $widgetFactoryClass = ucfirst($type_w) . 'Factory';
-                                            $widgetFactory = new $widgetFactoryClass($newWidgetDbRow, $selectedRowKey, $widgetTypeDbRow, $mapCenterLat, $mapCenterLng, "main", null, $selection, $mapZoom);
+                                            if ($type_w == "widgetCalendar") {
+                                                $widgetFactory = new $widgetFactoryClass($newWidgetDbRow, $selectedRowKey, $widgetTypeDbRow, $mapCenterLat, $mapCenterLng, "main", $widgetWizardSelectedRows, $selection, $mapZoom);
+                                            } else {
+                                                $widgetFactory = new $widgetFactoryClass($newWidgetDbRow, $selectedRowKey, $widgetTypeDbRow, $mapCenterLat, $mapCenterLng, "main", null, $selection, $mapZoom);
+                                            }
                                             $newWidgetDbRow = $widgetFactory->completeWidget();
                                         }
                                         
