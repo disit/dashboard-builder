@@ -10,9 +10,15 @@ function postMyPersonalData($baseUrl, $username, $sourceRequest, $accessToken, $
     $apiUrl = $baseUrl . "/v1/username/" . rawurlencode($username) . "/data?sourceRequest=".$sourceRequest
             ."&accessToken=".$accessToken;
 
+	$dataTime = round(microtime(true)*1000);
+	$dataTimeEnd = null;
+	try { $dataTime = strtotime((json_decode($variableValue,true)["scenarioDatetimeStart"]).":00 ".date_default_timezone_get())*1000; } catch(Exception $e) { }
+	try { $dataTimeEnd = strtotime((json_decode($variableValue,true)["scenarioDatetimeEnd"]).":00 ".date_default_timezone_get())*1000; } catch(Exception $e) {  }
+	
     $bodyData = [
         "username" => $username,
-        "dataTime" => round(microtime(true) * 1000),
+        "dataTime" => $dataTime,
+		"dataTimeEnd" => $dataTimeEnd,
         "motivation" => $motivation,
         "variableName" => $variableName,
         "elementId" => $scenarioName,

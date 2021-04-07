@@ -225,65 +225,81 @@
                 $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
             }   */
 
-            $smUrl = $kbUrlSuperServiceMap . "?serviceUri=" . rawurlencode($dataOrigin->serviceUri) . "&format=json";
+            //$smUrl = $superServiceMapUrlPrefix."/api/v1/?serviceUri=" . $dataOrigin->serviceUri . "&format=json";
+            if (isset($_REQUEST['typicaltrend']) && ($_REQUEST['typicaltrend']) == 'Yes') {
+                $urlToCall = $kbUrlSuperServiceMap . "values/typicaltrends/?serviceUri=" . rawurlencode($dataOrigin->serviceUri) . "&format=json";
+                $metricType = "Float";
 
-            $metricType = "Float";
-            
-            if(isset($_REQUEST['timeRange']))
-            {
-                if (!empty($_REQUEST['timeRange'])) {
-                    if ($_REQUEST['timeRange'] != 'last') {
-                        switch ($_REQUEST['timeRange']) {
-                            case "4 Ore":
-                                $timeRange = "fromTime=4-hour";
-                                break;
+                if(isset($_REQUEST['trendtype']) && $_REQUEST['trendtype']!= ''){
+                    $urlToCall = $urlToCall . "&trendType=" . $_REQUEST['trendtype'];
+                }
+                if(isset($_REQUEST['trenddate']) && $_REQUEST['trenddate']!= ''){
+                    $urlToCall = $urlToCall . "&atDate=" . $_REQUEST['trenddate'];
+                }
+                if(isset($_REQUEST['tttdate']) && $_REQUEST['tttdate'] != ''){
+                    $urlToCall = $urlToCall . $_REQUEST['tttdate'];
+                }
+                if(isset($_REQUEST['field'])){
+                    $urlToCall = $urlToCall . "&valueName=" . $_REQUEST['field'];
+                }
+                //eventLog($urlToCall); 
+            } else {
+                $smUrl = $kbUrlSuperServiceMap . "?serviceUri=" . rawurlencode($dataOrigin->serviceUri) . "&format=json";
+                $metricType = "Float";
 
-                            case "12 Ore":
-                                $timeRange = "fromTime=12-hour";
-                                break;
+                if (isset($_REQUEST['timeRange'])) {
+                    if (!empty($_REQUEST['timeRange'])) {
+                        if ($_REQUEST['timeRange'] != 'last') {
+                            switch ($_REQUEST['timeRange']) {
+                                case "4 Ore":
+                                    $timeRange = "fromTime=4-hour";
+                                    break;
 
-                            case "Giornaliera":
-                                $timeRange = "fromTime=1-day";
-                                break;
+                                case "12 Ore":
+                                    $timeRange = "fromTime=12-hour";
+                                    break;
 
-                            case "Settimanale":
-                                $timeRange = "fromTime=7-day";
-                                break;
+                                case "Giornaliera":
+                                    $timeRange = "fromTime=1-day";
+                                    break;
 
-                            case "Mensile":
-                                $timeRange = "fromTime=30-day";
-                                break;
+                                case "Settimanale":
+                                    $timeRange = "fromTime=7-day";
+                                    break;
 
-                            case "Semestrale":
-                                $timeRange = "fromTime=180-day";
-                                break;
+                                case "Mensile":
+                                    $timeRange = "fromTime=30-day";
+                                    break;
 
-                            case "Annuale":
-                                $timeRange = "fromTime=365-day";
-                                break;
+                                case "Semestrale":
+                                    $timeRange = "fromTime=180-day";
+                                    break;
+
+                                case "Annuale":
+                                    $timeRange = "fromTime=365-day";
+                                    break;
+                            }
+
+                            $urlToCall = $smUrl . "&" . $timeRange;
+                        } else {
+                            $urlToCall = $smUrl;
                         }
-
-                        $urlToCall = $smUrl . "&" . $timeRange;
                     } else {
                         $urlToCall = $smUrl;
                     }
                 } else {
                     $urlToCall = $smUrl;
                 }
-            }
-            else
-            {
-                $urlToCall = $smUrl;
-            }
 
-            if(isset($_REQUEST['upperTime'])) {
-                $urlToCall = $urlToCall . "&toTime=" . $_REQUEST['upperTime'];
-            }
+                if (isset($_REQUEST['upperTime'])) {
+                    $urlToCall = $urlToCall . "&toTime=" . $_REQUEST['upperTime'];
+                }
 
-            if (isset($dataOrigin->smField)) {
-              //  if(strpos($dataOrigin->smField, 'Forecast') !== false) {
+                if (isset($dataOrigin->smField)) {
+                    //  if(strpos($dataOrigin->smField, 'Forecast') !== false) {
                     $urlToCall = $urlToCall . "&valueName=" . $dataOrigin->smField;
-              //  }
+                    //  }
+                }
             }
 
             if(isset($urlToCall)) {

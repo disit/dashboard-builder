@@ -689,6 +689,12 @@
                 $xAxisDataset = NULL;
                 $lineWidth = NULL;
                 $alrLook = NULL;
+                $TypicalTimeTrendM = NULL;
+                $TrendTypeM = NULL;
+                $ReferenceDateM = NULL;
+                $TTTDate = NULL;
+                $dayHourView = NULL;
+                $computationType = NULL;
                 $colorsSelect = NULL;
                 $colors = NULL;
                 $colorsSelect1 = NULL;
@@ -2522,6 +2528,12 @@
         $xAxisDatasetM = NULL;
         $lineWidthM = NULL;
         $alrLookM = NULL;
+        $TypicalTimeTrendM = NULL;
+        $TrendTypeM = NULL;
+        $ReferenceDateM = NULL;
+        $TTTDate = NULL;
+        $dayHourView = NULL;
+        $computationType = NULL;
         $colorsSelectM = NULL;
         $colorsSelect2M = NULL;
         $colorsM = NULL;
@@ -2999,6 +3011,39 @@
             {
                 $alrLookM = sanitizePostString('alrLookM');
             }
+            if(isset($_POST['TypicalTimeTrendM'])&&($_POST['TypicalTimeTrendM']!=""))
+            {
+                $TypicalTimeTrendM = sanitizePostString('TypicalTimeTrendM');
+            }
+            if(isset($_POST['TrendTypeM'])&&($_POST['TrendTypeM']!=""))
+            {
+                $TrendTypeM = sanitizePostString('TrendTypeM');
+            }
+            if(isset($_POST['ReferenceDateM'])&&($_POST['ReferenceDateM']!=""))
+            {
+                $ReferenceDateM = sanitizePostString('ReferenceDateM');
+            }
+            $result_total = $_POST['TTTDate'];
+            $result_explode = explode('|', $result_total);
+            if (isset($result_explode[0])&&($result_explode[0]!="")){ 
+                $TTTDate = $result_explode[0];
+            }
+            if (isset($result_explode[1])&&($result_explode[1]!="")){ 
+                $computationType = $result_explode[1];
+            }
+            if(isset($_POST['dayHourView'])&&($_POST['dayHourView']!=""))
+            {
+                $dayHourView = sanitizePostString('dayHourView');
+            }
+            
+            //if(isset($_POST['TTTDate'])&&($_POST['TTTDate']!=""))
+            //{
+            //    $TTTDate = sanitizePostString('TTTDate');
+            //}
+            //if(isset($_POST['computationType'])&&($_POST['computationType']!=""))
+            //{
+            //    $computationType = sanitizePostString('computationType');
+            //}
 
             $styleParametersArrayM = array();
             $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
@@ -4093,6 +4138,12 @@
                        . ", title_w = " . returnManagedStringForDb(html_entity_decode(escapeForSQL($title_widget_m, $link), ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
                //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM)
                        . ", temporal_compare_w = " . returnManagedStringForDb($int_comp_widget_m)
+                       . ", TypicalTimeTrend = " . returnManagedStringForDb($TypicalTimeTrendM)
+                       . ", TrendType = " . returnManagedStringForDb($TrendTypeM)
+                       . ", ReferenceDate = " . returnManagedStringForDb($ReferenceDateM) 
+                       . ", TTTDate = " . returnManagedStringForDb($TTTDate) 
+                       . ", dayhourview = " . returnManagedStringForDb($dayHourView) 
+                       . ", computationType = " . returnManagedStringForDb($computationType) 
                        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb(escapeForSQL($parametersM, $link)))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM) . ", infoJson = " . returnManagedStringForDb($infoJsonM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)
@@ -4105,6 +4156,12 @@
                        . ", title_w = " . returnManagedStringForDb(html_entity_decode(escapeForSQL($title_widget_m, $link), ENT_HTML5)) . ", color_w = " . returnManagedStringForDb($color_widget_m) . ", frequency_w = " . returnManagedNumberForDb($freq_widget_m) . ", temporal_range_w = " . returnManagedStringForDb($int_temp_widget_m)
                //        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ", parameters = " . returnManagedStringForDb($parametersM) 
                        . ", temporal_compare_w = " . returnManagedStringForDb($int_comp_widget_m)
+                       . ", TypicalTimeTrend = " . returnManagedStringForDb($TypicalTimeTrendM)
+                       . ", TrendType = " . returnManagedStringForDb($TrendTypeM)
+                       . ", ReferenceDate = " . returnManagedStringForDb($ReferenceDateM)
+                       . ", TTTDate = " . returnManagedStringForDb($TTTDate)
+                       . ", dayhourview = " . returnManagedStringForDb($dayHourView)
+                       . ", computationType = " . returnManagedStringForDb($computationType) 
                        . ", municipality_w = " . returnManagedStringForDb($comune_widget_m) . ", link_w = " . returnManagedStringForDb($url_m) . ($type_widget_m == "widgetTracker" ? "parameters = parameters" : ", parameters = " . returnManagedStringForDb(escapeForSQL($parametersM, $link)))
                        . ", frame_color_w = " . returnManagedStringForDb($color_frame_m) . ", udm = " . returnManagedStringForDb($inputUdmWidget) . ", udmPos = " . returnManagedStringForDb($inputUdmPosition) . ", fontSize = " . returnManagedNumberForDb($fontSizeM)
                        . ", fontColor = " . returnManagedStringForDb($fontColorM) . ", controlsPosition = " . returnManagedStringForDb($controlsPosition) . ", showTitle = " . returnManagedStringForDb($showTitle) . ", controlsVisibility = " . returnManagedStringForDb($controlsVisibility)

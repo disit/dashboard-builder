@@ -946,13 +946,13 @@ if (!isset($_SESSION)) {
                                         popupText += '<thead>';
                                         popupText += '<th style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</th>';
                                         popupText += '<th style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Value</th>';
-                                        popupText += '<th colspan="5" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Buttons</th>';
+                                        popupText += '<th colspan="7" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Buttons</th>';
                                         popupText += '</thead>';
 
                                         //Corpo
                                         popupText += '<tbody>';
                                         var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn, data7DayBtn,
-                                            data30DayBtn = null;
+                                            data30DayBtn, data6MonthsBtn, data1YearBtn = null;
                                         for (var i = 0; i < realTimeData.head.vars.length; i++) {
                                             if(realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== null && realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== undefined) {
                                                 if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]]) && (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined')) {
@@ -969,7 +969,9 @@ if (!isset($_SESSION)) {
                                                             dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
                                                             data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
                                                             data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
-                                                            popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + '</tr>';
+                                                            data6MonthsBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>6 months</button></td>';
+                                                            data1YearBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>1 year</button></td>';
+                                                            popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + '</tr>';
                                                         }
                                                     } else {
                                                         measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
@@ -1114,8 +1116,28 @@ if (!isset($_SESSION)) {
                                     if (rtDataAgeSec > 604800) {
                                         $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "true");
                                         //Disabilitiamo i 30 days se last update più vecchio di 30 days
-                                        if (rtDataAgeSec > 18144000) {
+                                        //if(rtDataAgeSec > 18144000)
+                                        if(rtDataAgeSec > 2592000)
+                                        {
                                             $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "true");
+                                            //Disabilitiamo i 6 months se last update più vecchio di 180 days
+                                            if(rtDataAgeSec > 15552000)
+                                            {
+                                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "true");
+                                                //Disabilitiamo i 1 year se last update più vecchio di 365 days
+                                                if(rtDataAgeSec > 31536000)
+                                                {
+                                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "true");
+                                                }
+                                                else
+                                                {
+                                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
+                                            }
                                         }
                                         else {
                                             $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
@@ -1134,6 +1156,8 @@ if (!isset($_SESSION)) {
                                 $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
                                 $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
                                 $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
                             }
 
                             $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseenter');
@@ -5404,6 +5428,9 @@ if (!isset($_SESSION)) {
                                                 '<button class="vehicle-btn" title="Cycling" id="bike">'+
                                                     '<img src="../img/dynamic_routing/bike.png" alt="Bike">'+
                                                 '</button>'+
+												'<button class="vehicle-btn" title="Bus" id="bus">'+
+                                                    '<img id="bus_button" src="../img/dynamic_routing/bus.svg" alt="Bus">'+
+                                                '</button>'+
                                             '</span></div>';
                             // disable interaction of this div with map
                             if (L.Browser.touch) {
@@ -5585,6 +5612,696 @@ if (!isset($_SESSION)) {
                                             } 
                                         });
                                         lrmControl.addTo(map.defaultMapRef);
+										// MS
+										var lastSelectedRoute = null;
+										if(vehicle == "bus") {																																	
+											$("#bus_button").css("opacity",0.5);
+											var pwlng = Math.min(map.defaultMapRef.getBounds()["_northEast"]["lng"],map.defaultMapRef.getBounds()["_southWest"]["lng"])+(Math.abs(map.defaultMapRef.getBounds()["_northEast"]["lng"]-map.defaultMapRef.getBounds()["_southWest"]["lng"])/2);
+											var pwlat = map.defaultMapRef.getBounds()["_northEast"]["lat"];
+											L.popup({offset: L.point(0, 210)}).setLatLng(new L.LatLng(pwlat, pwlng)).setContent("<p><strong>Impact on Public Transport</strong></p><p>Computation in progress.</p><p>It may take some time.</p><p>Please wait...</p>").openOn(map.defaultMapRef);
+											var polygons = [];
+											for(var f = 0; f < selectedScenarioData["features"].length; f++) {
+												if(selectedScenarioData["features"][f]["geometry"]["type"] == "Point") {
+													// a radius of 7684.888648492369 corresponds to a delta of 0.192811 in lat lon coordinates so one unit of radius corresponds to a displacement of 0.192811/7684.888648492369 ~ 0.000025 in lat lon 
+													polygons.push("(("+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+"))");													
+												}
+												else {
+													var polygon = "((";
+													for(var c = 0; c < selectedScenarioData["features"][f]["geometry"]["coordinates"][0].length; c++) {
+														polygon+=selectedScenarioData["features"][f]["geometry"]["coordinates"][0][c][0]+" "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0][c][1]+", ";														
+													}
+													polygon=polygon.substring(0,polygon.length-2);
+													polygon+="))";
+													polygons.push(polygon);													
+												}												
+											}
+											var closedZones = null;
+											if(polygons.length == 1) closedZones = "POLYGON"+polygons[0];
+											else if(polygons.length > 1) closedZones = "MULTIPOLYGON("+polygons.join()+")";
+											Date.prototype.getStandardTimezoneOffset = function () {
+												var jan = new Date(this.getFullYear(), 0, 1);
+												var jul = new Date(this.getFullYear(), 6, 1);
+												return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+											};
+											var fromDateTime = selectedScenarioData["scenarioDatetimeStart"]+":00"+(new Date().getStandardTimezoneOffset()>0?"-":"+")+((""+(Math.abs(new Date().getStandardTimezoneOffset()/60))).padStart(2,"0"))+":00";
+											var toDateTime = selectedScenarioData["scenarioDatetimeEnd"]+":00"+(new Date().getStandardTimezoneOffset()>0?"-":"+")+((""+(Math.abs(new Date().getStandardTimezoneOffset()/60))).padStart(2,"0"))+":00";											
+											var whatifptiendpt = $.getJSON( '<?=$whatifptiendpt?>?closedZones='+encodeURIComponent(closedZones)+'&fromDateTime='+encodeURIComponent(fromDateTime)+'&toDateTime='+encodeURIComponent(toDateTime), function(impact) {
+												$("#bus_button").css("opacity",1);	
+												var olng = Math.min(map.defaultMapRef.getBounds()["_northEast"]["lng"],map.defaultMapRef.getBounds()["_southWest"]["lng"])+(Math.abs(map.defaultMapRef.getBounds()["_northEast"]["lng"]-map.defaultMapRef.getBounds()["_southWest"]["lng"])/2);
+												var olat = map.defaultMapRef.getBounds()["_northEast"]["lat"];
+												L.popup({offset: L.point(0, 210)}).setLatLng(new L.LatLng(olat, olng)).setContent("<p><strong>Impact on Public Transport</strong></p><p>Affected Agencies: "+impact["metrics"]["agencies"]+"<br>Affected Routes: "+impact["metrics"]["routes"]+"<br>Affected Trips: "+impact["metrics"]["trips"]+(impact["metrics"]["ndr_trips"]>0?" (<a href=\"#\" class=\"ndrTripsLink\" \">"+impact["metrics"]["ndr_trips"]+" mere crossings</a>)":"")+"<br>Affected Stops: "+impact["metrics"]["stops"]+" (click on markers)<br>Eventual Traps: "+impact["metrics"]["traps"]+"</p>").openOn(map.defaultMapRef);
+												var summary = { "offset": L.point(0, 210), "latlng": new L.LatLng(olat, olng), "content":  "<p><strong>Impact on Public Transport</strong></p><p>Affected Agencies: "+impact["metrics"]["agencies"]+"<br>Affected Routes: "+impact["metrics"]["routes"]+"<br>Affected Trips: "+impact["metrics"]["trips"]+(impact["metrics"]["ndr_trips"]>0?" (<a href=\"#\" class=\"ndrTripsLink\" \">"+impact["metrics"]["ndr_trips"]+" mere crossings</a>)":"")+"<br>Affected Stops: "+impact["metrics"]["stops"]+" (click on markers)<br>Eventual Traps: "+impact["metrics"]["traps"]+"</p>"} ;
+												$(".ndrTripsLink").click(function(){
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+													
+																	
+													
+													$(".whatifPolyline").hide();
+													$(".whatifCrossingPolyline").hide();															
+													$(".affectedStopMarker").hide();														
+													var markup = "<p class=\"ndrt_stopHead\" style=\"width:300px;\"><strong style=\"font-size:larger;\">Crossing Trips</strong><br><span style=\"font-style:italic;\">Without affected stops</span></p>";																			
+													var getDates = function(startDate, stopDate) {
+														Date.prototype.addDays = function(days) {
+															var date = new Date(this.valueOf());
+															date.setDate(date.getDate() + days);
+															return date;
+														};
+														var dateArray = new Array();
+														var currentDate = startDate;
+														while (currentDate <= stopDate) {
+															dateArray.push(new Date (currentDate));
+															currentDate = currentDate.addDays(1);
+														}
+														return dateArray;
+													};
+													var crosstrips = [];
+													var crossmenu = {};
+													var crosspolylines = [];
+													for (var agency in impact["details"]) 
+														for(var route in impact["details"][agency]["routes"])
+															for(var trip in impact["details"][agency]["routes"][route]["trips"])
+																if("Medium - Mere crossing" == impact["details"][agency]["routes"][route]["trips"][trip]["criticality"]) { 
+																	crosstrips.push(encodeURIComponent(trip)); 
+																	if(!crossmenu[agency]) crossmenu[agency] = [];																	
+																 	impact["details"][agency]["routes"][route]["trips"][trip]["dates"].forEach(function(date){ if(!crossmenu[agency].includes(date)) crossmenu[agency].push(date);});																	
+																	var path = impact["details"][agency]["routes"][route]["trips"][trip]["path"];
+																	var latlngs = [];
+																	path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+																		latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+																	});
+																	var polyline = new L.Polyline(latlngs,{color:"#"+impact["details"][agency]["routes"][route]["color"],className:"whatifCrossingPolyline"});																	
+																	crosspolylines.push({"latlngs":latlngs,"color":impact["details"][agency]["routes"][route]["color"]});
+																	polyline.addTo(whatifDrawnItems);	
+																}
+													for(var agency in crossmenu) {
+														crossmenu[agency].forEach(function(date){
+															var btnUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(impact["details"][agency]["dataset"])+'&crosstrip='+crosstrips.join("&crosstrip=")+'&date='+encodeURIComponent(getDates(new Date(date),new Date(date))[0].toISOString().split('T')[0])+"&list=routes";
+															markup+="<p class=\"ndrt_wifstpdt\"><button style=\"width:100%;\" data-url=\""+btnUrl+"\" data-date=\""+getDates(new Date(date),new Date(date))[0].toISOString().split('T')[0]+"\">"+getDates(new Date(date),new Date(date))[0].toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</button></p>";				
+														});
+													}
+													/*
+																										getDates(new Date(selectedScenarioData["scenarioDatetimeStart"].substring(0,10)),new Date(selectedScenarioData["scenarioDatetimeEnd"].substring(0,10))).forEach(function(oneDate){
+																											if(crossdates.includes(oneDate.toISOString().split('T')[0])) {					
+																												var btnUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(impact["details"][agency]["dataset"])+'&crosstrip='+crosstrips.join("&crosstrip=")+'&date='+encodeURIComponent(oneDate.toISOString().split('T')[0])+"&list=routes";
+																												markup+="<p class=\"ndrt_wifstpdt\"><button style=\"width:100%;\" data-url=\""+btnUrl+"\" data-date=\""+oneDate.toISOString().split('T')[0]+"\"><strong>"+new Date(oneDate).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</strong></button></p>";				
+																											}
+																											else {
+																												var btnUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(impact["details"][agency]["dataset"])+'&crosstrip='+crosstrips.join("&crosstrip=")+'&date='+encodeURIComponent(oneDate.toISOString().split('T')[0])+"&list=routes";
+																												markup="<p class=\"ndrt_wifstpdt\"><button style=\"width:100%;\" data-url=\""+btnUrl+"\" data-date=\""+oneDate.toISOString().split('T')[0]+"\">"+new Date(oneDate).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</button></p>";
+																											}
+																										});	
+													*/
+													var pwlng = Math.min(map.defaultMapRef.getBounds()["_northEast"]["lng"],map.defaultMapRef.getBounds()["_southWest"]["lng"])+(Math.abs(map.defaultMapRef.getBounds()["_northEast"]["lng"]-map.defaultMapRef.getBounds()["_southWest"]["lng"])/2);
+													var pwlat = map.defaultMapRef.getBounds()["_northEast"]["lat"];
+													markup+="<p class=\"ndrt_backToSummary\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+													L.popup({offset: L.point(0,210)}).setLatLng(new L.LatLng(pwlat, pwlng)).setContent(markup).openOn(map.defaultMapRef);
+													$("p.ndrt_backToSummary button").click(function(){
+														//L.popup({offset: summary["offset"]}).setLatLng(summary["latlng"]).setContent(summary["content"]).openOn(map.defaultMapRef);
+														$("#bus").click();
+													});
+													$("p.ndrt_wifstpdt button").click(function(){
+														var wifstpdtbtn = $(this);
+														var wifstpdtbtnhtml = $(this).html();
+														$(this).html("Please wait...");
+														var container = $(this).parent().parent();
+														var date = $(this).data("date");
+														$.getJSON( $(this).data("url"), function(routes) {
+															container.find("p").hide();
+															wifstpdtbtn.html(wifstpdtbtnhtml);
+															var routesMarkup = "<p class=\"ndrt_routesSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date(date).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</p>";
+															Object.keys(routes).forEach(function(key){
+																var route = routes[key];
+																var affected = Object.keys(impact["details"][agency]["routes"]).includes(route["type"]+" "+route["short_name"]+" "+route["long_name"]);
+																if(false && affected) {
+																	var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(route["dataset"])+"&route="+encodeURIComponent(route["uri"])+"&crosstrip="+crosstrips.join("&crosstrip=")+"&date="+encodeURIComponent(date)+"&list=trips";
+																	routesMarkup+="<p class=\"ndrt_wifstprte\"><button data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\"><strong>"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</strong></button></p>";
+																}
+																else {
+																	var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(route["dataset"])+"&route="+encodeURIComponent(route["uri"])+"&crosstrip="+crosstrips.join("&crosstrip=")+"&date="+encodeURIComponent(date)+"&list=trips";
+																	routesMarkup+="<p class=\"ndrt_wifstprte\"><button data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\">"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</button></p>";
+																}
+																
+															});
+															routesMarkup+="<p class=\"ndrt_backToHome\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+															container.find("p.ndrt_stopHead").show();
+															container.find("p.ndrt_routesSubHead").remove();
+															container.find("p.ndrt_wifstprte").remove();
+															container.find("p.ndrt_backToHome").remove();
+															container.append($(routesMarkup));
+															$("p.ndrt_backToHome button").click(function(){
+																container.find("p").hide();
+																container.find("p.ndrt_stopHead").show();
+																container.find("p.ndrt_wifstpdt").show();
+																container.find("p.ndrt_backToSummary").show();
+															});
+															$("p.ndrt_wifstprte button").click(function(){																						
+																var wifstprtebtn = $(this);
+																var wifstprtebtnhtml = $(this).html();
+																$(this).html("Please wait...");
+																$(".whatifPolyline").hide();
+																$(".whatifCrossingPolyline").hide();	
+																$(this).data("geoms").split("|").forEach(function(path){
+																	var latlngs = [];
+																	path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+																		latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+																	});
+																	var polyline = new L.Polyline(latlngs,{color:wifstprtebtn.css("background-color"),className:"whatifCrossingPolyline"});																	
+																	polyline.addTo(whatifDrawnItems);																	
+																});
+																var hrRouteTxt=$(this).data("key");
+																if(hrRouteTxt != lastSelectedRoute) $(".currentTripMarkers").hide();
+																lastSelectedRoute = hrRouteTxt;
+																
+																var bg = $(this).css("background-color");
+																var fg = $(this).css("color");
+																$.getJSON($(this).data("url"),function(trips){
+																	container.find("p").hide();
+																	wifstprtebtn.html(wifstprtebtnhtml);
+																	container.find("p.ndrt_stopHead").show();
+																	var affectedTripsMarkup = "";
+																	var tripsMarkup = "<p class=\"ndrt_tripsSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date(date).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"<br><strong>Route:</strong>&nbsp;"+hrRouteTxt+"</p><div style=\"height:200px; max-height:200px; overflow:scroll; border: medium solid black; padding:0.5em;\" class=\"ndrt_tripsDivInRoute\"><p class=\"ndrt_preserveplease\" style=\"margin:0px 0; display:none;\"><strong>Affected Trips:</strong></p><div id=\"affectedtrips\"></div><p class=\"ndrt_preserveplease\" style=\"margin:0px 0;\"><strong style=\"display:none;\">All Trips:</strong></p>";
+																	Object.keys(trips).sort(function(a,b){
+																		if(trips[a]["start"] > trips[b]["start"]) return 1; else return -1;
+																	}).forEach(function(tripkey){
+																		var trip = trips[tripkey];
+																		var affectedtrip = Object.keys(impact["details"][agency]["routes"][hrRouteTxt]["trips"]).includes(tripkey);
+																		if(false && affectedtrip) { 
+																			var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(trip["dataset"])+"&trip="+encodeURIComponent(trip["uri"])+"&list=stops";
+																			addToTripsMarkup="<p class=\"ndrt_wifstptrp\"><button style=\"padding:0.2em; text-align:left; font-size:larger; width:100%; background-color:"+bg+"; color: "+fg+";\" data-tripkey=\""+tripkey+"\" data-path=\""+trip["path"]+"\" data-url=\""+theTripUrl+"\" data-routebgcolor=\""+trip["route"]["bg_color"]+"\" data-routefgcolor=\""+trip["route"]["fg_color"]+"\" data-routeshortname=\""+trip["route"]["short_name"]+"\" data-routelongname=\""+trip["route"]["long_name"]+"\" data-routetype=\""+trip["route"]["type"]+"\" data-agencyname=\""+trip["route"]["agency"]+"\"><strong>"+trip["start"].substring(0,5)+"&nbsp;<span style=\"border:thin solid "+fg+"; padding:0.2em; font-size:smaller;\">"+(trip["direction"] == "0"?"&rharu;":"&lhard;")+"</span>&nbsp;"+trip["headsign"]+"</strong></button></p>";
+																			tripsMarkup+=addToTripsMarkup;
+																			affectedTripsMarkup+=addToTripsMarkup;
+																		}
+																		else {
+																			var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(trip["dataset"])+"&trip="+encodeURIComponent(trip["uri"])+"&list=stops";
+																			tripsMarkup+="<p class=\"ndrt_wifstptrp\"><button style=\"text-align:left; font-size:smaller; width:100%; background-color:"+bg+"; color:"+fg+";\" data-tripkey=\""+tripkey+"\" data-path=\""+trip["path"]+"\" data-url=\""+theTripUrl+"\" data-routebgcolor=\""+trip["route"]["bg_color"]+"\" data-routefgcolor=\""+trip["route"]["fg_color"]+"\" data-routeshortname=\""+trip["route"]["short_name"]+"\" data-routelongname=\""+trip["route"]["long_name"]+"\" data-routetype=\""+trip["route"]["type"]+"\" data-agencyname=\""+trip["route"]["agency"]+"\">"+trip["start"].substring(0,5)+"&nbsp;<span style=\"border:thin solid "+fg+"; padding:0.2em;\">"+(trip["direction"] == "0"?"&rharu;":"&lhard;")+"</span>&nbsp;"+trip["headsign"]+"</button></p>";
+																		}
+																		
+																	});
+																	tripsMarkup+="</div>";
+																	tripsMarkup+="<p class=\"ndrt_backToRoutes\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+																	container.find("p.ndrt_tripsSubHead").remove();
+																	container.find("div.ndrt_tripsDivInRoute").remove();																							
+																	container.find("p.ndrt_backToRoutes").remove();
+																	container.append($(tripsMarkup));
+																	$("div#ndrt_affectedtrips").append($(affectedTripsMarkup));
+																	$("p.ndrt_backToRoutes button").click(function(){
+																		container.find("p").hide();
+																		container.find("div.ndrt_tripsDivInRoute").hide();
+																		$(".whatifPolyline").hide();
+																		$(".whatifCrossingPolyline").hide();	
+																		$(".currentTripMarkers").hide();
+																		container.find("p.ndrt_stopHead").show();
+																		container.find("p.ndrt_routesSubHead").show();
+																		container.find("p.ndrt_wifstprte").show();
+																		container.find("p.ndrt_backToHome").show();
+																		crosspolylines.forEach(function(polydata){
+																			var polyline = new L.Polyline(polydata.latlngs,{color:"#"+polydata.color,className:"whatifCrossingPolyline"});																																				
+																			polyline.addTo(whatifDrawnItems);	
+																		});																		
+																	});
+																	$("p.ndrt_wifstptrp button").click(function(){
+																		var wifstptrpbtn = $(this);
+																		var wifstptrpbtnhtml = $(this).html();
+																		/*container.find("p.tripsSubHead").hide();
+																		container.find("p.wifstptrp").hide();
+																		container.find("p.backToRoutes").hide();
+																		container.find("div.tripsDivInRoute").hide();
+																		$(".currentTripMarkers").hide();*/
+																		var theaffectedstopsMarkup = "";
+																		var theTripMarkup = "<p class=\"ndrt_theTripSubhead\" style=\"background-color:black; color:white;  padding:0.5em;\"><strong>Agency:</strong>&nbsp;"+$(this).data("agencyname")+"<br><strong>Route:</strong>&nbsp;"+$(this).data("routetype")+" "+$(this).data("routeshortname")+" "+$(this).data("routelongname")+"<br><strong>Trip:</strong>&nbsp;"+$(this).html().replace("<strong>","").replace("</strong>","")+"</p><div class=\"ndrt_fullTripData\" style=\"height:150px; max-height:150px; overflow:scroll; font-size:smaller; border: medium solid black; padding:0.5em;\"><p style=\"margin:0px 0;\"><strong>Affected Stops:</strong></p><div id=\"ndrt_affectedstops\"></div><p style=\"margin:0px 0;\"><strong>All Stops:</strong><br>&nbsp;</p>";
+																		$(this).html("Please wait...");		
+																		var bgcolor=$(this).data("routebgcolor");
+																		var fgcolor=$(this).data("routefgcolor");
+																		var routetype=$(this).data("routetype");
+																		var path = $(this).data("path");
+																		var tripkey = $(this).data("tripkey");
+																		/*$(".whatifPolyline").hide();
+																		var latlngs = [];
+																		path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+																			latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+																		});
+																		var polyline = new L.Polyline(latlngs,{color:"#"+bgcolor,className:"whatifPolyline"});
+																		polyline.addTo(whatifDrawnItems);*/
+																	
+																		
+																		$.getJSON($(this).data("url"),function(tripdata){							
+																			//
+																			container.find("p.ndrt_tripsSubHead").hide();
+																			container.find("p.ndrt_wifstptrp").hide();
+																			container.find("p.ndrt_backToRoutes").hide();
+																			container.find("div.ndrt_tripsDivInRoute").hide();
+																			wifstptrpbtn.html(wifstptrpbtnhtml);
+																			$(".currentTripMarkers").hide();
+																			$(".whatifPolyline").hide();
+																			$(".whatifCrossingPolyline").hide();	
+																			var latlngs = [];
+																			path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+																				latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+																			});
+																			var polyline = new L.Polyline(latlngs,{color:"#"+bgcolor,className:"whatifCrossingPolyline"});
+																			polyline.addTo(whatifDrawnItems);
+																			//
+																			tripdata.forEach(function(oneStop){
+																				var isaffectedstop = false;
+																				try { isaffectedstop = Object.keys(impact["details"][agency]["routes"][hrRouteTxt]["trips"][tripkey]["stops"]).includes(oneStop["sequence"]+" "+oneStop["code"]+" "+oneStop["name"]);
+																				} catch(nabp){}
+																				
+																				if(isaffectedstop) {
+																					theTripMarkup+="<button style=\"font-size:larger; font-weight:bold; cursor:default; text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+";\" disabled><strong>Sequence:</strong>&nbsp;"+oneStop["sequence"]+"<br><strong>Code:</strong>&nbsp;"+oneStop["code"]+"<br><strong>Name:</strong>&nbsp;"+oneStop["name"]+"<br><strong>Arrival:</strong>&nbsp;"+oneStop["arrival"].substring(0,5)+"<br><strong>Departure:</strong>&nbsp;"+oneStop["departure"].substring(0,5)+"</button>";
+																					theaffectedstopsMarkup+="<button style=\"font-size:larger; font-weight:bold; cursor:default; text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+";\" disabled><strong>Sequence:</strong>&nbsp;"+oneStop["sequence"]+"<br><strong>Code:</strong>&nbsp;"+oneStop["code"]+"<br><strong>Name:</strong>&nbsp;"+oneStop["name"]+"<br><strong>Arrival:</strong>&nbsp;"+oneStop["arrival"].substring(0,5)+"<br><strong>Departure:</strong>&nbsp;"+oneStop["departure"].substring(0,5)+"</button>";
+																				}
+																				else {
+																					theTripMarkup+="<button style=\"cursor:default; text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+";\" disabled><strong>Sequence:</strong>&nbsp;"+oneStop["sequence"]+"<br><strong>Code:</strong>&nbsp;"+oneStop["code"]+"<br><strong>Name:</strong>&nbsp;"+oneStop["name"]+"<br><strong>Arrival:</strong>&nbsp;"+oneStop["arrival"].substring(0,5)+"<br><strong>Departure:</strong>&nbsp;"+oneStop["departure"].substring(0,5)+"</button>";
+																				}
+																				var markerAlreadyThere = false;																										
+																				map.defaultMapRef.eachLayer(function(layer) { if (layer instanceof L.Marker) { if (layer.getLatLng()["lat"] == oneStop["pos_lat"] && layer.getLatLng()["lng"] == oneStop["pos_lon"] && $(layer._icon).is(":visible")) { markerAlreadyThere = true; } else {  } } } );
+																				if(!markerAlreadyThere) {
+																					var stopMarker = L.marker([oneStop["pos_lat"], oneStop["pos_lon"]], { icon: new L.Icon({
+																					iconUrl: routetype=="Bus"?'https://servicemap.disit.org/WebAppGrafo/img/mapicons/TransferServiceAndRenting_BusStop.png':'https://servicemap.disit.org/WebAppGrafo/img/mapicons/TransferServiceAndRenting_Tram_stops.png'}), uri: oneStop["uri"], title: (oneStop["departure"]?oneStop["departure"]:oneStop["arrival"]).substring(0,5)+" | "+oneStop["code"]+" "+oneStop["name"], stopname: oneStop["name"] });
+																					stopMarker.addTo(whatifDrawnItems);																					
+																					$(stopMarker._icon).addClass("currentTripMarkers");
+																					if(!isaffectedstop) {
+																						$(stopMarker._icon).css("width","24px");
+																					}
+																				}
+																			});
+																			theTripMarkup+="</div>";
+																			theTripMarkup+="<p class=\"ndrt_backToTrips\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+																			container.find("p.ndrt_theTripSubhead").remove();
+																			container.find("div.ndrt_fullTripData").remove();
+																			container.find("p.ndrt_backToTrips").remove();
+																			container.append($(theTripMarkup));
+																			if(theaffectedstopsMarkup == "") {
+																				theaffectedstopsMarkup="<p>No stops of this specific trip are affected by the current scenario.</p>";
+																			}
+																			$("div#ndrt_affectedstops").append($(theaffectedstopsMarkup));
+																			$("p.ndrt_backToTrips button").click(	
+																				function(){
+																				container.find("p").hide();
+																				container.find("div.ndrt_fullTripData").hide();																										
+																				container.find("p.ndrt_stopHead").show();
+																				container.find("p.ndrt_tripsSubHead").show();
+																				container.find("div.ndrt_tripsDivInRoute").show();
+																				container.find("p.ndrt_preserveplease").show();
+																				container.find("p.ndrt_wifstptrp").show();
+																				container.find("p.ndrt_backToRoutes").show();
+																				$(".currentTripMarkers").hide(); // it was commented
+																				}
+																				
+																				
+																			);
+																		});				
+																		
+																	});
+																	
+																});
+																
+															});
+														});
+													});
+													return;
+
+
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+																	
+												});
+												
+												Object.keys(impact["details"]).forEach(function(agency) {																		
+													if(agency != "traps") {														
+														var agencyPolylines = [];
+														Object.keys(impact["details"][agency]["routes"]).forEach(function(route){
+															var color = impact["details"][agency]["routes"][route]["color"];
+															var type = impact["details"][agency]["routes"][route]["type"];
+															Object.keys(impact["details"][agency]["routes"][route]["trips"]).forEach(function(trip){
+																var path = impact["details"][agency]["routes"][route]["trips"][trip]["path"];
+																var criticality = impact["details"][agency]["routes"][route]["trips"][trip]["criticality"];
+																var latlngs = [];
+																path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+																	latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+																});
+																var polyline = new L.Polyline(latlngs,{className: criticality=="Medium - Mere crossing"?"whatifCrossingPolyline":"whatifPolyline", color:"#"+color});
+																//polyline.bindTooltip(impact["details"][agency]["routes"][route]["short_name"], {permanent: true});
+																agencyPolylines.push({"latlngs":latlngs,"criticality":criticality, "color":color});
+																polyline.addTo(whatifDrawnItems);																	
+																if("stops" in impact["details"][agency]["routes"][route]["trips"][trip]) Object.keys(impact["details"][agency]["routes"][route]["trips"][trip]["stops"]).forEach(function(stop){
+																	var icon = new L.Icon({
+																	  iconUrl: type=="Bus"?'https://servicemap.disit.org/WebAppGrafo/img/mapicons/TransferServiceAndRenting_BusStop.png':'https://servicemap.disit.org/WebAppGrafo/img/mapicons/TransferServiceAndRenting_Tram_stops.png'
+																	});
+																	var marker = L.marker([impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["pos_lat"], impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["pos_lon"]], { icon: icon, title: impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["code"]+" "+impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["name"], uri: impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["uri"]});																																		
+																	// Preparing the popup content (old way commented)																	
+																	/*
+																	
+																	var arrivals = [];
+																	var departures = [];
+																	Object.keys(impact["details"][agency]["routes"]).forEach(function(iroute){
+																		Object.keys(impact["details"][agency]["routes"][iroute]["trips"]).forEach(function(itrip){
+																			if("stops" in impact["details"][agency]["routes"][iroute]["trips"][itrip]) Object.keys(impact["details"][agency]["routes"][iroute]["trips"][itrip]["stops"]).forEach(function(istop){
+																				if(impact["details"][agency]["routes"][iroute]["trips"][itrip]["stops"][istop]["code"]+" "+impact["details"][agency]["routes"][iroute]["trips"][itrip]["stops"][istop]["name"] == impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["code"]+" "+impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["name"]) {
+																					arrivals.push(impact["details"][agency]["routes"][iroute]["trips"][itrip]["stops"][istop]["arrival"].substring(0,5));
+																					departures.push(impact["details"][agency]["routes"][iroute]["trips"][itrip]["stops"][istop]["departure"].substring(0,5));
+																				}
+																			});
+																		});
+																	});																	
+																	marker.bindPopup("<p><strong style=\"font-size:larger;\">"+impact["details"][agency]["name"]+" - "+impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["name"]+"</strong></p><p><strong style=\"font-size:smaller;\">Affected arrivals: </strong>"+arrivals.sort().join(" ")+"</p><p><strong style=\"font-size:smaller;\">Affected departures: </strong>"+departures.sort().join(" ")+"</p>");
+																	
+																	*/
+																																		
+																	marker.on('click', function(e){				
+																		
+																		$(".whatifCrossingPolyline").hide();	
+																		var stopUri = e.target.options.uri;
+																		
+																		if(!e.target._popup) { 
+																			var markup = "<p class=\"stopHead\"><strong style=\"font-size:larger;\">"+impact["details"][agency]["name"]+" - "+impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["name"]+"</strong></p>";																			
+																			var getDates = function(startDate, stopDate) {
+																				Date.prototype.addDays = function(days) {
+																					var date = new Date(this.valueOf());
+																					date.setDate(date.getDate() + days);
+																					return date;
+																				};
+																				var dateArray = new Array();
+																				var currentDate = startDate;
+																				while (currentDate <= stopDate) {
+																					dateArray.push(new Date (currentDate));
+																					currentDate = currentDate.addDays(1);
+																				}
+																				return dateArray;
+																			};
+																			getDates(new Date(selectedScenarioData["scenarioDatetimeStart"].substring(0,10)),new Date(selectedScenarioData["scenarioDatetimeEnd"].substring(0,10))).forEach(function(oneDate){
+																				if(impact["details"][agency]["routes"][route]["trips"][trip]["dates"].includes(oneDate.toISOString().split('T')[0])) {					
+																					var btnUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(impact["details"][agency]["dataset"])+'&stop='+encodeURIComponent(impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["uri"])+'&date='+encodeURIComponent(oneDate.toISOString().split('T')[0])+"&list=routes";
+																					markup+="<p class=\"wifstpdt\"><button style=\"width:100%;\" data-url=\""+btnUrl+"\" data-stop=\""+stopUri+"\" data-date=\""+oneDate.toISOString().split('T')[0]+"\"><strong>"+new Date(oneDate).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</strong></button></p>";				
+																				}
+																				else {
+																					var btnUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(impact["details"][agency]["dataset"])+'&stop='+encodeURIComponent(impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["uri"])+'&date='+encodeURIComponent(oneDate.toISOString().split('T')[0])+"&list=routes";
+																					markup="<p class=\"wifstpdt\"><button style=\"width:100%;\" data-url=\""+btnUrl+"\" data-stop=\""+stopUri+"\" data-date=\""+oneDate.toISOString().split('T')[0]+"\">"+new Date(oneDate).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</button></p>";
+																				}
+																			});	
+																			markup+="<p class=\"backToSummary\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+																			e.target.bindPopup(markup);
+																			e.target.fire("click");
+																			$("p.backToSummary button").click(function(){														
+																				$("#bus").click();
+																			});
+																			$("p.wifstpdt button").click(function(){
+																				var wifstpdtbtn = $(this);
+																				var wifstpdtbtnhtml = $(this).html();
+																				$(this).html("Please wait...");
+																				var container = $(this).parent().parent();
+																				var date = $(this).data("date");
+																				$.getJSON( $(this).data("url"), function(routes) {
+																					container.find("p").hide();
+																					wifstpdtbtn.html(wifstpdtbtnhtml);
+																					var routesMarkup = "<p class=\"routesSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date(date).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</p>";
+																					Object.keys(routes).forEach(function(key){
+																						var route = routes[key];
+																						var affected = Object.keys(impact["details"][agency]["routes"]).includes(route["type"]+" "+route["short_name"]+" "+route["long_name"]);
+																						if(affected) {
+																							var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(route["dataset"])+"&route="+encodeURIComponent(route["uri"])+"&stop="+stopUri+"&date="+encodeURIComponent(date)+"&list=trips";
+																							routesMarkup+="<p class=\"wifstprte\"><button data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\"><strong>"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</strong></button></p>";
+																						}
+																						else {
+																							var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(route["dataset"])+"&route="+encodeURIComponent(route["uri"])+"&stop="+stopUri+"&date="+encodeURIComponent(date)+"&list=trips";
+																							routesMarkup+="<p class=\"wifstprte\"><button data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\">"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</button></p>";
+																						}
+																						
+																					});
+																					routesMarkup+="<p class=\"backToHome\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+																					container.find("p.stopHead").show();
+																					container.find("p.routesSubHead").remove();
+																					container.find("p.wifstprte").remove();
+																					container.find("p.backToHome").remove();
+																					container.append($(routesMarkup));
+																					$("p.backToHome button").click(function(){
+																						container.find("p").hide();
+																						container.find("p.stopHead").show();
+																						container.find("p.wifstpdt").show();
+																						container.find("p.backToSummary").show();
+																					});
+																					$("p.wifstprte button").click(function(){																						
+																						var wifstprtebtn = $(this);
+																						var wifstprtebtnhtml = $(this).html();
+																						$(this).html("Please wait...");
+																						$(".whatifPolyline").hide();
+																						$(".whatifCrossingPolyline").hide();	
+																						$(this).data("geoms").split("|").forEach(function(path){
+																							var latlngs = [];
+																							path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+																								latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+																							});
+																							var polyline = new L.Polyline(latlngs,{color:"#"+color,className:"whatifPolyline"});
+																							polyline.addTo(whatifDrawnItems);
+																							
+																						});
+																						var hrRouteTxt=$(this).data("key");
+																						if(hrRouteTxt != lastSelectedRoute) $(".currentTripMarkers").hide();
+																						lastSelectedRoute = hrRouteTxt;
+																						
+																						var bg = $(this).css("background-color");
+																						var fg = $(this).css("color");
+																						$.getJSON($(this).data("url"),function(trips){
+																							container.find("p").hide();
+																							wifstprtebtn.html(wifstprtebtnhtml);
+																							container.find("p.stopHead").show();
+																							var affectedTripsMarkup = "";
+																							var tripsMarkup = "<p class=\"tripsSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date(date).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"<br><strong>Route:</strong>&nbsp;"+hrRouteTxt+"</p><div style=\"height:200px; max-height:200px; overflow:scroll; border: medium solid black; padding:0.5em;\" class=\"tripsDivInRoute\"><p class=\"preserveplease\" style=\"margin:0px 0;\"><strong>Affected Trips:</strong></p><div id=\"affectedtrips\"></div><p class=\"preserveplease\" style=\"margin:0px 0;\"><strong>All Trips:</strong></p>";
+																							Object.keys(trips).sort(function(a,b){
+																								if(trips[a]["start"] > trips[b]["start"]) return 1; else return -1;
+																							}).forEach(function(tripkey){
+																								var trip = trips[tripkey];
+																								var affectedtrip = Object.keys(impact["details"][agency]["routes"][hrRouteTxt]["trips"]).includes(tripkey);
+																								if(affectedtrip) { 
+																									var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(trip["dataset"])+"&trip="+encodeURIComponent(trip["uri"])+"&list=stops";
+																									addToTripsMarkup="<p class=\"wifstptrp\"><button style=\"padding:0.2em; text-align:left; font-size:larger; width:100%; background-color:"+bg+"; color: "+fg+";\" data-tripkey=\""+tripkey+"\" data-path=\""+trip["path"]+"\" data-url=\""+theTripUrl+"\" data-routebgcolor=\""+trip["route"]["bg_color"]+"\" data-routefgcolor=\""+trip["route"]["fg_color"]+"\" data-routeshortname=\""+trip["route"]["short_name"]+"\" data-routelongname=\""+trip["route"]["long_name"]+"\" data-routetype=\""+trip["route"]["type"]+"\" data-agencyname=\""+trip["route"]["agency"]+"\"><strong>"+trip["start"].substring(0,5)+"&nbsp;<span style=\"border:thin solid "+fg+"; padding:0.2em; font-size:smaller;\">"+(trip["direction"] == "0"?"&rharu;":"&lhard;")+"</span>&nbsp;"+trip["headsign"]+"</strong></button></p>";
+																									tripsMarkup+=addToTripsMarkup;
+																									affectedTripsMarkup+=addToTripsMarkup;
+																								}
+																								else {
+																									var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(trip["dataset"])+"&trip="+encodeURIComponent(trip["uri"])+"&list=stops";
+																									tripsMarkup+="<p class=\"wifstptrp\"><button style=\"text-align:left; font-size:smaller; width:100%; background-color:"+bg+"; color:"+fg+";\" data-tripkey=\""+tripkey+"\" data-path=\""+trip["path"]+"\" data-url=\""+theTripUrl+"\" data-routebgcolor=\""+trip["route"]["bg_color"]+"\" data-routefgcolor=\""+trip["route"]["fg_color"]+"\" data-routeshortname=\""+trip["route"]["short_name"]+"\" data-routelongname=\""+trip["route"]["long_name"]+"\" data-routetype=\""+trip["route"]["type"]+"\" data-agencyname=\""+trip["route"]["agency"]+"\">"+trip["start"].substring(0,5)+"&nbsp;<span style=\"border:thin solid "+fg+"; padding:0.2em;\">"+(trip["direction"] == "0"?"&rharu;":"&lhard;")+"</span>&nbsp;"+trip["headsign"]+"</button></p>";
+																								}
+																								
+																							});
+																							tripsMarkup+="</div>";
+																							tripsMarkup+="<p class=\"backToRoutes\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+																							container.find("p.tripsSubHead").remove();
+																							container.find("div.tripsDivInRoute").remove();																							
+																							container.find("p.backToRoutes").remove();
+																							container.append($(tripsMarkup));
+																							$("div#affectedtrips").append($(affectedTripsMarkup));
+																							$("p.backToRoutes button").click(function(){
+																								container.find("p").hide();
+																								container.find("div.tripsDivInRoute").hide();
+																								$(".whatifPolyline").hide();
+																								$(".whatifCrossingPolyline").hide();	
+																								$(".currentTripMarkers").hide();
+																								container.find("p.stopHead").show();
+																								container.find("p.routesSubHead").show();
+																								container.find("p.wifstprte").show();
+																								container.find("p.backToHome").show();
+																								agencyPolylines.forEach(function(polydata){																									
+																									var polyline = new L.Polyline(polydata["latlngs"],{className: polydata["criticality"]=="Medium - Mere crossing"?"whatifCrossingPolyline":"whatifPolyline", color:"#"+polydata["color"]});																
+																									polyline.addTo(whatifDrawnItems);																																										
+																								});
+																								$(".whatifCrossingPolyline").hide();
+																							});
+																							$("p.wifstptrp button").click(function(){
+																								var wifstptrpbtn = $(this);
+																								var wifstptrpbtnhtml = $(this).html();
+																								/*container.find("p.tripsSubHead").hide();
+																								container.find("p.wifstptrp").hide();
+																								container.find("p.backToRoutes").hide();
+																								container.find("div.tripsDivInRoute").hide();
+																								$(".currentTripMarkers").hide();*/
+																								var theaffectedstopsMarkup = "";
+																								var theTripMarkup = "<p class=\"theTripSubhead\" style=\"background-color:black; color:white;  padding:0.5em;\"><strong>Agency:</strong>&nbsp;"+$(this).data("agencyname")+"<br><strong>Route:</strong>&nbsp;"+$(this).data("routetype")+" "+$(this).data("routeshortname")+" "+$(this).data("routelongname")+"<br><strong>Trip:</strong>&nbsp;"+$(this).html().replace("<strong>","").replace("</strong>","")+"</p><div class=\"fullTripData\" style=\"height:150px; max-height:150px; overflow:scroll; font-size:smaller; border: medium solid black; padding:0.5em;\"><p style=\"margin:0px 0;\"><strong>Affected Stops:</strong></p><div id=\"affectedstops\"></div><p style=\"margin:0px 0;\"><strong>All Stops:</strong><br>&nbsp;</p>";
+																								$(this).html("Please wait...");		
+																								var bgcolor=$(this).data("routebgcolor");
+																								var fgcolor=$(this).data("routefgcolor");
+																								var routetype=$(this).data("routetype");
+																								var path = $(this).data("path");
+																								var tripkey = $(this).data("tripkey");
+																								/*$(".whatifPolyline").hide();
+																								var latlngs = [];
+																								path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+																									latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+																								});
+																								var polyline = new L.Polyline(latlngs,{color:"#"+bgcolor,className:"whatifPolyline"});
+																								polyline.addTo(whatifDrawnItems);*/
+																							
+																								
+																								$.getJSON($(this).data("url"),function(tripdata){							
+																									//
+																									container.find("p.tripsSubHead").hide();
+																									container.find("p.wifstptrp").hide();
+																									container.find("p.backToRoutes").hide();
+																									container.find("div.tripsDivInRoute").hide();
+																									wifstptrpbtn.html(wifstptrpbtnhtml);
+																									$(".currentTripMarkers").hide();
+																									$(".whatifPolyline").hide();
+																									$(".whatifCrossingPolyline").hide();	
+																									var latlngs = [];
+																									path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+																										latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+																									});
+																									var polyline = new L.Polyline(latlngs,{color:"#"+bgcolor,className:"whatifPolyline"});
+																									polyline.addTo(whatifDrawnItems);
+																									//
+																									tripdata.forEach(function(oneStop){
+																										var isaffectedstop = false;
+																										try { isaffectedstop = Object.keys(impact["details"][agency]["routes"][hrRouteTxt]["trips"][tripkey]["stops"]).includes(oneStop["sequence"]+" "+oneStop["code"]+" "+oneStop["name"]);
+																										} catch(nabp){}
+																										
+																										if(isaffectedstop) {
+																											theTripMarkup+="<button style=\"font-size:larger; font-weight:bold; cursor:default; text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+";\" disabled><strong>Sequence:</strong>&nbsp;"+oneStop["sequence"]+"<br><strong>Code:</strong>&nbsp;"+oneStop["code"]+"<br><strong>Name:</strong>&nbsp;"+oneStop["name"]+"<br><strong>Arrival:</strong>&nbsp;"+oneStop["arrival"].substring(0,5)+"<br><strong>Departure:</strong>&nbsp;"+oneStop["departure"].substring(0,5)+"</button>";
+																											theaffectedstopsMarkup+="<button style=\"font-size:larger; font-weight:bold; cursor:default; text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+";\" disabled><strong>Sequence:</strong>&nbsp;"+oneStop["sequence"]+"<br><strong>Code:</strong>&nbsp;"+oneStop["code"]+"<br><strong>Name:</strong>&nbsp;"+oneStop["name"]+"<br><strong>Arrival:</strong>&nbsp;"+oneStop["arrival"].substring(0,5)+"<br><strong>Departure:</strong>&nbsp;"+oneStop["departure"].substring(0,5)+"</button>";
+																										}
+																										else {
+																											theTripMarkup+="<button style=\"cursor:default; text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+";\" disabled><strong>Sequence:</strong>&nbsp;"+oneStop["sequence"]+"<br><strong>Code:</strong>&nbsp;"+oneStop["code"]+"<br><strong>Name:</strong>&nbsp;"+oneStop["name"]+"<br><strong>Arrival:</strong>&nbsp;"+oneStop["arrival"].substring(0,5)+"<br><strong>Departure:</strong>&nbsp;"+oneStop["departure"].substring(0,5)+"</button>";
+																										}
+																										var markerAlreadyThere = false;																										
+																										map.defaultMapRef.eachLayer(function(layer) { if (layer instanceof L.Marker) { if (layer.getLatLng()["lat"] == oneStop["pos_lat"] && layer.getLatLng()["lng"] == oneStop["pos_lon"] && $(layer._icon).is(":visible")) { markerAlreadyThere = true; } else {  } } } );
+																										if(!markerAlreadyThere) {
+																											var stopMarker = L.marker([oneStop["pos_lat"], oneStop["pos_lon"]], { icon: new L.Icon({
+																											iconUrl: routetype=="Bus"?'https://servicemap.disit.org/WebAppGrafo/img/mapicons/TransferServiceAndRenting_BusStop.png':'https://servicemap.disit.org/WebAppGrafo/img/mapicons/TransferServiceAndRenting_Tram_stops.png'}), uri: oneStop["uri"], title: (oneStop["departure"]?oneStop["departure"]:oneStop["arrival"]).substring(0,5)+" | "+oneStop["code"]+" "+oneStop["name"], stopname: oneStop["name"] });
+																											stopMarker.addTo(whatifDrawnItems);																											
+																											$(stopMarker._icon).addClass("currentTripMarkers");
+																											if(!isaffectedstop) {
+																												$(stopMarker._icon).css("width","24px");
+																											}
+																										}
+																									});
+																									theTripMarkup+="</div>";
+																									theTripMarkup+="<p class=\"backToTrips\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+																									container.find("p.theTripSubhead").remove();
+																									container.find("div.fullTripData").remove();
+																									container.find("p.backToTrips").remove();
+																									container.append($(theTripMarkup));
+																									if(theaffectedstopsMarkup == "") {
+																										theaffectedstopsMarkup="<p>No stops of this specific trip are affected by the current scenario.</p>";
+																									}
+																									$("div#affectedstops").append($(theaffectedstopsMarkup));
+																									$("p.backToTrips button").click(	
+																										function(){
+																										container.find("p").hide();
+																										container.find("div.fullTripData").hide();																										
+																										container.find("p.stopHead").show();
+																										container.find("p.tripsSubHead").show();
+																										container.find("div.tripsDivInRoute").show();
+																										container.find("p.preserveplease").show();
+																										container.find("p.wifstptrp").show();
+																										container.find("p.backToRoutes").show();
+																										$(".currentTripMarkers").hide(); // it was commented
+																										}
+																										
+																										
+																									);
+																								});				
+																								
+																							});
+																							
+																						});
+																						
+																					});
+																				});
+																			});
+																			return;
+																			/*$.getJSON( '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(impact["details"][agency]["agencygraph"])+'&stop='+encodeURIComponent(impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["uri"])+'&date='+encodeURIComponent(selectedDate)+"&list=routes", function(impact) {
+																				
+																				
+																			}*/
+																		}
+																		e.target.getPopup().on('remove', function() {
+																			e.target.unbindPopup();
+																		});
+																	});
+																	marker.addTo(whatifDrawnItems); 
+																	$(marker._icon).addClass("affectedStopMarker");
+																	
+																});
+															});															
+														});
+													}
+												});												
+											}).fail(function() {
+												var olng = Math.min(map.defaultMapRef.getBounds()["_northEast"]["lng"],map.defaultMapRef.getBounds()["_southWest"]["lng"])+(Math.abs(map.defaultMapRef.getBounds()["_northEast"]["lng"]-map.defaultMapRef.getBounds()["_southWest"]["lng"])/2);
+												var olat = map.defaultMapRef.getBounds()["_northEast"]["lat"];
+												L.popup({offset: L.point(0, 210)}).setLatLng(new L.LatLng(olat, olng)).setContent("<p><strong>Impact on Public Transport</strong></p><p>This scenario is too complex for a single-step analysis. Please split it in simpler scenarios, as for the extension, the time interval, or both.</p>").openOn(map.defaultMapRef);
+												$("#bus_button").css("opacity",1);
+											});
+											setTimeout(function(){ whatifptiendpt.abort(); }, 30000); 
+											
+										}
+										// MS
                                     });
 
                                     // Init GH Leaflet Routing Machine 
@@ -5836,6 +6553,56 @@ if (!isset($_SESSION)) {
                                 return btn;
                             }
 
+							// MS
+							var latlonFilter = function(latlng) {
+								try {
+									var dist = -1;
+									var nearestMarker = null;
+									var newlat = latlng["lat"];
+									var newlng = latlng["lng"];									
+									map.defaultMapRef.eachLayer(
+										function(layer) { 
+											if (layer instanceof L.Marker) { 
+												if ($(layer._icon).hasClass("currentTripMarkers") && $(layer._icon).is(":visible")) {
+													if (dist == -1 || dist > Math.pow(latlng["lat"]-layer.getLatLng()["lat"],2)+Math.pow(latlng["lng"]-layer.getLatLng()["lng"],2) ) {
+														newlat = layer.getLatLng()["lat"];
+														newlng = layer.getLatLng()["lng"];
+														dist = Math.pow(latlng["lat"]-layer.getLatLng()["lat"],2)+Math.pow(latlng["lng"]-layer.getLatLng()["lng"],2);
+														nearestMarker = layer;
+														console.log("Reconciliated");
+													}
+												}
+											}
+										}
+									);			
+									console.log('<osm-script output="json"><query type="node"><around lat="'+newlat+'" lon="'+newlng+'" radius="100.0"/><has-kv k="bus" v="yes" /><has-kv k="name" v="'+nearestMarker.options.stopname+'" /></query><print /></osm-script>');
+									$.getJSON('https://overpass.kumi.systems/api/interpreter?data='+encodeURIComponent('<osm-script output="json"><query type="node"><around lat="'+newlat+'" lon="'+newlng+'" radius="100.0"/><has-kv k="bus" v="yes"></has-kv><has-kv k="name" v="'+nearestMarker.options.stopname+'"></has-kv></query><print /></osm-script>'),function(overpassResponse){
+										console.log(overpassResponse);
+										var lat = null;
+										var lng = null;
+										var public_transport = null;
+										overpassResponse["elements"].forEach(function(element){
+											if(public_transport != "stop_position" && public_transport != "platform") {
+												public_transport = element["tags"]["public_transport"];
+												lat = element["lat"];
+												lng = element["lon"];
+											}
+										});
+										if(lat != null && lng != null) {
+											newlat = lat;
+											newlng = lng;
+											console.log("From overpass: "+newlat+", "+newlng);
+										}
+									});
+									
+									return { lat: newlat, lng: newlng };
+								}
+								catch(e) {
+									return latlng;
+								}
+							};
+							// MS
+							
                             // add a popup <from, to> when the map is clicked
                             map.defaultMapRef.on('click', function(e) {
                                 if(lrmControl) {
@@ -5846,16 +6613,16 @@ if (!isset($_SESSION)) {
 
                                     L.popup()
                                         .setContent(container)
-                                        .setLatLng(e.latlng)
+                                        .setLatLng(latlonFilter(e.latlng))
                                         .openOn(map.defaultMapRef);
                                     // replace the first waypoint
                                     L.DomEvent.on(startBtn, 'click', function() {
-                                        lrmControl.spliceWaypoints(0, 1, e.latlng);
+                                        lrmControl.spliceWaypoints(0, 1, latlonFilter(e.latlng));
                                         map.defaultMapRef.closePopup();
                                     });
                                     // replace the last waypoint
                                     L.DomEvent.on(destBtn, 'click', function() {
-                                        lrmControl.spliceWaypoints(lrmControl.getWaypoints().length - 1, 1, e.latlng);
+                                        lrmControl.spliceWaypoints(lrmControl.getWaypoints().length - 1, 1, latlonFilter(e.latlng));
                                         map.defaultMapRef.closePopup();
                                     });
                                 }

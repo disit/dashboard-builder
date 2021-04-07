@@ -2934,13 +2934,24 @@ $title = $_REQUEST['title_w'];
                                 } else if (passedData.query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {
                                     query = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" + passedData.query + "&format=json";
                                 } else {
-
+					                var queryReplace = "selection=wkt:POLYGON(("
+                                    if (is3DViewOn) {
+                                        bounds = map.default3DMapRef.getBounds(); 
+                                        for (var i = 0; i < bounds.length; i++) 
+                                            queryReplace += bounds[i].longitude + "%20" + bounds[i].latitude + ",%20";
+                                        queryReplace = queryReplace.slice(0, -4);
+                                        queryReplace += "))"
+                                    }
                                     if (pattern.test(passedData.query)) {
-                                        //console.log("Service Map selection substitution");
-                                        query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                        if (is3DViewOn) 
+                                            query = passedData.query.replace(pattern, queryReplace);
+                                        else
+                                            query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
                                     } else {
-                                        //console.log("Service Map selection addition");
-                                        query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                        if (is3DViewOn) 
+                                            query = passedData.query + "&" + queryReplace;
+                                        else
+                                            query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                     }
                                 }
                                 if (!query.includes("&maxResults")) {
@@ -3244,8 +3255,32 @@ $title = $_REQUEST['title_w'];
                                                                     map.defaultMapRef.getPane('ciclePathFeature').style.zIndex = 420;
                                                                 }
 
-                                                                gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, {pane: 'ciclePathFeature'}).addTo(map.defaultMapRef));
-                                                                
+                                                                // if (is3DViewOn) {
+                                                                //     let bounds = map.default3DMapRef.getBounds();
+                                                                //     var minLat = bounds[3].latitude;
+                                                                //     var maxLat = bounds[3].latitude;
+                                                                //     var minLng = bounds[3].longitude;
+                                                                //     var maxLng = bounds[3].longitude;
+                                                                //     for (var i = 0; i < 2; i++) {
+                                                                //         if(minLat > bounds[i].latitude)
+                                                                //             minLat = bounds[i].latitude;
+                                                                //         if(maxLat < bounds[i].latitude)
+                                                                //             maxLat = bounds[i].latitude;
+                                                                //         if(minLng > bounds[i].longitude)
+                                                                //             minLng = bounds[i].longitude;
+                                                                //         if(maxLng < bounds[i].longitude)
+                                                                //             maxLng = bounds[i].longitude;
+                                                                //     }
+                                                                    
+                                                                //     map.defaultMapRef.fitBounds([[minLat, minLng], [maxLat, maxLng]]);
+
+                                                                // }
+
+                                                                //gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, {pane: 'ciclePathFeature'}).addTo(map.defaultMapRef));
+								                                var jsonLayer = L.geoJSON(ciclePathFeature, {pane: 'ciclePathFeature', style: function (json){ return {renderer: L.svg({padding: 2})};}});
+								                                var objLayer = jsonLayer.addTo(map.defaultMapRef);
+								                                gisGeometryLayersOnMap[desc].push(objLayer);
+
                                                                 // CORTI - geoJSON 3D
                                                                 // Tentativo di aggiungere json piste ciclabili al 3d
 //                                                                if(is3DViewOn){
@@ -3898,9 +3933,32 @@ $title = $_REQUEST['title_w'];
                 });
                 $(document).on('addTrafficRealTimeDetails', function (event) {
                     if (event.target === map.mapName) {
-                        var so = map.defaultMapRef.getBounds()._southWest;
-                        var ne = map.defaultMapRef.getBounds()._northEast;
-                        var zm = Math.round(map.defaultMapRef.getZoom() - 1);
+                        var so, ne, zm;
+                        
+                        if (is3DViewOn) {
+                            let bounds = map.default3DMapRef.getBounds();
+                            var minLat = bounds[3].latitude;
+                            var maxLat = bounds[3].latitude;
+                            var minLng = bounds[3].longitude;
+                            var maxLng = bounds[3].longitude;
+                            for (var i = 0; i < 3; i++) {
+                                if(minLat > bounds[i].latitude)
+                                    minLat = bounds[i].latitude;
+                                if(maxLat < bounds[i].latitude)
+                                    maxLat = bounds[i].latitude;
+                                if(minLng > bounds[i].longitude)
+                                    minLng = bounds[i].longitude;
+                                if(maxLng < bounds[i].longitude)
+                                    maxLng = bounds[i].longitude;
+                            }
+                            var so = {lat: minLat, lng: minLng}
+                            var ne = {lat: maxLat, lng: maxLng}
+                            var zm = Math.round(map.default3DMapRef.getZoom() - 1);
+                        } else {
+                            var so = map.defaultMapRef.getBounds()._southWest;
+                            var ne = map.defaultMapRef.getBounds()._northEast;
+                            var zm = Math.round(map.defaultMapRef.getZoom() - 1);
+                        }
 
                         var roadsJson = event.passedData + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat + "&eLong=" + ne.lng + "&zoom=" + zm;
 
@@ -3952,7 +4010,8 @@ $title = $_REQUEST['title_w'];
                                 map.defaultMapRef.getPane('trafficFlow').style.zIndex = 420;
                             }
 
-                            var wktLayer = new L.LayerGroup();
+                            //var wktLayer = new L.LayerGroup();
+                            var wktLayer = new L.featureGroup();
                             var roads = null;
                             var time = 0;
 
@@ -4102,6 +4161,7 @@ $title = $_REQUEST['title_w'];
                                         }
                                     }
                                 }
+			    	            wktLayer.setStyle({renderer: L.svg({padding: 2})});
                                 wktLayer.addTo(map.defaultMapRef);
                             }
 
@@ -9651,6 +9711,39 @@ $title = $_REQUEST['title_w'];
                     // css
                     editCSSFor3DWidgets();
                 }, 500);
+            }
+
+            function getBoundsFor2d() {
+                let bounds = map.default3DMapRef.getBounds();
+                var corners = [];
+                for (var i = 0; i < bounds.length; i++) {
+                    var corner = L.latLng(bounds[i].latitude, bounds[i].longitude);
+                    corners.push(corner);
+                }
+                var finalBounds = L.latLngBounds(corners[0], corners[1]);
+                finalBounds.extend(corners[2]);
+                finalBounds.extend(corners[3]);
+                return finalBounds;
+            }
+
+            function getMinMaxLatLng(map) {
+                let bounds = map.getBounds();
+
+                var minLat = bounds[3].latitude;
+                var maxLat = bounds[3].latitude;
+                var minLng = bounds[3].longitude;
+                var maxLng = bounds[3].longitude;
+                for (var i = 0; i < 3; i++) {
+                    if(minLat > bounds[i].latitude)
+                        minLat = bounds[i].latitude;
+                    if(maxLat < bounds[i].latitude)
+                        maxLat = bounds[i].latitude;
+                    if(minLng > bounds[i].longitude)
+                        minLng = bounds[i].longitude;
+                    if(maxLng < bounds[i].longitude)
+                        maxLng = bounds[i].longitude;
+                }
+                return [[minLat, minLng], [maxLat, maxLng]];
             }
             
             /*

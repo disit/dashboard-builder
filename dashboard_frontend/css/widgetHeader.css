@@ -130,4 +130,27 @@
     float: right;
     text-align: left;
 }
+.timControlsCalBtn
+{
+    float: right;
+    text-align: center;
+    width: 25px;
+    height: 25px;
+    position: absolute;
+    color: black;
+    top: 0px;
+    z-index: 999;
+}
+.ui-datepicker 
+{
+    position: relative;
+    left: -130px;
+    font-size:9pt !important;
+}
+
+.ui-widget-content {
+    width: auto;
+    height: auto;
+}
+
 

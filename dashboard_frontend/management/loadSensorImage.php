@@ -50,6 +50,28 @@ if (isset($_SESSION['loggedUsername'])) {
                                                     $uploadPath = $currentDir2 . $uploadDirectory .  $id_row . '/'  . basename($fileName);
                                                     $didUpload = move_uploaded_file($fileTmpName, $uploadPath);
                                         }
+                                        
+                                                                                            //****///
+                                                    $link = mysqli_connect($host_processes, $username_processes, $password_processes) or die("failed to connect to server Processes !!");
+                                                     mysqli_set_charset($link, 'utf8');
+                                                        mysqli_select_db($link, $dbname_processes);
+                                                        //$query = "INSERT INTO devices (image) VALUES ('".basename($fileName)."') WHERE device_name='".$id_row."'";
+                                                        //Se esiste fare un update e se non esiste fare insert.
+                                                        $query_count = "SELECT count(*) AS count FROM devices WHERE device_name='".$id_row."'";
+                                                        $result_count= mysqli_query($link, $query_count) or die(mysqli_error($link));
+                                                        //$num_rows = mysql_num_rows($result_count);
+                                                         while ($row_own = mysqli_fetch_assoc($result_count)) {
+                                                        if ($row_own['count'] == 0){
+                                                            $query = "INSERT INTO devices (device_name,process,HealthinessCriteria,Period,image) VALUES ('".$id_row."','','','','".basename($fileName)."')";
+                                                         $result = mysqli_query($link, $query) or die(mysqli_error($link));
+                                                        }else{
+                                                           
+                                                         //
+                                                         $query = "UPDATE devices SET image = '".basename($fileName)."' WHERE device_name='".$id_row."'";
+                                                         $result = mysqli_query($link, $query) or die(mysqli_error($link));
+                                                         //
+                                                        }
+                                    }
                               }
 
                     }else{

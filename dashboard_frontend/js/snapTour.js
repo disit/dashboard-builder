@@ -7,12 +7,13 @@
             if (retrieved && !reset) {
                 this._inner = JSON.parse(retrieved);
             } else {
-                this._inner = {};
-                win.localStorage.setItem(this._storageId, JSON.stringify(this._inner));
+                this.reset();
             }
 
             return new Proxy(this, {
                 get(obj, prop) {
+                    if (prop in obj)
+                        return typeof (obj[prop]) === 'function' ? obj[prop].bind(obj) : obj[prop];
                     return obj._getItem(prop);
                 },
                 set(obj, prop, value) {
@@ -33,6 +34,11 @@
                 win.localStorage.setItem(this._storageId, JSON.stringify(this._inner));
             }
         }
+
+        reset() {
+            this._inner = {};
+            win.localStorage.setItem(this._storageId, JSON.stringify(this._inner));
+        }
     }
 
     class SnapTourManager {
@@ -42,7 +48,13 @@
             newTab: "_blank"
         }
 
-        constructor(tourId) {
+        constructor(tourId, options) {
+            this._options = Object.assign({}, {
+                isPublic: true,
+              //  resetTimeout: 1000 * 60 * 60 * 24
+                resetTimeout: 1000 * 60 * 5
+            }, options);
+
             this._initStorage(tourId);
             this._initTour();
             this._steps = [];
@@ -56,10 +68,18 @@
             this._storage.currentStepIdx = value;
         }
 
+        get resetTimeoutExpired() {
+            return Date.now() - this._storage.tourStartTime >= this._options.resetTimeout;
+        }
+
         _initStorage(tourId) {
             const params = new URLSearchParams(win.location.search);
             this._storage = new Storage(params.has("resetTour"), `SnapTour:${tourId}`);
+
+            if (this._options.isPublic && this.resetTimeoutExpired)
+                this._storage.reset();
         }
+
         _initTour() {
             const tour = new Shepherd.Tour({
                 defaultStepOptions: {
@@ -86,6 +106,9 @@
         start() {
             if (!this._storage.completed && !this._storage.cancelled)
                 this._tour.show(this.currentStepIdx || 0);
+
+            if (this.currentStepIdx == 0)
+                this._storage.tourStartTime = Date.now();
         }
 
         _nextBtnText(nullableText) {
@@ -246,12 +269,12 @@
     }
 
     win.SnapTour = {
-        init(steps) {
+        init(steps, options) {
             if (!steps)
                 throw new Error("Initialized SnapTour without steps");
 
             const tourId = steps[0].tourName;
-            const tour = new SnapTourManager(tourId);
+            const tour = new SnapTourManager(tourId, options);
             for (const step of iterateSteps(steps)) {
                 tour.addStep(step);
             }

@@ -65,6 +65,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         var isoDate = new Date(nowUTC).toISOString();
 
         var pattern = /Percentuale\//;
+        var objName = null;
 
         console.log("Entrato in widgetCalendar --> " + widgetName);
 
@@ -572,6 +573,58 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             }
         }
 
+        function adjustData(groupData) {
+        //    for (var n=0; n<groupData.length; n++) {
+                let n = 0;
+                let auxVal = null;
+                let arrLength = groupData.length;
+                for (var m=0; m<groupData[n].length; m++) {
+                    let o = 0;
+                //    for (o=0; o<groupData[n][m][1].length; o++) {
+                    while (o<groupData[n][m][1].length) {
+                        if (groupData[n][m][1][o][0].getUTCFullYear() == new Date().getUTCFullYear()) {
+                            // slice from original arrayù
+                            auxVal = groupData[n][m][1][o];
+                            groupData[n][m][1].splice(o,1);
+                            if (groupData[arrLength] == null) {
+                                groupData[arrLength] = [];
+                                groupData[arrLength][0] = [];
+                                groupData[arrLength][0][0] = groupData[n][m][0];
+                                groupData[arrLength][0][1] = [];
+                                groupData[arrLength][0][1][0] = auxVal;
+                            //    groupData[arrLength].push(groupData[n][m][1][o][0]);
+                            } else {
+                                let i = 0;
+                                for (i=0; i<groupData[arrLength].length; i++) {
+                               // while (i<groupData[arrLength].length) {
+                                    if(groupData[arrLength][i][0] == groupData[n][m][0]) {
+                                        if (groupData[arrLength][i] == null) {
+                                            groupData[arrLength][i] = [];
+                                            groupData[arrLength][i][0] = groupData[n][m][0];
+                                            groupData[arrLength][i][1] = [];
+                                            groupData[arrLength][i][1][0] = auxVal;
+                                        } else {
+                                            groupData[arrLength][i][1].push(auxVal);
+                                        }
+                                    } else if (i == groupData[arrLength].length-1){
+                                        groupData[arrLength][i+1] = [];
+                                        groupData[arrLength][i+1][0] = groupData[n][m][0];
+                                        groupData[arrLength][i+1][1] = [];
+                                      //  groupData[arrLength][i+1][1][0] = auxVal;
+                                      //  i++;
+                                    }
+                                   // groupData[arrLength][i] = groupData[n][m][1][o][0];
+                                }
+                            }
+                        } else {
+                            o++;
+                        }
+                    }
+                }
+        //    }
+            return groupData;
+        }
+
         function drawDiagram(timeDomain, xAxisFormat, yAxisFormat) {
             elToEmpty.empty();
 
@@ -583,8 +636,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                 var timeSlots = ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
                     "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"];
-                var monthArray = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUG", "AGO", "SET", "OTT", "NOV", "DIC"];
-                var weekdayArray = ["D", "L", "M", "M", "G", "V", "S"];
+                var monthArray = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            //    var weekdayArray = ["D", "L", "M", "M", "G", "V", "S"];
+                var weekdayArray = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
                 var yLabel, cornerTag = 'NULL';
                 var countDay = 'NULL';
@@ -596,17 +650,20 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 var formatDay = i => yLabel[i];
                 var formatMonth = i => cornerTag[i];
 
-                var dayFormat = d3.timeFormat("%d"); //<--------------------
-                // var formatHours = d3.timeFormat("%H:%M");
+                var dayFormat = d3.timeFormat("%e");
                 var formatValue = d3.format(".2f");
-                var monthFormat = d3.timeFormat("%b");
+                var monthFormat = d3.timeFormat("%m");
 
-                var tIndex = 0; // visualizziamo solo i dati di un sensore
+                var tIndex = 0;
                 var calendarData = [];
 
-                var dati = chartSeriesObject[tIndex].data.map(d => [new Date(d[0]), d[1]]).reverse();
+                var dati = chartSeriesObject[tIndex].data.map(d => [new Date(d[0]), d[1]]);
 
-                var groupedData = d3.groups(dati, d => d[0].getMonth()).map(function(d){
+                if (rowParameters[0].metricHighLevelType === "Sensor"){
+                    dati.reverse(); // se provengono da sensori li riordiniamo dal più vecchio al più recente
+                }
+
+                var groupedData = d3.groups(dati, d => d[0].getMonth()).map(function(d) {
                     if (currentViewMode === "monthly") {
                         return d3.groups(d[1], d => d[0].getDate()).map(function (d) {
                             return d3.groups(d[1], d => d[0].getHours());
@@ -629,6 +686,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     }
                 });
 
+                if (currentViewMode === "yearly") {
+                    groupedData = adjustData(groupedData);
+                }
+
                 groupedData.map(function(d){
                     d.map(function(d){
                         if (currentViewMode === "monthly") {
@@ -636,16 +697,17 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 let singleHourObject = [];
                                 let sommaValori = 0;
                                 for (let k = 0; k < d[1].length; k++) {
-                                    sommaValori += d[1][k][1];
+                                    if (!isNaN(d[1][k][1])) {
+                                        sommaValori += d[1][k][1];
+                                    }
                                 }
-                                singleHourObject.push(d[1][0][0]); // questa è la data
+                                singleHourObject.push(d[1][0][0]);
                                 if (styleParameters.meanSum === "mean") {
-                                    singleHourObject.push(formatValue(sommaValori / d[1].length));
+                                    singleHourObject.push(formatValue(sommaValori / (d[1].length)));
                                 } else if (styleParameters.meanSum === "sum") {
                                     singleHourObject.push(Math.round(sommaValori));
                                 } else {
-                                    singleHourObject.push(formatValue(sommaValori / d[1].length));
-                                //    console.warn("Calcolata la media per operazione sconosciuta su media/somma.");
+                                    singleHourObject.push(formatValue(sommaValori / (d[1].length)));
                                 }
                                 calendarData.push(singleHourObject);
                             });
@@ -653,26 +715,28 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             let singleDayObject = [];
                             let sommaValoriGiornalieri = 0;
                             for (let k = 0; k < d[1].length; k++) {
-                                sommaValoriGiornalieri += d[1][k][1];
+                                if (!isNaN(d[1][k][1])) {
+                                    sommaValoriGiornalieri += d[1][k][1];
+                                }
                             }
-                            singleDayObject.push(d[1][0][0]); // questa è la data
-                            if (styleParameters.meanSum === "mean") {
-                                singleDayObject.push(formatValue(sommaValoriGiornalieri / d[1].length));
-                            } else if (styleParameters.meanSum === "sum") {
-                                singleDayObject.push(Math.round(sommaValoriGiornalieri));
-                            } else {
-                                singleDayObject.push(formatValue(sommaValoriGiornalieri / d[1].length));
-                             //   console.error("Calcolata la media per operazione sconosciuta su media/somma.");
+                            if (d[1][0] != null) {
+                                singleDayObject.push(d[1][0][0]);
+                                if (styleParameters.meanSum === "mean") {
+                                    singleDayObject.push(formatValue(sommaValoriGiornalieri / (d[1].length)));
+                                } else if (styleParameters.meanSum === "sum") {
+                                    singleDayObject.push(Math.round(sommaValoriGiornalieri));
+                                } else {
+                                    singleDayObject.push(formatValue(sommaValoriGiornalieri / (d[1].length)));
+                                }
+                                calendarData.push(singleDayObject);
                             }
-                            calendarData.push(singleDayObject);
                         } else {
-                            console.error("Nessuna vista selezionata.");
+                            console.error("Viewmode not selected.");
                         }
                     });
                 });
 
                 // si potrebbe inserire l'impostazione del quantile nelle more options
-                // controllare come funziona l'interpolazione della trasparenza (canale alfa)
                 const color = d3.scaleSequential(styleParameters.barsColors[0] === undefined ? d3.interpolateBlues : d3.interpolateRgb("#ffffff", styleParameters.barsColors[0]))
                     .domain([0, +d3.quantile(calendarData.map(d => Math.abs(d[1])).sort(d3.ascending), 0.85)])
                     .unknown("#ffffff");
@@ -687,7 +751,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                     countDay = i => i % 24;
 
-                    const months = d3.groups(calendarData, d => d[0].getMonth()).reverse(); // reverse per mettere il mese piu recente sopra
+                    const months = d3.groups(calendarData, d => d[0].getMonth()).reverse();
 
                     const svg = d3.select("#<?= $_REQUEST['name_w'] ?>_chartContainer")
                         .append("svg")
@@ -727,10 +791,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         .attr("y", d => countDay(d[0].getHours()) * calendarCellSize + 0.5)
                         .attr("fill", d => color(d[1]))
                         .append("title")
-                        //.text(d => `${formatDate(d[0])} - ${formatHours(d[0])}
-                        .text(d => `${formatDate(d[0])}
-
-                    ${d[1]}`);
+                    //    .text(d => `${rowParameters[0].metricName} - ${formatDate(d[0])}
+                        .text(d => `${objName} - ${formatDate(d[0])}
+                            Time: ${d[0].getHours()}:00 - ${(d[0].getHours() + 1)}:00
+                            ${rowParameters[0].smField}: ${d[1]}`
+                        );
 
                     const daysInMonth = month.append("g")
                         .selectAll("g")
@@ -791,9 +856,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         .attr("y", d => countDay(d[0].getDay()) * calendarCellSize + 0.5)
                         .attr("fill", d => color(d[1]))
                         .append("title")
-                        .text(d => `${formatDate(d[0])}
+                    //    .text(d => `${rowParameters[0].metricName} - ${formatDate(d[0])}
+                        .text(d => `${objName} - ${formatDate(d[0])}
 
-                    ${d[1]}`);
+${rowParameters[0].smField}: ${d[1]}`);
 
                     function pathMonth(t) {
                         const n = 7;
@@ -818,7 +884,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     month.append("text")
                         .attr("x", d => d3.timeMonday.count(d3.timeYear(d), d3.timeMonday.ceil(d)) * calendarCellSize + 2)
                         .attr("y", -5)
-                        .text(monthFormat);
+                        .text(d => {
+                            return monthArray[monthFormat(d) - 1];
+                        });
 
                 } else {
                     console.error("Calendar: errore nella lettura del viewMode.");
@@ -1139,7 +1207,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                         seriesDataArray.push(extractedData);
 
-                        var objName = null;
+                        objName = null;
                         /*   if (editLabels != null) {
                                if (editLabels.length > 0) {
                                    objName = editLabels[i];
@@ -1257,7 +1325,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                         var resultsArray = smPayload;
 
-                        var objName = null;
+                        objName = null;
                         /*    if (editLabels != null) {
                                 if (editLabels.length > 0) {
                                     objName = editLabels[i];
@@ -1339,8 +1407,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         smPayload = JSON.parse(smPayload);
                         chartSeriesObject.valueUnit = "";
 
-                        /*    var objName = null;
-                            if (editLabels != null) {
+                        objName = null;
+                        /*    if (editLabels != null) {
                                 if (editLabels.length > 0) {
                                     objName = editLabels[i];
                                 } else {
@@ -1356,7 +1424,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             objName = aggregationGetData[i].metricName + " - " + smField;
                         }
 
-                        if(smPayload.hasOwnProperty('trends'))
+                        if(smPayload.hasOwnProperty('trendis'))
                         {
                             var resultsArray = smPayload.predictions;
                             var newVal, newDay, newHour = null;

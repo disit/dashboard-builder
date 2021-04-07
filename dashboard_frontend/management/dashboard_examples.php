@@ -149,17 +149,16 @@ $tourRepo = new TourRepository($host, $username, $password, $dbname);
         initPageContent();
         initMenu(<?= escapeForJS(sanitizeGetString('linkId')) ?>);
     });
-</script>
 
-<!--Ricordarsi di rimuovere la condizione sul singolo utente una volta finalizzato il tour -->
-<!-- condizione per utenti non loggati !isset($_SESSION["loggedUsername"]) || $_SESSION["loggedUsername"] == '' -->
-<?php if($_SESSION["loggedUsername"] == 'paolo.disit' || !isset($_SESSION["loggedUsername"]) || $_SESSION["loggedUsername"] == '') : ?>
-<script>
     $(function() {
-        const steps = JSON.parse('<?= serializeToJsonString($tourRepo->getTourSteps("preRegisterTour"))?>');
-        SnapTour.init(steps);
+        const steps = JSON.parse('<?= serializeToJsonString($tourRepo->getTourSteps("preRegisterTour")) ?>');
+        const session = JSON.parse('<?= serializeToJsonString($_SESSION) ?>');
+        SnapTour.init(steps, {
+            isPublic: session.isPublic,
+         //   resetTimeout: 1000 * 60 * 60 * 12 // 12 hour as ms. if left blank the default is 24h
+            resetTimeout: 1000 * 60 * 5
+        });
     });
 </script>
-<?php endif; ?>
 
 </html>

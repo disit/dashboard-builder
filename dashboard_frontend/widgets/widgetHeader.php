@@ -82,6 +82,14 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
             </div>
         </div>
     </div>
+    <div id="<?= $name_w ?>_calendarContainer" class="timeControlsContainer" style="display:none;">
+        <div id="<?= $name_w ?>_calendarButton" class="timeControlsBtnCnt col-xs-2 timControlsCalBtn" data-active="false" style="color:white; padding-left:0px;">
+            <div id="<?= $name_w ?>_calendarBtn" data-provide="our-date-picker" data-date-autoclose="true" data-date-toggle-active="true" data-date-show-on-focus="false">
+                <span class="fa fa-calendar"></span>
+                <div id = "<?= $name_w ?>_datepicker"></div>
+            </div>
+        </div>
+    </div>
 
 	<div id="<?= $name_w ?>_buttonsDiv">
 	   <div class="singleBtnContainer"><a class="iconFullscreenModal" href="#" data-toggle="tooltip" title="Fullscreen popup"><span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span></a></div>
@@ -131,6 +139,9 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
 
             $("#<?= $name_w ?>_timeControlsContainer").show();
 
+        }
+        if ("<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['type_w'])) ?>" == "widgetCurvedLineSeries") {
+            $("#<?= $name_w ?>_calendarContainer").show();
         }
 
         var ckEditorContent = null;

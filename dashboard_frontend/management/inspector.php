@@ -430,7 +430,11 @@ $lastUsedColors = null;
         echo(' <li role="presentation" id="tab7"><a href="#userTab" aria-controls="userTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">User</a></li>');
     }
     if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
-        echo(' </ul>
+        echo(' 
+            
+            <li role="presentation" id="tab8"><a href="#reportTab" aria-controls="reportTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Report</a>
+                                        </li>
+                                        </ul>
                                     <!-- Tab panes -->
                                     <div class="tab-content">
                                         <div role="tabpanel" class="tab-pane active" id="uploadTab">
@@ -471,6 +475,16 @@ $lastUsedColors = null;
                                                             <div class="input-group" id="input_ch2"></div>
                                                     </div>
                                           </div>
+                                        <div role="tabpanel" class="tab-pane" id="reportTab">
+                                                    <div class="modal-body">
+                                                    <div id="admin_report_config">
+                                                    </div>
+                                                    <span id="report_link" >
+                                                          <!-- <a href="#" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Download Report</a>-->
+                                                           <!--<button type="button" id="button_link" class="btn btn-primary">Download Report</button>-->
+                                                    </span>
+                                                    </div>
+                                    </div>
                                         <div role="tabpanel" class="tab-pane" id="browseTab">
                                                         <div class="modal-body">
 
@@ -728,7 +742,69 @@ $lastUsedColors = null;
             //$('#mailC').val();
             //licence
             //$('#person').val();
+            var hour_option = "";
+            if (role_session_active === 'RootAdmin') {
+                hour_option = '<option value="hourly">Hourly</option>';
+            }else{
+                hour_option = '';
+            }
             //$('#web').val();
+            ////////////////////////
+            if (role_session_active === 'RootAdmin') {
+                  $('#admin_report_config').html('<div class="panel panel-default"><div class="panel-heading">Define Report</div><div class="panel-body"><input type="text" id="job" style="display:none;"></input><label for="activation">Activation:</label><input id="activation" type="checkbox"></br><label for="periods">Periodicity:</label><select id="periods"><option value="undefined"></option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option>'+hour_option+'</select></div><div class="panel-footer"><button class="btn btn-primary" role="button" id="modify_report" style="margin-right: 10px;">Confirm</button></div></div>');
+             }else{
+                 $('#admin_report_config').empty();
+             }
+            ////////////////
+            $.ajax({
+                    async: true,
+                    type: 'GET',
+                    url: 'report_scheduler.php',
+                    data: {
+                        action: 'list',
+                        type: 'Devices',
+                        service: data_unique_name_id 
+                    },
+                    success: function (data) {
+                        console.log('SUCCESS');
+                        console.log('Status data:   '+data);
+                        var value = JSON.parse(data);
+                        console.log(value.status);
+                        console.log(value.period);
+                        console.log(value.folder);
+                        console.log(value.link);
+                        console.log(value.job);
+                        //
+                        var link = value.link;
+                        //
+                        if (value.status === "Yes"){
+						//$('#report_link').html('<button type="button" id="button_link" class="btn btn-primary">Download Report</button>');
+                                                if (link !==""){
+                                                     $('#report_link').html('<a class="btn btn-primary" href="'+link+'" role="button" target="_blank">Download Report</a>');
+                                                }
+                                                if (role_session_active === 'RootAdmin') {
+                                                    $('#activation').prop('checked', true);
+                                                    $('#job').val(value.job);
+                                                }
+                                            }else{
+                                               $('#report_link').empty();
+                                                 if (role_session_active === 'RootAdmin') {
+                                                    $('#activation').prop('checked', false);
+                                                }
+                                            }
+			if ((value.period === 'monthly')||(value.period === 'quarterly')){
+                            $('#periods').val(value.period);
+                        }
+                        //
+                        if (role_session_active === 'RootAdmin') {
+                         if (value.period === 'hourly'){
+                             $('#periods').val(value.period);
+                         }       
+                        }
+                    }
+                });
+            //
+             
             //
             if (high_level == 'Sensor' || high_level == 'Sensor-Actuator') {
                 $('#data-get_instances').val(data_get_instances);
@@ -1509,7 +1585,127 @@ $lastUsedColors = null;
             //$('.licence_par').attr("readonly", false);
             //
         });
-
+        
+        //modify_report
+$(document).on('click', '#modify_report', function () {
+    var activation =  $('#activation').prop('checked');
+    var periods = $('#periods').val();
+    var jobs = $('#job').val();
+    var data_unique_name_id =  $('#data-unique_name_id').val();
+    console.log ('activation: '+activation+' periods:'+periods);
+    //
+                $.ajax({
+                    async: true,
+                    type: 'GET',
+                    url: 'report_scheduler.php',
+                    data: {
+                        action: 'edit',
+                        type: 'Devices',
+                        activation: activation,
+                        periods: periods,
+                        service: data_unique_name_id,
+                        jobs: jobs
+                    },
+                    success: function (data) {
+                        console.log('SUCCESS');
+                        console.log('Status data:   '+data);
+                        var value = JSON.parse(data);
+                        var code = value.code;
+                        console.log(code);
+                        var test_message = '';
+                        if (code =='200'){
+                             test_message = 'Operation Successfully executed';
+                        }else if (code == '404'){
+                             test_message = 'Error During operation Execution';
+                        }else{
+                             test_message = 'Error During operation Execution';
+                        }
+                        setTimeout(function () {
+                    $('#healthiness-modal').modal('hide');
+                    $('#healthiness_table tbody').empty();
+                    $('#processnameStatic').val('');
+                    $('#kbIp').val('');
+                    $('#phoenixTable').val('');
+                    $('#graph_uri').val('');
+                    $('#mail').val('');
+                    $('#licence').val('');
+                    $('#owner').val('');
+                    $('#address').val('');
+                    $('#processPath').val('');
+                    $('#tab7').removeClass("active");
+                    $('#tab6').removeClass("active");
+                    $('#tab5').removeClass("active");
+                    $('#tab4').removeClass("active");
+                    $('#tab2').removeClass("active");
+                    $('#tab3').removeClass("active");
+                    $('#tab1').addClass("active");
+                    $('#imageTab').removeClass("active");
+                    $('#ownerTab').removeClass("active");
+                    $('#processTab').removeClass("active");
+                    $('#HealthinessTab').removeClass("active");
+                    $('#browseTab').removeClass("active");
+                    $('#userTab').removeClass("active");
+                    $('#reportTab').removeClass("active");
+                    $('#uploadTab').addClass("active");
+                    $('#disces_link').empty();
+                    $('#listETL_link').empty();
+                    $('#kb_link').empty();
+                    $('#sm_link').empty();
+                    $('#disces_ip').val('');
+                    $('#organization').val('');
+                    $('#inspector_image').empty();
+                    $('#upload_image').empty();
+                    $('#ms_link').empty();
+                    $('#iot_link').empty();
+                    $('#pd_link').empty();
+                    $('#job_name').empty();
+                    $('#dash_link').empty();
+                    $('#time_trand_link').empty();
+                    $('#iotDevice').empty();
+                    $('#iotBroker').empty();
+                    $('#owner').empty();
+                    $('#id_row').val('');
+                    $('#arcgis_link').empty();
+                    $('#heatmap_link').empty();
+                    $('#healthiness_c').val('');
+                    $('#period').val('');
+                    $('#v_type').val('');
+                    $('#telephone').empty();
+                    $('#web').empty();
+                    $('#s1_date').empty();
+                    $('#s2_date').empty();
+                    $('#input_ch2').empty();
+                    //$('#attr_type').val('');
+                    $('#setname').val('');
+                    $('#list_kpi_dash').empty();
+                    $('#broker_link').empty();
+                    $('#list_dashboard_link').empty();
+                    $('#delay').val('');
+                    $('#last_check_health').val('');
+                    $('#status_1').css('color', 'black');
+                    $('#status_health').css('color', 'black');
+                    $('#Status_h').val('');
+                    $('#Status_2').val('');
+                    $('.licence_par').attr("readonly", true);
+                    $('#div_edit_licence_confirm').empty();
+                    $('.licence_text').text('Licence:    ');
+                    //
+                    $('#public').empty();
+                    $('#creator').empty();
+                    $('#mailC').empty();
+                    //licence
+                    $('#person').empty();
+                    $('#web').empty();
+                     $('#admin_report_config').empty();
+                    //
+                    alert(test_message);
+                }, 1000);
+                        //
+                       
+                    }
+                });
+    //
+});
         $(document).on('click', '#confirm_modify', function () {
 
             //$('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;"  data-target="#exampleModal">Confirm</a></span>');
@@ -1590,6 +1786,7 @@ $lastUsedColors = null;
                     $('#HealthinessTab').removeClass("active");
                     $('#browseTab').removeClass("active");
                     $('#userTab').removeClass("active");
+                    $('#reportTab').removeClass("active");
                     $('#uploadTab').addClass("active");
                     $('#disces_link').empty();
                     $('#listETL_link').empty();
@@ -1633,6 +1830,7 @@ $lastUsedColors = null;
                     $('.licence_par').attr("readonly", true);
                     $('#div_edit_licence_confirm').empty();
                     $('.licence_text').text('Licence:    ');
+                    $('#report_link').empty();
                     //
                     $('#public').empty();
                     $('#creator').empty();
@@ -1640,6 +1838,7 @@ $lastUsedColors = null;
                     //licence
                     $('#person').empty();
                     $('#web').empty();
+                     $('#admin_report_config').empty();
                     //
                     alert('Image uploaded');
                 }, 1000);
@@ -1716,7 +1915,11 @@ $lastUsedColors = null;
             $('#check_errors').empty();
             $('#conf_edit2').prop('disabled', false);
         });
+        
+        
 
+        
+        
         $('#confirmModal').on('hidden.bs.modal', function () {
             console.log('close');
         });
@@ -1748,6 +1951,7 @@ $lastUsedColors = null;
             $('#tab4').removeClass("active");
             $('#tab2').removeClass("active");
             $('#tab3').removeClass("active");
+            $('#tab8').removeClass("active");
             $('#tab1').addClass("active");
             $('#imageTab').removeClass("active");
             $('#ownerTab').removeClass("active");
@@ -1756,6 +1960,7 @@ $lastUsedColors = null;
             $('#browseTab').removeClass("active");
             $('#uploadTab').addClass("active");
             $('#userTab').removeClass("active");
+            $('#reportTab').removeClass("active");
             $('#disces_link').empty();
             $('#listETL_link').empty();
             $('#kb_link').empty();
@@ -1790,6 +1995,7 @@ $lastUsedColors = null;
             $('#Status_2').val('');
             $('#telephone').val('');
             $('#web').val('');
+            $('#report_link').empty();
             $('.licence_par').attr("readonly", true);
             //
             $('#setname').val('');
@@ -1805,6 +2011,7 @@ $lastUsedColors = null;
             //licence
             $('#person').val('');
             $('#web').val('');
+             $('#admin_report_config').empty();
         });
 
 
@@ -1834,6 +2041,7 @@ $lastUsedColors = null;
             $('#tab4').removeClass("active");
             $('#tab2').removeClass("active");
             $('#tab3').removeClass("active");
+            $('#tab8').removeClass("active");
             $('#tab1').addClass("active");
             $('#imageTab').removeClass("active");
             $('#ownerTab').removeClass("active");
@@ -1842,6 +2050,7 @@ $lastUsedColors = null;
             $('#browseTab').removeClass("active");
             $('#uploadTab').addClass("active");
             $('#userTab').removeClass("active");
+            $('#reportTab').removeClass("active");
             $('#disces_link').empty();
             $('#listETL_link').empty();
             $('#kb_link').empty();
@@ -1892,6 +2101,7 @@ $lastUsedColors = null;
             //licence
             $('#person').val('');
             $('#web').val('');
+             $('#admin_report_config').empty();
             console.log('dismiss');
         });
         // do something...

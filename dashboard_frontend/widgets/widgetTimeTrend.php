@@ -1615,7 +1615,25 @@
 
                         upperTimeLimitISOTrimmed = getUpperTimeLimit(30*24*timeCount);
 
-                        break;     
+                        break;
+
+                    case "180/DAY":
+                        serviceMapTimeRange = "fromTime=180-day";
+                        //    var deltaT = 30 + parseInt(timeCount) * 30;
+                        //    serviceMapTimeRange = "fromTime=" + deltaT + "-day";
+
+                        upperTimeLimitISOTrimmed = getUpperTimeLimit(180*24*timeCount);
+
+                        break;
+
+                    case "365/DAY":
+                        serviceMapTimeRange = "fromTime=365-day";
+                        //    var deltaT = 30 + parseInt(timeCount) * 30;
+                        //    serviceMapTimeRange = "fromTime=" + deltaT + "-day";
+
+                        upperTimeLimitISOTrimmed = getUpperTimeLimit(365*24*timeCount);
+
+                        break;
 
                     default:
                         serviceMapTimeRange = "fromTime=1-day";

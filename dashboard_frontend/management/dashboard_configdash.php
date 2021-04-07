@@ -25768,6 +25768,128 @@
                                         newInnerDiv.show();
                                         newSelect.show();
                                         
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="TypicalTimeTrendM" class="col-md-1 control-label">Typical time trend</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
+                                        newSelect = $('<select class="form-control TypicalTimetrendC" id="TypicalTimeTrendM" name="TypicalTimeTrendM">');
+                                        newSelect.append('<option value="No">No</option>');
+                                        newSelect.append('<option value="Yes">Yes</option>');
+                                        newSelect.val(data['typical_time_trend']);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+                                        
+                                        newLabel = $('<label for="TrendTypeM" class="col-md-1 control-label">Trend type</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
+                                        newSelect = $('<select class="form-control TypicalTimetrendC" id="TrendTypeM" name="TrendTypeM">');
+                                        newSelect.append('<option value="dayHour">Day hour</option>');
+                                        newSelect.append('<option value="monthDay">Month day</option>');
+                                        newSelect.append('<option value="monthWeek">Month week</option>');
+                                        newSelect.val(data['trend_type']);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+                                        
+                                        newLabel = $('<label for="ReferenceDateM" class="col-md-1 control-label">Reference date</label>');
+                                        newInnerDiv = $('<div class="col-md-2 TypicalTimetrendC"></div>');
+                                        newSelect = $('<input type="date" id="ReferenceDateM" name="ReferenceDateM">');
+                                        newSelect.val(data['reference_date']);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();  
+                                        newSelect.show();
+                                        
+                                        newLabel = $('<label for="TTTDate" class="col-md-1 control-label">Typical Trend Type Date</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
+                                        newSelect = $('<select class="form-control" id="TTTDate" name="TTTDate">');
+                                        $.ajax({
+                                            url: "../controllers/getWidgetParams.php",
+                                            type: "GET",
+                                            data: {
+                                                widgetName: name_widget_m
+                                            },
+                                            async: false,
+                                            dataType: 'json',
+                                            success: function (widgetData)
+                                            {
+                                                $rowParameters = JSON.parse(widgetData.params.rowParameters);
+                                                dataOriginV = JSON.stringify($rowParameters[0]);
+                                                $.ajax({
+                                                    url: "../controllers/aggregationSeriesProxy.php",
+                                                    type: "POST",
+                                                    data:
+                                                    {
+                                                        dataOrigin: dataOriginV,
+                                                        index: 0,
+                                                        timeRange: null,
+                                                        field: $rowParameters[0].smField,
+                                                        upperTime: null,
+                                                        typicaltrend: $('#TypicalTimeTrendM').val(),
+                                                        trendtype: $('#TrendTypeM').val(), 
+                                                        trenddate: $('#ReferenceDateM').val() 
+                                                    },
+                                                    async: false,
+                                                    dataType: 'json',
+                                                    success: function (data1)
+                                                    {
+                                                        $arrayttt = JSON.parse(data1.data);
+                                                        if ($arrayttt != null)  {
+                                                            for (var m = 0; m < $arrayttt.length; m++) {
+                                                                $selectString = '<option value="&from='+$arrayttt[m].from+'&to='+$arrayttt[m].to+'|&computationType='+$arrayttt[m].computationType+'">' + $arrayttt[m].from + ' --> ' + $arrayttt[m].to +'('+$arrayttt[m].computationType+')' + '</option>';
+                                                                newSelect.append($selectString);
+                                                            }
+                                                        }
+                                                    },error: function (errorData)
+                                                    {
+                                                        Data1 = null;
+                                                        console.log("Error in data retrieval");
+                                                        console.log(JSON.stringify(errorData));
+                                                    }
+                                                });
+                                            }                                        
+                                        });
+                                        
+                                        newSelect.val(data['ttt_date']+'|'+data['computation_type']);
+                                        //$aaa.dd=2;
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+                                        
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="dayHourView" id="dayHourViewL" class="col-md-1 control-label">Day hour view</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
+                                        newSelect = $('<select class="form-control" id="dayHourView" name="dayHourView">');
+                                        newSelect.append('<option value="weekview">week view</option>');
+                                        newSelect.append('<option value="dayview">day view</option>');
+                                        newSelect.val(data['day_hour_view']);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        if ($('#TypicalTimeTrendM').find(":selected").val() == "Yes" && $('#TrendTypeM').find(":selected").val() == "dayHour"){
+                                            newLabel.show();
+                                            newInnerDiv.show(); 
+                                            newSelect.show();                                    
+                                        }else{
+                                            $('#dayHourViewL').hide();
+                                            $('#dayHourView').hide();
+                                            
+                                        }    
+                                        
+                                        
+                                        
                                         //Parametri specifici del widget
                                         if(styleParamsRaw !== null) 
                                         {
@@ -26111,6 +26233,94 @@
                                             $('#alrFieldSelM').change(alrFieldSelMListener);
                                         }
                                         $("#editMultiSeriesQueryTable i.fa-plus").click(addMultiSeriesQueryM);
+					$('#TypicalTimeTrendM').on('change', function(){
+                                            switch ($(this).find(":selected").val()){ 
+                                                case "No":
+                                                    $('#TrendTypeM').empty();
+                                                    $('#ReferenceDateM').val("");
+                                                    $('#TTTDate').empty();
+                                                    $('#dayHourView').hide();
+                                                    $('#dayHourViewL').hide();
+                                                    $('#dayHourView').empty();
+                                                    break;
+                                                case "Yes":
+                                                    $('#TrendTypeM').empty();
+                                                    $('#TrendTypeM').append('<option value="dayHour">Day hour</option>');
+                                                    $('#TrendTypeM').append('<option value="monthDay">Month day</option>');
+                                                    $('#TrendTypeM').append('<option value="monthWeek">Month week</option>');
+                                                    $('#TrendTypeM').val('');
+                                                    break;
+                                            }
+                                        });
+                                        
+                                        $('#TrendTypeM').on('change', function(){
+                                            switch ($(this).find(":selected").val()){ 
+                                                case "dayHour":
+                                                    $('#dayHourView').empty();
+                                                    $('#dayHourView').append('<option value="weekview">week view</option>');
+                                                    $('#dayHourView').append('<option value="dayview">day view</option>');
+                                                    $('#dayHourView').show();  
+                                                    $('#dayHourViewL').show();
+                                                    break;
+                                                default:
+                                                    $('#dayHourView').hide();
+                                                    $('#dayHourViewL').hide();
+                                                    $('#dayHourView').empty();
+                                                    break;
+                                            }
+                                        });
+                                        
+                                        $('.TypicalTimetrendC').on('change', function(){
+                                            $('#TTTDate').empty();
+                                            $.ajax({
+                                                url: "../controllers/getWidgetParams.php",
+                                                type: "GET",
+                                                data: {
+                                                    widgetName: name_widget_m
+                                                },
+                                                async: false,
+                                                dataType: 'json',
+                                                success: function (widgetData)
+                                                {
+                                                    $rowParameters = JSON.parse(widgetData.params.rowParameters);
+                                                    dataOriginV = JSON.stringify($rowParameters[0]);
+                                                    if ($('#TypicalTimeTrendM').val() == 'Yes' && $('#TrendTypeM').val() != '' && $('#TrendTypeM').val() != null && $('#ReferenceDateM').val() != '')
+                                                    { 
+                                                         
+                                                    $.ajax({
+                                                        url: "../controllers/aggregationSeriesProxy.php",
+                                                        type: "POST",
+                                                        data:
+                                                        {
+                                                            dataOrigin: dataOriginV,
+                                                            index: 0,
+                                                            timeRange: null,
+                                                            field: $rowParameters[0].smField,
+                                                            upperTime: null,//"2021-02-19T09:20:00",
+                                                            typicaltrend: $('#TypicalTimeTrendM').val(),
+                                                            trendtype: $('#TrendTypeM').val(), 
+                                                            trenddate: $('#ReferenceDateM').val() 
+                                                        },
+                                                        async: false,
+                                                        dataType: 'json',
+                                                        success: function (data1)
+                                                        {
+                                                            $arrayttt = JSON.parse(data1.data);
+                                                            if ($arrayttt != null)  {
+                                                                for (var m = 0; m < $arrayttt.length; m++) {
+                                                                    $('#TTTDate').append( '<option value="&from='+$arrayttt[m].from+'&to='+$arrayttt[m].to+'|&computationType=' + $arrayttt[m].computationType + '">' + $arrayttt[m].from + ' --> ' + $arrayttt[m].to + '('+$arrayttt[m].computationType +')'+ '</option>');
+                                                                }
+                                                            }
+                                                        },error: function (errorData)
+                                                        {
+                                                            Data1 = null;
+                                                            console.log("Error in data retrieval");
+                                                            console.log(JSON.stringify(errorData));
+                                                        }
+                                                    });}
+                                                }                                        
+                                            });
+                                        });
                                         break;
 
                                         case "widgetCalendar":
@@ -26213,11 +26423,11 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
 
-                                            newLabel = $('<label for="meanSum" class="col-md-1 control-label">Operazione</label>');
+                                            newLabel = $('<label for="meanSum" class="col-md-1 control-label">Operation</label>');
                                             newInnerDiv = $('<div class="col-md-2"></div>');
                                             newSelect = $('<select class="form-control" id="meanSum" name="meanSum" required>');
-                                            newSelect.append('<option value="sum">Somma</option>');
-                                            newSelect.append('<option value="mean">Media</option>');
+                                            newSelect.append('<option value="sum">Sum</option>');
+                                            newSelect.append('<option value="mean">Average</option>');
 
                                             newInnerDiv.append(newSelect);
                                             newFormRow.append(newLabel);
@@ -26231,11 +26441,11 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
 
-                                            newLabel = $('<label for="calendarViewMode" class="col-md-1 control-label">Vista</label>');
+                                            newLabel = $('<label for="calendarViewMode" class="col-md-1 control-label">View</label>');
                                             newInnerDiv = $('<div class="col-md-2"></div>');
                                             newSelect = $('<select class="form-control" id="calendarViewMode" name="calendarViewMode" required>');
-                                            newSelect.append('<option value="monthly">Mensile</option>');
-                                            newSelect.append('<option value="yearly">Annuale</option>');
+                                            newSelect.append('<option value="monthly">Monthly</option>');
+                                            newSelect.append('<option value="yearly">Yearly</option>');
 
                                             newInnerDiv.append(newSelect);
                                             newFormRow.append(newLabel);

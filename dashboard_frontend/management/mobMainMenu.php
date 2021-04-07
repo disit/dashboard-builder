@@ -64,7 +64,7 @@
               }
             }
 
-            error_reporting(E_ERROR | E_NOTICE);
+            error_reporting(E_ERROR);
             date_default_timezone_set('Europe/Rome');
 
             $link = mysqli_connect($host, $username, $password);
@@ -283,7 +283,7 @@
         <?php
             include 'config.php';
 
-            error_reporting(E_ERROR | E_NOTICE);
+            error_reporting(E_ERROR);
             date_default_timezone_set('Europe/Rome');
 
             if($_SESSION['loggedRole']!='Public') { //CHECK

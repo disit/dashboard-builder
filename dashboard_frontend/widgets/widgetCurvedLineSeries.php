@@ -17,6 +17,10 @@
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
+<!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"> -->
+<link rel="stylesheet" href="../js/jqueryUi/jquery-ui.css">
+<!-- <link rel="stylesheet" href="../css/datePickerStyle.css"> -->
+
 <script type='text/javascript'>
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
@@ -65,7 +69,20 @@
         var nowUTC = now.toUTCString();
         var isoDate = new Date(nowUTC).toISOString();
         var errorsLog = null;
-        
+        var typicaltrend = null;
+        var trendType = null;
+        var trendDate = null;
+        var TTTDate = null;
+        var dayhourview = null;
+        var computationType = null;
+        var counterday = 1;
+        var currWeekDay = null;
+        var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
+
+        //var trendType = 'monthWeek';
+        //var trendType = 'dayHour';
+
+
         var pattern = /Percentuale\//;
         console.log("Entrato in widgetCurvedLineSeries --> " + widgetName); 
         var unitsWidget = [[
@@ -93,6 +110,12 @@
                 'year',
                 null
             ]];
+
+        function getDayOfWeek(date) {
+            const dayOfWeek = new Date(date).getDay();
+            return isNaN(dayOfWeek) ? null :
+                ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek];
+        }
         
         //Definizioni di funzione specifiche del widget
         function showModalFieldsInfoFirstAxis()
@@ -831,47 +854,64 @@
                 //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_countdownContainerDiv').css("width", "3%");
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("color", widgetHeaderFontColor);
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton').css("color", widgetHeaderFontColor);
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("color", widgetHeaderFontColor);
                 titleDiv.css("width", "70%");
 
                 if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 400) {
                     titleDiv.css("width", "65%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "19%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "19%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 480) {
                     titleDiv.css("width", "74%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "14%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "14%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 560) {
                     titleDiv.css("width", "75%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "15%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "15%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 700) {
                     titleDiv.css("width", "80%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "11%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "11%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 900) {
                     titleDiv.css("width", "84%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "9%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "9%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 1000) {
                     titleDiv.css("width", "85%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "8%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "8%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 1050) {
                     titleDiv.css("width", "85%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "7%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "7%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else {
                     titleDiv.css("width", "87%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "7%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "7%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 }
 
             }
 
 	    }
 
-        function drawDiagram(timeDomain, xAxisFormat, yAxisFormat)
+        function drawDiagram(timeDomain, xAxisFormat, yAxisFormat, subtitle)
         {
             if(timeDomain)
             {
@@ -882,12 +922,24 @@
                 } else if (xAxisFormat == "Numeric") {
                     xAxisType = 'numeric';
                 }
+                if (trendType == 'monthWeek') {
+                    xAxisType = 'category';
+                }
                 xAxisCategories = null;
-            }
-            else
+            } else
             {
                 xAxisType = null;
             }
+            //if (typicaltrend == 'Yes') {
+            //var subtitle = 'Prova Sottotitolo';
+            //    var subtitle = TTTDate; 
+            //    subtitle = subtitle.replace(/&from=/," ");
+            //    subtitle = subtitle.replace(/&to=/," --> ");
+            //    subtitle = subtitle + '(' + computationType + ')';
+            //    subtitle = subtitle.replace(/&computationType=/," ");
+            //} else {
+            //    var subtitle = '';
+            //}
 
             if (yAxisFormat == null) {
                 yAxisType = "linear";
@@ -930,32 +982,42 @@
                             {
                                 enabled: false
                             },
-                        //Non cancellare sennò ci mette il titolo di default
-                        title: {
-                            text: ''
-                        },
-                        //Non cancellare sennò ci mette il sottotitolo di default
-                        subtitle: {
-                            text: ''
-                        },
+                    //Non cancellare sennò ci mette il titolo di default
+                    title: {
+                        text: ''
+                    },
+                    //Non cancellare sennò ci mette il sottotitolo di default
+                    subtitle: {
+                        text: subtitle
+                    },
 
-                        xAxis: {
-                            type: xAxisType,
-                            //    units: unitsWidget,
-                            gridLineWidth: 0,
-                            lineColor: chartAxesColor,
-                            categories: xAxisCategories,
-                            title: {
-                                align: 'high',
-                                offset: 20,
-                                text: xAxisTitle,
-                                rotation: 0,
-                                y: 5,
-                                style: {
-                                    fontFamily: 'Montserrat',
-                                    fontSize: styleParameters.rowsLabelsFontSize + "px",
-                                    fontWeight: 'bold',
-                                    fontStyle: 'italic',
+                    xAxis: {
+                        type: xAxisType,
+                        uniqueNames: false,
+                        //type: 'datetime',
+                        //tickAmount: 24,
+                        //tickInterval: 3600 * 1000,
+                        //minTickInterval: 3600 * 1000,
+                        //lineWidth: 1,
+                        //dateTimeLabelFormats: {
+                        //    day: '%H:%M'
+                        //},
+                        //type: 'datetime',
+                        //    units: unitsWidget,
+                        gridLineWidth: 0,
+                        lineColor: chartAxesColor,
+                        categories: xAxisCategories,
+                        title: {
+                            align: 'high',
+                            offset: 20,
+                            text: xAxisTitle,
+                            rotation: 0,
+                            //y: 5,		// GP Questo non era commentato prima di TTT2
+                            style: {
+                                fontFamily: 'Montserrat',
+                                fontSize: styleParameters.rowsLabelsFontSize + "px",
+                                fontWeight: 'bold',
+                                fontStyle: 'italic',
                                 //    color: chartLabelsFontColor,
                                     color: styleParameters.rowsLabelsFontColor,
                                     "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
@@ -1018,7 +1080,8 @@
                                     [1, '#E0E0E0']
                                 ]
                             },
-                            pointFormatter: function () {
+                            //pointFormatter: function () {
+                            formatter: function () {
                                 var field = this.series.name_w;
                                 var thresholdObject, desc, min, max, color, label, index, target, message,
                                     valueSource = null;
@@ -1059,7 +1122,7 @@
                                                     for (var j in target.fields[i].thrSeries) {
                                                         if ((parseFloat(valueSource) >= target.fields[i].thrSeries[j].min) && (parseFloat(valueSource) < target.fields[i].thrSeries[j].max)) {
                                                             desc = target.fields[i].thrSeries[j].desc;
-                                                            min = target.fields[i].thrSeries[j].min;
+                                                            //min = target.fields[i].thrSeries[j].min;
                                                             max = target.fields[i].thrSeries[j].max;
                                                             color = target.fields[i].thrSeries[j].color;
                                                             rangeOnThisField = true;
@@ -1079,14 +1142,25 @@
                                     message = "No range defined on this field";
                                 }
 
-                                var chartItemIdx = chartSeriesObject.findIndex(el => el.name === this.series.name);
-                                var dateLine = null;
-                                if (styleParameters.xAxisFormat == "numeric" && rowParameters[chartItemIdx].metricHighLevelType == "Dynamic") {
-                                    dateLine = "";
-                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
-                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton").hide();
-                                } else {
-                                    dateLine = '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>';
+                            	var chartItemIdx = chartSeriesObject.findIndex(el => el.name === this.series.name);
+                            	var dateLine = null;
+                            	if (styleParameters.xAxisFormat == "numeric" && rowParameters[chartItemIdx].metricHighLevelType == "Dynamic") {
+                                	dateLine = "";
+                                	$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                	$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton").hide();
+                            	} else {
+                                	if (trendType == 'monthWeek') {
+                                    		var arraydays = ['Monday of 1st Week', 'Tuesday of 1st Week', 'Wednesday of 1st Week', 'Thursday of 1st Week', 'Friday of 1st Week', 'Saturday of 1st Week', 'Sunday of 1st Week', 'Monday of 2nd Week', 'Tuesday of 2nd Week', 'Wednesday of 2nd Week', 'Thursday of 2nd Week', 'Friday of 2nd Week', 'Saturday of 2nd Week', 'Sunday of 2nd Week', 'Monday of 3rd Week', 'Tuesday of 3rd Week', 'Wednesday of 3rd Week', 'Thursday of 3rd Week', 'Friday of 3rd Week', 'Saturday of 3rd Week', 'Sunday of 3rd Week', 'Monday of 4th Week', 'Tuesday of 4th Week', 'Wednesday of 4th Week', 'Thursday of 4th Week', 'Friday of 4th Week', 'Saturday of 4th Week', 'Sunday of 4th Week'];
+                                    		dateLine = arraydays[this.x];
+
+	                                } else {
+	                                    if(trendType == 'dayHour' && dayhourview == 'dayview') {
+	                                       //dateLine='';
+	                                       dateLine=new Date(this.x).toString().substring(4, 31);
+	                                   }else{
+	                                       dateLine = '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>';
+	                                   }  
+	                                }
                                 }
 
                                 if (rangeOnThisField) {
@@ -1111,6 +1185,7 @@
                         },
                         plotOptions: {
                             series: {
+                                connectNulls: true,
                                 groupPadding: 0.1,
                                 pointPadding: 0,
                                 stacking: stackingOption,
@@ -1396,9 +1471,9 @@
         {
             var roundedVal, singleSeriesData, singleSample, sampleTime, seriesSingleObj = null;
             chartSeriesObject = [];
-            
-             for(var i = 0; i < aggregationGetData.length; i++)
-             {
+            counterday = 1;
+            for (var i = 0; i < aggregationGetData.length; i++)
+            {
                 singleSeriesData = [];
                 
                  switch(aggregationGetData[i].metricHighLevelType)
@@ -1860,11 +1935,230 @@
                                     };
 
                                     chartSeriesObject.push(seriesSingleObj);
-                                } else {
-                                    // No Data Available in the selected time range for smField in aggregationGetData[i].metricName
-                                    // alert("No Data Available in the selected time range for " + smField + " in " + aggregationGetData[i].metricName);
                                 }
 
+                            } else {
+                                currWeekDay = getDayOfWeek(trendDate);
+                                if (smPayload.length > 0) {
+                                    //for (var x = 0; x < smPayload.length; x++)
+                                    for (var x = 0; x < 1; x++)
+                                    {
+                                        if (smPayload[x].hasOwnProperty('trendType')) {
+                                            if (smPayload[x].hasOwnProperty('typicalDays')) {
+                                                if (smPayload[x].typicalDays.hasOwnProperty('Monday')) {
+                                                    if (dayhourview == 'weekview'){
+                                                        var newTime, newVal = null;
+                                                        newTime = new Date(trendDate);
+                                                        switch (counterday)
+                                                        {
+                                                            case 1:
+                                                                var resultsArray = smPayload[x].typicalDays.Monday;
+                                                                objName = 'Monday';
+                                                                counterday += 1;
+                                                                var newDateTime = new Date(newTime);
+                                                                var day = newDateTime.getDay() || 7;
+                                                                if (day !== 1)
+                                                                    newDateTime.setHours(-24 * (day - 1));
+                                                                break;
+                                                            case 2:
+                                                                var resultsArray = smPayload[x].typicalDays.Tuesday;
+                                                                objName = 'Tuesday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 3:
+                                                                var resultsArray = smPayload[x].typicalDays.Wednesday;
+                                                                objName = 'Wednesday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 4:
+                                                                var resultsArray = smPayload[x].typicalDays.Thursday;
+                                                                objName = 'Thursday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 5:
+                                                                var resultsArray = smPayload[x].typicalDays.Friday;
+                                                                objName = 'Friday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 6:
+                                                                var resultsArray = smPayload[x].typicalDays.Saturday;
+                                                                objName = 'Saturday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 7:
+                                                                var resultsArray = smPayload[x].typicalDays.Sunday;
+                                                                objName = 'Sunday';
+                                                                counterday += 1;
+                                                                break;
+                                                            default:
+                                                                var resultsArray = smPayload[x].typicalDays.Monday;
+                                                                counterday += 1;
+                                                                break;
+                                                        }
+
+                                                        if (objName == currWeekDay) {
+                                                            objName = objName + " *";
+                                                        }
+
+                                                        //newTime.setDate(newDateTime.getDate() + (counterday-2));
+                                                        //newTime = new Date(newTime).toISOString();
+                                                        var newTime3 = new Date(newDateTime);
+                                                        newTime3.setDate(newDateTime.getDate() + (counterday-2));
+                                                        newTime = new Date(newTime3.getTime()-(newTime3.getTimezoneOffset() * 60000)).toISOString();
+                                                        
+                                                        var kk = 0;
+                                                        for (var j = 0; j < resultsArray.length; j++) {
+                                                            newVal = resultsArray[j];
+                                                            if (kk < 10) {
+                                                                newTime = newTime.substring(0, isoDate.length - 14) + 'T0' + kk + ':00:00';
+                                                                //newTime = newTime.setDate(newTime.getDate() + (counterday-1)) + 'T0' + kk + ':00:00'
+                                                            } else {
+                                                                newTime = newTime.substring(0, isoDate.length - 14) + 'T' + kk + ':00:00';
+                                                            }
+                                                            kk++;
+                                                            roundedVal = parseFloat(newVal);
+                                                            roundedVal = Number(roundedVal.toFixed(2));
+                                                            sampleTime = parseInt(new Date(newTime).getTime());
+                                                            //sampleTime = newTime;
+                                                            singleSample = [sampleTime, roundedVal];
+                                                            singleSeriesData.push(singleSample);
+                                                        }
+                                                    }else{
+                                                        switch (counterday)
+                                                        {
+                                                            case 1:
+                                                                var resultsArray = smPayload[x].typicalDays.Monday;
+                                                                objName = 'Monday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 2:
+                                                                var resultsArray = smPayload[x].typicalDays.Tuesday;
+                                                                objName = 'Tuesday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 3:
+                                                                var resultsArray = smPayload[x].typicalDays.Wednesday;
+                                                                objName = 'Wednesday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 4:
+                                                                var resultsArray = smPayload[x].typicalDays.Thursday;
+                                                                objName = 'Thursday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 5:
+                                                                var resultsArray = smPayload[x].typicalDays.Friday;
+                                                                objName = 'Friday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 6:
+                                                                var resultsArray = smPayload[x].typicalDays.Saturday;
+                                                                objName = 'Saturday';
+                                                                counterday += 1;
+                                                                break;
+                                                            case 7:
+                                                                var resultsArray = smPayload[x].typicalDays.Sunday;
+                                                                objName = 'Sunday';
+                                                                counterday += 1;
+                                                                break;
+                                                            default:
+                                                                var resultsArray = smPayload[x].typicalDays.Monday;
+                                                                counterday += 1;
+                                                                break;
+                                                        }
+
+                                                        if (objName == currWeekDay) {
+                                                            objName = objName + " *";
+                                                        }
+
+                                                        var newVal, newTime = null;
+                                                        var kk = 0;
+                                                        for (var j = 0; j < resultsArray.length; j++) {
+                                                            newVal = resultsArray[j];
+                                                            if (kk < 10) {
+                                                                newTime = trendDate + 'T0' + kk + ':00:00'
+                                                            } else {
+                                                                newTime = trendDate + 'T' + kk + ':00:00'
+                                                            }
+                                                            kk++;
+                                                            roundedVal = parseFloat(newVal);
+                                                            roundedVal = Number(roundedVal.toFixed(2));
+                                                            sampleTime = parseInt(new Date(newTime).getTime());
+                                                            //sampleTime = newTime;
+                                                            singleSample = [sampleTime, roundedVal];
+                                                            singleSeriesData.push(singleSample);
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                if (smPayload[x].hasOwnProperty('typicalMonthD')) {
+                                                    var resultsArray = smPayload[x].typicalMonthD;
+                                                    var newVal, newTime = null;
+                                                    var kk = 1;
+                                                    for (var j = 0; j < resultsArray.length; j++) {
+                                                        newVal = resultsArray[j];
+                                                        trendDate = new Date(trendDate);
+                                                        var newTime = new Date(trendDate.getFullYear(), trendDate.getMonth(), kk);
+                                                        //var newTime = new Date(now).toISOString();
+                                                        //newTime = newTime.substring(0, newTime.length - 5);
+                                                        kk++;
+
+                                                        roundedVal = parseFloat(newVal);
+                                                        roundedVal = Number(roundedVal.toFixed(2));
+                                                        sampleTime = parseInt(new Date(newTime).getTime());
+                                                        singleSample = [sampleTime, roundedVal];
+                                                        singleSeriesData.push(singleSample);
+                                                    }
+                                                } else {
+                                                    var resultsArray = smPayload[x].typicalMonthWeek;
+                                                    var newVal, newTime = null;
+                                                    for (var j = 0; j < resultsArray.length; j++) {
+                                                        newVal = resultsArray[j];
+                                                        roundedVal = parseFloat(newVal);
+                                                        roundedVal = Number(roundedVal.toFixed(2));
+                                                        var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                                        if (j < 7) {
+                                                            sampleTime = days[j];
+                                                        } else {
+                                                            sampleTime = days[j - (7 * Math.floor(j / 7))];
+                                                        }
+                                                        singleSample = [sampleTime, roundedVal];
+                                                        singleSeriesData.push(singleSample);
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                    seriesSingleObj = {
+                                        showInLegend: true,
+                                        name: objName,
+                                        data: singleSeriesData,
+                                        color: styleParameters.barsColors[i],
+                                        dataLabels: {
+                                            useHTML: false,
+                                            enabled: false,
+                                            inside: true,
+                                            rotation: dataLabelsRotation,
+                                            overflow: 'justify',
+                                            crop: true,
+                                            align: dataLabelsAlign,
+                                            verticalAlign: dataLabelsVerticalAlign,
+                                            y: dataLabelsY,
+                                            formatter: labelsFormat,
+                                            style: {
+                                                fontFamily: 'Montserrat',
+                                                fontSize: styleParameters.dataLabelsFontSize + "px",
+                                                color: styleParameters.dataLabelsFontColor,
+                                                fontWeight: 'bold',
+                                                fontStyle: 'italic',
+                                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)"
+                                            }
+                                        }
+                                    };
+
+                                    chartSeriesObject.push(seriesSingleObj);
+                                }
                             }
                         }
 
@@ -1898,17 +2192,18 @@
         {
 
             // Reset Time Navigation
-        /*    if (fromGisExternalContentRangePrevious !== fromGisExternalContentRange || fromGisExternalContentFieldPrevious != fromGisExternalContentField || fromGisExternalContentServiceUriPrevious != fromGisExternalContentServiceUri) {
-                timeNavCount = 0;
-                timeCount = 0;
-                fromGisExternalContentRangePrevious = fromGisExternalContentRange;
-                fromGisExternalContentFieldPrevious = fromGisExternalContentField;
-                fromGisExternalContentServiceUriPrevious = fromGisExternalContentServiceUri;
-                dataFut = null;
-                upLimit = null;
-            }*/
+            /*    if (fromGisExternalContentRangePrevious !== fromGisExternalContentRange || fromGisExternalContentFieldPrevious != fromGisExternalContentField || fromGisExternalContentServiceUriPrevious != fromGisExternalContentServiceUri) {
+             timeNavCount = 0;
+             timeCount = 0;
+             fromGisExternalContentRangePrevious = fromGisExternalContentRange;
+             fromGisExternalContentFieldPrevious = fromGisExternalContentField;
+             fromGisExternalContentServiceUriPrevious = fromGisExternalContentServiceUri;
+             dataFut = null;
+             upLimit = null;
+             }*/
             errorsLog = null;
-            if(fromAggregate)
+
+            if (fromAggregate)
             {
                 setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
                 
@@ -1935,17 +2230,25 @@
                         dataOriginV = JSON.stringify(rowParameters);
                     }
                     index = i;
+                    if (typicaltrend == "Yes" && (typicaltrend == null || typicaltrend == '' || trendDate == null || trendDate == '')){
+                        typicaltrend = ' ';
+                    }
                     $.ajax({
                         url: "../controllers/aggregationSeriesProxy.php",
                         type: "POST",
-                        data: 
-                        {
-                            dataOrigin: dataOriginV,
-                            index: i,
-                            timeRange: localTimeRange,
-                            field: rowParameters[i].smField,
-                            upperTime: upperTime
-                        },
+                        data:
+                                {
+                                    dataOrigin: dataOriginV,
+                                    index: i,
+                                    timeRange: localTimeRange,
+                                    field: rowParameters[i].smField,
+                                    upperTime: upperTime,
+                                    typicaltrend: typicaltrend,
+                                    trendtype: trendType,
+                                    trenddate: trendDate,
+                                    tttdate: TTTDate,
+                                    computationType: computationType
+                                },
                         async: true,
                         dataType: 'json',
                         success: function(data) 
@@ -1953,7 +2256,7 @@
                             if (data.index != null) {
                                 aggregationGetData[data.index] = data;
                                 if (data.metricHighLevelType == "Sensor") {
-                                    if (data.data == null || JSON.parse(data.data).realtime.results == null) {
+                                    if (data.data == null || JSON.parse(data.data).realtime == null || JSON.parse(data.data).realtime.results == null) {
                                         if (errorsLog != null) {
                                             errorsLog = errorsLog + "No Data Available in the Selected Time-Range for: " + data.label + "; ";
                                         } else {
@@ -1985,60 +2288,67 @@
                             getDataFinishCount++;
                             var deviceLabels = [];
                             var metricLabels = [];
-
-                            //Popoliamo il widget quando sono arrivati tutti i dati
-                            if(getDataFinishCount === rowParamLength)
-                            {
-                                widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
-                                legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
-                                editLabels = styleParameters.editDeviceLabels;
-                                buildSeriesFromAggregationData(localTimeRange);
-
-                                metricLabels = getMetricLabelsForBarSeries(rowParameters);
-                            //    deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
-                                for (let n = 0; n < chartSeriesObject.length; n++) {
-                                    if (chartSeriesObject[n] != null) {
-                                        deviceLabels[n] = chartSeriesObject[n].name;
+                            var LabelInterval = null;
+                                    
+                        //    if (JSON.parse(data.data).length !== 0) {
+                                if (typicaltrend == 'Yes') {
+                                    if (JSON.parse(data.data).length !== 0) {
+                                        LabelInterval = JSON.parse(data.data)[0].deviceName + " - " + JSON.parse(data.data)[0].valueName + " - " + trendType + ':  ' + JSON.parse(data.data)[0].from + ' --> ' + JSON.parse(data.data)[0].to + '(' + JSON.parse(data.data)[0].computationType + ')';
                                     }
                                 }
-                            //    let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
-                            /*    if (editLabels) {
-                                    series = serializeDataForSeries(metricLabels, deviceLabels, editLabels);
-                                } else {*/
-                                    series = serializeDataForSeries(metricLabels, deviceLabels);
-                             //   }
-
-                                if (styleParameters.xAxisLabel != null) {
-                                    xAxisTitle = styleParameters.xAxisLabel;
-                                }
-                             /*   if (xAxisFormat) {
-                                    if (xAxisFormat == "timestamp") {
-                                        xAxisTitle = "DateTime";
-                                    } else if (xAxisFormat == "numeric") {
-                                        xAxisTitle = "Numeric Values";
-                                    }
-                                } else {
-                                    xAxisTitle = "DateTime";
-                                }*/
-
-                              //  if(firstLoad !== false || timeNavCount != 0)
-                              //  {
-                                    showWidgetContent(widgetName);
-                                 //   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
-                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                              //  }
-                              /*  else
+                                //Popoliamo il widget quando sono arrivati tutti i dati
+                                if (getDataFinishCount === rowParamLength)
                                 {
-                                    elToEmpty.empty();
-                                //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                    widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
+                                    legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+                                    editLabels = styleParameters.editDeviceLabels;
+                                    buildSeriesFromAggregationData(localTimeRange);
+
+                                    metricLabels = getMetricLabelsForBarSeries(rowParameters);
+                                    //    deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
+                                    for (let n = 0; n < chartSeriesObject.length; n++) {
+                                        if (chartSeriesObject[n] != null) {
+                                            deviceLabels[n] = chartSeriesObject[n].name;
+                                        }
+                                    }
+                                    //    let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+                                    /*    if (editLabels) {
+                                     series = serializeDataForSeries(metricLabels, deviceLabels, editLabels);
+                                     } else {*/
+                                    series = serializeDataForSeries(metricLabels, deviceLabels);
+                                    //   }
+
+                                    if (styleParameters.xAxisLabel != null) {
+                                        xAxisTitle = styleParameters.xAxisLabel;
+                                    }
+                                    /*   if (xAxisFormat) {
+                                     if (xAxisFormat == "timestamp") {
+                                     xAxisTitle = "DateTime";
+                                     } else if (xAxisFormat == "numeric") {
+                                     xAxisTitle = "Numeric Values";
+                                     }
+                                     } else {
+                                     xAxisTitle = "DateTime";
+                                     }*/
+
+                                    //  if(firstLoad !== false || timeNavCount != 0)
+                                    //  {
+                                    showWidgetContent(widgetName);
+                                    //   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
                                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
                                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
                                     $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                }*/
+                                    //  }
+                                    /*  else
+                                     {
+                                     elToEmpty.empty();
+                                     //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
+                                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                     $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                     }*/
 
-                            //    if (!serviceUri) {
+                                    //    if (!serviceUri) {
                                     $.ajax({
                                         url: "../widgets/updateBarSeriesParameters.php",
                                         type: "GET",
@@ -2052,12 +2362,12 @@
                                             var stopFlag = 1;
                                         },
                                         error: function (errorData) {
-                                          /*  metricData = null;
-                                            console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
-                                            console.log(JSON.stringify(errorData)); */
+                                            /*  metricData = null;
+                                             console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
+                                             console.log(JSON.stringify(errorData)); */
                                         }
                                     });
-                            //    }
+                                    //    }
 
                                 let drawFlag = false;
                                 for (let n = 0; n< chartSeriesObject.length; n++) {
@@ -2068,7 +2378,7 @@
                                     }
                                 }
                                 if (drawFlag === true) {
-                                    drawDiagram(true, xAxisFormat, yAxisType);
+                                    drawDiagram(true, xAxisFormat, yAxisType, LabelInterval);
                                 } else {
                                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
                                     $("#<?= $_REQUEST['name_w'] ?>_table").hide();
@@ -2083,11 +2393,23 @@
                                 if (timeNavCount < 0) {
                                     if (moment(upperTime).isBefore(moment(dataFut))) {
 
-                                    } else {
+                                        } else {
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                        }
+                                    }
+                                    if (typicaltrend == 'Yes') {
                                         $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton").hide();
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton").show();
                                     }
                                 }
-                            }
+                          /*  } else{
+                                showWidgetContent(widgetName);
+                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                //   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                            }*/
                         },
                         error: function(errorData)
                         {
@@ -2095,10 +2417,10 @@
                             console.log("Error in data retrieval");
                             console.log(JSON.stringify(errorData));
                             showWidgetContent(widgetName);
-                        /*    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                            $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
-                        //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();*/
+                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                            $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                            //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                         }
                     });
                 }
@@ -2188,20 +2510,16 @@
             }
         }
 
-        $("#" + widgetName + "_timeTrendPrevBtn").off("click").click(function () {
+        $("#" + widgetName + "_timeTrendPrevBtn").on("click").click(function () {
             //  alert("PREV Clicked!");
             timeNavCount++;
             errorsLog = null;
             if(timeNavCount == 0) {
 
-                if (idMetric === 'AggregationSeries' || idMetric.includes("NR_")) {
-                    //    rowParameters = JSON.parse(rowParameters);
-                    //    timeRange = widgetData.params.temporal_range_w;
+                if (idMetric === 'AggregationSeries' || nrMetricType != null) {
                     populateWidget(true, timeRange, "minus", timeNavCount);
-                    //    populateWidget(true, timeRange);
                 } else {
                     populateWidget(false, null, "minus", timeNavCount);
-                    //    populateWidget(false, null);
                 }
 
                 //   if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
@@ -2277,47 +2595,37 @@
 
                     }
                 }
-          /*  } else if (timeNavCount < 0 && $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").is(":hidden")) {
-                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
-            } else {
-                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();*/
+                /*  } else if (timeNavCount < 0 && $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").is(":hidden")) {
+                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                 } else {
+                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();*/
             } else {
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
                 setupLoadingPanel(widgetName, widgetContentColor, true);
-                if (idMetric === 'AggregationSeries' || idMetric.includes("NR_")) {
-                    //    rowParameters = JSON.parse(rowParameters);
-                    //    timeRange = widgetData.params.temporal_range_w;
+                if (idMetric === 'AggregationSeries' || nrMetricType != null) {
                     populateWidget(true, timeRange, "minus", timeNavCount);
-                    //    populateWidget(true, timeRange);
                 } else {
                     populateWidget(false, null, "minus", timeNavCount);
-                    //    populateWidget(false, null);
                 }
             }
-        //    populateWidget(timeRange, null, "minus", timeNavCount);
         });
 
-        $("#" + widgetName + "_timeTrendNextBtn").off("click").click(function () {
+        $("#" + widgetName + "_timeTrendNextBtn").on("click").click(function () {
             //   alert("NEXT Clicked!");
             timeNavCount--;
             errorsLog = null;
             if(timeNavCount == 0) {
 
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
-                if(idMetric === 'AggregationSeries' || idMetric.includes("NR_"))
+                if(idMetric === 'AggregationSeries' || nrMetricType != null)
                 {
-                //    rowParameters = JSON.parse(rowParameters);
-                 //   timeRange = widgetData.params.temporal_range_w;
                     populateWidget(true, timeRange, "plus", timeNavCount);
-                    //    populateWidget(true, timeRange);
                 }
                 else
                 {
                     populateWidget(false, null, "plus", timeNavCount);
-                    //    populateWidget(false, null);
                 }
 
-                //    if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
                 for (let k = 0; k < rowParameters.length; k++) {
                     if (rowParameters[k].metricHighLevelType == "Sensor") {
                         let urlKBToBeCalled = "";
@@ -2326,64 +2634,60 @@
                         urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + encodeServiceUri(rowParameters[k].serviceUri);
                         field = rowParameters[k].smField;
                         if (rowParameters != null) {
-                          //  if (rowParameters.includes("https:")) {
-                                $.ajax({
-                                    url: urlKBToBeCalled,
-                                    type: "GET",
-                                    data: {},
-                                    async: true,
-                                    dataType: 'json',
-                                    success: function (originalData) {
-                                        var stopFlag = 1;
-                                        var convertedData = convertDataFromTimeNavToDm(originalData, field);
-                                        if (convertedData) {
-                                            if (convertedData.data.length > 0) {
-                                                var localTimeZone = moment.tz.guess();
-                                                var momentDateTime = moment();
-                                                var localDateTime = momentDateTime.tz(localTimeZone).format();
-                                                localDateTime = localDateTime.replace("T", " ");
-                                                var plusIndexLocal = localDateTime.indexOf("+");
-                                                localDateTime = localDateTime.substr(0, plusIndexLocal);
-                                                var localTimeZoneString = "";
-                                                if (localDateTime == "") {
-                                                    localTimeZoneString = "(not recognized) --> Europe/Rome"
-                                                } else {
-                                                    localTimeZoneString = localTimeZone;
-                                                }
-                                                if (convertedData.data[0].commit.author.futureDate != null && convertedData.data[0].commit.author.futureDate != undefined) {
-                                                    dataFut = (convertedData.data[0].commit.author.futureDate);
-                                                    if (moment(dataFut).isAfter(momentDateTime)) {
-                                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
-                                                    } else {
-                                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
-                                                    }
+                            $.ajax({
+                                url: urlKBToBeCalled,
+                                type: "GET",
+                                data: {},
+                                async: true,
+                                dataType: 'json',
+                                success: function (originalData) {
+                                    var stopFlag = 1;
+                                    var convertedData = convertDataFromTimeNavToDm(originalData, field);
+                                    if (convertedData) {
+                                        if (convertedData.data.length > 0) {
+                                            var localTimeZone = moment.tz.guess();
+                                            var momentDateTime = moment();
+                                            var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                            localDateTime = localDateTime.replace("T", " ");
+                                            var plusIndexLocal = localDateTime.indexOf("+");
+                                            localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                            var localTimeZoneString = "";
+                                            if (localDateTime == "") {
+                                                localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                            } else {
+                                                localTimeZoneString = localTimeZone;
+                                            }
+                                            if (convertedData.data[0].commit.author.futureDate != null && convertedData.data[0].commit.author.futureDate != undefined) {
+                                                dataFut = (convertedData.data[0].commit.author.futureDate);
+                                                if (moment(dataFut).isAfter(momentDateTime)) {
+                                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
                                                 } else {
                                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
                                                 }
                                             } else {
-                                                showWidgetContent(widgetName);
-                                            //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                             //   $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                                console.log("Dati non disponibili da Service Map");
+                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
                                             }
                                         } else {
                                             showWidgetContent(widgetName);
-                                         //   $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                          //   $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                             console.log("Dati non disponibili da Service Map");
                                         }
-                                    },
-                                    error: function (data) {
-                                        //  showWidgetContent(widgetName);
-                                        //  $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                        //  $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        console.log("Errore in chiamata prima API");
-                                        console.log(JSON.stringify(data));
+                                    } else {
+                                        showWidgetContent(widgetName);
+                                     //   $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                     //   $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Dati non disponibili da Service Map");
                                     }
-                                });
-                        /*    } else {
-                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
-                            }   */
+                                },
+                                error: function (data) {
+                                    //  showWidgetContent(widgetName);
+                                    //  $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                    //  $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    console.log("Errore in chiamata prima API");
+                                    console.log(JSON.stringify(data));
+                                }
+                            });
                         } else {
                             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
                         }
@@ -2392,20 +2696,57 @@
             } else {
 
                 setupLoadingPanel(widgetName, widgetContentColor, true);
-                if (idMetric === 'AggregationSeries' || idMetric.includes("NR_")) {
+                if (idMetric === 'AggregationSeries' || nrMetricType != null) {
+                    populateWidget(true, timeRange, "plus", timeNavCount);
+                } else {
+                    populateWidget(false, null, "plus", timeNavCount);
+                }
+            }
+        });
+
+        $("#" + widgetName + "_datepicker").hide();
+
+        $("#" + widgetName + "_calendarBtn").off("click").click(function () {
+            $("#" + widgetName + "_datepicker").children(0).css("background-color", "#ffffff");
+            $("#" + widgetName + "_datepicker").find("table").css("background-color", "#ffffff");
+            $("#" + widgetName + "_datepicker").show();
+        });
+
+        $("#" + widgetName + "_datepicker").datepicker({
+            dateFormat: 'yyyy-mm-dd',
+            onSelect: function (dateText, inst) {
+
+                if (inst.currentMonth > 8 && parseInt(inst.currentDay) > 9) {
+                    var dateAsString = inst.currentYear + '-' + parseInt(inst.currentMonth + 1) + '-' + inst.currentDay;
+                } else {
+                    if (inst.currentMonth > 8 && parseInt(inst.currentDay) < 10) {
+                        var dateAsString = inst.currentYear + '-' + parseInt(inst.currentMonth + 1) + '-0' + inst.currentDay;
+                    } else {
+                        if (inst.currentMonth < 9 && parseInt(inst.currentDay) > 9) {
+                            var dateAsString = inst.currentYear + '-0' + parseInt(inst.currentMonth + 1) + '-' + inst.currentDay;
+                        } else {
+
+                            var dateAsString = inst.currentYear + '-0' + parseInt(inst.currentMonth + 1) + '-0' + inst.currentDay;
+                        }
+                    }
+                }
+                trendDate = dateAsString;
+                TTTDate = "";
+                if (idMetric === 'AggregationSeries' || idMetric.includes("NR_"))
+                {
                     //    rowParameters = JSON.parse(rowParameters);
                     //   timeRange = widgetData.params.temporal_range_w;
                     populateWidget(true, timeRange, "plus", timeNavCount);
                     //    populateWidget(true, timeRange);
-                } else {
+                } else
+                {
                     populateWidget(false, null, "plus", timeNavCount);
                     //    populateWidget(false, null);
+
                 }
+                $("#" + widgetName + "_datepicker").hide();
             }
-        //    populateWidget(timeRange, null, "plus", timeNavCount, dataFut);
-
         });
-
         //Fine definizioni di funzione
         
         $(document).off('changeMetricFromButton_' + widgetName);
@@ -2455,16 +2796,30 @@
                 gridLineColor = widgetData.params.chartPlaneColor;
                 chartAxesColor = widgetData.params.chartAxesColor;
                 infoJson = widgetData.params.infoJson;
-                idMetric =  widgetData.params.id_metric;
+                idMetric = widgetData.params.id_metric;
+                typicaltrend = widgetData.params.TypicalTimeTrend;
+                trendType = widgetData.params.TrendType;
+                trendDate = widgetData.params.ReferenceDate;
+                TTTDate = widgetData.params.TTTDate;
+                dayhourview = widgetData.params.dayhourview;
+                computationType = widgetData.params.computationType;
 
-                //    if ((sm_based === "myKPI" || sm_based === "no") && fromGisExternalContent != true) {
-                //    if ((sm_based === "no" || infoJson === "fromTracker") && fromGisExternalContent != true) {
+                if (nrMetricType != null) {
+                    openWs();
+                }
+
                 if (infoJson === "fromTracker" && fromGisExternalContent != true) {
                     $("#" + widgetName + "_timeControlsContainer").hide();
                     $("#" + widgetName + "_titleDiv").css("width", "95%");
+                    $("#" + widgetName + "_calendarContainer").hide();
                 } else {
                     $("#" + widgetName + "_timeControlsContainer").show();
                     $("#" + widgetName + "_titleDiv").css("width", "95%");
+                    if (typicaltrend == 'Yes') {
+                        $("#" + widgetName + "_calendarContainer").show();
+                    } else {
+                        $("#" + widgetName + "_calendarContainer").hide();
+                    }
                 }
                 
                 if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
@@ -2571,17 +2926,37 @@
                     timeRange = widgetData.params.temporal_range_w;
                 }
 
-                if(idMetric === 'AggregationSeries' || idMetric.includes("NR_"))
+                if(idMetric === 'AggregationSeries' || nrMetricType != null)
                 {
                     rowParameters = JSON.parse(rowParameters);
+                    if (typicaltrend == 'Yes') {
+                        if (rowParameters != null && rowParameters.length > 1) {
+                            rowParameters.splice(1, rowParameters.length - 1);
+                        }
+                        if (trendType == 'dayHour') {
+                            //rowParameters = rowParameters.replace('[', '');
+                            //rowParameters = rowParameters.replace(']', '');
+                            //var row = '[';
+                            //for (var i = 0; i < 7; i++) {
+                            //    if (i < 6) {
+                            //        row += rowParameters + ', ';
+                            //    } else {
+                            //        row += rowParameters + ']';
+                            //    }
+                            //}
+                            //rowParameters = row;
+                            for (var k = 1; k < 7; k++) {
+                                rowParameters.push(rowParameters[k - 1]);
+                            }
+                        }
+                    }
+
                     timeRange = widgetData.params.temporal_range_w;
                     populateWidget(true, timeRange, null, timeNavCount);
-                //    populateWidget(true, timeRange);
                 }
                 else
                 {
                     populateWidget(false, null, null, timeNavCount);
-                //    populateWidget(false, null);
                 }
 
                 // Hide Next Button at first instantiation
@@ -2662,40 +3037,57 @@
                 //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_countdownContainerDiv').css("width", "3%");
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("color", widgetHeaderFontColor);
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton').css("color", widgetHeaderFontColor);
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("color", widgetHeaderFontColor);
                 titleDiv.css("width", "70%");
 
                 if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 400) {
                     titleDiv.css("width", "65%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "19%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "19%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 480) {
                     titleDiv.css("width", "74%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "14%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "14%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 560) {
                     titleDiv.css("width", "75%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "15%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "15%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 700) {
                     titleDiv.css("width", "80%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "11%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "11%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 900) {
                     titleDiv.css("width", "84%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "9%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "9%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 1000) {
                     titleDiv.css("width", "85%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "8%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "8%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else if ($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header').width() < 1050) {
                     titleDiv.css("width", "85%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "7%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "7%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 } else {
                     titleDiv.css("width", "87%");
                     $("#" + widgetName + "_timeControlsContainer").css("width", "7%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton').css("padding-right", "0px");
+                    $("#" + widgetName + "_calendarContainer").css("width", "7%");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 }
 
             },
@@ -2710,12 +3102,140 @@
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
             }
         });
-        
+
+        //Web socket
+        openWs = function(e)
+        {
+            try
+            {
+                <?php
+                $genFileContent = parse_ini_file("../conf/environment.ini");
+                $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+                $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
+                $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
+                $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
+                $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
+                $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
+                $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
+                echo 'wsRetryActive = "' . $wsRetryActive . '";';
+                echo 'wsRetryTime = ' . $wsRetryTime . ';';
+                echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                ?>
+
+                webSocket.addEventListener('open', openWsConn);
+                webSocket.addEventListener('close', wsClosed);
+
+                setTimeout(function(){
+                    webSocket.removeEventListener('close', wsClosed);
+                    webSocket.removeEventListener('open', openWsConn);
+                    webSocket.removeEventListener('message', manageIncomingWsMsg);
+                    webSocket.close();
+                    webSocket = null;
+                }, (timeToReload - 2)*1000);
+            }
+            catch(e)
+            {
+                wsClosed();
+            }
+        };
+
+        manageIncomingWsMsg = function(msg)
+        {
+            var msgObj = JSON.parse(msg.data);
+
+            switch(msgObj.msgType)
+            {
+                case "newNRMetricData":
+                    if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
+                    {
+                        //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+
+                        var newValue = msgObj.newValue;
+                    //    var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
+                        //    point.update(newValue);
+
+                        rowParameters = newValue;
+                        if(idMetric === 'AggregationSeries' || nrMetricType != null)
+                        {
+                        //    rowParameters = JSON.parse(rowParameters);
+                            if (typicaltrend == 'Yes') {
+                                if (rowParameters != null && rowParameters.length > 1) {
+                                    rowParameters.splice(1, rowParameters.length - 1);
+                                }
+                                if (trendType == 'dayHour') {
+                                    //rowParameters = rowParameters.replace('[', '');
+                                    //rowParameters = rowParameters.replace(']', '');
+                                    //var row = '[';
+                                    //for (var i = 0; i < 7; i++) {
+                                    //    if (i < 6) {
+                                    //        row += rowParameters + ', ';
+                                    //    } else {
+                                    //        row += rowParameters + ']';
+                                    //    }
+                                    //}
+                                    //rowParameters = row;
+                                    for (var k = 1; k < 7; k++) {
+                                        rowParameters.push(rowParameters[k - 1]);
+                                    }
+                                }
+                            }
+
+                        //    timeRange = widgetData.params.temporal_range_w;
+                            populateWidget(true, timeRange, null, timeNavCount);
+                        }
+                        else
+                        {
+                            populateWidget(false, null, null, timeNavCount);
+                        }
+
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        };
+
+        openWsConn = function(e)
+        {
+            var wsRegistration = {
+                msgType: "ClientWidgetRegistration",
+                userType: "widgetInstance",
+                metricName: encodeURIComponent(metricName),
+                widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+            };
+            webSocket.send(JSON.stringify(wsRegistration));
+
+            setTimeout(function(){
+                webSocket.removeEventListener('close', wsClosed);
+                webSocket.close();
+            }, (timeToReload - 2)*1000);
+
+            webSocket.addEventListener('message', manageIncomingWsMsg);
+        };
+
+        wsClosed = function(e)
+        {
+            webSocket.removeEventListener('close', wsClosed);
+            webSocket.removeEventListener('open', openWsConn);
+            webSocket.removeEventListener('message', manageIncomingWsMsg);
+            webSocket = null;
+            if(wsRetryActive === 'yes')
+            {
+                setTimeout(openWs, parseInt(wsRetryTime*1000));
+            }
+        };
+
+        //Per ora non usata
+        wsError = function(e)
+        {
+
+        };
+
         $("#<?= $_REQUEST['name_w'] ?>").off('changeTimeRangeEvent');
         $("#<?= $_REQUEST['name_w'] ?>").on('changeTimeRangeEvent', function(event){
             timeRange = event.newTimeRange;
             populateWidget(true, event.newTimeRange, null, 0);
-         //   populateWidget(true, event.newTimeRange);
         });
         
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
