@@ -593,6 +593,7 @@
 	$(document).ready(function ()
         {
             var chart, chartMin = null;
+        //    console.log("<?= $_REQUEST['name_w'] ?> CTX Menu");
             
            if("<?= escapeForJS($_REQUEST['hostFile']) ?>" === 'config')
 	   {
@@ -1157,6 +1158,16 @@
                                 timeRangeDisplayed = "1 Year";
                                 timeRangeTick = 7;
                                 break;
+
+                            case "2 Anni":
+                                timeRangeDisplayed = "2 Year";
+                                timeRangeTick = 8;
+                                break;
+
+                            case "10 Anni":
+                                timeRangeDisplayed = "10 Year";
+                                timeRangeTick = 9;
+                                break;
                         }
                         
                         timeRangeSlider = $("#<?= $_REQUEST['name_w'] ?>_timeRangeSlider").bootstrapSlider({
@@ -1164,7 +1175,7 @@
                             max: 6,
                             step: 1,
                             value: timeRangeTick,
-                            ticks: [1, 2, 3, 4, 5, 6, 7],
+                            ticks: [1, 2, 3, 4, 5, 6, 7, 8, 9],
                             tooltip: 'hide'
                         });
                         
@@ -1206,7 +1217,17 @@
                                 case 7:
                                     timeRangeDisplayed = "1 Year";
                                     timeRange = "Annuale";
-                                    break;    
+                                    break;
+
+                                case 8:
+                                    timeRangeDisplayed = "2 Year";
+                                    timeRange = "2 Anni";
+                                    break;
+
+                                case 9:
+                                    timeRangeDisplayed = "10 Year";
+                                    timeRange = "10 Anni";
+                                    break;
                             }
                             
                             $("#<?= $_REQUEST['name_w'] ?>_timeRangeDisplayed").html(timeRangeDisplayed);
@@ -1254,6 +1275,16 @@
                                 case "Annuale":
                                     timeRangeDisplayed = "1 Year";
                                     timeRangeTick = 7;
+                                    break;
+
+                                case "2 Anni":
+                                    timeRangeDisplayed = "2 Year";
+                                    timeRangeTick = 8;
+                                    break;
+
+                                case "10 Anni":
+                                    timeRangeDisplayed = "10 Year";
+                                    timeRangeTick = 9;
                                     break;
                             }
                             

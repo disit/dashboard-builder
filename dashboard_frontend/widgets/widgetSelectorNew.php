@@ -3,17 +3,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 include('../config.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
@@ -71,6 +70,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         console.log("Selector Widget loaded: " + widgetName);
         globalMapView = false;
         var newPinsContainer = null;
+        var geoServerUrl, heatmapUrl = null;
      //   var bubbleMetricsArray = [];
 
      //   $('.poolIcon').tooltip();
@@ -1132,16 +1132,29 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         }
 
                         //Heatmap - Daniele
-                        if (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org")) && (widgetTargetList.length > 0)) {
+                        if (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org") || $(this).attr("data-query").includes(geoServerUrl)) && (widgetTargetList.length > 0)) {
 
                             if ($(this).attr("data-onMap") === "false") {
 
                                 var thisQuery = $(this).attr("data-query");
                                 var sourceSelector = event.currentTarget.offsetParent;
+
+                                const isAddingTrafficFlowManagerHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true")
+
                                 $('.gisPinLink').each(function( index ) {
-                                    if(($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org")) && $(this).attr("data-query") != thisQuery) {
+                                    if(($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org") || $(this).attr("data-query").includes(geoServerUrl)) && $(this).attr("data-query") != thisQuery) {
                                         if (sourceSelector == $(this).offsetParent()[0]) {
                                             if ($(this).attr("data-onMap") === "true") {
+
+                                                // logica additività trafficflowmanager
+                                                // non rimuovere pin dal selettore se:
+                                                // 1. cliccato su heatmap e sto rimuovendo pin traffico, oppure
+                                                // 2. cliccato su traffico e sto rimuovendo pin heatmap
+                                                const isRemovingTrafficFlowManagerPin = $(this).attr("data-query").includes("&trafficflowmanager=true");
+                                                if ((!isAddingTrafficFlowManagerHeatmap && isRemovingTrafficFlowManagerPin) || (isAddingTrafficFlowManagerHeatmap && !isRemovingTrafficFlowManagerPin)) {
+                                                    return;
+                                                }
+
                                                 $(this).attr("data-onMap", "false");
                                                 if ($(this).attr("data-symbolMode") === 'auto') {
                                                     if ($(this).attr("data-iconTextMode") == "icon" && $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") != null) {
@@ -1193,14 +1206,17 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
                                 }
 
+                                const isTrafficHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true")
+
                                 $.event.trigger({
                                     type: "removeHeatmap",
-                                    target: widgetTargetList[0]
+                                    target: widgetTargetList[0],
+                                    isTrafficHeatmap: isTrafficHeatmap
                                 });
                             }
                         }
 
-                        if ((($(this).attr("data-query").includes("scenario")) !== true) && (($(this).attr("data-query").includes("whatif")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org")) !== true) && (widgetTargetList.length > 0)) {
+                        if ((($(this).attr("data-query").includes("scenario")) !== true) && (($(this).attr("data-query").includes("whatif")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org") || $(this).attr("data-query").includes(geoServerUrl)) !== true) && (widgetTargetList.length > 0)) {
 
                             if ($(this).attr("data-onMap") === "false") {
                                 $(this).attr("data-onMap", "true");
@@ -1497,7 +1513,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     contentHeightPx = queriesNumber * 100;
                     eventContentWPerc = null;
                     iconTextMode = styleParameters.iconText;
-                    mapPinIcon = styleParameters.mapPinIcon
+                    mapPinIcon = styleParameters.mapPinIcon;
+                    geoServerUrl = widgetProperties.geoServerUrl;
+                    heatmapUrl = widgetProperties.heatmapUrl;
                     $('#<?= $_REQUEST['name_w'] ?>').attr("data-icontextmode", iconTextMode);
 
                     populateWidget();

@@ -134,6 +134,14 @@
                                 case "Annuale":
                                     $timeRange = "365 DAY";
                                     break;
+
+                                case "2 Anni":
+                                    $timeRange = "730 DAY";
+                                    break;
+
+                                case "10 Anni":
+                                    $timeRange = "3650 DAY";
+                                    break;
                             }
                             if(isset($_REQUEST['upperTime'])) {
                                 $upperTime = mysqli_real_escape_string($link, $_REQUEST['upperTime']);
@@ -277,6 +285,14 @@
                                 case "Annuale":
                                     $timeRange = "fromTime=365-day";
                                     break;
+
+                                case "2 Anni":
+                                    $timeRange = "fromTime=730-day";
+                                    break;
+
+                                case "10 Anni":
+                                    $timeRange = "fromTime=3650-day";
+                                    break;
                             }
 
                             $urlToCall = $smUrl . "&" . $timeRange;
@@ -392,6 +408,14 @@
                 case "Annuale":
                     $t0 = getMyKPIUpperTimeLimit(8760, $upperTime);
                     break;
+
+                case "2 Anni":
+                    $t0 = getMyKPIUpperTimeLimit(17520, $upperTime);
+                    break;
+
+                case "10 Anni":
+                    $t0 = getMyKPIUpperTimeLimit(87600, $upperTime);
+                    break;
             }
             $t1 = strtotime($upperTime) * 1000;
 
@@ -462,6 +486,14 @@
 
                         case "Annuale":
                             $timeRange = "from=" . getMyKPIUpperTimeLimit(8760, $upperTime);
+                            break;
+
+                        case "2 Anni":
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(17520, $upperTime);
+                            break;
+
+                        case "10 Anni":
+                            $timeRange = "from=" . getMyKPIUpperTimeLimit(87600, $upperTime);
                             break;
                     }
                     if(isset($_REQUEST['upperTime'])) {

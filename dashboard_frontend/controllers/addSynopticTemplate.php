@@ -154,6 +154,12 @@
     {
         $filename = $_FILES['getTemplate']['name'];
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
+		if(0 !== strcasecmp($ext,"svg")) {
+			$response['result'] = "Ko";
+			$response['detail'] = "Invalid SVG Template File. It must have SVG extension.";
+			echo json_encode($response);
+			die();
+		}
         $filename = $synopticTplId."_".$name . "." . $ext;
         $filename = preg_replace('/\s+/', '_', $filename);
         $synopticTemplateFile = $filename;
@@ -178,6 +184,12 @@
     {
         $filename = $_FILES['getIcon']['name'];
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
+		if(!in_array(strtolower($ext),explode(",",$acceptedImageFormats))) {
+			$response['result'] = "Ko";
+			$response['detail'] = "Invalid icon. Accepted: ".implode(", ",explode(",",$acceptedImageFormats));
+			echo json_encode($response);
+			die();
+		}
         $filename = $synopticTplId."_".$name . "." . $ext;
         $filename = preg_replace('/\s+/', '_', $filename);
         $microAppExtServIcon = $filename;

@@ -2,17 +2,16 @@
 /* Dashboard Builder.
   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+  This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 include('../config.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
@@ -561,6 +560,26 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                         myKPITimeRangeCompare = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitCompareISOTrim;
                     }
                     break;
+                case "previous 2 years":
+                    upperTimeLimitCompareISOTrim = getUpperTimeLimitCompare((2 * 365 * 24) + (2 * 365 * 24 * timeCount));
+                    if (flagTracker === true) {
+                        myKPITimeRangeCompare = "&from=" + dayTracker + "T00:00:00&to=" + dayTracker + "T23:59:59";
+                    } else {
+                        var myKPIFromTimeRangeNew = moment(upperTimeLimitCompareISOTrim).subtract(24, 'months');
+                        var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
+                        myKPITimeRangeCompare = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitCompareISOTrim;
+                    }
+                    break;
+                case "previous 10 years":
+                    upperTimeLimitCompareISOTrim = getUpperTimeLimitCompare((10 * 365 * 24) + (10 * 365 * 24 * timeCount));
+                    if (flagTracker === true) {
+                        myKPITimeRangeCompare = "&from=" + dayTracker + "T00:00:00&to=" + dayTracker + "T23:59:59";
+                    } else {
+                        var myKPIFromTimeRangeNew = moment(upperTimeLimitCompareISOTrim).subtract(120, 'months');
+                        var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
+                        myKPITimeRangeCompare = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitCompareISOTrim;
+                    }
+                    break;
                 default:
                     serviceMapTimeRange = "fromTime=1-day";
                     upperTimeLimitCompareISOTrim = getUpperTimeLimitCompare(24 + (24 * timeCount));
@@ -914,7 +933,11 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                     }
                 } else
                 {
-                    return false;
+                    if (timeRange != "10 Anni") {
+                        return false;
+                    } else {
+                        return convertedData;
+                    }
                 }
             } else
             {
@@ -1240,6 +1263,46 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                             var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
                             //    myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
                             var myKPIFromTimeRangeNew = moment(upperTimeLimitISOTrimmed).subtract(1, 'year');
+                            var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
+                            myKPITimeRange = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitISOTrimmed;
+                        }
+                        break;
+                    case "2 Anni":
+                        serviceMapTimeRange = "fromTime=730-day";
+                        //    var deltaT = 365 + parseInt(timeCount) * 365;
+                        //    serviceMapTimeRange = "fromTime=" + deltaT + "-day";
+                        globalDiagramRange = "730/DAY";
+                        upperTimeLimitISOTrimmed = getUpperTimeLimit(2 * 365 * 24 * timeCount);
+                        if (flagTracker === true) {
+                            myKPITimeRange = "&from=" + dayTracker + "T00:00:00&to=" + dayTracker + "T23:59:59";
+                        } else {
+                            var now = new Date();
+                            myKPIFromTimeRange = now.setHours(now.getHours() - 17520);
+                            var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                            var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                            var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                            //    myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                            var myKPIFromTimeRangeNew = moment(upperTimeLimitISOTrimmed).subtract(2, 'year');
+                            var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
+                            myKPITimeRange = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitISOTrimmed;
+                        }
+                        break;
+                    case "10 Anni":
+                        serviceMapTimeRange = "fromTime=3650-day";
+                        //    var deltaT = 365 + parseInt(timeCount) * 365;
+                        //    serviceMapTimeRange = "fromTime=" + deltaT + "-day";
+                        globalDiagramRange = "3650/DAY";
+                        upperTimeLimitISOTrimmed = getUpperTimeLimit(10 * 365 * 24 * timeCount);
+                        if (flagTracker === true) {
+                            myKPITimeRange = "&from=" + dayTracker + "T00:00:00&to=" + dayTracker + "T23:59:59";
+                        } else {
+                            var now = new Date();
+                            myKPIFromTimeRange = now.setHours(now.getHours() - 87600);
+                            var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                            var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                            var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                            //    myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                            var myKPIFromTimeRangeNew = moment(upperTimeLimitISOTrimmed).subtract(10, 'year');
                             var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
                             myKPITimeRange = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitISOTrimmed;
                         }
@@ -1644,6 +1707,12 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                          }*/ else if (range === '365/DAY')
                         {
                             seriesData2.push([Date.UTC(parseInt(dayParts[0]) + 1, dayParts[1] - 1, dayParts[2]), value]);
+                        } else if (range === '730/DAY')
+                        {
+                            seriesData2.push([Date.UTC(parseInt(dayParts[0]) + 2, dayParts[1] - 1, dayParts[2]), value]);
+                        } else if (range === '3650/DAY')
+                        {
+                            seriesData2.push([Date.UTC(parseInt(dayParts[0]) + 10, dayParts[1] - 1, dayParts[2]), value]);
                         } else if (range === '1/DAY')
                         {
                             if (timeRangeCompare === "same day previous week"){
@@ -1943,6 +2012,16 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                                 {
                                     valueAtt = valX.getFullYear();
                                     valuePrec = valX.getFullYear() - 1;
+                                    valX.setYear(valuePrec);
+                                } else if (mod === '730/DAY')
+                                {
+                                    valueAtt = valX.getFullYear();
+                                    valuePrec = valX.getFullYear() - 2;
+                                    valX.setYear(valuePrec);
+                                } else if (mod === '3650/DAY')
+                                {
+                                    valueAtt = valX.getFullYear();
+                                    valuePrec = valX.getFullYear() - 10;
                                     valX.setYear(valuePrec);
                                 } else if (mod === '4/HOUR')
                                 {
@@ -2494,7 +2573,7 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
             <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText" class="noDataAlertText">
-                    No data available
+                    No Data Available in the Selected Time Range
                 </div>
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertIcon" class="noDataAlertIcon">
                     <i class="fa fa-times"></i>

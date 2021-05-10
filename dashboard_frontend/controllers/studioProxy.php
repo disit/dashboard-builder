@@ -130,7 +130,7 @@ if(!isset($_SESSION['refreshToken'])) {
     // Call used to populate studios' select widget
     else if($_GET['method'] === "GET" && $_GET['opt'] === "name") {
         // Get anonymous delegations for scenarios type (elementType)
-        $query = "SELECT element_id as elementId from profiledb.delegation where variable_name='$variableName'";
+        $query = "SELECT element_id as elementId from profiledb.delegation where variable_name='".mysqli_escape_string($link, $variableName)."'";
         $result = mysqli_query($link, $query);
         /*$delegations = getAnonymousDelegation($personalDataApiBaseUrl, $dmSourceRequest, $elementType , $accessToken);
         $delegations = json_decode($delegations);*/
@@ -150,7 +150,7 @@ if(!isset($_SESSION['refreshToken'])) {
     else if($_GET['method'] === "GET" && isset($_GET['sel'])) {
         $selectedStudio = $_GET['sel'];
        
-        $query = "SELECT variable_value as variableValue from profiledb.data where variable_name='$variableName' and app_id='$selectedStudio'";
+        $query = "SELECT variable_value as variableValue from profiledb.data where variable_name='".mysqli_escape_string($link, $variableName)."' and app_id='".mysqli_escape_string($link, $selectedStudio)."'";
         $result = mysqli_query($link, $query);
         
         if($result) {
@@ -190,7 +190,7 @@ else if(isset($_SESSION['refreshToken'])) {
         );
         
         // before insert data, we get if the studioName already exists (among studios -> use of variable_name)
-        $query = "SELECT count(*) as count from profiledb.data where variable_name='$variableName' and app_id='$studioName'";
+        $query = "SELECT count(*) as count from profiledb.data where variable_name='".mysqli_escape_string($link, $variableName)."' and app_id='".mysqli_escape_string($link, $studioName)."'";
         $result = mysqli_query($link, $query);
         $feature = mysqli_fetch_assoc($result);
         if($feature['count'] == 0 ) {
@@ -282,7 +282,7 @@ else if(isset($_SESSION['refreshToken'])) {
     else if($_GET['method'] === "GET" && isset($_GET['sel'])) {
         $selectedStudio = $_GET['sel'];
        
-        $query = "SELECT variable_value as variableValue from profiledb.data where variable_name='$variableName' and app_id='$selectedStudio'";
+        $query = "SELECT variable_value as variableValue from profiledb.data where variable_name='".mysqli_escape_string($link, $variableName)."' and app_id='".mysqli_escape_string($link, $selectedStudio)."'";
         $result = mysqli_query($link, $query);
         
         if($result) {

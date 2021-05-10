@@ -2,19 +2,19 @@
     /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    
    include('process-form.php');
+  include '../locale.php';
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
    
    if(!isset($_SESSION))
@@ -25,7 +25,7 @@
    
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
-    error_reporting(E_ERROR | E_NOTICE);
+    error_reporting(E_ERROR);
 
     $lastUsedColors = null;
     $dashId = escapeForSQL($_REQUEST['dashboardId'], $link);
@@ -372,49 +372,49 @@
             <a id="link_modifyDash" href="#" data-toggle="modal" data-target="#modalEditDashboard">
                 <div class="col-xs-6 col-sm-3 col-lg-1 col-lg-offset-2 dashEditMenuItemCnt">
                     <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-dashboard" style="color: #00cc66"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex">Properties</div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Properties")?></div>
                 </div>
             </a>
             <a id="link_start_wizard" href="#" data-toggle="modal">     
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                     <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-magic" style="color: #66efff"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex">Wizard</div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Wizard")?></div>
                 </div>
             </a>
             <a id="link_add_widget" href="#" data-toggle="modal">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                     <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-plus-circle" style="color: #ffcc00"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex">Add widget</div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Add widget")?></div>
                 </div>
             </a>
             <a id="link_add_separator" href="#" data-toggle="modal">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                     <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-arrows-v" style="color: #80bfff"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex">Separator</div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Separator")?></div>
                 </div>
             </a>
             <a id="embedCodeBtn" href="#" data-toggle="modal">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
 		    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-file-code-o" style="color: #ffffff"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex">Embedding</div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Embedding")?></div>
                 </div>
             </a>
             <a id="link_screenshot" href="#" data-toggle="modal">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                     <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-camera" style="color: #ffccee"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex">Screenshot</div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Screenshot")?></div>
                 </div>
             </a>
             <a id="link_save_configuration" class="internalLink" href="#">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                 <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-cubes" style="color: #ff9933"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex">Save</div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Save")?></div>
                 </div>
             </a>
             <a id="dashboardViewLink" href="#" target="_blank">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
 		    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-desktop" style="color: #ff0000"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex">Preview</div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Preview")?></div>
                 </div>
             </a>
        </div> 
@@ -430,23 +430,23 @@
                     <div id="dashboardEditHeaderMenu" data-shown="false" class="applicationCtxMenu fullCtxMenu container-fluid dashboardCtxMenu">
                         <div class="row fullCtxMenuRow" data-selected="false">
                             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-                            <div class="col-xs-10 fullCtxMenuTxt ">Header color</div>
+                            <div class="col-xs-10 fullCtxMfa fa-mail-replyenuTxt "><?= _("Header color")?></div>
                         </div>
                         <div class="row fullCtxMenuRow" data-selected="false">
                             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-                            <div class="col-xs-10 fullCtxMenuTxt ">Title color</div>
+                            <div class="col-xs-10 fullCtxMenuTxt "><?= _("Title color")?></div>
                         </div>
                         <div class="row fullCtxMenuRow" data-selected="false">
                             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-                            <div class="col-xs-10 fullCtxMenuTxt ">Widgets area color</div>
+                            <div class="col-xs-10 fullCtxMenuTxt "><?= _("Widgets area color")?></div>
                         </div>
                         <div class="row fullCtxMenuRow" data-selected="false">
                             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-                            <div class="col-xs-10 fullCtxMenuTxt ">External area color</div>
+                            <div class="col-xs-10 fullCtxMenuTxt "><?= _("External area color")?></div>
                         </div>
                         <div class="row fullCtxMenuRow" id="dashboardBckDarknessMenuRow" data-selected="false">
                             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-adjust"></i></div>
-                            <div class="col-xs-10 fullCtxMenuTxt ">Background darkness</div>
+                            <div class="col-xs-10 fullCtxMenuTxt "><?= _("Background darkness")?></div>
                         </div>
                             <?php
 
@@ -804,7 +804,7 @@
 
                             <div class="row fullCtxMenuRow quitRow" data-selected="false">
                                 <div class="col-md-12 orgMenuItemCnt">
-                                    <i class="fa fa-mail-reply"></i>&nbsp;&nbsp;&nbsp;Quit&nbsp;&nbsp;&nbsp;
+                                    <i class="fa fa-mail-reply"></i>&nbsp;&nbsp;&nbsp;<?= _("Quit")?>&nbsp;&nbsp;&nbsp;
                                     <!--  <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-mail-reply"></i></div>
                                       <div class="col-xs-10 fullCtxMenuTxt">Quit</div>    -->
                                 </div>
@@ -814,7 +814,7 @@
                     
                     <div id="dashboardEditTitleColorSubmenu" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
                         <div class="row">
-                           <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div> 
+                           <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Palette")?></div> 
                            <div id="dashHeaderColorPicker" class="col-xs-12 centerWithFlex"></div>
                         </div>
                         <div class="row">
@@ -837,7 +837,7 @@
                             <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
                         </div>
                         <div class="row lastUsedColorsRow">
-                            <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div> 
+                            <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div> 
                             <?php
                                 for($i = 0; $i < count($lastUsedColors); $i++)
                                 {
@@ -847,13 +847,13 @@
                         </div>
                         <div class="row contextMenuBtnsRow">
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuQuitBtn" id="dashHeaderColorQuitBtn">Quit</button>
+                                <button type="button" class="contextMenuQuitBtn" id="dashHeaderColorQuitBtn"><?= _("Quit")?></button>
                             </div>
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuCancelBtn" id="dashHeaderColorCancelBtn">Undo</button>
+                                <button type="button" class="contextMenuCancelBtn" id="dashHeaderColorCancelBtn"><?= _("Undo")?></button>
                             </div>
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuConfirmBtn" id="dashHeaderColorConfirmBtn">Apply</button>
+                                <button type="button" class="contextMenuConfirmBtn" id="dashHeaderColorConfirmBtn"><?= _("Apply")?></button>
                             </div>
                         </div>
                         <div class="row contextMenuMsgRow">
@@ -863,7 +863,7 @@
                     
                     <div id="dashboardEditTitleFontColorSubmenu" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
                         <div class="row">
-                           <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div> 
+                           <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Palette")?></div> 
                            <div id="dashHeaderFontColorPicker" class="col-xs-12 centerWithFlex"></div>
                         </div>
                         <div class="row">
@@ -886,7 +886,7 @@
                             <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
                         </div>
                         <div class="row lastUsedColorsRow">
-                            <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div> 
+                            <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div> 
                             <?php
                                 for($i = 0; $i < count($lastUsedColors); $i++)
                                 {
@@ -896,13 +896,13 @@
                         </div>
                         <div class="row contextMenuBtnsRow">
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuQuitBtn" id="dashHeaderFontColorQuitBtn">Quit</button>
+                                <button type="button" class="contextMenuQuitBtn" id="dashHeaderFontColorQuitBtn"><?= _("Quit")?></button>
                             </div>
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuCancelBtn" id="dashHeaderFontColorCancelBtn">Undo</button>
+                                <button type="button" class="contextMenuCancelBtn" id="dashHeaderFontColorCancelBtn"><?= _("Undo")?></button>
                             </div>
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuConfirmBtn" id="dashHeaderFontColorConfirmBtn">Apply</button>
+                                <button type="button" class="contextMenuConfirmBtn" id="dashHeaderFontColorConfirmBtn"><?= _("Apply")?></button>
                             </div>
                         </div>
                         <div class="row contextMenuMsgRow">
@@ -911,7 +911,7 @@
                     </div>
                     <div id="dashboardEditAreaColorSubmenu" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
                         <div class="row">
-                           <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div> 
+                           <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Palette")?></div> 
                            <div id="dashAreaColorPicker" class="col-xs-12 centerWithFlex"></div>
                         </div>
                         <div class="row">
@@ -934,7 +934,7 @@
                             <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
                         </div>
                         <div class="row lastUsedColorsRow">
-                            <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div> 
+                            <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div> 
                             <?php
                                 for($i = 0; $i < count($lastUsedColors); $i++)
                                 {
@@ -944,13 +944,13 @@
                         </div>
                         <div class="row contextMenuBtnsRow">
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuQuitBtn" id="dashAreaColorQuitBtn">Quit</button>
+                                <button type="button" class="contextMenuQuitBtn" id="dashAreaColorQuitBtn"><?= _("Quit")?></button>
                             </div>
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuCancelBtn" id="dashAreaColorCancelBtn">Undo</button>
+                                <button type="button" class="contextMenuCancelBtn" id="dashAreaColorCancelBtn"><?= _("Undo")?></button>
                             </div>
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuConfirmBtn" id="dashAreaColorConfirmBtn">Apply</button>
+                                <button type="button" class="contextMenuConfirmBtn" id="dashAreaColorConfirmBtn"><?= _("Apply")?></button>
                             </div>
                         </div>
                         <div class="row contextMenuMsgRow">
@@ -959,7 +959,7 @@
                     </div>
                     <div id="dashboardEditFrameColorSubmenu" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
                         <div class="row">
-                           <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div> 
+                           <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Palette")?></div> 
                            <div id="dashFrameColorPicker" class="col-xs-12 centerWithFlex"></div>
                         </div>
                         <div class="row">
@@ -982,7 +982,7 @@
                             <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
                         </div>
                         <div class="row lastUsedColorsRow">
-                            <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div> 
+                            <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div> 
                             <?php
                                 for($i = 0; $i < count($lastUsedColors); $i++)
                                 {
@@ -992,13 +992,13 @@
                         </div>
                         <div class="row contextMenuBtnsRow">
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuQuitBtn" id="dashFrameColorQuitBtn">Quit</button>
+                                <button type="button" class="contextMenuQuitBtn" id="dashFrameColorQuitBtn"><?= _("Quit")?></button>
                             </div>
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuCancelBtn" id="dashFrameColorCancelBtn">Undo</button>
+                                <button type="button" class="contextMenuCancelBtn" id="dashFrameColorCancelBtn"><?= _("Undo")?></button>
                             </div>
                             <div class="col-xs-4 centerWithFlex">
-                                <button type="button" class="contextMenuConfirmBtn" id="dashFrameColorConfirmBtn">Apply</button>
+                                <button type="button" class="contextMenuConfirmBtn" id="dashFrameColorConfirmBtn"><?= _("Apply")?></button>
                             </div>
                         </div>
                         <div class="row contextMenuMsgRow">
@@ -1008,7 +1008,7 @@
                     
                     <div id="dashboardBckDarknessSubmenu" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
                         <div class="row">
-                           <div class="col-xs-12 centerWithFlex submenuLabel">Darkness</div> 
+                           <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Darkness")?></div> 
                            <div class="col-xs-12 centerWithFlex">
                                <input id="dashboardBckDarknessSlider" type="text" data-provide="slider"/>
                            </div>
@@ -1102,7 +1102,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content modalContentWizardForm"> 
                 <div class="modalHeader centerWithFlex">
-                  Wizard
+                 <?= _("Wizard")?> 
                 </div>
             
                 <div id="addWidgetWizardLabelBody" class="modal-body modalBody">
@@ -1112,11 +1112,11 @@
                 <div id="modalStartWizardFooter" class="modal-footer">
                    <div class="row">
                         <div class="col-xs-8 col-xs-offset-2 centerWithFlex">
-                            <button type="button" id="addWidgetWizardPrevBtn" name="addWidgetWizardPrevBtn" class="btn confirmBtn">Prev</button>
-                            <button type="button" id="addWidgetWizardNextBtn" name="addWidgetWizardNextBtn" class="btn confirmBtn">Next</button>
+                            <button type="button" id="addWidgetWizardPrevBtn" name="addWidgetWizardPrevBtn" class="btn confirmBtn"><?= _("Prev")?></button>
+                            <button type="button" id="addWidgetWizardNextBtn" name="addWidgetWizardNextBtn" class="btn confirmBtn"><?= _("Next")?></button>
                         </div>    
                         <div class="col-xs-2">
-                            <button type="button" id="addWidgetWizardCancelBtn" class="btn cancelBtn" data-dismiss="modal">Close</button>
+                            <button type="button" id="addWidgetWizardCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Close")?></button>
                         </div>   
                    </div>  
                 </div>
@@ -1130,66 +1130,66 @@
         <div class="modal-dialog modalDialogWidget" role="document" id="adding01">
             <div class="modal-content modalContentWidgetForm">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="myModalLabel">Add new widget to dashboard</h4>
+                    <h4 class="modal-title" id="myModalLabel"><?= _("Add new widget to dashboard")?></h4>
                 </div>
                 <div id="modal-add-widget-body" class="modal-body">
                     <form id="form-setting-widget" class="form-horizontal" name="form-setting-widget" role="form" method="post" action="" enctype="multipart/form-data" data-toggle="validator"> <!-- novalidate -->
                         <div class="well wellCustom2left" id="metricAndWidgetChoice">
-                            <legend class="legend-form-group">Metric and widget choice</legend> 
+                            <legend class="legend-form-group"><?= _("Metric and widget choice")?></legend> 
                             <div id="metricAndWidgetChoiceContent" class="form-group">
                                 <div class="row">
-                                    <label for="widgetCategory" class="col-md-4 control-label">Widget category</label>
+                                    <label for="widgetCategory" class="col-md-4 control-label"><?= _("Widget category")?></label>
 
                                     <div class="col-md-6">
                                         <div class="input-group">
                                             <select class="form-control" id="widgetCategory" name="widgetCategory">
-                                                <option value="actuator">Actuator</option>
-                                                <option value="viewer">Data viewer</option>
+                                                <option value="actuator"><?= _("Actuator")?></option>
+                                                <option value="viewer"><?= _("Data viewer")?></option>
                                             </select>                                         
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="metricsCategory" class="col-md-4 control-label">Metrics category</label>
+                                    <label for="metricsCategory" class="col-md-4 control-label"><?= _("Metrics category")?></label>
 
                                     <div class="col-md-6">
                                         <div class="input-group">
                                             <select class="form-control" id="metricsCategory" name="metricsCategory">
-                                                <option value="app">Personal metrics</option>
-                                                <option value="ds">Shared metrics</option>
+                                                <option value="app"><?= _("Personal metrics")?></option>
+                                                <option value="ds"><?= _("Shared metrics")?></option>
                                             </select>                                         
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="actuatorTarget" class="col-md-4 control-label">Actuator target</label>
+                                    <label for="actuatorTarget" class="col-md-4 control-label"><?= _("Actuator target")?></label>
                                     <div class="col-md-6">
                                         <select class="form-control" id="actuatorTarget" name="actuatorTarget">
-                                            <option value="app">Personal apps</option>
-                                            <option value="broker">Context broker</option>
+                                            <option value="app"><?= _("Personal apps")?></option>
+                                            <option value="broker"><?= _("Context broker")?></option>
                                         </select>    
                                     </div>
                                 </div>
                                 
                                 <!-- Campi per gli widget attuatori (personal apps)-->
                                 <div class="row">
-                                    <label for="personalAppsInputs" class="col-md-4 control-label">Inputs from personal apps</label>
+                                    <label for="personalAppsInputs" class="col-md-4 control-label"><?= _("Inputs from personal apps")?></label>
                                     <div class="col-md-6">
                                         <select class="form-control" id="personalAppsInputs" name="personalAppsInputs"></select>
                                     </div>    
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsValueType" class="col-md-4 control-label">Value type</label>
+                                    <label for="personalAppsInputsValueType" class="col-md-4 control-label"><?= _("Value type")?></label>
                                     <div class="col-md-6">
                                     <input type="text" style="background-color: white" class="form-control" id="personalAppsInputsValueType" name="personalAppsInputsValueType" disabled/> 
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsStartValue" class="col-md-4 control-label">Start value</label>
+                                    <label for="personalAppsInputsStartValue" class="col-md-4 control-label"><?= _("Start value")?></label>
                                     <div class="col-md-6">
                                     <input type="text" style="background-color: white" class="form-control" id="personalAppsInputsStartValue" name="personalAppsInputsStartValue" disabled/>
                                     <input type="hidden" id="personalAppsInputsStartValueHidden" name="personalAppsInputsStartValueHidden" />
@@ -1197,42 +1197,42 @@
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsDomainType" class="col-md-4 control-label">Domain type</label>
+                                    <label for="personalAppsInputsDomainType" class="col-md-4 control-label"><?= _("Domain type")?></label>
                                     <div class="col-md-6">
                                     <input type="text" style="background-color: white" class="form-control" id="personalAppsInputsDomainType" name="personalAppsInputsDomainType" disabled/>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsMinValue" class="col-md-4 control-label">Min value</label>
+                                    <label for="personalAppsInputsMinValue" class="col-md-4 control-label"><?= _("Min value")?></label>
                                     <div class="col-md-6">
                                     <input type="text" style="background-color: white" class="form-control" id="personalAppsInputsMinValue" name="personalAppsInputsMinValue" disabled/>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsMaxValue" class="col-md-4 control-label">Max value</label>
+                                    <label for="personalAppsInputsMaxValue" class="col-md-4 control-label"><?= _("Max value")?></label>
                                     <div class="col-md-6">
                                     <input type="text" style="background-color: white" class="form-control" id="personalAppsInputsMaxValue" name="personalAppsInputsMaxValue" disabled/> 
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsOffValue" class="col-md-4 control-label">Off value</label>
+                                    <label for="personalAppsInputsOffValue" class="col-md-4 control-label"><?= _("Off value")?></label>
                                     <div class="col-md-6">
                                     <input type="text" style="background-color: white" class="form-control" id="personalAppsInputsOffValue" name="personalAppsInputsOffValue" disabled/> 
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsOnValue" class="col-md-4 control-label">On value</label>
+                                    <label for="personalAppsInputsOnValue" class="col-md-4 control-label"><?= _("On value")?></label>
                                     <div class="col-md-6">
                                     <input type="text" style="background-color: white" class="form-control" id="personalAppsInputsOnValue" name="personalAppsInputsOnValue" disabled/> 
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="widgetActuatorTypePersonalApps" class="col-md-4 control-label">Widget type</label>
+                                    <label for="widgetActuatorTypePersonalApps" class="col-md-4 control-label"><?= _("Widget type")?></label>
 
                                     <div class="col-md-6">
                                         <div class="input-group">
@@ -1243,7 +1243,7 @@
                                 
                                 <!-- Campi per gli widget attuatori (broker)-->
                                 <div class="row" id="entityTypeRow">
-                                    <label for="entityType" class="col-md-4 control-label">Entity type</label>
+                                    <label for="entityType" class="col-md-4 control-label"><?= _("Entity type")?></label>
 
                                     <div class="col-md-8">
                                         <div class="input-group">
@@ -1252,7 +1252,7 @@
                                     </div>
                                 </div>
                                 <div class="row" id="entityDescRow">
-                                    <label for="entityDesc" class="col-md-4 control-label">Entity description</label>
+                                    <label for="entityDesc" class="col-md-4 control-label"><?= _("Entity description")?></label>
 
                                     <div class="col-md-8">
                                         <div class="input-group">
@@ -1261,7 +1261,7 @@
                                     </div>
                                 </div>
                                 <div class="row" id="entityAttrNameRow">
-                                    <label for="entityAttrName" class="col-md-4 control-label">Attribute name</label>
+                                    <label for="entityAttrName" class="col-md-4 control-label"><?= _("Attribute name")?></label>
 
                                     <div class="col-md-8">
                                         <div class="input-group">
@@ -1270,7 +1270,7 @@
                                     </div>
                                 </div>
                                 <div class="row" id="entityAttrDescRow">
-                                    <label for="entityAttrDesc" class="col-md-4 control-label">Attribute description</label>
+                                    <label for="entityAttrDesc" class="col-md-4 control-label"><?= _("Attribute description")?></label>
 
                                     <div class="col-md-8">
                                         <div class="input-group">
@@ -1279,21 +1279,21 @@
                                     </div>
                                 </div>
                                 <div class="row" id="entityAttrTypeRow">
-                                    <label for="entityAttrType" class="col-md-4 control-label">Attribute type</label>
+                                    <label for="entityAttrType" class="col-md-4 control-label"><?= _("Attribute type")?></label>
 
                                     <div class="col-md-8">
                                         <div class="input-group">
                                             <select class="form-control" id="entityAttrType" name="entityAttrType">
-                                                <option value="Integer">Integer</option>
-                                                <option value="Float">Float</option>
-                                                <option value="String">String</option>
-                                                <option value="Boolean">Boolean</option>
+                                                <option value="Integer"><?= _("Integer")?></option>
+                                                <option value="Float"><?= _("Float")?></option>
+                                                <option value="String"><?= _("String")?></option>
+                                                <option value="Boolean"><?= _("Boolean")?></option>
                                             </select>    
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row" id="entityAttrStartValueRow">
-                                    <label for="entityAttrStartValue" class="col-md-4 control-label">Attribute initial value</label>
+                                    <label for="entityAttrStartValue" class="col-md-4 control-label"><?= _("Attribute initial value")?></label>
 
                                     <div class="col-md-8">
                                         <div class="input-group">
@@ -1302,7 +1302,7 @@
                                     </div>
                                 </div>
                                 <div class="row" id="widgetActuatorTypeRow">
-                                    <label for="widgetActuatorType" class="col-md-4 control-label">Widget type</label>
+                                    <label for="widgetActuatorType" class="col-md-4 control-label"><?= _("Widget type")?></label>
 
                                     <div class="col-md-6">
                                         <div class="input-group">
@@ -1313,7 +1313,7 @@
                                 
                                 <!-- Campi per widget che mostrano dati - Metriche da NodeRED -->
                                 <div class="row" id="selectMetricRowNR">
-                                    <label for="select-metricNR" class="col-md-4 control-label">Metric</label>
+                                    <label for="select-metricNR" class="col-md-4 control-label"><?= _("Metric")?></label>
 
                                     <div class="col-md-6">
                                         <select class="form-control" id="select-metricNR" name="select-metricNR"></select>     
@@ -1321,14 +1321,14 @@
                                 </div>
 
                                 <div class="row" id="metricDescRowNR">
-                                    <label for="textarea-metricNR" class="col-md-4 control-label">Metric description</label>
+                                    <label for="textarea-metricNR" class="col-md-4 control-label"><?= _("Metric description")?></label>
                                     <div class="col-md-6">
                                         <textarea id ="textarea-metric-cNR" class="form-control textarea-metric" name="textarea-metricNR" rows="3"></textarea>
                                     </div>
                                 </div>
                                 
                                 <div id ="inputComuneRowNR" class="row">    
-                                    <label for="inputComuneWidgetNR" class="col-md-4 control-label">Context</label>
+                                    <label for="inputComuneWidgetNR" class="col-md-4 control-label"><?= _("Context")?></label>
                                     <div class="col-md-6">
                                         <div class="input-group">
                                             <input type="text" class="form-control autocomplete" id="inputComuneWidgetNR" name="inputComuneWidgetNR" novalidate>
@@ -1342,14 +1342,14 @@
                                 </div>
                                 
                                 <div class="row" id="widgetTypeRowNR">
-                                    <label for="select-widgetNR" class="col-md-4 control-label">Widget type</label>
+                                    <label for="select-widgetNR" class="col-md-4 control-label"><?= _("Widget type")?></label>
                                     <div class="col-md-6">
                                         <select name="select-widgetNR" class="form-control" id="select-widgetNR"></select> 
                                     </div>
                                 </div>
                                 
                                 <div class="row" id="widgetLinkRowNR">
-                                    <label for="inputUrlWidgetNR" class="col-md-4 control-label">Widget link</label>
+                                    <label for="inputUrlWidgetNR" class="col-md-4 control-label"><?= _("Widget link")?></label>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="inputUrlWidgetNR" name="inputUrlWidgetNR" value="none" >
                                     </div>
@@ -1357,7 +1357,7 @@
 
                                 <!-- Campi per gli widget che mostrano dati - Metriche tradizionali -->
                                 <div class="row" id="selectMetricRow">
-                                    <label for="select-metric" class="col-md-4 control-label">Metric</label>
+                                    <label for="select-metric" class="col-md-4 control-label"><?= _("Metric")?></label>
 
                                     <div class="col-md-6">
                                         <select class="form-control" id="select-metric" name="select-metric"></select>  
@@ -1365,14 +1365,14 @@
                                 </div>
 
                                 <div class="row" id="metricDescRow">
-                                    <label for="textarea-metric" class="col-md-4 control-label">Metric description</label>
+                                    <label for="textarea-metric" class="col-md-4 control-label"><?= _("Metric description")?></label>
                                     <div class="col-md-6">
                                         <textarea id ="textarea-metric-c" class="form-control textarea-metric" name="textarea-metric" rows="3"></textarea>
                                     </div>
                                 </div>
                                 
                                 <div id ="inputComuneRow" class="row">    
-                                    <label for="inputComuneWidget" class="col-md-4 control-label">Context</label>
+                                    <label for="inputComuneWidget" class="col-md-4 control-label"><?= _("Context")?></label>
                                     <div class="col-md-6">
                                         <div class="input-group">
                                             <input type="text" class="form-control autocomplete" id="inputComuneWidget" name="inputComuneWidget" novalidate>
@@ -1386,21 +1386,21 @@
                                 </div>
                                 
                                 <div class="row" id="widgetTypeRow">
-                                    <label for="select-widget" class="col-md-4 control-label">Widget type</label>
+                                    <label for="select-widget" class="col-md-4 control-label"><?= _("Widget type")?></label>
                                     <div class="col-md-6">
                                         <select name="select-widget" class="form-control" id="select-widget"></select> 
                                     </div>
                                 </div>
                                 
                                 <div class="row" id="widgetLinkRow">
-                                    <label for="inputUrlWidget" class="col-md-4 control-label">Widget link</label>
+                                    <label for="inputUrlWidget" class="col-md-4 control-label"><?= _("Widget link")?></label>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="inputUrlWidget" name="inputUrlWidget">
                                     </div>
                                 </div>
 
                                 <div id ="schedulerRow" class="row">
-                                    <label for="inputSchedulerWidget" class="col-md-4 control-label" style="display: none">Scheduler</label>
+                                    <label for="inputSchedulerWidget" class="col-md-4 control-label" style="display: none"><?= _("Scheduler")?></label>
                                     <div id="inputSchedulerWidgetDiv" class="col-md-6" style="display: none">
                                         <div id="inputSchedulerWidgetGroupDiv"class="input-group" style="display: none">
                                             <select class="form-control" id="inputSchedulerWidget" name="inputSchedulerWidget" style="display: none"></select>
@@ -1408,7 +1408,7 @@
                                     </div>
                                 </div>    
                                 <div id ="jobsAreasRow" class="row">    
-                                <label for="inputJobsAreasWidget" class="col-md-4 control-label" style="display: none">Jobs areas</label>
+                                <label for="inputJobsAreasWidget" class="col-md-4 control-label" style="display: none"><?= _("Jobs areas")?></label>
                                     <div id="inputJobsAreasWidgetDiv" class="col-md-6" style="display: none">
                                         <div id="inputJobsAreasWidgetGroupDiv"class="input-group" style="display: none">
                                             <select class="form-control" id="inputJobsAreasWidget" name="inputJobsAreasWidget" style="display: none"></select>
@@ -1417,7 +1417,7 @@
                                 </div>
 
                                 <div id ="jobsGroupsRow" class="row">    
-                                <label for="inputJobsGroupsWidget" class="col-md-4 control-label" style="display: none">Jobs groups</label>
+                                <label for="inputJobsGroupsWidget" class="col-md-4 control-label" style="display: none"><?= _("Jobs groups")?></label>
                                     <div id="inputJobsGroupsWidgetDiv" class="col-md-6" style="display: none">
                                         <div id="inputJobsGroupsWidgetGroupDiv"class="input-group" style="display: none">
                                             <select class="form-control" id="inputJobsGroupsWidget" name="inputJobsGroupsWidget" style="display: none"></select>
@@ -1426,7 +1426,7 @@
                                 </div>
 
                                 <div id ="jobsNamesRow" class="row">    
-                                <label for="inputJobsNamesWidget" class="col-md-4 control-label" style="display: none">Jobs names</label>
+                                <label for="inputJobsNamesWidget" class="col-md-4 control-label" style="display: none"><?= _("Jobs names")?></label>
                                     <div id="inputJobsNamesWidgetDiv" class="col-md-6" style="display: none">
                                         <div id="inputJobsNamesWidgetGroupDiv"class="input-group" style="display: none">
                                             <select class="form-control" id="inputJobsNamesWidget" name="inputJobsNamesWidget" style="display: none"></select>
@@ -1448,15 +1448,15 @@
                         </div>
                         
                         <div class="well wellCustom2right" style="height: 416px" id="genericWidgetPropertiesDiv">
-                            <legend class="legend-form-group">Generic widget properties</legend>
+                            <legend class="legend-form-group"><?= _("Generic widget properties")?></legend>
                             <div class="form-group">
                                 <div class="row">
-                                    <label id="titleLabel" for="inputTitleWidget" class="col-md-2 control-label addWidgetParLabel">Title</label> 
+                                    <label id="titleLabel" for="inputTitleWidget" class="col-md-2 control-label addWidgetParLabel"><?= _("Title")?></label> 
                                     <div class="col-md-3">
                                         <input type="text" class="form-control" id="inputTitleWidget" name="inputTitleWidget">
                                     </div>
                                     
-                                    <label id="bckColorLabel" for="inputColorWidget" class="col-md-3 control-label addWidgetParLabel">Background color</label>
+                                    <label id="bckColorLabel" for="inputColorWidget" class="col-md-3 control-label addWidgetParLabel"><?= _("Background color")?></label>
                                     <div class="col-md-3">
                                         <div class="input-group color-choice">
                                             <input type="text" class="form-control demo-1 demo-auto" id="inputColorWidget" name="inputColorWidget" value="#FFFFFF" required>
@@ -1465,12 +1465,12 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="inputFontSize" class="col-md-2 control-label addWidgetParLabel">Content<br/>font size</label>
+                                    <label for="inputFontSize" class="col-md-2 control-label addWidgetParLabel"><?= _("Content")?><br/><?= _("font size")?></label>
                                     <div class="col-md-3">
                                         <input type="text" class="form-control" id="inputFontSize" name="inputFontSize" >
                                     </div>
                                     
-                                    <label for="inputFontColor" class="col-md-3 control-label addWidgetParLabel">Content font color</label>
+                                    <label for="inputFontColor" class="col-md-3 control-label addWidgetParLabel"><?= _("Content font color")?></label>
                                     <div class="col-md-3">
                                         <div class="input-group color-choice">
                                             <input type="text" class="form-control demo-1 demo-auto" id="inputFontColor" name="inputFontColor" value="#000000">
@@ -1486,7 +1486,7 @@
                                             <span class="input-group-addon"><i></i></span>
                                         </div>
                                     </div>
-                                    <label for="inputHeaderFontColorWidget" class="col-md-3 control-label addWidgetParLabel">Header text color</label>
+                                    <label for="inputHeaderFontColorWidget" class="col-md-3 control-label addWidgetParLabel"><?= _("Header text color")?></label>
                                     <div class="col-md-3">
                                         <div class="input-group color-choice">
                                             <input type="text" class="form-control demo-1 demo-auto" id="inputHeaderFontColorWidget" name="inputHeaderFontColorWidget" value="#000000" required>
@@ -1495,60 +1495,62 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="select-IntTemp-Widget" class="col-md-2 control-label addWidgetParLabel">Period</label>
+                                    <label for="select-IntTemp-Widget" class="col-md-2 control-label addWidgetParLabel"><?= _("Period")?></label>
                                     <div class="col-md-3">
                                         <select name="select-IntTemp-Widget" class="form-control" id="select-IntTemp-Widget" required>
-                                            <option value="Nessuno">No</option>
-                                            <option value="4 Ore">4 Hours</option>
-                                            <option value="12 Ore">12 Hours</option>
-                                            <option value="Giornaliera">Day</option>
-                                            <option value="Settimanale">Week</option>
-                                            <option value="Mensile">Month</option>
-                                            <option value="Semestrale">6 Months</option>
-                                            <option value="Annuale">Year</option>       
+                                            <option value="Nessuno"><?= _("No")?></option>
+                                            <option value="4 Ore"><?= _("4 Hours")?></option>
+                                            <option value="12 Ore"><?= _("12 Hours")?></option>
+                                            <option value="Giornaliera"><?= _("Day")?></option>
+                                            <option value="Settimanale"><?= _("Week")?></option>
+                                            <option value="Mensile"><?= _("Month")?></option>
+                                            <option value="Semestrale"><?= _("6 Months")?></option>
+                                            <option value="Annuale"><?= _("Year")?></option>
+                                            <option value="2 Anni"><?= _("2 Years")?></option>
+                                        	<option value="10 Anni"><?= _("10 Years")?></option>
                                         </select>
                                     </div>
-                                    <label for="inputFreqWidget" class="col-md-3 control-label addWidgetParLabel">Refresh rate (s)</label>
+                                    <label for="inputFreqWidget" class="col-md-3 control-label addWidgetParLabel"><?= _("Refresh rate (s)")?></label>
 
                                     <div class="col-md-3">
                                         <input type="text" class="form-control" id="inputFreqWidget" name="inputFreqWidget" placeholder="" required>
                                     </div>
                                 </div>                     
                                 <div class="row">
-                                    <label for="inputSizeRowsWidget" class="col-md-2 control-label addWidgetParLabel">Height</label>
+                                    <label for="inputSizeRowsWidget" class="col-md-2 control-label addWidgetParLabel"><?= _("Height")?></label>
                                     <div class="col-md-3">
                                         <select class="form-control" id="inputSizeRowsWidget" name="inputSizeRowsWidget" placeholder="">                                            
                                         </select>
                                     </div>
-                                    <label for="inputSizeColumnsWidget" class="col-md-3 control-label addWidgetParLabel">Width</label>
+                                    <label for="inputSizeColumnsWidget" class="col-md-3 control-label addWidgetParLabel"><?= _("Width")?></label>
                                     <div class="col-md-3">
                                         <select class="form-control" id="inputSizeColumnsWidget" name="inputSizeColumnsWidget" placeholder="">                                           
                                         </select>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="inputUdmWidget" class="col-md-2 control-label addWidgetParLabel">U/M</label>
+                                    <label for="inputUdmWidget" class="col-md-2 control-label addWidgetParLabel"><?= _("U/M")?></label>
                                     <div class="col-md-3">
                                         <input type="text" class="form-control" id="inputUdmWidget" name="inputUdmWidget">
                                     </div>
                                     
-                                    <label for="inputUdmWidget" class="col-md-3 control-label addWidgetParLabel">U/M position</label>
+                                    <label for="inputUdmWidget" class="col-md-3 control-label addWidgetParLabel"><?= _("U/M position")?></label>
                                     <div class="col-md-3">
                                         <select name="inputUdmPosition" class="form-control" id="inputUdmPosition" required>
-                                            <option value="next">Next to value</option>
-                                            <option value="below">Below value</option>
+                                            <option value="next"><?= _("Next to value")?></option>
+                                            <option value="below"><?= _("Below value")?></option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="inputUdmWidget" class="col-md-2 control-label addWidgetParLabel">Show header</label>
+                                    <label for="inputUdmWidget" class="col-md-2 control-label addWidgetParLabel"><?= _("Show header")?></label>
                                     <div class="col-md-3">
                                         <select id="inputShowTitle" name="inputShowTitle" class="form-control" required>
-                                            <option value="yes">Yes</option>
-                                            <option value="no">No</option>
+                                            <option value="yes"><?= _("Yes")?></option>
+                                            <option value="no"><?= _("No")?></option>
                                         </select>
                                     </div>
-                                    <label for="inputFontFamilyWidget" class="col-md-3 control-label addWidgetParLabel">Font type (autosuggestion)</label>
+                                    <label for="inputFontFamilyWidget" class="col-md-3 control-label addWidgetParLabel"><?= _("Font type (autosuggestion)")?></label>
                                     <div class="col-md-3">
                                         <input type="text" class="form-control autocomplete" id="inputFontFamilyWidget" name="inputFontFamilyWidget" required>
                                     </div>
@@ -1557,7 +1559,7 @@
                         </div>
                         
                         <div class="well wellCustom2left" id="specificWidgetPropertiesDiv">
-                            <legend class="legend-form-group">Specific widget properties</legend>
+                            <legend class="legend-form-group"><?= _("Specific widget properties")?></legend>
                             <div class="form-group">
                                 <!-- NON CANCELLARE -->
                                 <input type="hidden" id="parameters" name="parameters">
@@ -1573,8 +1575,8 @@
                         <input type="hidden" id="currentDashboardSubtitle" name="currentDashboardSubtitle" />
                         
                         <div class="well wellCustomFooter">
-                            <button id="button_add_widget" name="add_widget" type="submit" class="btn btn-primary widgetFormButton internalLink" disabled>Confirm</button>
-                            <button id="button_close_popup" type="button" class="btn btn-default widgetFormButton widgetFormButtonMargin internalLink" data-dismiss="modal">Cancel</button>
+                            <button id="button_add_widget" name="add_widget" type="submit" class="btn btn-primary widgetFormButton internalLink" disabled><?= _("Confirm")?></button>
+                            <button id="button_close_popup" type="button" class="btn btn-default widgetFormButton widgetFormButtonMargin internalLink" data-dismiss="modal"><?= _("Cancel")?></button>
                         </div>
                     </form>
                 </div>
@@ -1589,13 +1591,13 @@
             <form id="editDashboardForm" class="form-horizontal" name="editDashboardForm" role="form" method="post" action="../controllers/updateDashboard.php?action=updateAdvancedProperties" data-toggle="validator" enctype="multipart/form-data">  
             <div class="modal-content">
                   <div class="modalHeader centerWithFlex">
-                      Dashboard properties
+                      <?= _("Dashboard properties")?>
                   </div>
                   <div id="editDashboardModalBody" class="modal-body modalBody">
                   <ul class="nav nav-tabs nav-justified">
-                      <li class="active"><a data-toggle="tab" href="#measuresTab" class="dashboardWizardTabTxt">Measures</a></li>
-                      <li><a data-toggle="tab" href="#headerTab" class="dashboardWizardTabTxt">Header</a></li>
-                      <li><a data-toggle="tab" href="#bckTab" class="dashboardWizardTabTxt">Background</a></li>
+                      <li class="active"><a data-toggle="tab" href="#measuresTab" class="dashboardWizardTabTxt"><?= _("Measures")?></a></li>
+                      <li><a data-toggle="tab" href="#headerTab" class="dashboardWizardTabTxt"><?= _("Header")?></a></li>
+                      <li><a data-toggle="tab" href="#bckTab" class="dashboardWizardTabTxt"><?= _("Background")?></a></li>
                   </ul>
 
                   <div class="tab-content">
@@ -1604,7 +1606,7 @@
                             <div class="row">
                                 <div class="col-xs-3">
                                     <div class="col-xs-12 centerWithFlex modalNewLabel">
-                                        Responsive
+                                        <?= _("Responsive")?>
                                     </div>
                                     <div class="col-xs-12 centerWithFlex">
                                         <input id="inputDashboardViewMode" name="inputDashboardViewMode" type="checkbox">
@@ -1613,7 +1615,7 @@
                                 
                                 <div class="col-xs-9">
                                     <div class="col-xs-12 centerWithFlex modalNewLabel">
-                                        Dashboard width (cells)
+                                        <?= _("Dashboard width (cells)")?>
                                     </div>
                                     <div class="col-xs-12 centerWithFlex">
                                        <input id="inputWidthDashboard" name="inputWidthDashboard" data-slider-id="inputWidthDashboardSlider" type="text" data-slider-min="1" data-slider-max="300" data-slider-step="1"/>
@@ -1650,7 +1652,7 @@
                           <div class="row">
                                 <div class="col-xs-4">
                                     <div class="col-xs-12 centerWithFlex modalNewLabel">
-                                        Show header
+                                         <?= _("Show header")?>
                                     </div>
                                     <div class="col-xs-12 centerWithFlex">
                                         <input id="headerVisible" name="headerVisible" type="checkbox">
@@ -1659,7 +1661,7 @@
                               
                                 <div class="col-xs-8">
                                     <div class="col-xs-12 centerWithFlex modalNewLabel">
-                                        Header logo
+                                        <?= _("Header logo")?>
                                     </div>
                                     <div class="col-xs-12 centerWithFlex">
                                        <input id="dashboardLogoInput" name="dashboardLogoInput" type="file" class="filestyle form-control" data-badge="false" data-input ="true" data-size="nr" data-buttonName="btn-primary" data-buttonText="File">
@@ -1669,7 +1671,7 @@
                             <div class="row">
                                 <div class="col-xs-12">
                                     <div class="col-xs-12 centerWithFlex modalNewLabel">
-                                        Header logo link
+                                       <?= _("Header logo link")?> 
                                     </div>
                                     <div class="col-xs-12 centerWithFlex">
                                         <input type="text" class="form-control" name="dashboardLogoLinkInput" id="dashboardLogoLinkInput"> 
@@ -1682,7 +1684,7 @@
                         <div class="row">  
                          <div class="col-xs-4">
                             <div class="col-xs-12 centerWithFlex modalNewLabel">
-                                Use image
+                                <?= _("Use image")?>
                             </div>
                             <div class="col-xs-12 centerWithFlex">
                                 <input id="dashBckImgFlag" name="dashBckImgFlag" type="checkbox">
@@ -1690,7 +1692,7 @@
                         </div>   
                          <div class="col-xs-8">
                             <div class="col-xs-12 centerWithFlex modalNewLabel">
-                                Upload new image
+                                <?= _("Upload new image")?>
                             </div>
                             <div class="col-xs-12 centerWithFlex">
                                <input id="dashboardBckImg" name="dashboardBckImg" type="file" class="filestyle form-control" data-badge="false" data-input ="true" data-size="nr" data-buttonName="btn-primary" data-buttonText="File">
@@ -1707,8 +1709,8 @@
                     <input type="hidden" id="currentDashboardSubtitle" name="currentDashboardSubtitle" />
                       
                   <div id="editDashboardModalFooter" class="modal-footer">
-                    <button type="button" id="editDashboardCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-                    <button type="submit" id="editDashboardConfirmBtn" name="editDashboard" class="btn confirmBtn internalLink">Confirm</button>
+                    <button type="button" id="editDashboardCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                    <button type="submit" id="editDashboardConfirmBtn" name="editDashboard" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
                   </div>
             </div>
           </form>  
@@ -1723,16 +1725,16 @@
             <form id="scrDashboardForm" class="form-horizontal" name="scrDashboardForm" role="form" method="POST" action="../controllers/genDashScr.php" data-toggle="validator">  
             <div class="modal-content">
                   <div class="modalHeader centerWithFlex">
-                      Dashboard screenshot
+                       <?= _("Dashboard screenshot")?> 
                   </div>
                   <div id="scrDashboardModalBody" class="modal-body modalBody">
                     <div class="row">
                         <div class="col-xs-12" id="scrDashboardModalContent">
                             <div class="col-xs-12 centerWithFlex scrDashboardDecalog">
-                                    1) Open the dashboard in view mode<br>
-                                    2) Take a snapshot (e.g. with STAMP or with specific tools)<br>
-                                    3) Save it in your mass memory<br>
-                                    4) Upload it from the following input<br>   
+                                    <?= _("1) Open the dashboard in view mode")?><br>
+                                    <?= _("2) Take a snapshot (e.g. with STAMP or with specific tools)")?><br>
+                                    <?= _("3) Save it in your mass memory")?><br>
+                                    <?= _("4) Upload it from the following input")?><br>   
                             </div>
                             <div class="col-xs-12 centerWithFlex">
                                <input id="dashboardScrInput" name="dashboardScrInput" type="file" class="filestyle form-control" data-badge="false" data-input ="true" data-size="nr" data-buttonName="btn-primary" data-buttonText="File">
@@ -1745,8 +1747,8 @@
                      
                     <input type="hidden" id="dashboardIdUnderEdit" name="dashboardIdUnderEdit" />
                   <div id="scrDashboardModalFooter" class="modal-footer">
-                    <button type="button" id="scrDashboardCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-                    <button type="submit" id="scrDashboardConfirmBtn" name="scrDashboardConfirmBtn" class="btn confirmBtn">Confirm</button>
+                    <button type="button" id="scrDashboardCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                    <button type="submit" id="scrDashboardConfirmBtn" name="scrDashboardConfirmBtn" class="btn confirmBtn"><?= _("Confirm")?></button>
                   </div>
             </div>
           </form>  
@@ -1760,7 +1762,7 @@
         <div class="modal-dialog" role="document"> 
             <div class="modal-content">
                 <div class="modal-header centerWithFlex">
-                    <h4 class="modal-title">External content</h4>
+                    <h4 class="modal-title"><?= _("External content")?></h4>
                 </div>
                 <div class="modal-body">
                     <div id="newTabLinkOpenImpossibileMsg"></div>
@@ -1777,15 +1779,15 @@
         <div id="modalChangePlanStatusDialog" class="modal-dialog modal-lg" role="document"> 
             <div class="modal-content">
                 <div id="modalChangePlanStatusModalTitle" class="modal-header centerWithFlex">
-                    evacuation plan status management
+                    <?= _("evacuation plan status management")?>
                 </div>
                 <div id="modalChangePlanStatusMain" class="modal-body container-fluid">
                     <div class="row">
                         <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
-                            plan identifier
+                            <?= _("plan identifier")?>
                         </div> 
                         <div class="col-sm-6 centerWithFlex modalChangePlanStatusLabel">
-                            current approval status
+                            <?= _("current approval status")?>
                         </div>
                     </div>
                     <div class="row">
@@ -1795,7 +1797,7 @@
 
                     <div class="row">
                        <div class="col-sm-6 col-sm-offset-3 centerWithFlex modalChangePlanStatusLabel">
-                           new approval status 
+                           <?= _("new approval status")?> 
                        </div> 
                     </div>
                     <div class="row">
@@ -1807,7 +1809,7 @@
                 <div id="modalChangePlanStatusWait" class="modal-body container-fluid">
                     <div class="row">
                         <div class="col-sm-6 col-sm-offset-3 centerWithFlex">
-                            updating status, please wait
+                           <?= _("updating status, please wait")?> 
                         </div> 
                     </div>
                     <div class="row">
@@ -1819,7 +1821,7 @@
                 <div id="modalChangePlanStatusOk" class="modal-body container-fluid">
                     <div class="row">
                         <div class="col-sm-10 col-sm-offset-1 centerWithFlex">
-                            status successfully updated
+                            <?= _("status successfully updated")?>
                         </div> 
                     </div>
                     <div class="row">
@@ -1831,7 +1833,7 @@
                 <div id="modalChangePlanStatusKo" class="modal-body container-fluid">
                     <div class="row">
                         <div class="col-sm-12 centerWithFlex">
-                            error while trying to send new status to server, please try again
+                            <?= _("error while trying to send new status to server, please try again")?>
                         </div> 
                     </div>
                     <div class="row">
@@ -1845,8 +1847,8 @@
                 <input type="hidden" id="modalChangePlanStatusCurrentStatus" />
 
                 <div id="modalChangePlanStatusFooter" class="modal-footer centerWithFlex">
-                   <button type="button" class="btn btn-secondary" id="modalChangePlanStatusCancelBtn">cancel</button>
-                   <button type="button" class="btn btn-primary" id="modalChangePlanStatusConfirmBtn">confirm</button>
+                   <button type="button" class="btn btn-secondary" id="modalChangePlanStatusCancelBtn"><?= _("cancel")?></button>
+                   <button type="button" class="btn btn-primary" id="modalChangePlanStatusConfirmBtn"><?= _("confirm")?></button>
                 </div>
             </div>
         </div>
@@ -1858,16 +1860,16 @@
         <div class="modal-dialog modalDialogWidget" role="document" id="modify01">
             <div class="modal-content modalContentWidgetForm">
                 <div class="modal-header">
-                    <h4 class="modal-title">Modify widget</h4>
+                    <h4 class="modal-title"><?= _("Modify widget")?></h4>
                 </div>
                 <div class="modal-body">
                     <form id="form-modify-widget" class="form-horizontal" name="form-modify-widget" role="form" method="post" action="" enctype="multipart/form-data" data-toggle="validator">
                         <!-- Nuovo codice -->
                         <div class="well wellCustom2left" id="metricAndWidgetChoiceM">
-                            <legend class="legend-form-group">Metric and widget choice</legend>
+                            <legend class="legend-form-group"><?= _("Metric and widget choice")?></legend>
                             <div class="form-group">
                                 <div class="row">
-                                    <label for="widgetCategoryM" class="col-md-4 control-label">Widget category</label>
+                                    <label for="widgetCategoryM" class="col-md-4 control-label"><?= _("Widget category")?></label>
 
                                     <div class="col-md-8">
                                         <div id="widgetCategoryM"></div>  
@@ -1875,7 +1877,7 @@
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="actuatorTargetM" class="col-md-4 control-label">Actuator target</label>
+                                    <label for="actuatorTargetM" class="col-md-4 control-label"><?= _("Actuator target")?></label>
                                     <div class="col-md-8">
                                         <div id="actuatorTargetM"></div>   
                                         <input type="hidden" id="widgetActuatorTargetM" name="widgetActuatorTargetM" />
@@ -1884,60 +1886,60 @@
                                 
                                 <!-- Campi per gli widget attuatori su NodeRED -->
                                 <div class="row">
-                                    <label for="personalAppsInputsM" class="col-md-4 control-label">Input from personal apps</label>
+                                    <label for="personalAppsInputsM" class="col-md-4 control-label"><?= _("Input from personal apps")?></label>
                                     <div class="col-md-8">
                                         <div id="personalAppsInputsM"></div>      
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="personalAppsInputsValueTypeM" class="col-md-4 control-label">Value type</label>
+                                    <label for="personalAppsInputsValueTypeM" class="col-md-4 control-label"><?= _("Value type")?></label>
                                     <div class="col-md-8">
                                         <div id="personalAppsInputsValueTypeM"></div>      
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="personalAppsInputsStartValueM" class="col-md-4 control-label">Start value</label>
+                                    <label for="personalAppsInputsStartValueM" class="col-md-4 control-label"><?= _("Start value")?></label>
                                     <div class="col-md-8">
                                         <div id="personalAppsInputsStartValueM"></div>      
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="personalAppsInputsDomainTypeM" class="col-md-4 control-label">Domain type</label>
+                                    <label for="personalAppsInputsDomainTypeM" class="col-md-4 control-label"><?= _("Domain type")?></label>
                                     <div class="col-md-8">
                                         <div id="personalAppsInputsDomainTypeM"></div>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsMinValueM" class="col-md-4 control-label">Min value</label>
+                                    <label for="personalAppsInputsMinValueM" class="col-md-4 control-label"><?= _("Min value")?></label>
                                     <div class="col-md-8">
                                         <div id="personalAppsInputsMinValueM"></div>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsMaxValueM" class="col-md-4 control-label">Max value</label>
+                                    <label for="personalAppsInputsMaxValueM" class="col-md-4 control-label"><?= _("Max value")?></label>
                                     <div class="col-md-8">
                                         <div id="personalAppsInputsMaxValueM"></div>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsOffValueM" class="col-md-4 control-label">Off value</label>
+                                    <label for="personalAppsInputsOffValueM" class="col-md-4 control-label"><?= _("Off value")?></label>
                                     <div class="col-md-8">
                                         <div id="personalAppsInputsOffValueM"></div>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="personalAppsInputsOnValueM" class="col-md-4 control-label">On value</label>
+                                    <label for="personalAppsInputsOnValueM" class="col-md-4 control-label"><?= _("On value")?></label>
                                     <div class="col-md-8">
                                         <div id="personalAppsInputsOnValueM"></div>
                                     </div>
                                 </div>
                                 
                                 <div class="row">
-                                    <label for="widgetActuatorTypePersonalAppsM" class="col-md-4 control-label">Widget type</label>
+                                    <label for="widgetActuatorTypePersonalAppsM" class="col-md-4 control-label"><?= _("Widget type")?></label>
                                     <div class="col-md-8">
                                         <div id="widgetActuatorTypePersonalAppsM"></div>
                                         <input type="hidden" id="widgetActuatorTypeAppsHiddenM" name="widgetActuatorTypeAppsHiddenM" />
@@ -1948,49 +1950,49 @@
                                 
                                 <!-- Campi per gli widget attuatori su broker-->
                                 <div class="row" id="entityIdRowM">
-                                    <label for="entityIdM" class="col-md-4 control-label">Entity id</label>
+                                    <label for="entityIdM" class="col-md-4 control-label"><?= _("Entity id")?></label>
 
                                     <div class="col-md-8">
                                         <div id="entityIdM"></div>      
                                     </div>
                                 </div>
                                 <div class="row" id="entityTypeRowM">
-                                    <label for="entityTypeM" class="col-md-4 control-label">Entity type</label>
+                                    <label for="entityTypeM" class="col-md-4 control-label"><?= _("Entity type")?></label>
 
                                     <div class="col-md-8">
                                         <div id="entityTypeM"></div>      
                                     </div>
                                 </div>
                                 <div class="row" id="entityDescRowM">
-                                    <label for="entityDescM" class="col-md-4 control-label">Entity description</label>
+                                    <label for="entityDescM" class="col-md-4 control-label"><?= _("Entity description")?></label>
 
                                     <div class="col-md-8">
                                         <div id="entityDescM"></div>                                         
                                     </div>
                                 </div>
                                 <div class="row" id="entityAttrNameRowM">
-                                    <label for="entityAttrNameM" class="col-md-4 control-label">Attribute name</label>
+                                    <label for="entityAttrNameM" class="col-md-4 control-label"><?= _("Attribute name")?></label>
 
                                     <div class="col-md-8">
                                         <div id="entityAttrNameM"></div>
                                     </div>
                                 </div>
                                 <div class="row" id="entityAttrDescRowM">
-                                    <label for="entityAttrDescM" class="col-md-4 control-label">Attribute description</label>
+                                    <label for="entityAttrDescM" class="col-md-4 control-label"><?= _("Attribute description")?></label>
 
                                     <div class="col-md-8">
                                         <div id="entityAttrDescM"></div>
                                     </div>
                                 </div>
                                 <div class="row" id="entityAttrTypeRowM">
-                                    <label for="entityAttrTypeM" class="col-md-4 control-label">Attribute type</label>
+                                    <label for="entityAttrTypeM" class="col-md-4 control-label"><?= _("Attribute type")?></label>
 
                                     <div class="col-md-8">
                                         <div id="entityAttrTypeM"></div>
                                     </div>
                                 </div>
                                 <div class="row" id="widgetActuatorTypeRowM">
-                                    <label for="widgetActuatorType" class="col-md-4 control-label">Widget type</label>
+                                    <label for="widgetActuatorType" class="col-md-4 control-label"><?= _("Widget type")?></label>
 
                                     <div class="col-md-8">
                                         <div id="widgetActuatorTypeShownM"></div> 
@@ -2000,19 +2002,19 @@
                                 
                                 <!-- Campi per gli widget data viewer -->
                                 <div class="row" id="metricWidgetMRow">
-                                    <label for="metricWidgetM" class="col-md-4 control-label">Metric</label>
+                                    <label for="metricWidgetM" class="col-md-4 control-label"><?= _("Metric")?></label>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="metricWidgetM" name="metricWidgetM" readonly>
                                     </div>
                                 </div>
                                 <div class="row" id="inputNameWidgetMRow">
-                                    <label for="inputNameWidgetM" class="col-md-4 control-label">Widget name</label>
+                                    <label for="inputNameWidgetM" class="col-md-4 control-label"><?= _("Widget name")?></label>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="inputNameWidgetM" name="inputNameWidgetM" placeholder="Title" readonly>                                 
                                     </div>
                                 </div>
                                 <div class="row" id="select-widget-mRow">
-                                    <label for="select-widget-m" class="col-md-4 control-label">Widget type</label>
+                                    <label for="select-widget-m" class="col-md-4 control-label"><?= _("Widget type")?></label>
                                     <div class="col-md-6">
                                         <div class="input-group">
                                             <select name="select-widget-m" class="form-control" id="select-widget-m"></select>
@@ -2021,7 +2023,7 @@
                                     </div>
                                 </div>   
                                 <div id="inputComuneRowM" class="row">
-                                    <label for="inputComuneWidgetM" class="col-md-4 control-label">Context</label>
+                                    <label for="inputComuneWidgetM" class="col-md-4 control-label"><?= _("Context")?></label>
                                     <div class="col-md-6">
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="inputComuneWidgetM" name="inputComuneWidgetM">
@@ -2035,19 +2037,19 @@
                                     </div> 
                                 </div>
                                 <div id="urlWidgetMRow" class="row">
-                                    <label for="urlWidgetM" class="col-md-4 control-label">Widget link</label>
+                                    <label for="urlWidgetM" class="col-md-4 control-label"><?= _("Widget link")?></label>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="urlWidgetM" name="urlWidgetM">
                                     </div>
                                 </div>
                                 <div id="textarea-metric-widget-mRow" class="row">
-                                    <label for="textarea-metric-widget-m" class="col-md-4 control-label">Metric description</label>
+                                    <label for="textarea-metric-widget-m" class="col-md-4 control-label"><?= _("Metric description")?></label>
                                     <div class="col-md-6">
                                         <textarea id ="textarea-metric-widget-m" class="form-control textarea-metric" name="textarea-metric-widget-m" rows="3"></textarea>
                                     </div>
                                 </div>
                                 <div id="schedulerRowM" class="row">
-                                    <label for="inputSchedulerWidgetM" class="col-md-4 control-label" style="display: none">Scheduler</label>
+                                    <label for="inputSchedulerWidgetM" class="col-md-4 control-label" style="display: none"><?= _("Scheduler")?></label>
                                     <div id="inputSchedulerWidgetDivM" class="col-md-6" style="display: none">
                                         <div id="inputSchedulerWidgetGroupDivM"class="input-group" style="display: none">
                                             <select class="form-control" id="inputSchedulerWidgetM" name="inputSchedulerWidgetM" style="display: none"></select>
@@ -2055,7 +2057,7 @@
                                     </div>
                                 </div>    
                                 <div id="jobsAreasRowM" class="row">    
-                                    <label for="inputJobsAreasWidgetM" class="col-md-4 control-label">Jobs areas</label>
+                                    <label for="inputJobsAreasWidgetM" class="col-md-4 control-label"><?= _("Jobs areas")?></label>
                                     <div id="inputJobsAreasWidgetDivM" class="col-md-6" style="display: none">
                                         <div id="inputJobsAreasWidgetGroupDivM"class="input-group" style="display: none">
                                             <select class="form-control" id="inputJobsAreasWidgetM" name="inputJobsAreasWidgetM" style="display: none"></select>
@@ -2063,7 +2065,7 @@
                                     </div>
                                 </div>
                                 <div id="jobsGroupsRowM" class="row">    
-                                    <label for="inputJobsGroupsWidgetM" class="col-md-4 control-label" style="display: none">Jobs groups</label>
+                                    <label for="inputJobsGroupsWidgetM" class="col-md-4 control-label" style="display: none"><?= _("Jobs groups")?></label>
                                     <div id="inputJobsGroupsWidgetDivM" class="col-md-6" style="display: none">
                                         <div id="inputJobsGroupsWidgetGroupDivM"class="input-group" style="display: none">
                                             <select class="form-control" id="inputJobsGroupsWidgetM" name="inputJobsGroupsWidgetM" style="display: none"></select>
@@ -2071,7 +2073,7 @@
                                     </div>
                                 </div>
                                 <div id="jobsNamesRowM" class="row">    
-                                    <label for="inputJobsNamesWidgetM" class="col-md-4 control-label" style="display: none">Jobs names</label>
+                                    <label for="inputJobsNamesWidgetM" class="col-md-4 control-label" style="display: none"><?= _("Jobs names")?></label>
                                     <div id="inputJobsNamesWidgetDivM" class="col-md-6" style="display: none">
                                         <div id="inputJobsNamesWidgetGroupDivM"class="input-group" style="display: none">
                                             <select class="form-control" id="inputJobsNamesWidgetM" name="inputJobsNamesWidgetM" style="display: none"></select>
@@ -2093,14 +2095,14 @@
                             </div>
                         </div>
                         <div class="well wellCustom2right" style="height: 386px" id="genericWidgetPropertiesDivM">
-                            <legend class="legend-form-group">Generic widget properties</legend>
+                            <legend class="legend-form-group"><?= _("Generic widget properties")?></legend>
                             <div class="form-group">
                                 <div class="row">
-                                    <label for="inputTitleWidgetM" class="col-md-2 control-label addWidgetParLabel">Title</label>
+                                    <label for="inputTitleWidgetM" class="col-md-2 control-label addWidgetParLabel"><?= _("Title")?></label>
                                     <div class="col-md-3">
                                         <input type="text" class="form-control" id="inputTitleWidgetM" name="inputTitleWidgetM">
                                     </div>
-                                    <label for="inputColorWidgetM" class="col-md-3 addWidgetParLabel control-label">Backgound color</label>
+                                    <label for="inputColorWidgetM" class="col-md-3 addWidgetParLabel control-label"><?= _("Backgound color")?></label>
                                     <div class="col-md-3">
                                         <div id="widgetColorPickerContainer" class="input-group">
                                             <input type="text" class="form-control demo-1 demo-auto" id="inputColorWidgetM" name="inputColorWidgetM" required>  <!-- value="#FFFFFF" -->
@@ -2113,7 +2115,7 @@
                                     <div class="col-md-3">
                                         <input type="text" class="form-control" id="inputFontSizeM" name="inputFontSizeM">
                                     </div>
-                                    <label for="inputFontColorM" class="col-md-3 addWidgetParLabel control-label">Content font color</label>
+                                    <label for="inputFontColorM" class="col-md-3 addWidgetParLabel control-label"><?= _("Content font color")?></label>
                                     <div class="col-md-3">
                                         <div id="widgetFontColorPickerContainerM" class="input-group color-choice">
                                             <input type="text" class="form-control demo-1 demo-auto" id="inputFontColorM" name="inputFontColorM">
@@ -2122,14 +2124,14 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="select-frameColor-Widget-m" class="col-md-2 addWidgetParLabel control-label">Header color</label>
+                                    <label for="select-frameColor-Widget-m" class="col-md-2 addWidgetParLabel control-label"><?= _("Header color")?></label>
                                     <div class="col-md-3">
                                         <div id="widgetFrameColorPickerContainer" class="input-group"> <!-- color-choice -->
                                             <input type="text" class="form-control demo-1 demo-auto" id="select-frameColor-Widget-m" name="select-frameColor-Widget-m" required> <!-- value="#eeeeee" -->
                                             <span class="input-group-addon"><i id="color_fm"></i></span>
                                         </div>
                                     </div>
-                                    <label for="inputHeaderFontColorWidgetM" class="col-md-3 control-label addWidgetParLabel">Header text color</label>
+                                    <label for="inputHeaderFontColorWidgetM" class="col-md-3 control-label addWidgetParLabel"><?= _("Header text color")?></label>
                                     <div class="col-md-3">
                                         <div id="widgetFrameFontColorPickerContainer" class="input-group">
                                             <input type="text" class="form-control demo-1 demo-auto" id="inputHeaderFontColorWidgetM" name="inputHeaderFontColorWidgetM" required>
@@ -2138,60 +2140,62 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="select-IntTemp-Widget-m" class="col-md-2 addWidgetParLabel control-label">Period</label>
+                                    <label for="select-IntTemp-Widget-m" class="col-md-2 addWidgetParLabel control-label"><?= _("Period")?></label>
                                     <div class="col-md-3">
                                         <select name="select-IntTemp-Widget-m" class="form-control" id="select-IntTemp-Widget-m">
-                                            <option value="Nessuno">No</option>                                           
-                                            <option value="4 Ore">4 Hours</option>
-                                            <option value="12 Ore">12 Hours</option>
-                                            <option value="Giornaliera">Day</option>
-                                            <option value="Settimanale">Week</option>
-                                            <option value="Mensile">Month</option>
-                                            <option value="Semestrale">6 Months</option>
-                                            <option value="Annuale">Year</option>   
+                                            <option value="Nessuno"><?= _("No")?></option>                                           
+                                            <option value="4 Ore"><?= _("4 Hours")?></option>
+                                            <option value="12 Ore"><?= _("12 Hours")?></option>
+                                            <option value="Giornaliera"><?= _("Day")?></option>
+                                            <option value="Settimanale"><?= _("Week")?></option>
+                                            <option value="Mensile"><?= _("Month")?></option>
+                                            <option value="Semestrale"><?= _("6 Months")?></option>
+                                            <option value="Annuale"><?= _("Year")?></option>
+                                    		<option value="2 Anni"><?= _("2 Years")?></option>
+                                        	<option value="10 Anni"><?= _("10 Years")?></option>  
                                         </select>
                                     </div>
-                                    <label for="inputFreqWidgetM" class="col-md-3 addWidgetParLabel control-label">Refresh rate (s)</label>
+                                    <label for="inputFreqWidgetM" class="col-md-3 addWidgetParLabel control-label"><?= _("Refresh rate (s)")?></label>
                                     <div class="col-md-3">
                                         <input type="text" class="form-control" id="inputFreqWidgetM" name="inputFreqWidgetM" placeholder="" required>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="input-rows-m" class="col-md-2 addWidgetParLabel control-label">Height</label>
+                                    <label for="input-rows-m" class="col-md-2 addWidgetParLabel control-label"><?= _("Height")?></label>
                                     <div class="col-md-3">
                                         <select class="form-control" id="inputRows-m" name="inputRows-m" placeholder="">                                            
                                         </select>
                                     </div>
-                                    <label for="input-Column" class="col-md-3 addWidgetParLabel control-label">Width</label>
+                                    <label for="input-Column" class="col-md-3 addWidgetParLabel control-label"><?= _("Width")?></label>
                                     <div class="col-md-3">
                                         <select class="form-control" id="inputColumn-m" name="inputColumn-m" placeholder="">                                            
                                         </select>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="inputUdmWidgetM" class="col-md-2 control-label addWidgetParLabel">U/M</label>
+                                    <label for="inputUdmWidgetM" class="col-md-2 control-label addWidgetParLabel"><?= _("U/M")?></label>
                                     <div class="col-md-3">
                                         <input type="text" class="form-control" id="inputUdmWidgetM" name="inputUdmWidgetM">
                                     </div>
                                     
-                                    <label for="inputUdmPositionM" class="col-md-3 control-label addWidgetParLabel">U/M position</label>
+                                    <label for="inputUdmPositionM" class="col-md-3 control-label addWidgetParLabel"><?= _("U/M position")?></label>
                                     <div class="col-md-3">
                                         <select name="inputUdmPositionM" class="form-control" id="inputUdmPositionM" required>
-                                            <option value="next">Next to value</option>
-                                            <option value="below">Below value</option>
+                                            <option value="next"><?= _("Next to value")?></option>
+                                            <option value="below"><?= _("Below value")?></option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <label for="inputShowTitleM" class="col-md-2 control-label addWidgetParLabel">Show header</label>
+                                    <label for="inputShowTitleM" class="col-md-2 control-label addWidgetParLabel"><?= _("Show header")?></label>
                                     <div class="col-md-3">
                                         <select id="inputShowTitleM" name="inputShowTitleM" class="form-control" required>
-                                            <option value="yes">Yes</option>
-                                            <option value="no">No</option>
+                                            <option value="yes"><?= _("Yes")?></option>
+                                            <option value="no"><?= _("No")?></option>
                                         </select>
                                     </div>
                                     
-                                    <label for="inputFontFamilyWidgetM" class="col-md-3 control-label addWidgetParLabel">Font type (autosuggestion)</label>
+                                    <label for="inputFontFamilyWidgetM" class="col-md-3 control-label addWidgetParLabel"><?= _("Font type (autosuggestion)")?></label>
                                     <div class="col-md-3">
                                         <input type="text" class="form-control autocomplete" id="inputFontFamilyWidgetM" name="inputFontFamilyWidgetM" required>
                                     </div>
@@ -2200,7 +2204,7 @@
                             </div>
                         </div>
                         <div class="well wellCustom2left" id="specificParamsM">
-                            <legend class="legend-form-group">Specific widget properties</legend>
+                            <legend class="legend-form-group"><?= _("Specific widget properties")?></legend>
                             <!--NON CANCELLARE -->
                             <input type="hidden" id="parametersM" name="parametersM" />
                             <input type="hidden" id="parametersDiff" name="parametersDiff" />
@@ -2221,8 +2225,8 @@
                         <input type="hidden" id="currentDashboardSubtitle" name="currentDashboardSubtitle" />
                         
                         <div class="well wellCustomFooter">
-                            <button id="button_modify_widget" name="modify_widget" class="btn btn-primary widgetFormButton" type="submit">Confirm</button>
-                            <button id="closeModifyWidgetBtn" type="button" class="btn btn-default widgetFormButton widgetFormButtonMargin" data-dismiss="modal">Cancel</button>   
+                            <button id="button_modify_widget" name="modify_widget" class="btn btn-primary widgetFormButton" type="submit"><?= _("Confirm")?></button>
+                            <button id="closeModifyWidgetBtn" type="button" class="btn btn-default widgetFormButton widgetFormButtonMargin" data-dismiss="modal"><?= _("Cancel")?></button>   
                         </div>
                     </form>
                 </div>
@@ -2236,83 +2240,83 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modalHeader centerWithFlex">
-              Embed this dashboard
+              <?= _("Embed this dashboard")?>
             </div>
             
             <div id="embedDashboardModalBody" class="modal-body modalBody">
                 <div class="row" id="modalEmbedDasboardBodyContent">
                     <div class="col-xs-12 col-md-3 embedDashboardModalColumn">
                         <div class="col-xs-12 embedDashboardModalColumnInner"> <!-- Serve solo per separazione grafica -->
-                            <div class="col-xs-12 mainContentRowDesc centerWithFlex">Iframe markup generation</div>
+                            <div class="col-xs-12 mainContentRowDesc centerWithFlex"><?= _("Iframe markup generation")?></div>
                             <div class="col-xs-12 modalCell">
                                 <div class="modalFieldCnt">
                                     <select id="embedPolicy" name="embedPolicy" class="modalInputTxt">
-                                        <option value="auto">Automatic</option>
-                                        <option value="manual">Manual</option>
+                                        <option value="auto"><?= _("Automatic")?></option>
+                                        <option value="manual"><?= _("Manual")?></option>
                                     </select>
                                 </div>
-                                <div class="modalFieldLabelCnt">Embed mode</div>
+                                <div class="modalFieldLabelCnt"><?= _("Embed mode")?></div>
                             </div>
                             <div class="col-xs-12 col-md-6 modalCell" for="embedShowHeader">
                                 <div class="modalFieldCnt">
                                     <select id="embedShowHeader" name="embedShowHeader" class="modalInputTxt">
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
+                                        <option value="yes"><?= _("Yes")?></option>
+                                        <option value="no"><?= _("No")?></option>
                                     </select>
                                 </div>
-                                <div class="modalFieldLabelCnt">Show header</div>
+                                <div class="modalFieldLabelCnt"><?= _("Show header")?></div>
                             </div>
                             <div class="col-xs-12 col-md-6 modalCell" for="embedAutofit">
                                 <div class="modalFieldCnt">
                                     <select id="embedAutofit" name="embedAutofit" class="modalInputTxt">
-                                        <option value="no">No</option>
-                                        <option value="yes">Yes</option>
+                                        <option value="no"><?= _("No")?></option>
+                                        <option value="yes"><?= _("Yes")?></option>
                                     </select>
                                 </div>
-                                <div class="modalFieldLabelCnt">Autofit</div>
+                                <div class="modalFieldLabelCnt"><?= _("Autofit")?></div>
                             </div>
                             <div class="col-xs-12 col-md-6 modalCell" for="embedIframeW">
                                 <div class="modalFieldCnt">
                                     <input type="text" id="embedIframeW" class="modalInputTxt" value="800" />
                                 </div>
-                                <div class="modalFieldLabelCnt">Iframe width (px)</div>
+                                <div class="modalFieldLabelCnt"><?= _("Iframe width (px)")?></div>
                             </div>
                             <div class="col-xs-12 col-md-6 modalCell" for="embedIframeH">
                                 <div class="modalFieldCnt">
                                     <input type="text" id="embedIframeH" class="modalInputTxt" value="600" />
                                 </div>
-                                <div class="modalFieldLabelCnt">Iframe height (px)</div>
+                                <div class="modalFieldLabelCnt"><?= _("Iframe height (px)")?></div>
                             </div>
                             <div class="col-xs-12 modalCell" for="embedDashboardCode">
                                 <textarea class="modalInputTxtArea" rows="5" name="embedDashboardCode" id="embedDashboardCode"></textarea>
-                                <div class="modalFieldLabelCnt">Code to embed this dashboard</div>
+                                <div class="modalFieldLabelCnt"><?= _("Code to embed this dashboard")?></div>
                             </div>
                             
                             <div class="col-xs-12 col-md-6 centerWithFlex">
-                                <a href="javascript:void(0)" id="saveTxtMarkup"><button class="btn btn-primary">Save in txt file</button></a>
+                                <a href="javascript:void(0)" id="saveTxtMarkup"><button class="btn btn-primary"><?= _("Save in txt file")?></button></a>
                             </div>
                             <div class="col-xs-12 col-md-6 centerWithFlex">
-                                <a href="javascript:void(0)" id="saveHtmlMarkup"><button class="btn btn-info">Save in html file</button></a>
+                                <a href="javascript:void(0)" id="saveHtmlMarkup"><button class="btn btn-info"><?= _("Save in html file")?></button></a>
                             </div>
                             
-                            <div class="col-xs-12 mainContentRowDesc centerWithFlex" style="margin-bottom: 0px !important">Embedding authorized pages</div>
+                            <div class="col-xs-12 mainContentRowDesc centerWithFlex" style="margin-bottom: 0px !important"><?= _("Embedding authorized pages")?></div>
                             <div class="col-xs-12" id="authorizedPagesTableCnt">
                                 <table id="authorizedPagesTable">
                                     <thead>
-                                      <th>Authorized pages</th>
+                                      <th><?= _("Authorized pages")?></th>
                                       <th><i id="addAuthorizedPageBtn" class="fa fa-plus"></i></th>
                                     </thead>
                                     <tbody></tbody>
                                 </table>
                             </div>
                             <div class="col-xs-12 centerWithFlex">
-                                <button type="button" id="updateAuthorizedPagesBtn" name="updateAuthorizedPagesBtn" class="btn confirmBtn">Update list</button>
+                                <button type="button" id="updateAuthorizedPagesBtn" name="updateAuthorizedPagesBtn" class="btn confirmBtn"><?= _("Update list")?></button>
                             </div>    
                             <div class="col-xs-12 centerWithFlex" id="updateAuthorizedPagesOkMsg">
-                                List updated correctly
+                                <?= _("List updated correctly")?>
                             </div>    
                             <div class="col-xs-12 centerWithFlex" id="updateAuthorizedPagesKoMsg">
-                                List update error, try again
+                                <?= _("List update error, try again")?>
                             </div>    
                             <input type="hidden" id="authorizedPagesJson" name="authorizedPagesJson" />
                         </div>    
@@ -2320,7 +2324,7 @@
                     
                     <div class="col-xs-12 col-md-9 embedDashboardModalColumn">
                         <div class="col-xs-12 embedDashboardModalColumnInner"> <!-- Serve solo per separazione grafica -->
-                            <div class="col-xs-12 mainContentRowDesc centerWithFlex">Iframe preview</div>
+                            <div class="col-xs-12 mainContentRowDesc centerWithFlex"><?= _("Iframe preview")?></div>
                             <div id="embedPreviewContainer" class="col-xs-12">
                                 <iframe id="embedPreviewIframe"></iframe>
                             </div>
@@ -2329,8 +2333,8 @@
                 </div>
             </div>
             <div id="embedDashboardModalFooter" class="modal-footer">
-              <button type="button" id="addWidgetTypeCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-              <button type="button" id="addWidgetTypeConfirmBtn" name="addWidgetType" class="btn confirmBtn internalLink">Confirm</button>
+              <button type="button" id="addWidgetTypeCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+              <button type="button" id="addWidgetTypeConfirmBtn" name="addWidgetType" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
             </div>
           </div>
         </div>
@@ -2342,10 +2346,10 @@
         <div class="modal-dialog" role="document"> 
             <div class="modal-content">
                 <div class="modalHeader centerWithFlex">
-                    Save dashboard
+                    <?= _("Save dashboard")?>
                 </div>
                 <div class="modal-body modalBody">
-                    <div id="saveDashboardModalMsg" class="text-center">Saving dashboard, please wait</div>
+                    <div id="saveDashboardModalMsg" class="text-center"><?= _("Saving dashboard, please wait")?></div>
                     <div id="saveDashboardModalIcon" class="text-center">
                          <i id="saveDashboardModalRunningIcon" class="fa fa-circle-o-notch fa-spin"></i>
                          <i id="saveDashboardModalOkIcon" class="fa fa-thumbs-up"></i>
@@ -2361,40 +2365,40 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modalHeader centerWithFlex">
-              Widget deletion
+              <?= _("Widget deletion")?>
             </div>
             <input type="hidden" id="widgetToDelNameHidden" name="widgetToDelNameHidden" />
             <div id="delWidgetModalBody" class="modal-body modalBody">
                 <div class="row">
                     <div id="delWidgetNameMsg" class="col-xs-12 modalCell">
                         <div class="modalDelMsg col-xs-12 centerWithFlex">
-                            Do you want to confirm cancellation of the following widget?
+                            <?= _("Do you want to confirm cancellation of the following widget?")?>
                         </div>
                         <div id="widgetToDelName"  class="modalDelObjName col-xs-12 centerWithFlex"></div> 
                     </div>
                 </div>
                 <div class="row" id="delWidgetRunningMsg">
                     <div class="col-xs-12 modalCell">
-                        <div class="col-xs-12 centerWithFlex modalDelMsg">Deleting widget, please wait</div>
+                        <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Deleting widget, please wait")?></div>
                         <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>
                     </div>
                 </div>
                 <div class="row" id="delWidgetOkMsg">
                     <div class="col-xs-12 modalCell">
-                        <div class="col-xs-12 centerWithFlex modalDelMsg">Widget deleted successfully</div>
+                        <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Widget deleted successfully")?></div>
                         <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
                     </div>
                 </div>
                 <div class="row" id="delWidgetKoMsg">
                     <div class="col-xs-12 modalCell">
-                        <div class="col-xs-12 centerWithFlex modalDelMsg">Error deleting widget, please try again</div>
+                        <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Error deleting widget, please try again")?></div>
                         <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                     </div>
                 </div>
             </div>
             <div id="delWidgetModalFooter" class="modal-footer">
-              <button type="button" id="delWidgetCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-              <button type="button" id="delWidgetConfirmBtn" name="delMetricBtn" class="btn confirmBtn internalLink">Confirm</button>
+              <button type="button" id="delWidgetCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+              <button type="button" id="delWidgetConfirmBtn" name="delMetricBtn" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
             </div>
             
           </div>
@@ -2412,8 +2416,8 @@
                 <div id="widgetInfoModalBody" class="modal-body modalBody">
                     <div class="row">
                         <div class="col-xs-12 centerWithFlex" style="font-weight: bold; color: white; margin-bottom: 15px;">
-                            Here you can insert detailed info of your choice about this widget: you can use the GUI editor or custom HTML code.<br>
-                            If you leave the editor empty, the info button won't be shown in the view.
+                            <?= _("Here you can insert detailed info of your choice about this widget: you can use the GUI editor or custom HTML code.")?><br>
+                            <?= _("If you leave the editor empty, the info button won't be shown in the view.")?>
                         </div>
                     </div>
                     <div class="row">
@@ -2443,22 +2447,22 @@
         <table id="changeMetricTable" class="addWidgetWizardTable table table-striped dt-responsive nowrap"> 
             <thead class="widgetWizardColTitle">
                 <tr>  
-                    <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>  
-                    <th class="widgetWizardTitleCell" data-cellTitle="Nature">Nature</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="SubNature">Subnature</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>   
-                    <th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      
-                    <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Parameters">Parameters</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Id">Id</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
+                    <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType"><?= _("High-Level Type")?></th>  
+                    <th class="widgetWizardTitleCell" data-cellTitle="Nature"><?= _("Nature")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="SubNature"><?= _("Subnature")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="ValueType"><?= _("Value Type")?></th>   
+                    <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><?= _("Value Name")?></th>      
+                    <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"><?= _("Instance URI")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="DataType"><?= _("Data Type")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="LastDate"><?= _("Last Date")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="LastValue"><?= _("Last Value")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Healthiness"><?= _("Healthiness")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"><?= _("Instance URI")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Parameters"><?= _("Parameters")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Id"><?= _("Id")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="LastCheck"><?= _("Last Check")?></th>
                     <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><?= _("Ownership")?></th>
                 </tr>  
             </thead>
         </table>
@@ -2468,10 +2472,10 @@
         <table id="changeMetricSelectedRowsTable" class="addWidgetWizardTableSelected table table-striped dt-responsive nowrap"> 
             <thead class="widgetWizardColTitle">
                 <tr>
-                    <th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>   
-                    <th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      
-                    <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Remove">Remove</th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="ValueType"><?= _("Value Type")?></th>   
+                    <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><?= _("Value Name")?></th>      
+                    <th class="widgetWizardTitleCell" data-cellTitle="LastValue"><?= _("Last Value")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Remove"><?= _("Remove")?></th>
                 </tr>  
             </thead>
         </table>
@@ -2480,7 +2484,7 @@
             <button type="button" id="changeMetricConfirmBtn" name="changeMetricConfirmBtn" class="btn confirmBtn"><i class="fa fa-magic" style="font-size: 35px"></i></button>
         </div>
         <div class="centerWithFlex"  style="font-size: 11px">
-            Change Metric
+            <?= _("Change Metric")?>
         </div>
 
     </div>
@@ -2832,7 +2836,7 @@
                                     }
                                     else
                                     {
-                                        alert('Please allow popups for this website');
+                                        alert('<?= _("Please allow popups for this website") ?>');
                                     }
                                     break;
 
@@ -2921,7 +2925,7 @@
                        //Ripristino eventuale titolo dashboard lasciato a mezzo
                         if($("#dashboardTitle span").html().trim() === '')
                         {
-                            $("#dashboardSubtitle span").html('No subtitle');
+                            $("#dashboardSubtitle span").html("No subtitle");
                         }
                         else
                         {
@@ -2934,7 +2938,7 @@
                         //Ripristino eventuale sottotitolo dashboard lasciato a mezzo
                         if($("#dashboardSubtitle span").html().trim() === '')
                         {
-                            $("#dashboardSubtitle span").html('No subtitle');
+                            $("#dashboardSubtitle span").html("No subtitle");
                         }
                         else
                         {
@@ -2995,7 +2999,7 @@
                             {
                                 if(data.detail !== 'Ok')
                                 {
-                                    alert("Error while adding new separator");
+                                    alert('<?= _("Error while adding new separator") ?>');
                                 }
                                 else
                                 {
@@ -3019,7 +3023,7 @@
                             },
                             error: function(errorData)
                             {
-                                alert("Error while adding new separator");
+                                alert('<?= _("Error while adding new separator") ?>');
                             }
                         });
                     });
@@ -3135,7 +3139,7 @@
                         //Ripristino eventuale titolo dashboard lasciato a mezzo
                         if($("#dashboardTitle span").html().trim() === '')
                         {
-                            $("#dashboardSubtitle span").html('No subtitle');
+                            $("#dashboardSubtitle span").html("No subtitle");
                         }
                         else
                         {
@@ -3148,7 +3152,7 @@
                         //Ripristino eventuale sottotitolo dashboard lasciato a mezzo
                         if($("#dashboardSubtitle span").html().trim() === '')
                         {
-                            $("#dashboardSubtitle span").html('No subtitle');
+                            $("#dashboardSubtitle span").html("No subtitle");
                         }
                         else
                         {
@@ -3741,7 +3745,7 @@
                             //Ripristino eventuale sottotitolo dashboard lasciato a mezzo
                             if($("#dashboardSubtitle span").html().trim() === '')
                             {
-                                $("#dashboardSubtitle span").html('No subtitle');
+                                $("#dashboardSubtitle span").html("No subtitle");
                             }
                             else
                             {
@@ -3780,7 +3784,7 @@
                         $("#dashboardTitle").attr('data-newTitle', $("#dashboardTitle").attr('data-currentTitle'));
                         $('#dashboardTitleMenu').hide();
                         $('#dashboardTitle span').hover(function(){
-                            $(this).html('Click to edit');
+                            $(this).html('<? _("Click to edit")?>');
                         }, function(){
                             $(this).html($('#dashboardTitle').attr('data-currenttitle'));
                         });
@@ -3823,7 +3827,7 @@
                                         $('#dashboardTitleMenu').hide();
                                         button.parents('div.compactMenu').find('div.compactMenuMsg').hide();
                                         $('#dashboardTitle span').hover(function(){
-                                            $(this).html('Click to edit');
+                                            $(this).html('<? _("Click to edit")?>');
                                         }, function(){
                                             $(this).html($('#dashboardTitle').attr('data-currenttitle'));
                                         });
@@ -3872,7 +3876,7 @@
                             //Ripristino eventuale titolo dashboard lasciato a mezzo
                             if($("#dashboardTitle span").html().trim() === '')
                             {
-                                $("#dashboardSubtitle span").html('No subtitle');
+                                $("#dashboardSubtitle span").html("No subtitle");
                             }
                             else
                             {
@@ -3908,9 +3912,9 @@
                     $('#dashHeaderSubtitleEditCancelBtn').click(function(){
                         $('#dashboardSubtitle span').attr('data-underEdit', 'false');
                         $('#dashboardSubtitle span').attr('contenteditable', false);
-                        if($("#dashboardSubtitle").attr('data-currentSubtitle') === 'No subtitle')
+                        if($("#dashboardSubtitle").attr('data-currentSubtitle') === "No subtitle")
                         {
-                            $('#dashboardSubtitle span').html('No subtitle');
+                            $('#dashboardSubtitle span').html("No subtitle");
                         }
                         else
                         {
@@ -3919,11 +3923,11 @@
                         $("#dashboardSubtitle").attr('data-newSubtitle', $("#dashboardSubtitle").attr('data-currentSubtitle'));
                         $('#dashboardSubtitleMenu').hide();
                         $('#dashboardSubtitle span').hover(function(){
-                            $(this).html('Click to edit');
+                            $(this).html('<? _("Click to edit")?>');
                         }, function(){
-                            if($("#dashboardSubtitle").attr('data-currentSubtitle') === 'No subtitle')
+                            if($("#dashboardSubtitle").attr('data-currentSubtitle') === "No subtitle")
                             {
-                                $("#dashboardSubtitle span").text('No subtitle');
+                                $("#dashboardSubtitle span").text("No subtitle");
                             }
                             else
                             {
@@ -3955,8 +3959,8 @@
                                     
                                     if($("#dashboardSubtitle span").html().trim() === '')
                                     {
-                                        $("#dashboardSubtitle").attr('data-currentSubtitle', 'No subtitle');
-                                        $("#dashboardSubtitle span").html('No subtitle');
+                                        $("#dashboardSubtitle").attr('data-currentSubtitle', "No subtitle");
+                                        $("#dashboardSubtitle span").html("No subtitle");
                                     }
                                     else
                                     {
@@ -3969,11 +3973,11 @@
                                         $('#dashboardSubtitleMenu').hide();
                                         button.parents('div.compactMenu').find('div.compactMenuMsg').hide();
                                         $('#dashboardSubtitle span').hover(function(){
-                                            $(this).html('Click to edit');
+                                            $(this).html('<? _("Click to edit")?>');
                                         }, function(){
-                                            if($("#dashboardSubtitle").attr('data-currentSubtitle') === 'No subtitle')
+                                            if($("#dashboardSubtitle").attr('data-currentSubtitle') === "No subtitle")
                                             {
-                                                $("#dashboardSubtitle span").text('No subtitle');
+                                                $("#dashboardSubtitle span").text("No subtitle");
                                             }
                                             else
                                             {
@@ -4620,7 +4624,7 @@
                        var markup = '<!DOCTYPE html>' +
                                     '<html>' + 
                                         '<head>' +
-                                            '<title>Choose page title</title>' +
+                                            '<title><?php echo _("Choose page title"); ?></title>' +
                                             '<meta charset="UTF-8">' +
                                             '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
                                         '</head>' +
@@ -4724,7 +4728,7 @@
                         $('#scrDashboardModalContent').hide();
                         $('#scrDashboardCancelBtn').hide();
                         $('#scrDashboardConfirmBtn').hide();
-                        $('#scrDashboardModalMsg').html("Loading new screenshot, please wait");
+                        $('#scrDashboardModalMsg').html('<? _("Loading new screenshot, please wait")?>');
                         $('#scrDashboardModalMsg').show();
 
                         $.ajax({
@@ -4738,7 +4742,7 @@
                             {
                                 if(data.result === 'Ok')
                                 {
-                                    $('#scrDashboardModalMsg').html("New screenshot loaded correctly");
+                                    $('#scrDashboardModalMsg').html('<? _("New screenshot loaded correctly")?>');
 
                                     setTimeout(function(){
                                         $("#scrDashboardModal").modal("hide");
@@ -4754,7 +4758,7 @@
                                 }
                                 else
                                 {
-                                    $('#scrDashboardModalMsg').html("Error loading new screenshot");
+                                    $('#scrDashboardModalMsg').html('<? _("Error loading new screenshot")?>');
 
                                     /*setTimeout(function(){
                                         $('#scrDashboardModalMsg').html("");
@@ -4768,7 +4772,7 @@
                             },
                             error: function (xhr, desc, err)
                             {
-                                $('#scrDashboardModalMsg').html("Error loading new screenshot");
+                                $('#scrDashboardModalMsg').html('<? _("Error loading new screenshot")?>');
 
                                 /*setTimeout(function(){
                                     $('#scrDashboardModalMsg').html("");
@@ -4903,7 +4907,7 @@
                         }
                         else
                         {
-                            $('label[for=inputFontSize]').html("Content font size");
+                            $('label[for=inputFontSize]').html('<? _("Content font size")?>');
                             $('#metricsCategory').parents('div.row').show();
                         }
                     });
@@ -5112,7 +5116,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addKeyboardDisplayColor" class="col-md-2 control-label">Display color</label>');
+                                newLabel = $('<label for="addKeyboardDisplayColor" class="col-md-2 control-label"><?php echo _("Display color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKeyboardDisplayColor"><input type="text" name="addKeyboardDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5120,7 +5124,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addKeyboardDisplayFontColor" class="col-md-2 control-label">Display font color</label>');
+                                newLabel = $('<label for="addKeyboardDisplayFontColor" class="col-md-2 control-label"><?php echo _("Display font color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKeyboardDisplayFontColor"><input type="text" name="addKeyboardDisplayFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -5131,7 +5135,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addKeyboardBtnColor" class="col-md-2 control-label">Buttons color</label>');
+                                newLabel = $('<label for="addKeyboardBtnColor" class="col-md-2 control-label"><?php echo _("Buttons color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKeyboardBtnColor"><input type="text" name="addKeyboardBtnColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(225, 225, 225, 1)", format: "rgba"});
@@ -5139,7 +5143,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addKeyboardBtnFontColor" class="col-md-2 control-label">Buttons font color</label>');
+                                newLabel = $('<label for="addKeyboardBtnFontColor" class="col-md-2 control-label"><?php echo _("Buttons font color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKeyboardBtnFontColor"><input type="text" name="addKeyboardBtnFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -5192,22 +5196,22 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
-                                newLabel = $('<label for="addSwitchButtonViewMode" class="col-md-2 control-label">View mode</label>');
+                                newLabel = $('<label for="addSwitchButtonViewMode" class="col-md-2 control-label"><?php echo _("View mode"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 var newControl = $('<select id="addSwitchButtonViewMode" name="addSwitchButtonViewMode" class="form-control"></select>');
-                                newControl.append('<option value="emptyButton">Empty button</option>');
-                                newControl.append('<option value="iconOnly">Icon only</option>');
-                                newControl.append('<option value="textOnly">Text only</option>');
-                                newControl.append('<option value="displayOnly">Value display only</option>');
-                                newControl.append('<option value="iconAndText">Icon and text</option>');
-                                newControl.append('<option value="iconAndDisplay">Icon and value display</option>');
-                                newControl.append('<option value="displayAndText">Display and text</option>');
-                                newControl.append('<option value="all">Icon, text and value display</option>');
+                                newControl.append('<option value="emptyButton"><?php echo _("Empty button"); ?></option>');
+                                newControl.append('<option value="iconOnly"><?php echo _("Icon only"); ?></option>');
+                                newControl.append('<option value="textOnly"><?php echo _("Text only"); ?></option>');
+                                newControl.append('<option value="displayOnly"><?php echo _("Value display only"); ?></option>');
+                                newControl.append('<option value="iconAndText"><?php echo _("Icon and text"); ?></option>');
+                                newControl.append('<option value="iconAndDisplay"><?php echo _("Icon and value display"); ?></option>');
+                                newControl.append('<option value="displayAndText"><?php echo _("Display and text"); ?></option>');
+                                newControl.append('<option value="all"><?php echo _("Icon, text and value display"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label">Button radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label"><?php echo _("Button radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonRadius" name="addSwitchButtonRadius" data-slider-id="addSwitchButtonRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5224,12 +5228,12 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addGeolocatorMode" class="col-md-2 control-label">Geolocation mode</label>');
+                                newLabel = $('<label for="addGeolocatorMode" class="col-md-2 control-label"><?php echo _("Geolocation mode"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<select id="addGeolocatorMode" name="addGeolocatorMode" class="form-control"></select>');
-                                newControl.append('<option value="press">On press only</option>');
-                                newControl.append('<option value="period">Periodically</option>');
-                                newControl.append('<option value="both">Periodically and on press</option>');
+                                newControl.append('<option value="press"><?php echo _("On press only"); ?></option>');
+                                newControl.append('<option value="period"><?php echo _("Periodically"); ?></option>');
+                                newControl.append('<option value="both"><?php echo _("Periodically and on press"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
@@ -5237,7 +5241,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonColor" class="col-md-2 control-label">Button color</label>');
+                                newLabel = $('<label for="addSwitchButtonColor" class="col-md-2 control-label"><?php echo _("Button color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonColor"><input type="text" name="addSwitchButtonColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 0, 0, 1)", format: "rgba"});
@@ -5245,7 +5249,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonClickColor" class="col-md-2 control-label">Button color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonClickColor" class="col-md-2 control-label"><?php echo _("Button color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonClickColor"><input type="text" name="addSwitchButtonClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(102, 255, 102, 1)", format: "rgba"});
@@ -5255,7 +5259,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonSymbolColor" class="col-md-2 control-label">Symbol color</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolColor" class="col-md-2 control-label"><?php echo _("Symbol color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolColor"><input type="text" name="addSwitchButtonSymbolColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -5263,7 +5267,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonSymbolClickColor" class="col-md-2 control-label">Symbol color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolClickColor" class="col-md-2 control-label"><?php echo _("Symbol color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolClickColor"><input type="text" name="addSwitchButtonSymbolClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5275,7 +5279,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextColor" class="col-md-2 control-label">Text color</label>');
+                                newLabel = $('<label for="addSwitchButtonTextColor" class="col-md-2 control-label"><?php echo _("Text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextColor"><input type="text" name="addSwitchButtonTextColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -5283,7 +5287,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonTextClickColor" class="col-md-2 control-label">Text color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonTextClickColor" class="col-md-2 control-label"><?php echo _("Text color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextClickColor"><input type="text" name="addSwitchButtonTextClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5295,14 +5299,14 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonTextFontSize" name="addSwitchButtonTextFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonDisplayFontSize" name="addSwitchButtonDisplayFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
@@ -5313,7 +5317,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayFontColor" class="col-md-2 control-label">Display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontColor" class="col-md-2 control-label"><?php echo _("Display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayFontColor"><input type="text" name="addSwitchButtonDisplayFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5321,7 +5325,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontClickColor" class="col-md-2 control-label">On display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontClickColor" class="col-md-2 control-label"><?php echo _("On display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayFontClickColor"><input type="text" name="addSwitchButtonDisplayFontClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5334,7 +5338,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayColor"><input type="text" name="addSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -5342,7 +5346,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayRadius" name="addSwitchButtonDisplayRadius" data-slider-id="addSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5359,7 +5363,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayWidth" name="addSwitchButtonDisplayWidth" data-slider-id="addSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5373,7 +5377,7 @@
                                     value: 80    
                                 });
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayHeight" name="addSwitchButtonDisplayHeight" data-slider-id="addSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5390,12 +5394,12 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
 
-                                newLabel = $('<label for="addSwitchButtonNeonEffect" class="col-md-2 control-label">Neon effect</label>');
+                                newLabel = $('<label for="addSwitchButtonNeonEffect" class="col-md-2 control-label"><?php echo _("Neon effect"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<select id="addSwitchButtonNeonEffect" name="addSwitchButtonNeonEffect" class="form-control"></select>');
-                                newControl.append('<option value="never">Never</option>');
-                                newControl.append('<option value="pressedStatus">When pressed</option>');
-                                newControl.append('<option value="always">Always</option>');
+                                newControl.append('<option value="never"><?php echo _("Never"); ?></option>');
+                                newControl.append('<option value="pressedStatus"><?php echo _("When pressed"); ?></option>');
+                                newControl.append('<option value="always"><?php echo _("Always"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
@@ -5458,22 +5462,22 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
-                                newLabel = $('<label for="addSwitchButtonViewMode" class="col-md-2 control-label">View mode</label>');
+                                newLabel = $('<label for="addSwitchButtonViewMode" class="col-md-2 control-label"><?php echo _("View mode"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 var newControl = $('<select id="addSwitchButtonViewMode" name="addSwitchButtonViewMode" class="form-control"></select>');
-                                newControl.append('<option value="emptyButton">Empty button</option>');
-                                newControl.append('<option value="iconOnly">Icon only</option>');
-                                newControl.append('<option value="textOnly">Text only</option>');
-                                newControl.append('<option value="displayOnly">Value display only</option>');
-                                newControl.append('<option value="iconAndText">Icon and text</option>');
-                                newControl.append('<option value="iconAndDisplay">Icon and value display</option>');
-                                newControl.append('<option value="displayAndText">Display and text</option>');
-                                newControl.append('<option value="all">Icon, text and value display</option>');
+                                newControl.append('<option value="emptyButton"><?php echo _("Empty button"); ?></option>');
+                                newControl.append('<option value="iconOnly"><?php echo _("Icon only"); ?></option>');
+                                newControl.append('<option value="textOnly"><?php echo _("Text only"); ?></option>');
+                                newControl.append('<option value="displayOnly"><?php echo _("Value display only"); ?></option>');
+                                newControl.append('<option value="iconAndText"><?php echo _("Icon and text"); ?></option>');
+                                newControl.append('<option value="iconAndDisplay"><?php echo _("Icon and value display"); ?></option>');
+                                newControl.append('<option value="displayAndText"><?php echo _("Display and text"); ?></option>');
+                                newControl.append('<option value="all"><?php echo _("Icon, text and value display"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label">Button radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label"><?php echo _("Button radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonRadius" name="addSwitchButtonRadius" data-slider-id="addSwitchButtonRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5490,10 +5494,10 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonImpulseMode" class="col-md-2 control-label">Impulse mode</label>');
+                                newLabel = $('<label for="addSwitchButtonImpulseMode" class="col-md-2 control-label"><?php echo _("Impulse mode"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<select id="addSwitchButtonImpulseMode" name="addSwitchButtonImpulseMode" class="form-control"></select>');
-                                newControl.append('<option value="singlePress">Send impulse on release</option>');
+                                newControl.append('<option value="singlePress"><?php echo _("Send impulse on release"); ?></option>');
                                 newControl.append('<option value="sequence">Send impulses until pressed</option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
@@ -5502,7 +5506,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonColor" class="col-md-2 control-label">Button color</label>');
+                                newLabel = $('<label for="addSwitchButtonColor" class="col-md-2 control-label"><?php echo _("Button color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonColor"><input type="text" name="addSwitchButtonColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 0, 0, 1)", format: "rgba"});
@@ -5510,7 +5514,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonClickColor" class="col-md-2 control-label">Button color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonClickColor" class="col-md-2 control-label"><?php echo _("Button color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonClickColor"><input type="text" name="addSwitchButtonClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(102, 255, 102, 1)", format: "rgba"});
@@ -5520,7 +5524,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonSymbolColor" class="col-md-2 control-label">Symbol color</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolColor" class="col-md-2 control-label"><?php echo _("Symbol color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolColor"><input type="text" name="addSwitchButtonSymbolColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -5528,7 +5532,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonSymbolClickColor" class="col-md-2 control-label">Symbol color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolClickColor" class="col-md-2 control-label"><?php echo _("Symbol color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolClickColor"><input type="text" name="addSwitchButtonSymbolClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5540,7 +5544,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextColor" class="col-md-2 control-label">Text color</label>');
+                                newLabel = $('<label for="addSwitchButtonTextColor" class="col-md-2 control-label"><?php echo _("Text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextColor"><input type="text" name="addSwitchButtonTextColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -5548,7 +5552,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonTextClickColor" class="col-md-2 control-label">Text color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonTextClickColor" class="col-md-2 control-label"><?php echo _("Text color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextClickColor"><input type="text" name="addSwitchButtonTextClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5560,14 +5564,14 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonTextFontSize" name="addSwitchButtonTextFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonDisplayFontSize" name="addSwitchButtonDisplayFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
@@ -5578,7 +5582,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayFontColor" class="col-md-2 control-label">Display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontColor" class="col-md-2 control-label"><?php echo _("Display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayFontColor"><input type="text" name="addSwitchButtonDisplayFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5586,7 +5590,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontClickColor" class="col-md-2 control-label">On display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontClickColor" class="col-md-2 control-label"><?php echo _("On display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayFontClickColor"><input type="text" name="addSwitchButtonDisplayFontClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5599,7 +5603,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayColor"><input type="text" name="addSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -5607,7 +5611,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayRadius" name="addSwitchButtonDisplayRadius" data-slider-id="addSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5624,7 +5628,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayWidth" name="addSwitchButtonDisplayWidth" data-slider-id="addSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5638,7 +5642,7 @@
                                     value: 80    
                                 });
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayHeight" name="addSwitchButtonDisplayHeight" data-slider-id="addSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5655,12 +5659,12 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
 
-                                newLabel = $('<label for="addSwitchButtonNeonEffect" class="col-md-2 control-label">Neon effect</label>');
+                                newLabel = $('<label for="addSwitchButtonNeonEffect" class="col-md-2 control-label"><?php echo _("Neon effect"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<select id="addSwitchButtonNeonEffect" name="addSwitchButtonNeonEffect" class="form-control"></select>');
-                                newControl.append('<option value="never">Never</option>');
-                                newControl.append('<option value="pressedStatus">When pressed</option>');
-                                newControl.append('<option value="always">Always</option>');
+                                newControl.append('<option value="never"><?php echo _("Never"); ?></option>');
+                                newControl.append('<option value="pressedStatus"><?php echo _("When pressed"); ?></option>');
+                                newControl.append('<option value="always"><?php echo _("Always"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
@@ -5723,22 +5727,22 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
-                                newLabel = $('<label for="addSwitchButtonViewMode" class="col-md-2 control-label">View mode</label>');
+                                newLabel = $('<label for="addSwitchButtonViewMode" class="col-md-2 control-label"><?php echo _("View mode"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 var newControl = $('<select id="addSwitchButtonViewMode" name="addSwitchButtonViewMode" class="form-control"></select>');
-                                newControl.append('<option value="emptyButton">Empty button</option>');
-                                newControl.append('<option value="iconOnly">Icon only</option>');
-                                newControl.append('<option value="textOnly">Text only</option>');
-                                newControl.append('<option value="displayOnly">Value display only</option>');
-                                newControl.append('<option value="iconAndText">Icon and text</option>');
-                                newControl.append('<option value="iconAndDisplay">Icon and value display</option>');
-                                newControl.append('<option value="displayAndText">Display and text</option>');
-                                newControl.append('<option value="all">Icon, text and value display</option>');
+                                newControl.append('<option value="emptyButton"><?php echo _("Empty button"); ?></option>');
+                                newControl.append('<option value="iconOnly"><?php echo _("Icon only"); ?></option>');
+                                newControl.append('<option value="textOnly"><?php echo _("Text only"); ?></option>');
+                                newControl.append('<option value="displayOnly"><?php echo _("Value display only"); ?></option>');
+                                newControl.append('<option value="iconAndText"><?php echo _("Icon and text"); ?></option>');
+                                newControl.append('<option value="iconAndDisplay"><?php echo _("Icon and value display"); ?></option>');
+                                newControl.append('<option value="displayAndText"><?php echo _("Display and text"); ?></option>');
+                                newControl.append('<option value="all"><?php echo _("Icon, text and value display"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label">Button radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label"><?php echo _("Button radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonRadius" name="addSwitchButtonRadius" data-slider-id="addSwitchButtonRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5754,7 +5758,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonOffColor" class="col-md-2 control-label">Off button color</label>');
+                                newLabel = $('<label for="addSwitchButtonOffColor" class="col-md-2 control-label"><?php echo _("Off button color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonOffColor"><input type="text" name="addSwitchButtonOffColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 0, 0, 1)", format: "rgba"});
@@ -5762,7 +5766,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonOnColor" class="col-md-2 control-label">On button color</label>');
+                                newLabel = $('<label for="addSwitchButtonOnColor" class="col-md-2 control-label"><?php echo _("On button color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonOnColor"><input type="text" name="addSwitchButtonOnColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(102, 255, 102, 1)", format: "rgba"});
@@ -5774,7 +5778,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonSymbolOffColor" class="col-md-2 control-label">Off symbol color</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolOffColor" class="col-md-2 control-label"><?php echo _("Off symbol color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolOffColor"><input type="text" name="addSwitchButtonSymbolOffColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -5782,7 +5786,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonSymbolOnColor" class="col-md-2 control-label">On symbol color</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolOnColor" class="col-md-2 control-label"><?php echo _("On symbol color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolOnColor"><input type="text" name="addSwitchButtonSymbolOnColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5794,7 +5798,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextOffColor" class="col-md-2 control-label">Off text color</label>');
+                                newLabel = $('<label for="addSwitchButtonTextOffColor" class="col-md-2 control-label"><?php echo _("Off text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextOffColor"><input type="text" name="addSwitchButtonTextOffColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -5802,7 +5806,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonTextOnColor" class="col-md-2 control-label">On text color</label>');
+                                newLabel = $('<label for="addSwitchButtonTextOnColor" class="col-md-2 control-label"><?php echo _("On text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextOnColor"><input type="text" name="addSwitchButtonTextOnColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5814,14 +5818,14 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonTextFontSize" name="addSwitchButtonTextFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonDisplayFontSize" name="addSwitchButtonDisplayFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
@@ -5832,7 +5836,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayOffColor" class="col-md-2 control-label">Off display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayOffColor" class="col-md-2 control-label"><?php echo _("Off display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayOffColor"><input type="text" name="addSwitchButtonDisplayOffColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5840,7 +5844,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayOnColor" class="col-md-2 control-label">On display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayOnColor" class="col-md-2 control-label"><?php echo _("On display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayOnColor"><input type="text" name="addSwitchButtonDisplayOnColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -5853,7 +5857,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayColor"><input type="text" name="addSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -5861,7 +5865,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayRadius" name="addSwitchButtonDisplayRadius" data-slider-id="addSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5878,7 +5882,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayWidth" name="addSwitchButtonDisplayWidth" data-slider-id="addSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5892,7 +5896,7 @@
                                     value: 80    
                                 });
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayHeight" name="addSwitchButtonDisplayHeight" data-slider-id="addSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -5909,13 +5913,13 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonNeonEffect" class="col-md-2 control-label">Neon effect</label>');
+                                newLabel = $('<label for="addSwitchButtonNeonEffect" class="col-md-2 control-label"><?php echo _("Neon effect"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<select id="addSwitchButtonNeonEffect" name="addSwitchButtonNeonEffect" class="form-control"></select>');
-                                newControl.append('<option value="never">Never</option>');
-                                newControl.append('<option value="onStatus">When on</option>');
-                                newControl.append('<option value="offStatus">When off</option>');
-                                newControl.append('<option value="always">Always</option>');
+                                newControl.append('<option value="never"><?php echo _("Never"); ?></option>');
+                                newControl.append('<option value="onStatus"><?php echo _("When on"); ?></option>');
+                                newControl.append('<option value="offStatus"><?php echo _("When off"); ?></option>');
+                                newControl.append('<option value="always"><?php echo _("Always"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
@@ -5971,14 +5975,14 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addKnobIndicatorRadius" class="col-md-2 control-label">Indicator radius (%)</label>');
+                                newLabel = $('<label for="addKnobIndicatorRadius" class="col-md-2 control-label"><?php echo _("Indicator radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                 var newControl = $('<input id="addKnobIndicatorRadius" name="addKnobIndicatorRadius" data-slider-id="addKnobIndicatorRadiusSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addKnobDisplayRadius" class="col-md-2 control-label">Value display radius (%)</label>');
+                                newLabel = $('<label for="addKnobDisplayRadius" class="col-md-2 control-label"><?php echo _("Value display radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                 var newControl = $('<input id="addKnobDisplayRadius" name="addKnobDisplayRadius" data-slider-id="addKnobDisplayRadiusSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -6002,14 +6006,14 @@
                                 });
                                 
                                 newFormRow = $('<div class="row"></div>');
-                                newLabel = $('<label for="addKnobStartAngle" class="col-md-2 control-label">Start angle</label>');
+                                newLabel = $('<label for="addKnobStartAngle" class="col-md-2 control-label"><?php echo _("Start angle"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobStartAngle" class="form-control" id="addKnobStartAngle" value="230"/>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addKnobEndAngle" class="col-md-2 control-label">End angle</label>');
+                                newLabel = $('<label for="addKnobEndAngle" class="col-md-2 control-label"><?php echo _("End angle"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobEndAngle" class="form-control" id="addKnobEndAngle" value="130"/>');
                                 newInnerDiv.append(newInput);
@@ -6020,7 +6024,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addKnobDisplayColor" class="col-md-2 control-label">Display color</label>');
+                                newLabel = $('<label for="addKnobDisplayColor" class="col-md-2 control-label"><?php echo _("Display color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKnobDisplayColor"><input type="text" name="addKnobDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -6046,14 +6050,14 @@
                                 }
                                 
                                 newFormRow = $('<div class="row"></div>');
-                                newLabel = $('<label for="addKnobLabelsFontSize" class="col-md-2 control-label">Labels font size</label>');
+                                newLabel = $('<label for="addKnobLabelsFontSize" class="col-md-2 control-label"><?php echo _("Labels font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobLabelsFontSize" class="form-control" id="addKnobLabelsFontSize" value="10" data-param="addKnobLabelsFontSize"/>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addKnobLabelsFontColor" class="col-md-2 control-label">Labels font color</label>');
+                                newLabel = $('<label for="addKnobLabelsFontColor" class="col-md-2 control-label"><?php echo _("Labels font color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKnobLabelsFontColor"><input type="text" name="addKnobLabelsFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -6064,7 +6068,7 @@
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
                                 newFormRow = $('<div class="row"></div>');
-                                newLabel = $('<label for="addKnobIncreaseValue" class="col-md-2 control-label">Increase value</label>');
+                                newLabel = $('<label for="addKnobIncreaseValue" class="col-md-2 control-label"><?php echo _("Increase value"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobIncreaseValue" class="form-control" id="addKnobIncreaseValue" value="10" data-param="addKnobIncreaseValue"/>');
                                 newInnerDiv.append(newInput);
@@ -6355,7 +6359,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addKeyboardDisplayColor" class="col-md-2 control-label">Display color</label>');
+                                newLabel = $('<label for="addKeyboardDisplayColor" class="col-md-2 control-label"><?php echo _("Display color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKeyboardDisplayColor"><input type="text" name="addKeyboardDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -6363,7 +6367,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addKeyboardDisplayFontColor" class="col-md-2 control-label">Display font color</label>');
+                                newLabel = $('<label for="addKeyboardDisplayFontColor" class="col-md-2 control-label"><?php echo _("Display font color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKeyboardDisplayFontColor"><input type="text" name="addKeyboardDisplayFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -6374,7 +6378,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addKeyboardBtnColor" class="col-md-2 control-label">Buttons color</label>');
+                                newLabel = $('<label for="addKeyboardBtnColor" class="col-md-2 control-label"><?php echo _("Buttons color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKeyboardBtnColor"><input type="text" name="addKeyboardBtnColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(225, 225, 225, 1)", format: "rgba"});
@@ -6382,7 +6386,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addKeyboardBtnFontColor" class="col-md-2 control-label">Buttons font color</label>');
+                                newLabel = $('<label for="addKeyboardBtnFontColor" class="col-md-2 control-label"><?php echo _("Buttons font color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKeyboardBtnFontColor"><input type="text" name="addKeyboardBtnFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -6438,19 +6442,19 @@
                                 newLabel = $('<label for="addSwitchButtonViewMode" class="col-md-2 control-label">View mode</label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 var newControl = $('<select id="addSwitchButtonViewMode" name="addSwitchButtonViewMode" class="form-control"></select>');
-                                newControl.append('<option value="emptyButton">Empty button</option>');
-                                newControl.append('<option value="iconOnly">Icon only</option>');
-                                newControl.append('<option value="textOnly">Text only</option>');
-                                newControl.append('<option value="displayOnly">Value display only</option>');
-                                newControl.append('<option value="iconAndText">Icon and text</option>');
-                                newControl.append('<option value="iconAndDisplay">Icon and value display</option>');
-                                newControl.append('<option value="displayAndText">Display and text</option>');
-                                newControl.append('<option value="all">Icon, text and value display</option>');
+                                newControl.append('<option value="emptyButton"><?php echo _("Empty button"); ?></option>');
+                                newControl.append('<option value="iconOnly"><?php echo _("Icon only"); ?></option>');
+                                newControl.append('<option value="textOnly"><?php echo _("Text only"); ?></option>');
+                                newControl.append('<option value="displayOnly"><?php echo _("Value display only"); ?></option>');
+                                newControl.append('<option value="iconAndText"><?php echo _("Icon and text"); ?></option>');
+                                newControl.append('<option value="iconAndDisplay"><?php echo _("Icon and value display"); ?></option>');
+                                newControl.append('<option value="displayAndText"><?php echo _("Display and text"); ?></option>');
+                                newControl.append('<option value="all"><?php echo _("Icon, text and value display"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label">Button radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label"><?php echo _("Button radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonRadius" name="addSwitchButtonRadius" data-slider-id="addSwitchButtonRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -6467,12 +6471,12 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addGeolocatorMode" class="col-md-2 control-label">Geolocation mode</label>');
+                                newLabel = $('<label for="addGeolocatorMode" class="col-md-2 control-label"><?php echo _("Geolocation mode"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<select id="addGeolocatorMode" name="addGeolocatorMode" class="form-control"></select>');
-                                newControl.append('<option value="press">On press only</option>');
-                                newControl.append('<option value="period">Periodically</option>');
-                                newControl.append('<option value="both">Periodically and on press</option>');
+                                newControl.append('<option value="press"><?php echo _("On press only"); ?></option>');
+                                newControl.append('<option value="period"><?php echo _("Periodically"); ?></option>');
+                                newControl.append('<option value="both"><?php echo _("Periodically and on press"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
@@ -6480,7 +6484,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonColor" class="col-md-2 control-label">Button color</label>');
+                                newLabel = $('<label for="addSwitchButtonColor" class="col-md-2 control-label"><?php echo _("Button color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonColor"><input type="text" name="addSwitchButtonColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 0, 0, 1)", format: "rgba"});
@@ -6488,7 +6492,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonClickColor" class="col-md-2 control-label">Button color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonClickColor" class="col-md-2 control-label"><?php echo _("Button color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonClickColor"><input type="text" name="addSwitchButtonClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(102, 255, 102, 1)", format: "rgba"});
@@ -6498,7 +6502,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonSymbolColor" class="col-md-2 control-label">Symbol color</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolColor" class="col-md-2 control-label"><?php echo _("Symbol color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolColor"><input type="text" name="addSwitchButtonSymbolColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -6506,7 +6510,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonSymbolClickColor" class="col-md-2 control-label">Symbol color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolClickColor" class="col-md-2 control-label"><?php echo _("Symbol color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolClickColor"><input type="text" name="addSwitchButtonSymbolClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -6518,7 +6522,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextColor" class="col-md-2 control-label">Text color</label>');
+                                newLabel = $('<label for="addSwitchButtonTextColor" class="col-md-2 control-label"><?php echo _("Text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextColor"><input type="text" name="addSwitchButtonTextColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -6526,7 +6530,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonTextClickColor" class="col-md-2 control-label">Text color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonTextClickColor" class="col-md-2 control-label"><?php echo _("Text color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextClickColor"><input type="text" name="addSwitchButtonTextClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -6538,14 +6542,14 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonTextFontSize" name="addSwitchButtonTextFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonDisplayFontSize" name="addSwitchButtonDisplayFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
@@ -6556,7 +6560,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayFontColor" class="col-md-2 control-label">Display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontColor" class="col-md-2 control-label"><?php echo _("Display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayFontColor"><input type="text" name="addSwitchButtonDisplayFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -6564,7 +6568,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontClickColor" class="col-md-2 control-label">On display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontClickColor" class="col-md-2 control-label"><?php echo _("On display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayFontClickColor"><input type="text" name="addSwitchButtonDisplayFontClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -6577,7 +6581,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayColor"><input type="text" name="addSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -6585,7 +6589,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayRadius" name="addSwitchButtonDisplayRadius" data-slider-id="addSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -6602,7 +6606,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?> </label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayWidth" name="addSwitchButtonDisplayWidth" data-slider-id="addSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -6616,7 +6620,7 @@
                                     value: 80    
                                 });
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayHeight" name="addSwitchButtonDisplayHeight" data-slider-id="addSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -6633,7 +6637,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
 
-                                newLabel = $('<label for="addSwitchButtonNeonEffect" class="col-md-2 control-label">Neon effect</label>');
+                                newLabel = $('<label for="addSwitchButtonNeonEffect" class="col-md-2 control-label"><?php echo _("Neon effect"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<select id="addSwitchButtonNeonEffect" name="addSwitchButtonNeonEffect" class="form-control"></select>');
                                 newControl.append('<option value="never">Never</option>');
@@ -6701,14 +6705,14 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
-                                newLabel = $('<label for="addSwitchButtonTargetEntity" class="col-md-2 control-label">Target entity</label>');
+                                newLabel = $('<label for="addSwitchButtonTargetEntity" class="col-md-2 control-label"><?php echo _("Target entity"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonTargetEntity" name="addSwitchButtonTargetEntity" class="form-control" type="text" value="self"/>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonTargetEntityAttribute" class="col-md-2 control-label">Target entity attribute</label>');
+                                newLabel = $('<label for="addSwitchButtonTargetEntityAttribute" class="col-md-2 control-label"><?php echo _("Target entity attribute"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonTargetEntityAttribute" name="addSwitchButtonTargetEntityAttribute" class="form-control" type="text"/>');
                                 newInnerDiv.append(newControl);
@@ -6717,22 +6721,22 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
-                                newLabel = $('<label for="addSwitchButtonViewMode" class="col-md-2 control-label">View mode</label>');
+                                newLabel = $('<label for="addSwitchButtonViewMode" class="col-md-2 control-label"><?php echo _("View mode"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 var newControl = $('<select id="addSwitchButtonViewMode" name="addSwitchButtonViewMode" class="form-control"></select>');
-                                newControl.append('<option value="emptyButton">Empty button</option>');
-                                newControl.append('<option value="iconOnly">Icon only</option>');
-                                newControl.append('<option value="textOnly">Text only</option>');
-                                newControl.append('<option value="displayOnly">Value display only</option>');
-                                newControl.append('<option value="iconAndText">Icon and text</option>');
-                                newControl.append('<option value="iconAndDisplay">Icon and value display</option>');
-                                newControl.append('<option value="displayAndText">Display and text</option>');
-                                newControl.append('<option value="all">Icon, text and value display</option>');
+                                newControl.append('<option value="emptyButton"><?php echo _("Empty button"); ?></option>');
+                                newControl.append('<option value="iconOnly"><?php echo _("Icon only"); ?></option>');
+                                newControl.append('<option value="textOnly"><?php echo _("Text only"); ?></option>');
+                                newControl.append('<option value="displayOnly"><?php echo _("Value display only"); ?></option>');
+                                newControl.append('<option value="iconAndText"><?php echo _("Icon and text"); ?></option>');
+                                newControl.append('<option value="iconAndDisplay"><?php echo _("Icon and value display"); ?></option>');
+                                newControl.append('<option value="displayAndText"><?php echo _("Display and text"); ?></option>');
+                                newControl.append('<option value="all"><?php echo _("Icon, text and value display"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label">Button radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonRadius" class="col-md-2 control-label"><?php echo _("Button radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonRadius" name="addSwitchButtonRadius" data-slider-id="addSwitchButtonRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -6749,7 +6753,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonBaseValue" class="col-md-2 control-label">Base value</label>');
+                                newLabel = $('<label for="addSwitchButtonBaseValue" class="col-md-2 control-label"><?php echo _("Base value"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonBaseValue" name="addSwitchButtonBaseValue" class="form-control" type="text"/>');
                                 newInnerDiv.append(newControl);
@@ -6775,7 +6779,7 @@
                                         break;    
                                 }
                                 
-                                newLabel = $('<label for="addSwitchButtonImpulseValue" class="col-md-2 control-label">Impulse value</label>');
+                                newLabel = $('<label for="addSwitchButtonImpulseValue" class="col-md-2 control-label"><?php echo _("Impulse value"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonImpulseValue" name="addSwitchButtonImpulseValue" class="form-control" type="text"/>');
                                 newInnerDiv.append(newControl);
@@ -6804,11 +6808,11 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonImpulseMode" class="col-md-2 control-label">Impulse mode</label>');
+                                newLabel = $('<label for="addSwitchButtonImpulseMode" class="col-md-2 control-label"><?php echo _("Impulse mode"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<select id="addSwitchButtonImpulseMode" name="addSwitchButtonImpulseMode" class="form-control"></select>');
-                                newControl.append('<option value="singlePress">Send impulse on release</option>');
-                                newControl.append('<option value="sequence">Send impulses until pressed</option>');
+                                newControl.append('<option value="singlePress"><?php echo _("Send impulse on release"); ?></option>');
+                                newControl.append('<option value="sequence"><?php echo _("Send impulses until pressed"); ?></option>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
@@ -6816,7 +6820,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonColor" class="col-md-2 control-label">Button color</label>');
+                                newLabel = $('<label for="addSwitchButtonColor" class="col-md-2 control-label"><?php echo _("Button color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonColor"><input type="text" name="addSwitchButtonColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 0, 0, 1)", format: "rgba"});
@@ -6824,7 +6828,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonClickColor" class="col-md-2 control-label">Button color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonClickColor" class="col-md-2 control-label"><?php echo _("Button color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonClickColor"><input type="text" name="addSwitchButtonClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(102, 255, 102, 1)", format: "rgba"});
@@ -6834,7 +6838,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonSymbolColor" class="col-md-2 control-label">Symbol color</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolColor" class="col-md-2 control-label"><?php echo _("Symbol color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolColor"><input type="text" name="addSwitchButtonSymbolColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -6842,7 +6846,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonSymbolClickColor" class="col-md-2 control-label">Symbol color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonSymbolClickColor" class="col-md-2 control-label"><?php echo _("Symbol color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonSymbolClickColor"><input type="text" name="addSwitchButtonSymbolClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -6854,7 +6858,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextColor" class="col-md-2 control-label">Text color</label>');
+                                newLabel = $('<label for="addSwitchButtonTextColor" class="col-md-2 control-label"><?php echo _("Text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextColor"><input type="text" name="addSwitchButtonTextColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(37, 37, 37, 1)", format: "rgba"});
@@ -6862,7 +6866,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonTextClickColor" class="col-md-2 control-label">Text color on click</label>');
+                                newLabel = $('<label for="addSwitchButtonTextClickColor" class="col-md-2 control-label"><?php echo _("Text color on click"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonTextClickColor"><input type="text" name="addSwitchButtonTextClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -6874,14 +6878,14 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonTextFontSize" name="addSwitchButtonTextFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonDisplayFontSize" name="addSwitchButtonDisplayFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
@@ -6892,7 +6896,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayFontColor" class="col-md-2 control-label">Display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontColor" class="col-md-2 control-label"><?php echo _("Display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayFontColor"><input type="text" name="addSwitchButtonDisplayFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -6900,7 +6904,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontClickColor" class="col-md-2 control-label">On display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontClickColor" class="col-md-2 control-label"><?php echo _("On display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayFontClickColor"><input type="text" name="addSwitchButtonDisplayFontClickColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -6913,7 +6917,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayColor"><input type="text" name="addSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -6921,7 +6925,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayRadius" name="addSwitchButtonDisplayRadius" data-slider-id="addSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -6938,7 +6942,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayWidth" name="addSwitchButtonDisplayWidth" data-slider-id="addSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -6952,7 +6956,7 @@
                                     value: 80    
                                 });
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayHeight" name="addSwitchButtonDisplayHeight" data-slider-id="addSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -7216,14 +7220,14 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                newLabel = $('<label for="addSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonTextFontSize" name="addSwitchButtonTextFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" id="addSwitchButtonDisplayFontSize" name="addSwitchButtonDisplayFontSize" class="form-control" value="24"></input>');
                                 newInnerDiv.append(newInput);
@@ -7234,7 +7238,7 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayOffColor" class="col-md-2 control-label">Off display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayOffColor" class="col-md-2 control-label"><?php echo _("Off display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayOffColor"><input type="text" name="addSwitchButtonDisplayOffColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -7242,7 +7246,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv); 
                                         
-                                newLabel = $('<label for="addSwitchButtonDisplayOnColor" class="col-md-2 control-label">On display text color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayOnColor" class="col-md-2 control-label"><?php echo _("On display text color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayOnColor"><input type="text" name="addSwitchButtonDisplayOnColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(255, 255, 255, 1)", format: "rgba"});
@@ -7255,7 +7259,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addSwitchButtonDisplayColor"><input type="text" name="addSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -7263,7 +7267,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayRadius" name="addSwitchButtonDisplayRadius" data-slider-id="addSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -7280,7 +7284,7 @@
                                 newFormRow = $('<div class="row"></div>');
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayWidth" name="addSwitchButtonDisplayWidth" data-slider-id="addSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -7294,7 +7298,7 @@
                                     value: 80    
                                 });
                                 
-                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                newLabel = $('<label for="addSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newControl = $('<input id="addSwitchButtonDisplayHeight" name="addSwitchButtonDisplayHeight" data-slider-id="addSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -7413,14 +7417,14 @@
                                 
                                 newFormRow = $('<div class="row"></div>');
                                 
-                                newLabel = $('<label for="addKnobIndicatorRadius" class="col-md-2 control-label">Indicator radius (%)</label>');
+                                newLabel = $('<label for="addKnobIndicatorRadius" class="col-md-2 control-label"><?php echo _("Indicator radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                 var newControl = $('<input id="addKnobIndicatorRadius" name="addKnobIndicatorRadius" data-slider-id="addKnobIndicatorRadiusSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addKnobDisplayRadius" class="col-md-2 control-label">Value display radius (%)</label>');
+                                newLabel = $('<label for="addKnobDisplayRadius" class="col-md-2 control-label"><?php echo _("Value display radius (%)"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                 var newControl = $('<input id="addKnobDisplayRadius" name="addKnobDisplayRadius" data-slider-id="addKnobDisplayRadiusSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>');
                                 newInnerDiv.append(newControl);
@@ -7444,14 +7448,14 @@
                                 });
                                 
                                 newFormRow = $('<div class="row"></div>');
-                                newLabel = $('<label for="addKnobStartAngle" class="col-md-2 control-label">Start angle</label>');
+                                newLabel = $('<label for="addKnobStartAngle" class="col-md-2 control-label"><?php echo _("Start angle"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobStartAngle" class="form-control" id="addKnobStartAngle" value="230"/>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addKnobEndAngle" class="col-md-2 control-label">End angle</label>');
+                                newLabel = $('<label for="addKnobEndAngle" class="col-md-2 control-label"><?php echo _("End angle"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobEndAngle" class="form-control" id="addKnobEndAngle" value="130"/>');
                                 newInnerDiv.append(newInput);
@@ -7470,7 +7474,7 @@
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addKnobDisplayColor" class="col-md-2 control-label">Display color</label>');
+                                newLabel = $('<label for="addKnobDisplayColor" class="col-md-2 control-label"><?php echo _("Display color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKnobDisplayColor"><input type="text" name="addKnobDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -7534,14 +7538,14 @@
                                 }
                                 
                                 newFormRow = $('<div class="row"></div>');
-                                newLabel = $('<label for="addKnobMinValue" class="col-md-2 control-label">Min value</label>');
+                                newLabel = $('<label for="addKnobMinValue" class="col-md-2 control-label"><?php echo _("Min value"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobMinValue" class="form-control" id="addKnobMinValue" value="0" data-param="addKnobMinValue"/>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addKnobMaxValue" class="col-md-2 control-label">Max value</label>');
+                                newLabel = $('<label for="addKnobMaxValue" class="col-md-2 control-label"><?php echo _("Max value"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobMaxValue" class="form-control" id="addKnobMaxValue" value="100" data-param="addKnobMaxValue"/>');
                                 newInnerDiv.append(newInput);
@@ -7551,14 +7555,14 @@
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
                                 newFormRow = $('<div class="row"></div>');
-                                newLabel = $('<label for="addKnobLabelsFontSize" class="col-md-2 control-label">Labels font size</label>');
+                                newLabel = $('<label for="addKnobLabelsFontSize" class="col-md-2 control-label"><?php echo _("Labels font size"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobLabelsFontSize" class="form-control" id="addKnobLabelsFontSize" value="10" data-param="addKnobLabelsFontSize"/>');
                                 newInnerDiv.append(newInput);
                                 newFormRow.append(newLabel);
                                 newFormRow.append(newInnerDiv);
                                 
-                                newLabel = $('<label for="addKnobLabelsFontColor" class="col-md-2 control-label">Labels font color</label>');
+                                newLabel = $('<label for="addKnobLabelsFontColor" class="col-md-2 control-label"><?php echo _("Labels font color"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<div class="input-group colorPicker" id="addKnobLabelsFontColor"><input type="text" name="addKnobLabelsFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                 newInput.colorpicker({color: "rgba(0, 0, 0, 1)", format: "rgba"});
@@ -7569,7 +7573,7 @@
                                 $('#specificWidgetPropertiesDiv').append(newFormRow);
                                 
                                 newFormRow = $('<div class="row"></div>');
-                                newLabel = $('<label for="addKnobIncreaseValue" class="col-md-2 control-label">Increase value</label>');
+                                newLabel = $('<label for="addKnobIncreaseValue" class="col-md-2 control-label"><?php echo _("Increase value"); ?></label>');
                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                 newInput = $('<input type="text" name="addKnobIncreaseValue" class="form-control" id="addKnobIncreaseValue" value="10" data-param="addKnobIncreaseValue"/>');
                                 newInnerDiv.append(newInput);
@@ -8196,7 +8200,9 @@
                                                 $('#select-IntTemp-Widget').append('<option value="Settimanale">Weekly</option>');
                                                 $('#select-IntTemp-Widget').append('<option value="Mensile">Monthly</option>');
                                                 $('#select-IntTemp-Widget').append('<option value="Semestrale">6 Months</option>');
-                                                $('#select-IntTemp-Widget').append('<option value="Annuale">Annually</option>');
+                                                $('#select-IntTemp-Widget').append('<option value="Annuale">Yearly</option>');
+                                                $('#select-IntTemp-Widget').append('<option value="2 Anni">2 Years</option>');
+                                                $('#select-IntTemp-Widget').append('<option value="10 Anni">10 Years</option>');
                                             } 
                                             else 
                                             {
@@ -8254,14 +8260,14 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="speedLimitEntityId" class="col-md-2 control-label">Entity ID</label>');
+                                    newLabel = $('<label for="speedLimitEntityId" class="col-md-2 control-label"><?php echo _("Entity ID"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="speedLimitEntityId" class="form-control" id="speedLimitEntityId"/>');
                                     newInnerDiv.append(newControl);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
 
-                                    newLabel = $('<label for="speedLimitAttributeName" class="col-md-2 control-label">Attribute name</label>');
+                                    newLabel = $('<label for="speedLimitAttributeName" class="col-md-2 control-label"><?php echo _("Attribute name"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="speedLimitAttributeName" class="form-control" id="speedLimitAttributeName"/>');
                                     newInnerDiv.append(newControl);
@@ -8271,7 +8277,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="speedLimitUpdateTime" class="col-md-2 control-label">Update time(s)</label>');
+                                    newLabel = $('<label for="speedLimitUpdateTime" class="col-md-2 control-label"><?php echo _("Update time(s)"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="speedLimitUpdateTime" class="form-control" id="speedLimitUpdateTime" value="2"/>');
                                     newInnerDiv.append(newControl);
@@ -8340,7 +8346,7 @@
                                     $('#specificWidgetPropertiesDiv .row').remove();
 
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="trafficLightEntityId" class="col-md-2 control-label">Entity ID</label>');
+                                    newLabel = $('<label for="trafficLightEntityId" class="col-md-2 control-label"><?php echo _("Entity ID"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="trafficLightEntityId" class="form-control" id="trafficLightEntityId"/>');
                                     var currentParams = {
@@ -8396,14 +8402,14 @@
 
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="trafficLightEntityId" class="col-md-2 control-label">Entity ID</label>');
+                                    newLabel = $('<label for="trafficLightEntityId" class="col-md-2 control-label"><?php echo _("Entity ID"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="trafficLightEntityId" class="form-control" id="trafficLightEntityId"/>');
                                     newInnerDiv.append(newControl);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
 
-                                    newLabel = $('<label for="trafficLightAttributeName" class="col-md-2 control-label">Attribute name</label>');
+                                    newLabel = $('<label for="trafficLightAttributeName" class="col-md-2 control-label"><?php echo _("Attribute name"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="trafficLightAttributeName" class="form-control" id="trafficLightAttributeName"/>');
                                     newInnerDiv.append(newControl);
@@ -8412,7 +8418,7 @@
 
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="trafficLightUpdateTime" class="col-md-2 control-label">Update time(s)</label>');
+                                    newLabel = $('<label for="trafficLightUpdateTime" class="col-md-2 control-label"><?php echo _("Update time(s)"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newControl = $('<input type="text" name="trafficLightUpdateTime" class="form-control" id="trafficLightUpdateTime" value="2"/>');
                                     newInnerDiv.append(newControl);
@@ -8537,7 +8543,7 @@
 
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Map widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newSelect = $('<select name="addGisGeolocationWidgets" class="form-control" id="addGisGeolocationWidgets" multiple></select>');
 
@@ -8618,7 +8624,7 @@
                                     });
 
                                     //Colore testo quando picker attivo
-                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label"><?php echo _("Active rows font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     var newColorPicker = $('<div id="addGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="addGisActiveQueriesFontColor" name="addGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
                                     newInnerDiv.append(newColorPicker);
@@ -8708,7 +8714,7 @@
 
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Map widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newSelect = $('<select name="addGisGeolocationWidgets" class="form-control" id="addGisGeolocationWidgets" multiple></select>');
 
@@ -8758,7 +8764,7 @@
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
                                     //Colore testo quando picker attivo
-                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label"><?php echo _("Active rows font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     var newColorPicker = $('<div id="addGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="addGisActiveQueriesFontColor" name="addGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
                                     newInnerDiv.append(newColorPicker);
@@ -8847,7 +8853,7 @@
 
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Map widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newSelect = $('<select name="addGisGeolocationWidgets" class="form-control" id="addGisGeolocationWidgets" multiple></select>');
 
@@ -8897,7 +8903,7 @@
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
                                     //Colore testo quando picker attivo
-                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label"><?php echo _("Active rows font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     var newColorPicker = $('<div id="addGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="addGisActiveQueriesFontColor" name="addGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
                                     newInnerDiv.append(newColorPicker);
@@ -8986,7 +8992,7 @@
 
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                    newLabel = $('<label for="addGisGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Map widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     newSelect = $('<select name="addGisGeolocationWidgets" class="form-control" id="addGisGeolocationWidgets" multiple></select>');
 
@@ -9036,7 +9042,7 @@
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
                                     //Colore testo quando picker attivo
-                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                    newLabel = $('<label for="addGisActiveQueriesFontColor" class="col-md-2 control-label"><?php echo _("Active rows font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-4"></div>');
                                     var newColorPicker = $('<div id="addGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="addGisActiveQueriesFontColor" name="addGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
                                     newInnerDiv.append(newColorPicker);
@@ -9104,7 +9110,7 @@
                                     //Nuova riga
                                     //Clock data e clock font type
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addWidgetClockData" class="col-md-2 control-label">Shown data</label>');
+                                    newLabel = $('<label for="addWidgetClockData" class="col-md-2 control-label"><?php echo _("Shown data"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="addWidgetClockData" class="form-control" id="addWidgetClockData"></select>');
                                     newSelect.append('<option value="date">Date</option>');
@@ -9115,7 +9121,7 @@
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
 
-                                    newLabel = $('<label for="addWidgetClockFont" class="col-md-2 control-label">Font type</label>');
+                                    newLabel = $('<label for="addWidgetClockFont" class="col-md-2 control-label"><?php echo _("Font type"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="addWidgetClockFont" class="form-control" id="addWidgetClockFont"></select>');
                                     newSelect.append('<option value="normal">Normal</option>');
@@ -9173,7 +9179,7 @@
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="addWidgetGeolocationWidgets" class="form-control" id="addWidgetGeolocationWidgets" multiple></select>');
 
@@ -9267,7 +9273,7 @@
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="addWidgetGeolocationWidgets" class="form-control" id="addWidgetGeolocationWidgets" multiple></select>');
 
@@ -9361,7 +9367,7 @@
                                     //Nuova riga
                                     //Target widgets geolocation
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="addWidgetGeolocationWidgets" class="form-control" id="addWidgetGeolocationWidgets" multiple></select>');
 
@@ -9458,7 +9464,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
 
@@ -9496,7 +9502,7 @@
                                     if (widgetsNumber > 0) {
                                         newSelect.show();
                                         newSelect.val(-1);
-                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
 
@@ -9583,7 +9589,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
 
@@ -9621,7 +9627,7 @@
                                     if (widgetsNumber > 0) {
                                         newSelect.show();
                                         newSelect.val(-1);
-                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
 
@@ -9709,7 +9715,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-3 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-3 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-5"></div>');
                                     newSelect = $('<select class="selectpicker form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets" multiple></select>');
                                     newFormRow.append(newLabel);
@@ -9718,7 +9724,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetPanToWidgets" class="col-md-3 control-label">Available autopan widgets</label>');
+                                    newLabel = $('<label for="addWidgetPanToWidgets" class="col-md-3 control-label"><?php echo _("Available autopan widgets"); ?></label>');
                                     var newInnerDiv2 = $('<div class="col-md-5"></div>');
                                     var newSelect2 = $('<select class="selectpicker form-control" id="addWidgetPanToWidgets" name="addWidgetPanToWidgets" multiple></select>');
                                     newFormRow.append(newLabel);
@@ -9844,7 +9850,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-3 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-3 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-5"></div>');
                                     newSelect = $('<select class="selectpicker form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets" multiple></select>');
                                     newFormRow.append(newLabel);
@@ -9853,7 +9859,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetPanToWidgets" class="col-md-3 control-label">Available autopan widgets</label>');
+                                    newLabel = $('<label for="addWidgetPanToWidgets" class="col-md-3 control-label"><?php echo _("Available autopan widgets"); ?></label>');
                                     var newInnerDiv2 = $('<div class="col-md-5"></div>');
                                     var newSelect2 = $('<select class="selectpicker form-control" id="addWidgetPanToWidgets" name="addWidgetPanToWidgets" multiple></select>');
                                     newFormRow.append(newLabel);
@@ -9981,7 +9987,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
 
@@ -10019,7 +10025,7 @@
                                     if (widgetsNumber > 0) {
                                         newSelect.show();
                                         newSelect.val(-1);
-                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
                                         for (var key in alarmTypes) {
@@ -10103,7 +10109,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
 
@@ -10141,7 +10147,7 @@
                                     if (widgetsNumber > 0) {
                                         newSelect.show();
                                         newSelect.val(-1);
-                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
                                         for (var key in alarmTypes) {
@@ -10225,15 +10231,15 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetDefaultCategory" class="col-md-2 control-label">Default category</label>');
+                                    newLabel = $('<label for="addWidgetDefaultCategory" class="col-md-2 control-label"><?php echo _("Default category"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetDefaultCategory" name="addWidgetDefaultCategory"></select>');
-                                    newSelect.append('<option value="none">None</option>');
-                                    newSelect.append('<option value="incident">Incidents</option>');
-                                    newSelect.append('<option value="roadWorks">Road works</option>');
-                                    newSelect.append('<option value="snow">Snow</option>');
-                                    newSelect.append('<option value="weatherData">Weather data</option>');
-                                    newSelect.append('<option value="wind">Wind</option>');
+                                    newSelect.append('<option value="none"><?php echo _("None"); ?></option>');
+                                    newSelect.append('<option value="incident"><?php echo _("Incidents"); ?></option>');
+                                    newSelect.append('<option value="roadWorks"><?php echo _("Road works"); ?></option>');
+                                    newSelect.append('<option value="snow"><?php echo _("Snow"); ?></option>');
+                                    newSelect.append('<option value="weatherData"><?php echo _("Weather data"); ?></option>');
+                                    newSelect.append('<option value="wind"><?php echo _("Wind"); ?></option>');
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
@@ -10243,7 +10249,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
 
@@ -10281,7 +10287,7 @@
                                     if (widgetsNumber > 0) {
                                         newSelect.show();
                                         newSelect.val(-1);
-                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
                                         var eventTypeNum = null;
@@ -10383,7 +10389,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
 
@@ -10421,7 +10427,7 @@
                                     if (widgetsNumber > 0) {
                                         newSelect.show();
                                         newSelect.val(-1);
-                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
                                         var eventTypeNum = null;
@@ -10510,12 +10516,12 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetFirstAidMode" class="col-md-2 control-label">Visualization mode</label>');
+                                    newLabel = $('<label for="addWidgetFirstAidMode" class="col-md-2 control-label"><?php echo _("Visualization mode"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetFirstAidMode" name="addWidgetFirstAidMode" required></select>');
-                                    newSelect.append('<option value="singleSummary">Single hospital - Totals only</option>');
-                                    newSelect.append('<option value="singleDetails">Single hospital - Details</option>');
-                                    newSelect.append('<option value="hospitalsOverview">Multiple hospitals overview</option>');
+                                    newSelect.append('<option value="singleSummary"><?php echo _("Single hospital - Totals only"); ?></option>');
+                                    newSelect.append('<option value="singleDetails"><?php echo _("Single hospital - Details"); ?></option>');
+                                    newSelect.append('<option value="hospitalsOverview"><?php echo _("Multiple hospitals overview"); ?></option>');
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
@@ -10524,7 +10530,7 @@
                                     newInnerDiv.show();
                                     newSelect.show();
 
-                                    var hospitalSelect = '<label for="addWidgetFirstAidHospital" class="col-md-2 control-label">First aid</label>' +
+                                    var hospitalSelect = '<label for="addWidgetFirstAidHospital" class="col-md-2 control-label"><?php echo _("First aid"); ?></label>' +
                                         '<div class="col-md-3">' +
                                         '<div class="input-group">' +
                                         '<select name="addWidgetFirstAidHospital" class="form-control" id="addWidgetFirstAidHospital">' +
@@ -10532,7 +10538,7 @@
                                         '</div>' +
                                         '</div>';
 
-                                    var multipleHospitalSelect = '<label for="addWidgetFirstAidHospitals" class="col-md-2 control-label">First aids</label>' +
+                                    var multipleHospitalSelect = '<label for="addWidgetFirstAidHospitals" class="col-md-2 control-label"><?php echo _("First aids"); ?></label>' +
                                         '<div class="col-md-3">' +
                                         '<div class="input-group">' +
                                         '<select name="addWidgetFirstAidHospitals" class="form-control" id="addWidgetFirstAidHospitals" multiple>' +
@@ -10849,11 +10855,11 @@
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
                                     //Select show first cell
-                                    newLabel = $('<label for="showTableFirstCell" class="col-md-2 control-label">Show first cell</label>');
+                                    newLabel = $('<label for="showTableFirstCell" class="col-md-2 control-label"><?php echo _("Show first cell"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="showTableFirstCell" name="showTableFirstCell" required></select>');
-                                    newSelect.append('<option value="yes">Yes</option>');
-                                    newSelect.append('<option value="no">No</option>');
+                                    newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                    newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
@@ -10869,7 +10875,7 @@
                                     //First cell font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="tableFirstCellFontSize" class="col-md-2 control-label">First cell font size</label>');
+                                    newLabel = $('<label for="tableFirstCellFontSize" class="col-md-2 control-label"><?php echo _("First cell font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="tableFirstCellFontSize" name="tableFirstCellFontSize" value="10" required>');
                                     newInnerDiv.append(newInput);
@@ -10883,7 +10889,7 @@
                                     $("#tableFirstCellFontSize").attr("disabled", true);
 
                                     //First cell font color
-                                    newLabel = $('<label for="tableFirstCellFontColor" class="col-md-2 control-label">First cell font color</label>');
+                                    newLabel = $('<label for="tableFirstCellFontColor" class="col-md-2 control-label"><?php echo _("First cell font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="tableFirstCellFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="tableFirstCellFontColor" name="tableFirstCellFontColor" required><span class="input-group-addon"><i id="widgetFirstCellFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -10907,7 +10913,7 @@
                                     //Rows labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label">Rows labels font size</label>');
+                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label"><?php echo _("Rows labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSize" name="rowsLabelsFontSize" value="10" required> ');
                                     newInnerDiv.append(newInput);
@@ -10921,7 +10927,7 @@
                                     $("#rowsLabelsFontSize").attr("disabled", true);
 
                                     //Rows labels font color
-                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">Rows labels font color</label>');
+                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label"><?php echo _("Rows labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="rowsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColor" name="rowsLabelsFontColor" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -10945,7 +10951,7 @@
                                     //Cols labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="colsLabelsFontSize" class="col-md-2 control-label">Cols labels font size</label>');
+                                    newLabel = $('<label for="colsLabelsFontSize" class="col-md-2 control-label"><?php echo _("Cols labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="colsLabelsFontSize" name="colsLabelsFontSize" value="10" required>');
                                     newInnerDiv.append(newInput);
@@ -10956,7 +10962,7 @@
                                     newInput.show();
 
                                     //Cols labels font color
-                                    newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label">Cols labels font color</label>');
+                                    newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label"><?php echo _("Cols labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="colsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="colsLabelsFontColor" name="colsLabelsFontColor" required><span class="input-group-addon"><i id="widgetColsLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -11035,7 +11041,7 @@
                                     //Set thresholds
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
                                     newSelect.append('<option value="yes">Yes</option>');
@@ -11052,7 +11058,7 @@
                                     $('#alrThrSel').change(alrThrSelListener);
 
                                     //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                    newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label">Thresholds target set</label>');
+                                    newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                     newSelect = $('<select class="form-control" id="alrAxisSel" name="alrAxisSel"></select>');
                                     newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                     //newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
@@ -11069,7 +11075,7 @@
                                     //Threshold field select
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label">Thresholds target field</label>');
+                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                     newSelect = $('<select class="form-control" id="alrFieldSel" name="alrFieldSel">');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInnerDiv.append(newSelect);
@@ -11178,7 +11184,7 @@
                                     //Rows labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label">X-Axis labels font size</label>');
+                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label"><?php echo _("X-Axis labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSize" name="rowsLabelsFontSize" value="10" required> ');
                                     newInnerDiv.append(newInput);
@@ -11189,7 +11195,7 @@
                                     newInput.show();
 
                                     //Rows labels font color
-                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">X-Axis labels font color</label>');
+                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label"><?php echo _("X-Axis labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="rowsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColor" name="rowsLabelsFontColor" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -11240,7 +11246,7 @@
                                     //Data labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label">Data labels font size</label>');
+                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label"><?php echo _("Data labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="dataLabelsFontSize" name="dataLabelsFontSize" value="10" required>');
                                     newInnerDiv.append(newInput);
@@ -11251,7 +11257,7 @@
                                     newInput.show();
 
                                     //Data labels font color
-                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label">Data labels font color</label>');
+                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label"><?php echo _("Data labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="dataLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="dataLabelsFontColor" name="dataLabelsFontColor" required><span class="input-group-addon"><i id="widgetDataLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -11406,7 +11412,7 @@
                                     //Set thresholds
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
                                     newSelect.append('<option value="yes">Yes</option>');
@@ -11568,7 +11574,7 @@
                                     //X-Axis labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label">X-Axis labels font size</label>');
+                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label"><?php echo _("X-Axis labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSize" name="rowsLabelsFontSize" value="10" required> ');
                                     newInnerDiv.append(newInput);
@@ -11579,7 +11585,7 @@
                                     newInput.show();
 
                                     //X-Axis labels font color
-                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">X-Axis labels font color</label>');
+                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label"><?php echo _("X-Axis labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="rowsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColor" name="rowsLabelsFontColor" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -11630,7 +11636,7 @@
                                     //Data labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label">Data labels font size</label>');
+                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label"><?php echo _("Data labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="dataLabelsFontSize" name="dataLabelsFontSize" value="10" required>');
                                     newInnerDiv.append(newInput);
@@ -11641,7 +11647,7 @@
                                     newInput.show();
 
                                     //Data labels font color
-                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label">Data labels font color</label>');
+                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label"><?php echo _("Data labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="dataLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="dataLabelsFontColor" name="dataLabelsFontColor" required><span class="input-group-addon"><i id="widgetDataLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -11819,7 +11825,7 @@
                                     //Set thresholds
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
                                     newSelect.append('<option value="yes">Yes</option>');
@@ -11859,7 +11865,7 @@
                                     //Threshold field select
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label">Thresholds target field</label>');
+                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                     newSelect = $('<select class="form-control" id="alrFieldSel" name="alrFieldSel">');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInnerDiv.append(newSelect);
@@ -11986,7 +11992,7 @@
                                     //X-Axis labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label">X-Axis labels font size</label>');
+                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label"><?php echo _("X-Axis labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSize" name="rowsLabelsFontSize" value="10" required> ');
                                     newInnerDiv.append(newInput);
@@ -11997,7 +12003,7 @@
                                     newInput.show();
 
                                     //X-Axis labels font color
-                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">X-Axis labels font color</label>');
+                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label"><?php echo _("X-Axis labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="rowsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColor" name="rowsLabelsFontColor" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -12048,7 +12054,7 @@
                                     //Data labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label">Data labels font size</label>');
+                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label"><?php echo _("Data labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="dataLabelsFontSize" name="dataLabelsFontSize" value="10" required>');
                                     newInnerDiv.append(newInput);
@@ -12059,7 +12065,7 @@
                                     newInput.show();
 
                                     //Data labels font color
-                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label">Data labels font color</label>');
+                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label"><?php echo _("Data labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="dataLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="dataLabelsFontColor" name="dataLabelsFontColor" required><span class="input-group-addon"><i id="widgetDataLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -12237,7 +12243,7 @@
                                     //Set thresholds
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
                                     newSelect.append('<option value="yes">Yes</option>');
@@ -12254,7 +12260,7 @@
                                     $('#alrThrSel').change(alrThrSelListener);
 
                                     //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                    newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label">Thresholds target set</label>');
+                                    newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                     newSelect = $('<select class="form-control" id="alrAxisSel" name="alrAxisSel"></select>');
                                     if ($("#xAxisDataset").val() === series.firstAxis.desc) {
                                         //No trasposizione
@@ -12277,7 +12283,7 @@
                                     //Threshold field select
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label">Thresholds target field</label>');
+                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                     newSelect = $('<select class="form-control" id="alrFieldSel" name="alrFieldSel">');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInnerDiv.append(newSelect);
@@ -12584,7 +12590,7 @@
                                     //Rows labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label">Rows labels font size</label>');
+                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label"><?php echo _("Rows labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSize" name="rowsLabelsFontSize" value="10" required> ');
                                     newInnerDiv.append(newInput);
@@ -12595,7 +12601,7 @@
                                     newInput.show();
 
                                     //Rows labels font color
-                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">Rows labels font color</label>');
+                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label"><?php echo _("Rows labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="rowsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColor" name="rowsLabelsFontColor" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -12615,7 +12621,7 @@
                                     //Cols labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="colsLabelsFontSize" class="col-md-2 control-label">Cols labels font size</label>');
+                                    newLabel = $('<label for="colsLabelsFontSize" class="col-md-2 control-label"><?php echo _("Cols labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="colsLabelsFontSize" name="colsLabelsFontSize" value="10" required>');
                                     newInnerDiv.append(newInput);
@@ -12626,7 +12632,7 @@
                                     newInput.show();
 
                                     //Cols labels font color
-                                    newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label">Cols labels font color</label>');
+                                    newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label"><?php echo _("Cols labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="colsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="colsLabelsFontColor" name="colsLabelsFontColor" required><span class="input-group-addon"><i id="widgetColsLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -12646,7 +12652,7 @@
                                     //Data labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label">Data labels font size</label>');
+                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label"><?php echo _("Data labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="dataLabelsFontSize" name="dataLabelsFontSize" value="10" required>');
                                     newInnerDiv.append(newInput);
@@ -12657,7 +12663,7 @@
                                     newInput.show();
 
                                     //Data labels font color
-                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label">Data labels font color</label>');
+                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label"><?php echo _("Data labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="dataLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="dataLabelsFontColor" name="dataLabelsFontColor" required><span class="input-group-addon"><i id="widgetDataLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -12824,7 +12830,7 @@
                                     //Set thresholds
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
                                     newSelect.append('<option value="yes">Yes</option>');
@@ -12841,7 +12847,7 @@
                                     $('#alrThrSel').change(alrThrSelListener);
                                     
                                     //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                    newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label">Thresholds target set</label>');
+                                    newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                     newSelect = $('<select class="form-control" id="alrAxisSel" name="alrAxisSel"></select>');
                                     if (series) {
                                         newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
@@ -12859,7 +12865,7 @@
                                     //Threshold field select
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label">Thresholds target field</label>');
+                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                     newSelect = $('<select class="form-control" id="alrFieldSel" name="alrFieldSel">');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInnerDiv.append(newSelect);
@@ -12981,7 +12987,7 @@
                                     //Rows labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label">Rows labels font size</label>');
+                                    newLabel = $('<label for="rowsLabelsFontSize" class="col-md-2 control-label"><?php echo _("Rows labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSize" name="rowsLabelsFontSize" value="10" required> ');
                                     newInnerDiv.append(newInput);
@@ -12992,7 +12998,7 @@
                                     newInput.show();
                                     
                                     //Rows labels font color
-                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label">Rows labels font color</label>');
+                                    newLabel = $('<label for="rowsLabelsFontColor" class="col-md-2 control-label"><?php echo _("Rows labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="rowsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColor" name="rowsLabelsFontColor" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -13009,7 +13015,7 @@
                                     //Cols labels font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="colsLabelsFontSize" class="col-md-2 control-label">Cols labels font size</label>');
+                                    newLabel = $('<label for="colsLabelsFontSize" class="col-md-2 control-label"><?php echo _("Cols labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="colsLabelsFontSize" name="colsLabelsFontSize" value="10" required>');
                                     newInnerDiv.append(newInput);
@@ -13020,7 +13026,7 @@
                                     newInput.show();
                                     
                                     //Cols labels font color
-                                    newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label">Cols labels font color</label>');
+                                    newLabel = $('<label for="colsLabelsFontColor" class="col-md-2 control-label"><?php echo _("Cols labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="colsLabelsFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="colsLabelsFontColor" name="colsLabelsFontColor" required><span class="input-group-addon"><i id="widgetColsLabelsFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -13100,7 +13106,7 @@
                                     //Set thresholds
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+                                    newLabel = $('<label for="alrThrSel" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
                                     newSelect.append('<option value="yes">Yes</option>');
@@ -13117,7 +13123,7 @@
                                     $('#alrThrSel').change(alrThrSelListener);
                                     
                                     //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                    newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label">Thresholds target set</label>');
+                                    newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                     newSelect = $('<select class="form-control" id="alrAxisSel" name="alrAxisSel"></select>');
                                     newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                     newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
@@ -13134,7 +13140,7 @@
                                     //Threshold field select
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label">Thresholds target field</label>');
+                                    newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                     newSelect = $('<select class="form-control" id="alrFieldSel" name="alrFieldSel">');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInnerDiv.append(newSelect);
@@ -13259,7 +13265,7 @@
                                     //Default tab
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="inputDefaultTab" class="col-md-2 control-label">Default tab</label>');
+                                    newLabel = $('<label for="inputDefaultTab" class="col-md-2 control-label"><?php echo _("Default tab"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="inputDefaultTab" name="inputDefaultTab"></select>');
                                     newSelect.append('<option value="0">General</option>');
@@ -13273,7 +13279,7 @@
                                     newSelect.show();
                                     
                                     //Meteo tab font size
-                                    newLabel = $('<label for="meteoTabFontSize" class="col-md-2 control-label">Meteo tab font size</label>');
+                                    newLabel = $('<label for="meteoTabFontSize" class="col-md-2 control-label"><?php echo _("Meteo tab font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="meteoTabFontSize" name="meteoTabFontSize"></input>');
                                     newInput.val("10");
@@ -13288,7 +13294,7 @@
                                     //General tab font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="genTabFontSize" class="col-md-2 control-label">General tab font size</label>');
+                                    newLabel = $('<label for="genTabFontSize" class="col-md-2 control-label"><?php echo _("General tab font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="genTabFontSize" name="genTabFontSize"></input>');
                                     newInput.val("12");
@@ -13300,7 +13306,7 @@
                                     newInput.show();
                                     
                                     //General tab font color
-                                    newLabel = $('<label for="genTabFontColor" class="col-md-2 control-label">General tab font color</label>');
+                                    newLabel = $('<label for="genTabFontColor" class="col-md-2 control-label"><?php echo _("General tab font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="genTabFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="genTabFontColor" name="genTabFontColor" required><span class="input-group-addon"><i id="widgetGenTabFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -13371,7 +13377,7 @@
                                     //Default tab
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="inputDefaultTab" class="col-md-2 control-label">Default tab</label>');
+                                    newLabel = $('<label for="inputDefaultTab" class="col-md-2 control-label"><?php echo _("Default tab"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="inputDefaultTab" name="inputDefaultTab"></select>');
                                     newSelect.append('<option value="0">General</option>');
@@ -13385,7 +13391,7 @@
                                     newSelect.show();
 
                                     //Meteo tab font size
-                                    newLabel = $('<label for="meteoTabFontSize" class="col-md-2 control-label">Meteo tab font size</label>');
+                                    newLabel = $('<label for="meteoTabFontSize" class="col-md-2 control-label"><?php echo _("Meteo tab font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="meteoTabFontSize" name="meteoTabFontSize"></input>');
                                     newInput.val("10");
@@ -13400,7 +13406,7 @@
                                     //General tab font size
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="genTabFontSize" class="col-md-2 control-label">General tab font size</label>');
+                                    newLabel = $('<label for="genTabFontSize" class="col-md-2 control-label"><?php echo _("General tab font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="genTabFontSize" name="genTabFontSize"></input>');
                                     newInput.val("12");
@@ -13412,7 +13418,7 @@
                                     newInput.show();
 
                                     //General tab font color
-                                    newLabel = $('<label for="genTabFontColor" class="col-md-2 control-label">General tab font color</label>');
+                                    newLabel = $('<label for="genTabFontColor" class="col-md-2 control-label"><?php echo _("General tab font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<div id="genTabFontColorContainer" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="genTabFontColor" name="genTabFontColor" required><span class="input-group-addon"><i id="widgetGenTabFontColor"></i></span></div>');
                                     newInnerDiv.append(newInput);
@@ -13475,7 +13481,7 @@
                                     //Nuova riga
                                     //Border radius and button image yes/no
                                     newFormRow = $('<div class="row"></div>');
-                                    newLabel = $('<label for="addWidgetBtnRadius" class="col-md-2 control-label">Border radius</label>');
+                                    newLabel = $('<label for="addWidgetBtnRadius" class="col-md-2 control-label"><?php echo _("Border radius"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     var newControl = $('<input id="addWidgetBtnRadius" name="addWidgetBtnRadius" data-slider-id="addWidgetBtnRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="0"/>');
                                     newInnerDiv.append(newControl);
@@ -13487,7 +13493,7 @@
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
                                     
-                                    newLabel = $('<label for="addWidgetBtnImgSelect" class="col-md-2 control-label">Button image</label>');
+                                    newLabel = $('<label for="addWidgetBtnImgSelect" class="col-md-2 control-label"><?php echo _("Button image"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select id="addWidgetBtnImgSelect" name="addWidgetBtnImgSelect" class="form-control"></select>');
                                     newSelect.append('<option value="yes">Yes</option>');
@@ -13502,7 +13508,7 @@
                                     //Button image file chooser
                                     newFormRow = $('<div class="row"></div>');
                                     newFormRow.hide();
-                                    newLabel = $('<label for="addWidgetBtnFile" class="col-md-2 control-label">Image file</label>');
+                                    newLabel = $('<label for="addWidgetBtnFile" class="col-md-2 control-label"><?php echo _("Image file"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-8"></div>');
                                     var btnImgMaxSize = $('<input type="hidden" name="MAX_FILE_SIZE" value="1000000" />');
                                     newInnerDiv.append(btnImgMaxSize);
@@ -13523,7 +13529,7 @@
                                     //Button image width and height
                                     newFormRow = $('<div class="row"></div>');
                                     newFormRow.hide();
-                                    newLabel = $('<label for="addWidgetBtnImgWidth" class="col-md-2 control-label">Image width</label>');
+                                    newLabel = $('<label for="addWidgetBtnImgWidth" class="col-md-2 control-label"><?php echo _("Image width"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     var newControl = $('<input id="addWidgetBtnImgWidth" name="addWidgetBtnImgWidth" data-slider-id="addWidgetBtnImgWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="100"/>');
                                     newInnerDiv.append(newControl);
@@ -13536,7 +13542,7 @@
                                     newFormRow.append(newInnerDiv);
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     
-                                    newLabel = $('<label for="addWidgetBtnImgHeight" class="col-md-2 control-label">Image height</label>');
+                                    newLabel = $('<label for="addWidgetBtnImgHeight" class="col-md-2 control-label"><?php echo _("Image height"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     var newControl = $('<input id="addWidgetBtnImgHeight" name="addWidgetBtnImgHeight" data-slider-id="addWidgetBtnImgHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="100"/>');
                                     newInnerDiv.append(newControl);
@@ -13598,13 +13604,13 @@
                                     }
                                     else
                                     {
-                                       newInnerDiv.append('<span id="addWidgetChangeMetricWidgetsNoneMsg">None</span>');
+                                       newInnerDiv.append('<span id="addWidgetChangeMetricWidgetsNoneMsg"><? _("None")?></span>');
                                     }
                                     
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
                                     
-                                    newLabel = $('<label for="addWidgetChangeMetricMetrics" class="col-md-2 control-label">Available metrics for selected widget</label>');
+                                    newLabel = $('<label for="addWidgetChangeMetricMetrics" class="col-md-2 control-label"><? _("Available metrics for selected widget")?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="addWidgetChangeMetricMetrics" class="form-control" id="addWidgetChangeMetricMetrics"></select>');
                                     newInnerDiv.append(newSelect);
@@ -13644,7 +13650,7 @@
                                                         }
                                                         else
                                                         {
-                                                            $("#addWidgetChangeMetricMetrics").append('<option value="noMetricChange">No metric change</option>');
+                                                            $("#addWidgetChangeMetricMetrics").append('<option value="noMetricChange"><? _("No metric change")?></option>');
                                                             for(var i = 0; i < metricsList.length; i++)
                                                             {
                                                                 $("#addWidgetChangeMetricMetrics").append('<option value="' + metricsList[i] + '">' + metricsList[i] + '</option>');
@@ -13686,7 +13692,7 @@
                                     //Show/hide text + target widgets per geolocation
                                     newFormRow = $('<div class="row"></div>');
                                     
-                                    newLabel = $('<label for="addWidgetShowButtonText" class="col-md-2 control-label">Show button text</label>');
+                                    newLabel = $('<label for="addWidgetShowButtonText" class="col-md-2 control-label"><? _("Show button text")?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="addWidgetShowButtonText" class="form-control" id="addWidgetShowButtonText"></select>');
                                     newSelect.append('<option value="yes">Yes</option>');
@@ -13695,7 +13701,7 @@
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);
                                     
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available widgets to show link content</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><? _("Available widgets to show link content")?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select name="addWidgetGeolocationWidgets" class="form-control" id="addWidgetGeolocationWidgets" multiple></select>');
 
@@ -14064,7 +14070,7 @@
                                     newFormRow.append(newInnerDiv);
                                     
                                     //Data labels font size
-                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label">Data labels font size</label>');
+                                    newLabel = $('<label for="dataLabelsFontSize" class="col-md-2 control-label"><?php echo _("Data labels font size"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="dataLabelsFontSize" name="dataLabelsFontSize" value="10" required>');
                                     newInnerDiv.append(newInput);
@@ -14098,7 +14104,7 @@
                                     //Data labels font color
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label">Data labels font color</label>');
+                                    newLabel = $('<label for="dataLabelsFontColor" class="col-md-2 control-label"><?php echo _("Data labels font color"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInputGroup = $('<div class="input-group color-choice">');
                                     newInput = $('<input type="text" class="form-control" id="dataLabelsFontColor" name="dataLabelsFontColor" value="#000000" required>');
@@ -14113,7 +14119,7 @@
                                     //Inner radius 1
                                     if(metricType.indexOf('Percentuale') >= 0)
                                     {
-                                        newLabel = $('<label for="innerRadius1" class="col-md-2 control-label">Inner radius (%)</label>');
+                                        newLabel = $('<label for="innerRadius1" class="col-md-2 control-label"><?php echo _("Inner radius (%)"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="innerRadius1" name="innerRadius1" value="0" required>');
                                     }
@@ -14154,7 +14160,7 @@
                                     //Start angle
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="startAngle" class="col-md-2 control-label">Start angle (°)</label>');
+                                    newLabel = $('<label for="startAngle" class="col-md-2 control-label"><?php echo _("Start angle (°)"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="startAngle" name="startAngle" value="0" required>');
                                     newInnerDiv.append(newInput);
@@ -14162,7 +14168,7 @@
                                     newFormRow.append(newInnerDiv);
                                     
                                     //End angle
-                                    newLabel = $('<label for="endAngle" class="col-md-2 control-label">End angle (°)</label>');
+                                    newLabel = $('<label for="endAngle" class="col-md-2 control-label"><?php echo _("End angle (°)"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="endAngle" name="endAngle" value="360" required>');
                                     newInnerDiv.append(newInput);
@@ -14173,7 +14179,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     //Center Y
-                                    newLabel = $('<label for="centerY" class="col-md-2 control-label">Diagram center Y(%)</label>');
+                                    newLabel = $('<label for="centerY" class="col-md-2 control-label"><?php echo _("Diagram center Y(%)"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="centerY" name="centerY" value="50" required>');
                                     newInnerDiv.append(newInput);
@@ -14183,7 +14189,7 @@
                                     //Select per colori automatici/manuali
                                     if(metricType.indexOf('Percentuale') >= 0)
                                     {
-                                        newLabel = $('<label for="colorsSelect1" class="col-md-2 control-label">Slices colors</label>');
+                                        newLabel = $('<label for="colorsSelect1" class="col-md-2 control-label"><?php echo _("Slices colors"); ?></label>');
                                     }
                                     else if(metricType === 'Series')
                                     {
@@ -14417,7 +14423,7 @@
                                         //Set thresholds
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                        newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+                                        newLabel = $('<label for="alrThrSel" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -14434,7 +14440,7 @@
                                         $('#alrThrSel').change(alrThrSelListenerSimple);
                                         
                                         //Threshold field select
-                                        newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label">Thresholds target field</label>');
+                                        newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrFieldSel" name="alrFieldSel">');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInnerDiv.append(newSelect);
@@ -14464,7 +14470,7 @@
                                         //Set thresholds
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                        newLabel = $('<label for="alrThrSel" class="col-md-2 control-label">Set thresholds</label>');
+                                        newLabel = $('<label for="alrThrSel" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="alrThrSel" name="alrThrSel" required>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -14481,7 +14487,7 @@
                                         $('#alrThrSel').change(alrThrSelListener);
 
                                         //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                        newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label">Thresholds target set</label>');
+                                        newLabel = $('<label for="alrAxisSel" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="alrAxisSel" name="alrAxisSel"></select>');
                                         newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
@@ -14497,7 +14503,7 @@
                                         //Threshold field select
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                        newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label">Thresholds target field</label>');
+                                        newLabel = $('<label for="alrFieldSel" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrFieldSel" name="alrFieldSel">');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInnerDiv.append(newSelect);
@@ -14741,7 +14747,7 @@
                                     //Widget mode
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="widgetEventsMode" class="col-md-2 control-label">Widget mode</label>');
+                                    newLabel = $('<label for="widgetEventsMode" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="widgetEventsMode" name="widgetEventsMode"></select>');
                                     newSelect.append('<option value="list">List</option>');
@@ -14757,7 +14763,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
                                     
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
                                     
@@ -14798,7 +14804,7 @@
                                     {
                                        newSelect.show();
                                        newSelect.val(-1);
-                                       newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                       newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
                                        eventTypeSelect.append('<option value="Altri eventi">Altri eventi</option>');
@@ -14895,7 +14901,7 @@
                                     //Widget mode
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="widgetEventsMode" class="col-md-2 control-label">Widget mode</label>');
+                                    newLabel = $('<label for="widgetEventsMode" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="widgetEventsMode" name="widgetEventsMode"></select>');
                                     newSelect.append('<option value="list">List</option>');
@@ -14911,7 +14917,7 @@
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
 
-                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                    newLabel = $('<label for="addWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="addWidgetGeolocationWidgets" name="addWidgetGeolocationWidgets"></select>');
 
@@ -14950,7 +14956,7 @@
                                     if (widgetsNumber > 0) {
                                         newSelect.show();
                                         newSelect.val(-1);
-                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                        newLabel = $('<label for="addWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         var eventTypeSelect = $('<select name="addWidgetEventTypes" class="form-control" id="addWidgetEventTypes" multiple></select>');
                                         eventTypeSelect.append('<option value="Altri eventi">Altri eventi</option>');
@@ -15040,7 +15046,7 @@
                                     //Default tab
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="inputDefaultTab" class="col-md-2 control-label">Default tab</label>');
+                                    newLabel = $('<label for="inputDefaultTab" class="col-md-2 control-label"><?php echo _("Default tab"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="inputDefaultTab" name="inputDefaultTab"></select>');
                                     newSelect.append('<option value="0">Trends</option>');
@@ -15124,7 +15130,7 @@
                                     //Orientation
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="orientation" class="col-md-2 control-label">Widget mode</label>');
+                                    newLabel = $('<label for="orientation" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="orientation" name="orientation"></select>');
                                     newSelect.append('<option value="horizontal">Horizontal</option>');
@@ -15315,7 +15321,7 @@
                                     //Default tab
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="inputDefaultTab" class="col-md-2 control-label">Default tab</label>');
+                                    newLabel = $('<label for="inputDefaultTab" class="col-md-2 control-label"><?php echo _("Default tab"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="inputDefaultTab" name="inputDefaultTab"></select>');
                                     newSelect.append('<option value="0">Stato</option>');
@@ -15377,7 +15383,7 @@
                                     //Modalità del widget (none, map, gis, link esterno, selector Web)
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="widgetMode" class="col-md-2 control-label">Widget mode</label>');
+                                    newLabel = $('<label for="widgetMode" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="widgetMode" name="widgetMode"></select>');
                                     newSelect.append('<option value="link">Web link</option>');
@@ -15469,7 +15475,7 @@
                                     newFormRow.append(newLabel);
                                     newFormRow.append(newInnerDiv);                                    
                                     //Zoom factor
-                                    newLabel = $('<label for="inputZoomFactor" class="col-md-2 control-label">Zoom factor (%)</label>');
+                                    newLabel = $('<label for="inputZoomFactor" class="col-md-2 control-label"><?php echo _("Zoom factor (%)"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="inputZoomFactor" name="inputZoomFactor" required>');
                                     newInput.val(100);
@@ -15484,14 +15490,14 @@
                                     newLabel = $('<label for="inputControlsPosition" class="col-md-2 control-label">Zoom controls position</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="inputControlsPosition" name="inputControlsPosition"></select>');
-                                    newSelect.append('<option value="topLeft">Top left</option>');
-                                    newSelect.append('<option value="topCenter">Top center</option>');
-                                    newSelect.append('<option value="topRight">Top right</option>');
-                                    newSelect.append('<option value="middleRight">Middle right</option>');
-                                    newSelect.append('<option value="bottomRight">Bottom right</option>');
-                                    newSelect.append('<option value="bottomMiddle">Bottom middle</option>');
-                                    newSelect.append('<option value="bottomLeft">Bottom left</option>');
-                                    newSelect.append('<option value="middleLeft">Middle left</option>');
+                                    newSelect.append('<option value="topLeft"><?php echo _("Top left"); ?></option>');
+                                    newSelect.append('<option value="topCenter"><?php echo _("Top center"); ?></option>');
+                                    newSelect.append('<option value="topRight"><?php echo _("Top right"); ?></option>');
+                                    newSelect.append('<option value="middleRight"><?php echo _("Middle right"); ?></option>');
+                                    newSelect.append('<option value="bottomRight"><?php echo _("Bottom right"); ?></option>');
+                                    newSelect.append('<option value="bottomMiddle"><?php echo _("Bottom middle"); ?></option>');
+                                    newSelect.append('<option value="bottomLeft"><?php echo _("Bottom left"); ?></option>');
+                                    newSelect.append('<option value="middleLeft"><?php echo _("Middle left"); ?></option>');
                                     newSelect.val("topLeft");
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
@@ -15695,7 +15701,7 @@
                                     //Modalità del widget (none, map, gis, link esterno, selector Web)
                                     newFormRow = $('<div class="row"></div>');
                                     $("#specificWidgetPropertiesDiv").append(newFormRow);
-                                    newLabel = $('<label for="widgetMode" class="col-md-2 control-label">Widget mode</label>');
+                                    newLabel = $('<label for="widgetMode" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="widgetMode" name="widgetMode"></select>');
                                     newSelect.append('<option value="link">Web link</option>');
@@ -15797,7 +15803,7 @@
                                     newFormRow.append(newInnerDiv);
                                     
                                     //Zoom factor
-                                    newLabel = $('<label for="inputZoomFactor" class="col-md-2 control-label">Zoom factor (%)</label>');
+                                    newLabel = $('<label for="inputZoomFactor" class="col-md-2 control-label"><?php echo _("Zoom factor (%)"); ?></label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newInput = $('<input type="text" class="form-control" id="inputZoomFactor" name="inputZoomFactor" required>');
                                     newInput.val(100);
@@ -15813,14 +15819,14 @@
                                     newLabel = $('<label for="inputControlsPosition" class="col-md-2 control-label">Zoom controls position</label>');
                                     newInnerDiv = $('<div class="col-md-3"></div>');
                                     newSelect = $('<select class="form-control" id="inputControlsPosition" name="inputControlsPosition"></select>');
-                                    newSelect.append('<option value="topLeft">Top left</option>');
-                                    newSelect.append('<option value="topCenter">Top center</option>');
-                                    newSelect.append('<option value="topRight">Top right</option>');
-                                    newSelect.append('<option value="middleRight">Middle right</option>');
-                                    newSelect.append('<option value="bottomRight">Bottom right</option>');
-                                    newSelect.append('<option value="bottomMiddle">Bottom middle</option>');
-                                    newSelect.append('<option value="bottomLeft">Bottom left</option>');
-                                    newSelect.append('<option value="middleLeft">Middle left</option>');
+                                    newSelect.append('<option value="topLeft"><?php echo _("Top left"); ?></option>');
+                                    newSelect.append('<option value="topCenter"><?php echo _("Top center"); ?></option>');
+                                    newSelect.append('<option value="topRight"><?php echo _("Top right"); ?></option>');
+                                    newSelect.append('<option value="middleRight"><?php echo _("Middle right"); ?></option>');
+                                    newSelect.append('<option value="bottomRight"><?php echo _("Bottom right"); ?></option>');
+                                    newSelect.append('<option value="bottomMiddle"><?php echo _("Bottom middle"); ?></option>');
+                                    newSelect.append('<option value="bottomLeft"><?php echo _("Bottom left"); ?></option>');
+                                    newSelect.append('<option value="middleLeft"><?php echo _("Middle left"); ?></option>');
                                     newSelect.val("topLeft");
                                     newInnerDiv.append(newSelect);
                                     newFormRow.append(newLabel);
@@ -16512,8 +16518,8 @@
                             $("#dashboardSubtitle").css("color", headerFontColor);
                             if(dashboardParams.subtitle_header==null || dashboardParams.subtitle_header.trim() === '')
                             {
-                                $("#dashboardSubtitle span").text('No subtitle');
-                                $("#dashboardSubtitle").attr('data-currentSubtitle', 'No subtitle');
+                                $("#dashboardSubtitle span").text("No subtitle");
+                                $("#dashboardSubtitle").attr('data-currentSubtitle', "No subtitle");
                             }
                             else
                             {
@@ -16807,7 +16813,7 @@
                                         //Ripristino eventuale titolo dashboard lasciato a mezzo
                                         if($("#dashboardTitle span").html().trim() === '')
                                         {
-                                            $("#dashboardSubtitle span").html('No subtitle');
+                                            $("#dashboardSubtitle span").html("No subtitle");
                                         }
                                         else
                                         {
@@ -16821,7 +16827,7 @@
                                         //Ripristino eventuale sottotitolo dashboard lasciato a mezzo
                                         if($("#dashboardSubtitle span").html().trim() === '')
                                         {
-                                            $("#dashboardSubtitle span").html('No subtitle');
+                                            $("#dashboardSubtitle span").html("No subtitle");
                                         }
                                         else
                                         {
@@ -16960,6 +16966,14 @@
                                 {
                                     time = "30/DAY";
                                 }
+                                else if (dashboardWidgets[i]['temporal_range_w'] === "10 Anni")
+                                {
+                                    time = "3650/DAY";
+                                }
+                                else if (dashboardWidgets[i]['temporal_range_w'] === "2 Anni")
+                                {
+                                    time = "730/DAY";
+                                }
                                 else if (dashboardWidgets[i]['temporal_range_w'] === "Semestrale")
                                 {
                                     time = "180/DAY";
@@ -17055,14 +17069,14 @@
                                     dataType: 'json',
                                     success: function (data) {
                                         if (data.detail !== 'Ok') {
-                                            alert("Error while updating dashboard scaleFactor");
+                                            alert('<?= _("Error while updating dashboard scaleFactor") ?>');
                                         } else {
                                             // OK
                                             console.log("Succesfully updated new Grid Dimensions for current dashboard.");
                                         }
                                     },
                                     error: function (errorData) {
-                                        alert("Error while updating dashboard scaleFactor");
+                                        alert('<?= _("Error while updating dashboard scaleFactor") ?>');
                                     }
                                 });
                             }
@@ -17856,7 +17870,7 @@
                                                 newFormRow = $('<div class="row"></div>');
                                                 $('#specificParamsM').append(newFormRow);
                                                 
-                                                newLabel = $('<label for="editKeyboardDisplayColor" class="col-md-2 control-label">Display color</label>');
+                                                newLabel = $('<label for="editKeyboardDisplayColor" class="col-md-2 control-label"><?php echo _("Display color"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<div class="input-group colorPicker" id="editKeyboardDisplayColor"><input type="text" name="editKeyboardDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                                 newInput.colorpicker({color: styleParameters.displayColor, format: "rgba"});
@@ -18035,14 +18049,14 @@
                                                 $('#specificParamsM').append(newFormRow);
 
                                                 newFormRow = $('<div class="row"></div>');
-                                                newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                                newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<input type="text" id="editSwitchButtonTextFontSize" name="editSwitchButtonTextFontSize" class="form-control" value="' + styleParameters.textFontSize + '"></input>');
                                                 newInnerDiv.append(newInput);
                                                 newFormRow.append(newLabel);
                                                 newFormRow.append(newInnerDiv); 
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<input type="text" id="editSwitchButtonDisplayFontSize" name="editSwitchButtonDisplayFontSize" class="form-control" value="' + styleParameters.displayFontSize +'"></input>');
                                                 newInnerDiv.append(newInput);
@@ -18053,7 +18067,7 @@
 
                                                 newFormRow = $('<div class="row"></div>');
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayFontColor" class="col-md-2 control-label">Display text color</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayFontColor" class="col-md-2 control-label"><?php echo _("Display text color"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayFontColor"><input type="text" name="editSwitchButtonDisplayFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                                 newInput.colorpicker({color: styleParameters.displayFontColor, format: "rgba"});
@@ -18074,7 +18088,7 @@
                                                 newFormRow = $('<div class="row"></div>');
                                                 $('#specificParamsM').append(newFormRow);
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayColor"><input type="text" name="editSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                                 newInput.colorpicker({color: styleParameters.displayColor, format: "rgba"});
@@ -18082,7 +18096,7 @@
                                                 newFormRow.append(newLabel);
                                                 newFormRow.append(newInnerDiv); 
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newControl = $('<input id="editSwitchButtonDisplayRadius" name="editSwitchButtonDisplayRadius" data-slider-id="editSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                                 newInnerDiv.append(newControl);
@@ -18099,7 +18113,7 @@
                                                 newFormRow = $('<div class="row"></div>');
                                                 $('#specificParamsM').append(newFormRow);
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newControl = $('<input id="editSwitchButtonDisplayWidth" name="editSwitchButtonDisplayWidth" data-slider-id="editSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                                 newInnerDiv.append(newControl);
@@ -18113,7 +18127,7 @@
                                                     value: styleParameters.displayWidth   
                                                 });
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newControl = $('<input id="editSwitchButtonDisplayHeight" name="editSwitchButtonDisplayHeight" data-slider-id="editSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                                 newInnerDiv.append(newControl);
@@ -18288,14 +18302,14 @@
                                             $('#specificParamsM').append(newFormRow);
                                             
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                            newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" id="editSwitchButtonTextFontSize" name="editSwitchButtonTextFontSize" class="form-control" value="' + styleParameters.textFontSize + '"></input>');
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv); 
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" id="editSwitchButtonDisplayFontSize" name="editSwitchButtonDisplayFontSize" class="form-control" value="' + styleParameters.displayFontSize +'"></input>');
                                             newInnerDiv.append(newInput);
@@ -18306,7 +18320,7 @@
                                             
                                             newFormRow = $('<div class="row"></div>');
                                 
-                                            newLabel = $('<label for="editSwitchButtonDisplayFontColor" class="col-md-2 control-label">Display text color</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayFontColor" class="col-md-2 control-label"><?php echo _("Display text color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayFontColor"><input type="text" name="editSwitchButtonDisplayFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.displayFontColor, format: "rgba"});
@@ -18327,7 +18341,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $('#specificParamsM').append(newFormRow);
                                             
-                                            newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayColor"><input type="text" name="editSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.displayColor, format: "rgba"});
@@ -18335,7 +18349,7 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv); 
                                             
-                                            newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newControl = $('<input id="editSwitchButtonDisplayRadius" name="editSwitchButtonDisplayRadius" data-slider-id="editSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -18352,7 +18366,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $('#specificParamsM').append(newFormRow);
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newControl = $('<input id="editSwitchButtonDisplayWidth" name="editSwitchButtonDisplayWidth" data-slider-id="editSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -18366,7 +18380,7 @@
                                                 value: styleParameters.displayWidth   
                                             });
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newControl = $('<input id="editSwitchButtonDisplayHeight" name="editSwitchButtonDisplayHeight" data-slider-id="editSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -18529,14 +18543,14 @@
                                                 $('#specificParamsM').append(newFormRow);
 
                                                 newFormRow = $('<div class="row"></div>');
-                                                newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                                newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<input type="text" id="editSwitchButtonTextFontSize" name="editSwitchButtonTextFontSize" class="form-control" value="' + styleParameters.textFontSize + '"></input>');
                                                 newInnerDiv.append(newInput);
                                                 newFormRow.append(newLabel);
                                                 newFormRow.append(newInnerDiv); 
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<input type="text" id="editSwitchButtonDisplayFontSize" name="editSwitchButtonDisplayFontSize" class="form-control" value="' + styleParameters.displayFontSize +'"></input>');
                                                 newInnerDiv.append(newInput);
@@ -18547,7 +18561,7 @@
 
                                                 newFormRow = $('<div class="row"></div>');
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayOffColor" class="col-md-2 control-label">Off display text color</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayOffColor" class="col-md-2 control-label"><?php echo _("Off display text color"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayOffColor"><input type="text" name="editSwitchButtonDisplayOffColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                                 newInput.colorpicker({color: styleParameters.displayOffColor, format: "rgba"});
@@ -18555,7 +18569,7 @@
                                                 newFormRow.append(newLabel);
                                                 newFormRow.append(newInnerDiv); 
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayOnColor" class="col-md-2 control-label">On display text color</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayOnColor" class="col-md-2 control-label"><?php echo _("On display text color"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayOnColor"><input type="text" name="editSwitchButtonDisplayOnColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                                 newInput.colorpicker({color: styleParameters.displayOnColor, format: "rgba"});
@@ -18568,7 +18582,7 @@
                                                 newFormRow = $('<div class="row"></div>');
                                                 $('#specificParamsM').append(newFormRow);
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayColor"><input type="text" name="editSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                                 newInput.colorpicker({color: styleParameters.displayColor, format: "rgba"});
@@ -18576,7 +18590,7 @@
                                                 newFormRow.append(newLabel);
                                                 newFormRow.append(newInnerDiv); 
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newControl = $('<input id="editSwitchButtonDisplayRadius" name="editSwitchButtonDisplayRadius" data-slider-id="editSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                                 newInnerDiv.append(newControl);
@@ -18593,7 +18607,7 @@
                                                 newFormRow = $('<div class="row"></div>');
                                                 $('#specificParamsM').append(newFormRow);
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newControl = $('<input id="editSwitchButtonDisplayWidth" name="editSwitchButtonDisplayWidth" data-slider-id="editSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                                 newInnerDiv.append(newControl);
@@ -18607,7 +18621,7 @@
                                                     value: styleParameters.displayWidth   
                                                 });
 
-                                                newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                                newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-4"></div>');
                                                 newControl = $('<input id="editSwitchButtonDisplayHeight" name="editSwitchButtonDisplayHeight" data-slider-id="editSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                                 newInnerDiv.append(newControl);
@@ -18682,14 +18696,14 @@
 
                                             newFormRow = $('<div class="row"></div>');
 
-                                            newLabel = $('<label for="editKnobIndicatorRadius" class="col-md-2 control-label">Indicator radius (%)</label>');
+                                            newLabel = $('<label for="editKnobIndicatorRadius" class="col-md-2 control-label"><?php echo _("Indicator radius (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             var newControl = $('<input id="editKnobIndicatorRadius" name="editKnobIndicatorRadius" data-slider-id="editKnobIndicatorRadiusSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label for="editKnobDisplayRadius" class="col-md-2 control-label">Value display radius (%)</label>');
+                                            newLabel = $('<label for="editKnobDisplayRadius" class="col-md-2 control-label"><?php echo _("Value display radius (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             var newControl = $('<input id="editKnobDisplayRadius" name="editKnobDisplayRadius" data-slider-id="editKnobDisplayRadiusSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -18713,14 +18727,14 @@
                                             });
 
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editKnobStartAngle" class="col-md-2 control-label">Start angle</label>');
+                                            newLabel = $('<label for="editKnobStartAngle" class="col-md-2 control-label"><?php echo _("Start angle"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobStartAngle" class="form-control" value="' + styleParameters.startAngle + '" id="editKnobStartAngle"/>');
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label for="editKnobEndAngle" class="col-md-2 control-label">End angle</label>');
+                                            newLabel = $('<label for="editKnobEndAngle" class="col-md-2 control-label"><?php echo _("End angle"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newInput = $('<input type="text" name="editKnobEndAngle" class="form-control" value="' + styleParameters.endAngle + '" id="editKnobEndAngle"/>');
                                             newInnerDiv.append(newInput);
@@ -18731,7 +18745,7 @@
 
                                             newFormRow = $('<div class="row"></div>');
                                             
-                                            newLabel = $('<label for="editKnobDisplayColor" class="col-md-2 control-label">Display color</label>');
+                                            newLabel = $('<label for="editKnobDisplayColor" class="col-md-2 control-label"><?php echo _("Display color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editKnobDisplayColor"><input type="text" name="editKnobDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.displayColor, format: "rgba"});
@@ -18741,7 +18755,7 @@
                                             $('#specificParamsM').append(newFormRow);
 
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editKnobMinValue" class="col-md-2 control-label">Min value</label>');
+                                            newLabel = $('<label for="editKnobMinValue" class="col-md-2 control-label"><?php echo _("Min value"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobMinValue" class="form-control" id="editKnobMinValue" data-param="editKnobMinValue" required/>');
                                             newInput.val(currentParams.minValue);
@@ -18749,7 +18763,7 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label for="editKnobMaxValue" class="col-md-2 control-label">Max value</label>');
+                                            newLabel = $('<label for="editKnobMaxValue" class="col-md-2 control-label"><?php echo _("Max value"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobMaxValue" class="form-control" id="editKnobMaxValue" data-param="editKnobMaxValue" required/>');
                                             newInput.val(currentParams.maxValue);
@@ -18760,14 +18774,14 @@
                                             $('#specificParamsM').append(newFormRow);
                                             
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editKnobLabelsFontSize" class="col-md-2 control-label">Labels font size</label>');
+                                            newLabel = $('<label for="editKnobLabelsFontSize" class="col-md-2 control-label"><?php echo _("Labels font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobLabelsFontSize" class="form-control" id="editKnobLabelsFontSize" value="' + styleParameters.labelsFontSize + '" data-param="editKnobLabelsFontSize"/>');
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label for="editKnobLabelsFontColor" class="col-md-2 control-label">Labels font color</label>');
+                                            newLabel = $('<label for="editKnobLabelsFontColor" class="col-md-2 control-label"><?php echo _("Labels font color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editKnobLabelsFontColor"><input type="text" name="editKnobLabelsFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.labelsFontColor, format: "rgba"});
@@ -18778,7 +18792,7 @@
                                             $('#specificParamsM').append(newFormRow);
                                             
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editKnobIncreaseValue" class="col-md-2 control-label">Increase value</label>');
+                                            newLabel = $('<label for="editKnobIncreaseValue" class="col-md-2 control-label"><?php echo _("Increase value"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobIncreaseValue" class="form-control" id="editKnobIncreaseValue" value="' + styleParameters.increaseValue + '" data-param="editKnobIncreaseValue"/>');
                                             newInnerDiv.append(newInput);
@@ -19189,14 +19203,14 @@
                                             $('#specificParamsM').append(newFormRow);
                                             
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                            newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" id="editSwitchButtonTextFontSize" name="editSwitchButtonTextFontSize" class="form-control" value="' + styleParameters.textFontSize + '"></input>');
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv); 
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" id="editSwitchButtonDisplayFontSize" name="editSwitchButtonDisplayFontSize" class="form-control" value="' + styleParameters.displayFontSize +'"></input>');
                                             newInnerDiv.append(newInput);
@@ -19207,7 +19221,7 @@
                                             
                                             newFormRow = $('<div class="row"></div>');
                                 
-                                            newLabel = $('<label for="editSwitchButtonDisplayFontColor" class="col-md-2 control-label">Display text color</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayFontColor" class="col-md-2 control-label"><?php echo _("Display text color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayFontColor"><input type="text" name="editSwitchButtonDisplayFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.displayFontColor, format: "rgba"});
@@ -19228,7 +19242,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $('#specificParamsM').append(newFormRow);
                                             
-                                            newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayColor"><input type="text" name="editSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.displayColor, format: "rgba"});
@@ -19236,7 +19250,7 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv); 
                                             
-                                            newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newControl = $('<input id="editSwitchButtonDisplayRadius" name="editSwitchButtonDisplayRadius" data-slider-id="editSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -19253,7 +19267,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $('#specificParamsM').append(newFormRow);
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newControl = $('<input id="editSwitchButtonDisplayWidth" name="editSwitchButtonDisplayWidth" data-slider-id="editSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -19267,7 +19281,7 @@
                                                 value: styleParameters.displayWidth   
                                             });
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newControl = $('<input id="editSwitchButtonDisplayHeight" name="editSwitchButtonDisplayHeight" data-slider-id="editSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -19468,14 +19482,14 @@
                                             $('#specificParamsM').append(newFormRow);
                                             
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label">Text font size</label>');
+                                            newLabel = $('<label for="editSwitchButtonTextFontSize" class="col-md-2 control-label"><?php echo _("Text font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" id="editSwitchButtonTextFontSize" name="editSwitchButtonTextFontSize" class="form-control" value="' + styleParameters.textFontSize + '"></input>');
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv); 
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label">Display font size</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayFontSize" class="col-md-2 control-label"><?php echo _("Display font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" id="editSwitchButtonDisplayFontSize" name="editSwitchButtonDisplayFontSize" class="form-control" value="' + styleParameters.displayFontSize +'"></input>');
                                             newInnerDiv.append(newInput);
@@ -19486,7 +19500,7 @@
                                             
                                             newFormRow = $('<div class="row"></div>');
                                 
-                                            newLabel = $('<label for="editSwitchButtonDisplayOffColor" class="col-md-2 control-label">Off display text color</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayOffColor" class="col-md-2 control-label"><?php echo _("Off display text color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayOffColor"><input type="text" name="editSwitchButtonDisplayOffColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.displayOffColor, format: "rgba"});
@@ -19494,7 +19508,7 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv); 
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayOnColor" class="col-md-2 control-label">On display text color</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayOnColor" class="col-md-2 control-label"><?php echo _("On display text color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayOnColor"><input type="text" name="editSwitchButtonDisplayOnColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.displayOnColor, format: "rgba"});
@@ -19507,7 +19521,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $('#specificParamsM').append(newFormRow);
                                             
-                                            newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label">Display background color</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayColor" class="col-md-2 control-label"><?php echo _("Display background color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editSwitchButtonDisplayColor"><input type="text" name="editSwitchButtonDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.displayColor, format: "rgba"});
@@ -19515,7 +19529,7 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv); 
                                             
-                                            newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label">Display radius (%)</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayRadius" class="col-md-2 control-label"><?php echo _("Display radius (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newControl = $('<input id="editSwitchButtonDisplayRadius" name="editSwitchButtonDisplayRadius" data-slider-id="editSwitchButtonDisplayRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -19532,7 +19546,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $('#specificParamsM').append(newFormRow);
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label">Display width (%)</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayWidth" class="col-md-2 control-label"><?php echo _("Display width (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newControl = $('<input id="editSwitchButtonDisplayWidth" name="editSwitchButtonDisplayWidth" data-slider-id="editSwitchButtonDisplayWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -19546,7 +19560,7 @@
                                                 value: styleParameters.displayWidth   
                                             });
 
-                                            newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label">Display height (%)</label>');
+                                            newLabel = $('<label for="editSwitchButtonDisplayHeight" class="col-md-2 control-label"><?php echo _("Display height (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newControl = $('<input id="editSwitchButtonDisplayHeight" name="editSwitchButtonDisplayHeight" data-slider-id="editSwitchButtonDisplayHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -19629,14 +19643,14 @@
 
                                             newFormRow = $('<div class="row"></div>');
 
-                                            newLabel = $('<label for="editKnobIndicatorRadius" class="col-md-2 control-label">Indicator radius (%)</label>');
+                                            newLabel = $('<label for="editKnobIndicatorRadius" class="col-md-2 control-label"><?php echo _("Indicator radius (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             var newControl = $('<input id="editKnobIndicatorRadius" name="editKnobIndicatorRadius" data-slider-id="editKnobIndicatorRadiusSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label for="editKnobDisplayRadius" class="col-md-2 control-label">Value display radius (%)</label>');
+                                            newLabel = $('<label for="editKnobDisplayRadius" class="col-md-2 control-label"><?php echo _("Value display radius (%)"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             var newControl = $('<input id="editKnobDisplayRadius" name="editKnobDisplayRadius" data-slider-id="editKnobDisplayRadiusSlider" type="text" data-slider-min="1" data-slider-max="100" data-slider-step="1"/>');
                                             newInnerDiv.append(newControl);
@@ -19660,14 +19674,14 @@
                                             });
 
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editKnobStartAngle" class="col-md-2 control-label">Start angle</label>');
+                                            newLabel = $('<label for="editKnobStartAngle" class="col-md-2 control-label"><?php echo _("Start angle"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobStartAngle" class="form-control" value="' + styleParameters.startAngle + '" id="editKnobStartAngle"/>');
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label for="editKnobEndAngle" class="col-md-2 control-label">End angle</label>');
+                                            newLabel = $('<label for="editKnobEndAngle" class="col-md-2 control-label"><?php echo _("End angle"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newInput = $('<input type="text" name="editKnobEndAngle" class="form-control" value="' + styleParameters.endAngle + '" id="editKnobEndAngle"/>');
                                             newInnerDiv.append(newInput);
@@ -19687,7 +19701,7 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
                                             
-                                            newLabel = $('<label for="editKnobDisplayColor" class="col-md-2 control-label">Display color</label>');
+                                            newLabel = $('<label for="editKnobDisplayColor" class="col-md-2 control-label"><?php echo _("Display color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editKnobDisplayColor"><input type="text" name="editKnobDisplayColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.displayColor, format: "rgba"});
@@ -19720,7 +19734,7 @@
                                             $('#specificParamsM').append(newFormRow);
                                             
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editKnobMinValue" class="col-md-2 control-label">Min value</label>');
+                                            newLabel = $('<label for="editKnobMinValue" class="col-md-2 control-label"><?php echo _("Min value"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobMinValue" class="form-control" id="editKnobMinValue" data-param="editKnobMinValue" required/>');
                                             newInput.val(currentParams.minValue);
@@ -19728,7 +19742,7 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label for="editKnobMaxValue" class="col-md-2 control-label">Max value</label>');
+                                            newLabel = $('<label for="editKnobMaxValue" class="col-md-2 control-label"><?php echo _("Max value"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobMaxValue" class="form-control" id="editKnobMaxValue" data-param="editKnobMaxValue" required/>');
                                             newInput.val(currentParams.maxValue);
@@ -19739,14 +19753,14 @@
                                             $('#specificParamsM').append(newFormRow);
                                             
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editKnobLabelsFontSize" class="col-md-2 control-label">Labels font size</label>');
+                                            newLabel = $('<label for="editKnobLabelsFontSize" class="col-md-2 control-label"><?php echo _("Labels font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobLabelsFontSize" class="form-control" id="editKnobLabelsFontSize" value="' + styleParameters.labelsFontSize + '" data-param="editKnobLabelsFontSize"/>');
                                             newInnerDiv.append(newInput);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label for="editKnobLabelsFontColor" class="col-md-2 control-label">Labels font color</label>');
+                                            newLabel = $('<label for="editKnobLabelsFontColor" class="col-md-2 control-label"><?php echo _("Labels font color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<div class="input-group colorPicker" id="editKnobLabelsFontColor"><input type="text" name="editKnobLabelsFontColor" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div>');
                                             newInput.colorpicker({color: styleParameters.labelsFontColor, format: "rgba"});
@@ -19757,7 +19771,7 @@
                                             $('#specificParamsM').append(newFormRow);
                                             
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editKnobIncreaseValue" class="col-md-2 control-label">Increase value</label>');
+                                            newLabel = $('<label for="editKnobIncreaseValue" class="col-md-2 control-label"><?php echo _("Increase value"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" name="editKnobIncreaseValue" class="form-control" id="editKnobIncreaseValue" value="' + styleParameters.increaseValue + '" data-param="editKnobIncreaseValue"/>');
                                             newInnerDiv.append(newInput);
@@ -20065,7 +20079,7 @@
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
                                         
-                                        newLabel = $('<label for="speedLimitEntityId" class="col-md-2 control-label">Entity ID</label>');
+                                        newLabel = $('<label for="speedLimitEntityId" class="col-md-2 control-label"><?php echo _("Entity ID"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newControl = $('<input type="text" name="speedLimitEntityId" class="form-control" id="speedLimitEntityId"/>');
                                         newControl.val(currentParams.entityId);
@@ -20084,7 +20098,7 @@
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
 
-                                        newLabel = $('<label for="speedLimitUpdateTime" class="col-md-2 control-label">Update time(s)</label>');
+                                        newLabel = $('<label for="speedLimitUpdateTime" class="col-md-2 control-label"><?php echo _("Update time(s)"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newControl = $('<input type="text" name="speedLimitUpdateTime" class="form-control" id="speedLimitUpdateTime"/>');
                                         newControl.val(currentParams.updateTime);
@@ -20149,7 +20163,7 @@
                                         $('#specificParamsM .row').remove();
 
                                         newFormRow = $('<div class="row"></div>');
-                                        newLabel = $('<label for="trafficLightEntityIdM" class="col-md-2 control-label">Entity ID</label>');
+                                        newLabel = $('<label for="trafficLightEntityIdM" class="col-md-2 control-label"><?php echo _("Entity ID"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newControl = $('<input type="text" name="trafficLightEntityIdM" class="form-control" id="trafficLightEntityIdM"/>');
                                         newControl.val(currentParams.entityId);
@@ -20202,7 +20216,7 @@
 
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="trafficLightEntityIdM" class="col-md-2 control-label">Entity ID</label>');
+                                        newLabel = $('<label for="trafficLightEntityIdM" class="col-md-2 control-label"><?php echo _("Entity ID"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newControl = $('<input type="text" name="trafficLightEntityIdM" class="form-control" id="trafficLightEntityIdM"/>');
                                         newControl.val(currentParams.entityId);
@@ -20210,7 +20224,7 @@
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
                                         
-                                        newLabel = $('<label for="trafficLightAttributeNameM" class="col-md-2 control-label">Attribute name</label>');
+                                        newLabel = $('<label for="trafficLightAttributeNameM" class="col-md-2 control-label"><?php echo _("Attribute name"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newControl = $('<input type="text" name="trafficLightAttributeNameM" class="form-control" id="trafficLightAttributeNameM"/>');
                                         newControl.val(currentParams.attributeName);
@@ -20221,7 +20235,7 @@
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
 
-                                        newLabel = $('<label for="trafficLightUpdateTimeM" class="col-md-2 control-label">Update time(s)</label>');
+                                        newLabel = $('<label for="trafficLightUpdateTimeM" class="col-md-2 control-label"><?php echo _("Update time(s)"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newControl = $('<input type="text" name="trafficLightUpdateTimeM" class="form-control" id="trafficLightUpdateTimeM"/>');
                                         newControl.val(currentParams.updateTime);
@@ -20340,7 +20354,7 @@
                                         //Target widgets geolocation
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="editGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                        newLabel = $('<label for="editGisGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Map widgets"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newSelect = $('<select name="editGisGeolocationWidgets" class="form-control" id="editGisGeolocationWidgets" multiple></select>');
 
@@ -20431,7 +20445,7 @@
                                         }, 250);
                                         
                                         //Colore testo quando picker attivo
-                                        newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                        newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label"><?php echo _("Active rows font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         var newColorPicker = $('<div id="editGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="editGisActiveQueriesFontColor" name="editGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
                                         newInnerDiv.append(newColorPicker);
@@ -20749,7 +20763,7 @@
                                         //Target widgets geolocation
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="editGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                        newLabel = $('<label for="editGisGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Map widgets"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newSelect = $('<select name="editGisGeolocationWidgets" class="form-control" id="editGisGeolocationWidgets" multiple></select>');
 
@@ -20802,7 +20816,7 @@
                                         $("#specificParamsM").append(newFormRow);
                                         
                                         //Colore testo quando picker attivo
-                                        newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                        newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label"><?php echo _("Active rows font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         var newColorPicker = $('<div id="editGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="editGisActiveQueriesFontColor" name="editGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
                                         newInnerDiv.append(newColorPicker);
@@ -21140,7 +21154,7 @@
                                             //Target widgets geolocation
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="editGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                            newLabel = $('<label for="editGisGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Map widgets"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newSelect = $('<select name="editGisGeolocationWidgets" class="form-control" id="editGisGeolocationWidgets" multiple></select>');
 
@@ -21204,7 +21218,7 @@
                                             $("#specificParamsM").append(newFormRow);
 
                                             //Colore testo quando picker attivo
-                                            newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                            newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label"><?php echo _("Active rows font color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-2"></div>');
                                             var newColorPicker = $('<div id="editGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="editGisActiveQueriesFontColor" name="editGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
                                             newInnerDiv.append(newColorPicker);
@@ -21960,7 +21974,7 @@
                                             //Target widgets geolocation
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="editGisGeolocationWidgets" class="col-md-2 control-label">Map widgets</label>');
+                                            newLabel = $('<label for="editGisGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Map widgets"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newSelect = $('<select name="editGisGeolocationWidgets" class="form-control" id="editGisGeolocationWidgets" multiple></select>');
 
@@ -22010,7 +22024,7 @@
                                             $("#specificParamsM").append(newFormRow);
    
                                             //Colore testo quando picker attivo
-                                            /*newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label">Active rows font color</label>');
+                                            /*newLabel = $('<label for="editGisActiveQueriesFontColor" class="col-md-2 control-label"><?php echo _("Active rows font color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             var newColorPicker = $('<div id="editGisActiveQueriesFontColorContainer" class="input-group colorpicker-component"><input id="editGisActiveQueriesFontColor" name="editGisActiveQueriesFontColor" type="text" class="form-control input"/><span class="input-group-addon"><i></i></span></div>');
                                             newInnerDiv.append(newColorPicker);
@@ -22394,7 +22408,7 @@
   
                                                 $("li.gs_w").each(function () {
                                                     if ($(this).attr("id") != null) {
-                                                        if (($(this).attr("id").includes("BarContent")) || ($(this).attr("id").includes("ColumnContent")) || ($(this).attr("id").includes("GaugeChart")) || ($(this).attr("id").includes("PieChart")) || ($(this).attr("id").includes("SingleContent")) || ($(this).attr("id").includes("Speedometer")) || ($(this).attr("id").includes("TimeTrend"))) {
+                                                        if (($(this).attr("id").includes("BarContent")) || ($(this).attr("id").includes("ColumnContent")) || ($(this).attr("id").includes("GaugeChart")) || ($(this).attr("id").includes("PieChart")) || ($(this).attr("id").includes("SingleContent")) || ($(this).attr("id").includes("Speedometer")) || ($(this).attr("id").includes("TimeTrend")) || ($(this).attr("id").includes("Calendar"))) {
                                                             widgetId = $(this).attr("id");
                                                             widgetTitle = $(this).find("div.titleDiv").html();
                                                             newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');
@@ -22537,7 +22551,7 @@
                                        //Nuova riga
                                        //Clock data e clock font type
                                        newFormRow = $('<div class="row"></div>');
-                                       newLabel = $('<label for="editWidgetClockData" class="col-md-2 control-label">Shown data</label>');
+                                       newLabel = $('<label for="editWidgetClockData" class="col-md-2 control-label"><?php echo _("Shown data"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select name="editWidgetClockData" class="form-control" id="editWidgetClockData"></select>');
                                        newSelect.append('<option value="date">Date</option>');
@@ -22548,7 +22562,7 @@
                                        newFormRow.append(newLabel);
                                        newFormRow.append(newInnerDiv);
 
-                                       newLabel = $('<label for="editWidgetClockFont" class="col-md-2 control-label">Font type</label>');
+                                       newLabel = $('<label for="editWidgetClockFont" class="col-md-2 control-label"><?php echo _("Font type"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select name="editWidgetClockFont" class="form-control" id="editWidgetClockFont"></select>');
                                        newSelect.append('<option value="normal">Normal</option>');
@@ -22601,7 +22615,7 @@
                                     
                                        //Target widgets geolocation
                                        newFormRow = $('<div class="row"></div>');
-                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select name="editWidgetGeolocationWidgets" class="form-control" id="editWidgetGeolocationWidgets" multiple></select>');
 
@@ -22703,7 +22717,7 @@
                                     
                                        //Target widgets geolocation
                                        newFormRow = $('<div class="row"></div>');
-                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select name="editWidgetGeolocationWidgets" class="form-control" id="editWidgetGeolocationWidgets" multiple></select>');
 
@@ -22806,7 +22820,7 @@
 
                                             //Target widgets geolocation
                                             newFormRow = $('<div class="row"></div>');
-                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select name="editWidgetGeolocationWidgets" class="form-control" id="editWidgetGeolocationWidgets" multiple></select>');
 
@@ -22906,7 +22920,7 @@
                                        newFormRow = $('<div class="row"></div>');
                                        $("#specificParamsM").append(newFormRow);
 
-                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select class="form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets"></select>');
 
@@ -22947,7 +22961,7 @@
                                        {
                                           newSelect.show();
                                           newSelect.val(-1);
-                                          newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                          newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                           newInnerDiv = $('<div class="col-md-3"></div>');
                                           var eventTypeSelect = $('<select name="editWidgetEventTypes" class="form-control" id="editWidgetEventTypes" multiple></select>');
                                           
@@ -23033,7 +23047,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
 
-                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets"></select>');
 
@@ -23071,7 +23085,7 @@
                                             if (widgetsNumber > 0) {
                                                 newSelect.show();
                                                 newSelect.val(-1);
-                                                newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                                newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 var eventTypeSelect = $('<select name="editWidgetEventTypes" class="form-control" id="editWidgetEventTypes" multiple></select>');
 
@@ -23154,7 +23168,7 @@
                                        newFormRow = $('<div class="row"></div>');
                                        $("#specificParamsM").append(newFormRow);
 
-                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-5"></div>');
                                        newSelect = $('<select class="selectpicker form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets" multiple></select>');
                                        newFormRow.append(newLabel);
@@ -23163,7 +23177,7 @@
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
 
-                                        newLabel = $('<label for="editWidgetPanToWidgets" class="col-md-2 control-label">Available autopan widgets</label>');
+                                        newLabel = $('<label for="editWidgetPanToWidgets" class="col-md-2 control-label"><?php echo _("Available autopan widgets"); ?></label>');
                                         var newInnerDiv2 = $('<div class="col-md-5"></div>');
                                         var newSelect2 = $('<select class="selectpicker form-control" id="editWidgetPanToWidgets" name="editWidgetPanToWidgets" multiple></select>');
                                         newFormRow.append(newLabel);
@@ -23309,7 +23323,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
 
-                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-5"></div>');
                                             newSelect = $('<select class="selectpicker form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets" multiple></select>');
                                             newFormRow.append(newLabel);
@@ -23318,7 +23332,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
 
-                                            newLabel = $('<label for="editWidgetPanToWidgets" class="col-md-2 control-label">Available autopan widgets</label>');
+                                            newLabel = $('<label for="editWidgetPanToWidgets" class="col-md-2 control-label"><?php echo _("Available autopan widgets"); ?></label>');
                                             var newInnerDiv2 = $('<div class="col-md-5"></div>');
                                             var newSelect2 = $('<select class="selectpicker form-control" id="editWidgetPanToWidgets" name="editWidgetPanToWidgets" multiple></select>');
                                             newFormRow.append(newLabel);
@@ -23452,7 +23466,7 @@
                                        newFormRow = $('<div class="row"></div>');
                                        $("#specificParamsM").append(newFormRow);
 
-                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select class="form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets"></select>');
 
@@ -23493,7 +23507,7 @@
                                        {
                                           newSelect.show();
                                           newSelect.val(-1);
-                                          newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                          newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                           newInnerDiv = $('<div class="col-md-3"></div>');
                                           var eventTypeSelect = $('<select name="editWidgetEventTypes" class="form-control" id="editWidgetEventTypes" multiple></select>');
                                           
@@ -23578,7 +23592,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
 
-                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets"></select>');
 
@@ -23616,7 +23630,7 @@
                                             if (widgetsNumber > 0) {
                                                 newSelect.show();
                                                 newSelect.val(-1);
-                                                newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                                newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 var eventTypeSelect = $('<select name="editWidgetEventTypes" class="form-control" id="editWidgetEventTypes" multiple></select>');
 
@@ -23793,7 +23807,7 @@
                                        newFormRow = $('<div class="row"></div>');
                                        $("#specificParamsM").append(newFormRow);
 
-                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select class="form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets"></select>');
 
@@ -23834,7 +23848,7 @@
                                        {
                                           newSelect.show();
                                           newSelect.val(-1);
-                                          newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                          newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                           newInnerDiv = $('<div class="col-md-3"></div>');
                                           var eventTypeSelect = $('<select name="editWidgetEventTypes" class="form-control" id="editWidgetEventTypes" multiple></select>');
                                           
@@ -23942,7 +23956,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
 
-                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets"></select>');
 
@@ -23980,7 +23994,7 @@
                                             if (widgetsNumber > 0) {
                                                 newSelect.show();
                                                 newSelect.val(-1);
-                                                newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                                newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 var eventTypeSelect = $('<select name="editWidgetEventTypes" class="form-control" id="editWidgetEventTypes" multiple></select>');
 
@@ -24638,7 +24652,7 @@
                                         //Rows labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-2 control-label">Rows labels font size</label>');
+                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("Rows labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSizeM" name="rowsLabelsFontSizeM" required> ');
                                         newInnerDiv.append(newInput);
@@ -24655,7 +24669,7 @@
                                         }
 
                                         //Rows labels font color
-                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-2 control-label">Rows labels font color</label>');
+                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-2 control-label"><?php echo _("Rows labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="rowsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColorM" name="rowsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -24680,7 +24694,7 @@
                                         //Cols labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="colsLabelsFontSizeM" class="col-md-2 control-label">Cols labels font size</label>');
+                                        newLabel = $('<label for="colsLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("Cols labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="colsLabelsFontSizeM" name="colsLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
@@ -24691,7 +24705,7 @@
                                         newInput.show();
 
                                         //Cols labels font color
-                                        newLabel = $('<label for="colsLabelsFontColorM" class="col-md-2 control-label">Cols labels font color</label>');
+                                        newLabel = $('<label for="colsLabelsFontColorM" class="col-md-2 control-label"><?php echo _("Cols labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="colsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="colsLabelsFontColorM" name="colsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetColsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -24784,7 +24798,7 @@
                                         //Set thresholds
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+                                        newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -24837,7 +24851,7 @@
                                         $('#alrThrSelM').change(alrThrFlagMListener);
                                         
                                         //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                        newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label">Thresholds target set</label>');
+                                        newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
                                         newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                         if((viewMode !== 'singleSummary') && (viewMode !== 'singleDetails'))
@@ -24856,7 +24870,7 @@
                                         //Threshold field select
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
+                                        newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInnerDiv.append(newSelect);
@@ -25083,7 +25097,7 @@
                                         //Rows labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-2 control-label">X-Axis labels font size</label>');
+                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("X-Axis labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSizeM" name="rowsLabelsFontSizeM" required> ');
                                         newInnerDiv.append(newInput);
@@ -25094,7 +25108,7 @@
                                         newInput.show();
 
                                         //Rows labels font color
-                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-2 control-label">X-Axis labels font color</label>');
+                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-2 control-label"><?php echo _("X-Axis labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="rowsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColorM" name="rowsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -25139,7 +25153,7 @@
                                         //Data labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-2 control-label">Data labels font size</label>');
+                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("Data labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="dataLabelsFontSizeM" name="dataLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
@@ -25150,7 +25164,7 @@
                                         newInput.show();
 
                                         //Data labels font color
-                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-2 control-label">Data labels font color</label>');
+                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-2 control-label"><?php echo _("Data labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="dataLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="dataLabelsFontColorM" name="dataLabelsFontColorM" required><span class="input-group-addon"><i id="widgetDataLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -25369,7 +25383,7 @@
                                         //Set thresholds
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+                                        newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -25440,7 +25454,7 @@
                                             var seriesString = "";
                                             var series = null;
                                             var rowParamsArray = JSON.parse(rowParams);
-                                            if (serviceUri) {
+                                            if (serviceUri && IsJsonString(serviceUri)) {
                                                 series = jQuery.parseJSON(serviceUri);
                                             } else {
                                                 for (var i = 0; i < rowParamsArray.length; i++) {
@@ -25585,7 +25599,7 @@
                                         //X-Axis labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-1 control-label">X-Axis labels font size</label>');
+                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-1 control-label"><?php echo _("X-Axis labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-1"></div>');
                                         newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSizeM" name="rowsLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
@@ -25596,7 +25610,7 @@
                                         newInput.show();
 
                                         //X-Axis labels font color
-                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-1 control-label">X-Axis labels font color</label>');
+                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-1 control-label"><?php echo _("X-Axis labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInput = $('<div id="rowsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColorM" name="rowsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -25673,7 +25687,7 @@
                                         //Data labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-1 control-label">Data labels font size</label>');
+                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-1 control-label"><?php echo _("Data labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-1"></div>');
                                         newInput = $('<input type="text" class="form-control" id="dataLabelsFontSizeM" name="dataLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
@@ -25684,7 +25698,7 @@
                                         newInput.show();
 
                                         //Data labels font color
-                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-1 control-label">Data labels font color</label>');
+                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-1 control-label"><?php echo _("Data labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInput = $('<div id="dataLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="dataLabelsFontColorM" name="dataLabelsFontColorM" required><span class="input-group-addon"><i id="widgetDataLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -25746,7 +25760,7 @@
                                         $("#chartTypeDiv").on("change", function() {
                                             // if Stacekd Option is selected, a message is shown explaining it works only with equally-sampled data series
                                             if (this.children[0].options[2].selected === true) {
-                                                alert('Please note that the Stacked Areas option correctly works only for equally-sampled data series!');
+                                                alert('<?= _("Please note that the Stacked Areas option correctly works only for equally-sampled data series") ?>');
                                             }
                                         });
                                         
@@ -26128,7 +26142,7 @@
                                         //Set thresholds
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrThrSelM" class="col-md-1 control-label">Set thresholds</label>');
+                                        newLabel = $('<label for="alrThrSelM" class="col-md-1 control-label"><?php echo _("Set thresholds"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2"></div>');
                                         newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -26141,7 +26155,7 @@
                                         newSelect.show();
                                         
                                         //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                        newLabel = $('<label for="alrAxisSelM" class="col-md-1 control-label">Thresholds target set</label>');
+                                        newLabel = $('<label for="alrAxisSelM" class="col-md-1 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
                                         if($("#xAxisDatasetM").val() === series.firstAxis.desc)
                                         {
@@ -26166,7 +26180,7 @@
                                         //Threshold field select
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrFieldSelM" class="col-md-1 control-label">Thresholds target field</label>');
+                                        newLabel = $('<label for="alrFieldSelM" class="col-md-1 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
                                         newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInnerDiv.append(newSelect);
@@ -26629,7 +26643,7 @@
                                             /*
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="alrThrSelM" class="col-md-1 control-label">Set thresholds</label>');
+                                            newLabel = $('<label for="alrThrSelM" class="col-md-1 control-label"><?php echo _("Set thresholds"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-2"></div>');
                                             newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                             newSelect.append('<option value="yes">Yes</option>');
@@ -26642,7 +26656,7 @@
                                             newSelect.show();
 
                                             //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                            newLabel = $('<label for="alrAxisSelM" class="col-md-1 control-label">Thresholds target set</label>');
+                                            newLabel = $('<label for="alrAxisSelM" class="col-md-1 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                             newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
                                             if($("#xAxisDatasetM").val() === series.firstAxis.desc) {
                                                 //No trasposizione
@@ -26664,7 +26678,7 @@
                                             //Threshold field select
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="alrFieldSelM" class="col-md-1 control-label">Thresholds target field</label>');
+                                            newLabel = $('<label for="alrFieldSelM" class="col-md-1 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                             newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
                                             newInnerDiv = $('<div class="col-md-2"></div>');
                                             newInnerDiv.append(newSelect);
@@ -27107,7 +27121,7 @@
                                         //Rows labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-2 control-label">Rows labels font size</label>');
+                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("Rows labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSizeM" name="rowsLabelsFontSizeM" required> ');
                                         newInnerDiv.append(newInput);
@@ -27118,7 +27132,7 @@
                                         newInput.show();
 
                                         //Rows labels font color
-                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-2 control-label">Rows labels font color</label>');
+                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-2 control-label"><?php echo _("Rows labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="rowsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColorM" name="rowsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -27135,7 +27149,7 @@
                                         //Cols labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="colsLabelsFontSizeM" class="col-md-2 control-label">Cols labels font size</label>');
+                                        newLabel = $('<label for="colsLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("Cols labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="colsLabelsFontSizeM" name="colsLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
@@ -27146,7 +27160,7 @@
                                         newInput.show();
 
                                         //Cols labels font color
-                                        newLabel = $('<label for="colsLabelsFontColorM" class="col-md-2 control-label">Cols labels font color</label>');
+                                        newLabel = $('<label for="colsLabelsFontColorM" class="col-md-2 control-label"><?php echo _("Cols labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="colsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="colsLabelsFontColorM" name="colsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetColsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -27163,7 +27177,7 @@
                                         //Data labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-2 control-label">Data labels font size</label>');
+                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("Data labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="dataLabelsFontSizeM" name="dataLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
@@ -27174,7 +27188,7 @@
                                         newInput.show();
 
                                         //Data labels font color
-                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-2 control-label">Data labels font color</label>');
+                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-2 control-label"><?php echo _("Data labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="dataLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="dataLabelsFontColorM" name="dataLabelsFontColorM" required><span class="input-group-addon"><i id="widgetDataLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -27422,7 +27436,7 @@
                                         //Set thresholds
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+                                        newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -27435,7 +27449,7 @@
                                         newSelect.show();
 
                                         //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                        newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label">Thresholds target set</label>');
+                                        newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
                                         if (series) {
                                             newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
@@ -27453,7 +27467,7 @@
                                         //Threshold field select
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
+                                        newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInnerDiv.append(newSelect);
@@ -27517,7 +27531,7 @@
                                             var seriesString = "";
                                             var series = null;
                                             var rowParamsArray = JSON.parse(rowParams);
-                                            if (serviceUri) {
+                                            if (serviceUri && IsJsonString(serviceUri)) {
                                                 series = jQuery.parseJSON(serviceUri);
                                             } else {
                                                 for (var i = 0; i < rowParamsArray.length; i++) {
@@ -27665,7 +27679,7 @@
                                         //Rows labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-2 control-label">Rows labels font size</label>');
+                                        newLabel = $('<label for="rowsLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("Rows labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="rowsLabelsFontSizeM" name="rowsLabelsFontSizeM" required> ');
                                         newInnerDiv.append(newInput);
@@ -27676,7 +27690,7 @@
                                         newInput.show();
 
                                         //Rows labels font color
-                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-2 control-label">Rows labels font color</label>');
+                                        newLabel = $('<label for="rowsLabelsFontColorM" class="col-md-2 control-label"><?php echo _("Rows labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="rowsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="rowsLabelsFontColorM" name="rowsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetRowsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -27693,7 +27707,7 @@
                                         //Cols labels font size
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="colsLabelsFontSizeM" class="col-md-2 control-label">Cols labels font size</label>');
+                                        newLabel = $('<label for="colsLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("Cols labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="colsLabelsFontSizeM" name="colsLabelsFontSizeM" required>');
                                         newInnerDiv.append(newInput);
@@ -27704,7 +27718,7 @@
                                         newInput.show();
 
                                         //Cols labels font color
-                                        newLabel = $('<label for="colsLabelsFontColorM" class="col-md-2 control-label">Cols labels font color</label>');
+                                        newLabel = $('<label for="colsLabelsFontColorM" class="col-md-2 control-label"><?php echo _("Cols labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<div id="colsLabelsFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="colsLabelsFontColorM" name="colsLabelsFontColorM" required><span class="input-group-addon"><i id="widgetColsLabelsFontColorM"></i></span></div>');
                                         newInnerDiv.append(newInput);
@@ -27908,7 +27922,7 @@
                                         //Set thresholds
                                     /*    newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+                                        newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -27925,7 +27939,7 @@
                                         $('#alrThrSelM').change(alrThrFlagMListener);
                                         
                                         //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                        newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label">Thresholds target set</label>');
+                                        newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
                                         newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                         newSelect.append("<option value='" + series.secondAxis.desc + "'>" + series.secondAxis.desc + "</option>");
@@ -27941,7 +27955,7 @@
                                         //Threshold field select
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
+                                        newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                         newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
                                         newInnerDiv = $('<div class="col-md-2"></div>');
                                         newInnerDiv.append(newSelect);
@@ -28137,7 +28151,7 @@
                                         //Default tab
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="inputDefaultTabM" class="col-md-2 control-label">Default tab</label>');
+                                        newLabel = $('<label for="inputDefaultTabM" class="col-md-2 control-label"><?php echo _("Default tab"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="inputDefaultTabM" name="inputDefaultTabM"></select>');
                                         newSelect.append('<option value="0">General</option>');
@@ -28152,7 +28166,7 @@
                                         newSelect.show();
                                         
                                         //Meteo tab font size
-                                       newLabel = $('<label for="meteoTabFontSizeM" class="col-md-2 control-label">Meteo tab font size</label>');
+                                       newLabel = $('<label for="meteoTabFontSizeM" class="col-md-2 control-label"><?php echo _("Meteo tab font size"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newInput = $('<input type="text" class="form-control" id="meteoTabFontSizeM" name="meteoTabFontSizeM"></input>');
                                        //newInput.val("10");
@@ -28167,7 +28181,7 @@
                                        //General tab font size
                                        newFormRow = $('<div class="row"></div>');
                                        $("#specificParamsM").append(newFormRow);
-                                       newLabel = $('<label for="genTabFontSizeM" class="col-md-2 control-label">General tab font size</label>');
+                                       newLabel = $('<label for="genTabFontSizeM" class="col-md-2 control-label"><?php echo _("General tab font size"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newInput = $('<input type="text" class="form-control" id="genTabFontSizeM" name="genTabFontSizeM"></input>');
                                        //newInput.val("12");
@@ -28179,7 +28193,7 @@
                                        newInput.show();
 
                                        //General tab font color
-                                       newLabel = $('<label for="genTabFontColorM" class="col-md-2 control-label">General tab font color</label>');
+                                       newLabel = $('<label for="genTabFontColorM" class="col-md-2 control-label"><?php echo _("General tab font color"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newInput = $('<div id="genTabFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="genTabFontColorM" name="genTabFontColorM" required><span class="input-group-addon"><i id="widgetGenTabFontColorM"></i></span></div>');
                                        newInnerDiv.append(newInput);
@@ -28251,7 +28265,7 @@
                                             //Default tab
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="inputDefaultTabM" class="col-md-2 control-label">Default tab</label>');
+                                            newLabel = $('<label for="inputDefaultTabM" class="col-md-2 control-label"><?php echo _("Default tab"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="inputDefaultTabM" name="inputDefaultTabM"></select>');
                                             newSelect.append('<option value="0">General</option>');
@@ -28266,7 +28280,7 @@
                                             newSelect.show();
 
                                             //Meteo tab font size
-                                            newLabel = $('<label for="meteoTabFontSizeM" class="col-md-2 control-label">Meteo tab font size</label>');
+                                            newLabel = $('<label for="meteoTabFontSizeM" class="col-md-2 control-label"><?php echo _("Meteo tab font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newInput = $('<input type="text" class="form-control" id="meteoTabFontSizeM" name="meteoTabFontSizeM"></input>');
                                             //newInput.val("10");
@@ -28281,7 +28295,7 @@
                                             //General tab font size
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="genTabFontSizeM" class="col-md-2 control-label">General tab font size</label>');
+                                            newLabel = $('<label for="genTabFontSizeM" class="col-md-2 control-label"><?php echo _("General tab font size"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newInput = $('<input type="text" class="form-control" id="genTabFontSizeM" name="genTabFontSizeM"></input>');
                                             //newInput.val("12");
@@ -28293,7 +28307,7 @@
                                             newInput.show();
 
                                             //General tab font color
-                                            newLabel = $('<label for="genTabFontColorM" class="col-md-2 control-label">General tab font color</label>');
+                                            newLabel = $('<label for="genTabFontColorM" class="col-md-2 control-label"><?php echo _("General tab font color"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newInput = $('<div id="genTabFontColorContainerM" class="input-group"><input type="text" class="form-control demo-1 demo-auto" id="genTabFontColorM" name="genTabFontColorM" required><span class="input-group-addon"><i id="widgetGenTabFontColorM"></i></span></div>');
                                             newInnerDiv.append(newInput);
@@ -28362,7 +28376,7 @@
                                        //Nuova riga
                                        //Border radius and button image yes/no
                                        newFormRow = $('<div class="row"></div>');
-                                       newLabel = $('<label for="editWidgetBtnRadius" class="col-md-2 control-label">Border radius</label>');
+                                       newLabel = $('<label for="editWidgetBtnRadius" class="col-md-2 control-label"><?php echo _("Border radius"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        var newControl = $('<input id="editWidgetBtnRadius" name="editWidgetBtnRadius" data-slider-id="editWidgetBtnRadiusSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="0"/>');
                                        newInnerDiv.append(newControl);
@@ -28375,7 +28389,7 @@
                                        newFormRow.append(newLabel);
                                        newFormRow.append(newInnerDiv);
 
-                                       newLabel = $('<label for="editWidgetBtnImgSelect" class="col-md-2 control-label">Button image</label>');
+                                       newLabel = $('<label for="editWidgetBtnImgSelect" class="col-md-2 control-label"><?php echo _("Button image"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select id="editWidgetBtnImgSelect" name="editWidgetBtnImgSelect" class="form-control"></select>');
                                        newSelect.append('<option value="yes">Yes</option>');
@@ -28396,7 +28410,7 @@
                                        //Button image file chooser
                                        newFormRow = $('<div class="row"></div>');
                                        newFormRow.hide();
-                                       newLabel = $('<label for="editWidgetBtnFile" class="col-md-2 control-label">Image file</label>');
+                                       newLabel = $('<label for="editWidgetBtnFile" class="col-md-2 control-label"><?php echo _("Image file"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-8"></div>');
                                        var btnImgMaxSize = $('<input type="hidden" name="MAX_FILE_SIZE" value="1000000" />');
                                        newInnerDiv.append(btnImgMaxSize);
@@ -28422,7 +28436,7 @@
                                        //Button image width and height
                                        newFormRow = $('<div class="row"></div>');
                                        newFormRow.hide();
-                                       newLabel = $('<label for="editWidgetBtnImgWidth" class="col-md-2 control-label">Image width</label>');
+                                       newLabel = $('<label for="editWidgetBtnImgWidth" class="col-md-2 control-label"><?php echo _("Image width"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        var newControl = $('<input id="editWidgetBtnImgWidth" name="editWidgetBtnImgWidth" data-slider-id="editWidgetBtnImgWidthSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                        newInnerDiv.append(newControl);
@@ -28446,7 +28460,7 @@
                                        newFormRow.append(newLabel);
                                        newFormRow.append(newInnerDiv);
 
-                                       newLabel = $('<label for="editWidgetBtnImgHeight" class="col-md-2 control-label">Image height</label>');
+                                       newLabel = $('<label for="editWidgetBtnImgHeight" class="col-md-2 control-label"><?php echo _("Image height"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        var newControl = $('<input id="editWidgetBtnImgHeight" name="editWidgetBtnImgHeight" data-slider-id="editWidgetBtnImgHeightSlider" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="100"/>');
                                        newInnerDiv.append(newControl);
@@ -28659,7 +28673,7 @@
                                         //Open in New Tab or Not
                                         newFormRow = $('<div class="row"></div>');
 
-                                        newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label">Open Web Link in a New Tab</label>');
+                                        newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label"><?php echo _("Open Web Link in a New Tab"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select name="editWidgetOpenNewTab" class="form-control" id="editWidgetOpenNewTab"></select>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -28827,7 +28841,7 @@
                                         //Open in New Tab or Not
                                         newFormRow = $('<div class="row"></div>');
 
-                                        newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label">Open Web Link in a New Tab</label>');
+                                        newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label"><?php echo _("Open Web Link in a New Tab"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select name="editWidgetOpenNewTab" class="form-control" id="editWidgetOpenNewTab"></select>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -29229,7 +29243,7 @@
                                         newFormRow.append(newInnerDiv);
                                         
                                         //Data labels font size
-                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-2 control-label">Data labels font size</label>');
+                                        newLabel = $('<label for="dataLabelsFontSizeM" class="col-md-2 control-label"><?php echo _("Data labels font size"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="dataLabelsFontSizeM" name="dataLabelsFontSizeM" required>');
                                         newInput.val(styleParameters.dataLabelsFontSize);
@@ -29287,7 +29301,7 @@
                                         //Data labels font color
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-2 control-label">Data labels font color</label>');
+                                        newLabel = $('<label for="dataLabelsFontColorM" class="col-md-2 control-label"><?php echo _("Data labels font color"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInputGroup = $('<div class="input-group color-choice">');
                                         newInput = $('<input type="text" class="form-control" id="dataLabelsFontColorM" name="dataLabelsFontColorM" required>');
@@ -29302,7 +29316,7 @@
                                         //Inner radius 1
                                         if(metricType != null) {
                                             if (metricType.indexOf('Percentuale') >= 0) {
-                                                newLabel = $('<label for="innerRadius1M" class="col-md-2 control-label">Inner radius (%)</label>');
+                                                newLabel = $('<label for="innerRadius1M" class="col-md-2 control-label"><?php echo _("Inner radius (%)"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 newInput = $('<input type="text" class="form-control" id="innerRadius1M" name="innerRadius1M" required>');
                                                 newInput.val(styleParameters.innerRadius1);
@@ -29372,7 +29386,7 @@
                                         //Start angle
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="startAngleM" class="col-md-2 control-label">Start angle (°)</label>');
+                                        newLabel = $('<label for="startAngleM" class="col-md-2 control-label"><?php echo _("Start angle (°)"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="startAngleM" name="startAngleM" required>');
                                         newInput.val(styleParameters.startAngle);
@@ -29381,7 +29395,7 @@
                                         newFormRow.append(newInnerDiv);
 
                                         //End angle
-                                        newLabel = $('<label for="endAngleM" class="col-md-2 control-label">End angle (°)</label>');
+                                        newLabel = $('<label for="endAngleM" class="col-md-2 control-label"><?php echo _("End angle (°)"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="endAngleM" name="endAngleM" required>');
                                         newInput.val(styleParameters.endAngle);
@@ -29393,7 +29407,7 @@
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
                                         //Center Y
-                                        newLabel = $('<label for="centerYM" class="col-md-2 control-label">Diagram center Y(%)</label>');
+                                        newLabel = $('<label for="centerYM" class="col-md-2 control-label"><?php echo _("Diagram center Y(%)"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="centerYM" name="centerYM" required>');
                                         newInput.val(styleParameters.centerY);
@@ -29404,7 +29418,7 @@
                                         //Select per colori automatici/manuali
                                         if(metricType != null) {
                                             if (metricType.indexOf('Percentuale') >= 0) {
-                                                newLabel = $('<label for="colorsSelect1M" class="col-md-2 control-label">Slices colors</label>');
+                                                newLabel = $('<label for="colorsSelect1M" class="col-md-2 control-label"><?php echo _("Slices colors"); ?></label>');
                                             } else if (metricType === 'Series') {
                                                 newLabel = $('<label for="colorsSelect1M" class="col-md-2 control-label">Slices colors for <i>' + series.secondAxis.desc + '</i></label>');
                                             }
@@ -29522,8 +29536,8 @@
                                                 newLabel = $('<label for="colorsSelect2M" class="col-md-2 control-label">Slices colors for <i>' + series.firstAxis.desc + '</i></label>');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 newSelect = $('<select class="form-control" id="colorsSelect2M" name="colorsSelect2M"></select>');
-                                                newSelect.append('<option value="auto">Automatic</option>');
-                                                newSelect.append('<option value="manual">Manual</option>');
+                                                newSelect.append('<option value="auto"><?php echo _("Automatic"); ?></option>');
+                                                newSelect.append('<option value="manual"><?php echo _("Manual"); ?></option>');
                                                 newSelect.val(styleParameters.colorsSelect2);
                                                 newInnerDiv.append(newSelect);
                                                 newFormRow.append(newLabel);
@@ -29782,7 +29796,7 @@
                                                 //Set thresholds
                                                 newFormRow = $('<div class="row"></div>');
                                                 $("#specificParamsM").append(newFormRow);
-                                                newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+                                                newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                                 newSelect.append('<option value="yes">Yes</option>');
@@ -29798,7 +29812,7 @@
                                                 $('#alrThrSelM').change(alrThrFlagMListenerSimple);
 
                                                 //Threshold field select
-                                                newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
+                                                newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                                 newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 newInnerDiv.append(newSelect);
@@ -29845,7 +29859,7 @@
                                                 //Set thresholds
                                                 newFormRow = $('<div class="row"></div>');
                                                 $("#specificParamsM").append(newFormRow);
-                                                newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+                                                newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                                 newSelect.append('<option value="yes">Yes</option>');
@@ -29858,7 +29872,7 @@
                                                 newSelect.show();
 
                                                 //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                                newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label">Thresholds target set</label>');
+                                                newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                                 newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
                                                 newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                                 newSelect.val(-1);
@@ -29874,7 +29888,7 @@
                                                 //Threshold field select
                                                 newFormRow = $('<div class="row"></div>');
                                                 $("#specificParamsM").append(newFormRow);
-                                                newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
+                                                newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                                 newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 newInnerDiv.append(newSelect);
@@ -29971,7 +29985,7 @@
                                             //Set thresholds
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label">Set thresholds</label>');
+                                            newLabel = $('<label for="alrThrSelM" class="col-md-2 control-label"><?php echo _("Set thresholds"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="alrThrSelM" name="alrThrSelM" required>');
                                             newSelect.append('<option value="yes">Yes</option>');
@@ -29984,7 +29998,7 @@
                                             newSelect.show();
 
                                             //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
-                                            newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label">Thresholds target set</label>');
+                                            newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
                                             newSelect = $('<select class="form-control" id="alrAxisSelM" name="alrAxisSelM"></select>');
                                             newSelect.append("<option value='" + series.firstAxis.desc + "'>" + series.firstAxis.desc + "</option>");
                                             newSelect.val(-1);
@@ -30000,7 +30014,7 @@
                                             //Threshold field select
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label">Thresholds target field</label>');
+                                            newLabel = $('<label for="alrFieldSelM" class="col-md-2 control-label"><?php echo _("Thresholds target field"); ?></label>');
                                             newSelect = $('<select class="form-control" id="alrFieldSelM" name="alrFieldSelM">');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newInnerDiv.append(newSelect);
@@ -30220,7 +30234,7 @@
                                         //Open in New Tab or Not
                                         newFormRow = $('<div class="row"></div>');
 
-                                        newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label">Open Web Link in a New Tab</label>');
+                                        newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label"><?php echo _("Open Web Link in a New Tab"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select name="editWidgetOpenNewTab" class="form-control" id="editWidgetOpenNewTab"></select>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -30325,11 +30339,11 @@
                                         //Open in New Tab or Not
                                         newFormRow = $('<div class="row"></div>');
 
-                                        newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label">Open Web Link in a New Tab</label>');
+                                        newLabel = $('<label for="editWidgetOpenNewTab" class="col-md-2 control-label"><?php echo _("Open Web Link in a New Tab"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select name="editWidgetOpenNewTab" class="form-control" id="editWidgetOpenNewTab"></select>');
-                                        newSelect.append('<option value="yes">Yes</option>');
-                                        newSelect.append('<option value="no">No</option>');
+                                        newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                        newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
@@ -30341,7 +30355,7 @@
                                         
                                         newFormRow = $('<div class="row"></div>');
 
-                                        newLabel = $('<label for="editWidgetComparePeriod" class="col-md-2 control-label">Compare Period</label>');
+                                        newLabel = $('<label for="editWidgetComparePeriod" class="col-md-2 control-label"><?php echo _("Compare Period"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-9"></div>');
                                         newSelect = $('<select name="editWidgetComparePeriod" class="form-control" id="editWidgetComparePeriod"></select>');
                                         
@@ -30349,37 +30363,43 @@
                                         {
                                             
                                             case "4 Ore":
-                                                newSelect.append('<option value="4 previous hours">4 previous hours</option>');
-                                                newSelect.append('<option value="4 hours day before">4 hours day before</option>');
+                                                newSelect.append('<option value="4 previous hours"><?php echo _("4 previous hours"); ?></option>');
+                                                newSelect.append('<option value="4 hours day before"><?php echo _("4 hours day before"); ?></option>');
                                                 break;
                                             case "12 Ore":
-                                                newSelect.append('<option value="12 previous hours">12 previous hours</option>');
-                                                newSelect.append('<option value="12 hours day before">12 hours day before</option>');
+                                                newSelect.append('<option value="12 previous hours"><?php echo _("12 previous hours"); ?></option>');
+                                                newSelect.append('<option value="12 hours day before"><?php echo _("12 hours day before"); ?></option>');
                                                 break;
                                             case "Giornaliera":
-                                                newSelect.append('<option value="previous day">previous day</option>');
-                                                newSelect.append('<option value="same day previous week">same day previous week</option>');
-                                                newSelect.append('<option value="same day previous month">same day previous month</option>');
+                                                newSelect.append('<option value="previous day"><?php echo _("previous day"); ?></option>');
+                                                newSelect.append('<option value="same day previous week"><?php echo _("same day previous week"); ?></option>');
+                                                newSelect.append('<option value="same day previous month"><?php echo _("same day previous month"); ?></option>');
                                                 break;
                                             case "Settimanale":
-                                                newSelect.append('<option value="previous week">previous week</option>');
-                                                newSelect.append('<option value="previous week starting Monday">previous week starting Monday</option>');
+                                                newSelect.append('<option value="previous week"><?php echo _("previous week"); ?></option>');
+                                                newSelect.append('<option value="previous week starting Monday"><?php echo _("previous week starting Monday"); ?></option>');
                                                 break;
                                             case "Mensile":
-                                                newSelect.append('<option value="previous month">previous month</option>');
-                                                newSelect.append('<option value="previous month - day 1">previous month - day 1</option>');
-                                                newSelect.append('<option value="same month prev year - day 1">same month prev year - day 1</option>');
+                                                newSelect.append('<option value="previous month"><?php echo _("previous month"); ?></option>');
+                                                newSelect.append('<option value="previous month - day 1"><?php echo _("previous month - day 1"); ?></option>');
+                                                newSelect.append('<option value="same month prev year - day 1"><?php echo _("same month prev year - day 1"); ?></option>');
                                                 break;
                                             case "Semestrale":
-                                                newSelect.append('<option value="previous 6 months">previous 6 months</option>');
-                                                newSelect.append('<option value="previous 6 months - day 1 of prev 6 months">previous 6 months - day 1 of prev 6 months</option>');
-                                                newSelect.append('<option value="same 6 months of prev year - day 1">same 6 months of prev year - day 1</option>');
-                                                newSelect.append('<option value="same 6 months of prev year - day 1 month 1 or 7">same 6 months of prev year - day 1 month 1 or 7</option>');
+                                                newSelect.append('<option value="previous 6 months"><?php echo _("previous 6 months"); ?></option>');
+                                                newSelect.append('<option value="previous 6 months - day 1 of prev 6 months"><?php echo _("previous 6 months - day 1 of prev 6 months"); ?></option>');
+                                                newSelect.append('<option value="same 6 months of prev year - day 1"><?php echo _("same 6 months of prev year - day 1"); ?></option>');
+                                                newSelect.append('<option value="same 6 months of prev year - day 1 month 1 or 7"><?php echo _("same 6 months of prev year - day 1 month 1 or 7"); ?></option>');
                                                 break;
                                             case "Annuale":
-                                                newSelect.append('<option value="previous year">previous year</option>');
-                                                newSelect.append('<option value="previous year - day 1 of prev year">previous year - day 1 of prev year</option>');
-                                                newSelect.append('<option value="previous year - month 1">previous year - month 1</option>');
+                                                newSelect.append('<option value="previous year"><?php echo _("previous year"); ?></option>');
+                                                newSelect.append('<option value="previous year - day 1 of prev year"><?php echo _("previous year - day 1 of prev year"); ?></option>');
+                                                newSelect.append('<option value="previous year - month 1"><?php echo _("previous year - month 1"); ?></option>');
+                                                break;
+                                            case "2 Anni":
+                                                newSelect.append('<option value="previous 2 years"><?php echo _("previous 2 years"); ?></option>');
+                                                break;
+                                            case "10 Anni":
+                                                newSelect.append('<option value="previous 10 years"><?php echo _("previous 10 years"); ?></option>');
                                                 break;
                                         }
                                        
@@ -30434,7 +30454,7 @@
                                        //Widget mode
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="widgetEventsModeM" class="col-md-2 control-label">Widget mode</label>');
+                                        newLabel = $('<label for="widgetEventsModeM" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="widgetEventsModeM" name="widgetEventsModeM"></select>');
                                         newSelect.append('<option value="list">List</option>');
@@ -30450,7 +30470,7 @@
                                        newFormRow = $('<div class="row"></div>');
                                        $("#specificParamsM").append(newFormRow);
 
-                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                       newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                        newInnerDiv = $('<div class="col-md-3"></div>');
                                        newSelect = $('<select class="form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets"></select>');
 
@@ -30490,7 +30510,7 @@
                                        {
                                           newSelect.show();
                                           newSelect.val(-1);
-                                          newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                          newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                           newInnerDiv = $('<div class="col-md-3"></div>');
                                           var eventTypeSelect = $('<select name="editWidgetEventTypes" class="form-control" id="editWidgetEventTypes" multiple></select>');
                                           eventTypeSelect.append('<option value="Altri eventi">Altri eventi</option>');
@@ -30584,13 +30604,13 @@
                                             //Widget mode
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="widgetEventsModeM" class="col-md-2 control-label">Widget mode</label>');
+                                            newLabel = $('<label for="widgetEventsModeM" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="widgetEventsModeM" name="widgetEventsModeM"></select>');
                                             newSelect.append('<option value="list">List</option>');
-                                            newSelect.append('<option value="searchAndList">Search filter, results on list</option>');
-                                            newSelect.append('<option value="searchAndMap">Search filter, results on map</option>');
-                                            newSelect.append('<option value="searchAndListAndMap">Search filter, results on list and map</option>');
+                                            newSelect.append('<option value="searchAndList"><?php echo _("Search filter, results on list"); ?></option>');
+                                            newSelect.append('<option value="searchAndMap"><?php echo _("Search filter, results on map"); ?></option>');
+                                            newSelect.append('<option value="searchAndListAndMap"><?php echo _("Search filter, results on list and map"); ?></option>');
                                             newSelect.val(data['viewMode']);
                                             newFormRow.append(newLabel);
                                             newInnerDiv.append(newSelect);
@@ -30600,7 +30620,7 @@
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
 
-                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label">Available geolocation widgets</label>');
+                                            newLabel = $('<label for="editWidgetGeolocationWidgets" class="col-md-2 control-label"><?php echo _("Available geolocation widgets"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="editWidgetGeolocationWidgets" name="editWidgetGeolocationWidgets"></select>');
 
@@ -30638,7 +30658,7 @@
                                             if (widgetsNumber > 0) {
                                                 newSelect.show();
                                                 newSelect.val(-1);
-                                                newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label">Events to show on selected map</label>');
+                                                newLabel = $('<label for="editWidgetEventTypes" class="col-md-2 control-label"><?php echo _("Events to show on selected map"); ?></label>');
                                                 newInnerDiv = $('<div class="col-md-3"></div>');
                                                 var eventTypeSelect = $('<select name="editWidgetEventTypes" class="form-control" id="editWidgetEventTypes" multiple></select>');
                                                 eventTypeSelect.append('<option value="Altri eventi">Altri eventi</option>');
@@ -30727,7 +30747,7 @@
                                         //Default tab
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="inputDefaultTabM" class="col-md-2 control-label">Default tab</label>');
+                                        newLabel = $('<label for="inputDefaultTabM" class="col-md-2 control-label"><?php echo _("Default tab"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="inputDefaultTabM" name="inputDefaultTabM"></select>');
                                         newSelect.append('<option value="0">Trends</option>');
@@ -30805,13 +30825,13 @@
                                         //Orientation
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="orientationM" class="col-md-2 control-label">Widget mode</label>');
+                                        newLabel = $('<label for="orientationM" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="orientationM" name="orientationM"></select>');
-                                        newSelect.append('<option value="horizontal">Horizontal</option>');
-                                        newSelect.append('<option value="vertical">Vertical</option>');
-                                        newSelect.append('<option value="verticalCompact">VerticalCompact</option>');
-                                        newSelect.append('<option value="today">Today only</option>');
+                                        newSelect.append('<option value="horizontal"><?php echo _("Horizontal"); ?></option>');
+                                        newSelect.append('<option value="vertical"><?php echo _("Vertical"); ?></option>');
+                                        newSelect.append('<option value="verticalCompact"><?php echo _("VerticalCompact"); ?></option>');
+                                        newSelect.append('<option value="today"><?php echo _("Today only"); ?></option>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
@@ -30822,7 +30842,7 @@
                                             newSelect.val(styleParameters.orientation);
                                         }
                                         
-                                        newLabel = $('<label for="languageM" class="col-md-2 control-label">Language</label>');
+                                        newLabel = $('<label for="languageM" class="col-md-2 control-label"><?php echo _("Language"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="languageM" name="languageM"></select>');
                                         newSelect.append('<option value="english">English</option>');
@@ -30840,7 +30860,7 @@
                                         //Space occupation
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="todayDimM" class="col-md-2 control-label">Today box dimension</label>');
+                                        newLabel = $('<label for="todayDimM" class="col-md-2 control-label"><?php echo _("Today box dimension"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         var newControl = $('<input id="todayDim" name="todayDimM" data-slider-id="todayDimSliderM" type="text" data-slider-min="0" data-slider-max="100" data-slider-step="1"/>');
                                         newInnerDiv.append(newControl);
@@ -30854,11 +30874,11 @@
                                         newFormRow.append(newInnerDiv);
                                         
                                         //Background option
-                                        newLabel = $('<label for="backgroundModeM" class="col-md-2 control-label">Background mode</label>');
+                                        newLabel = $('<label for="backgroundModeM" class="col-md-2 control-label"><?php echo _("Background mode"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="backgroundModeM" name="backgroundModeM"></select>');
-                                        newSelect.append('<option value="color">Color</option>');
-                                        newSelect.append('<option value="auto">Automatic picture</option>');
+                                        newSelect.append('<option value="color"><?php echo _("Color"); ?></option>');
+                                        newSelect.append('<option value="auto"><?php echo _("Automatic picture"); ?></option>');
                                         newSelect.val(styleParameters.backgroundMode);
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
@@ -30868,11 +30888,11 @@
                                         //Icon type
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="iconSetM" class="col-md-2 control-label">Weather symbols</label>');
+                                        newLabel = $('<label for="iconSetM" class="col-md-2 control-label"><?php echo _("Weather symbols"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="iconSetM" name="iconSetM"></select>');
-                                        newSelect.append('<option value="multiColor">Images</option>');
-                                        newSelect.append('<option value="singleColor">Icons</option>');
+                                        newSelect.append('<option value="multiColor"><?php echo _("Images"); ?></option>');
+                                        newSelect.append('<option value="singleColor"><?php echo _("Icons"); ?></option>');
                                         newSelect.val(styleParameters.iconSet);
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
@@ -30979,7 +30999,7 @@
                                         //Set min value
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="setMinValueM" class="col-md-2 control-label">Set Min Value</label>');
+                                        newLabel = $('<label for="setMinValueM" class="col-md-2 control-label"><?php echo _("Set Min Value"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="setMinValueM" name="setMinValueM">');
                                         if (styleParameters != null) {
@@ -30989,7 +31009,7 @@
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
                                         //Set max value
-                                        newLabel = $('<label for="setMaxValueM" class="col-md-2 control-label">Set Max Value</label>');
+                                        newLabel = $('<label for="setMaxValueM" class="col-md-2 control-label"><?php echo _("Set Max Value"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="setMaxValueM" name="setMaxValueM">');
                                         if (styleParameters != null) {
@@ -31053,7 +31073,7 @@
                                         //Default tab
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="inputDefaultTabM" class="col-md-2 control-label">Default tab</label>');
+                                        newLabel = $('<label for="inputDefaultTabM" class="col-md-2 control-label"><?php echo _("Default tab"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="inputDefaultTabM" name="inputDefaultTabM"></select>');
                                         newSelect.append('<option value="0">Stato</option>');
@@ -31120,7 +31140,7 @@
                                             //Centro della mappa per modalità GIS target
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label class="col-md-2 control-label">Start lat</label>');
+                                            newLabel = $('<label class="col-md-2 control-label"><?php echo _("Start lat"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-2">' +
                                                 '<input type="text" id="gisTargetCenterLatM" class="form-control"/>' +
                                                 +'</div>');
@@ -31129,7 +31149,7 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label class="col-md-2 control-label">Start lng</label>');
+                                            newLabel = $('<label class="col-md-2 control-label"><?php echo _("Start lng"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-2">' +
                                                 '<input type="text" id="gisTargetCenterLngM" class="form-control"/>' +
                                                 +'</div>');
@@ -31138,7 +31158,7 @@
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label class="col-md-2 control-label">Start zoom</label>');
+                                            newLabel = $('<label class="col-md-2 control-label"><?php echo _("Start zoom"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-2">' +
                                                 '<input type="text" id="gisTargetCenterZoomM" class="form-control"/>' +
                                                 +'</div>');
@@ -31158,7 +31178,7 @@
                                             //Show Orthomaps
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="showOrthomapsM" class="col-md-2 control-label">Show Orthomaps Controls</label>');
+                                            newLabel = $('<label for="showOrthomapsM" class="col-md-2 control-label"><?php echo _("Show Orthomaps Controls"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="showOrthomapsM" name="showOrthomapsM"></select>');
                                             newSelect.append('<option style="display:none">');
@@ -31175,7 +31195,7 @@
 
                                             //Default Orthomap
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="defaultOrthomapM" id="defaultOrthomapLabelM" class="col-md-2 control-label">Default Orthomap</label>');
+                                            newLabel = $('<label for="defaultOrthomapM" id="defaultOrthomapLabelM" class="col-md-2 control-label"><?php echo _("Default Orthomap"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="defaultOrthomapM" name="defaultOrthomapM"></select>');
                                             newSelect.append('<option style="display:none">');
@@ -31237,7 +31257,7 @@
 
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="wsConnect" class="col-md-2 control-label">Connect to WS</label>');
+                                            newLabel = $('<label for="wsConnect" class="col-md-2 control-label"><?php echo _("Connect to WS"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="wsConnect" name="wsConnect"></select>');
                                             newSelect.append('<option style="display:none">');
@@ -31261,7 +31281,7 @@
                                             //Full screen controls
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label">Enable fullscreen in a popup</label>');
+                                            newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label"><?php echo _("Enable fullscreen in a popup"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-3"></div>');
                                             newSelect = $('<select class="form-control" id="enableFullscreenModalM" name="enableFullscreenModalM"></select>');
                                             newSelect.append('<option value="yes">Yes</option>');
@@ -31566,13 +31586,13 @@
                                         //Modalità del widget (none, map, gis, link esterno)
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="widgetModeM" class="col-md-2 control-label">Widget mode</label>');
+                                        newLabel = $('<label for="widgetModeM" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="widgetModeM" name="widgetModeM"></select>');
-                                        newSelect.append('<option value="link">Web link</option>');
-                                        newSelect.append('<option value="map">Map</option>');
-                                        newSelect.append('<option value="gisTarget">Selector target</option>');
-                                        newSelect.append('<option value="selectorWebTarget">Selector Web target</option>');
+                                        newSelect.append('<option value="link"><?php echo _("Web link"); ?></option>');
+                                        newSelect.append('<option value="map"><?php echo _("Map"); ?></option>');
+                                        newSelect.append('<option value="gisTarget"><?php echo _("Selector target"); ?></option>');
+                                        newSelect.append('<option value="selectorWebTarget"><?php echo _("Selector Web target"); ?></option>');
                                         newSelect.append('<option value="none">None</option>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
@@ -31581,7 +31601,7 @@
                                         //Centro della mappa per modalità GIS target
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label class="col-md-2 control-label">Start lat</label>');
+                                        newLabel = $('<label class="col-md-2 control-label"><?php echo _("Start lat"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2">' +
                                                           '<input type="text" id="gisTargetCenterLatM" class="form-control"/>' +
                                                         +'</div>');
@@ -31589,7 +31609,7 @@
                                         newInnerDiv.css("padding-right", "0px");
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);                                          
-                                        newLabel = $('<label class="col-md-2 control-label">Start lng</label>');
+                                        newLabel = $('<label class="col-md-2 control-label"><?php echo _("Start lng"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2">' +
                                                           '<input type="text" id="gisTargetCenterLngM" class="form-control"/>' +
                                                         +'</div>');
@@ -31597,7 +31617,7 @@
                                         newInnerDiv.css("padding-right", "0px");        
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);                                       
-                                        newLabel = $('<label class="col-md-2 control-label">Start zoom</label>');
+                                        newLabel = $('<label class="col-md-2 control-label"><?php echo _("Start zoom"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2">' +
                                                           '<input type="text" id="gisTargetCenterZoomM" class="form-control"/>' +
                                                         +'</div>');
@@ -31618,7 +31638,7 @@
                                         //Full screen controls
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="enableFullscreenTabM" class="col-md-2 control-label">Enable fullscreen in new tab</label>');
+                                        newLabel = $('<label for="enableFullscreenTabM" class="col-md-2 control-label"><?php echo _("Enable fullscreen in new tab"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="enableFullscreenTabM" name="enableFullscreenTabM"></select>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -31627,7 +31647,7 @@
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
-                                        newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label">Enable fullscreen in a popup</label>');
+                                        newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label"><?php echo _("Enable fullscreen in a popup"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="enableFullscreenModalM" name="enableFullscreenModalM"></select>');
                                         newSelect.append('<option value="yes">Yes</option>');
@@ -31637,7 +31657,7 @@
                                         newFormRow.append(newInnerDiv);                                       
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="coordsCollectionUriM" class="col-md-2 control-label">Coords collection URI</label>');
+                                        newLabel = $('<label for="coordsCollectionUriM" class="col-md-2 control-label"><?php echo _("Coords collection URI"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newSelect = $('<input type="text" class="form-control" id="coordsCollectionUriM" name="coordsCollectionUriM"/>');
                                         newInnerDiv.append(newSelect);
@@ -31648,7 +31668,7 @@
                                         //Zoom controls visibility
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="inputControlsVisibilityM" class="col-md-2 control-label">Zoom controls visibility</label>');
+                                        newLabel = $('<label for="inputControlsVisibilityM" class="col-md-2 control-label"><?php echo _("Zoom controls visibility"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="inputControlsVisibilityM" name="inputControlsVisibilityM"></select>');
                                         newSelect.append('<option value="alwaysVisible">Always visible</option>');
@@ -31661,7 +31681,7 @@
                                         newInnerDiv.show();
                                         newSelect.show();
                                         //Zoom factor - Lo si edita soltanto dai controlli grafici
-                                        newLabel = $('<label for="inputZoomFactorM" class="col-md-2 control-label">Zoom factor (%)</label>');
+                                        newLabel = $('<label for="inputZoomFactorM" class="col-md-2 control-label"><?php echo _("Zoom factor (%)"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="inputZoomFactorM" name="inputZoomFactorM" required>');
                                         newInput.val(data['zoomFactor']*100);
@@ -31676,17 +31696,17 @@
                                         //Zoom controls position
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="inputControlsPositionM" class="col-md-2 control-label">Zoom controls position</label>');
+                                        newLabel = $('<label for="inputControlsPositionM" class="col-md-2 control-label"><?php echo _("Zoom controls position"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="inputControlsPositionM" name="inputControlsPositionM"></select>');
-                                        newSelect.append('<option value="topLeft">Top left</option>');
-                                        newSelect.append('<option value="topCenter">Top center</option>');
-                                        newSelect.append('<option value="topRight">Top right</option>');
-                                        newSelect.append('<option value="middleRight">Middle right</option>');
-                                        newSelect.append('<option value="bottomRight">Bottom right</option>');
-                                        newSelect.append('<option value="bottomMiddle">Bottom middle</option>');
-                                        newSelect.append('<option value="bottomLeft">Bottom left</option>');
-                                        newSelect.append('<option value="middleLeft">Middle left</option>');
+                                        newSelect.append('<option value="topLeft"><?php echo _("Top left"); ?></option>');
+                                        newSelect.append('<option value="topCenter"><?php echo _("Top center"); ?></option>');
+                                        newSelect.append('<option value="topRight"><?php echo _("Top right"); ?></option>');
+                                        newSelect.append('<option value="middleRight"><?php echo _("Middle right"); ?></option>');
+                                        newSelect.append('<option value="bottomRight"><?php echo _("Bottom right"); ?></option>');
+                                        newSelect.append('<option value="bottomMiddle"><?php echo _("Bottom middle"); ?></option>');
+                                        newSelect.append('<option value="bottomLeft"><?php echo _("Bottom left"); ?></option>');
+                                        newSelect.append('<option value="middleLeft"><?php echo _("Middle left"); ?></option>');
                                         newSelect.val(data['controlsPosition']);
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
@@ -31978,8 +31998,8 @@
                                         var gisTargetCenterParametersM = null;
                                         $('#urlWidgetM').attr('disabled', false);
                                         $('#urlWidgetM').prop('required', true);
-                                        $("#titleLabelM").html("Title"); 
-                                        $("#bckColorLabelM").html("Background color");
+                                        $("#titleLabelM").html('<? _("Title")?>'); 
+                                        $("#bckColorLabelM").html('<? _("Background color")?>');
                                         $('#inputColorWidgetM').val("");
                                         $('#inputColorWidgetM').attr('disabled', false);
                                         $('#inputColorWidgetM').attr('required', true);
@@ -32015,14 +32035,14 @@
                                         //Modalità del widget (none, map, gis, link esterno)
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="widgetModeM" class="col-md-2 control-label">Widget mode</label>');
+                                        newLabel = $('<label for="widgetModeM" class="col-md-2 control-label"><?php echo _("Widget mode"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="widgetModeM" name="widgetModeM"></select>');
-                                        newSelect.append('<option value="link">Web link</option>');
-                                        newSelect.append('<option value="map">Map</option>');
-                                        newSelect.append('<option value="gisTarget">Selector target</option>');
-                                        newSelect.append('<option value="selectorWebTarget">Selector Web target</option>');
-                                        newSelect.append('<option value="none">None</option>');
+                                        newSelect.append('<option value="link"><?php echo _("Web link"); ?></option>');
+                                        newSelect.append('<option value="map"><?php echo _("Map"); ?></option>');
+                                        newSelect.append('<option value="gisTarget"><?php echo _("Selector target"); ?></option>');
+                                        newSelect.append('<option value="selectorWebTarget"><?php echo _("Selector Web target"); ?></option>');
+                                        newSelect.append('<option value="none"><?php echo _("None"); ?></option>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
@@ -32031,7 +32051,7 @@
                                         //Centro della mappa per modalità GIS target
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label class="col-md-2 control-label">Start lat</label>');
+                                        newLabel = $('<label class="col-md-2 control-label"><?php echo _("Start lat"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2">' +
                                                           '<input type="text" id="gisTargetCenterLatM" class="form-control"/>' +
                                                         +'</div>');
@@ -32040,7 +32060,7 @@
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);   
                                         
-                                        newLabel = $('<label class="col-md-2 control-label">Start lng</label>');
+                                        newLabel = $('<label class="col-md-2 control-label"><?php echo _("Start lng"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2">' +
                                                           '<input type="text" id="gisTargetCenterLngM" class="form-control"/>' +
                                                         +'</div>');
@@ -32049,7 +32069,7 @@
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
                                         
-                                        newLabel = $('<label class="col-md-2 control-label">Start zoom</label>');
+                                        newLabel = $('<label class="col-md-2 control-label"><?php echo _("Start zoom"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2">' +
                                                           '<input type="text" id="gisTargetCenterZoomM" class="form-control"/>' +
                                                         +'</div>');
@@ -32072,28 +32092,28 @@
                                         //Full screen controls
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="enableFullscreenTabM" class="col-md-2 control-label">Enable fullscreen in new tab</label>');
+                                        newLabel = $('<label for="enableFullscreenTabM" class="col-md-2 control-label"><?php echo _("Enable fullscreen in new tab"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="enableFullscreenTabM" name="enableFullscreenTabM"></select>');
-                                        newSelect.append('<option value="yes">Yes</option>');
-                                        newSelect.append('<option value="no">No</option>');
+                                        newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                        newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
                                         newSelect.val(data['enableFullscreenTab']);
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
 
-                                        newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label">Enable fullscreen in a popup</label>');
+                                        newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label"><?php echo _("Enable fullscreen in a popup"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="enableFullscreenModalM" name="enableFullscreenModalM"></select>');
-                                        newSelect.append('<option value="yes">Yes</option>');
-                                        newSelect.append('<option value="no">No</option>');
+                                        newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                        newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
                                         
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="coordsCollectionUriM" class="col-md-2 control-label">Coords collection URI</label>');
+                                        newLabel = $('<label for="coordsCollectionUriM" class="col-md-2 control-label"><?php echo _("Coords collection URI"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newSelect = $('<input type="text" class="form-control" id="coordsCollectionUriM" name="coordsCollectionUriM"/>');
                                         newInnerDiv.append(newSelect);
@@ -32105,10 +32125,10 @@
                                         //Zoom controls visibility
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="inputControlsVisibilityM" class="col-md-2 control-label">Zoom controls visibility</label>');
+                                        newLabel = $('<label for="inputControlsVisibilityM" class="col-md-2 control-label"><?php echo _("Zoom controls visibility"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="inputControlsVisibilityM" name="inputControlsVisibilityM"></select>');
-                                        newSelect.append('<option value="alwaysVisible">Always visible</option>');
+                                        newSelect.append('<option value="alwaysVisible"><?php echo _("Always visible"); ?></option>');
                                         newSelect.append('<option value="hidden">Hidden</option>');
                                         newSelect.val(data['controlsVisibility']);
                                         newInnerDiv.append(newSelect);
@@ -32119,7 +32139,7 @@
                                         newSelect.show();
 
                                         //Zoom factor - Lo si edita soltanto dai controlli grafici
-                                        newLabel = $('<label for="inputZoomFactorM" class="col-md-2 control-label">Zoom factor (%)</label>');
+                                        newLabel = $('<label for="inputZoomFactorM" class="col-md-2 control-label"><?php echo _("Zoom factor (%)"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newInput = $('<input type="text" class="form-control" id="inputZoomFactorM" name="inputZoomFactorM" required>');
                                         newInput.val(data['zoomFactor']*100);
@@ -32135,17 +32155,17 @@
                                         //Zoom controls position
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="inputControlsPositionM" class="col-md-2 control-label">Zoom controls position</label>');
+                                        newLabel = $('<label for="inputControlsPositionM" class="col-md-2 control-label"><?php echo _("Zoom controls position"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="inputControlsPositionM" name="inputControlsPositionM"></select>');
-                                        newSelect.append('<option value="topLeft">Top left</option>');
-                                        newSelect.append('<option value="topCenter">Top center</option>');
-                                        newSelect.append('<option value="topRight">Top right</option>');
-                                        newSelect.append('<option value="middleRight">Middle right</option>');
-                                        newSelect.append('<option value="bottomRight">Bottom right</option>');
-                                        newSelect.append('<option value="bottomMiddle">Bottom middle</option>');
-                                        newSelect.append('<option value="bottomLeft">Bottom left</option>');
-                                        newSelect.append('<option value="middleLeft">Middle left</option>');
+                                        newSelect.append('<option value="topLeft"><?php echo _("Top left"); ?></option>');
+                                        newSelect.append('<option value="topCenter"><?php echo _("Top center"); ?></option>');
+                                        newSelect.append('<option value="topRight"><?php echo _("Top right"); ?></option>');
+                                        newSelect.append('<option value="middleRight"><?php echo _("Middle right"); ?></option>');
+                                        newSelect.append('<option value="bottomRight"><?php echo _("Bottom right"); ?></option>');
+                                        newSelect.append('<option value="bottomMiddle"><?php echo _("Bottom middle"); ?></option>');
+                                        newSelect.append('<option value="bottomLeft"><?php echo _("Bottom left"); ?></option>');
+                                        newSelect.append('<option value="middleLeft"><?php echo _("Middle left"); ?></option>');
                                         newSelect.val(data['controlsPosition']);
                                         newInnerDiv.append(newSelect);
                                         newFormRow.append(newLabel);
@@ -33184,7 +33204,7 @@
                         $(this).attr('data-rowid'),
                     ]).draw(false);
                 } else {
-                    alert("You can select only one metric for this type of widget");
+                    alert('<?= _("You can select only one metric for this type of widget") ?>');
                 }
                 //Aggiornamento unità selezionate
                 //updateSelectedUnits('add', null);
@@ -33343,6 +33363,14 @@
                                     {
                                         time = "180/DAY";
                                     }
+                                    else if (newWidgetToUpdate['temporal_range_w'] === "10 Anni")
+                                    {
+                                        time = "3650/DAY";
+                                    }
+                                    else if (newWidgetToUpdate['temporal_range_w'] === "2 Anni")
+                                    {
+                                        time = "730/DAY";
+                                    }
                                     else if (newWidgetToUpdate['temporal_range_w'] === "Annuale")
                                     {
                                         time = "365/DAY";
@@ -33415,26 +33443,26 @@
 
                                 },
                                 error: function (errorData) {
-                                    alert("Error during widget update, please try again");
+                                    alert('<?= _("Error during widget update, please try again") ?>');
                                     console.log(errorData);
                                 }
                             });
 
                             // RIMETTERE FREQUENZA VECCHIA
                         } else {
-                            alert("Error during widget update, please try again");
+                            alert('<?= _("Error during widget update, please try again") ?>');
                             console.log(data);
                         }
                     },
                     dataType:"json",
                     error: function (errorData) {
-                        alert("Error during widget update, please try again");
+                        alert('<?= _("Error during widget update, please try again") ?>');
                         console.log(errorData);
                     }
                 });
 
             } else {
-                alert("Error during widget update, cannot change metric");
+                alert('<?= _("Error during widget update, cannot change metric") ?>');
             }
         });
 
@@ -33571,43 +33599,51 @@
             switch ($(this).find(":selected").val()){
                 case "4 Ore":
                     $('#editWidgetComparePeriod').empty();
-                    $('#editWidgetComparePeriod').append('<option value="4 previous hours">4 previous hours</option>');
-                    $('#editWidgetComparePeriod').append('<option value="4 hours day before">4 hours day before</option>');
+                    $('#editWidgetComparePeriod').append('<option value="4 previous hours"><?php echo _("4 previous hours"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="4 hours day before"><?php echo _("4 hours day before"); ?></option>');
                     break;
                 case "12 Ore":
                     $('#editWidgetComparePeriod').empty();
-                    $('#editWidgetComparePeriod').append('<option value="12 previous hours">12 previous hours</option>');
-                    $('#editWidgetComparePeriod').append('<option value="12 hours day before">12 hours day before</option>');
+                    $('#editWidgetComparePeriod').append('<option value="12 previous hours"><?php echo _("12 previous hours"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="12 hours day before"><?php echo _("12 hours day before"); ?></option>');
                     break;
                 case "Giornaliera":
                     $('#editWidgetComparePeriod').empty();
-                    $('#editWidgetComparePeriod').append('<option value="previous day">previous day</option>');
-                    $('#editWidgetComparePeriod').append('<option value="same day previous week">same day previous week</option>');
-                    $('#editWidgetComparePeriod').append('<option value="same day previous month">same day previous month</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous day"><?php echo _("previous day"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="same day previous week"><?php echo _("same day previous week"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="same day previous month"><?php echo _("same day previous month"); ?></option>');
                     break;
                 case "Settimanale":
                     $('#editWidgetComparePeriod').empty();
-                    $('#editWidgetComparePeriod').append('<option value="previous week">previous week</option>');
-                    $('#editWidgetComparePeriod').append('<option value="previous week starting Monday">previous week starting Monday</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous week"><?php echo _("previous week"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous week starting Monday"><?php echo _("previous week starting Monday"); ?></option>');
                     break;
                 case "Mensile":
                     $('#editWidgetComparePeriod').empty();
-                    $('#editWidgetComparePeriod').append('<option value="previous month">previous month</option>');
-                    $('#editWidgetComparePeriod').append('<option value="previous month - day 1">previous month - day 1</option>');
-                    $('#editWidgetComparePeriod').append('<option value="same month prev year - day 1">same month prev year - day 1</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous month"><?php echo _("previous month"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous month - day 1"><?php echo _("previous month - day 1"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="same month prev year - day 1"><?php echo _("same month prev year - day 1"); ?></option>');
                     break;
                 case "Semestrale":
                     $('#editWidgetComparePeriod').empty();
-                    $('#editWidgetComparePeriod').append('<option value="previous 6 months">previous 6 months</option>');
-                    $('#editWidgetComparePeriod').append('<option value="previous 6 months - day 1 of prev 6 months">previous 6 months - day 1 of prev 6 months</option>');
-                    $('#editWidgetComparePeriod').append('<option value="same 6 months of prev year - day 1">same 6 months of prev year - day 1</option>');
-                    $('#editWidgetComparePeriod').append('<option value="same 6 months of prev year - day 1 month 1 or 7">same 6 months of prev year - day 1 month 1 or 7</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous 6 months"><?php echo _("previous 6 months"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous 6 months - day 1 of prev 6 months"><?php echo _("previous 6 months - day 1 of prev 6 months"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="same 6 months of prev year - day 1"><?php echo _("same 6 months of prev year - day 1"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="same 6 months of prev year - day 1 month 1 or 7"><?php echo _("same 6 months of prev year - day 1 month 1 or 7"); ?></option>');
                     break;
                 case "Annuale":
                     $('#editWidgetComparePeriod').empty();
-                    $('#editWidgetComparePeriod').append('<option value="previous year">previous year</option>');
-                    $('#editWidgetComparePeriod').append('<option value="previous year - day 1 of prev year">previous year - day 1 of prev year</option>');
-                    $('#editWidgetComparePeriod').append('<option value="previous year - month 1">previous year - month 1</option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous year"><?php echo _("previous year"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous year - day 1 of prev year"><?php echo _("previous year - day 1 of prev year"); ?></option>');
+                    $('#editWidgetComparePeriod').append('<option value="previous year - month 1"><?php echo _("previous year - month 1"); ?></option>');
+                    break;
+                case "2 Anni":
+                    $('#editWidgetComparePeriod').empty();
+                    $('#editWidgetComparePeriod').append('<option value="previous 2 years"><?php echo _("previous 2 years"); ?></option>');
+                    break;
+                case "10 Anni":
+                    $('#editWidgetComparePeriod').empty();
+                    $('#editWidgetComparePeriod').append('<option value="previous 10 years"><?php echo _("previous 10 years"); ?></option>');
                     break;
             }
         });

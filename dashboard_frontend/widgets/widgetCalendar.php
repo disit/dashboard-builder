@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 include('../config.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
@@ -66,115 +65,54 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
         var pattern = /Percentuale\//;
         var objName = null;
+        var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
 
         console.log("Entrato in widgetCalendar --> " + widgetName);
 
-        /*var unitsWidget = [[
-            'millisecond', // unit name
-            [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] // allowed multiples
-        ], [
-            'second',
-            [1, 2, 5]
-        ], [
-            'minute',
-            [1, 3, 5]
-        ], [
-            'hour',
-            [1, 2, 3, 4, 5, 7]
-        ], [
-            'day',
-            [1]
-        ], [
-            'week',
-            [1]
-        ], [
-            'month',
-            [1]
-        ], [
-            'year',
-            null
-        ]];*/
+        $(document).off('mouseOverTimeTrendFromExternalContentGis_' + widgetName);
+        $(document).on('mouseOverTimeTrendFromExternalContentGis_' + widgetName, function(event)
+        {
+            widgetOriginalBorderColor = $("#" + widgetName).css("border-color");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(event.widgetTitle);
+            $("#" + widgetName).css("border-color", event.color1);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", event.color1);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-webkit-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-o-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-moz-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "linear-gradient(to left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", "black");
+        });
 
-        //Definizioni di funzione specifiche del widget
-        /*function showModalFieldsInfoFirstAxis() {
-            var label = $(this).attr("data-label");
-            var id = label.replace(/\s/g, '_');
-            var info = null;
+        $(document).off('mouseOutTimeTrendFromExternalContentGis_' + widgetName);
+        $(document).on('mouseOutTimeTrendFromExternalContentGis_' + widgetName, function(event)
+        {
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
+            $("#" + widgetName).css("border-color", widgetOriginalBorderColor);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", widgetHeaderColor);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", widgetHeaderFontColor);
+        });
 
-            if(styleParameters.xAxisDataset === series.firstAxis.desc)
+        $(document).off('showTimeTrendFromExternalContentGis_' + widgetName);
+        $(document).on('showTimeTrendFromExternalContentGis_' + widgetName, function(event)
+        {
+            if(event.targetWidget === widgetName)
             {
-                //Grafico non trasposto
-                info = infoJson.firstAxis[id];
+                clearInterval(countdownRef);
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef, event.fakeId, false, null, null, event.futureLastDate);
             }
-            else
+        });
+
+        $(document).off('restoreOriginalTimeTrendFromExternalContentGis_' + widgetName);
+        $(document).on('restoreOriginalTimeTrendFromExternalContentGis_' + widgetName, function(event)
+        {
+            if(event.targetWidget === widgetName)
             {
-                //Grafico trasposto
-                info = infoJson.secondAxis[id];
+                clearInterval(countdownRef);
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, "<?= sanitizeTitle($_REQUEST['title_w']) ?>", "<?= escapeForJS($_REQUEST['frame_color_w']) ?>", "<?= $_REQUEST['headerFontColor'] ?>", false, null, null, null, null, null, null, false, null);
             }
-
-            $('#modalWidgetFieldsInfoTitle').html("Detailed info for field <b>" + label + "</b>");
-            $('#modalWidgetFieldsInfoContent').html(info);
-
-
-            $('#modalWidgetFieldsInfo').css({
-                'vertical-align': 'middle',
-                'position': 'absolute',
-                'top': '10%'
-            });
-            $('#modalWidgetFieldsInfo').modal('show');
-        }*/
-
-        /*function showModalFieldsInfoSecondAxis() {
-            var label = $(this).attr("data-label");
-            var id = label.replace(/\s/g, '_');
-            var info = null;
-
-            if(styleParameters.xAxisDataset === series.firstAxis.desc)
-            {
-                //Grafico non trasposto
-                info = infoJson.secondAxis[id];
-            }
-            else
-            {
-                //Grafico trasposto
-                info = infoJson.firstAxis[id];
-            }
-
-            $('#modalWidgetFieldsInfoTitle').html("Detailed info for field <b>" + label + "</b>");
-            $('#modalWidgetFieldsInfoContent').html(info);
-
-            $('#modalWidgetFieldsInfo').css({
-                'vertical-align': 'middle',
-                'position': 'absolute',
-                'top': '10%'
-            });
-            $('#modalWidgetFieldsInfo').modal('show');
-        }*/
-
-        /*function labelsFormat() {
-            var format, test = null;
-
-            switch(styleParameters.dataLabels)
-            {
-                case "no":
-                    format = "";
-                    break;
-
-                case "value":
-                    format = this.y;
-                    break;
-
-                case "full":
-                    format = this.series.name_w + ': ' + this.y;
-                    break;
-
-                default:
-                    format = this.y;
-                    break;
-            }
-
-            return format;
-        }*/
+        });
 
         function truncateStackedSerie(serie, timeRange) {
 
@@ -189,344 +127,6 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
         }
 
-        /*function getChartSeriesObject(series, xAxisLabelsEdit) {
-            var chartSeriesObject, singleObject, seriesName, seriesValue, seriesValues, zonesObject, zonesArray, inf, sup, i = null;
-
-            if(series !== null)
-            {
-                chartSeriesObject = [];
-
-                var seriesArray = null;
-
-                //Non trasposto
-                if(styleParameters.xAxisDataset === series.firstAxis.desc)
-                {
-                    for(var i in series.secondAxis.series)
-                    {
-                        if (xAxisLabelsEdit != null) {
-                            seriesName = xAxisLabelsEdit[i];
-                        } else {
-                            seriesName = series.secondAxis.labels[i];
-                        }
-                        seriesValues = series.secondAxis.series[i];
-
-                        if((styleParameters.barsColorsSelect === 'manual')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                        {
-                            singleObject = {
-                                name_w: seriesName,
-                                data: seriesValues,
-                                color: styleParameters.barsColors[i],
-                                dataLabels: {
-                                    useHTML: false,
-                                    enabled: true,
-                                    inside: true,
-                                    rotation: dataLabelsRotation,
-                                    overflow: 'justify',
-                                    crop: true,
-                                    align: dataLabelsAlign,
-                                    verticalAlign: dataLabelsVerticalAlign,
-                                    y: dataLabelsY,
-                                    formatter: labelsFormat,
-                                    style: {
-                                        fontFamily: 'Montserrat',
-                                        fontSize: styleParameters.dataLabelsFontSize + "px",
-                                        color: styleParameters.dataLabelsFontColor,
-                                        fontWeight: 'bold',
-                                        fontStyle: 'italic',
-                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)"
-                                    }
-                                }
-                            };
-                        }
-                        else
-                        {
-                            singleObject = {
-                                name_w: seriesName,
-                                data: seriesValues,
-                                dataLabels: {
-                                    useHTML: false,
-                                    enabled: true,
-                                    inside: true,
-                                    rotation: dataLabelsRotation,
-                                    overflow: 'justify',
-                                    crop: true,
-                                    align: dataLabelsAlign,
-                                    verticalAlign: dataLabelsVerticalAlign,
-                                    y: dataLabelsY,
-                                    formatter: labelsFormat,
-                                    style: {
-                                        fontFamily: 'Montserrat',
-                                        fontSize: styleParameters.dataLabelsFontSize + "px",
-                                        color: styleParameters.dataLabelsFontColor,
-                                        fontWeight: 'bold',
-                                        fontStyle: 'italic',
-                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)"
-                                    }
-                                }
-                            };
-                        }
-                        chartSeriesObject.push(singleObject);
-                    }
-                }
-                else//Trasposto
-                {
-                    for (i = 0; i < series.firstAxis.labels.length; i++)
-                    {
-                        if (xAxisLabelsEdit != null) {
-                            seriesName = xAxisLabelsEdit[i];
-                        } else {
-                            seriesName = series.secondAxis.labels[i];
-                        }
-                        seriesArray = [];
-                        zonesArray = [];
-
-                        for (var j in series.secondAxis.series)
-                        {
-                            seriesArray[j] = series.secondAxis.series[j][i];
-                        }
-
-                        if((styleParameters.barsColorsSelect === 'manual')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                        {
-                            singleObject = {
-                                name_w: seriesName,
-                                data: seriesArray,
-                                color: styleParameters.barsColors[i],
-                                dataLabels: {
-                                    useHTML: false,
-                                    enabled: true,
-                                    inside: true,
-                                    rotation: dataLabelsRotation,
-                                    overflow: 'justify',
-                                    crop: true,
-                                    align: dataLabelsAlign,
-                                    verticalAlign: dataLabelsVerticalAlign,
-                                    y: dataLabelsY,
-                                    formatter: labelsFormat,
-                                    style: {
-                                        fontFamily: 'Montserrat',
-                                        fontSize: styleParameters.dataLabelsFontSize + "px",
-                                        color: styleParameters.dataLabelsFontColor,
-                                        fontWeight: 'bold',
-                                        fontStyle: 'italic',
-                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)"
-                                    }
-                                }
-                            };
-                        }
-                        else
-                        {
-                            singleObject = {
-                                name_w: seriesName,
-                                data: seriesArray,
-                                dataLabels: {
-                                    useHTML: false,
-                                    enabled: true,
-                                    inside: true,
-                                    rotation: dataLabelsRotation,
-                                    overflow: 'justify',
-                                    crop: true,
-                                    align: dataLabelsAlign,
-                                    verticalAlign: dataLabelsVerticalAlign,
-                                    y: dataLabelsY,
-                                    formatter: labelsFormat,
-                                    style: {
-                                        fontFamily: 'Montserrat',
-                                        fontSize: styleParameters.dataLabelsFontSize + "px",
-                                        color: styleParameters.dataLabelsFontColor,
-                                        fontWeight: 'bold',
-                                        fontStyle: 'italic',
-                                        "text-shadow": "1px 1px 1px rgba(0,0,0,0.10)"
-                                    }
-                                }
-                            };
-                        }
-                        chartSeriesObject.push(singleObject);
-                    }
-                }
-
-            }
-            return chartSeriesObject;
-        }*/
-
-        //Metodo di aggiunta dei tasti info, di disegno delle soglie e di completamento dei dropdown delle legende
-        /*function getXAxisCategories(series, widgetHeight) {
-            var finalLabels, label, newLabel, id, singleInfo, dropClass, legendHeight = null;
-            var isSimpleLabel = true;
-
-            finalLabels = [];
-
-            if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
-            {
-                var thresholdObject = thresholdsJson.thresholdObject;
-            }
-
-            if(series !== null)
-            {
-                //Non trasposto
-                if(styleParameters.xAxisDataset === series.firstAxis.desc)
-                {
-                    for(var i = 0; i < series.firstAxis.labels.length; i++)
-                    {
-                        if(infoJson !== null)
-                        {
-                            label = series.firstAxis.labels[i];
-                            id = label.replace(/\s/g, '_');
-
-                            singleInfo = infoJson.firstAxis[id];
-
-                            //Aggiunta pulsante info
-                            //if(singleInfo !== '')
-                            if((singleInfo !== '')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                            {
-                                //Aggiunta legenda sulle soglie
-                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-                                {
-                                    if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
-                                    {
-                                        if(thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries.length > 0)
-                                        {
-                                            newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>  ' +
-                                                '<div style="display: inline" class="thrLegend">' +
-                                                '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
-                                                '<ul class="dropdown-menu thrLegend">' +
-                                                '</ul>' +
-                                                '</div>';
-                                        }
-                                        else
-                                        {
-                                            newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
-                                        }
-                                    }
-                                    else
-                                    {
-                                        newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
-                                    }
-                                }
-                                else
-                                {
-                                    newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
-                                }
-                            }
-                            else
-                            {
-                                //Aggiunta legenda sulle soglie
-                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-                                {
-                                    if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
-                                    {
-                                        if(thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries.length > 0)
-                                        {
-                                            newLabel = '<div style="display: inline" class="thrLegend">' +
-                                                '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
-                                                '<ul class="dropdown-menu">' +
-                                                '</ul>' +
-                                                '</div>';
-                                        }
-                                        else
-                                        {
-                                            newLabel = label;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        newLabel = label;
-                                    }
-                                }
-                                else
-                                {
-                                    newLabel = label;
-                                }
-                            }
-
-                            //Aggiunta nuova label al vettore delle labels
-                            finalLabels[i] = newLabel;
-                        }
-                    }
-                }
-                else//Trasposto
-                {
-                    for(var i = 0; i < series.secondAxis.labels.length; i++)
-                    {
-                        if(infoJson !== null)
-                        {
-                            label = series.secondAxis.labels[i];
-                            id = label.replace(/\s/g, '_');
-
-                            singleInfo = infoJson.secondAxis[id];
-
-                            //Aggiunta pulsante info
-                            //if(singleInfo !== '')
-                            if((singleInfo !== '')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
-                            {
-                                //Aggiunta legenda sulle soglie
-                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-                                {
-                                    if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
-                                    {
-                                        if(thresholdsJson.thresholdObject.secondAxis.fields[i].thrSeries.length > 0)
-                                        {
-                                            newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i>  ' +
-                                                '<div style="display: inline" class="thrLegend">' +
-                                                '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
-                                                '<ul class="dropdown-menu thrLegend">' +
-                                                '</ul>' +
-                                                '</div>';
-                                        }
-                                        else
-                                        {
-                                            newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
-                                        }
-                                    }
-                                    else
-                                    {
-                                        newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
-                                    }
-                                }
-                                else
-                                {
-                                    newLabel = '<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: ' + styleParameters.rowsLabelsFontSize + 'px; color: ' + styleParameters.rowsLabelsFontColor + '"></i> <span>' + label + '</span>';
-                                }
-                            }
-                            else
-                            {
-                                //Aggiunta legenda sulle soglie
-                                if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
-                                {
-                                    if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined'))
-                                    {
-                                        if(thresholdsJson.thresholdObject.secondAxis.fields[i].thrSeries.length > 0)
-                                        {
-                                            newLabel = '<div style="display: inline" class="thrLegend">' +
-                                                '<a href="#" data-toggle="dropdown" style="text-decoration: none; font-size: ' + styleParameters.rowsLabelsFontSize + ' ; color: ' + styleParameters.rowsLabelsFontColor + ';" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
-                                                '<ul class="dropdown-menu">' +
-                                                '</ul>' +
-                                                '</div>';
-                                        }
-                                        else
-                                        {
-                                            newLabel = label;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        newLabel = label;
-                                    }
-                                }
-                                else
-                                {
-                                    newLabel = label;
-                                }
-                            }
-
-                            //Aggiunta nuova label al vettore delle labels
-                            finalLabels[i] = newLabel;
-                        }
-                    }
-                }
-
-            }
-            return finalLabels;
-        }*/
 
         function resizeWidget() {
             setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
@@ -582,7 +182,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     let o = 0;
                 //    for (o=0; o<groupData[n][m][1].length; o++) {
                     while (o<groupData[n][m][1].length) {
-                        if (groupData[n][m][1][o][0].getUTCFullYear() == new Date().getUTCFullYear()) {
+                        if (groupData[n][m][1][o][0].getUTCFullYear() == new Date().getUTCFullYear() - timeNavCount) {
                             // slice from original arrayù
                             auxVal = groupData[n][m][1][o];
                             groupData[n][m][1].splice(o,1);
@@ -637,7 +237,6 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 var timeSlots = ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
                     "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"];
                 var monthArray = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-            //    var weekdayArray = ["D", "L", "M", "M", "G", "V", "S"];
                 var weekdayArray = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
                 var yLabel, cornerTag = 'NULL';
@@ -1571,12 +1170,16 @@ ${rowParameters[0].smField}: ${d[1]}`);
                         }
 
                         if (smPayload.Service != null) {
-                            if (smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit != null) {
-                                chartSeriesObject.valueUnit = smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit;
+                            if (smPayload.Service.features[0].properties.realtimeAttributes[smField] != null) {
+                                if (smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit != null) {
+                                    chartSeriesObject.valueUnit = smPayload.Service.features[0].properties.realtimeAttributes[smField].value_unit;
+                                }
                             }
                         } else if (smPayload.Sensor != null) {
-                            if (smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit != null) {
-                                chartSeriesObject.valueUnit = smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit;
+                            if (smPayload.Sensor.features[0].properties.realtimeAttributes[smField] != null) {
+                                if (smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit != null) {
+                                    chartSeriesObject.valueUnit = smPayload.Sensor.features[0].properties.realtimeAttributes[smField].value_unit;
+                                }
                             }
                         }
 
@@ -1592,7 +1195,88 @@ ${rowParameters[0].smField}: ${d[1]}`);
             return null;
         }
 
-        function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture) {
+        function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture, fromIotApp) {
+
+            if(fromGisExternalContent)
+            {
+                // Reset Time Navigation
+                if (fromGisExternalContentRangePrevious !== fromGisExternalContentRange || fromGisExternalContentFieldPrevious != fromGisExternalContentField || fromGisExternalContentServiceUriPrevious != fromGisExternalContentServiceUri) {
+                    timeNavCount = 0;
+                    timeCount = 0;
+                    fromGisExternalContentRangePrevious = fromGisExternalContentRange;
+                    fromGisExternalContentFieldPrevious = fromGisExternalContentField;
+                    fromGisExternalContentServiceUriPrevious = fromGisExternalContentServiceUri;
+                    dataFut = null;
+                    upLimit = null;
+                }
+
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').hide();
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').show();
+
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').off('click');
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').click(function(){
+                    if($(this).attr('data-onMap') === 'false')
+                    {
+                        if(fromGisMapRef.hasLayer(fromGisMarker))
+                        {
+                            fromGisMarker.fire('click');
+                        }
+                        else
+                        {
+                            fromGisMapRef.addLayer(fromGisMarker);
+                            fromGisMarker.fire('click');
+                        }
+                        $(this).attr('data-onMap', 'true');
+                        $(this).html('near_me');
+                        $(this).css('color', 'white');
+                        $(this).css('text-shadow', '2px 2px 4px black');
+                    }
+                    else
+                    {
+                        fromGisMapRef.removeLayer(fromGisMarker);
+                        $(this).attr('data-onMap', 'false');
+                        $(this).html('navigation');
+                        $(this).css('color', '#337ab7');
+                        $(this).css('text-shadow', 'none');
+                    }
+                });
+
+                switch(fromGisExternalContentRange)
+                {
+                    case "4/HOUR":
+                        localTimeRange = "4 Ore";
+                        break;
+
+                    case "1/DAY":
+                        localTimeRange = "Giornaliera";
+                        break;
+
+                    case "7/DAY":
+                        localTimeRange = "Settimanale";
+                        break;
+
+                    case "30/DAY":
+                        localTimeRange = "Mensile";
+                        break;
+
+                    case "180/DAY":
+                        localTimeRange = "Semestrale";
+                        break;
+
+                    case "365/DAY":
+                        localTimeRange = "Annuale";
+                        break;
+
+                    default:
+                        localTimeRange = "Annuale";
+                        break;
+                }
+
+                rowParameters[0].metricId = fromGisExternalContentServiceUri;
+                rowParameters[0].serviceUri = fromGisExternalContentServiceUri;
+                rowParameters[0].smField = fromGisExternalContentField;
+
+            }
 
             if(fromAggregate) {
                 setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
@@ -1691,6 +1375,16 @@ ${rowParameters[0].smField}: ${d[1]}`);
                                 }
                                 if (drawFlag === true) {
                                     drawDiagram(true, xAxisFormat, yAxisType);
+                                    if (!fromGisExternalContent) {
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').show();
+                                        if (fromIotApp) {
+                                            let dynamicTitle = widgetTitle + " - " + rowParameters[0].metricName + " - " + rowParameters[0].smField;
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(dynamicTitle);
+                                        } else {
+                                        //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
+                                        }
+                                    }
                                 } else {
                                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
                                     $("#<?= $_REQUEST['name_w'] ?>_table").hide();
@@ -2019,6 +1713,10 @@ ${rowParameters[0].smField}: ${d[1]}`);
                 infoJson = widgetData.params.infoJson;
                 idMetric =  widgetData.params.id_metric;
 
+                if (nrMetricType != null) {
+                    openWs();
+                }
+
                 if (infoJson === "fromTracker" && fromGisExternalContent !== true) {
                     $("#" + widgetName + "_timeControlsContainer").hide();
                     $("#" + widgetName + "_titleDiv").css("width", "95%");
@@ -2049,6 +1747,7 @@ ${rowParameters[0].smField}: ${d[1]}`);
                     $("#" + widgetName).css("border-color", widgetHeaderColorFromDriver);
                     widgetHeaderColor = widgetHeaderColorFromDriver;
                     widgetHeaderFontColor = widgetHeaderFontColorFromDriver;
+                    rowParameters = widgetData.params.rowParameters;
                 }
 
                 setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
@@ -2248,6 +1947,113 @@ ${rowParameters[0].smField}: ${d[1]}`);
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
             }
         });
+
+        //Web socket
+        openWs = function(e)
+        {
+            try
+            {
+                <?php
+                $genFileContent = parse_ini_file("../conf/environment.ini");
+                $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
+                $wsServerAddress = $wsServerContent["wsServerAddressWidgets"][$genFileContent['environment']['value']];
+                $wsServerPort = $wsServerContent["wsServerPort"][$genFileContent['environment']['value']];
+                $wsPath = $wsServerContent["wsServerPath"][$genFileContent['environment']['value']];
+                $wsProtocol = $wsServerContent["wsServerProtocol"][$genFileContent['environment']['value']];
+                $wsRetryActive = $wsServerContent["wsServerRetryActive"][$genFileContent['environment']['value']];
+                $wsRetryTime = $wsServerContent["wsServerRetryTime"][$genFileContent['environment']['value']];
+                echo 'wsRetryActive = "' . $wsRetryActive . '";';
+                echo 'wsRetryTime = ' . $wsRetryTime . ';';
+                echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                ?>
+
+                webSocket.addEventListener('open', openWsConn);
+                webSocket.addEventListener('close', wsClosed);
+
+                setTimeout(function(){
+                    webSocket.removeEventListener('close', wsClosed);
+                    webSocket.removeEventListener('open', openWsConn);
+                    webSocket.removeEventListener('message', manageIncomingWsMsg);
+                    webSocket.close();
+                    webSocket = null;
+                }, (timeToReload - 2)*1000);
+            }
+            catch(e)
+            {
+                wsClosed();
+            }
+        };
+
+        manageIncomingWsMsg = function(msg)
+        {
+            var msgObj = JSON.parse(msg.data);
+
+            switch(msgObj.msgType)
+            {
+                case "newNRMetricData":
+                    if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
+                    {
+                        //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+
+                        var newValue = msgObj.newValue;
+                        //    var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
+                        //    point.update(newValue);
+
+                        rowParameters = newValue;
+                        if(idMetric === 'AggregationSeries' || nrMetricType != null)
+                        {
+                            //    rowParameters = JSON.parse(rowParameters);
+                            //    timeRange = widgetData.params.temporal_range_w;
+                            populateWidget(true, timeRange, null, timeNavCount, null, true);
+                        }
+                        else
+                        {
+                            populateWidget(false, null, null, timeNavCount, null, true);
+                        }
+
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        };
+
+        openWsConn = function(e)
+        {
+            var wsRegistration = {
+                msgType: "ClientWidgetRegistration",
+                userType: "widgetInstance",
+                metricName: encodeURIComponent(metricName),
+                widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
+            };
+            webSocket.send(JSON.stringify(wsRegistration));
+
+            setTimeout(function(){
+                webSocket.removeEventListener('close', wsClosed);
+                webSocket.close();
+            }, (timeToReload - 2)*1000);
+
+            webSocket.addEventListener('message', manageIncomingWsMsg);
+        };
+
+        wsClosed = function(e)
+        {
+            webSocket.removeEventListener('close', wsClosed);
+            webSocket.removeEventListener('open', openWsConn);
+            webSocket.removeEventListener('message', manageIncomingWsMsg);
+            webSocket = null;
+            if(wsRetryActive === 'yes')
+            {
+                setTimeout(openWs, parseInt(wsRetryTime*1000));
+            }
+        };
+
+        //Per ora non usata
+        wsError = function(e)
+        {
+
+        };
 
         $("#<?= $_REQUEST['name_w'] ?>").off('changeTimeRangeEvent');
         $("#<?= $_REQUEST['name_w'] ?>").on('changeTimeRangeEvent', function(event){

@@ -152,7 +152,7 @@ checkSession('Manager');
                         SVG Template File *
                     </div>
                     <div class="col-xs-12">
-                        <input id="getTemplate" name="getTemplate" type="file" <?=$_GET["name"]?'':'required="required"'?> class="filestyle form-control" data-badge="false" data-input="true" data-size="nr" data-buttonname="btn-primary" data-buttontext="File" tabindex="-1" style="position: absolute; clip: rect(0px, 0px, 0px, 0px);">
+                        <input id="getTemplate" name="getTemplate" type="file" <?=$_GET["name"]?'':'required="required"'?> class="filestyle form-control" data-badge="false" data-input="true" data-size="nr" data-buttonname="btn-primary" data-buttontext="File" tabindex="-1" style="position: absolute; clip: rect(0px, 0px, 0px, 0px);" accept=".svg">
                     </div>  
                 </div>
 				<div class="col-xs-12 col-sm-6 col-md-3">

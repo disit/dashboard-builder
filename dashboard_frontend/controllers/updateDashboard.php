@@ -95,11 +95,11 @@
     {
         case "updateHeaderColor":
             $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
-            
+
             $query = "UPDATE Dashboard.Config_dashboard SET color_header = '$newColor' WHERE Id = '$dashboardId'";
             $result = mysqli_query($link, $query);
 
-            if($result) 
+            if($result)
             {
                 $response['detail'] = 'Ok';
                 updateLastUsedColors($newColor, $dashboardId, $link);
@@ -109,14 +109,14 @@
                 $response['detail'] = 'queryKo';
             }
             break;
-        
+
         case "updateHeaderFontColor":
             $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
-            
+
             $query = "UPDATE Dashboard.Config_dashboard SET headerFontColor = '$newColor' WHERE Id = '$dashboardId'";
             $result = mysqli_query($link, $query);
 
-            if($result) 
+            if($result)
             {
                 $response['detail'] = 'Ok';
                 updateLastUsedColors($newColor, $dashboardId, $link);
@@ -126,14 +126,14 @@
                 $response['detail'] = 'queryKo';
             }
             break;
-            
+
         case "updateAreaColor":
             $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
-            
+
             $query = "UPDATE Dashboard.Config_dashboard SET color_background = '$newColor' WHERE Id = '$dashboardId'";
             $result = mysqli_query($link, $query);
 
-            if($result) 
+            if($result)
             {
                 $response['detail'] = 'Ok';
                 updateLastUsedColors($newColor, $dashboardId, $link);
@@ -142,15 +142,15 @@
             {
                 $response['detail'] = 'queryKo';
             }
-            break; 
-            
+            break;
+
         case "updateFrameColor":
             $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
-            
+
             $query = "UPDATE Dashboard.Config_dashboard SET external_frame_color = '$newColor' WHERE Id = '$dashboardId'";
             $result = mysqli_query($link, $query);
 
-            if($result) 
+            if($result)
             {
                 $response['detail'] = 'Ok';
                 updateLastUsedColors($newColor, $dashboardId, $link);
@@ -159,8 +159,8 @@
             {
                 $response['detail'] = 'queryKo';
             }
-            break;       
-            
+            break;
+
         case "updateTitle":
             $newTitle = mysqli_real_escape_string($link, $_REQUEST['newTitle']);
             $dashboardTitle = mysqli_real_escape_string($link, $_REQUEST['dashboardTitle']);
@@ -179,12 +179,12 @@
             $querySel = "SELECT name_dashboard FROM Dashboard.Config_dashboard WHERE Id = '$dashboardId'";
             $resultSel = mysqli_query($link, $querySel);
 
-            if($resultSel) 
+            if($resultSel)
             {
-                if($resultSel->num_rows > 0) 
+                if($resultSel->num_rows > 0)
                 {
 
-                  while($row = mysqli_fetch_array($resultSel)) 
+                  while($row = mysqli_fetch_array($resultSel))
                   {
                       $oldContainerName = $row['name_dashboard'];
                   }
@@ -194,11 +194,11 @@
             {
                // Nothing...
             }
-            
+
             $query = "UPDATE Dashboard.Config_dashboard SET name_dashboard = '$newTitle', title_header = '$newTitle' WHERE Id = '$dashboardId'";
             $result = mysqli_query($link, $query);
 
-            if($result) 
+            if($result)
             {
                 $response['detail'] = 'Ok';
                 $nameGroup=urldecode ($nameGroup);
@@ -239,13 +239,13 @@
                 $channelArc->rename($infoChannel->channel->_id,$newName);
                 $admin->logout();
                 }
-                
+
             }
             else
             {
                 $response['detail'] = 'queryKo';
             }
-            
+
             // Aggiorniamo il Notificatore per modificare il campo corrispondente al widget title nella tabell eventGenerators
               $newContainerName = $newTitle;
               $newContainerName = preg_replace('/\s+/', '+', $newContainerName);
@@ -260,26 +260,26 @@
                         //'timeout' => 2
                     )
                 );
-                
+
               try
               {
                 $context  = stream_context_create($options);
                 $callResult = @file_get_contents($url, false, $context);
               }
-              catch (Exception $ex) 
+              catch (Exception $ex)
               {
                 //Non facciamo niente di specifico in caso di mancata risposta dell'host
               }
-            
+
             break;
-            
+
         case "updateSubtitle":
             $newSubtitle = mysqli_real_escape_string($link, $_REQUEST['newSubtitle']);
-            
+
             $query = "UPDATE Dashboard.Config_dashboard SET subtitle_header = '$newSubtitle' WHERE Id = '$dashboardId'";
             $result = mysqli_query($link, $query);
 
-            if($result) 
+            if($result)
             {
                 $response['detail'] = 'Ok';
             }
@@ -288,7 +288,7 @@
                 $response['detail'] = 'queryKo';
             }
             break;
-            
+
         case "updateEmbedList":
             $dashboardId = mysqli_real_escape_string($link, $_REQUEST['dashboardId']);
             if (checkVarType($dashboardId, "integer") === false) {
@@ -296,7 +296,7 @@
                 exit();
             };
             $newList = $_REQUEST['newList'];
-            
+
             if(($newList != "[]")&&($newList != ""))
             {
                $embeddable = "yes";
@@ -306,11 +306,11 @@
                 $embeddable = "no";
                 $newList = "[]";
             }
-            
+
             $query = "UPDATE Dashboard.Config_dashboard SET embeddable = '$embeddable', authorizedPagesJson = '$newList' WHERE Id = '$dashboardId'";
             $result = mysqli_query($link, $query);
 
-            if($result) 
+            if($result)
             {
                 $response['detail'] = 'Ok';
             }
@@ -318,8 +318,8 @@
             {
                 $response['detail'] = 'queryKo';
             }
-            break;       
-        
+            break;
+
         case "updateAdvancedProperties":
             mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
             $queryFail = false;
@@ -329,7 +329,7 @@
             $dashboardEditor = $_REQUEST['dashboardEditor'];
             $dashboardTitle = $_REQUEST['currentDashboardTitle'];
 
-            $nCols = mysqli_real_escape_string($link, $_POST['inputWidthDashboard']); 
+            $nCols = mysqli_real_escape_string($link, $_POST['inputWidthDashboard']);
 
             $filename = NULL;
             $logoLink = NULL;
@@ -342,7 +342,7 @@
             {
                 $useBckImg = 'no';
             }
-            
+
             if(isset($_POST['inputDashboardViewMode']))
             {
                 $viewMode = "alwaysResponsive";
@@ -351,7 +351,7 @@
             {
                 $viewMode = "fixed";
             }
-            
+
             if(isset($_POST['headerVisible']))
             {
                 $headerVisible = 1;
@@ -370,126 +370,119 @@
 
             if(($_REQUEST['dashboardLogoLinkInput'] != NULL) && ($_REQUEST['dashboardLogoLinkInput'] != ''))
             {
-                $logoLink = mysqli_real_escape_string($link, $_REQUEST['dashboardLogoLinkInput']); 
+                $logoLink = mysqli_real_escape_string($link, $_REQUEST['dashboardLogoLinkInput']);
             }
 
             //Nuovo file caricato, si cancella il vecchio e si aggiorna il nome del file su DB.
             if($_FILES['dashboardLogoInput']['size'] > 0)
             {
-                if(!file_exists("../img/dashLogos/"))
-                {
-                    $oldMask = umask(0);
-                    mkdir("../img/dashLogos/", 0777);
-                    umask($oldMask);
-                }
-
-                if(!file_exists($uploadFolder))
-                {
-                    $oldMask = umask(0);
-                    mkdir($uploadFolder, 0777);
-                    umask($oldMask);
-                }
-                else
-                {
-                    $oldFiles = glob($uploadFolder . '*');
-                    foreach($oldFiles as $fileToDel)
-                    { 
-                        if(is_file($fileToDel))
-                        {
-                           unlink($fileToDel);
-                        }
-                    }
-                }
-
-                $filename = $_FILES['dashboardLogoInput']['name'];
-
-                if(!move_uploaded_file($_FILES['dashboardLogoInput']['tmp_name'], $uploadFolder.$filename))  
-                {  
-                    mysqli_close($link);
+                $ext = pathinfo($_FILES['dashboardLogoInput']['name'], PATHINFO_EXTENSION);
+                if(!in_array($ext,explode(",",$acceptedImageFormats))) {
+                    $response['result'] = "queryKo_ext_file";
+                    $response['detail'] = "Invalid icon. Accepted: ".implode(", ",explode(",",$acceptedImageFormats));
                     $queryFail = true;
-                }
-                else 
-                {
-                   chmod($uploadFolder.$filename, 0666); 
-                   
-                    //Upload eventuale file di background della dashboard
-                    if($_FILES['dashboardBckImg']['size'] > 0)
-                    {
-                        $bckFolder = "../img/dashBackgrounds/dashboard" . $dashboardId . "/";
-                        if(!file_exists("../img/dashBackgrounds/"))
-                        {
-                            $oldMask = umask(0);
-                            mkdir("../img/dashBackgrounds/", 0777);
-                            umask($oldMask);
-                        }
+                 //   echo json_encode($response);
+                 //   die();
+                //    exit();
+                } else {
+                    if (!file_exists("../img/dashLogos/")) {
+                        $oldMask = umask(0);
+                        mkdir("../img/dashLogos/", 0777);
+                        umask($oldMask);
+                    }
 
-                        if(!file_exists($bckFolder))
-                        {
-                            $oldMask = umask(0);
-                            mkdir($bckFolder, 0777);
-                            umask($oldMask);
-                        }
-                        else
-                        {
-                            $oldFiles = glob($bckFolder . '*');
-                            foreach($oldFiles as $fileToDel)
-                            { 
-                                if(is_file($fileToDel))
-                                {
-                                   unlink($fileToDel);
-                                }
+                    if (!file_exists($uploadFolder)) {
+                        $oldMask = umask(0);
+                        mkdir($uploadFolder, 0777);
+                        umask($oldMask);
+                    } else {
+                        $oldFiles = glob($uploadFolder . '*');
+                        foreach ($oldFiles as $fileToDel) {
+                            if (is_file($fileToDel)) {
+                                unlink($fileToDel);
                             }
                         }
-
-                        $bckFilename = $_FILES['dashboardBckImg']['name'];
-
-                        if(!move_uploaded_file($_FILES['dashboardBckImg']['tmp_name'], $bckFolder.$bckFilename))  
-                        {  
-                            mysqli_close($link);
-                            $queryFail = true;
-                        }
-                        else 
-                        {
-                            // NEW P-TEST: mettere apici a $ncols
-                            $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = '$dashboardId'";
-                            $result = mysqli_query($link, $query);  
-
-                             if(!$result)
-                             {
-                                 $rollbackResult = mysqli_rollback($link);
-                                 mysqli_close($link);
-                                 $queryFail = true;
-                             }
-                             else
-                             {
-                               $response["newLogo"] = "YES";
-                               $response["fileName"] = $uploadFolder . $filename;
-                               $response["logoLink"] = $logoLink;
-                               $response["width"] = $width;
-                               $response["num_cols"] = $nCols;
-                             }
-                        }
                     }
-                    else
-                    {
-                      //  $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
-                        $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
-                        $result = mysqli_query($link, $query);  
 
-                         if(!$result)
-                         {
-                            $rollbackResult = mysqli_rollback($link);
-                            mysqli_close($link);
-                            $queryFail = true;
-                         }
-                         else
-                         {
-                           $response["newLogo"] = "YES";
-                           $response["fileName"] = $uploadFolder . $filename;
-                           $response["logoLink"] = $logoLink;
-                           $response["width"] = $width;
-                           $response["num_cols"] = $nCols;
-                         } 
+                    $filename = $_FILES['dashboardLogoInput']['name'];
+
+                    if (!move_uploaded_file($_FILES['dashboardLogoInput']['tmp_name'], $uploadFolder . $filename)) {
+                        mysqli_close($link);
+                        $queryFail = true;
+                    } else {
+                        chmod($uploadFolder . $filename, 0666);
+
+                        //Upload eventuale file di background della dashboard
+                        if ($_FILES['dashboardBckImg']['size'] > 0) {
+                            $ext = pathinfo($_FILES['dashboardBckImg']['name'], PATHINFO_EXTENSION);
+                            if (!in_array($ext, explode(",", $acceptedImageFormats))) {
+                                $response['result'] = "queryKo_ext_file";
+                                $response['detail'] = "Invalid icon. Accepted: " . implode(", ", explode(",", $acceptedImageFormats));
+                                $queryFail = true;
+                            //    echo json_encode($response);
+                                //die();
+                            //    exit();
+                            } else {
+                                $bckFolder = "../img/dashBackgrounds/dashboard" . $dashboardId . "/";
+                                if (!file_exists("../img/dashBackgrounds/")) {
+                                    $oldMask = umask(0);
+                                    mkdir("../img/dashBackgrounds/", 0777);
+                                    umask($oldMask);
+                                }
+
+                                if (!file_exists($bckFolder)) {
+                                    $oldMask = umask(0);
+                                    mkdir($bckFolder, 0777);
+                                    umask($oldMask);
+                                } else {
+                                    $oldFiles = glob($bckFolder . '*');
+                                    foreach ($oldFiles as $fileToDel) {
+                                        if (is_file($fileToDel)) {
+                                            unlink($fileToDel);
+                                        }
+                                    }
+                                }
+
+                                $bckFilename = $_FILES['dashboardBckImg']['name'];
+
+                                if (!move_uploaded_file($_FILES['dashboardBckImg']['tmp_name'], $bckFolder . $bckFilename)) {
+                                    mysqli_close($link);
+                                    $queryFail = true;
+                                } else {
+                                    // NEW P-TEST: mettere apici a $ncols
+                                    $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = '$dashboardId'";
+                                    $result = mysqli_query($link, $query);
+
+                                    if (!$result) {
+                                        $rollbackResult = mysqli_rollback($link);
+                                        mysqli_close($link);
+                                        $queryFail = true;
+                                    } else {
+                                        $response["newLogo"] = "YES";
+                                        $response["fileName"] = $uploadFolder . $filename;
+                                        $response["logoLink"] = $logoLink;
+                                        $response["width"] = $width;
+                                        $response["num_cols"] = $nCols;
+                                    }
+                                }
+                            }
+                        } else {
+                            //  $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
+                            $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoFilename = '$filename', logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
+                            $result = mysqli_query($link, $query);
+
+                            if (!$result) {
+                                $rollbackResult = mysqli_rollback($link);
+                                mysqli_close($link);
+                                $queryFail = true;
+                            } else {
+                                $response["newLogo"] = "YES";
+                                $response["fileName"] = $uploadFolder . $filename;
+                                $response["logoLink"] = $logoLink;
+                                $response["width"] = $width;
+                                $response["num_cols"] = $nCols;
+                            }
+                        }
                     }
                 }
             }//Nessun nuovo file caricato
@@ -498,56 +491,54 @@
                 //Upload eventuale file di background della dashboard
                 if($_FILES['dashboardBckImg']['size'] > 0)
                 {
-                    $bckFolder = "../img/dashBackgrounds/dashboard" . $dashboardId . "/";
-                    if(!file_exists("../img/dashBackgrounds/"))
-                    {
-                        $oldMask = umask(0);
-                        mkdir("../img/dashBackgrounds/", 0777);
-                        umask($oldMask);
-                    }
+                    $ext = pathinfo($_FILES['dashboardBckImg']['name'], PATHINFO_EXTENSION);
+                    if(!in_array($ext,explode(",",$acceptedImageFormats))) {
+                        $response['result'] = "queryKo_ext_file";
+                        $response['detail'] = "Invalid icon. Accepted: ".implode(", ",explode(",",$acceptedImageFormats));
+                        $queryFail = true;
+                     //   echo json_encode($response);
+                        //die();
+                     //   exit();
+                    } else {
+                        $bckFolder = "../img/dashBackgrounds/dashboard" . $dashboardId . "/";
+                        if (!file_exists("../img/dashBackgrounds/")) {
+                            $oldMask = umask(0);
+                            mkdir("../img/dashBackgrounds/", 0777);
+                            umask($oldMask);
+                        }
 
-                    if(!file_exists($bckFolder))
-                    {
-                        $oldMask = umask(0);
-                        mkdir($bckFolder, 0777);
-                        umask($oldMask);
-                    }
-                    else
-                    {
-                        $oldFiles = glob($bckFolder . '*');
-                        foreach($oldFiles as $fileToDel)
-                        { 
-                            if(is_file($fileToDel))
-                            {
-                               unlink($fileToDel);
+                        if (!file_exists($bckFolder)) {
+                            $oldMask = umask(0);
+                            mkdir($bckFolder, 0777);
+                            umask($oldMask);
+                        } else {
+                            $oldFiles = glob($bckFolder . '*');
+                            foreach ($oldFiles as $fileToDel) {
+                                if (is_file($fileToDel)) {
+                                    unlink($fileToDel);
+                                }
                             }
                         }
-                    }
 
-                    $bckFilename = $_FILES['dashboardBckImg']['name'];
+                        $bckFilename = $_FILES['dashboardBckImg']['name'];
 
-                    if(!move_uploaded_file($_FILES['dashboardBckImg']['tmp_name'], $bckFolder.$bckFilename))  
-                    {  
-                        mysqli_close($link);
-                        $queryFail = true;
-                    }
-                    else 
-                    {
-                        $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
-                        $result = mysqli_query($link, $query);
+                        if (!move_uploaded_file($_FILES['dashboardBckImg']['tmp_name'], $bckFolder . $bckFilename)) {
+                            mysqli_close($link);
+                            $queryFail = true;
+                        } else {
+                            $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
+                            $result = mysqli_query($link, $query);
 
-                        if(!$result)
-                        {
-                           $rollbackResult = mysqli_rollback($link);
-                           mysqli_close($link);
-                           $queryFail = true;
-                        }
-                        else
-                        {
-                           $response["newLogo"] = "NO";
-                           $response["logoLink"] = $logoLink;
-                           $response["width"] = $width;
-                           $response["num_cols"] = $nCols;
+                            if (!$result) {
+                                $rollbackResult = mysqli_rollback($link);
+                                mysqli_close($link);
+                                $queryFail = true;
+                            } else {
+                                $response["newLogo"] = "NO";
+                                $response["logoLink"] = $logoLink;
+                                $response["width"] = $width;
+                                $response["num_cols"] = $nCols;
+                            }
                         }
                     }
                 }

@@ -1368,7 +1368,7 @@ p.recreativeEventTitlePar
     overflow-y: auto;
 }
 
-.recreativeEventMapDescContainer, .recreativeEventMapTimingContainer, .recreativeEventMapContactsContainer
+.recreativeEventMapDescContainer, .recreativeEventMapTimingContainer, .recreativeEventMapContactsContainer, .recreativeEventMapTplContainer, .recreativeEventMapTplTmtblContainer
 {
     display: none;
 }

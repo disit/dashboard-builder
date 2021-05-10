@@ -22,52 +22,51 @@
     {
         try
         {
-            $uploadFolder = "../img/dashScr/dashboard".$dashboardId."/";
-            
-            if(!file_exists("../img/dashScr/"))
-            {
-                $oldMask = umask(0);
-                mkdir("../img/dashScr/", 0777);
-                umask($oldMask);
-            }
-            
-            if(!file_exists($uploadFolder))
-            {
-                $oldMask = umask(0);
-                mkdir($uploadFolder, 0777);
-                umask($oldMask);
-            }
-            
-            $files = glob($uploadFolder.'*');
-            foreach($files as $file)
-            { 
-              if(is_file($file))
-              {
-                  unlink($file); 
-              }
-            }
-            
-            $filename = $_FILES['dashboardScrInput']['name'];
-            $ext = pathinfo($filename, PATHINFO_EXTENSION);
+            if(!in_array(pathinfo($_FILES['dashboardScrInput']['name'], PATHINFO_EXTENSION),explode(",",$acceptedImageFormats))) {
+                $response['result'] = "queryKo_ext_file";
+                $response['detail'] = "Invalid icon. Accepted: ".implode(", ",explode(",",$acceptedImageFormats));
+                $queryFail = true;
+                //   echo json_encode($response);
+                //   die();
+                //    exit();
+            } else {
+                $uploadFolder = "../img/dashScr/dashboard" . $dashboardId . "/";
 
-            $fname = "lastDashboardScr." . $ext;
-            if(move_uploaded_file($_FILES['dashboardScrInput']['tmp_name'], $uploadFolder.$fname))
-            {
-                $q = "UPDATE Dashboard.Config_dashboard SET screenshotFilename = '$fname' WHERE Id = '$dashboardId'";
-                $r = mysqli_query($link, $q);
-    
-                if($r)
-                {
-                    $response['result'] = 'Ok';
+                if (!file_exists("../img/dashScr/")) {
+                    $oldMask = umask(0);
+                    mkdir("../img/dashScr/", 0777);
+                    umask($oldMask);
                 }
-                else
-                {
-                    $response['result'] = 'QueryKo';
+
+                if (!file_exists($uploadFolder)) {
+                    $oldMask = umask(0);
+                    mkdir($uploadFolder, 0777);
+                    umask($oldMask);
                 }
-            }
-            else
-            {
-                $response['result'] = 'UploadFileKo';
+
+                $files = glob($uploadFolder . '*');
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        unlink($file);
+                    }
+                }
+
+                $filename = $_FILES['dashboardScrInput']['name'];
+                $ext = pathinfo($filename, PATHINFO_EXTENSION);
+
+                $fname = "lastDashboardScr." . $ext;
+                if (move_uploaded_file($_FILES['dashboardScrInput']['tmp_name'], $uploadFolder . $fname)) {
+                    $q = "UPDATE Dashboard.Config_dashboard SET screenshotFilename = '$fname' WHERE Id = '$dashboardId'";
+                    $r = mysqli_query($link, $q);
+
+                    if ($r) {
+                        $response['result'] = 'Ok';
+                    } else {
+                        $response['result'] = 'QueryKo';
+                    }
+                } else {
+                    $response['result'] = 'UploadFileKo';
+                }
             }
         } 
         catch (Exception $ex) 

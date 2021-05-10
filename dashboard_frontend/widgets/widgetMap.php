@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 include('../config.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 if (!isset($_SESSION)) {
@@ -221,6 +220,7 @@ if (!isset($_SESSION)) {
 
             var current_radius = null;
             var current_opacity = null;
+	        var current_traffic_opacity = null;
             var changeRadiusOnZoom = false;
             var estimatedRadius = null;
             var estimateRadiusFlag = false;
@@ -230,11 +230,15 @@ if (!isset($_SESSION)) {
             var heatmapLegendColorsFullscreen = null;
             var legendHeatmapFullscreen = null;
             var mapName = null;
+	        var trafficMapName = null;
             var mapDate = null;
+	        var trafficMapDate = null;
             var resetPageFlag = null;
             var wmsDatasetName = null;
             var passedParams = null;
             var animationFlag = false;
+	        var animationFlagTraffic = false;
+	        var trafficData = null;
 
             var dataForApi = "";
 
@@ -247,6 +251,7 @@ if (!isset($_SESSION)) {
             var totalSvgCnt = 0;
             var currentCustomSvgLayer = null;
             var svgContainerArray = [];
+            var oms = {}    // OverlappingMarkerSpiderfier for Leaflet
 
             //Definizioni di funzione
 
@@ -258,8 +263,10 @@ if (!isset($_SESSION)) {
             wmsLayerFullscreen = null;*/
 
             var current_page = 0;
+            var current_page_traffic = 0;
             var records_per_page = 1;
             var wmsLayer = null;
+            var trafficWmsLayer = null;
             var wmsLayerFullscreen = null;
             var iconsFileBuffer = [];
             var bubbleSelectedMetric = [];
@@ -276,6 +283,9 @@ if (!isset($_SESSION)) {
             var payload = [];
             var subscribedWsDevices = [];
             var wsConnect = null;
+			var heatmapData = null;
+			var agencyIcons = {};
+			var spiderMarkers = {}
 
 
             function triggerEventOnIotApp(map, message) {
@@ -360,6 +370,10 @@ if (!isset($_SESSION)) {
 
             }
 
+            function onEachFeatureSpiderify(feature, layer) {
+                oms.addMarker(layer);
+            }
+
             //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
             function gisPrepareCustomMarker(feature, latlng) {
                 if (feature.properties.altViewMode == "CustomPin" || feature.properties.altViewMode == "DynamicCustomPin") {
@@ -376,11 +390,24 @@ if (!isset($_SESSION)) {
                     buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, false);
                 }
                 if (feature.properties.pinattr != "pin" && feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
-                    var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
-                    var markerIcon = L.icon({
-                        iconUrl: mapPinImg,
-                        iconAnchor: [16, 37]
-                    });
+                    var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';						
+					if("TransferServiceAndRenting_BusStop" == feature.properties.serviceType) { 
+						if(feature.properties.hasOwnProperty("busStopCategory")) {
+							mapPinImg = '../img/gisMapIcons/' + feature.properties.busStopCategory + '.png';
+						}
+						else {
+							if(feature.properties.agency.includes("ATAF") || feature.properties.agency.includes("GEST")) {
+								mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '_Urban.png'
+							}
+							else {
+								mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '_Suburban.png'
+							}
+						}
+					}										
+					var markerIcon = markerIcon = L.icon({
+						iconUrl: mapPinImg,
+						iconAnchor: [16, 37]
+					});
                 } else {
 
                  /*   var markerIcon = L.divIcon({
@@ -398,7 +425,7 @@ if (!isset($_SESSION)) {
                         //iconAnchor: [15, 42]
                         iconAnchor: [16, 37]
                     }); */
-                    var filePinPath = "../img/outputPngIcons/pin-generico.png";
+					var filePinPath = "../img/outputPngIcons/pin-generico.png";
                     if(feature.properties.iconFilePath != null && feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
                         if (feature.properties.iconFilePath.includes("/nature/")) {
                             filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
@@ -477,6 +504,10 @@ if (!isset($_SESSION)) {
                 }
 
                 var marker = new L.Marker(latlng, {icon: markerIcon});
+				
+				if("BusStop" == feature.properties.typeLabel) {
+					marker = new L.Marker(latlng, {icon: markerIcon, title: feature.properties.typeLabel+" "+feature.properties.agency+" "+feature.properties.name}); 
+				}
 
                 var latLngKey = latlng.lat + "" + latlng.lng;
 
@@ -488,6 +519,19 @@ if (!isset($_SESSION)) {
                     if (feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
                         if (feature.properties.pinattr != "pin") {
                             var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
+							if("TransferServiceAndRenting_BusStop" == feature.properties.serviceType) { 
+								if(feature.properties.hasOwnProperty("busStopCategory")) {
+									hoverImg = '../img/gisMapIcons/over/' + feature.properties.busStopCategory + '_over.png';
+								}
+								else {
+									if(feature.properties.agency.includes("ATAF") || feature.properties.agency.includes("GEST")) {
+										hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_Urban_over.png'
+									}
+									else {
+										hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_Suburban_over.png'
+									}
+								}
+							}										
                             var hoverIcon = L.icon({
                                 iconUrl: hoverImg
                             });
@@ -564,7 +608,20 @@ if (!isset($_SESSION)) {
                     if (feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
                         if (feature.properties.pinattr != "pin") {
                             var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
-                            var outIcon = L.icon({
+                            if("TransferServiceAndRenting_BusStop" == feature.properties.serviceType) { 
+								if(feature.properties.hasOwnProperty("busStopCategory")) {
+									outImg = '../img/gisMapIcons/' + feature.properties.busStopCategory + '.png';
+								}
+								else {
+									if(feature.properties.agency.includes("ATAF") || feature.properties.agency.includes("GEST")) {
+										outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '_Urban.png'
+									}
+									else {
+										outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '_Suburban.png'
+									}
+								}
+							}			
+							var outIcon = L.icon({
                                 iconUrl: outImg
                             });
                             event.target.setIcon(outIcon);
@@ -708,7 +765,7 @@ if (!isset($_SESSION)) {
                                 popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                               //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                             }
-                            popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
+                            popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button>'+(geoJsonServiceData.hasOwnProperty("BusStop")?'<button data-id="' + latLngId + '" class="recreativeEventMapTplTmtblBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">TIMETABLE</button><button data-id="' + latLngId + '" class="recreativeEventMapTplBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">BROWSE</button>':'')+'</div>';
 
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
 
@@ -743,14 +800,18 @@ if (!isset($_SESSION)) {
                             popupText += '</tbody>';
                             popupText += '</table>';
 
-                            if (geoJsonServiceData.hasOwnProperty('busLines')) {
+                            /*if (geoJsonServiceData.hasOwnProperty('busLines')) {
                                 if (geoJsonServiceData.busLines.results.bindings.length > 0) {
                                     popupText += '<b>Lines: </b>';
                                     for (var i = 0; i < geoJsonServiceData.busLines.results.bindings.length; i++) {
                                         popupText += '<span style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + geoJsonServiceData.busLines.results.bindings[i].busLine.value + '</span> ';
                                     }
                                 }
-                            }
+                            }*/
+							
+							if (geoJsonServiceData.hasOwnProperty("BusStop")) {	
+								popupText+='<div class="tplProgressBar" style="display:none; width:100%; height:1em; margin-top:1em; background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');"></div>';
+							}
 
                             popupText += '</div>';
 
@@ -992,17 +1053,331 @@ if (!isset($_SESSION)) {
                             }
 
                             popupText += '</div>';
-
+							
+							if (geoJsonServiceData.hasOwnProperty("BusStop")) {		 
+								popupText += '<div id="linesof_'+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+'" class="recreativeEventMapDataContainer recreativeEventMapTplContainer">Please wait...</div>';
+								popupText += '<div id="tmtblof_'+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+'" class="recreativeEventMapDataContainer recreativeEventMapTplTmtblContainer">Please wait...</div>';
+							}
+							
                             newpopup = L.popup({
                                 closeOnClick: false,//Non lo levare, sennò autoclose:false non funziona
                                 autoClose: false,
                                 offset: [15, 0],
-                                minWidth: 435,
-                                maxWidth: 435
+                                //minWidth: 435,
+                                minWidth: 400, 
+								maxWidth: 1200,
+								className: geoJsonServiceData.hasOwnProperty("BusStop")?"draggableAndResizablePopup":"nonDraggableAndResizablePopup"
                             }).setContent(popupText);
 
                             event.target.bindPopup(newpopup).openPopup();
+							
+							// draggable 
+							var makeDraggable = function(popup){
+							  var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
+							  L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
+							  var draggable = new L.Draggable(popup._container, popup._wrapper);
+							  draggable.enable();							  
+							  draggable.on('dragend', function() {
+								var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
+								popup.setLatLng(pos);
+								$(popup._wrapper).siblings(".leaflet-popup-tip-container").hide();
+							  });
+							};							
+							makeDraggable(newpopup);							
+							$(".draggableAndResizablePopup").css("cursor","move");	
+							//
+							
+							// resizable 
+							$(".draggableAndResizablePopup .leaflet-popup-content-wrapper").css({ 
+								"resize": "both", 
+								"overflow": "auto", 
+								"min-width": "400px", 
+								"max-width": "1200px",
+								"min-height": "100px",
+								"max-height": "400px"
+							});		
+							//
 
+							// responsive			
+							$(".draggableAndResizablePopup .recreativeEventMapDataContainer").css({ 
+								"width": "100%",
+								"height": "100%"
+							});			
+							//
+							
+							if (geoJsonServiceData.hasOwnProperty("BusStop")) {																
+								
+								$.getJSON( '<?=$whatifmdtendpt?>?stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=graphs",function(graphs){
+									var pAgency = graphs.join();									
+									var routesMarkup = "<p class=\"tplpoi_routesSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date().toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</p>";									
+									var progress = { todo: -1, done: -1, bar:0};
+									$.getJSON( '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&stop='+encodeURIComponent(serviceProperties['serviceUri'])+'&date='+encodeURIComponent(new Date().toISOString().slice(0, 10))+'&list=routes', function(routes) {
+										if(Object.keys(routes).length == 0) { $(".recreativeEventMapTplBtn").hide(); return; }
+										Object.keys(routes).forEach(function(key){
+											var route = routes[key];
+											var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&route='+encodeURIComponent(route["uri"])+"&stop="+encodeURIComponent(serviceProperties['serviceUri'])+"&date="+encodeURIComponent(new Date().toISOString().slice(0, 10))+"&list=trips";
+											routesMarkup+="<p class=\"tplpoi_wifstprte\"><button class=\"polyin_"+route["uri"].replace(/[^a-zA-Z0-9]/g, "")+"\" data-uri=\""+route["uri"]+"\" data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\">"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</button></p>";
+											route["geoms"].forEach(function(path){
+												var latlngs = [];
+												path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+													latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+												});
+												var polyline = new L.Polyline(latlngs,{className: "tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" polyin_"+route["uri"].replace(/[^a-zA-Z0-9]/g, ""), color:"#"+route["color"], weight:6}).bindTooltip(route["type"]+" " +route["short_name"]+" "+route["long_name"], { direction: 'right' });																						
+												polyline.on("mouseover",function(e) {													
+													e.target.openTooltip(e.latlng);													
+												});
+												if("undefined" == typeof tplPoiItems) { tplPoiItems = new L.FeatureGroup(); map.defaultMapRef.addLayer(tplPoiItems); }
+												polyline.addTo(tplPoiItems);
+											});
+											newpopup.on('remove', function() {
+												$(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide(); // TODO Remove only those related to the specific stop!!
+											});
+											// qui andiamo a generare tutte le stop raggiungibili direttamente (senza cambi) da quella selezionata																						
+											$.getJSON(rteBtnUrl,function(trips){	
+												var tripGeoms = [];
+												Object.keys(trips).forEach(function(tripkey){													
+													if(!tripGeoms.includes(trips[tripkey]["path"])) {														
+														tripGeoms.push(trips[tripkey]["path"]);													
+														$.getJSON('<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(trips[tripkey]["uri"])+"&list=stops",function(stops) {
+															var eventDesc = null;
+															map["eventsOnMap"].forEach(function(mapevt){
+																if(mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+																	eventDesc = mapevt["desc"];
+																}																
+															});	
+															if(progress.todo == -1 && stops.length > 0) {
+																progress.todo = stops.length;
+															}
+															else {
+																progress.todo += stops.length;
+															}			
+															stops.forEach(function(stop){															
+																Number.prototype.countDecimals = function () {
+																	if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
+																	return this.toString().split(".")[1].length || 0; 
+																};
+																for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
+																	var layer = gisLayersOnMap[eventDesc].getLayers()[l];																	
+																	if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == stop["stop_uri"] ) || 
+																		( (!layer["feature"]) && layer["_latlng"] && layer["_latlng"]["lat"] && parseFloat(layer["_latlng"]["lat"]) == parseFloat(stop["pos_lat"]).toFixed(parseFloat(layer["_latlng"]["lat"]).countDecimals()) && layer["_latlng"]["lng"] && parseFloat(layer["_latlng"]["lng"]) == parseFloat(stop["pos_lon"]).toFixed(parseFloat(layer["_latlng"]["lng"]).countDecimals())  )){
+																		if(progress.done == -1) progress.done = 1; else progress.done += 1;
+																		if(progress.done > -1 && progress.todo > -1 && progress.bar <= 100*progress.done/progress.todo ) {																			
+																				progress.bar = 100*progress.done/progress.todo;
+																				$(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
+																				$(newpopup._container).find("div.tplProgressBar").show();																			
+																			//console.log(progress);
+																		}
+																		else {
+																			if(progress.bar < 99) {
+																				progress.bar++;
+																				$(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
+																				$(newpopup._container).find("div.tplProgressBar").show();						
+																			}
+																		}
+																		return;															
+																	}
+																}
+																$.getJSON("<?=$superServiceMapProxy?>/api/v1?realtime=false&graphUri="+encodeURIComponent(pAgency)+"&serviceUri="+encodeURIComponent(stop["stop_uri"]),function(stopdata){																													
+																	var newFeature = stopdata["BusStop"]["features"][0];
+																	newFeature["properties"]["color1"] = feature["properties"]["color1"]; 
+																	newFeature["properties"]["color2"] = feature["properties"]["color2"]; 
+																	newFeature["properties"]["pinattr"] = feature["properties"]["pinattr"]; 
+																	newFeature["properties"]["pincolor"] = feature["properties"]["pincolor"]; 
+																	newFeature["properties"]["symbolcolor"] = feature["properties"]["symbolcolor"]; 															
+																	var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );															
+																	newMarker.addTo(gisLayersOnMap[eventDesc]); 	
+																	if(progress.done == -1) progress.done = 1; else progress.done += 1;
+																	if(progress.done > -1 && progress.todo > -1 && progress.bar < 100*progress.done/progress.todo) {																		
+																			progress.bar = 100*progress.done/progress.todo;
+																			$(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
+																			$(newpopup._container).find("div.tplProgressBar").show();																		
+																	}
+																	else {
+																		if(progress.bar < 99) {
+																			progress.bar++;
+																			$(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
+																			$(newpopup._container).find("div.tplProgressBar").show();	
+																		}																			
+																	}
+																});																				
+															});
+														});				
+													}														
+												});												
+											});
+											//
+										});	
+										if(Object.keys(routes).length === 0 && routes.constructor === Object) routesMarkup += "<p>No routes found for this date.</p>";								
+										$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).empty().append($(routesMarkup));
+										$(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).click(function(){
+											var classes = $(this).attr('class').split(/\s+/);
+											$.each(classes, function(i, c) {
+												if (c.startsWith('polyin_')) {
+													$('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
+													$('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().siblings('div.recreativeEventMapTplContainer').find("button."+c).click();													
+													map.defaultMapRef.panTo(new L.LatLng(event.target.getLatLng().lat, event.target.getLatLng().lng)); 
+												}
+											});
+										});
+										
+										
+										$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_wifstprte button").click(function() {
+											var wifstprtebtn = $(this);
+											var wifstprtebtnhtml = $(this).html();
+											var rteUri = $(this).data("uri");
+											$(this).html("Please wait...");										
+											var hrRouteTxt=$(this).data("key");										
+											lastSelectedRoute = hrRouteTxt;
+											
+											var bg = $(this).css("background-color");
+											var fg = $(this).css("color");
+											$.getJSON($(this).data("url"),function(trips){
+												$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p").hide();
+												wifstprtebtn.html(wifstprtebtnhtml);											
+												var affectedTripsMarkup = "";
+												var tripsMarkup = "<p class=\"tplpoi_tripsSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date().toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"<br><strong>Route:</strong>&nbsp;"+hrRouteTxt+"</p><div style=\"height:100%; border: medium solid black; padding:0.5em;\" class=\"tplpoi_tripsDivInRoute\"><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0; display:none;\"><strong>Affected Trips:</strong></p><div id=\"tplpoi_affectedtrips\" style=\"display:none;\"></div><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0;\"><strong style=\"display:none;\">All Trips:</strong></p>";
+												$(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide();
+												Object.keys(trips).sort(function(a,b){
+													if(trips[a]["start"] > trips[b]["start"]) return 1; else return -1;
+												}).forEach(function(tripkey){													
+													var trip = trips[tripkey];													
+													var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(trip["uri"])+"&list=stops";
+													tripsMarkup+="<p class=\"tplpoi_wifstptrp\"><button style=\"text-align:left; width:100%; background-color:"+bg+"; color:"+fg+";\" data-tripkey=\""+tripkey+"\" data-path=\""+trip["path"]+"\" data-url=\""+theTripUrl+"\" data-routeuri=\""+rteUri+"\" data-routebgcolor=\""+trip["route"]["bg_color"]+"\" data-routefgcolor=\""+trip["route"]["fg_color"]+"\" data-routeshortname=\""+trip["route"]["short_name"]+"\" data-routelongname=\""+trip["route"]["long_name"]+"\" data-routetype=\""+trip["route"]["type"]+"\" data-agencyname=\""+trip["route"]["agency"]+"\">"+trip["start"].substring(0,5)+"&nbsp;<span style=\"border:thin solid "+fg+"; padding:0.2em;\">"+(trip["direction"] == "0"?"&rharu;":"&lhard;")+"</span>&nbsp;"+trip["headsign"]+"</button></p>";																																			
+													var latlngs = [];
+													trip["path"].split("((")[1].split("))")[0].split(",").forEach(function(node){
+														latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+													});
+													var polyline = new L.Polyline(latlngs,{weight:6, color: wifstprtebtn.css("background-color"),className:"tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" polyof_"+rteUri.replace(/[^a-zA-Z0-9]/g, "")});
+													polyline.addTo(tplPoiItems);														
+												});
+												tripsMarkup+="</div>";
+												tripsMarkup+="<p class=\"tplpoi_backToRoutes\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+												$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").remove();
+												$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").remove();																							
+												$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToRoutes").remove();
+												$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).append($(tripsMarkup));											
+												
+												$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToRoutes button").click(function(){
+													$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p").hide();
+													$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").hide();												
+													$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_routesSubHead").show();
+													$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_wifstprte").show();												
+													$(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).show();
+												});											
+												
+												$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_wifstptrp button").click(function(){
+													var wifstptrpbtn = $(this);
+													var wifstptrpbtnhtml = $(this).html();												
+													var theaffectedstopsMarkup = "";
+													var theTripMarkup = "<p class=\"tplpoi_theTripSubhead\" style=\"background-color:black; color:white;  padding:0.5em;\"><strong>Agency:</strong>&nbsp;"+$(this).data("agencyname")+"<br><strong>Route:</strong>&nbsp;"+$(this).data("routetype")+" "+$(this).data("routeshortname")+" "+$(this).data("routelongname")+"<br><strong>Trip:</strong>&nbsp;"+$(this).html().replace("<strong>","").replace("</strong>","")+"</p><div class=\"tplpoi_fullTripData\" style=\"height:100%; border: medium solid black; padding:0.5em;\"><p style=\"margin:0px 0; display:none;\"><strong>Affected Stops:</strong></p><div id=\"tplpoi_affectedstops\" style=\"display:none;\"></div><p style=\"margin:0px 0;\"><strong style=\"display:none;\">All Stops:</strong></p>";
+													$(this).html("Please wait...");		
+													var bgcolor=$(this).data("routebgcolor");
+													var fgcolor=$(this).data("routefgcolor");
+													var routetype=$(this).data("routetype");
+													var path = $(this).data("path");
+													var tripkey = $(this).data("tripkey");	
+													var routeUri = $(this).data("routeuri");	 												
+													
+													$.getJSON($(this).data("url"),function(tripdata){																				
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").hide();
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_wifstptrp").hide();
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToRoutes").hide();
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").hide();
+														wifstptrpbtn.html(wifstptrpbtnhtml);
+														$(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide();
+														var latlngs = [];
+														path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+															latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+														});
+														var polyline = new L.Polyline(latlngs,{weight:6, color:"#"+bgcolor,className:"tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")});
+														polyline.addTo(tplPoiItems);													
+														tripdata.forEach(function(oneStop, stopNum){
+															if(serviceProperties['serviceUri'] == oneStop["stop_uri"]) {
+																theTripMarkup+="<button data-serviceuri=\""+oneStop["stop_uri"]+"\" data-lat=\""+oneStop["pos_lat"]+"\" data-lon=\""+oneStop["pos_lon"]+"\" class=\"tplpoi_stopbtn\" style=\"text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+"; font-size:larger; font-weight:bold; \">#"+parseInt(oneStop["sequence"])+" "+oneStop["code"]+" "+oneStop["name"]+"<br>ARR "+(stopNum > 0 ? oneStop["arrival"].substring(0,5) : "--:--")+" DEP "+(stopNum < tripdata.length-1 ? oneStop["departure"].substring(0,5) : "--:--")+"</button>";																												
+															}
+															else {
+																theTripMarkup+="<button data-serviceuri=\""+oneStop["stop_uri"]+"\" data-lat=\""+oneStop["pos_lat"]+"\" data-lon=\""+oneStop["pos_lon"]+"\" class=\"tplpoi_stopbtn\" style=\"text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+";\">#"+parseInt(oneStop["sequence"])+" "+oneStop["code"]+" "+oneStop["name"]+"<br>ARR "+(stopNum > 0 ? oneStop["arrival"].substring(0,5) : "--:--")+" DEP "+(stopNum < tripdata.length-1 ? oneStop["departure"].substring(0,5) : "--:--")+"</button>";																												
+															}
+														});
+														theTripMarkup+="</div>";
+														theTripMarkup+="<p class=\"tplpoi_backToTrips\"><button style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_theTripSubhead").remove();
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_fullTripData").remove();
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToTrips").remove();
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).append($(theTripMarkup));
+														if(theaffectedstopsMarkup == "") {
+															theaffectedstopsMarkup="<p>No stops found.</p>";
+														}													
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToTrips button").click(	
+															function(){
+															$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p").hide();
+															$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_fullTripData").hide();																																								
+															$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").show();
+															$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").show();														
+															$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_wifstptrp").show();
+															$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToRoutes").show();	
+															$(".polyof_"+routeUri.replace(/[^a-zA-Z0-9]/g, "")).show();
+															}
+														);
+														Number.prototype.countDecimals = function () {
+															if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
+															return this.toString().split(".")[1].length || 0; 
+														};
+														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" button.tplpoi_stopbtn").click(function(){														
+															//console.log("stopbtn");
+															var serviceuri = $(this).data("serviceuri");
+															var lat = $(this).data("lat");
+															var lon = $(this).data("lon");
+															var eventDesc = null;
+															map["eventsOnMap"].forEach(function(mapevt){
+																if(mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+																	eventDesc = mapevt["desc"];
+																}																
+															});	
+															/*var doCreate = true;
+															gisLayersOnMap[eventDesc].getLayers().forEach(function(layer){																														
+																if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) || 
+																	( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
+																	try { layer.closePopup(); } catch(e) {}
+																	layer.fire('click');
+																	doCreate=false;																
+																}
+															});		
+															if(!doCreate) return;												*/
+															for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
+																var layer = gisLayersOnMap[eventDesc].getLayers()[l];
+																if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) || 
+																	( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
+																	try { layer.closePopup(); } catch(e) {}
+																	layer.fire('click');
+																	console.log("click");
+																	return;															
+																}
+															}
+															$.getJSON("<?=$superServiceMapProxy?>/api/v1?serviceUri="+encodeURIComponent(serviceuri),function(stopdata){																													
+																var newFeature = stopdata["BusStop"]["features"][0];
+																newFeature["properties"]["color1"] = feature["properties"]["color1"]; 
+																newFeature["properties"]["color2"] = feature["properties"]["color2"]; 
+																newFeature["properties"]["pinattr"] = feature["properties"]["pinattr"]; 
+																newFeature["properties"]["pincolor"] = feature["properties"]["pincolor"]; 
+																newFeature["properties"]["symbolcolor"] = feature["properties"]["symbolcolor"]; 															
+																var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );															
+																newMarker.addTo(gisLayersOnMap[eventDesc]); 															
+																newMarker.fire('click');
+															});														
+														});
+													});
+													
+												});
+																							
+											});
+											
+										});
+										
+									});
+								});
+							}
+							
                             if (hasRealTime) {
                                 $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').show();
                                 $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
@@ -1014,26 +1389,102 @@ if (!isset($_SESSION)) {
 
                             $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').off('click');
                             $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').click(function () {
-                                $('#' + widgetName + '_map div.recreativeEventMapDataContainer').hide();
-                                $('#' + widgetName + '_map div.recreativeEventMapDetailsContainer').show();
-                                $('#' + widgetName + '_map button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapDetailsContainer').show();
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                                 $(this).addClass('recreativeEventMapBtnActive');
                             });
 
                             $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').off('click');
                             $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').click(function () {
-                                $('#' + widgetName + '_map div.recreativeEventMapDataContainer').hide();
-                                $('#' + widgetName + '_map div.recreativeEventMapDescContainer').show();
-                                $('#' + widgetName + '_map button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapDescContainer').show();
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                                 $(this).addClass('recreativeEventMapBtnActive');
                             });
 
                             $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').off('click');
                             $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').click(function () {
-                                $('#' + widgetName + '_map div.recreativeEventMapDataContainer').hide();
-                                $('#' + widgetName + '_map div.recreativeEventMapContactsContainer').show();
-                                $('#' + widgetName + '_map button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapContactsContainer').show();
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                                 $(this).addClass('recreativeEventMapBtnActive');
+                            });
+							
+							$('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click(function () {
+                                $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapTplContainer').show();
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).addClass('recreativeEventMapBtnActive');
+								if($("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToTrips button").is(":visible")) {
+									$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToTrips button").click();
+								}
+								if($("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToRoutes button").is(":visible")) {
+									$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToRoutes button").click();
+								}
+                            });
+							
+							$('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').click(function () {                                
+								//console.log("clicked "+'#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]');
+								$(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapTplTmtblContainer').show();								
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).addClass('recreativeEventMapBtnActive');
+								var tmtblBtn = $(this);
+								var tmtblMarkup = "";
+								$.getJSON( '<?=$whatifmdtendpt?>?stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=graphs",function(graphs){
+									var pAgency = graphs.join();
+									$.getJSON('<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=timetable",function(timetable){			
+										//console.log(timetable);
+										timetable.forEach(function(entry,rownum){
+											//console.log(entry);
+											tmtblMarkup+="<p class=\"tplpoi_tmtblrow\"><button data-r=\""+entry["route"].replace(/[^a-zA-Z0-9]/g, "")+"\" data-t=\""+entry["trip"]+"\" data-n=\""+rownum+"\" style=\"width:100%; background-color:#"+entry["bgcolor"]+"; color:#"+entry["fgcolor"]+"\"><p style=\"font-size:larger; font-weight:bold; margin:0px; padding:0px; text-align:left;\">"+(entry["departure"]?entry["departure"]:entry["arrival"]).substring(0,5)+"&nbsp;<span style=\"font-size:larger; border:thin solid #"+entry["fgcolor"]+";\">"+entry["number"]+"</span>&nbsp;"+entry["headsign"]+"</p><p class=\"nextstops\" style=\"margin:0px; padding:0px; font-weight:normal; text-align:left;\"></p></button></p>";
+										});		
+										if(timetable.length == 0) {
+											tmtblMarkup+="<p class=\"tplpoi_tmtblrow\">The timetable is currently not available for this stop.</p>";
+										}
+										tmtblBtn.parent().siblings('div.recreativeEventMapTplTmtblContainer').empty();
+										tmtblBtn.parent().siblings('div.recreativeEventMapTplTmtblContainer').append($(tmtblMarkup));
+										timetable.forEach(function(entry,rownum) {
+											var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(entry["trip_uri"])+"&list=stops";
+											var n = rownum;
+											$.getJSON(theTripUrl,function(alltripstops){
+												//console.log(alltripstops);
+												var span = $("p.tplpoi_tmtblrow button[data-t=\""+entry["trip"]+"\"][data-n=\""+n+"\"] p.nextstops");
+												var spanMarkup = "";
+												var isNext = false;
+												alltripstops.forEach(function(stop){
+													if(isNext) {
+														if(-1 == spanMarkup.indexOf(stop["arrival"].substring(0,5)+"&nbsp;"+stop["name"].replaceAll(" ","&nbsp;")+"&nbsp;&bull; ")) {
+															spanMarkup+=stop["arrival"].substring(0,5)+"&nbsp;"+stop["name"].replaceAll(" ","&nbsp;")+"&nbsp;&bull; ";
+														}
+													}
+													if(stop["stop_uri"] == serviceProperties['serviceUri']) {
+														isNext = true;
+													}													
+												});
+												if(!spanMarkup) {
+													spanMarkup+="This is the terminus stop, the trip does not continue further.&nbsp;&bull; ";
+												}
+												// console.log("Appending "+spanMarkup.substring(0,spanMarkup.length-13));
+												span.append(spanMarkup.substring(0,spanMarkup.length-13));												
+											});
+										});
+										$(".tplpoi_tmtblrow button").click(function(){
+											//console.log($(this).data("r")); console.log($(this).data("t"));
+											$('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
+											var t = $(this).data("t");
+											var observer = new MutationObserver(function(mutations, observer) {											  
+											  $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().siblings('div.recreativeEventMapTplContainer').find('.tplpoi_tripsDivInRoute .tplpoi_wifstptrp button[data-tripkey="'+t+'"]').click();													
+											  observer.disconnect();
+											});	
+											observer.observe($('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().siblings('div.recreativeEventMapTplContainer')[0], {childList: true});
+											$('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().siblings('div.recreativeEventMapTplContainer').find("button.polyin_"+$(this).data("r")).click();										
+										});
+									});
+								});								
                             });
 
                             if (hasRealTime) {
@@ -2849,8 +3300,22 @@ if (!isset($_SESSION)) {
                     lngInit = widgetParameters.latLng[1];
                 }
                 map.defaultMapRef = L.map(mapDivLocal).setView([latInit, lngInit], widgetParameters.zoom);
-                
                 map.eventsOnMap = eventsOnMap;
+
+                oms = new OverlappingMarkerSpiderfier(map.defaultMapRef, {keepSpiderfied : true});
+                oms.addListener('click', function (marker) {
+                    marker.openPopup();
+                });
+
+                oms.addListener('spiderfy', function (markers) {
+                //    map.defaultMapRef.closePopup();
+                });
+
+                oms.addListener('unspiderfy', function (markers) {
+                    for (let n = 0; n < $(".leaflet-popup-close-button").length; n++) {
+                        $(".leaflet-popup-close-button")[n].click();
+                    }
+                });
 
                 // Visualize default Orthomap, if configured
                 if (styleParameters) {
@@ -3824,7 +4289,7 @@ if (!isset($_SESSION)) {
                                             //    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
                                             gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
                                                 pointToLayer: gisPrepareCustomMarker,
-                                                onEachFeature: onEachFeature
+                                                onEachFeature: onEachFeatureSpiderify
                                                 //   }).addTo(map.defaultMapRef);
                                             });
                                             //    }
@@ -4478,8 +4943,9 @@ if (!isset($_SESSION)) {
                                     if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
                                         gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
                                             pointToLayer: gisPrepareCustomMarker,
-                                            onEachFeature: onEachFeature
+                                            onEachFeature: onEachFeatureSpiderify
                                         }).addTo(map.defaultMapRef);
+                                    //    oms.addMarker(gisLayersOnMap[desc]._layers);
 
                                         // CORTI - setta markers nella mappa 3D
 //                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
@@ -5620,19 +6086,51 @@ if (!isset($_SESSION)) {
 											var pwlat = map.defaultMapRef.getBounds()["_northEast"]["lat"];
 											L.popup({offset: L.point(0, 210)}).setLatLng(new L.LatLng(pwlat, pwlng)).setContent("<p><strong>Impact on Public Transport</strong></p><p>Computation in progress.</p><p>It may take some time.</p><p>Please wait...</p>").openOn(map.defaultMapRef);
 											var polygons = [];
+											// console.log(selectedScenarioData);
 											for(var f = 0; f < selectedScenarioData["features"].length; f++) {
-												if(selectedScenarioData["features"][f]["geometry"]["type"] == "Point") {
-													// a radius of 7684.888648492369 corresponds to a delta of 0.192811 in lat lon coordinates so one unit of radius corresponds to a displacement of 0.192811/7684.888648492369 ~ 0.000025 in lat lon 
-													polygons.push("(("+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+"))");													
+												if(selectedScenarioData["features"][f]["geometry"]["type"] != "Polygon") {													
+													// a radius of 7684.888648492369 corresponds to a delta of 0.192811 in lat lon coordinates so one unit of radius corresponds to a displacement of 0.192811/7684.888648492369 ~ 0.000025 in lat lon 													
+													//polygons.push("(("+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+"))");													
+													//console.log("(("+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+"))");
+													var r = 0.0001;													
+													if(selectedScenarioData["features"][f]["properties"]["radius"]) r = 0.00001*selectedScenarioData["features"][f]["properties"]["radius"];
+													var x = selectedScenarioData["features"][f]["geometry"]["coordinates"][0];
+													var y = selectedScenarioData["features"][f]["geometry"]["coordinates"][1];
+													var tlx = x-r;
+													var tly = y+r;
+													var trx = x+r;
+													var try_ = y+r;
+													var brx = x+r;
+													var bry = y-r;
+													var blx = x-r;
+													var bly = y-r;
+													var p = "(( "+ tlx + " " + tly + ", " + trx + " " + try_ + ", "+ brx + " " + bry + ", " + blx + " " + bly + ", " + tlx + " " + tly + "))";
+													// console.log(p);
+													if(!polygons.includes(p)) polygons.push(p);	
 												}
-												else {
-													var polygon = "((";
-													for(var c = 0; c < selectedScenarioData["features"][f]["geometry"]["coordinates"][0].length; c++) {
-														polygon+=selectedScenarioData["features"][f]["geometry"]["coordinates"][0][c][0]+" "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0][c][1]+", ";														
-													}
-													polygon=polygon.substring(0,polygon.length-2);
-													polygon+="))";
-													polygons.push(polygon);													
+												else { 
+													var minX = null;
+													var maxX = null;
+													var minY = null;
+													var maxY = null;			
+													for(var c = 0; c < selectedScenarioData["features"][f]["geometry"]["coordinates"][0].length; c++) {														
+														var x = selectedScenarioData["features"][f]["geometry"]["coordinates"][0][c][0];
+														var y = selectedScenarioData["features"][f]["geometry"]["coordinates"][0][c][1];
+														if(minX == null || x < minX) minX = x;
+														if(maxX == null || x > maxX) maxX = x;
+														if(minY == null || y < minY) minY = y;
+														if(maxY == null || y > maxY) maxY = y;														
+													}	
+													var tlx = minX;
+													var blx = minX;
+													var trx = maxX;
+													var brx = maxX;
+													var tly = maxY;
+													var try_ = maxY;
+													var bly = minY;
+													var bry = minY;
+													var polygon = " (( "+ tlx +" "+ tly + ", " + trx + " " + try_ + ", " + brx + " " + bry + ", " + blx + " " + bly + ", " + tlx + " " + tly + " )) ";
+													if(!polygons.includes(polygon)) polygons.push(polygon);		
 												}												
 											}
 											var closedZones = null;
@@ -5652,40 +6150,6 @@ if (!isset($_SESSION)) {
 												L.popup({offset: L.point(0, 210)}).setLatLng(new L.LatLng(olat, olng)).setContent("<p><strong>Impact on Public Transport</strong></p><p>Affected Agencies: "+impact["metrics"]["agencies"]+"<br>Affected Routes: "+impact["metrics"]["routes"]+"<br>Affected Trips: "+impact["metrics"]["trips"]+(impact["metrics"]["ndr_trips"]>0?" (<a href=\"#\" class=\"ndrTripsLink\" \">"+impact["metrics"]["ndr_trips"]+" mere crossings</a>)":"")+"<br>Affected Stops: "+impact["metrics"]["stops"]+" (click on markers)<br>Eventual Traps: "+impact["metrics"]["traps"]+"</p>").openOn(map.defaultMapRef);
 												var summary = { "offset": L.point(0, 210), "latlng": new L.LatLng(olat, olng), "content":  "<p><strong>Impact on Public Transport</strong></p><p>Affected Agencies: "+impact["metrics"]["agencies"]+"<br>Affected Routes: "+impact["metrics"]["routes"]+"<br>Affected Trips: "+impact["metrics"]["trips"]+(impact["metrics"]["ndr_trips"]>0?" (<a href=\"#\" class=\"ndrTripsLink\" \">"+impact["metrics"]["ndr_trips"]+" mere crossings</a>)":"")+"<br>Affected Stops: "+impact["metrics"]["stops"]+" (click on markers)<br>Eventual Traps: "+impact["metrics"]["traps"]+"</p>"} ;
 												$(".ndrTripsLink").click(function(){
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-													
-																	
-													
 													$(".whatifPolyline").hide();
 													$(".whatifCrossingPolyline").hide();															
 													$(".affectedStopMarker").hide();														
@@ -5755,21 +6219,22 @@ if (!isset($_SESSION)) {
 														$(this).html("Please wait...");
 														var container = $(this).parent().parent();
 														var date = $(this).data("date");
-														$.getJSON( $(this).data("url"), function(routes) {
+														//$.getJSON( $(this).data("url"), function(routes) {
+														$.post($(this).data("url").split("?")[0],$(this).data("url").split("?")[1], function(routes) {
 															container.find("p").hide();
 															wifstpdtbtn.html(wifstpdtbtnhtml);
 															var routesMarkup = "<p class=\"ndrt_routesSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date(date).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</p>";
 															Object.keys(routes).forEach(function(key){
 																var route = routes[key];
-																var affected = Object.keys(impact["details"][agency]["routes"]).includes(route["type"]+" "+route["short_name"]+" "+route["long_name"]);
+																/*var affected = Object.keys(impact["details"][agency]["routes"]).includes(route["type"]+" "+route["short_name"]+" "+route["long_name"]);
 																if(false && affected) {
 																	var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(route["dataset"])+"&route="+encodeURIComponent(route["uri"])+"&crosstrip="+crosstrips.join("&crosstrip=")+"&date="+encodeURIComponent(date)+"&list=trips";
 																	routesMarkup+="<p class=\"ndrt_wifstprte\"><button data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\"><strong>"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</strong></button></p>";
 																}
-																else {
+																else {*/
 																	var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(route["dataset"])+"&route="+encodeURIComponent(route["uri"])+"&crosstrip="+crosstrips.join("&crosstrip=")+"&date="+encodeURIComponent(date)+"&list=trips";
 																	routesMarkup+="<p class=\"ndrt_wifstprte\"><button data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\">"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</button></p>";
-																}
+																// }
 																
 															});
 															routesMarkup+="<p class=\"ndrt_backToHome\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
@@ -5804,7 +6269,7 @@ if (!isset($_SESSION)) {
 																
 																var bg = $(this).css("background-color");
 																var fg = $(this).css("color");
-																$.getJSON($(this).data("url"),function(trips){
+																$.post($(this).data("url").split("?")[0],$(this).data("url").split("?")[1],function(trips){
 																	container.find("p").hide();
 																	wifstprtebtn.html(wifstprtebtnhtml);
 																	container.find("p.ndrt_stopHead").show();
@@ -5814,17 +6279,17 @@ if (!isset($_SESSION)) {
 																		if(trips[a]["start"] > trips[b]["start"]) return 1; else return -1;
 																	}).forEach(function(tripkey){
 																		var trip = trips[tripkey];
-																		var affectedtrip = Object.keys(impact["details"][agency]["routes"][hrRouteTxt]["trips"]).includes(tripkey);
+																		/*var affectedtrip = Object.keys(impact["details"][agency]["routes"][hrRouteTxt]["trips"]).includes(tripkey);
 																		if(false && affectedtrip) { 
 																			var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(trip["dataset"])+"&trip="+encodeURIComponent(trip["uri"])+"&list=stops";
 																			addToTripsMarkup="<p class=\"ndrt_wifstptrp\"><button style=\"padding:0.2em; text-align:left; font-size:larger; width:100%; background-color:"+bg+"; color: "+fg+";\" data-tripkey=\""+tripkey+"\" data-path=\""+trip["path"]+"\" data-url=\""+theTripUrl+"\" data-routebgcolor=\""+trip["route"]["bg_color"]+"\" data-routefgcolor=\""+trip["route"]["fg_color"]+"\" data-routeshortname=\""+trip["route"]["short_name"]+"\" data-routelongname=\""+trip["route"]["long_name"]+"\" data-routetype=\""+trip["route"]["type"]+"\" data-agencyname=\""+trip["route"]["agency"]+"\"><strong>"+trip["start"].substring(0,5)+"&nbsp;<span style=\"border:thin solid "+fg+"; padding:0.2em; font-size:smaller;\">"+(trip["direction"] == "0"?"&rharu;":"&lhard;")+"</span>&nbsp;"+trip["headsign"]+"</strong></button></p>";
 																			tripsMarkup+=addToTripsMarkup;
 																			affectedTripsMarkup+=addToTripsMarkup;
 																		}
-																		else {
+																		else {*/
 																			var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(trip["dataset"])+"&trip="+encodeURIComponent(trip["uri"])+"&list=stops";
 																			tripsMarkup+="<p class=\"ndrt_wifstptrp\"><button style=\"text-align:left; font-size:smaller; width:100%; background-color:"+bg+"; color:"+fg+";\" data-tripkey=\""+tripkey+"\" data-path=\""+trip["path"]+"\" data-url=\""+theTripUrl+"\" data-routebgcolor=\""+trip["route"]["bg_color"]+"\" data-routefgcolor=\""+trip["route"]["fg_color"]+"\" data-routeshortname=\""+trip["route"]["short_name"]+"\" data-routelongname=\""+trip["route"]["long_name"]+"\" data-routetype=\""+trip["route"]["type"]+"\" data-agencyname=\""+trip["route"]["agency"]+"\">"+trip["start"].substring(0,5)+"&nbsp;<span style=\"border:thin solid "+fg+"; padding:0.2em;\">"+(trip["direction"] == "0"?"&rharu;":"&lhard;")+"</span>&nbsp;"+trip["headsign"]+"</button></p>";
-																		}
+																		//}
 																		
 																	});
 																	tripsMarkup+="</div>";
@@ -5944,54 +6409,12 @@ if (!isset($_SESSION)) {
 																		
 																	});
 																	
-																});
+																},"json");
 																
 															});
-														});
+														},"json");
 													});
 													return;
-
-
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
-																	
 												});
 												
 												Object.keys(impact["details"]).forEach(function(agency) {																		
@@ -6298,7 +6721,7 @@ if (!isset($_SESSION)) {
 												L.popup({offset: L.point(0, 210)}).setLatLng(new L.LatLng(olat, olng)).setContent("<p><strong>Impact on Public Transport</strong></p><p>This scenario is too complex for a single-step analysis. Please split it in simpler scenarios, as for the extension, the time interval, or both.</p>").openOn(map.defaultMapRef);
 												$("#bus_button").css("opacity",1);
 											});
-											setTimeout(function(){ whatifptiendpt.abort(); }, 30000); 
+											//setTimeout(function(){ whatifptiendpt.abort(); }, 30000); 
 											
 										}
 										// MS
@@ -6992,6 +7415,10 @@ if (!isset($_SESSION)) {
                             map.legendHeatmap = L.control({position: 'topright'});
                         }
 
+			            if(!map.trafficLegendHeatmap) {
+                            map.trafficLegendHeatmap = L.control({position: 'bottomright'});
+                    	}
+
                         function changeHeatmapPage(page)
                         {
                             var btn_next = document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt");
@@ -7019,16 +7446,54 @@ if (!isset($_SESSION)) {
                             if (current_page < numHeatmapPages()) {
                                 //  $("#heatMapDescr").text(heatmapData[current_page].metadata[0].date);  // OLD-API
                             //    heatmapDescr.text(heatmapData[current_page].metadata.date);
-                                heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
-                                // heatmapData[current_page].metadata[0].date
-                            }
-                        }
+	                            //heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
+	                            // heatmapData[current_page].metadata[0].date
 
-                        function numHeatmapPages()
-                        {
-                            //    return Math.ceil(heatmapData.length / records_per_page);
-                            return heatmapData.length;
-                        }
+	                    	if (heatmapData[current_page].metadata != null) {
+	                        	heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
+	                    	} else {
+	                                heatmapDescr.firstChild.wholeText = heatmapData[current_page].dateTime;
+	                    	}
+	                    }
+	                }
+
+	                    function changeTrafficHeatmapPage(page) {
+	                        var btn_next = document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt_traffic");
+	                        var btn_prev = document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt_traffic");
+	                        var heatmapDescr = document.getElementById("<?= $_REQUEST['name_w'] ?>_heatMapDescr_traffic");
+
+	                        // Validate page
+	                        if (numTrafficHeatmapPages() > 1) {
+	                            if (page < 1) page = 1;
+	                            if (page > numTrafficHeatmapPages()) page = numTrafficHeatmapPages();
+
+	                            if (current_page_traffic == 0) {
+	                                btn_next.style.visibility = "hidden";
+	                            } else {
+	                                btn_next.style.visibility = "visible";
+	                            }
+
+	                            if (current_page_traffic == numTrafficHeatmapPages() - 1) {
+	                                btn_prev.style.visibility = "hidden";
+	                            } else {
+	                                btn_prev.style.visibility = "visible";
+	                            }
+	                        }
+
+	                        if (current_page_traffic < numTrafficHeatmapPages()) {
+	                            heatmapDescr.firstChild.wholeText = trafficData[current_page_traffic].dateTime;
+	                        }
+	                    }
+
+	                    function numHeatmapPages()
+	                    {
+	                        //    return Math.ceil(heatmapData.length / records_per_page);
+	                        return heatmapData.length;
+	                    }
+                    
+	                    function numTrafficHeatmapPages() {
+	                        return trafficData.length;
+	                    }
 
 
                         function setOption(option, value, decimals) {
@@ -7075,9 +7540,18 @@ if (!isset($_SESSION)) {
                                             $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity).toFixed(parseInt(decimals)));
                                             $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity).toFixed(parseInt(decimals)));
                                         }
+				    }
+                            	} else if (option == "maxTrafficOpacity") {
+                                    if (trafficWmsLayer) {
+                                    	trafficWmsLayer.setOpacity(value);
+                                    	current_traffic_opacity = value;
+                                    	$("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_traffic_opacity).toFixed(parseInt(decimals)));
+                                    	$("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_traffic_opacity).toFixed(parseInt(decimals)));
                                     }
                                 }
-                                map.heatmapLayer.configure(map.cfg);
+				if (map.heatmapLayer != null) {
+                                	map.heatmapLayer.configure(map.cfg);
+				}	
                             }
                         }
 
@@ -7260,7 +7734,7 @@ if (!isset($_SESSION)) {
                                 '<span id="<?= $_REQUEST['name_w'] ?>_rangemaxOpacity" style="display:inline-block;vertical-align:super;">' + current_opacity + '</span>' +
                                 '</div>';
 
-                            // Heatmap Navigation Buottons (prev & next)
+                            // Heatmap Navigation Buttons (prev & next)
                             map.legendHeatmapDiv.innerHTML +=
                                 '<div id="heatmapNavigationCnt">' +
                                 //   '<a href="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
@@ -7329,18 +7803,182 @@ if (!isset($_SESSION)) {
                             return map.legendHeatmapDiv;
                         };
 
-                        function nextHeatmapPage()
-                        {
-                            animationFlag = false;
-                            if (current_page > 0) {
-                                current_page--;
-                                changeHeatmapPage(current_page);
+                    // INIZIO TRAFFICFLOWMANAGER GESTIONE LEGENDA + SLIDER OPACITA', PAGINE E ANIMAZIONE
+                    map.trafficLegendHeatmap.onAdd = function () {
+                        map.trafficLegendHeatmapDiv = L.DomUtil.create('div');
+                        map.trafficLegendHeatmapDiv.id = "trafficHeatmapLegend";
+                        if (L.Browser.touch) {
+                            L.DomEvent.disableClickPropagation(map.trafficLegendHeatmapDiv);
+                            L.DomEvent.on(map.trafficLegendHeatmapDiv, 'mousewheel', L.DomEvent.stopPropagation);
+                        } else {
+                            L.DomEvent.on(map.trafficLegendHeatmapDiv, 'click', L.DomEvent.stopPropagation);
+                        }
+                        map.trafficLegendHeatmapDiv.style.width = "340px";
+                        map.trafficLegendHeatmapDiv.style.fontWeight = "bold";
+                        map.trafficLegendHeatmapDiv.style.background = "#cccccc";
+                        map.trafficLegendHeatmapDiv.style.padding = "10px";
+
+                        let colors = [];
+                        colors['blue'] = '#0000FF';
+                        colors['cyan'] = '#00FFFF';
+                        colors['green'] = '#008000';
+                        colors['yellowgreen'] = '#9ACD32';
+                        colors['yellow'] = '#FFFF00';
+                        colors['gold'] = '#FFD700';
+                        colors['orange'] = '#FFA500';
+                        colors['darkorange'] = '#FF8C00';
+                        colors['orangered'] = '#FF4500';
+                        colors['tomato'] = '#FF6347';
+                        colors['red'] = '#FF0000';
+                        let colors_value = [];
+                        colors_value['blue'] = '#0000FF';
+                        colors_value['cyan'] = '#00FFFF';
+                        colors_value['green'] = '#008000';
+                        colors_value['yellowgreen'] = '#9ACD32';
+                        colors_value['yellow'] = '#FFFF00';
+                        colors_value['gold'] = '#FFD700';
+                        colors_value['orange'] = '#FFA500';
+                        colors_value['darkorange'] = '#FF8C00';
+                        colors_value['tomato'] = '#FF6347';
+                        colors_value['orangered'] = '#FF4500';
+                        colors_value['red'] = '#FF0000';
+                        map.trafficLegendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + trafficMapName + '</div>';
+                        map.trafficLegendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Traffic Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation_traffic"><div class="slider round"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
+
+                        // max opacity
+                        map.trafficLegendHeatmapDiv.innerHTML +=
+                            '<div id="trafficHeatmapOpacityControl">' +
+                            '<div style="display:inline-block; vertical-align:super;">Max Opacity: &nbsp;&nbsp;&nbsp;&nbsp;</div>' +
+                            '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_opacity_traffic" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
+                            '<input id="<?= $_REQUEST['name_w'] ?>_slidermaxTrafficOpacity" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="0" max="1" value="' + current_traffic_opacity + '" step="0.01">' +
+                            '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="upSlider_opacity_traffic" style="display:inline-block;vertical-align:super; color: #0078A8">&#10095;</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
+                            '<span id="<?= $_REQUEST['name_w'] ?>_rangemaxTrafficOpacity" style="display:inline-block;vertical-align:super;">' + current_traffic_opacity + '</span>' +
+                            '</div>';
+
+                        // Traffic Heatmap Navigation Buttons (prev & next)
+                        map.trafficLegendHeatmapDiv.innerHTML +=
+                            '<div id="heatmapNavigationCnt_traffic">' +
+                            '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButt_traffic" value="< Prev" style="float: left"/>' +
+                            '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButt_traffic" value="Next >" style="float: right"/>' +
+                            '<div id="<?= $_REQUEST['name_w'] ?>_heatMapDescr_traffic" style="text-align: center">' + trafficMapDate + '</p>' +
+                            '</div>';
+
+                        function checkLegend() {
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxTrafficOpacity").addEventListener("input", function(){ setOption('maxTrafficOpacity', this.value, 2)}, false);
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_animation_traffic").addEventListener("click", function () { animateTrafficHeatmap()}, false);
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt_traffic").addEventListener("click", function(){ prevTrafficHeatmapPage()}, false);
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt_traffic").addEventListener("click", function(){ nextTrafficHeatmapPage()}, false);
+
+                            if (current_page_traffic == 0) {
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt_traffic").style.visibility = "hidden";
+                            } else {
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt_traffic").style.visibility = "visible";
+                            }
+
+                            if (current_page_traffic == numTrafficHeatmapPages() - 1) {
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt_traffic").style.visibility = "hidden";
+                            } else {
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt_traffic").style.visibility = "visible";
+                            }
+                        }
+                        setTimeout(checkLegend, 500);
+                        return map.trafficLegendHeatmapDiv;
+                    };
+
+                    function removeTrafficHeatmap(index, isAnimated) {
+                        if (isAnimated) {
+                            map.defaultMapRef.removeLayer(map.eventsOnMap[index]);
+                        } else {
+                            map.defaultMapRef.removeLayer(trafficWmsLayer);
+                        }
+                        map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
+                        map.defaultMapRef.removeControl(map.eventsOnMap[index + 1].legendColors);
+                        map.eventsOnMap.splice(index, 2);
+                    }
+
+                    function nextTrafficHeatmapPage() {
+                        if (animationFlagTraffic) {
+                            return;
+                        }
+                        animationFlagTraffic = false;
+                        if (current_page_traffic > 0) {
+                            current_page_traffic--;
+                            changeTrafficHeatmapPage(current_page_traffic);
+                            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+                                    event = map.eventsOnMap[i + 1]; // aggiorna evento corretto in caso di più heatmap presenti sulla mappa
+                                    removeTrafficHeatmap(i, false)
+                                    break;
+                                }
+                            }
+                            addHeatmapFromClient(false);
+                        }
+                    }
+
+                    function prevTrafficHeatmapPage() {
+                        if (animationFlagTraffic) {
+                            return;
+                        }
+                        animationFlagTraffic = false;
+                        if (current_page_traffic < numTrafficHeatmapPages() - 1) {
+                            current_page_traffic++;
+                            changeTrafficHeatmapPage(current_page_traffic);
+                            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+                                    event = map.eventsOnMap[i + 1] // aggiorna evento corretto in caso di più heatmap presenti sulla mappa
+                                    removeTrafficHeatmap(i, false)
+                                    break;
+                                }
+                            }
+                            addHeatmapFromClient(false);
+                        }
+                    }
+
+                    function animateTrafficHeatmap() {
+                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                            if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+                                event = map.eventsOnMap[i + 1] // aggiorna evento corretto in caso di più heatmap presenti sulla mappa
+                                removeTrafficHeatmap(i, false)
+                                break;
+                            } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate") && map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
+                                event = map.eventsOnMap[i + 1] // aggiorna evento corretto in caso di più heatmap presenti sulla mappa
+                                removeTrafficHeatmap(i, true)
+                                break;
+                            }
+                        }
+                        if (!animationFlagTraffic) {
+                            animationFlagTraffic = true;
+                            addHeatmapFromClient(animationFlagTraffic);
+                        } else {
+                            animationFlagTraffic = false;
+                            addHeatmapFromClient(animationFlagTraffic);
+                        }
+                    }
+                    // FINE TRAFFICFLOWMANAGER GESTIONE LEGENDA + SLIDER OPACITA', PAGINE E ANIMAZIONE
+
+                    function nextHeatmapPage()
+                    {
+                        animationFlag = false;
+                        if (current_page > 0) {
+                            current_page--;
+                            changeHeatmapPage(current_page);
 
                                 for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+				                    // logica per evitare di rimuovere layer di trafficflowmanager
+	                                if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
+	                                    continue
+	                                } else if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+	                                    continue
+	                                } else if (i > 0 && map.eventsOnMap[i-1]._url && map.eventsOnMap[i-1]._url.includes("animate") && map.eventsOnMap[i-1].options.pane.includes("TrafficFlowManager")) {
+	                                    continue
+	                                } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate") && map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
+	                                    continue
+	                                }
                                     if (map.eventsOnMap[i].eventType === 'heatmap') {
                                         removeHeatmap(false);
                                         map.eventsOnMap.splice(i, 1);
                                     } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+					                    event = map.eventsOnMap[i] // aggiorna evento corretto in caso di più heatmap
                                         removeHeatmapColorLegend(i, false);
                                         map.eventsOnMap.splice(i, 1);
                                     } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
@@ -7405,10 +8043,21 @@ if (!isset($_SESSION)) {
                         function animateHeatmap()
                         {
                             for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+				// logica per evitare di rimuovere layer di trafficflowmanager
+	                            if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
+	                                continue
+	                            } else if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+	                                continue
+	                            } else if (i > 0 && map.eventsOnMap[i-1]._url && map.eventsOnMap[i-1]._url.includes("animate") && map.eventsOnMap[i-1].options.pane.includes("TrafficFlowManager")) {
+	                                continue
+	                            } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate") && map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
+	                                continue
+	                            }
                                 if (map.eventsOnMap[i].eventType === 'heatmap') {
                                     removeHeatmap(false);
                                     map.eventsOnMap.splice(i, 1);
                                 } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+				    event = map.eventsOnMap[i]; // aggiorna evento corretto in caso di più heatmap	
                                     removeHeatmapColorLegend(i, false);
                                     map.eventsOnMap.splice(i, 1);
                                 } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
@@ -7446,10 +8095,21 @@ if (!isset($_SESSION)) {
                                 changeHeatmapPage(current_page);
 
                                 for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+				    // logica per evitare di rimuovere layer di trafficflowmanager
+	                                if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
+	                                    continue
+	                                } else if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+	                                    continue
+	                                } else if (i > 0 && map.eventsOnMap[i-1]._url && map.eventsOnMap[i-1]._url.includes("animate") && map.eventsOnMap[i-1].options.pane.includes("TrafficFlowManager")) {
+	                                    continue
+	                                } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate") && map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
+	                                    continue
+	                                }		
                                     if (map.eventsOnMap[i].eventType === 'heatmap') {
                                         removeHeatmap(false);
                                         map.eventsOnMap.splice(i, 1);
                                     } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+					event = map.eventsOnMap[i]; // aggiorna evento corretto in caso di più heatmap
                                         removeHeatmapColorLegend(i, false);
                                         map.eventsOnMap.splice(i, 1);
                                     } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
@@ -7554,40 +8214,42 @@ if (!isset($_SESSION)) {
                      //   $('#'+event.target).on('click', function(e) {
                      //   map.defaultMapRef.off('click', heatmapClick);
                         map.defaultMapRef.on('click', heatmapClick = function(e) {
-                        //    if (map.testMetadata.metadata.file != 1) {
-                                var heatmapPointAndClickData = null;
-                                //  alert("Click on Map !");
-                                var pointAndClickCoord = e.latlng;
-                                var pointAndClickLat = pointAndClickCoord.lat.toFixed(5);
-                                var pointAndClickLng = pointAndClickCoord.lng.toFixed(5);
-                        //        var pointAndClickApiUrl = "https://heatmap.snap4city.org/interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
-                                var pointAndClickApiUrl = heatmapUrl + "interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
-                                $.ajax({
-                                    url: pointAndClickApiUrl,
-                                    async: true,
-                                    success: function (heatmapPointAndClickData) {
-                                        var popupData = {};
-                                        popupData.mapName = heatmapPointAndClickData.mapName;
-                                        popupData.latitude = pointAndClickLat;
-                                        popupData.longitude = pointAndClickLng;
-                                        popupData.metricName = heatmapPointAndClickData.metricName;
-                                        popupData.dataTime = heatmapPointAndClickData.date;
-                                        if (heatmapPointAndClickData.value) {
-                                            popupData.value = heatmapPointAndClickData.value.toFixed(5);
-                                            var customPointAndClickContent = prepareCustomMarkerForPointAndClick(popupData, "#C2D6D6", "#D1E0E0")
-                                            //   var pointAndClickPopup = L.popup(customPointAndClickMarker).openOn(map.defaultMapRef);
-                                            var popup = L.popup()
-                                                .setLatLng(pointAndClickCoord)
-                                                .setContent(customPointAndClickContent)
-                                                .openOn(map.defaultMapRef);
-                                        }
-                                    },
-                                    error: function (errorData) {
-                                        console.log("Ko Point&Click Heatmap API");
-                                        console.log(JSON.stringify(errorData));
-                                    }
-                                });
-                        //    }
+				if (map.testMetadata != null) {
+	                        //    if (map.testMetadata.metadata.file != 1) {
+	                                var heatmapPointAndClickData = null;
+	                                //  alert("Click on Map !");
+	                                var pointAndClickCoord = e.latlng;
+	                                var pointAndClickLat = pointAndClickCoord.lat.toFixed(5);
+	                                var pointAndClickLng = pointAndClickCoord.lng.toFixed(5);
+	                        //        var pointAndClickApiUrl = "https://heatmap.snap4city.org/interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
+	                                var pointAndClickApiUrl = heatmapUrl + "interp.php?latitude=" + pointAndClickLat + "&longitude=" + pointAndClickLng + "&dataset=" + map.testMetadata.metadata.mapName + "&date=" + map.testMetadata.metadata.date;
+	                                $.ajax({
+	                                    url: pointAndClickApiUrl,
+	                                    async: true,
+	                                    success: function (heatmapPointAndClickData) {
+	                                        var popupData = {};
+	                                        popupData.mapName = heatmapPointAndClickData.mapName;
+	                                        popupData.latitude = pointAndClickLat;
+	                                        popupData.longitude = pointAndClickLng;
+	                                        popupData.metricName = heatmapPointAndClickData.metricName;
+	                                        popupData.dataTime = heatmapPointAndClickData.date;
+	                                        if (heatmapPointAndClickData.value) {
+	                                            popupData.value = heatmapPointAndClickData.value.toFixed(5);
+	                                            var customPointAndClickContent = prepareCustomMarkerForPointAndClick(popupData, "#C2D6D6", "#D1E0E0")
+	                                            //   var pointAndClickPopup = L.popup(customPointAndClickMarker).openOn(map.defaultMapRef);
+	                                            var popup = L.popup()
+	                                                .setLatLng(pointAndClickCoord)
+	                                                .setContent(customPointAndClickContent)
+	                                                .openOn(map.defaultMapRef);
+	                                        }
+	                                    },
+	                                    error: function (errorData) {
+	                                        console.log("Ko Point&Click Heatmap API");
+	                                        console.log(JSON.stringify(errorData));
+	                                    }
+	                                });
+	                        //    }
+				}
                         });
 
                         function distance(lat1, lon1, lat2, lon2, unit) {   // unit: 'K' for Kilometers
@@ -7733,11 +8395,53 @@ if (!isset($_SESSION)) {
 
                         function addHeatmapToMap() {
                            animationFlag = false;
+			               animationFlagTraffic = false;
                        //    current_page = 0;
                            try {
-                               if (map.eventsOnMap.length > 0) {
+			                    const isAddingTrafficHeatmap = (event.passedData.includes(geoServerUrl) && event.passedData.includes("trafficflowmanager=true"));
+                                if (map.eventsOnMap.length > 0) {
+			                       const normalHeatmapPresent = map.eventsOnMap.some(event => (event.eventType === 'heatmap' || (event._url && event._url.includes("animate") && !event.options.pane.includes("TrafficFlowManager"))))
                                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                       if (map.eventsOnMap[i].eventType === 'heatmap') {
+				                        // logica additività trafficflowmanager
+                                       // non rimuovere layer dalla mappa se:
+                                       // 1. sto aggiungendo una heatmap normale e sulla mappa è presente una traffic heatmap, oppure
+                                       // 2. sto aggiungendo una traffic heatmap e sulla mappa è presente una heatmap normale
+                                       if (!isAddingTrafficHeatmap && !normalHeatmapPresent) {
+                                           // in questo caso non devo rimuovere nulla
+                                           break;
+                                       } else if (isAddingTrafficHeatmap && normalHeatmapPresent) {
+                                           // in questo caso devo solo rimuovere la traffic heatmap corrente
+                                           if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+                                               removeTrafficHeatmap(i, false)
+                                               current_page_traffic = 0;
+                                               break;
+                                           } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate") && map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
+                                               removeTrafficHeatmap(i, true)
+                                               current_page_traffic = 0;
+                                               break;
+                                           }
+                                           continue;
+                                       }
+
+                                       if (isAddingTrafficHeatmap) {
+                                           // se sto aggiungendo una traffic heatmap e già ce n'è una sulla mappa, rimuovo la traffic heatmap corrente
+                                           if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
+                                               removeTrafficHeatmap(i-1, false)
+                                               current_page_traffic = 0;
+                                               break;
+                                           } else if (i > 0 && map.eventsOnMap[i - 1]._url && map.eventsOnMap[i - 1]._url.includes("animate") && map.eventsOnMap[i - 1].options.pane.includes("TrafficFlowManager")) {
+                                               removeTrafficHeatmap(i-1, true)
+                                               current_page_traffic = 0;
+                                               break;
+                                           }
+                                       } else if (i > 0 && map.eventsOnMap[i-1].eventType === 'traffic_heatmap') {
+                                           // logica per evitare di rimuovere layer di trafficflowmanager
+                                       } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate") && map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
+                                           // logica per evitare di rimuovere layer di trafficflowmanager
+                                       } else if (i>0 && map.eventsOnMap[i-1]._url && map.eventsOnMap[i-1]._url.includes("animate") && map.eventsOnMap[i-1].options.pane.includes("TrafficFlowManager")) {
+                                           // logica per evitare di rimuovere layer di trafficflowmanager
+
+                                       } else if (map.eventsOnMap[i].eventType === 'heatmap') {
                                            removeHeatmap(true);
                                            map.eventsOnMap.splice(i, 1);
                                        } else if (map.eventsOnMap[i].type === 'addHeatmap') {
@@ -7803,6 +8507,85 @@ if (!isset($_SESSION)) {
                                let latitude_max = map.defaultMapRef.getBounds()._northEast.lat;
                                let longitude_min = map.defaultMapRef.getBounds()._southWest.lng;
                                let longitude_max = map.defaultMapRef.getBounds()._northEast.lng;
+			                    // INIZIO TRAFFICFLOWMANAGER
+                               if (baseQuery.includes(geoServerUrl) && baseQuery.includes("trafficflowmanager=true")) {
+					                heatmap.eventType = "traffic_heatmap";
+	                       		    console.log("TrafficFlowManager INIT");
+
+	                                // Get dataset name and metadata API url from passed data
+	                                const datasetName = baseQuery.split("WMS&layers=")[1].split("&")[0];
+	                                const apiUrl = geoServerUrl + "trafficflowmanager/api/metadata?fluxName=" + datasetName;
+
+	                                // Get layers metadata from API
+	                           //     heatmapData = null;
+	                                $.ajax({
+	                                    url: apiUrl,
+	                                    async: false,
+	                                    cache: false,
+	                                    dataType: "text",
+	                                    success: function (data) {
+	                                        trafficData = JSON.parse(data);
+	                                    },
+	                                    error: function (errorData) {
+	                                        console.log("Ko Traffic Heatmap");
+	                                        console.log(JSON.stringify(errorData));
+	                                    }
+	                                });
+
+	                                map.defaultMapRef.createPane('TrafficFlowManager:' + datasetName);
+	                                map.defaultMapRef.getPane('TrafficFlowManager:' + datasetName).style.zIndex = 420;
+
+	                                // Setup map
+                            //       if (heatmapData && heatmapData.length > 0) {
+                                       const timestamp = trafficData[0].dateTime;
+                                       current_traffic_opacity = 1
+                                       trafficMapName = trafficData[0].fluxName;
+                                       trafficMapDate = timestamp.replace('T', ' ');
+
+                                       // Add layer to map
+                                       trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
+                                           layers: trafficData[0].layerName,
+                                           format: 'image/png',
+                                           crs: L.CRS.EPSG4326,
+                                           transparent: true,
+                                           opacity: current_traffic_opacity,
+                                           pane: 'TrafficFlowManager:' + datasetName
+                                       }).addTo(map.defaultMapRef);
+
+                                       // Add Legend
+                                       map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+                                       map.eventsOnMap.push(heatmap);
+                                       const heatmapLegendColors = L.control({position: 'bottomright'});
+                                       heatmapLegendColors.onAdd = function () {
+                                           const div = L.DomUtil.create('div', 'info legend');
+                                           const legendImgPath = "../trafficRTDetails/legend.png";
+                                           div.innerHTML += " <img src=" + legendImgPath + " height='120'" + '<br style="margin-bottom:20px;">';
+                                           return div;
+                                       };
+                                       heatmapLegendColors.addTo(map.defaultMapRef);
+                                       event.legendColors = heatmapLegendColors;
+                                       map.eventsOnMap.push(event);
+
+                                       // Done!
+                                       loadingDiv.empty();
+                                       loadingDiv.append(loadOkText);
+                                       parHeight = loadOkText.height();
+                                       parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                       loadOkText.css("margin-top", parMarginTop + "px");
+                                       setTimeout(function () {
+                                           loadingDiv.css("opacity", 0);
+                                           setTimeout(function () {
+                                               loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                   $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                               });
+                                               loadingDiv.remove();
+                                           }, 350);
+                                       }, 1000);
+
+                                       return;
+                                   }
+	                 //      }
+	                       // FINE TRAFFICFLOWMANAGER
                                let query = "";
                                if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
                                    //  query = baseQuery + '&limit=30&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
@@ -8104,6 +8887,136 @@ if (!isset($_SESSION)) {
                             let latitude_max = map.defaultMapRef.getBounds()._northEast.lat;
                             let longitude_min = map.defaultMapRef.getBounds()._southWest.lng;
                             let longitude_max = map.defaultMapRef.getBounds()._northEast.lng;
+			                // INIZIO TRAFFICFLOWMANAGER PAGINE/ANIMAZIONE
+                            if (event.passedData.includes(geoServerUrl) && event.passedData.includes("trafficflowmanager=true")) {
+
+                            //        console.log("TrafficFlowManager addHeatmapFromClient INIT page=" + current_page_traffic);
+                                    const animationWidth = event.passedData.includes("&width=") ? event.passedData.split("&width=")[1].split("&")[0] : "512";
+                                    const datasetName = event.passedData.split("WMS&layers=")[1].split("&")[0];
+                                    map.defaultMapRef.createPane('TrafficFlowManager:' + datasetName);
+                                    map.defaultMapRef.getPane('TrafficFlowManager:' + datasetName).style.zIndex = 420;
+                                    const timestamp = trafficData[current_page_traffic].dateTime;
+                                    heatmap.eventType = "traffic_heatmap";
+	                        //    if (timestamp != null) {
+
+                                    if (!animationFlagTraffic) {
+
+                                        // Update map date
+                                        trafficMapDate = timestamp.replace('T', ' ');
+
+                                        // Add correct layer to the map
+                                        trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
+                                            layers: trafficData[current_page_traffic].layerName,
+                                            format: 'image/png',
+                                            crs: L.CRS.EPSG4326,
+                                            transparent: true,
+                                            opacity: current_traffic_opacity,
+                                            pane: 'TrafficFlowManager:' + datasetName
+                                        }).addTo(map.defaultMapRef);
+
+                                        // Add legend and heatmap
+                                        map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+                                        map.eventsOnMap.push(heatmap);
+
+                                    } else {
+
+                                        var animationCurrentDayTimestamp;
+                                        const animationCurrentDayFwdTimestamp = [];
+                                        const animationCurrentDayBckwdTimestamp = [];
+                                        let animationStringTimestamp;
+                                        const day = timestamp.substring(0, 10);
+
+                                        // Get all layer names for animation
+                                        if (current_page_traffic == 0) {
+                                            var offsetFwd = current_page_traffic;
+                                            while (trafficData[offsetFwd].dateTime.substring(0, 10) == day) {
+                                                animationCurrentDayFwdTimestamp.push(trafficData[offsetFwd].layerName);
+                                                offsetFwd++;
+                                                if (offsetFwd > numTrafficHeatmapPages() - 1) {
+                                                    break;
+                                                }
+                                            }
+                                        } else if (current_page_traffic == numTrafficHeatmapPages() - 1) {
+                                            var offsetBckwd = current_page_traffic - 1;
+                                            while (trafficData[offsetBckwd].dateTime.substring(0, 10) == day) {
+                                                animationCurrentDayBckwdTimestamp.push(trafficData[offsetBckwd].layerName);
+                                                offsetBckwd--;
+                                                if (offsetBckwd < 0) {
+                                                    break;
+                                                }
+                                            }
+                                        } else {
+                                            var offsetFwd = current_page_traffic;
+                                            while (trafficData[offsetFwd].dateTime.substring(0, 10) == day) {
+                                                animationCurrentDayFwdTimestamp.push(trafficData[offsetFwd].layerName);
+                                                offsetFwd++;
+                                                if (offsetFwd > numTrafficHeatmapPages() - 1) {
+                                                    break;
+                                                }
+                                            }
+                                            var offsetBckwd = current_page_traffic - 1;
+                                            while (trafficData[offsetBckwd].dateTime.substring(0, 10) == day) {
+                                                animationCurrentDayBckwdTimestamp.push(trafficData[offsetBckwd].layerName);
+                                                offsetBckwd--;
+                                                if (offsetBckwd < 0) {
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        // Concatenate layer names
+                                        animationCurrentDayTimestamp = animationCurrentDayFwdTimestamp.reverse().concat(animationCurrentDayBckwdTimestamp);
+                                        animationStringTimestamp = animationCurrentDayTimestamp.join(",");
+
+                                        // Create animated layer using WMS animator
+                                        const bbox = [longitude_min, latitude_min, longitude_max, latitude_max].join(",");
+                                     //   const imageUrl = geoServerUrl + 'geoserver/wms/animate?layers=' + trafficData[current_page_traffic].layerName + '&aparam=layers&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true&bbox=' + bbox;
+                                        const imageUrl = geoServerUrl + 'geoserver/wms/animate?layers=' + trafficData[current_page_traffic].layerName + '&aparam=layers&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:1000&transparent=true&bbox=' + bbox + '&width=' + animationWidth;
+                                        const imageBounds = [[latitude_min, longitude_min], [latitude_max, longitude_max]];
+                                        const animatedLayer = L.imageOverlay(imageUrl, imageBounds, {
+                                            opacity: current_traffic_opacity,
+                                            pane: 'TrafficFlowManager:' + datasetName
+                                        }).addTo(map.defaultMapRef);
+
+                                        // Add legend (w/ correct options) and animated layer to the maps
+                                        map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+                                        document.getElementById("<?= $_REQUEST['name_w'] ?>_animation_traffic").checked = true;
+                                        $("<?= $_REQUEST['name_w'] ?>_slidermaxTrafficOpacity").slider('disable');
+                                        map.eventsOnMap.push(animatedLayer);
+                                    }
+
+                                    // Setup Legend
+                                    const heatmapLegendColors = L.control({position: 'bottomright'});
+                                    heatmapLegendColors.onAdd = function () {
+                                        const div = L.DomUtil.create('div', 'info legend');
+                                        const legendImgPath = "../trafficRTDetails/legend.png";
+                                        div.innerHTML += " <img src=" + legendImgPath + " height='120'" + '<br style="margin-bottom:20px;">';
+                                        return div;
+                                    };
+                                    heatmapLegendColors.addTo(map.defaultMapRef);
+                                    event.legendColors = heatmapLegendColors;
+                                    map.eventsOnMap.push(event);
+
+                                    // Done!
+                                    loadingDiv.empty();
+                                    loadingDiv.append(loadOkText);
+                                    parHeight = loadOkText.height();
+                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                    loadOkText.css("margin-top", parMarginTop + "px");
+                                    setTimeout(function () {
+                                        loadingDiv.css("opacity", 0);
+                                        setTimeout(function () {
+                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                            });
+                                            loadingDiv.remove();
+                                        }, 350);
+                                    }, 1000);
+
+                                    return;
+                            //    }
+                            }
+                            // FINE TRAFFICFLOWMANAGER PAGINE/ANIMAZIONE
                             let query = "";
                             if (event.passedData.includes("heatmap.php")) {    // OLD HEATMAP
                                 //  query = baseQuery + '&limit=30&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
@@ -8859,7 +9772,9 @@ if (!isset($_SESSION)) {
                         if (display !== 'geometries') {
                             if (gisLayersOnMap[desc] && gisLayersOnMap[desc] !== "loadError") {
                                 map.defaultMapRef.removeLayer(gisLayersOnMap[desc]);
-
+                                for (var layer in gisLayersOnMap[desc]._layers) {
+                                    oms.removeMarker(gisLayersOnMap[desc]._layers[layer]);
+                                }
                                 if (gisGeometryLayersOnMap.hasOwnProperty(desc)) {
                                     if (gisGeometryLayersOnMap[desc].length > 0) {
                                         for (var i = 0; i < gisGeometryLayersOnMap[desc].length; i++) {
@@ -9148,7 +10063,31 @@ if (!isset($_SESSION)) {
 
                     if (event.target === map.mapName) {
                         for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType === 'heatmap') {
+			    if (event.isTrafficHeatmap) {
+                                // rimuovi traffic heatmap
+                                if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+                                    map.defaultMapRef.removeLayer(trafficWmsLayer);
+                                    map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
+                                    map.defaultMapRef.removeControl(map.eventsOnMap[i + 1].legendColors);
+                                    map.eventsOnMap.splice(i, 2);
+                                    break;
+                                } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate")) {
+                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                    map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
+                                    map.defaultMapRef.removeControl(map.eventsOnMap[i + 1].legendColors);
+                                    map.eventsOnMap.splice(i, 2);
+                                    break;
+                                }
+
+                            } else if (i>0 && map.eventsOnMap[i-1].eventType === 'traffic_heatmap') {
+                                // logica per evitare di rimuovere layer di trafficflowmanager
+                            } else if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+                                // logica per evitare di rimuovere layer di trafficflowmanager
+                            } else if (i>0 && map.eventsOnMap[i-1]._url && map.eventsOnMap[i-1]._url.includes("animate") && map.eventsOnMap[i-1].options.pane.includes("TrafficFlowManager")) {
+                                // logica per evitare di rimuovere layer di trafficflowmanager
+                            } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate") && map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
+                                // logica per evitare di rimuovere layer di trafficflowmanager
+                            } else if (map.eventsOnMap[i].eventType === 'heatmap') {
                                 removeHeatmap(true);
                                 map.eventsOnMap.splice(i, 1);
                             } else if (map.eventsOnMap[i].type === 'addHeatmap') {
@@ -11306,13 +12245,19 @@ if (!isset($_SESSION)) {
                                         }
                                     }
 
-                                    if (current_page < numHeatmapPages()) {
-                                      //  $("#modalLinkOpenHeatMapDescr").text(heatmapData[current_page].metadata[0].date); // OLD-API
-                                     //   heatmapDescr.text(heatmapData[current_page].metadata.date);
-                                        heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
-                                        // heatmapData[current_page].metadata[0].date
-                                    }
-                                }
+	                            if (current_page < numHeatmapPages()) {
+	                                    //  $("#modalLinkOpenHeatMapDescr").text(heatmapData[current_page].metadata[0].date); // OLD-API
+	                                    //   heatmapDescr.text(heatmapData[current_page].metadata.date);
+	                                    //heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
+	                                    // heatmapData[current_page].metadata[0].date
+                                    
+	                            	if (heatmapData[current_page].metadata != null) {
+	                                        heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
+	                            	} else {
+	                            		heatmapDescr.firstChild.wholeText = heatmapData[current_page].dateTime;
+	                            	}
+	                            }
+	                        }
 
                                 function numHeatmapPages()
                                 {

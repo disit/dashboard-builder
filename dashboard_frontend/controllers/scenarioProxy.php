@@ -142,7 +142,7 @@ if(!isset($_SESSION['refreshToken'])) {
     // Call used to populate (public) scenarios' select widget
     else if($_GET['method'] === "GET" && $_GET['opt'] === "name") {
         // Get anonymous delegations for scenarios type (elementType)
-        $query = "SELECT element_id as elementId from profiledb.delegation where variable_name='$variableName'";
+        $query = "SELECT element_id as elementId from profiledb.delegation where variable_name='".mysqli_escape_string($link,$variableName)."'";
         $result = mysqli_query($link, $query);
         /*$delegations = getAnonymousDelegation($personalDataApiBaseUrl, $dmSourceRequest, $elementType , $accessToken);
         $delegations = json_decode($delegations);*/
@@ -163,7 +163,7 @@ if(!isset($_SESSION['refreshToken'])) {
     else if($_GET['method'] === "GET" && isset($_GET['sel'])) {
         $selectedScenario = $_GET['sel'];
        
-        $query = "SELECT variable_value as variableValue from profiledb.data where variable_name='$variableName' and app_id='$selectedScenario'";
+        $query = "SELECT variable_value as variableValue from profiledb.data where variable_name='".mysqli_escape_string($link,$variableName)."' and app_id='".mysqli_escape_string($link,$selectedScenario)."'";
         $result = mysqli_query($link, $query);
         
         if($result) {
@@ -193,7 +193,7 @@ else if(isset($_SESSION['refreshToken'])) {
         $isPublic = json_decode($dmVariableValue, true)['isPublic'];
         
         // before insert data, we get if the scenarioName already exists (among scenarios -> use of variable_name)
-        $query = "SELECT count(*) as count from profiledb.data where variable_name='$variableName' and app_id='$newName'";
+        $query = "SELECT count(*) as count from profiledb.data where variable_name='".mysqli_escape_string($link,$variableName)."' and app_id='".mysqli_escape_string($link,$newName)."'";
         $result = mysqli_query($link, $query);
         $feature = mysqli_fetch_assoc($result);
         if($feature['count'] == 0 ) {
@@ -283,7 +283,7 @@ else if(isset($_SESSION['refreshToken'])) {
     else if($_GET['method'] === "GET" && isset($_GET['sel'])) {
         $selectedScenario = $_GET['sel'];
        
-        $query = "SELECT variable_value as variableValue from profiledb.data where variable_name='$variableName' and app_id='$selectedScenario'";
+        $query = "SELECT variable_value as variableValue from profiledb.data where variable_name='".mysqli_escape_string($link,$variableName)."' and app_id='".mysqli_escape_string($link,$selectedScenario)."'";
         $result = mysqli_query($link, $query);
         
         if($result) {

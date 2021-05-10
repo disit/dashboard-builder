@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
     if(!isset($_SESSION))
@@ -339,6 +338,14 @@
                 case "Annuale":
                     hoursToSubtract = 24 * 365;
                     break;
+
+                case "2 Anni":
+                    hoursToSubtract = 24 * 365 * 2;
+                    break;
+
+                case "10 Anni":
+                    hoursToSubtract = 24 * 365 * 10;
+                    break;
             }
             var date2 = moment(lastDateInDataArray);
             var refDate = date2.subtract(hoursToSubtract, 'hours');
@@ -440,7 +447,7 @@
                 case "Annuale":
                     showWidgetContent(widgetName);
                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available or Last Data Older Than 1 Year.");
+                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available in the Selected Time Range.");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').css("font-size", "14px");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                     console.log("Dati non presenti su Service Map o ultimi dati più vecchi di 1 anno.");
@@ -1873,7 +1880,53 @@
                             var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
                             myKPITimeRange = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitISOTrimmed;
                         }
-                        break;     
+                        break;
+
+                    case "2 Anni":
+                        serviceMapTimeRange = "fromTime=730-day";
+                        //    var deltaT = 365 + parseInt(timeCount) * 365;
+                        //    serviceMapTimeRange = "fromTime=" + deltaT + "-day";
+                        globalDiagramRange = "730/DAY";
+
+                        upperTimeLimitISOTrimmed = getUpperTimeLimit(2*365*24*timeCount);
+
+                        if (flagTracker === true) {
+                            myKPITimeRange = "&from=" + dayTracker + "T00:00:00&to=" + dayTracker + "T23:59:59";
+                        } else {
+                            var now = new Date();
+                            myKPIFromTimeRange = now.setHours(now.getHours() - 17520);
+                            var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                            var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                            var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                            //    myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                            var myKPIFromTimeRangeNew = moment(upperTimeLimitISOTrimmed).subtract(2, 'year');
+                            var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
+                            myKPITimeRange = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitISOTrimmed;
+                        }
+                        break;
+
+                    case "10 Anni":
+                        serviceMapTimeRange = "fromTime=3650-day";
+                        //    var deltaT = 365 + parseInt(timeCount) * 365;
+                        //    serviceMapTimeRange = "fromTime=" + deltaT + "-day";
+                        globalDiagramRange = "3650/DAY";
+
+                        upperTimeLimitISOTrimmed = getUpperTimeLimit(10*365*24*timeCount);
+
+                        if (flagTracker === true) {
+                            myKPITimeRange = "&from=" + dayTracker + "T00:00:00&to=" + dayTracker + "T23:59:59";
+                        } else {
+                            var now = new Date();
+                            myKPIFromTimeRange = now.setHours(now.getHours() - 87600);
+                            var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
+                            var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
+                            var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
+                            //    myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+                            var myKPIFromTimeRangeNew = moment(upperTimeLimitISOTrimmed).subtract(10, 'year');
+                            var myKPIFromTimeRangeNewTrimmed = convertFromMomentToTime(myKPIFromTimeRangeNew);
+                            myKPITimeRange = "&from=" + myKPIFromTimeRangeNewTrimmed + "&to=" + upperTimeLimitISOTrimmed;
+                        }
+                        break;
 
                     default:
                         serviceMapTimeRange = "fromTime=1-day";
@@ -1939,20 +1992,26 @@
                                     }
                                     else
                                     {
-                                        expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
-                                     /*   showWidgetContent(widgetName);
-                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        console.log("Dati non disponibili da Service Map");*/
+                                        if (timeRange != "2 Anni" && timeRange != "10 Anni") {
+                                            expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                        } else {
+                                            showWidgetContent(widgetName);
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            console.log("Dati non disponibili da Service Map");
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
-                                  /*  showWidgetContent(widgetName);
-                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                    console.log("Dati non disponibili da Service Map");*/
+                                    if (timeRange != "2 Anni" && timeRange != "10 Anni") {
+                                        expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                    } else {
+                                        showWidgetContent(widgetName);
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Dati non disponibili da Service Map");
+                                    }
                                 }
                             },
                             error: function (data)
@@ -2008,12 +2067,15 @@
                             },
                             error: function(errorData)
                             {
-                                expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
-                             /*   showWidgetContent(widgetName);
-                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                console.log("Errore in chiamata di getDataMetricsForTimeTrend.php.");
-                                console.log(JSON.stringify(errorData));*/
+                                if (timeRange != "2 Anni" && timeRange != "10 Anni") {
+                                    expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                } else {
+                                    showWidgetContent(widgetName);
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    console.log("Errore in chiamata di getDataMetricsForTimeTrend.php.");
+                                    console.log(JSON.stringify(errorData));
+                                }
                             }
                         });
                         break;
@@ -2049,20 +2111,26 @@
                                     }
                                     else
                                     {
-                                        expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
-                                      /*  showWidgetContent(widgetName);
-                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        console.log("Dati non disponibili da Service Map");*/
+                                        if (timeRange != "2 Anni" && timeRange != "10 Anni") {
+                                            expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                        } else {
+                                            showWidgetContent(widgetName);
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            console.log("Dati non disponibili da Service Map");
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
-                                /*    showWidgetContent(widgetName);
-                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                    console.log("Dati non disponibili da Service Map");*/
+                                    if (timeRange != "2 Anni" && timeRange != "10 Anni") {
+                                        expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                    } else {
+                                        showWidgetContent(widgetName);
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Dati non disponibili da Service Map");
+                                    }
                                 }
                             },
                             error: function(errorData)
@@ -2136,20 +2204,26 @@
                                     //else if (convertedData.data[0].commit.author.value == null)
                                     else
                                     {
-                                        expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
-                                    /*    showWidgetContent(widgetName);
-                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                        console.log("Dati MyKPI non presenti");*/
+                                        if (timeRange != "2 Anni" && timeRange != "10 Anni") {
+                                            expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                        } else {
+                                            showWidgetContent(widgetName);
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            console.log("Dati MyKPI non presenti");
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
-                                /*    showWidgetContent(widgetName);
-                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                    console.log("Dati MyKPI non presenti");*/
+                                    if (timeRange != "2 Anni" && timeRange != "10 Anni") {
+                                        expandTimeRange(timeRange, timeNavCount, udmFromUserOptions);
+                                    } else {
+                                        showWidgetContent(widgetName);
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Dati MyKPI non presenti");
+                                    }
                                 }
                             },
                             error: function (data) {
@@ -2785,7 +2859,7 @@
             <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText" class="noDataAlertText">
-                    No data available
+                    No Data Available in the Selected Time-Range.
                 </div>
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertIcon" class="noDataAlertIcon">
                     <i class="fa fa-times"></i>
