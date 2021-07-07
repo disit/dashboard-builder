@@ -209,11 +209,11 @@
                                     <table id="list_dashboard" class="table">
                                         <thead class="dashboardsTableHeader">
                                             <tr>
-                                                <th data-dynatable-column="title_header">Title</th>
-                                                <th data-dynatable-column="user">Creator</th>
-                                                <th data-dynatable-column="creation_date">Creation date</th>
-                                                <th data-dynatable-column="last_edit_date">Last edit date</th>
-                                                <th data-dynatable-column="status_dashboard">Status</th>
+                                                <th data-dynatable-column="title_header"><?= _("Title")?></th>
+                                                <th data-dynatable-column="user"><?= _("Creator")?></th>
+                                                <th data-dynatable-column="creation_date"><?= _("Creation date")?></th>
+                                                <th data-dynatable-column="last_edit_date"><?= _("Last edit date")?></th>
+                                                <th data-dynatable-column="status_dashboard"><?= _("Status")?></th>
                                                 <th>Edit</th>
                                                 <th>View</th>
                                             </tr>
@@ -245,8 +245,6 @@
         var orgFilter = "<?php echo @$_SESSION['loggedOrganization']; ?>";
         var orgLang = "<?php echo @$_SESSION['orgLang']; ?>";
         var param = "";
-        microAppLat = null;
-        microAppLng = null;
         if (location.href.includes("AllOrgs")) {
             param = "AllOrgs";
         }
@@ -377,7 +375,7 @@
                 statusBtn = '<input type="checkbox" checked data-toggle="toggle" class="changeDashboardStatus">';
             }
 
-            var newRow = '<tr data-dashTitle="' + record.title_header + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.user + '"><td class="' + cssClass + '" style="font-weight: bold">' + title + '</td><td class="' + cssClass + '">' + user + '</td><td class="' + cssClass + '">' + record.creation_date + '</td><td class="' + cssClass + '">' + record.last_edit_date + '</td><td class="' + cssClass + '">' + statusBtn + '</td><td class="' + cssClass + '"><button type="button" class="editDashBtn">edit</button></td><td class="' + cssClass + '"><button type="button" class="viewDashBtn">view</button></td></tr>';
+            var newRow = '<tr data-dashTitle="' + record.title_header + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.user + '"><td class="' + cssClass + '" style="font-weight: bold">' + title + '</td><td class="' + cssClass + '">' + user + '</td><td class="' + cssClass + '">' + record.creation_date + '</td><td class="' + cssClass + '">' + record.last_edit_date + '</td><td class="' + cssClass + '">' + statusBtn + '</td><td class="' + cssClass + '"><button type="button" class="editDashBtn"><?= _("edit")?></button></td><td class="' + cssClass + '"><button type="button" class="viewDashBtn"><?= _("view")?></button></td></tr>';
 
             return newRow;
         }
@@ -393,12 +391,12 @@
 
              var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" data-org="' + record.organizations + '" data-lat="' + record.latitude + '" data-lng="' + record.longitude + '" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' +
                                '<div class="dashboardsListCardInnerDiv">' +
-                               '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;">New Tab</button></div>' +
+                               '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;"><?= _("New Tab")?></button></div>' +
                                   '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span>' +
                                //         '<button class="cardButton" style="font-size:8px;float: right;">New Tab</button>' +
                                   '</div>' +
                                   '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
-                                  '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex">View</div>' +
+                                  '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex"><?= _("View")?></div>' +
                                   '<div class="dashboardsListCardImgDiv"></div>' +
                                   '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">' +
                                   '</div>' +  
@@ -582,7 +580,7 @@
                                 if ($(this).parents('div.dashboardsListCardDiv').attr('data-lat')) {
                                     if ($(this).parents('div.dashboardsListCardDiv').attr('data-lat') != "null" && $(this).parents('div.dashboardsListCardDiv').attr('data-lat') != '') {
                                         microAppLat = $(this).parents('div.dashboardsListCardDiv').attr('data-lat');
-                                    }
+                                }
                                 }
                                 if ($(this).parents('div.dashboardsListCardDiv').attr('data-lng') != null) {
                                     if ($(this).parents('div.dashboardsListCardDiv').attr('data-lng') != "null" && $(this).parents('div.dashboardsListCardDiv').attr('data-lng') != '') {
@@ -602,10 +600,10 @@
                                     success: function (data) {
                                         var orgLatLng = data.orgGpsCentreLatLng;
                                         if (microAppLat === null) {
-                                            microAppLat = orgLatLng.split(",")[0].trim();
+                                        microAppLat = orgLatLng.split(",")[0].trim();
                                         }
                                         if (microAppLng === null) {
-                                            microAppLng = orgLatLng.split(",")[1].trim();
+                                        microAppLng = orgLatLng.split(",")[1].trim();
                                         }
                                         if (orgLang === null || orgLang === undefined) {
                                             orgLang = "";
@@ -650,7 +648,7 @@
                             if ($(this).parents('div.dashboardsListCardDiv').attr('data-lat')) {
                                 if ($(this).parents('div.dashboardsListCardDiv').attr('data-lat') != "null" && $(this).parents('div.dashboardsListCardDiv').attr('data-lat') != '') {
                                     microAppLat = $(this).parents('div.dashboardsListCardDiv').attr('data-lat');
-                                }
+                            }
                             }
                             if ($(this).parents('div.dashboardsListCardDiv').attr('data-lng') != null) {
                                 if ($(this).parents('div.dashboardsListCardDiv').attr('data-lng') != "null" && $(this).parents('div.dashboardsListCardDiv').attr('data-lng') != '') {
@@ -677,10 +675,10 @@
                                 success: function (data) {
                                     var orgLatLng = data.orgGpsCentreLatLng;
                                     if (microAppLat === null) {
-                                        microAppLat = orgLatLng.split(",")[0].trim();
+                                    microAppLat = orgLatLng.split(",")[0].trim();
                                     }
                                     if (microAppLng === null) {
-                                        microAppLng = orgLatLng.split(",")[1].trim();
+                                    microAppLng = orgLatLng.split(",")[1].trim();
                                     }
                                     if (orgLang === null || orgLang === undefined) {
                                         orgLang = "";

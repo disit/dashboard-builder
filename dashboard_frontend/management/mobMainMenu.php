@@ -14,6 +14,25 @@
             $domainId = $row['id'];
         }
     }
+                  
+                $curr_lang ="";
+              /* if (isset($_SESSION['lang'])){
+                  $curr_lang =$_SESSION['lang']; 
+               }*/
+                $flagicon ='';
+                //
+                if(strpos($localizationsRoles, "Public")){
+                        if (isset($_REQUEST['lang'])){
+                           $curr_lang =$_REQUEST['lang']; 
+                        }
+                  }
+                //
+                  $curr_lang = selectLanguage($localizations);
+                if (($curr_lang !== '')&&($curr_lang !== null)){
+                    $flagicon ='../img/flagicons/'.$curr_lang.'.png';
+                }else{
+                    $flagicon ='../img/flagicons/en_US.png';
+                }
 ?>
 
 <div id="mobMainMenuCnt">
@@ -35,11 +54,22 @@
                 <i class="fa fa-lock" style="font-size: 20px; color: rgba(0, 162, 211, 1)"></i>&nbsp;<?php echo "Role: " . $_SESSION['loggedRole'] . ", Level: " . $_SESSION['loggedUserLevel']; ?>
             </div>
             <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrLogoutCnt">
-                <button type="button" id="mobMainMenuUsrLogoutBtn" class="editDashBtn">logout</button>
+                <button type="button" id="mobMainMenuUsrLogoutBtn" class="editDashBtn">logout</button>  
             </div>
+                                                    <?php 
+  if ((strpos($localizationsRoles, $_SESSION['loggedRole']))) {
+    echo('<a href="#" id="mobMainMenuSelectLanguageBtn" style="font-size: 10px;"><img src="'.$flagicon.'" id="flagicon" alt="'.$_SESSION['lang'].'" style="padding:5px; height: 24px;  width: 31px;"></a>');
+}
+?>
+   
 <?php else : ?>
             <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrLogoutCnt">
                 <button type="button" id="mobMainMenuUsrLoginBtn" class="editDashBtn">login</button>
+                                                                <?php 
+  if ((strpos($localizationsRoles, 'Public'))) {
+    echo('<a href="#" id="mobMainMenuSelectLanguageBtn" style="font-size: 10px;"><img src="'.$flagicon.'" id="flagicon" alt="'.$curr_lang.'" style="padding:5px; height: 24px;  width: 31px;"></a>');
+}
+?>
             </div>
 <?php endif; ?>         
         </div>
@@ -99,6 +129,9 @@
                     $pageTitle = $row['pageTitle'];
                     $externalApp = $row['externalApp'];
                     $allowedOrgs = $row['organizations'];
+                    //
+                    $text = translate_string($text, $curr_lang, $link);
+                    //
 
                     if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
                         if($externalApp == 'yes')
@@ -204,6 +237,7 @@
                         $linkId2 = $row2['linkId'];
                         $icon2 = $row2['icon'];  
                         $text2 = $row2['text'];
+                         $text2 = translate_string($text2, $curr_lang, $link);
                         $privileges2 = $row2['privileges'];      
                         $userType2 = $row2['userType']; 
                         $externalApp2 = $row2['externalApp'];
@@ -259,7 +293,7 @@
         ?>
         
     </div><!-- Fine portrait container -->
-    
+ 
     <div id="mobMainMenuLandCnt">
          <div class="row">
 <?php if($_SESSION['loggedRole']!='Public') : ?>                  
@@ -335,7 +369,7 @@
                     $pageTitle = $row['pageTitle'];
                     $externalApp = $row['externalApp'];
                     $allowedOrgs = $row['organizations'];
-
+                    $text =  translate_string($text, $curr_lang, $link);
                     if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false) {
                         if ($externalApp == 'yes') {
                             if ($openMode == 'newTab') {
@@ -431,6 +465,8 @@
                         $pageTitle2 = $row2['pageTitle'];
                         $externalApp2 = $row2['externalApp'];
                         $allowedOrgs2 = $row2['organizations'];
+                        //
+                        $text2 = translate_string($text2, $curr_lang, $link);
 
                         if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false) {
                             if ($externalApp2 == 'yes') {
@@ -806,5 +842,86 @@
             }
         });
     });
+    
+        
+    //
+    $('#mobMainMenuSelectLanguageBtn').click(function () {
+            //alert("Confir#mainMenuSelectLanguageBtnmed");
+            $(".select_lang").prop("checked", false);
+            //
+            //Ajax su translate//
+            $('#mobMenutranslate-modal').modal('show'); 
+            
+            //
+        });
+        
+        /*function select_lang(lang){
+            //$(".select_lang").prop("checked", false);
+            
+            $.ajax({
+                async: true,
+                type: 'POST',
+                url: 'setlocale.php',
+                data: {
+                    lang: lang
+                },
+                success: function (data) {
+                    //alert(lang);
+                    location.reload();
+                    }
+                });
+            }*/
+                                            
+             function select_lang(lang, role){
+            //$(".select_lang").prop("checked", false);
+            
+            $.ajax({
+                async: true,
+                type: 'POST',
+                url: 'setlocale.php',
+                data: {
+                    lang: lang
+                },
+                success: function (data) {
+                    //alert(role);
+                    //location.reload();
+                    if ((role === null)||(role === "")||(role === undefined)){
+                       
+                    var queryParams = new URLSearchParams(window.location.search);
+                    // Set new or modify existing parameter value. 
+                    queryParams.set("lang",lang);
+                    // Replace current querystring with the new one.
+                    history.replaceState(null, null, "?"+queryParams.toString());
+                    location.reload();
+                }else{
+                    location.reload();
+                }
+                    }
+                });
+            }
+            
 </script>    
 
+<?php 
+if ((strpos($localizationsRoles, $_SESSION['loggedRole']))||(strpos($localizationsRoles, 'Public'))) {
+   $obj = json_decode($localizations, true);
+   $languages = $obj['languages'];
+   $tot_leng = count($languages);
+   if ($tot_leng > 0){
+       echo ('<div id="mobMenutranslate-modal" class="modal fade bd-example-modal-sm" role="dialog" style="z-index: 20050 !important;">
+        <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+        <div class="modal-body">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>');
+     for($i=0; $i<$tot_leng; $i++){
+         $lang = $obj['languages'][$i];
+         echo('<ul><input class="form-check-input select_lang" type="checkbox" onclick="select_lang(\''.$lang['code'].'\',\''.$_SESSION['loggedRole'].'\')"> <img src="../img/flagicons/'.$lang['code'].'.png" alt="alternatetext" style="padding:5px; height: 24px; width: 31px;"> <span style="color: black; font-size: 14px;">'.$lang['lang'].'</span></ul>');
+     }  
+      echo ('</div>                      
+    </div>
+  </div>
+    </div>');
+   }
+}
+
+?>

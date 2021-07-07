@@ -1,5 +1,6 @@
 <?php
     require_once '../common.php';
+    include_once '../locale.php';
     error_reporting(E_ERROR);
     if(!isset($_SESSION))
     {
@@ -19,7 +20,7 @@
         <div class="col-xs-12 col-sm-6 col-sm-offset-3">
             <div class="row">
                 <div class="col-xs-12 centerWithFlex addWidgetWizardIconsCntLabelBig" style="margin-top: 6px;">
-                    Dashboard title
+                    <?= _("Dashboard title")?>
                 </div>
                 <div class="col-xs-12">
                     <input type="text" name="inputTitleDashboard" id="inputTitleDashboard" value="" class="form-control" style="width: 100%;" required> 
@@ -28,15 +29,15 @@
             </div>
             <div id="modalAddDashboardWizardTitleAlreadyUsedMsg" class="row">
                 <div class="col-xs-12 centerWithFlex">
-                    Dashboard title can't be empty
+                    <?= _("Dashboard title can't be empty")?>
                 </div>
             </div>   
         </div> 
         
         <div class="col-xs-12 col-sm-6" id="dashboardTemplatesContainer">
             <div class="row">
-                <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex">Dashboard template</div>
-                <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex">Click on a template to choose it, click on it again to unselect it</div>
+                <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex"><?= _("Dashboard template")?></div>
+                <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex"><?= _("Click on a template to choose it, click on it again to unselect it")?></div>
             </div>
             <input type="hidden" id="dashboardTemplateStatus" value="empty"/>
             <input type="hidden" id="dashboardDirectStatus" value="empty"/>
@@ -44,7 +45,7 @@
                 <?php
                 include '../config.php';
 
-                //error_reporting(E_ERROR | E_NOTICE);
+                //error_reporting(E_ERROR);
                 error_reporting(E_ERROR);
                 date_default_timezone_set('Europe/Rome');
 
@@ -120,7 +121,7 @@
                 ?>   
             </div>
             <div id="modalAddDashboardWizardTemplateMsg" class="row">
-                <div class="col-xs-12 centerWithFlex">You must choose one template</div>
+                <div class="col-xs-12 centerWithFlex"><?= _("You must choose one template")?></div>
             </div>
         </div>
         
@@ -131,7 +132,7 @@
                 <!-- Mappa -->
                 <div class="col-xs-12 col-md-7">
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
-                        Map
+                        <?= _("Map")?>
                     </div>
                     <div class="col-xs-12" id="addWidgetWizardMapCnt2">
                     </div>
@@ -140,36 +141,36 @@
                 <!-- Icone -->
                 <div class="col-xs-12 col-md-5">
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex">
-                        Single data widgets
+                        <?= _("Single data widgets")?>
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCnt">
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex">
-                        Multi data widgets
+                        <?= _("Multi data widgets")?>
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCnt">
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
-                        <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Map Controls:</div>
+                        <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left"><?= _("Map Controls")?>:</div>
                     
                     <label class="switch" style=" margin-left: 10px; float: left">
                             <input type="checkbox" id="togBtn">
-                            <div class="slider round"><!--ADDED HTML --><span class="fixMapon">FixMap</span><span class="fixMapoff" style="color: black">FilterMap</span><!--END--></div>
+                            <div class="slider round"><!--ADDED HTML --><span class="fixMapon">FixMap</span><span class="fixMapoff" style="color: black"><?= _("FilterMap")?></span><!--END--></div>
                         </label><!--<button type="button" id="FreezeMap" class="btn cancelBtn" style="margin-top: 10px">FreezeMap</button>-->
-                        <button type="button" id="GPSUser" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSUser</button>
-                        <button type="button" id="GPSOrg" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSOrg</button>
+                        <button type="button" id="GPSUser" class="btn cancelBtn" style=" margin-left: 5px; float: left"><?= _("GPSUser")?></button>
+                        <button type="button" id="GPSOrg" class="btn cancelBtn" style=" margin-left: 5px; float: left"><?= _("GPSOrg")?></button>
                     </div>
 					<?php if(!$synMode) { ?>
 						<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
-							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Now displaying in Standard Mode</div>
-							<p>Switch to the Synoptic Mode to select MyKPIs and sensors that you need for your synoptics.</p>
-							<button type="button" id="SynMode" class="btn cancelBtn" style=" margin-left: 5px; float: left">Switch now to the Synoptic Mode</button>
+							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left"><?= _("Now displaying in Standard Mode")?></div>
+							<p><?= _("Switch to the Synoptic Mode to select MyKPIs and sensors that you need for your synoptics.")?></p>
+							<button type="button" id="SynMode" class="btn cancelBtn" style=" margin-left: 5px; float: left"><?= _("Switch now to the Synoptic Mode")?></button>
 						</div>
 					<?php } else { ?>
 						<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
-							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Now displaying in Synoptic Mode</div>
-							<p>Switch back to the Standard Mode to return making the traditional use of the Data Inspector.</p>
-							<button type="button" id="StdMode" class="btn cancelBtn" style=" margin-left: 5px; float: left">Switch now to the Standard Mode</button>
+							<div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left"><?= _("Now displaying in Synoptic Mode")?></div>
+							<p><?= _("Switch back to the Standard Mode to return making the traditional use of the Data Inspector.")?></p>
+							<button type="button" id="StdMode" class="btn cancelBtn" style=" margin-left: 5px; float: left"><?= _("Switch now to the Standard Mode")?></button>
 						</div>					
 					<?php } ?>
                     <div id="addWidgetWizardWidgetAvailableMsg" class="col-xs-12 centerWithFlex">
@@ -180,28 +181,28 @@
             <!-- Campi per attuatori -->
             <div class="row" id="widgetWizardActuatorFieldsRow">
                 <div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
-                    Actuator options
+                    <?= _("Actuator options")?>
                 </div>
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Existent or new target
+                        <?= _("Existent or new target")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <select id="actuatorTargetInstance" class="form-control">
-                            <option value="existent">Existent</option>
-                            <option value="new">New</option>
+                            <option value="existent"><?= _("Existent")?></option>
+                            <option value="new"><?= _("New")?></option>
                         </select>
                     </div>  
                 </div> 
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorTargetCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        New actuator target type
+                        <?= _("New actuator target type")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <select id="actuatorTargetWizard" class="form-control">
-                            <option value="broker" data-highLevelType="Sensor-Actuator">IOT device on broker</option>
+                            <option value="broker" data-highLevelType="Sensor-Actuator"><?= _("IOT device on broker")?></option>
                             <!--<option value="app" data-highLevelType="Dashboard-IOT App">IOT app</option>-->
                         </select>
                     </div>  
@@ -211,7 +212,7 @@
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorEntityNameCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Device name
+                        <?= _("Device name")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <input type="text" id="actuatorEntityName" class="form-control"></input><br>
@@ -220,7 +221,7 @@
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorValueTypeCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Value type
+                        <?= _("Value type")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt" style="overflow:auto;">
                        <!-- <input type="text" id="actuatorValueType" class="form-control"> -->
@@ -231,7 +232,7 @@
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorMinBaseValueCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Min/Base value
+                        <?= _("Min/Base value")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <input type="text" id="actuatorMinBaseValue" class="form-control"></input>
@@ -240,7 +241,7 @@
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorMaxBaseValueCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Max/Impulse value 
+                        <?= _("Max/Impulse value")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <input type="text" id="actuatorMaxImpulseValue" class="form-control"></input>
@@ -251,10 +252,10 @@
             <!-- Riga tabella -->
             <div class="row hideIfActuatorNew hideFullyCustom" id="widgetWizardTableRow">
                 <div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
-                    Data sources
+                    <?= _("Data sources")?>
                 </div>
                 <div id="noRowsSelectedAlert" class="col-xs-12 centerWithFlex">
-                    No rows selected: please select some rows and try again.
+                    <?= _("No rows selected: please select some rows and try again.")?>
                 </div>
 
                 <div id="widgetWizardTableContainer" class="col-xs-12">
@@ -326,7 +327,7 @@
                 <div id="widgetWizardTableCommandsContainer" class="col-xs-12">
                     <!-- Comandi nascondi colonne -->
                     <div class="widgetWizardWheelMenuContainer col-xs-12 col-md-2">
-                        <div class="col-xs-8 addWidgetWizardIconsCntLabel addWidgetWizardTableLbl centerWithFlex">Hide columns</div>
+                        <div class="col-xs-8 addWidgetWizardIconsCntLabel addWidgetWizardTableLbl centerWithFlex"><?= _("Hide columns")?></div>
                         <div class="col-xs-2 centerWithFlex">
                             <div class="btn-group dropup">
                                 <button type="button" class="btn confirmBtn dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span> <span class="caret"></span></button>
@@ -351,11 +352,11 @@
 
                     <!-- Pulsante di reset -->
                     <div class="col-xs-12 col-md-1 centerWithFlex">
-                        <button type="button" class="btn cancelBtn" id="resetButton">Reset filters</button>
+                        <button type="button" class="btn cancelBtn" id="resetButton"><?= _("Reset filters")?></button>
                     </div> 
 
                     <div id="widgetWizardTableSelectedRowsCounter" data-selectedRows="0" class="addWidgetWizardIconsCntLabel addWidgetWizardTableLbl col-xs-12 col-md-2 centerWithFlex">
-                        Selected rows: 0
+                        <?= _("Selected rows: 0")?>
                     </div> 
                 </div> 
             </div>
@@ -364,10 +365,10 @@
 				<!-- Riga tabella righe selezionate -->
 				<div class="row hideIfActuatorNew hideFullyCustom" id="widgetWizardSelectedRowsTableRow">
 					<div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
-						Choosen data sources
+						<?= _("Choosen data sources")?>
 					</div>
 					<div class="col-xs-12 addWidgetWizardIconsCntAlertLabel centerWithFlex" id="wizardNotCompatibleRowsAlert">
-						Red rows are not compatible with choosen widget type and will not be instantiated
+						<?= _("Red rows are not compatible with choosen widget type and will not be instantiated")?>
 					</div>
 					<div id="widgetWizardSelectedRowsTableContainer" class="col-xs-12">
 						<table id="widgetWizardSelectedRowsTable" class="addWidgetWizardTableSelected table table-striped dt-responsive nowrap"> 
@@ -410,7 +411,7 @@
 						
 					</div> 
 				</div> 
-				<button id="save" type="button" class="btn confirmBtn" style="float:right; margin-right:15px; margin-top:15px;">Save</button>
+				<button id="save" type="button" class="btn confirmBtn" style="float:right; margin-right:15px; margin-top:15px;"><?= _("Save")?></button>
 		   <?php } ?>
 			
             <!-- Messaggi d'errore o di ok -->
@@ -3204,15 +3205,15 @@
                             popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                             //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                         }
-                        popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
+                        popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');"><?= _("Description")?></button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');"><?= _("RT data")?></button></div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
 
                         popupText += '<table id="' + latLngId + '" class="gisPopupGeneralDataTable">';
                         //Intestazione
                         popupText += '<thead>';
-                        popupText += '<th style="background: ' + color2 + '">Description</th>';
-                        popupText += '<th style="background: ' + color2 + '">Value</th>';
+                        popupText += '<th style="background: ' + color2 + '"><?= _("Description")?></th>';
+                        popupText += '<th style="background: ' + color2 + '"><?= _("Value")?></th>';
                         popupText += '</thead>';
 
                         //Corpo
@@ -7385,17 +7386,17 @@
                     switch($('#inputTitleDashboardStatus').val())
                     {
                         case 'empty':
-                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title can\'t be empty</span></div></div>');
+                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?= _("Dashboard title can\'t be empty")?></span></div></div>');
                             validityConditions.canProceed = false;
                             break;
 
                         case 'alreadyUsed':
-                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title already in use</span></div></div>');
+                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?= _("Dashboard title already in use")?></span></div></div>');
                             validityConditions.canProceed = false;
                             break;
                             
                         case 'tooLong':
-                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title longer than 300 chars</span></div></div>');
+                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?= _("Dashboard title longer than 300 chars")?></span></div></div>');
                             validityConditions.canProceed = false;
                             break;    
 

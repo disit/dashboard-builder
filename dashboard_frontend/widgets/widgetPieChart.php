@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
@@ -34,7 +33,9 @@
             exit();
         }
         ?>
-        var defaultColorsArray = ['#ffcc00', '#ff9933', '#ff3300', '#ff3399', '#6666ff', '#0066ff', '#00ccff', '#00ffff', '#00ff00', '#009900'];
+     //   var defaultColorsArray = ['#ffcc00', '#ff9933', '#ff3300', '#ff3399', '#6666ff', '#0066ff', '#00ccff', '#00ffff', '#00ff00', '#009900'];
+        var defaultColorsArray = ['#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#a16f37', '#7cb5ec', '#434348'];
+        var defaultColorsArray2 = ['#dafdff', '#9dfaff', '#3ef5ff', '#02bcc7', '#07838a', '#013f42'];
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
@@ -994,7 +995,7 @@
                         }
                         else
                         {
-                            color = defaultColorsArray[j%10];
+                            color = defaultColorsArray2[j%5];
                         }
 
                         seriesValues.push({
@@ -1509,10 +1510,10 @@
 
                 //    label = series.secondAxis.labels[i];
 
-                    if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                    if (((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) && styleParameters.colorsSelect1 == "manual") {
                         colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors1[i] + '"></div>');
                     } else {
-                        colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
+                        colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i%10] + '"></div>');
                     }
 
                     //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
@@ -1609,12 +1610,24 @@
                 }
 
                 for (var i = 0; i < series.firstAxis.labels.length; i++) {
-                    label = series.firstAxis.labels[i];
+                    if (series.firstAxis.desc == "value name") {
+                        if (editLabels != null) {
+                            if (editLabels[i] != series.firstAxis.labels[i]) {
+                                label = editLabels[i];
+                            } else {
+                                label = series.firstAxis.labels[i];
+                            }
+                        } else {
+                            label = series.firstAxis.labels[i];
+                        }
+                    } else {
+                        label = series.firstAxis.labels[i];
+                    }
 
-                    if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                    if (((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) && styleParameters.colorsSelect2 == "manual") {
                         colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors2[i] + '"></div>');
                     } else {
-                        colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
+                        colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray2[i%5] + '"></div>');
                     }
 
                     //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie

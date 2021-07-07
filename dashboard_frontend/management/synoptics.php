@@ -224,7 +224,7 @@
                                                 New<br>dashboard
                                             </div>-->
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <button id="link_start_wizard" type="button" class="btn btn-warning" style="margin-right:30px; display:none;">New synoptic</button>
+                                                <button id="link_start_wizard" type="button" class="btn btn-warning" style="margin-right:30px; display:none;"><?= _("New synoptic")?></button>
                                             </div>
                                         </div>
 										
@@ -233,13 +233,13 @@
                                     <table id="list_dashboard" class="table">
                                         <thead class="dashboardsTableHeader">
                                             <tr>
-                                                <th data-dynatable-column="title_header">Title</th>
-                                                <th data-dynatable-column="user">Creator</th>
-                                                <th data-dynatable-column="creation_date">Creation date</th>
-                                                <th data-dynatable-column="last_edit_date">Last edit date</th>
-                                                <th data-dynatable-column="status_dashboard">Status</th>
-                                                <th>Edit</th>
-                                                <th>View</th>
+                                                <th data-dynatable-column="title_header"><?= _("Title")?></th>
+                                                <th data-dynatable-column="user"><?= _("Creator")?></th>
+                                                <th data-dynatable-column="creation_date"><?= _("Creation date")?></th>
+                                                <th data-dynatable-column="last_edit_date"><?= _("Last edit date")?></th>
+                                                <th data-dynatable-column="status_dashboard"><?= _("Status")?></th>
+                                                <th><?= _("Edit")?></th>
+                                                <th><?= _("View")?></th>
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -268,15 +268,15 @@
                     <div id="delegationsModalBody" class="modal-body modalBody">
                         <!-- Tabs -->
                         <ul id="delegationsTabsContainer" class="nav nav-tabs nav-justified">
-                            <li id="ownershipTab" class="active"><a data-toggle="tab" href="#ownershipCnt" class="dashboardWizardTabTxt">Ownership</a></li>
+                            <li id="ownershipTab" class="active"><a data-toggle="tab" href="#ownershipCnt" class="dashboardWizardTabTxt"><?= _("Ownership")?></a></li>
 							<?php if("RootAdmin" == $_SESSION["loggedRole"]) { ?>
-								<li id="organizationTab"><a data-toggle="tab" href="#organizationCnt" class="dashboardWizardTabTxt">Organization</a></li>
+								<li id="organizationTab"><a data-toggle="tab" href="#organizationCnt" class="dashboardWizardTabTxt"><?= _("Organization")?></a></li>
 							<?php } ?>
-                            <li id="visibilityTab"><a data-toggle="tab" href="#visibilityCnt" class="dashboardWizardTabTxt">Visibility</a></li>
-                            <li id="delegationsTab"><a data-toggle="tab" href="#delegationsCnt" class="dashboardWizardTabTxt">Delegations</a></li>
+                            <li id="visibilityTab"><a data-toggle="tab" href="#visibilityCnt" class="dashboardWizardTabTxt"><?= _("Visibility")?></a></li>
+                            <li id="delegationsTab"><a data-toggle="tab" href="#delegationsCnt" class="dashboardWizardTabTxt"><?= _("Delegations")?></a></li>
                             <!-- GP COMMENT TEMPORARY -->
-                            <li id="groupDelegationsTab"><a data-toggle="tab" href="#groupDelegationsCnt" class="dashboardWizardTabTxt">Group Delegations</a></li>
-							<li id="synopticVariablesTab"><a data-toggle="tab" href="#synopticVariablesCnt" class="dashboardWizardTabTxt">Variables</a></li>							
+                            <li id="groupDelegationsTab"><a data-toggle="tab" href="#groupDelegationsCnt" class="dashboardWizardTabTxt"><?= _("Group Delegations")?></a></li>
+							<li id="synopticVariablesTab"><a data-toggle="tab" href="#synopticVariablesCnt" class="dashboardWizardTabTxt"><?= _("Variables")?></a></li>							
                         </ul> 
                         <!-- Fine tabs -->
                         
@@ -295,17 +295,17 @@
                                 <div id="ownershipCnt" class="tab-pane fade in active">
                                     <div class="row" id="ownershipFormRow">
                                         <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
-                                            Change ownership
+                                            <?= _("Change ownership")?>
                                         </div>
                                         <div class="col-xs-12" id="newOwnershipCnt">
                                             <div class="input-group">
                                                 <input type="text" class="form-control" id="newOwner" placeholder="New owner username">
                                                 <span class="input-group-btn">
-                                                  <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
+                                                  <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
                                             <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
-                                                New owner username can't be empty
+                                                <?= _("New owner username can't be empty")?>
                                             </div>    
                                         </div>
                                         <div class="col-xs-12 centerWithFlex" id="newOwnershipResultMsg">
@@ -320,7 +320,7 @@
                                 <div id="organizationCnt" class="tab-pane fade in">
                                     <div class="row" id="organizationFormRow">
                                         <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOrganizationLbl">
-                                            Change organization
+                                           <?= _("Change organization")?> 
                                         </div>
                                         <div class="col-xs-12" id="newOrganizationCnt">
                                             <div class="input-group">
@@ -343,16 +343,16 @@
                                 <div id="visibilityCnt" class="tab-pane fade in">
                                     <div class="row" id="visibilityFormRow">
                                         <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
-                                            Change visibility
+                                            <?= _("Change visibility")?> 
                                         </div>
                                         <div class="col-xs-12" id="newVisibilityCnt">
                                             <div class="input-group">
                                                 <select id="newVisibility" class="form-control">
-                                                    <option value="public">Public</option>
-                                                    <option value="private">Private</option>
+                                                    <option value="public"><?= _("Public")?></option>
+                                                    <option value="private"><?= _("Private")?></option>
                                                 </select>
                                                 <span class="input-group-btn">
-                                                  <button type="button" id="newVisibilityConfirmBtn" class="btn confirmBtn">Confirm</button>
+                                                  <button type="button" id="newVisibilityConfirmBtn" class="btn confirmBtn"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -366,32 +366,32 @@
                                 <!-- Delegations cnt -->
                                 <div id="delegationsCnt" class="tab-pane fade in">
                                     <div class="row centerWithFlex modalFirstLbl" id="delegationsNotAvailableRow">
-                                        Delegations are not possibile on a public synoptic
+                                        <?= _("Delegations are not possibile on a public synoptic")?>
                                     </div>
                                     <div class="row" id="delegationsFormRow">
                                         <div class="col-xs-12 centerWithFlex modalFirstLbl" id="newDelegationLbl">
-                                            Add new delegation
+                                           <?= _("Add new delegation")?>
                                         </div>
                                         <div class="col-xs-12" id="newDelegationCnt">
                                             <div class="input-group">
                                                 <input type="text" class="form-control" id="newDelegation" placeholder="Delegated username">
                                                 <span class="input-group-btn">
-                                                  <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
+                                                  <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
                                             <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newDelegatedMsg">
-                                                Delegated username can't be empty
+                                                <?= _("Delegated username can't be empty")?>
                                             </div>
                                         </div>
 
                                         <div class="col-xs-12 centerWithFlex" id="currentDelegationsLbl">
-                                            Current user delegations
+                                            <?= _("Current user delegations")?>
                                         </div>
                                         <div class="col-xs-12" id="delegationsTableCnt">
                                             <table id="delegationsTable">
                                                 <thead>
-                                                  <th>Delegated user</th>
-                                                  <th>Remove</th>
+                                                  <th><?= _("Delegated user")?></th>
+                                                  <th><?= _("Remove")?></th>
                                                 </thead>
                                                 <tbody>
                                                 </tbody>
@@ -404,11 +404,11 @@
                                 <!-- Group Delegations cnt -->
                                 <div id="groupDelegationsCnt" class="tab-pane fade in">
                                     <div class="row centerWithFlex modalFirstLbl" id="groupDelegationsNotAvailableRow">
-                                        Delegations are not possibile on a public synoptic
+                                        <?= _("Delegations are not possibile on a public synoptic")?>
                                     </div>
                                     <div class="row" id="groupDelegationsFormRow">
                                         <div class="col-xs-12 centerWithFlex modalFirstLbl" id="newDelegationLbl">
-                                            Add new group delegation
+                                            <?= _("Add new group delegation")?>
                                         </div>
                                         <div class="col-xs-12" id="newGroupDelegationCnt">
                                             <div class="col-xs-4">
@@ -420,7 +420,7 @@
                                             </div>
                                             <div class="col-xs-4">
                                                 <span class="input-group-btn">
-                                                    <button type="button" id="newGroupDelegationConfirmBtn" class="btn confirmBtn">Confirm</button>
+                                                    <button type="button" id="newGroupDelegationConfirmBtn" class="btn confirmBtn"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
                                         <!--    <div class="input-group">
@@ -435,13 +435,13 @@
                                         </div>
 
                                         <div class="col-xs-12 centerWithFlex" id="currentGroupDelegationsLbl">
-                                            Current group delegations
+                                            <?= _("Current group delegations")?>
                                         </div>
                                         <div class="col-xs-12" id="groupDelegationsTableCnt">
                                             <table id="groupDelegationsTable">
                                                 <thead>
-                                                  <th>Delegated group</th>
-                                                  <th>Remove</th>
+                                                  <th><?= _("Delegated group")?></th>
+                                                  <th><?= _("Remove")?></th>
                                                 </thead>
                                                 <tbody>
                                                 </tbody>
@@ -454,13 +454,13 @@
 								<!-- Synoptic Variables cnt -->
                                 <div id="synopticVariablesCnt" class="tab-pane fade in">
                                         <div class="col-xs-12 centerWithFlex" id="currentGroupDelegationsLbl">
-                                            List of the variables read and written by this synoptic
+                                            <?= _("List of the variables read and written by this synoptic")?>
                                         </div>
                                         <div class="col-xs-12" id="groupDelegationsTableCnt">
                                             <table id="synopticVariablesTable" style="width:100%;">
                                                 <thead style="background-color: #576c75 !important; color: white;">
-                                                  <tr><th colspan="2" style="padding:0.2em; border: thin solid white; text-align:center;">Template</th><th colspan="3" style="text-align:center; padding:0.2em; border: thin solid white;">Synoptic</th></tr>
-												  <tr><th style="padding:0.2em; border: thin solid white; text-align:center;">Variable</th><th style="padding:0.2em; border: thin solid white; text-align:center;">Type</th><th style="padding:0.2em; border: thin solid white; text-align:center;">Type</th><th style="padding:0.2em; border: thin solid white; text-align:center;">Name</th><th style="padding:0.2em; border: thin solid white; text-align:center;">Visibility</th></tr>
+                                                  <tr><th colspan="2" style="padding:0.2em; border: thin solid white; text-align:center;"><?= _("Template")?></th><th colspan="3" style="text-align:center; padding:0.2em; border: thin solid white;"><?= _("Synoptic")?></th></tr>
+												  <tr><th style="padding:0.2em; border: thin solid white; text-align:center;"><?= _("Variable")?></th><th style="padding:0.2em; border: thin solid white; text-align:center;"><?= _("Type")?></th><th style="padding:0.2em; border: thin solid white; text-align:center;"><?= _("Type")?></th><th style="padding:0.2em; border: thin solid white; text-align:center;">Name</th><th style="padding:0.2em; border: thin solid white; text-align:center;"><?= _("Visibility")?></th></tr>
                                                 </thead>
                                                 <tbody>
                                                 </tbody>
@@ -475,7 +475,7 @@
                         </div><!-- Fine delegationsModalRightCnt-->
                     </div>
                     <div id="delegationsModalFooter" class="modal-footer">
-                      <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px">Close</button>
+                      <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px"><?= _("Close")?></button>
                     </div>
                 </form>    
               </div>
@@ -488,14 +488,14 @@
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modalHeader centerWithFlex">
-                  Synoptic deletion
+                  <?= _("Synoptic deletion")?>
                 </div>
                 <input type="hidden" id="dashIdDelHidden" name="dashIdDelHidden" />
                 <div id="delDashModalBody" class="modal-body modalBody">
                     <div class="row">
                         <div id="delDashNameMsg" class="col-xs-12 modalCell">
                             <div class="modalDelMsg col-xs-12 centerWithFlex">
-                                Do you want to delete the following synoptic?
+                                <?= _("Do you want to delete the following synoptic?")?>
                             </div>
                             <div id="dashToDelName" class="modalDelObjName col-xs-12 centerWithFlex"></div>
                             <div id="dashToDelPic" class="modalDelObjName col-xs-12 centerWithFlex"></div>
@@ -503,26 +503,26 @@
                     </div>
                     <div class="row" id="delDashRunningMsg">
                         <div class="col-xs-12 modalCell">
-                            <div class="col-xs-12 centerWithFlex modalDelMsg">Deleting synoptic, please wait</div>
+                            <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Deleting synoptic, please wait")?></div>
                             <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>
                         </div>
                     </div>
                     <div class="row" id="delDashOkMsg">
                         <div class="col-xs-12 modalCell">
-                            <div class="col-xs-12 centerWithFlex modalDelMsg">Synoptic deleted successfully</div>
+                            <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Synoptic deleted successfully")?></div>
                             <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
                         </div>
                     </div>
                     <div class="row" id="delDashKoMsg">
                         <div class="col-xs-12 modalCell">
-                            <div class="col-xs-12 centerWithFlex modalDelMsg">Error deleting synoptic, please try again</div>
+                            <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Error deleting synoptic, please try again")?></div>
                             <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                         </div>
                     </div>
                 </div>
                 <div id="delDashModalFooter" class="modal-footer">
-                  <button type="button" id="delDashCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-                  <button type="button" id="delDashConfirmBtn" class="btn confirmBtn internalLink">Confirm</button>
+                  <button type="button" id="delDashCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                  <button type="button" id="delDashConfirmBtn" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
                 </div>
               </div>
             </div>
@@ -678,7 +678,7 @@
                 statusBtn = '<input type="checkbox" checked data-toggle="toggle" class="changeDashboardStatus">';
             }
 
-            var newRow = '<tr data-dashTitle="' + record.title_header + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.user + '"><td class="' + cssClass + '" style="font-weight: bold">' + title + '</td><td class="' + cssClass + '">' + user + '</td><td class="' + cssClass + '">' + record.creation_date + '</td><td class="' + cssClass + '">' + record.last_edit_date + '</td><td class="' + cssClass + '">' + statusBtn + '</td><td class="' + cssClass + '"><button type="button" class="editDashBtn">edit</button></td><td class="' + cssClass + '"><button type="button" class="viewDashBtn">view</button></td></tr>';
+            var newRow = '<tr data-dashTitle="' + record.title_header + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.user + '"><td class="' + cssClass + '" style="font-weight: bold">' + title + '</td><td class="' + cssClass + '">' + user + '</td><td class="' + cssClass + '">' + record.creation_date + '</td><td class="' + cssClass + '">' + record.last_edit_date + '</td><td class="' + cssClass + '">' + statusBtn + '</td><td class="' + cssClass + '"><button type="button" class="editDashBtn">edit</button></td><td class="' + cssClass + '"><button type="button" class="viewDashBtn"><?= _("view")?></button></td></tr>';
 
             return newRow;
         }
@@ -704,22 +704,22 @@
 			 
              var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" 	data-tpl="'+record.low_level_type+'" data-org="'+record.organizations+'" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
 			   '<div class="dashboardsListCardInnerDiv">' +
-				  '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;"><a style=" color:inherit; text-decoration:none; " href="'+record.parameters+'" target="_blank" onclick="return false;">New Tab</a></button></div>' +
+				  '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;"><a style=" color:inherit; text-decoration:none; " href="'+record.parameters+'" target="_blank" onclick="return false;"><?= _("New Tab")?></a></button></div>' +
 			   //   '<div id="cardLinkBtn" style="font-size:8px;float: right;">New Tab</div>' +
 				  '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">' +  record.low_level_type + ' (' + record.nature_label + ': ' + record.sub_nature_label + ')' + '</span></div>' +
 				  '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
-				  '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex"><a href="'+record.parameters+'" onclick="return false;" style="color:inherit; text-decoration:none; display:block; width:100%; height:100%; padding-top:60px;">View</a></div>' +
+				  '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex"><a href="'+record.parameters+'" onclick="return false;" style="color:inherit; text-decoration:none; display:block; width:100%; height:100%; padding-top:60px;"><?= _("View")?></a></div>' +
 				  '<div class="dashboardsListCardImgDiv" style="background-color:white;"></div>' + 
 				  // '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTypeSpan">'+  usrVars.join(' ') + '</span></div>' +
 				  '<div class="dashboardsListCardVisibilityDiv col-xs-12 centerWithFlex">' + (record.user?(record.user==usr?(record.ownership == 'public'?'My own: Public':'My own'):(loggedRole != 'RootAdmin' ? 'Delegated by '+(record.user && loggedRole == 'RootAdmin'?record.user:'') : (record.ownership == 'public'?record.user+": Public":record.user+": Private") )):(record.ownership == 'public' ? 'Public' : 'Delegated by '+(record.user && loggedRole == 'RootAdmin'?record.user:''))) + (loggedRole == 'RootAdmin' && record.user!=usr ?' - ':' (') + record.organizations + (loggedRole == 'RootAdmin' && record.user!=usr? '' : ')')+'</div>' +			  
 				  '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">' +
-						( usr == record.user  || loggedRole == 'RootAdmin'  ? '<button type="button" class="dashBtnCard editSynBtnCard">Edit</button>' : '' ) +
-						( usr == record.user || loggedRole == 'RootAdmin' ? '<button type="button" class="dashBtnCard mgmtDashBtnCard">Management</button>' : '' ) + 
-						( false && record.ownership == 'private' && usr == record.user ? '<button type="button" class="dashBtnCard delegateSynBtnCard">Delegate</button>' : '' ) +
-						( false && record.ownership == 'private' && usr == record.user ? '<button type="button" class="dashBtnCard chownSynBtnCard" style="white-space:nowrap;">Chg Owner</button>' : '' ) +
-						( usr == record.user || loggedRole == 'RootAdmin' ? '<button type="button" class="dashBtnCard delSynBtnCard">Delete</button>' : '' ) +						
-						( false && record.ownership == 'public' && usr == record.user ? '<button type="button" class="dashBtnCard chownSynBtnCard" style="white-space:nowrap;">Chg Owner</button>' : '' ) +
-						( false && record.ownership == 'public' && usr == record.user ? '<button type="button" class="dashBtnCard mkPvtSynBtnCard">Make Private</button>' : '' ) +
+						( usr == record.user  || loggedRole == 'RootAdmin'  ? '<button type="button" class="dashBtnCard editSynBtnCard"><?= _("Edit")?></button>' : '' ) +
+						( usr == record.user || loggedRole == 'RootAdmin' ? '<button type="button" class="dashBtnCard mgmtDashBtnCard"><?= _("Management")?></button>' : '' ) + 
+						( false && record.ownership == 'private' && usr == record.user ? '<button type="button" class="dashBtnCard delegateSynBtnCard"><?= _("Delegate")?></button>' : '' ) +
+						( false && record.ownership == 'private' && usr == record.user ? '<button type="button" class="dashBtnCard chownSynBtnCard" style="white-space:nowrap;"><?= _("Chg Owner")?></button>' : '' ) +
+						( usr == record.user || loggedRole == 'RootAdmin' ? '<button type="button" class="dashBtnCard delSynBtnCard"><?= _("Delete")?></button>' : '' ) +						
+						( false && record.ownership == 'public' && usr == record.user ? '<button type="button" class="dashBtnCard chownSynBtnCard" style="white-space:nowrap;"><?= _("Chg Owner")?></button>' : '' ) +
+						( false && record.ownership == 'public' && usr == record.user ? '<button type="button" class="dashBtnCard mkPvtSynBtnCard"><?= _("Make Private")?></button>' : '' ) +
 						
 				  '</div>' +
 			   '</div>' +
@@ -1196,7 +1196,7 @@
 						$('#dashToDelPic').css("background-size", "auto auto");
 						$('#dashToDelPic').css("background-repeat", "no-repeat");
 						$('#dashToDelPic').css("background-position", "center center");
-						$('#modalDelDash').modal('show');
+						$('#modalDelDash').modal('<? _("show")?>');
 					});
 					
 					$('.delegateSynBtnCard').off('click');
@@ -1326,12 +1326,12 @@
 								async: true,
 								success: function(res) {
 									$("#newOrganizationResultMsg").show();
-									$("#newOrganizationResultMsg").html("Organization saved successfully");
+									$("#newOrganizationResultMsg").html('<? _("Organization saved successfully")?>');
 									setTimeout(function() { location.reload(); }, 1250);
 								},
 								error: function(errMsg) {
 									$("#newOrganizationResultMsg").show();
-									$("#newOrganizationResultMsg").html("Error: the new organization could not be saved");
+									$("#newOrganizationResultMsg").html('<? _("Error: the new organization could not be saved")?>');
 								}
 								
 							});
@@ -1393,7 +1393,7 @@
 							if($(this).val().trim() === '')
 							{
 								$('#newOwnerMsg').css('color', '#f3cf58');
-								$('#newOwnerMsg').html('New owner username can\'t be empty');
+								$('#newOwnerMsg').html('<? _("New owner username can\'t be empty")?>');
 								$('#newOwnershipConfirmBtn').addClass('disabled');
 							}
 							else
@@ -1401,13 +1401,13 @@
 								if(($(this).val().trim() === "<?= @$_SESSION['loggedUsername'] ?: '' ?>")&&("<?= @$_SESSION['loggedRole'] ?>" !== "RootAdmin"))
 								{
 									$('#newOwnerMsg').css('color', '#f3cf58');
-									$('#newOwnerMsg').html('New owner can\'t be you');
+									$('#newOwnerMsg').html('<? _("New owner can\'t be you")?>');
 									$('#newOwnershipConfirmBtn').addClass('disabled');
 								}
 								else
 								{
 									$('#newOwnerMsg').css('color', 'white');
-									$('#newOwnerMsg').html('User can be new owner');
+									$('#newOwnerMsg').html('<?= _("User can be new owner")?>');
 									$('#newOwnershipConfirmBtn').removeClass('disabled');
 								}
 							}
@@ -1420,7 +1420,7 @@
 							if($(this).val().trim() === '')
 							{
 								$('#newDelegatedMsg').css('color', '#f3cf58');
-								$('#newDelegatedMsg').html('Delegated username can\'t be empty');
+								$('#newDelegatedMsg').html('<?= _("Delegated username can\'t be empty")?>');
 								$('#newDelegationConfirmBtn').addClass('disabled');
 							}
 							else
@@ -1434,7 +1434,7 @@
 								   if($(this).attr('data-delegated').trim() === $('#newDelegation').val())
 								   {
 									   $('#newDelegatedMsg').css('color', '#f3cf58');
-									   $('#newDelegatedMsg').html('User already delegated');
+									   $('#newDelegatedMsg').html('<?= _("User already delegated")?>');
 									   $('#newDelegationConfirmBtn').addClass('disabled');
 								   }
 								});
@@ -1560,7 +1560,7 @@
 									$('#newOwner').val('');
 									$('#newOwner').addClass('disabled');
 									$('#newOwnershipResultMsg').show();
-									$('#newOwnershipResultMsg').html('New ownership set correctly');
+									$('#newOwnershipResultMsg').html('<? _("New ownership set correctly")?>');
 									$('#newOwnershipResultMsg').css('color', 'white');
 									$('#newOwnershipConfirmBtn').addClass('disabled');
 									
@@ -1573,7 +1573,7 @@
 								{
 									$('#newOwner').addClass('disabled');
 									$('#newOwnershipResultMsg').show();
-									$('#newOwnershipResultMsg').html('Error: New owner does not exists or it is not a valid LDAP user');
+									$('#newOwnershipResultMsg').html('<? _("Error: New owner does not exists or it is not a valid LDAP user")?>');
 									$('#newOwnershipResultMsg').css('color', '#f3cf58');
 									$('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1588,7 +1588,7 @@
 								{
 									$('#newOwner').addClass('disabled');
 									$('#newOwnershipResultMsg').show();
-									$('#newOwnershipResultMsg').html('Error: New owner has exceeded his limits for synoptics ownership');
+									$('#newOwnershipResultMsg').html('<? _("Error: New owner has exceeded his limits for synoptics ownership")?>');
 									$('#newOwnershipResultMsg').css('color', '#f3cf58');
 									$('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1603,7 +1603,7 @@
 								{
 									$('#newOwner').addClass('disabled');
 									$('#newOwnershipResultMsg').show();
-									$('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
+									$('#newOwnershipResultMsg').html('<? _("Error setting new ownership: please try again")?>');
 									$('#newOwnershipResultMsg').css('color', '#f3cf58');
 									$('#newOwnershipConfirmBtn').addClass('disabled');
 									
@@ -1618,7 +1618,7 @@
 							error: function(errorData)
 							{
 								$('#newOwner').addClass('disabled');
-								$('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
+								$('#newOwnershipResultMsg').html('<? _("Error setting new ownership: please try again")?>');
 								$('#newOwnershipConfirmBtn').addClass('disabled');
 
 								setTimeout(function()
@@ -1754,14 +1754,14 @@
 									$('#newDelegation').val('');
 									$('#newDelegation').addClass('disabled');
 									$('#newDelegatedMsg').css('color', 'white');
-									$('#newDelegatedMsg').html('New delegation added correctly');
+									$('#newDelegatedMsg').html('<? _("New delegation added correctly")?>');
 									$('#newDelegationConfirmBtn').addClass('disabled');
 									
 									setTimeout(function()
 									{
 										$('#newDelegation').removeClass('disabled');
 										$('#newDelegatedMsg').css('color', '#f3cf58');
-										$('#newDelegatedMsg').html('Delegated username can\'t be empty');
+										$('#newDelegatedMsg').html('<? _("Delegated username can\'t be empty")?>');
 									}, 1500);
 								}
 								else
@@ -1800,7 +1800,7 @@
 									{
 										$('#newDelegation').removeClass('disabled');
 										$('#newDelegatedMsg').css('color', '#f3cf58');
-										$('#newDelegatedMsg').html('Delegated username can\'t be empty');
+										$('#newDelegatedMsg').html('<? _("Delegated username can\'t be empty")?>');
 									}, 2000);
 								}
 							},
@@ -1817,7 +1817,7 @@
 								{
 									$('#newDelegation').removeClass('disabled');
 									$('#newDelegatedMsg').css('color', '#f3cf58');
-									$('#newDelegatedMsg').html('Delegated username can\'t be empty');
+									$('#newDelegatedMsg').html('<? _("Delegated username can\'t be empty")?>');
 								}, 2000);
 							}
 						});
@@ -1830,7 +1830,7 @@
 							$('#groupDelegationsTable tbody tr').each(function (i) {
 								if ($(this).attr('data-delegated').trim() === $('#newDelegationOrganization').val() + " - " + $('#newDelegationGroup').val()) {
 									$('#newGroupDelegatedMsg').css('color', '#f3cf58');
-									$('#newGroupDelegatedMsg').html('Group already delegated');
+									$('#newGroupDelegatedMsg').html('<? _("Group already delegated")?>');
 									$('#newGroupDelegationConfirmBtn').addClass('disabled');
 									isPresentFlag = 1;
 								} else {
@@ -1900,7 +1900,7 @@
 											$('#newDelegation').val('');
 											$('#newDelegation').addClass('disabled');
 											$('#newGroupDelegatedMsg').css('color', 'white');
-											$('#newGroupDelegatedMsg').html('New delegation added correctly');
+											$('#newGroupDelegatedMsg').html('<? _("New delegation added correctly")?>');
 											//   $('#newGroupDelegationConfirmBtn').addClass('disabled');
 
 											/*    setTimeout(function()
@@ -2083,7 +2083,7 @@
 							error: function (data)
 							{
 								$('#newDelegatedMsgGroup').css('color', '#f3cf58');
-								$('#newDelegatedMsgGroup').html('Error calling internal API');
+								$('#newDelegatedMsgGroup').html('<? _("Error calling internal API")?>');
 							}
 						});
 					}
@@ -2117,7 +2117,7 @@
 							error: function (data)
 							{
 								$('#newDelegatedMsgGroup').css('color', '#f3cf58');
-								$('#newDelegatedMsgGroup').html('Error calling internal API');
+								$('#newDelegatedMsgGroup').html('<? _("Error calling internal API")?>');
 							}
 						});
 					}

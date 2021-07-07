@@ -1,5 +1,6 @@
 <?php
     require_once '../common.php';
+    include_once '../locale.php';
     error_reporting(E_ERROR);
     if(!isset($_SESSION))
     {
@@ -9,9 +10,9 @@
 ?>
 <link rel="stylesheet" href="../css/style_widgets.css?v=1563354439" type="text/css">
 <ul id="wizardTabsContainer" class="nav nav-tabs nav-justified">
-    <li id="aTab" class="active"><a data-toggle="tab" href="#mainFeat" class="dashboardWizardTabTxt">Dashboard features</a></li>
-    <li id="bTab"><a href="#dataAndWidgets" data-toggle="no" class="dashboardWizardTabTxt">Data and widgets</a></li> <!-- data-toggle="tab" -->
-    <li id="cTab"><a href="#summary" data-toggle="no" class="dashboardWizardTabTxt">Check and summary</a></li> <!-- data-toggle="tab" -->
+    <li id="aTab" class="active"><a data-toggle="tab" href="#mainFeat" class="dashboardWizardTabTxt"><?= _("Dashboard features")?></a></li>
+    <li id="bTab"><a href="#dataAndWidgets" data-toggle="no" class="dashboardWizardTabTxt"><?= _("Data and widgets")?></a></li> <!-- data-toggle="tab" -->
+    <li id="cTab"><a href="#summary" data-toggle="no" class="dashboardWizardTabTxt"><?= _("Check and summary")?></a></li> <!-- data-toggle="tab" -->
 </ul> 
 
 <div class="tab-content">
@@ -19,7 +20,7 @@
         <div class="col-xs-12 col-sm-6 col-sm-offset-3">
             <div class="row">
                 <div class="col-xs-12 centerWithFlex addWidgetWizardIconsCntLabelBig" style="margin-top: 6px;">
-                    Dashboard title
+                    <?= _("Dashboard title")?>
                 </div>
                 <div class="col-xs-12">
                     <input type="text" name="inputTitleDashboard" id="inputTitleDashboard" value="" class="form-control" style="width: 100%;" required> 
@@ -28,15 +29,15 @@
             </div>
             <div id="modalAddDashboardWizardTitleAlreadyUsedMsg" class="row">
                 <div class="col-xs-12 centerWithFlex">
-                    Dashboard title can't be empty
+                   <?= _("Dashboard title can't be empty")?> 
                 </div>
             </div>   
         </div> 
         
         <div class="col-xs-12 col-sm-6" id="dashboardTemplatesContainer">
             <div class="row">
-                <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex">Dashboard template</div>
-                <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex">Click on a template to choose it, click on it again to unselect it</div>
+                <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex"><?= _("Dashboard template")?> </div>
+                <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex"><?= _("Click on a template to choose it, click on it again to unselect it")?> </div>
             </div>
             <input type="hidden" id="dashboardTemplateStatus" value="empty"/>
             <input type="hidden" id="dashboardDirectStatus" value="empty"/>
@@ -44,7 +45,7 @@
                 <?php
                 include '../config.php';
 
-                error_reporting(E_ERROR | E_NOTICE);
+                error_reporting(E_ERROR);
                 date_default_timezone_set('Europe/Rome');
 
                 $link = mysqli_connect($host, $username, $password);
@@ -119,7 +120,7 @@
                 ?>   
             </div>
             <div id="modalAddDashboardWizardTemplateMsg" class="row">
-                <div class="col-xs-12 centerWithFlex">You must choose one template</div>
+                <div class="col-xs-12 centerWithFlex"><?= _("You must choose one template")?></div>
             </div>
         </div>
         
@@ -130,7 +131,7 @@
                 <!-- Mappa -->
                 <div class="col-xs-12 col-md-6">
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
-                        Map
+                       <?= _("Map")?> 
                     </div>
                     <div class="col-xs-12" id="addWidgetWizardMapCnt">
                     </div>
@@ -139,24 +140,24 @@
                 <!-- Icone -->
                 <div class="col-xs-12 col-md-6">
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex">
-                        Single data widgets
+                        <?= _("Single data widgets")?> 
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCnt">
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex">
-                        Multi data widgets
+                        <?= _("Multi data widgets")?>
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCnt">
                     </div>
                     <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide" style="float: left; margin-top: 5px">
-                        <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left">Map Controls:</div>
+                        <div class="col-xs-12 addWidgetWizardIconsCntLabel dashTemplateHide centerWithFlex" style="float: left"><?= _("Map Controls:")?></div>
                     
                     <label class="switch" style=" margin-left: 10px; float: left">
                             <input type="checkbox" id="togBtn">
-                            <div class="slider round"><!--ADDED HTML --><span class="fixMapon">FixMap</span><span class="fixMapoff" style="color: black">FilterMap</span><!--END--></div>
+                            <div class="slider round"><!--ADDED HTML --><span class="fixMapon">FixMap</span><span class="fixMapoff" style="color: black"><?= _("FilterMap")?></span><!--END--></div>
                         </label><!--<button type="button" id="FreezeMap" class="btn cancelBtn" style="margin-top: 10px">FreezeMap</button>-->
-                        <button type="button" id="GPSUser" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSUser</button>
-                        <button type="button" id="GPSOrg" class="btn cancelBtn" style=" margin-left: 5px; float: left">GPSOrg</button>
+                        <button type="button" id="GPSUser" class="btn cancelBtn" style=" margin-left: 5px; float: left"><?= _("GPSUser")?></button>
+                        <button type="button" id="GPSOrg" class="btn cancelBtn" style=" margin-left: 5px; float: left"><?= _("GPSOrg")?></button>
                     </div>
                     <div id="addWidgetWizardWidgetAvailableMsg" class="col-xs-12 centerWithFlex">
                     </div>
@@ -166,28 +167,28 @@
             <!-- Campi per attuatori -->
             <div class="row" id="widgetWizardActuatorFieldsRow">
                 <div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
-                    Actuator options
+                   <?= _("Actuator options")?>
                 </div>
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Existent or new target
+                       <?= _("Existent or new target")?> 
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <select id="actuatorTargetInstance" class="form-control">
-                            <option value="existent">Existent</option>
-                            <option value="new">New</option>
+                            <option value="existent"><?= _("Existent")?></option>
+                            <option value="new"><?= _("New")?></option>
                         </select>
                     </div>  
                 </div> 
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorTargetCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        New actuator target type
+                        <?= _("New actuator target type")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <select id="actuatorTargetWizard" class="form-control">
-                            <option value="broker" data-highLevelType="Sensor-Actuator">IOT device on broker</option>
+                            <option value="broker" data-highLevelType="Sensor-Actuator"><?= _("IOT device on broker")?></option>
                             <!--<option value="app" data-highLevelType="Dashboard-IOT App">IOT app</option>-->
                         </select>
                     </div>  
@@ -197,7 +198,7 @@
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorEntityNameCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Device name
+                        <?= _("Device name")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <input type="text" id="actuatorEntityName" class="form-control"></input><br>
@@ -206,7 +207,7 @@
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorValueTypeCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Value type
+                        <?= _("Value type")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt" style="overflow:auto;">
                        <!-- <input type="text" id="actuatorValueType" class="form-control"> -->
@@ -217,7 +218,7 @@
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorMinBaseValueCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Min/Base value
+                        <?= _("Min/Base value")?>
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <input type="text" id="actuatorMinBaseValue" class="form-control"></input>
@@ -226,7 +227,7 @@
 
                 <div class="col-xs-3 col-md-2 widgetWizardActuatorCell" id="actuatorMaxBaseValueCell">
                     <div class="col-xs-12 centerWithFlex wizardActLbl">
-                        Max/Impulse value 
+                       <?= _("Max/Impulse value")?>  
                     </div>
                     <div class="col-xs-12 wizardActInputCnt">
                         <input type="text" id="actuatorMaxImpulseValue" class="form-control"></input>
@@ -237,10 +238,10 @@
             <!-- Riga tabella -->
             <div class="row hideIfActuatorNew hideFullyCustom" id="widgetWizardTableRow">
                 <div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
-                    Data sources
+                   <?= _("Data sources")?>  
                 </div>
                 <div id="noRowsSelectedAlert" class="col-xs-12 centerWithFlex">
-                    No rows selected: please select some rows and try again.
+                   <?= _("No rows selected: please select some rows and try again.")?> 
                 </div>
 
                 <div id="widgetWizardTableContainer" class="col-xs-12">
@@ -258,9 +259,9 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastDate"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastValue"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Healthiness"><div id="healthinessColumnFilter"></th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Parameters">Parameters</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Id">Id</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"><?= _("Instance URI")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Parameters"><?= _("Parameters")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Id"><?= _("Id")?></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Last Check"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><div id="ownershipColumnFilter"></th>
@@ -278,34 +279,34 @@
 
                             </tr>  
                             <tr>  
-                                <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
-                                <th class="widgetWizardTitleCell" data-cellTitle="Nature">Nature</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="SubNature">Subnature</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>   <!-- Ex LOW_LEVEL_TYPE -->
-                                <th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      <!-- Ex NAME-ID -->
-                                <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>    <!-- Ex UNIT -->
-                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Parameters">Parameters</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Id">Id</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
+                                <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType"><?= _("High-Level Type")?></th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="Nature"><?= _("Nature")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="SubNature"><?= _("Subnature")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="ValueType"><?= _("Value Type")?></th>   <!-- Ex LOW_LEVEL_TYPE -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><?= _("Value Name")?></th>      <!-- Ex NAME-ID -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"><?= _("Instance URI")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="DataType"><?= _("Data Type")?></th>    <!-- Ex UNIT -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit"><?= _("Value Unit")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="LastDate"><?= _("Last Date")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="LastValue"><?= _("Last Value")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Healthiness"><?= _("Healthiness")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"><?= _("Instance URI")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Parameters"><?= _("Parameters")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Id"><?= _("Id")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="LastCheck"><?= _("Last Check")?></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><?= _("Ownership")?></th>
                             <!--    <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>    -->
                             <!--    <?php if ($_SESSION['loggedRole'] == "RootAdmin") { ?>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Organizations">Organizations</th>
                                 <?php } ?>  -->
-                                <th class="widgetWizardTitleCell" data-cellTitle="Organizations">Organizations</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Latitude">Latitude</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Longitude">Longitude</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based">sm_based</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="ownerHash">ownerHash</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedHash">delegatedHash</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedGroupHash">delegatedGroupHash</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Organizations"><?= _("Organizations")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Latitude"><?= _("Latitude")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Longitude"><?= _("Longitude")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="sm_based"><?= _("sm_based")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="ownerHash"><?= _("ownerHash")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedHash"><?= _("delegatedHash")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="delegatedGroupHash"><?= _("delegatedGroupHash")?></th>
 
                             </tr>  
                         </thead>
@@ -318,24 +319,24 @@
                 <div id="widgetWizardTableCommandsContainer" class="col-xs-12">
                     <!-- Comandi nascondi colonne -->
                     <div class="widgetWizardWheelMenuContainer col-xs-12 col-md-2">
-                        <div class="col-xs-8 addWidgetWizardIconsCntLabel addWidgetWizardTableLbl centerWithFlex">Hide columns</div>
+                        <div class="col-xs-8 addWidgetWizardIconsCntLabel addWidgetWizardTableLbl centerWithFlex"><?= _("Hide columns")?></div>
                         <div class="col-xs-2 centerWithFlex">
                             <div class="btn-group dropup">
                                 <button type="button" class="btn confirmBtn dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span> <span class="caret"></span></button>
 
                                 <ul class="dropdown-menu" id="widgetWizardTableHideColsMenu">
-                                    <li><a href="#" class="small" data-value="option1" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="high_level_type"/>&nbsp;High level type</a></li>
-                                    <li><a href="#" class="small" data-value="option2" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="nature"/>&nbsp;Nature</a></li>
-                                    <li><a href="#" class="small" data-value="option3" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="sub_nature"/>&nbsp;Subnature</a></li>
-                                    <li><a href="#" class="small" data-value="option4" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="low_level_type"/>&nbsp;Value type</a></li>
-                                    <li><a href="#" class="small" data-value="option5" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="unique_name_id"/>&nbsp;Value name</a></li>
-                                    <li><a href="#" class="small" data-value="option6" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="unit"/>&nbsp;Data type</a></li>
-                                    <li><a href="#" class="small" data-value="option7" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="last_date"/>&nbsp;Last date</a></li>
-                                    <li><a href="#" class="small" data-value="option8" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="last_value"/>&nbsp;Last value</a></li>
-                                    <li><a href="#" class="small" data-value="option9" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="healthiness"/>&nbsp;Healthiness</a></li>
-                                    <li><a href="#" class="small" data-value="option10" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="lastCheck"/>&nbsp;Last check</a></li>
-                                    <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="ownership"/>&nbsp;Ownership</a></li>
-                                    <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="value_unit"/>&nbsp;Value Unit</a></li>
+                                    <li><a href="#" class="small" data-value="option1" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="high_level_type"/>&nbsp;<?= _("High level type")?></a></li>
+                                    <li><a href="#" class="small" data-value="option2" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="nature"/>&nbsp;<?= _("Nature")?></a></li>
+                                    <li><a href="#" class="small" data-value="option3" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="sub_nature"/>&nbsp;<?= _("Subnature")?></a></li>
+                                    <li><a href="#" class="small" data-value="option4" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="low_level_type"/>&nbsp;<?= _("Value type")?></a></li>
+                                    <li><a href="#" class="small" data-value="option5" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="unique_name_id"/>&nbsp;<?= _("Value name")?></a></li>
+                                    <li><a href="#" class="small" data-value="option6" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="unit"/>&nbsp;<?= _("Data type")?></a></li>
+                                    <li><a href="#" class="small" data-value="option7" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="last_date"/>&nbsp;<?= _("Last date")?></a></li>
+                                    <li><a href="#" class="small" data-value="option8" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="last_value"/>&nbsp;<?= _("Last value")?></a></li>
+                                    <li><a href="#" class="small" data-value="option9" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="healthiness"/>&nbsp;<?= _("Healthiness")?></a></li>
+                                    <li><a href="#" class="small" data-value="option10" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="lastCheck"/>&nbsp;<?= _("Last check")?></a></li>
+                                    <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="ownership"/>&nbsp;<?= _("Ownership")?></a></li>
+                                    <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="value_unit"/>&nbsp;<?= _("Value Unit")?></a></li>
                                 </ul>
                             </div>
                         </div>
@@ -343,11 +344,11 @@
 
                     <!-- Pulsante di reset -->
                     <div class="col-xs-12 col-md-1 centerWithFlex">
-                        <button type="button" class="btn cancelBtn" id="resetButton">Reset filters</button>
+                        <button type="button" class="btn cancelBtn" id="resetButton"><?= _("Reset filters")?></button>
                     </div> 
 
                     <div id="widgetWizardTableSelectedRowsCounter" data-selectedRows="0" class="addWidgetWizardIconsCntLabel addWidgetWizardTableLbl col-xs-12 col-md-2 centerWithFlex">
-                        Selected rows: 0
+                        <?= _("Selected rows: 0")?>
                     </div> 
                 </div> 
             </div>
@@ -355,32 +356,32 @@
             <!-- Riga tabella righe selezionate -->
             <div class="row hideIfActuatorNew hideFullyCustom" id="widgetWizardSelectedRowsTableRow">
                 <div class="col-xs-12 addWidgetWizardIconsCntLabel centerWithFlex">
-                    Choosen data sources
+                    <?= _("Choosen data sources")?>
                 </div>
                 <div class="col-xs-12 addWidgetWizardIconsCntAlertLabel centerWithFlex" id="wizardNotCompatibleRowsAlert">
-                    Red rows are not compatible with choosen widget type and will not be instantiated
+                    <?= _("Red rows are not compatible with choosen widget type and will not be instantiated")?>
                 </div>
                 <div id="widgetWizardSelectedRowsTableContainer" class="col-xs-12">
                     <table id="widgetWizardSelectedRowsTable" class="addWidgetWizardTableSelected table table-striped dt-responsive nowrap"> 
                         <thead class="widgetWizardColTitle">
                             <tr>
-                                <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
-                                <th class="widgetWizardTitleCell" data-cellTitle="Nature">Nature</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="SubNature">Subnature</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>   <!-- Ex LOW_LEVEL_TYPE -->
-                                <th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      <!-- Ex NAME-ID -->
+                                <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType"><?= _("High-Level Type")?></th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="Nature"><?= _("Nature")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="SubNature"><?= _("Subnature")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="ValueType"><?= _("Value Type")?></th>   <!-- Ex LOW_LEVEL_TYPE -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><?= _("Value Name")?></th>      <!-- Ex NAME-ID -->
                                 <!--<th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>-->
-                                <th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>    <!-- Ex UNIT -->
-                                <th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="DataType"><?= _("Data Type")?></th>    <!-- Ex UNIT -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="LastDate"><?= _("Last Date")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="LastValue"><?= _("Last Value")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Healthiness"><?= _("Healthiness")?></th>
                                 <!--<th class="widgetWizardTitleCell" data-cellTitle="Parameters">Parameters</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="Id">Id</th>-->
-                                <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="LastCheck"><?= _("Last Check")?></th>
                                 <!--<th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>-->
-                                <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
-                                <th class="widgetWizardTitleCell" data-cellTitle="Remove">Remove</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><?= _("Ownership")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="valueUnit"><?= _("Value Unit")?></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Remove"><?= _("Remove")?></th>
                             </tr>  
                         </thead>
                     </table>
@@ -405,30 +406,30 @@
                                 
     <div id="summary" class="tab-pane fade in">
         <div id="summaryContainer" class="col-xs-12">
-            <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex">Summary</div>
-            <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex">A synthesis of your choices and what is going to be created</div>
+            <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex"><?= _("Summary")?></div>
+            <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex"><?= _("A synthesis of your choices and what is going to be created")?></div>
             <div class="col-xs-12" id="summaryDiv">
                 
             </div>   
         </div>
         <div class="col-xs-12 col-sm-4 col-sm-offset-1" id="checkContainer">
-            <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex">Check</div>
-            <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex">Alerts about possible missing or wrong input that deny instantiation</div>
+            <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex"><?= _("Check")?></div>
+            <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex"><?= _("Alerts about possible missing or wrong input that deny instantiation")?></div>
             <div class="col-xs-12" id="wrongConditionsDiv">
                 
             </div>
         </div>
         <div class="col-xs-12 col-sm-4 col-sm-offset-2" id="instantiateBtnContainer">
-            <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex">Instantiation</div>
-            <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex">Button to proceed with items creation</div>
+            <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex"><?= _("Instantiation")?></div>
+            <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex"><?= _("Button to proceed with items creation")?></div>
             <div class="col-xs-12 centerWithFlex" id="createBtnDiv">
                 <button type="button" id="addWidgetWizardConfirmBtn" name="addWidgetWizardConfirmBtn" class="btn confirmBtn"><i class="fa fa-magic" style="font-size: 90px"></i></button>
             </div>
             <div class="col-xs-12 centerWithFlex">
-                Create dashboard/widgets
+                <?= _("Create dashboard/widgets")?>
             </div>    
             <div class="col-xs-12 centerWithFlex" id="createBtnAlert">
-                <div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">You can't proceed with items creation before fixing wrong or missing inputs</span></div></div>
+                <div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?= _("You can't proceed with items creation before fixing wrong or missing inputs")?></span></div></div>
             </div>
         </div>
     </div>    
@@ -1389,14 +1390,14 @@
                                             $('#addWidgetWizardNextBtn').removeClass('disabled');
                                             $('#cTab a').attr("data-toggle", "tab");
                                             $('#wizardTab1MsgCnt').css('color', 'white');
-                                            $('#wizardTab1MsgCnt').html("Selection is OK");
+                                            $('#wizardTab1MsgCnt').html('<? _("Selection is OK")?>');
                                         }
                                         else
                                         {
                                             $('#addWidgetWizardNextBtn').addClass('disabled');
                                             $('#cTab a').attr("data-toggle", "no");
                                             $('#wizardTab1MsgCnt').css('color', 'rgb(243, 207, 88)');
-                                            $('#wizardTab1MsgCnt').html("Some of the new actuator fields are not filled correctly");
+                                            $('#wizardTab1MsgCnt').html('<? _("Some of the new actuator fields are not filled correctly")?>');
                                         }
                                     }
                                     else
@@ -1405,7 +1406,7 @@
                                         $('#addWidgetWizardNextBtn').removeClass('disabled');
                                         $('#cTab a').attr("data-toggle", "tab");
                                         $('#wizardTab1MsgCnt').css('color', 'white');
-                                        $('#wizardTab1MsgCnt').html("Selection is OK");
+                                        $('#wizardTab1MsgCnt').html('<? _("Selection is OK")?>');
                                     }
                                 }
                                 else
@@ -1413,7 +1414,7 @@
                                     $('#addWidgetWizardNextBtn').addClass('disabled');
                                     $('#cTab a').attr("data-toggle", "no");
                                     $('#wizardTab1MsgCnt').css('color', 'rgb(243, 207, 88)');
-                                    $('#wizardTab1MsgCnt').html("You must select actuator target type");
+                                    $('#wizardTab1MsgCnt').html('<? _("You must select actuator target type")?>');
                                 }
                             }
                         }
@@ -1424,7 +1425,7 @@
                             $('#addWidgetWizardNextBtn').addClass('disabled');
                             $('#chosecTab a').attr("data-toggle", "no");
                             $('#wizardTab1MsgCnt').css('color', 'rgb(243, 207, 88)');
-                            $('#wizardTab1MsgCnt').html("You must select one widget type");
+                            $('#wizardTab1MsgCnt').html('<? _("You must select one widget type")?>');
                         }
                     }
                 }
@@ -1533,7 +1534,7 @@
             {
                 if(!validityConditions.dashTemplateSelected)
                 {
-                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">No dashboard template selected</span></div></div>');
+                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("No dashboard template selected"); ?></span></div></div>');
                     validityConditions.canProceed = false;
                     canBuildSummary = false;
                 }
@@ -1545,17 +1546,17 @@
                         switch($('#inputTitleDashboardStatus').val())
                         {
                             case 'empty':
-                                $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title can\'t be empty</span></div></div>');
+                                $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title can\'t be empty"); ?></span></div></div>');
                                 validityConditions.canProceed = false;
                                 break;
 
                             case 'alreadyUsed':
-                                $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title already in use</span></div></div>');
+                                $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title already in use"); ?></span></div></div>');
                                 validityConditions.canProceed = false;
                                 break;    
                                 
                             case 'tooLong':
-                                $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title longer than 300 chars</span></div></div>');
+                                $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title longer than 300 chars"); ?></span></div></div>');
                                 validityConditions.canProceed = false;    
 
                             default:
@@ -1577,7 +1578,7 @@
                         //Se si seleziona almeno uno tra widget type e righe è la fully custom non vuota
                         if(!validityConditions.widgetTypeSelected)
                         {
-                            $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">No widget type selected</span></div></div>');
+                            $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("No widget type selected"); ?></span></div></div>');
                             validityConditions.canProceed = false;
                             canBuildSummary = false;
                         }
@@ -1588,17 +1589,17 @@
                                 switch($('#inputTitleDashboardStatus').val())
                                 {
                                     case 'empty':
-                                        $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title can\'t be empty</span></div></div>');
+                                        $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title can\'t be empty"); ?></span></div></div>');
                                         validityConditions.canProceed = false;
                                         break;
 
                                     case 'alreadyUsed':
-                                        $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title already in use</span></div></div>');
+                                        $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title already in use"); ?></span></div></div>');
                                         validityConditions.canProceed = false;
                                         break;    
                                     
                                     case 'tooLong':
-                                        $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title longer than 300 chars</span></div></div>');
+                                        $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title longer than 300 chars"); ?></span></div></div>');
                                         validityConditions.canProceed = false;
                                         break;    
                                     
@@ -1608,7 +1609,7 @@
 
                                 if((!validityConditions.atLeastOneRowSelected)&&((($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetInstance').val() === 'existent'))||($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'dataViewer')))
                                 {
-                                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">You have to select at least one row from data sources table</span></div></div>');
+                                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("You have to select at least one row from data sources table"); ?></span></div></div>');
                                     validityConditions.canProceed = false;
                                     canBuildSummary = false;
                                 }
@@ -1616,14 +1617,14 @@
                                 {
                                     if((!validityConditions.brokerAndNrRowsTogether)&&($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetWizard').val() === 'broker')&&($('#actuatorTargetInstance').val() === 'existent'))
                                     {
-                                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">You can\'t select rows from both IOT Apps and broker</span></div></div>');
+                                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("You can\'t select rows from both IOT Apps and broker"); ?></span></div></div>');
                                         validityConditions.canProceed = false;
                                     }
                                     else
                                     {
                                         if((!validityConditions.actuatorFieldsEmpty)&&($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetWizard').val() === 'broker')&&($('#actuatorTargetInstance').val() === 'new'))
                                         {
-                                            $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Some fields for new device creation on broker are empty or wrongly filled</span></div></div>');
+                                            $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Some fields for new device creation on broker are empty or wrongly filled"); ?></span></div></div>');
                                             validityConditions.canProceed = false;   
                                         }
                                         else
@@ -1646,7 +1647,7 @@
                             {
                                 if((!validityConditions.atLeastOneRowSelected)&&((($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetInstance').val() === 'existent'))||($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'dataViewer')))
                                 {
-                                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">You have to select at least one row</span></div></div>');
+                                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("You have to select at least one row"); ?></span></div></div>');
                                     validityConditions.canProceed = false;
                                     canBuildSummary = false;
                                 }
@@ -1654,14 +1655,14 @@
                                 {
                                     if((!validityConditions.brokerAndNrRowsTogether)&&($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetWizard').val() === 'broker')&&($('#actuatorTargetInstance').val() === 'existent'))
                                     {
-                                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">You can\'t select rows from both IOT Apps and broker</span></div></div>');
+                                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("You can\'t select rows from both IOT Apps and broker"); ?></span></div></div>');
                                         validityConditions.canProceed = false;
                                     }
                                     else
                                     {
                                         if((!validityConditions.actuatorFieldsEmpty)&&($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetWizard').val() === 'broker')&&($('#actuatorTargetInstance').val() === 'new'))
                                         {
-                                            $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Some fields for new device creation on broker are empty or wrongly filled</span></div></div>');
+                                            $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Some fields for new device creation on broker are empty or wrongly filled"); ?></span></div></div>');
                                             validityConditions.canProceed = false;   
                                         }
                                         else
@@ -1679,7 +1680,7 @@
             {
                 if((!location.href.includes("dashboard_configdash"))&&(!validityConditions.dashTemplateSelected))
                 {
-                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">No dashboard template selected</span></div></div>');
+                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("No dashboard template selected"); ?></span></div></div>');
                     validityConditions.canProceed = false;
                     canBuildSummary = false;
                 }
@@ -1687,7 +1688,7 @@
                 {
                     if(!validityConditions.widgetTypeSelected)
                     {
-                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">No widget type selected</span></div></div>');
+                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("No widget type selected"); ?></span></div></div>');
                         validityConditions.canProceed = false;
                         canBuildSummary = false;
                     }
@@ -1698,17 +1699,17 @@
                             switch($('#inputTitleDashboardStatus').val())
                             {
                                 case 'empty':
-                                    $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title can\'t be empty</span></div></div>');
+                                    $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title can\'t be empty"); ?></span></div></div>');
                                     validityConditions.canProceed = false;
                                     break;
 
                                 case 'alreadyUsed':
-                                    $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title already in use</span></div></div>');
+                                    $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title already in use"); ?></span></div></div>');
                                     validityConditions.canProceed = false;
                                     break;   
                                     
                                 case 'tooLong':
-                                    $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title longer than 300 chars</span></div></div>');
+                                    $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title longer than 300 chars"); ?></span></div></div>');
                                     validityConditions.canProceed = false;    
 
                                 default:
@@ -1717,7 +1718,7 @@
 
                             if((!validityConditions.atLeastOneRowSelected)&&((($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetInstance').val() === 'existent'))||($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'dataViewer')))
                             {
-                                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">You have to select at least one row from data sources table</span></div></div>');
+                                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("You have to select at least one row from data sources table"); ?></span></div></div>');
                                 validityConditions.canProceed = false;
                                 canBuildSummary = false;
                             }
@@ -1725,14 +1726,14 @@
                             {
                                 if((!validityConditions.brokerAndNrRowsTogether)&&($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetWizard').val() === 'broker')&&($('#actuatorTargetInstance').val() === 'existent'))
                                 {
-                                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">You can\'t select rows from both IOT Apps and broker</span></div></div>');
+                                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("You can\'t select rows from both IOT Apps and broker"); ?></span></div></div>');
                                     validityConditions.canProceed = false;
                                 }
                                 else
                                 {
                                     if((!validityConditions.actuatorFieldsEmpty)&&($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetWizard').val() === 'broker')&&($('#actuatorTargetInstance').val() === 'new'))
                                     {
-                                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Some fields for new device creation on broker are empty or wrongly filled</span></div></div>');
+                                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Some fields for new device creation on broker are empty or wrongly filled"); ?></span></div></div>');
                                         validityConditions.canProceed = false;   
                                     }
                                     else
@@ -1755,7 +1756,7 @@
                         {
                             if((!validityConditions.atLeastOneRowSelected)&&((($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetInstance').val() === 'existent'))||($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'dataViewer')))
                             {
-                                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">You have to select at least one row</span></div></div>');
+                                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("You have to select at least one row"); ?></span></div></div>');
                                 validityConditions.canProceed = false;
                                 canBuildSummary = false;
                             }
@@ -1763,14 +1764,14 @@
                             {
                                 if((!validityConditions.brokerAndNrRowsTogether)&&($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetWizard').val() === 'broker')&&($('#actuatorTargetInstance').val() === 'existent'))
                                 {
-                                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">You can\'t select rows from both IOT Apps and broker</span></div></div>');
+                                    $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("You can\'t select rows from both IOT Apps and broker"); ?></span></div></div>');
                                     validityConditions.canProceed = false;
                                 }
                                 else
                                 {
                                     if((!validityConditions.actuatorFieldsEmpty)&&($('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-widgetCategory') === 'actuator')&&($('#actuatorTargetWizard').val() === 'broker')&&($('#actuatorTargetInstance').val() === 'new'))
                                     {
-                                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Some fields for new device creation on broker are empty or wrongly filled</span></div></div>');
+                                        $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Some fields for new device creation on broker are empty or wrongly filled"); ?></span></div></div>');
                                         validityConditions.canProceed = false;   
                                     }
                                     else
@@ -1809,7 +1810,7 @@
                 if(!location.href.includes("dashboard_configdash"))
                 {
                     var localExtCnt = $('<div class="col-xs-4"></div>');
-                    var dashInfoLbl = $('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><span class="summaryLbl">Dashboard template and title</span></div>');
+                    var dashInfoLbl = $('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><span class="summaryLbl"><?php echo _("Dashboard template and title"); ?></span></div>');
                     var dashTitleCnt = $('<div class="col-xs-12 centerWithFlex widgetTypeDetails">' + $('#inputTitleDashboard').val().replace(/(<([^>]+)>)/ig,"") + '</div>');
                     var dashIconExtCnt = $('<div class="col-xs-12 centerWithFlex"></div>');
                     var dashIconCnt = $('<div class="singleWidgetIconCnt"></div>');
@@ -1825,8 +1826,8 @@
                 
                 if((!location.href.includes("dashboard_configdash"))&&(choosenDashboardTemplateName === 'fullyCustom'))
                 {
-                    var widgetInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl">Details</div>';
-                    var widgetInfoCnt = '<div class="col-xs-12 centerWithFlex widgetTypeDetails">A fully custom dashboard is created empty, so no widget details are available</div>';
+                    var widgetInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Details"); ?></div>';
+                    var widgetInfoCnt = '<div class="col-xs-12 centerWithFlex widgetTypeDetails"><?php echo _("A fully custom dashboard is created empty, so no widget details are available"); ?></div>';
                     $('#summaryDiv').append(widgetInfoLbl);
                     $('#summaryDiv').append(widgetInfoCnt); 
                 }
@@ -1839,7 +1840,7 @@
                         {
                             //Dataviewer OPPURE actuator on existent
                             var localExtCnt = $('<div class="col-xs-4"></div>');
-                            var widgetInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl">Widget type details</div>';
+                            var widgetInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Widget type details"); ?></div>';
                             var widgetInfoCnt = '<div class="col-xs-12 centerWithFlex widgetTypeDetails">' + widgetDesc + '</div>';
                             
                             localExtCnt.append(widgetInfoLbl);
@@ -1847,9 +1848,9 @@
                             $('#summaryDiv').append(localExtCnt);
                             
                             var localExtCnt = $('<div class="col-xs-4"></div>');
-                            var instancesInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl">Instances details</div>';
+                            var instancesInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Instances details"); ?></div>';
                             
-                            summaryTable = $('<table id="summaryTable"><thead><th>Widget</th><th>High-Level Type</th><th>Nature</th><th>Subnature</th><th>Value type</th><th>Value name</th><th>Data type</th></thead><tbody></tbody></table>');
+                            summaryTable = $('<table id="summaryTable"><thead><th><?php echo _("Widget"); ?></th><th><?php echo _("High-Level Type"); ?></th><th><?php echo _("Nature"); ?></th><th><?php echo _("Subnature"); ?></th><th><?php echo _("Value type"); ?></th><th><?php echo _("Value name"); ?></th><th><?php echo _("Data type"); ?></th></thead><tbody></tbody></table>');
 
                             var count = 0;
                             for(var key in widgetWizardSelectedRows)
@@ -1890,7 +1891,7 @@
                             $('#summaryDiv').append(localExtCnt);
                             
                             var localExtCnt = $('<div class="col-xs-12"></div>');
-                            var tableLbl = '<div class="col-xs-12 centerWithFlex summaryLbl">Main widget(s) and relative data</div>';
+                            var tableLbl = '<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Main widget(s) and relative data"); ?></div>';
 
                             localExtCnt.append(tableLbl);
                             localExtCnt.append(summaryTable);
@@ -1902,7 +1903,7 @@
                             {
                                 //Actuator on new entity: widget + entity summary
                                 var localExtCnt = $('<div class="col-xs-4"></div>');
-                                var widgetInfoLbl = $('<div class="col-xs-12 centerWithFlex summaryLbl">Widget type details</div>');
+                                var widgetInfoLbl = $('<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Widget type details"); ?></div>');
                                 var widgetInfoCnt = $('<div class="col-xs-12 centerWithFlex widgetTypeDetails">' + widgetDesc + '</div>');
                                 var widgetIconExtCnt = $('<div class="col-xs-12 centerWithFlex"></div>');
                                 var widgetIconCnt = $('<div class="singleWidgetIconCnt"></div>');
@@ -1915,13 +1916,13 @@
                                 $('#summaryDiv').append(localExtCnt);
                                 
                                 var localExtCnt = $('<div class="col-xs-4"></div>');
-                                var instancesInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl">Instances details</div>';
-                                var instancesInfoCnt = '<div class="col-xs-12 centerWithFlex widgetTypeDetails">One new device entity will be created on context broker and linked to new actuator on dashboard</div>';
+                                var instancesInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Instances details"); ?></div>';
+                                var instancesInfoCnt = '<div class="col-xs-12 centerWithFlex widgetTypeDetails"><?php echo _("One new device entity will be created on context broker and linked to new actuator on dashboard"); ?></div>';
                                 localExtCnt.append(instancesInfoLbl);
                                 localExtCnt.append(instancesInfoCnt);
                                 $('#summaryDiv').append(localExtCnt);
                                 
-                                var entityInfoLbl = $('<div class="col-xs-12 centerWithFlex summaryLbl">Device details</div>');
+                                var entityInfoLbl = $('<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Device details"); ?></div>');
                                 var deviceTable = $('<table id="summaryTable"><thead><th>Property</th><th>Value</th></thead><tbody></tbody></table>');
 
                                 var deviceTableRow = $('<tr class="summaryTableRow"><td>Device name</td><td>' + $('#actuatorEntityName').val() + '</td></tr>');
@@ -1964,8 +1965,8 @@
                                 if((widgetCategory === 'actuator')&&(existentOrNew == 'new')&&(brokerOrNr === 'app'))
                                 {
                                     //Actuator on new NR: how to NodeRED
-                                    var nrInfoLbl = $('<div class="col-xs-12 centerWithFlex summaryLbl">Instantiation instructions</div>');
-                                    var nrInfoCnt = $('<div class="col-xs-12 widgetTypeDetails">At the moment it\'s not possible to instantiate a new actuator and its corrispondent block on a IOT personal application. In order to complete this task, please follow this flow: 1) Open NodeRED flow designer of a personal app of your choice<br>; 2) Add a new actuator block (geolocator, dimer, impulsive button, switch, keyboard); 3) Choose the dashboard where you want it to be (or create a new one) via block edit menu; 4) Deploy your application; 5) Open (or refresh) your dashboard of choice: actuator widget will be automatically be instantiated</div>');
+                                    var nrInfoLbl = $('<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Instantiation instructions"); ?></div>');
+                                    var nrInfoCnt = $('<div class="col-xs-12 widgetTypeDetails"><?php echo _("At the moment it\'s not possible to instantiate a new actuator and its corrispondent block on a IOT personal application. In order to complete this task, please follow this flow: 1) Open NodeRED flow designer of a personal app of your choice"); ?><br>;<?php echo _(" 2) Add a new actuator block (geolocator, dimer, impulsive button, switch, keyboard)"); ?>; <?php echo _("3) Choose the dashboard where you want it to be (or create a new one) via block edit menu"); ?>; <?php echo _("4) Deploy your application"); ?>; <?php echo _("5) Open (or refresh) your dashboard of choice: actuator widget will be automatically be instantiated"); ?></div>');
                                     $('#summaryDiv').append(nrInfoLbl);
                                     $('#summaryDiv').append(nrInfoCnt);
                                     $('#createBtnDiv').hide();
@@ -1977,7 +1978,7 @@
                     {
                         //Casi multi
                         var localExtCnt = $('<div class="col-xs-4"></div>');
-                        var widgetInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl">Widget type details</div>';
+                        var widgetInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Widget type details"); ?></div>';
                         var widgetIconExtCnt = $('<div class="col-xs-12 centerWithFlex"></div>');
                         var widgetIconCnt = $('<div class="singleWidgetIconCnt"></div>');
                         widgetIconCnt.css("background-image", "url(\"../img/widgetIcons/multi/" + widgetIcon + "\")");
@@ -1994,9 +1995,9 @@
                         localExtCnt.append(widgetInfoCnt);
                         $('#summaryDiv').append(localExtCnt);
                         
-                        var tableLbl = '<div class="col-xs-12 centerWithFlex summaryLbl">Main widget and relative data</div>';
+                        var tableLbl = '<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Main widget and relative data"); ?></div>';
 
-                        summaryTable = $('<table id="summaryTable"><thead><th>High-Level Type</th><th>Nature</th><th>Subnature</th><th>Value type</th><th>Value name</th><th>Data type</th></thead><tbody></tbody></table>');
+                        summaryTable = $('<table id="summaryTable"><thead><th><?php echo _("High-Level Type"); ?></th><th>Nature</th><th>Subnature</th><th><?php echo _("Value type"); ?></th><th><?php echo _("Value name"); ?></th><th><?php echo _("Data type"); ?></th></thead><tbody></tbody></table>');
 
                         var count = 0;
                         for(var key in widgetWizardSelectedRows)
@@ -2014,7 +2015,7 @@
                         }
                         
                         var localExtCnt = $('<div class="col-xs-4"></div>');
-                        var instancesInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl">Instances details</div>';
+                        var instancesInfoLbl = '<div class="col-xs-12 centerWithFlex summaryLbl"><?php echo _("Instances details"); ?></div>';
 
                         if(targetWidget === '')
                         {
@@ -2042,11 +2043,11 @@
                     }
                 }
                 
-                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex" style="margin-top: 25px !important"><i class="fa fa-thumbs-o-up validityConditionIcon" style="font-size: 100px !important; color: white !important"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl" style="color: white !important;">Can proceed</span></div></div>');
+                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex" style="margin-top: 25px !important"><i class="fa fa-thumbs-o-up validityConditionIcon" style="font-size: 100px !important; color: white !important"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl" style="color: white !important;"><?php echo _("Can proceed"); ?></span></div></div>');
             }
             else
             {
-                $('#summaryDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Summary is not available until you fix missing or wrong inputs</span></div></div>');
+                $('#summaryDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Summary is not available until you fix missing or wrong inputs"); ?></span></div></div>');
             }
         });
         
@@ -3245,15 +3246,15 @@
                             popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                             //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                         }
-                        popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
+                        popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');"><?php echo _("Details"); ?></button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');"><?= _("RT data")?></button></div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
 
                         popupText += '<table id="' + latLngId + '" class="gisPopupGeneralDataTable">';
                         //Intestazione
                         popupText += '<thead>';
-                        popupText += '<th style="background: ' + color2 + '">Description</th>';
-                        popupText += '<th style="background: ' + color2 + '">Value</th>';
+                        popupText += '<th style="background: ' + color2 + '"><?= _("Description")?></th>';
+                        popupText += '<th style="background: ' + color2 + '"><?= _("Value")?></th>';
                         popupText += '</thead>';
 
                         //Corpo
@@ -3323,7 +3324,7 @@
                             {
                                 realTimeData = geoJsonServiceData.realtime;
 
-                                popupText += '<div class="popupLastUpdateContainer centerWithFlex"><b>Last update:&nbsp;</b><span class="popupLastUpdate" data-id="' + latLngId + '"></span></div>';
+                                popupText += '<div class="popupLastUpdateContainer centerWithFlex"><b><?= _("Last update")?>:&nbsp;</b><span class="popupLastUpdate" data-id="' + latLngId + '"></span></div>';
 
                                 if ((serviceClass.includes("Emergency")) && (serviceSubclass.includes("First aid")))
                                 {
@@ -6428,7 +6429,7 @@
                     }
                     
                     $('#modalAddDashboardWizardTemplateMsg').css("color", "white");
-                    $('#modalAddDashboardWizardTemplateMsg div.col-xs-12').html("Template choosen OK");
+                    $('#modalAddDashboardWizardTemplateMsg div.col-xs-12').html('<? _("Template choosen OK")?>');
                     
                     //Qui dentro c'è la logica che preseleziona high_level_type, nature... in base al template di dashboard desiderato
                     resetFilter();
@@ -6590,7 +6591,7 @@
                     }
                     
                     $('#modalAddDashboardWizardTemplateMsg').css("color", "rgb(243, 207, 88)");
-                    $('#modalAddDashboardWizardTemplateMsg div.col-xs-12').html("You must choose one template");
+                    $('#modalAddDashboardWizardTemplateMsg div.col-xs-12').html('<? _("You must choose one template")?>');
                     
                     resetFilterForced();
                     validityConditions.dashTemplateSelected = false;
@@ -6601,17 +6602,17 @@
                     switch($('#inputTitleDashboardStatus').val())
                     {
                         case 'empty':
-                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title can\'t be empty</span></div></div>');
+                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title can\'t be empty"); ?></span></div></div>');
                             validityConditions.canProceed = false;
                             break;
 
                         case 'alreadyUsed':
-                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title already in use</span></div></div>');
+                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title already in use"); ?></span></div></div>');
                             validityConditions.canProceed = false;
                             break;
                             
                         case 'tooLong':
-                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Dashboard title longer than 300 chars</span></div></div>');
+                            $('#wrongConditionsDiv').append('<div class="col-xs-12 titleAlert"><div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle validityConditionIcon"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Dashboard title longer than 300 chars"); ?></span></div></div>');
                             validityConditions.canProceed = false;
                             break;    
 
@@ -6706,18 +6707,18 @@
                                         }
                                         else
                                         {
-                                            alert("Error during dashboard creation, please try again");
+                                            alert('<? _("Error during dashboard creation, please try again"); ?>');
                                         }
                                     }
                                     else
                                     {
-                                        alert("Error during dashboard creation, please try again");
+                                        alert('<? _("Error during dashboard creation, please try again"); ?>');
                                     }
                                 },
                                 error: function(errorData)
                                 {
                                     console.log("Error: " + errorData.callResult);
-                                    alert("Error during dashboard creation, please try again");
+                                    alert('<? _("Error during dashboard creation, please try again"); ?>');
                                 }
                             });
                         }

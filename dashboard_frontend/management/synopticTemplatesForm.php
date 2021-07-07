@@ -103,7 +103,7 @@ checkSession('Manager');
             </div>
           </div>
           <div class="row">
-            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt"><?=$_GET["name"]?"Edit":"New"?> Synoptic Template</div>
+            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt"><?=$_GET["name"]?"Edit":"New"?> <?= _("Synoptic Template")?></div>
             <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
           </div>
           <div class="row">
@@ -114,7 +114,7 @@ checkSession('Manager');
 				
 				<div class="col-xs-12 col-sm-6 col-md-3">
                     <div class="col-xs-12 synopticTemplateLabel centerWithFlex">
-                        Name *
+                        <?= _("Name")?> *
                     </div>
                     <div class="col-xs-12">
                         <?php if(!$_GET["name"]) { ?>
@@ -129,7 +129,7 @@ checkSession('Manager');
 				
                 <div class="col-xs-12 col-sm-6 col-md-3">
                     <div class="col-xs-12 synopticTemplateLabel centerWithFlex">
-                        Nature *
+                        <?= _("Nature")?> *
                     </div>
                     <div class="col-xs-12">
                         <input type="hidden" id="nature_old" name="nature_old" value="<?=htmlentities($_GET["nature"])?>"></input>
@@ -139,7 +139,7 @@ checkSession('Manager');
 				
 				<div class="col-xs-12 col-sm-6 col-md-3">
                     <div class="col-xs-12 synopticTemplateLabel centerWithFlex">
-                        Subnature *
+                        <?= _("Subnature")?> *
                     </div>
                     <div class="col-xs-12">
                         <input type="hidden" id="subnature_old" name="subnature_old" value="<?=htmlentities($_GET["subnature"])?>"></input>
@@ -149,7 +149,7 @@ checkSession('Manager');
 				
 				<div class="col-xs-12 col-sm-6 col-md-3">
                    <div class="col-xs-12 synopticTemplateLabel centerWithFlex">
-                        SVG Template File *
+                        <?= _("SVG Template File")?> *
                     </div>
                     <div class="col-xs-12">
                         <input id="getTemplate" name="getTemplate" type="file" <?=$_GET["name"]?'':'required="required"'?> class="filestyle form-control" data-badge="false" data-input="true" data-size="nr" data-buttonname="btn-primary" data-buttontext="File" tabindex="-1" style="position: absolute; clip: rect(0px, 0px, 0px, 0px);" accept=".svg">
@@ -157,23 +157,23 @@ checkSession('Manager');
                 </div>
 				<div class="col-xs-12 col-sm-6 col-md-3">
                    <div class="col-xs-12 synopticTemplateLabel centerWithFlex">
-                        Icon 
+                        <?= _("Icon")?> 
                     </div>
                     <div class="col-xs-12">
                         <input id="getIcon" name="getIcon" type="file" class="filestyle form-control" data-badge="false" data-input="true" data-size="nr" data-buttonname="btn-primary" data-buttontext="File" tabindex="-1" style="position: absolute; clip: rect(0px, 0px, 0px, 0px);">
                     </div>  
                 </div>
                 <div class="col-xs-12" id="addSynopticTemplateBtnRow">
-					<button type="button" id="addSynopticTemplateCancelBtn" class="btn cancelBtn  pull-right" data-dismiss="modal">Reset</button>  
-					<button type="submit" id="addSynopticTemplateConfirmBtn" class="btn confirmBtn pull-right" style="margin-right:15px;">Save</button>									
-					<button type="button" id="addSynopticTemplateBackBtn" class="btn cancelBtn  " data-dismiss="modal" style="margin-left:15px;">Back</button>  
+					<button type="button" id="addSynopticTemplateCancelBtn" class="btn cancelBtn  pull-right" data-dismiss="modal"><?= _("Reset")?></button>  
+					<button type="submit" id="addSynopticTemplateConfirmBtn" class="btn confirmBtn pull-right" style="margin-right:15px;"><?= _("Save")?></button>									
+					<button type="button" id="addSynopticTemplateBackBtn" class="btn cancelBtn  " data-dismiss="modal" style="margin-left:15px;"><?= _("Back")?></button>  
                 </div>
                 <div class="col-xs-12" id="addSynopticTemplateResultsRow">
                     <div class="col-xs-12 col-sm-6 col-sm-offset-3 centerWithFlex" id="addSynopticTemplateResultMsg"></div>
                     <div class="col-xs-12 col-sm-6 col-sm-offset-3 centerWithFlex" id="addSynopticTemplateResultBtns">
-                        <button type="button" id="addSynopticTemplateOpenNewBtn" class="btn confirmBtn">Open template</button>
+                        <button type="button" id="addSynopticTemplateOpenNewBtn" class="btn confirmBtn"><?= _("Open template")?></button>
                         <!-- <button type="button" id="addSynopticTemplateOpenListBtn" class="btn confirmBtn">Open templates list</button> -->
-                        <button type="button" id="addSynopticTemplateNoActionBtn" class="btn confirmBtn">No further action</button>
+                        <button type="button" id="addSynopticTemplateNoActionBtn" class="btn confirmBtn"><?= _("No further action")?></button>
                     </div>
                 </div>    
               </div>

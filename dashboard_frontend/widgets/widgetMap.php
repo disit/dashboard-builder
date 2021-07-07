@@ -1066,25 +1066,31 @@ if (!isset($_SESSION)) {
                                 //minWidth: 435,
                                 minWidth: 400, 
 								maxWidth: 1200,
-								className: geoJsonServiceData.hasOwnProperty("BusStop")?"draggableAndResizablePopup":"nonDraggableAndResizablePopup"
+							//	className: geoJsonServiceData.hasOwnProperty("BusStop")?"draggableAndResizablePopup":"nonDraggableAndResizablePopup"
+                                className: "draggableAndResizablePopup"
                             }).setContent(popupText);
 
                             event.target.bindPopup(newpopup).openPopup();
 							
 							// draggable 
-							var makeDraggable = function(popup){
+							var makeDraggable = function(popup, excluding){							  
 							  var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
 							  L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
 							  var draggable = new L.Draggable(popup._container, popup._wrapper);
-							  draggable.enable();							  
+							  draggable.enable(); $(".draggableAndResizablePopup").css("cursor","move");					  
 							  draggable.on('dragend', function() {
 								var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
 								popup.setLatLng(pos);
 								$(popup._wrapper).siblings(".leaflet-popup-tip-container").hide();
 							  });
-							};							
-							makeDraggable(newpopup);							
-							$(".draggableAndResizablePopup").css("cursor","move");	
+							  excluding.forEach((excluded) => { 
+								$(excluded).css("cursor","auto").on("mouseover",function(e){ draggable.disable(); } ).on("mouseout",function(e){ draggable.enable(); } ); 
+							  });
+							};																
+						//	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
+                            if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup .recreativeEventMapDataContainer"]);
+													
+							
 							//
 							
 							// resizable 
@@ -6188,6 +6194,7 @@ if (!isset($_SESSION)) {
 																	polyline.addTo(whatifDrawnItems);	
 																}
 													for(var agency in crossmenu) {
+														markup+="<p style=\"font-weight:bold;\">"+agency+"</p>";
 														crossmenu[agency].forEach(function(date){
 															var btnUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(impact["details"][agency]["dataset"])+'&crosstrip='+crosstrips.join("&crosstrip=")+'&date='+encodeURIComponent(getDates(new Date(date),new Date(date))[0].toISOString().split('T')[0])+"&list=routes";
 															markup+="<p class=\"ndrt_wifstpdt\"><button style=\"width:100%;\" data-url=\""+btnUrl+"\" data-date=\""+getDates(new Date(date),new Date(date))[0].toISOString().split('T')[0]+"\">"+getDates(new Date(date),new Date(date))[0].toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</button></p>";				
@@ -6417,6 +6424,7 @@ if (!isset($_SESSION)) {
 													return;
 												});
 												
+												var stopdates = {};
 												Object.keys(impact["details"]).forEach(function(agency) {																		
 													if(agency != "traps") {														
 														var agencyPolylines = [];
@@ -6435,9 +6443,28 @@ if (!isset($_SESSION)) {
 																agencyPolylines.push({"latlngs":latlngs,"criticality":criticality, "color":color});
 																polyline.addTo(whatifDrawnItems);																	
 																if("stops" in impact["details"][agency]["routes"][route]["trips"][trip]) Object.keys(impact["details"][agency]["routes"][route]["trips"][trip]["stops"]).forEach(function(stop){
-																	var icon = new L.Icon({
+																	/*var icon = new L.Icon({
 																	  iconUrl: type=="Bus"?'https://servicemap.disit.org/WebAppGrafo/img/mapicons/TransferServiceAndRenting_BusStop.png':'https://servicemap.disit.org/WebAppGrafo/img/mapicons/TransferServiceAndRenting_Tram_stops.png'
+																	});*/
+																	//
+																	if(!stopdates[stop]) stopdates[stop] = impact["details"][agency]["routes"][route]["trips"][trip]["dates"]; else stopdates[stop] = stopdates[stop].concat(impact["details"][agency]["routes"][route]["trips"][trip]["dates"]);
+																	var mapBusStopPinImg = '../img/gisMapIcons/TransferServiceAndRenting_BusStop.png';																							
+																	if(impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["busStopCategory"]) {
+																		mapBusStopPinImg = '../img/gisMapIcons/' + impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["busStopCategory"] + '.png';
+																	}
+																	else {
+																		if(agency == "ATAF&LINEA" || agency == "GEST") {
+																			mapBusStopPinImg = '../img/gisMapIcons/TransferServiceAndRenting_BusStop_Urban.png'
+																		}
+																		else {
+																			mapBusStopPinImg = '../img/gisMapIcons/TransferServiceAndRenting_BusStop_Suburban.png'
+																		}
+																	}																	
+																	var icon = L.icon({
+																		iconUrl: mapBusStopPinImg,
+																		iconAnchor: [16, 37]
 																	});
+																	//
 																	var marker = L.marker([impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["pos_lat"], impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["pos_lon"]], { icon: icon, title: impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["code"]+" "+impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["name"], uri: impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["uri"]});																																		
 																	// Preparing the popup content (old way commented)																	
 																	/*
@@ -6479,14 +6506,14 @@ if (!isset($_SESSION)) {
 																				}
 																				return dateArray;
 																			};
-																			getDates(new Date(selectedScenarioData["scenarioDatetimeStart"].substring(0,10)),new Date(selectedScenarioData["scenarioDatetimeEnd"].substring(0,10))).forEach(function(oneDate){
-																				if(impact["details"][agency]["routes"][route]["trips"][trip]["dates"].includes(oneDate.toISOString().split('T')[0])) {					
+																			getDates(new Date(selectedScenarioData["scenarioDatetimeStart"].substring(0,10)),new Date(selectedScenarioData["scenarioDatetimeEnd"].substring(0,10))).forEach(function(oneDate){																																								
+																				if(stopdates[stop].includes(oneDate.toISOString().split('T')[0])) {					
 																					var btnUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(impact["details"][agency]["dataset"])+'&stop='+encodeURIComponent(impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["uri"])+'&date='+encodeURIComponent(oneDate.toISOString().split('T')[0])+"&list=routes";
 																					markup+="<p class=\"wifstpdt\"><button style=\"width:100%;\" data-url=\""+btnUrl+"\" data-stop=\""+stopUri+"\" data-date=\""+oneDate.toISOString().split('T')[0]+"\"><strong>"+new Date(oneDate).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</strong></button></p>";				
 																				}
 																				else {
 																					var btnUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(impact["details"][agency]["dataset"])+'&stop='+encodeURIComponent(impact["details"][agency]["routes"][route]["trips"][trip]["stops"][stop]["uri"])+'&date='+encodeURIComponent(oneDate.toISOString().split('T')[0])+"&list=routes";
-																					markup="<p class=\"wifstpdt\"><button style=\"width:100%;\" data-url=\""+btnUrl+"\" data-stop=\""+stopUri+"\" data-date=\""+oneDate.toISOString().split('T')[0]+"\">"+new Date(oneDate).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</button></p>";
+																					markup+="<p class=\"wifstpdt\"><button style=\"width:100%;\" data-url=\""+btnUrl+"\" data-stop=\""+stopUri+"\" data-date=\""+oneDate.toISOString().split('T')[0]+"\">"+new Date(oneDate).toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</button></p>";
 																				}
 																			});	
 																			markup+="<p class=\"backToSummary\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
@@ -7388,27 +7415,29 @@ if (!isset($_SESSION)) {
                                 }
                             });
 
-                            var minVal = colorScale[0].min;
-                            if (minVal === null || minVal === undefined) {
-                                minVal = heatmapRangeObject[0].range1Inf;
-                            }
+                            if (colorScale && colorScale.length > 0) {
+                                var minVal = colorScale[0].min;
+                                if (minVal === null || minVal === undefined) {
+                                    minVal = heatmapRangeObject[0].range1Inf;
+                                }
 
-                            var maxVal = colorScale[colorScale.length-1].min;
-                            if (maxVal === null || maxVal === undefined) {
-                                maxVal = heatmapRangeObject[0].range10Inf;
+                                var maxVal = colorScale[colorScale.length - 1].min;
+                                if (maxVal === null || maxVal === undefined) {
+                                    maxVal = heatmapRangeObject[0].range10Inf;
+                                }
+                                colorGradient[0] = 0;
+                                colorGradient[colorScale.length - 1] = 1;
+                                gradientString = '{ "' + colorGradient[0] + '": "#' + fullColorHex(colorScale[0].rgb.substring(1, colorScale[0].rgb.length - 1)) + '", ';
+                                for (let k1 = 1; k1 < colorScale.length - 1; k1++) {
+                                    colorGradient[k1] = (colorScale[k1].min - minVal) / (maxVal - minVal);
+                                    gradientString = gradientString + '"' + colorGradient[k1] + '": "#' + fullColorHex(colorScale[k1].rgb.substring(1, colorScale[k1].rgb.length - 1)) + '", ';
+                                }
+                                gradientString = gradientString + '"' + colorGradient[colorScale.length - 1] + '": "#' + fullColorHex(colorScale[colorScale.length - 1].rgb.substring(1, colorScale[colorScale.length - 1].rgb.length - 1)) + '"}';
+                                map.cfg.gradient = JSON.parse(gradientString);
+                                map.heatmapLayer = new HeatmapOverlay(map.cfg);
+                                //map.heatmapLayer.zIndex = 20;
+                                //  map.legendHeatmap = L.control({position: 'topright'});
                             }
-                            colorGradient[0] = 0;
-                            colorGradient[colorScale.length-1] = 1;
-                            gradientString = '{ "' + colorGradient[0] + '": "#' + fullColorHex(colorScale[0].rgb.substring(1, colorScale[0].rgb.length-1)) + '", ';
-                            for (let k1 = 1; k1 < colorScale.length-1; k1++) {
-                                colorGradient[k1] = (colorScale[k1].min - minVal) / (maxVal - minVal);
-                                gradientString = gradientString + '"' + colorGradient[k1] + '": "#' + fullColorHex(colorScale[k1].rgb.substring(1, colorScale[k1].rgb.length-1)) + '", ';
-                            }
-                            gradientString = gradientString + '"' + colorGradient[colorScale.length-1] + '": "#' + fullColorHex(colorScale[colorScale.length-1].rgb.substring(1, colorScale[colorScale.length-1].rgb.length-1)) + '"}';
-                            map.cfg.gradient = JSON.parse(gradientString);
-                            map.heatmapLayer = new HeatmapOverlay(map.cfg);
-                            //map.heatmapLayer.zIndex = 20;
-                            //  map.legendHeatmap = L.control({position: 'topright'});
                         }
 
                         if(!map.legendHeatmap) {

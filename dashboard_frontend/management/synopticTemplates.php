@@ -147,35 +147,18 @@
                                                 <input id="dashboardListsViewModeInput" type="checkbox">
                                             </div>
                                         </div>-->
-                                        <div id="dashboardListsCardsSort" class="col-xs-12 col-sm-6 col-md-2 dashboardsListMenuItem"> 
+                                        <div id="dashboardListsCardsSort" class="col-xs-12 col-sm-6 col-md-1 dashboardsListMenuItem">
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <div class="col-xs-3 centerWithFlex">
+                                                <div class="col-xs-6 centerWithFlex">
                                                     <div class="dashboardsListSortBtnCnt">
                                                         <i class="fa fa-sort-alpha-asc dashboardsListSort"></i>
                                                     </div> 
                                                 </div>
-                                                <div class="col-xs-3 centerWithFlex">
+                                                <div class="col-xs-6 centerWithFlex">
                                                     <div class="dashboardsListSortBtnCnt">
                                                         <i class="fa fa-sort-alpha-desc dashboardsListSort"></i>
                                                     </div>    
                                                 </div>
-<?php if(!$_SESSION['isPublic']) : ?>
-												<div class="col-xs-3 centerWithFlex">
-                                                    <div id="mySort" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My own templates">
-                                                        <i id="myIcon" class="fa fa-user-secret dashboardsListSort" data-active="false"></i>
-                                                    </div>    
-                                                </div>
-                                                <div class="col-xs-3 centerWithFlex">
-                                                    <div id="publicSort" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Public templates">
-                                                        <i id="publicIcon" class="fa fa-globe dashboardsListSort" data-active="false" ></i>
-                                                    </div>    
-                                                </div>
-                                                <div class="col-xs-3 centerWithFlex"  <?=@$_SESSION['loggedRole'] === 'RootAdmin' ? 'style="display:none;"':''?> >
-                                                    <div id="delegatedBtn" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Delegated templates">
-                                                        <i class="fa fa-handshake-o dashboardsListSort" data-active="false" ></i>
-                                                    </div>
-                                                </div>
-<?php endif; ?> 												
                                             </div>
                                         </div>
                                         <?php
@@ -219,12 +202,12 @@
                                             </div>
                                         </div>
 										
-										<div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-12 col-md-1 dashboardsListMenuItem">
+										<div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-12 col-md-2 dashboardsListMenuItem">
                                             <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 New<br>dashboard
                                             </div>-->
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <button id="link_start_wizard" type="button" class="btn btn-warning" style="margin-right:30px; display:none;">New template</button>
+                                                <button id="link_start_wizard" type="button" class="btn btn-warning"><?= _("New template")?></button>
                                             </div>
                                         </div>
 										
@@ -233,11 +216,11 @@
                                     <table id="list_dashboard" class="table">
                                         <thead class="dashboardsTableHeader">
                                             <tr>
-                                                <th data-dynatable-column="title_header">Title</th>
-                                                <th data-dynatable-column="user">Creator</th>
-                                                <th data-dynatable-column="creation_date">Creation date</th>
-                                                <th data-dynatable-column="last_edit_date">Last edit date</th>
-                                                <th data-dynatable-column="status_dashboard">Status</th>
+                                                <th data-dynatable-column="title_header"><?= _("Title")?></th>
+                                                <th data-dynatable-column="user"><?= _("Creator")?></th>
+                                                <th data-dynatable-column="creation_date"><?= _("Creation date")?></th>
+                                                <th data-dynatable-column="last_edit_date"><?= _("Last edit date")?></th>
+                                                <th data-dynatable-column="status_dashboard"><?= _("Status")?></th>
                                                 <th>Edit</th>
                                                 <th>View</th>
                                             </tr>
@@ -259,23 +242,20 @@
 <?php if(!$_SESSION["isPublic"]) { ?>
 
 		<div class="modal fade" id="delegationsModal" tabindex="-1" role="dialog" aria-labelledby="modalAddWidgetTypeLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document" <?= "RootAdmin" == $_SESSION["loggedRole"] ? "style=\"width: 60vw;\"" : "" ?> >
+            <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modalHeader centerWithFlex">
-                  Management
+                  <?= _("Management")?>
                 </div>
                 <form id="delegationsForm" class="form-horizontal" name="delegationsForm" role="form" method="post" action="" data-toggle="validator">
                     <div id="delegationsModalBody" class="modal-body modalBody">
                         <!-- Tabs -->
                         <ul id="delegationsTabsContainer" class="nav nav-tabs nav-justified">
-                            <li id="ownershipTab" class="active"><a data-toggle="tab" href="#ownershipCnt" class="dashboardWizardTabTxt">Ownership</a></li>
-							<?php if("RootAdmin" == $_SESSION["loggedRole"]) { ?>
-								<li id="organizationTab"><a data-toggle="tab" href="#organizationCnt" class="dashboardWizardTabTxt">Organization</a></li>
-							<?php } ?>
-                            <li id="visibilityTab"><a data-toggle="tab" href="#visibilityCnt" class="dashboardWizardTabTxt">Visibility</a></li>
-                            <li id="delegationsTab"><a data-toggle="tab" href="#delegationsCnt" class="dashboardWizardTabTxt">Delegations</a></li>
+                            <li id="ownershipTab" class="active"><a data-toggle="tab" href="#ownershipCnt" class="dashboardWizardTabTxt"><?= _("Ownership")?></a></li>
+                            <li id="visibilityTab"><a data-toggle="tab" href="#visibilityCnt" class="dashboardWizardTabTxt"><?= _("Visibility")?></a></li>
+                            <li id="delegationsTab"><a data-toggle="tab" href="#delegationsCnt" class="dashboardWizardTabTxt"><?= _("Delegations")?></a></li>
                             <!-- GP COMMENT TEMPORARY -->
-                            <li id="groupDelegationsTab"><a data-toggle="tab" href="#groupDelegationsCnt" class="dashboardWizardTabTxt">Group Delegations</a></li>
+                            <li id="groupDelegationsTab"><a data-toggle="tab" href="#groupDelegationsCnt" class="dashboardWizardTabTxt"><?= _("Group Delegations")?></a></li>
                         </ul> 
                         <!-- Fine tabs -->
                         
@@ -294,17 +274,17 @@
                                 <div id="ownershipCnt" class="tab-pane fade in active">
                                     <div class="row" id="ownershipFormRow">
                                         <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
-                                            Change ownership
+                                            <?= _("Change ownership")?>
                                         </div>
                                         <div class="col-xs-12" id="newOwnershipCnt">
                                             <div class="input-group">
                                                 <input type="text" class="form-control" id="newOwner" placeholder="New owner username">
                                                 <span class="input-group-btn">
-                                                  <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
+                                                  <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
                                             <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
-                                                New owner username can't be empty
+                                                <?= _("New owner username can't be empty")?>
                                             </div>    
                                         </div>
                                         <div class="col-xs-12 centerWithFlex" id="newOwnershipResultMsg">
@@ -313,45 +293,22 @@
                                     </div>    
                                 </div>
                                 <!-- Fine ownership cnt -->
-								
-								<?php if("RootAdmin" == $_SESSION["loggedRole"]) { ?>
-								<!-- Organization cnt -->
-                                <div id="organizationCnt" class="tab-pane fade in">
-                                    <div class="row" id="organizationFormRow">
-                                        <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOrganizationLbl">
-                                            Change organization
-                                        </div>
-                                        <div class="col-xs-12" id="newOrganizationCnt">
-                                            <div class="input-group">
-                                                <select id="newOrganization" class="form-control"></select>
-                                                <span class="input-group-btn">
-                                                  <button type="button" id="newOrganizationConfirmBtn" class="btn confirmBtn">Confirm</button>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="col-xs-12 centerWithFlex" id="newOrganizationResultMsg">
-                                            
-                                        </div>    
-                                    </div>    
-                                </div>
-                                <!-- Fine organization cnt -->
-								<?php } ?>								
                                 
                                 
                                 <!-- Visibility cnt -->
                                 <div id="visibilityCnt" class="tab-pane fade in">
                                     <div class="row" id="visibilityFormRow">
                                         <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
-                                            Change visibility
+                                            <?= _("Change visibility")?>
                                         </div>
                                         <div class="col-xs-12" id="newVisibilityCnt">
                                             <div class="input-group">
                                                 <select id="newVisibility" class="form-control">
-                                                    <option value="public">Public</option>
-                                                    <option value="private">Private</option>
+                                                    <option value="public"><?= _("Public")?></option>
+                                                    <option value="private"><?= _("Private")?></option>
                                                 </select>
                                                 <span class="input-group-btn">
-                                                  <button type="button" id="newVisibilityConfirmBtn" class="btn confirmBtn">Confirm</button>
+                                                  <button type="button" id="newVisibilityConfirmBtn" class="btn confirmBtn"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
                                         </div>
@@ -365,32 +322,32 @@
                                 <!-- Delegations cnt -->
                                 <div id="delegationsCnt" class="tab-pane fade in">
                                     <div class="row centerWithFlex modalFirstLbl" id="delegationsNotAvailableRow">
-                                        Delegations are not possibile on a public template
+                                        <?= _("Delegations are not possibile on a public template")?>
                                     </div>
                                     <div class="row" id="delegationsFormRow">
                                         <div class="col-xs-12 centerWithFlex modalFirstLbl" id="newDelegationLbl">
-                                            Add new delegation
+                                           <?= _("Add new delegation")?> 
                                         </div>
                                         <div class="col-xs-12" id="newDelegationCnt">
                                             <div class="input-group">
                                                 <input type="text" class="form-control" id="newDelegation" placeholder="Delegated username">
                                                 <span class="input-group-btn">
-                                                  <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
+                                                  <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
                                             <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newDelegatedMsg">
-                                                Delegated username can't be empty
+                                                <?= _("Delegated username can't be empty")?>
                                             </div>
                                         </div>
 
                                         <div class="col-xs-12 centerWithFlex" id="currentDelegationsLbl">
-                                            Current user delegations
+                                            <?= _("Current user delegations")?>
                                         </div>
                                         <div class="col-xs-12" id="delegationsTableCnt">
                                             <table id="delegationsTable">
                                                 <thead>
-                                                  <th>Delegated user</th>
-                                                  <th>Remove</th>
+                                                  <th><?= _("Delegated user")?></th>
+                                                  <th><?= _("Remove")?></th>
                                                 </thead>
                                                 <tbody>
                                                 </tbody>
@@ -403,11 +360,11 @@
                                 <!-- Group Delegations cnt -->
                                 <div id="groupDelegationsCnt" class="tab-pane fade in">
                                     <div class="row centerWithFlex modalFirstLbl" id="groupDelegationsNotAvailableRow">
-                                        Delegations are not possibile on a public template
+                                        <?= _("Delegations are not possibile on a public template")?>
                                     </div>
                                     <div class="row" id="groupDelegationsFormRow">
                                         <div class="col-xs-12 centerWithFlex modalFirstLbl" id="newDelegationLbl">
-                                            Add new group delegation
+                                            <?= _("Add new group delegation")?>
                                         </div>
                                         <div class="col-xs-12" id="newGroupDelegationCnt">
                                             <div class="col-xs-4">
@@ -419,7 +376,7 @@
                                             </div>
                                             <div class="col-xs-4">
                                                 <span class="input-group-btn">
-                                                    <button type="button" id="newGroupDelegationConfirmBtn" class="btn confirmBtn">Confirm</button>
+                                                    <button type="button" id="newGroupDelegationConfirmBtn" class="btn confirmBtn"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
                                         <!--    <div class="input-group">
@@ -434,13 +391,13 @@
                                         </div>
 
                                         <div class="col-xs-12 centerWithFlex" id="currentGroupDelegationsLbl">
-                                            Current group delegations
+                                            <?= _("Current group delegations")?>
                                         </div>
                                         <div class="col-xs-12" id="groupDelegationsTableCnt">
                                             <table id="groupDelegationsTable">
                                                 <thead>
-                                                  <th>Delegated group</th>
-                                                  <th>Remove</th>
+                                                  <th><?= _("Delegated group")?></th>
+                                                  <th><?= _("Remove")?></th>
                                                 </thead>
                                                 <tbody>
                                                 </tbody>
@@ -456,7 +413,7 @@
                         </div><!-- Fine delegationsModalRightCnt-->
                     </div>
                     <div id="delegationsModalFooter" class="modal-footer">
-                      <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px">Close</button>
+                      <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px"><?= _("Close")?></button>
                     </div>
                 </form>    
               </div>
@@ -469,14 +426,14 @@
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modalHeader centerWithFlex">
-                  Template deletion
+                  <?= _("Template deletion")?>
                 </div>
                 <input type="hidden" id="dashIdDelHidden" name="dashIdDelHidden" />
                 <div id="delDashModalBody" class="modal-body modalBody">
                     <div class="row">
                         <div id="delDashNameMsg" class="col-xs-12 modalCell">
                             <div class="modalDelMsg col-xs-12 centerWithFlex">
-                                Do you want to delete the following template?
+                                <?= _("Do you want to delete the following template?")?>
                             </div>
                             <div id="dashToDelName" class="modalDelObjName col-xs-12 centerWithFlex"></div>
                             <div id="dashToDelPic" class="modalDelObjName col-xs-12 centerWithFlex"></div>
@@ -484,26 +441,26 @@
                     </div>
                     <div class="row" id="delDashRunningMsg">
                         <div class="col-xs-12 modalCell">
-                            <div class="col-xs-12 centerWithFlex modalDelMsg">Deleting template, please wait</div>
+                            <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Deleting template, please wait")?></div>
                             <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>
                         </div>
                     </div>
                     <div class="row" id="delDashOkMsg">
                         <div class="col-xs-12 modalCell">
-                            <div class="col-xs-12 centerWithFlex modalDelMsg">Template deleted successfully</div>
+                            <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Template deleted successfully")?></div>
                             <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
                         </div>
                     </div>
                     <div class="row" id="delDashKoMsg">
                         <div class="col-xs-12 modalCell">
-                            <div id="delDashKoMsgTxt" class="col-xs-12 centerWithFlex modalDelMsg">Error deleting template, please try again</div>
+                            <div id="delDashKoMsgTxt" class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Error deleting template, please try again")?></div>
                             <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                         </div>
                     </div>
                 </div>
                 <div id="delDashModalFooter" class="modal-footer">
-                  <button type="button" id="delDashCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-                  <button type="button" id="delDashConfirmBtn" class="btn confirmBtn internalLink">Confirm</button>
+                  <button type="button" id="delDashCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                  <button type="button" id="delDashConfirmBtn" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
                 </div>
               </div>
             </div>
@@ -672,24 +629,24 @@
                title = title.substr(0, 100) + " ...";
             }
 
-             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" data-nature="'+record.nature+'" data-subnature="'+record.sub_nature+'" data-org="'+record.organizations+'" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
+             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" data-nature="'+record.nature+'" data-subnature="'+record.sub_nature+'" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
 			   '<div class="dashboardsListCardInnerDiv">' +
 				  '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;">New Tab</button></div>' +
 			   //   '<div id="cardLinkBtn" style="font-size:8px;float: right;">New Tab</div>' +
-				  '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">' + record.high_level_type + " (" + record.nature_label + ': ' + record.sub_nature_label + ')</span></div>' +
+				  '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">' + record.high_level_type + " (" + record.nature + ': ' + record.sub_nature + ')</span></div>' +
 				  '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
-				  '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex">View</div>' +
+				  '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex"><?= _("View")?></div>' +
 				  '<div class="dashboardsListCardImgDiv" style="background-color:white;"></div>' + 
-				  '<div class="dashboardsListCardVisibilityDiv col-xs-12 centerWithFlex">' + ( record.ownership == 'private' ? (record.user?(record.user == usr?'My own':(loggedRole != 'RootAdmin' ? 'Delegated by '+(record.user && loggedRole == 'RootAdmin'?record.user:'') : record.user+': Private')):'Delegated by '+(record.user && loggedRole == 'RootAdmin'?record.user:'')) + (loggedRole == 'RootAdmin' && record.user != usr ? ' - ' : ' (') + record.organizations + (loggedRole == 'RootAdmin' && record.user != usr ? '' : ')') : (record.user?(record.user==usr?'My own: Public':record.user+': Public'):'Public')+ (loggedRole == 'RootAdmin' && record.user != usr ? ' - ' : ' (') + record.organizations + (loggedRole == 'RootAdmin' && record.user != usr ? '' : ')') ) + '</div>' +
+				  '<div class="dashboardsListCardVisibilityDiv col-xs-12 centerWithFlex">' + ( record.ownership == 'private' ? (record.user?(record.user == usr?'My own: Private':record.user+': Private'):'Private') + ' (' + record.organizations + ')' : (record.user?(record.user==usr?'My own: Public':record.user+': Public'):'Public')+ ' (' + record.organizations + ')' ) + '</div>' +
 				  '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">' + 
-					  ( ( record.ownership == 'private' && usr == record.user ) || loggedRole == 'RootAdmin' ? '<button type="button" class="dashBtnCard updSynTplBtnCard">Edit</button>' : '' ) + 
-					  ( usr == record.user || loggedRole == 'RootAdmin' ? '<button type="button" class="dashBtnCard mgmtDashBtnCard">Management</button>' : '') + 
-					  ( loggedRole == 'RootAdmin' || loggedRole == 'ToolAdmin' || loggedRole == 'AreaManager' || loggedRole == 'Manager' ? '<button type="button" class="dashBtnCard instSynTplBtnCard">Instantiate</button>':'') + 
-					   ( false && record.ownership == 'private' && usr == record.user ?	'<button type="button" class="dashBtnCard delegateSynTplBtnCard">Delegate</button>' : '' ) + 
-					   ( false && usr == record.user ?	'<button type="button" class="dashBtnCard chownSynTplBtnCard"  style="white-space:nowrap;">Chg Owner</button>' : '' ) + 
-					  ( false && record.ownership == 'private' && usr == record.user ? '<button type="button" class="dashBtnCard publSynTplBtnCard" style="white-space:nowrap;">Make Public</button>' : '' ) + 
-					  ( ( record.ownership == 'private' && usr == record.user ) || loggedRole == 'RootAdmin'  ? '<button type="button" class="dashBtnCard delSynTplBtnCard">Delete</button>' : '' ) + 
-					  ( false && record.ownership == 'public' && usr == record.user ? '<button type="button" class="dashBtnCard mkPvtSynTplBtnCard" style="white-space:nowrap;">Make Private</button>' : '' ) + 
+					  ( record.ownership == 'private' && ( usr == record.user || loggedRole == 'RootAdmin' ) ? '<button type="button" class="dashBtnCard updSynTplBtnCard"><?= _("Edit")?></button>' : '' ) + 
+					  ( usr == record.user || loggedRole == 'RootAdmin' ? '<button type="button" class="dashBtnCard mgmtDashBtnCard"><?= _("Management")?></button>' : '') + 
+					   '<button type="button" class="dashBtnCard instSynTplBtnCard"><?= _("Instantiate")?></button>' + 	
+					   ( false && record.ownership == 'private' && usr == record.user ?	'<button type="button" class="dashBtnCard delegateSynTplBtnCard"><?= _("Delegate")?></button>' : '' ) + 
+					   ( false && usr == record.user ?	'<button type="button" class="dashBtnCard chownSynTplBtnCard"  style="white-space:nowrap;"><?= _("Chg Owner")?></button>' : '' ) + 
+					  ( false && record.ownership == 'private' && usr == record.user ? '<button type="button" class="dashBtnCard publSynTplBtnCard" style="white-space:nowrap;"><?= _("Make Public")?></button>' : '' ) + 
+					  ( record.ownership == 'private' && ( usr == record.user || loggedRole == 'RootAdmin' ) ? '<button type="button" class="dashBtnCard delSynTplBtnCard"><?= _("Delete")?></button>' : '' ) + 
+					  ( false && record.ownership == 'public' && usr == record.user ? '<button type="button" class="dashBtnCard mkPvtSynTplBtnCard" style="white-space:nowrap;"><?= _("Make Private")?></button>' : '' ) + 
 				  '</div>' +  
 			   '</div>' +
 			'</div>';   
@@ -701,7 +658,7 @@
             $.ajax({
                 url: "../controllers/getSynopticTemplates.php",
                 data: {
-                    // orgFilter: "<?= @$_SESSION['loggedOrganization'] ?>",
+                    orgFilter: "<?= @$_SESSION['loggedOrganization'] ?>",
                     param: param,
                     role: loggedRole
                 },
@@ -846,600 +803,680 @@
                         }
                       });
                       
+                      var dynatable = $('#list_dashboard_cards').data('dynatable');
+                      dynatable.sorts.clear();
+                      dynatable.sorts.add('sub_nature', 1); // 1=ASCENDING, -1=DESCENDING
+                      dynatable.process();
+                      
 					  
-					  
-						  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
-						  $('#dashboardListsCardsSort i.dashboardsListSort').eq(0).click(function(){
-							  var dynatable = $('#list_dashboard_cards').data('dynatable');
-							  dynatable.sorts.clear();
+                      $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
+                      $('#dashboardListsCardsSort i.dashboardsListSort').eq(0).click(function(){
+                          var dynatable = $('#list_dashboard_cards').data('dynatable');
+                          dynatable.sorts.clear();
 							  dynatable.sorts.add('unique_name_id', 1); // 1=ASCENDING, -1=DESCENDING
-							  dynatable.process();
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(0, 162, 211, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
-							  
-								  //
-								  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(0, 162, 211, 1)');
-								$('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
-							  
-								$('#dashboardListsCardsSort').eq(2).off('mouseover');
-								$('#dashboardListsCardsSort').eq(3).off('mouseover');
-								$('#dashboardListsCardsSort').eq(2).off('mouseout');
-								$('#dashboardListsCardsSort').eq(3).off('mouseout');
+                          dynatable.process();
+                          $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(0, 162, 211, 1)');
+                          $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
+                      });
+                      
+                      $('#dashboardListsCardsSort i.dashboardsListSort').eq(1).click(function(){
+                          var dynatable = $('#list_dashboard_cards').data('dynatable');
+                          dynatable.sorts.clear();
+                          dynatable.sorts.add('sub_nature', -1); // 1=ASCENDING, -1=DESCENDING
+                          dynatable.process();
+                          $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
+                          $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(255, 204, 0, 1)');
+                      });
 
-								 $('#dashboardListsCardsSort').eq(2).hover(function(){
-									 $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(255, 204, 0, 1)');
-								 }, function(){
-									 $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(0, 162, 211, 1)');
-								 });
+                    // Toggle-Button for Filtering by Organization
+                    if (loggedRole == "RootAdmin") {
+                        if (!location.href.includes("AllOrgs")) {
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", true);
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
+                        } else {
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", false);
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
+                        }
+                    }
 
-								 $('#dashboardListsCardsSort').eq(3).hover(function(){
-									 $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(255, 204, 0, 1)');
-								 }, function(){
-									 $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
-								 });
-								 //
-							 
-						  });
-						  
-						  $('#dashboardListsCardsSort i.dashboardsListSort').eq(1).click(function(){
-							  var dynatable = $('#list_dashboard_cards').data('dynatable');
-							  dynatable.sorts.clear();
-							  dynatable.sorts.add('unique_name_id', -1); // 1=ASCENDING, -1=DESCENDING
-							  dynatable.process();
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(1).css('background-color', 'rgba(255, 204, 0, 1)');
-							  
-							  //
-							  $('#dashboardListsCardsSort').eq(2).off('mouseover');
-							$('#dashboardListsCardsSort').eq(3).off('mouseover');
-							$('#dashboardListsCardsSort').eq(2).off('mouseout');
-							$('#dashboardListsCardsSort').eq(3).off('mouseout');
+                    $('#dashboardListsCardsOrgsSort i.dashboardsListSort').eq(0).click(function(){
 
-							 $('#dashboardListsCardsSort').eq(2).hover(function(){
-								 $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(255, 204, 0, 1)');
-							 }, function(){
-								 $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(0, 162, 211, 1)');
-							 });
+                        if($('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active") === "true")
+                        {
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", "false");
+                            location.href = "../management/synopticTemplates.php?linkId=externalServicesList&fromSubmenu=false&sorts[title_header]=1&param=AllOrgs&pageTitle=" + $('#headerTitleCnt')[0].innerText;
+                        }
+                        else
+                        {
+                            $('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", "true");
+                            location.href = "../management/synopticTemplates.php?linkId=externalServicesList&fromSubmenu=false&sorts[title_header]=1&pageTitle=" + $('#headerTitleCnt')[0].innerText;
+                        }
+                    });				
 
-							 $('#dashboardListsCardsSort').eq(3).hover(function(){
-								 $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(255, 204, 0, 1)');
-							 }, function(){
-								 $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
-							 });
-							 //
-							 
-						  });
-						  
-						  //
-						  $('#dashboardListsCardsSort').eq(2).off('mouseover');
-					  $('#dashboardListsCardsSort').eq(3).off('mouseover');
-					  $('#dashboardListsCardsSort').eq(2).off('mouseout');
-					  $('#dashboardListsCardsSort').eq(3).off('mouseout');
-					  
-					   $('#dashboardListsCardsSort').eq(2).hover(function(){
-						   $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(255, 204, 0, 1)');
-					   }, function(){
-						   $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(0, 162, 211, 1)');
-					   });
-					   
-					   $('#dashboardListsCardsSort').eq(3).hover(function(){
-						   $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(255, 204, 0, 1)');
-					   }, function(){
-						   $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
-					   });
-					  
-					  $('#dashboardListsCardsSort i.dashboardsListSort').eq(2).click(function(){
-						  var dynatable = $('#list_dashboard_cards').data('dynatable');
-						  
-						  if($(this).attr("data-active") === "false")
-						  {
-							  $(this).attr("data-active", "true");
-							  $('#dashboardListsCardsSort i.dashboardsListSort').eq(3).attr("data-active", "false");
-							  dynatable.queries.runSearch("My own");
-							  $('#dynatable-query-search-list_dashboard_cards').val("");
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(255, 204, 0, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(4).css('background-color', 'rgba(0, 162, 211, 1)');
-						  }
-						  else
-						  {
-							  $(this).attr("data-active", "false");
-							  dynatable.queries.runSearch("");
-							  $('#dynatable-query-search-list_dashboard_cards').val("");
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(0, 162, 211, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(4).css('background-color', 'rgba(0, 162, 211, 1)');
-						  }
-					  });
-					  
-					  $('#dashboardListsCardsSort i.dashboardsListSort').eq(3).click(function(){
-						  var dynatable = $('#list_dashboard_cards').data('dynatable');
-						  if($(this).attr("data-active") === "false")
-						  {
-							  $(this).attr("data-active", "true");
-							  $('#dashboardListsCardsSort i.dashboardsListSort').eq(2).attr("data-active", "false");
-							  dynatable.queries.runSearch("Public");
-							  $('#dynatable-query-search-list_dashboard_cards').val("");
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(0, 162, 211, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(255, 204, 0, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(4).css('background-color', 'rgba(0, 162, 211, 1)');
-						  }
-						  else
-						  {
-							  $(this).attr("data-active", "false");
-							  dynatable.queries.runSearch("");
-							  $('#dynatable-query-search-list_dashboard_cards').val("");
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(0, 162, 211, 1)');
-							  $('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(4).css('background-color', 'rgba(0, 162, 211, 1)');
-						  }
-					  });
-
-					$('#dashboardListsCardsSort i.dashboardsListSort').eq(4).click(function(){
-						var dynatable = $('#list_dashboard_cards').data('dynatable');
-						if($(this).attr("data-active") === "false")
-						{
-							$(this).attr("data-active", "true");
-							$('#dashboardListsCardsSort i.dashboardsListSort').eq(2).attr("data-active", "false");
-							dynatable.queries.runSearch("Delegated by");
-							$('#dynatable-query-search-list_dashboard_cards').val("");
-							$('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(0, 162, 211, 1)');
-							$('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
-							$('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(4).css('background-color', 'rgba(255, 204, 0, 1)');
-						}
-						else
-						{
-							$(this).attr("data-active", "false");
-							dynatable.queries.runSearch("");
-							$('#dynatable-query-search-list_dashboard_cards').val("");
-							$('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(3).css('background-color', 'rgba(0, 162, 211, 1)');
-							$('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(2).css('background-color', 'rgba(0, 162, 211, 1)');
-							$('#dashboardListsCardsSort div.dashboardsListSortBtnCnt').eq(4).css('background-color', 'rgba(0, 162, 211, 1)');
-						}
+					$('.updSynTplBtnCard').off('click');
+					$('.updSynTplBtnCard').click(function() {
+						var name = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
+						var nature = $(this).parents('div.dashboardsListCardDiv').attr('data-nature');
+						var subnature = $(this).parents('div.dashboardsListCardDiv').attr('data-subnature');
+						location.href = 'synopticTemplatesForm.php?name='+encodeURIComponent(name)+"&nature="+encodeURIComponent(nature)+"&subnature="+encodeURIComponent(subnature);
 					});
-					//
-
-						// Toggle-Button for Filtering by Organization
-						if (loggedRole == "RootAdmin") {
-							if (!location.href.includes("AllOrgs")) {
-								$('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", true);
-								$('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).css('background-color', 'rgba(255, 204, 0, 1)');
-							} else {
-								$('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", false);
-								$('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).css('background-color', 'rgba(0, 162, 211, 1)');
-							}
-						}
-
-						$('#dashboardListsCardsOrgsSort i.dashboardsListSort').eq(0).click(function(){
-
-							if($('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active") === "true")
-							{
-								$('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", "false");
-								location.href = "../management/synopticTemplates.php?linkId=externalServicesList&fromSubmenu=false&sorts[title_header]=1&param=AllOrgs&pageTitle=" + $('#headerTitleCnt')[0].innerText;
-							}
-							else
-							{
-								$('#dashboardListsCardsOrgsSort div.dashboardsListSortOrgsBtnCnt').eq(0).attr("data-active", "true");
-								location.href = "../management/synopticTemplates.php?linkId=externalServicesList&fromSubmenu=false&sorts[title_header]=1&pageTitle=" + $('#headerTitleCnt')[0].innerText;
-							}
-						});	
-
-					$('#list_dashboard_cards').bind('dynatable:afterProcess', function(e, dynatable){ 						
-
-						$('.updSynTplBtnCard').off('click');
-						$('.updSynTplBtnCard').click(function() {
-							var name = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
-							var nature = $(this).parents('div.dashboardsListCardDiv').attr('data-nature');
-							var subnature = $(this).parents('div.dashboardsListCardDiv').attr('data-subnature');
-							location.href = 'synopticTemplatesForm.php?name='+encodeURIComponent(name)+"&nature="+encodeURIComponent(nature)+"&subnature="+encodeURIComponent(subnature);
-						});
-						
-						$('.publSynTplBtnCard').off('click');
-						$('.publSynTplBtnCard').click(function() {
-							if(confirm('Make '+$(this).parents('div.dashboardsListCardDiv').attr('data-title')+" public? Public templates cannot be edited.")) {
-								var tplId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
-								$.ajax({
-									url: "../controllers/changeSynopticTplVisibility.php",
-									data: {
-										id: tplId,
-										newVisibility: "public"
-									},
-									type: "GET",
-									async: true,
-									dataType: 'json',
-									success: function(data) {
-										if(data.detail == 'Ok') {
-											location.reload();
-										}
-										else {
-											alert("ERROR! The template could not be made public.");
-										}
-									},
-									error: function(errorData) {
-										alert("ERROR! The template could not be made public.");
-									}
-								});
-							}
-						});
-						
-						$('.mkPvtSynTplBtnCard').off('click');
-						$('.mkPvtSynTplBtnCard').click(function() {						
+					
+					$('.publSynTplBtnCard').off('click');
+					$('.publSynTplBtnCard').click(function() {
+						if(confirm('Make '+$(this).parents('div.dashboardsListCardDiv').attr('data-title')+" public? Public templates cannot be edited.")) {
 							var tplId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
-							var tplName = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
-							
 							$.ajax({
-								url: "../controllers/getSynoptics.php",
+								url: "../controllers/changeSynopticTplVisibility.php",
 								data: {
-									//orgFilter: "<?= @$_SESSION['loggedOrganization'] ?>",
-									param: param,
-									role: loggedRole
+									id: tplId,
+									newVisibility: "public"
 								},
 								type: "GET",
 								async: true,
 								dataType: 'json',
-								success: function(data) 
-								{
-									var inUse = false;
-									data.applications.forEach(function(synoptic){
-										if(synoptic.low_level_type == tplName && synoptic.ownership == "public") {
-											inUse = true;
-										}
-									});
-									if(inUse) {
-										alert("Public synoptics exist that use this template.\nPlease make them private first.");
-									}
-									else {		
-										if(confirm("Make "+tplName+" private?")) {
-											$.ajax({
-												url: "../controllers/changeSynopticTplVisibility.php",
-												data: {
-													id: tplId,
-													newVisibility: "private"
-												},
-												type: "GET",
-												async: true,
-												dataType: 'json',
-												success: function(data) {
-													if(data.detail == 'Ok') {
-														location.reload();
-													}
-													else {
-														alert("ERROR! The template could not be made public.");
-													}
-												},
-												error: function(errorData) {
-													alert("ERROR! The template could not be made public.");
-												}
-											});
-										}
-									}
-								}
-							});
-						});					
-						
-						
-						/*
-						$('.delSynTplBtnCard').off('click');
-						$('.delSynTplBtnCard').click(function() {
-							var tplId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
-							var tplTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');						
-							$.ajax({
-								url: "../controllers/getSynoptics.php",
-								data: {
-									orgFilter: "<?= @$_SESSION['loggedOrganization'] ?>",
-									param: param,
-									role: loggedRole
-								},
-								type: "GET",
-								async: true,
-								dataType: 'json',
-								success: function(data) 
-								{
-									var inUse = false;
-									data.applications.forEach(function(synoptic){
-										if(synoptic.low_level_type == tplTitle) {
-											inUse = true;
-										}
-									});
-									if(inUse) {
-										alert("The template is in use and it cannot be deleted.\nPlease delete its instances first.");
-									}
-									else {									
-										if(confirm('Delete '+tplTitle+"?")) {										
-											$.ajax({
-												url: "../controllers/deleteSynopticTemplate.php?id="+tplId,
-												type: "GET",
-												async: true,
-												success: function(data) {
-													if(data == 'Ok') {																							
-														location.reload(); 									
-													}
-													else {
-														alert("ERROR! The template could not be deleted.");
-													}
-												},
-												error: function(errorData) {
-													alert("ERROR! The template could not be deleted.");
-												}
-											});
-										}						
-									}
-								}
-							});						
-						});	
-						*/
-						$('.delSynTplBtnCard').off('click');
-						$('.delSynTplBtnCard').click(function() 
-						{
-							var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
-							var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
-							var dashboardUrl = $(this).parents('div.dashboardsListCardDiv').attr('data-url');
-							
-							$('#dashIdDelHidden').val(dashboardId);
-							$('#dashToDelName').html(dashboardTitle);
-							
-							$('#dashToDelPic').css("background-image", "url("+dashboardUrl+")");
-							$('#dashToDelPic').css("background-color", "white");
-							$('#dashToDelPic').css("background-size", "auto auto");
-							$('#dashToDelPic').css("background-repeat", "no-repeat");
-							$('#dashToDelPic').css("background-position", "center center");
-							$('#modalDelDash').modal('show');
-						});
-						
-						$('.delegateSynTplBtnCard').off('click');
-						$('.delegateSynTplBtnCard').click(function() {
-							var synId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');		
-							var synTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');								
-							var delegateUser = prompt("Grant/Revoke delegation for "+synTitle+" to (username):","");
-							if(!delegateUser) return;						
-							$.ajax({
-								url: "../controllers/getSynopticTplDelegations.php?id="+synId,
-								type: "GET",
-								async: true,
-								dataType: 'json',
-								success: function(delegations) {								
-									if(!delegations) {
-										alert("DELEGATION ERROR");
-										return;
-									}
-									var delegationId = null;
-									delegations.forEach(function(delegation){
-										if(delegation.delegatedUser == delegateUser) {
-											delegationId = delegation.delegationId;
-										}
-									});
-									if(delegationId) {
-										$.ajax({
-											url: "../controllers/delSynopticTplDelegation.php",
-											data: {
-												id: synId,
-												delegationId: delegationId
-											},
-											type: "GET",
-											async: true,
-											dataType: 'json',
-											success: function(response) {
-												if(response.detail == "Ok") {
-													alert("DELEGATION REVOKED\nTemplate: "+synTitle+"\nUser: "+delegateUser); 
-												}
-												else {
-													alert("DELEGATION ERROR");
-												}
-											},
-											error: function(err) {
-												alert("DELEGATION ERROR");
-											}
-										});							
-									}
-									else {
-										$.ajax({
-											url: "../controllers/addSynopticTplDelegation.php?id="+synId+"&newDelegated="+delegateUser, 
-											type: "GET",
-											async: true,
-											dataType: 'json',
-											success: function(response) {
-												if(response.detail == "Ok") {
-													alert("DELEGATION GRANTED\nTemplate: "+synTitle+"\nUsername: "+delegateUser);
-												}
-												else {
-													alert("DELEGATION ERROR");
-												}
-											},
-											error: function(err) {
-												alert("DELEGATION ERROR");
-											}
-										});	
-									}
-								},
-								error: function(err) { 
-									alert("DELEGATION ERROR");
-								}
-							});
-							
-						});
-						
-						$('.chownSynTplBtnCard').off('click');
-						$('.chownSynTplBtnCard').click(function() {
-							var tplId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');		
-							var tplTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');								
-							var newOwner = prompt("The new owner of "+tplTitle+" is (username):","");
-							if(!newOwner) return;						
-							$.ajax({
-								url: "../controllers/changeSynopticTplOwnership.php?id="+encodeURIComponent(tplId)+"&newOwner="+encodeURIComponent(newOwner)+"&tplTitle="+encodeURIComponent(tplTitle),
-								type: "GET",
-								async: true,
-								dataType: 'json',
-								success: function(response) {		
-									if(response.detail == 'Ok') {
-										alert("Ownership changed.");
+								success: function(data) {
+									if(data.detail == 'Ok') {
 										location.reload();
 									}
 									else {
-										alert("ERROR! OWNERSHIP WAS NOT CHANGED.");
+										alert("ERROR! The template could not be made public.");
 									}
 								},
-								error: function(err) {
+								error: function(errorData) {
+									alert("ERROR! The template could not be made public.");
+								}
+							});
+						}
+					});
+					
+					$('.mkPvtSynTplBtnCard').off('click');
+					$('.mkPvtSynTplBtnCard').click(function() {						
+						var tplId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
+						var tplName = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
+						
+						$.ajax({
+							url: "../controllers/getSynoptics.php",
+							data: {
+								orgFilter: "<?= @$_SESSION['loggedOrganization'] ?>",
+								param: param,
+								role: loggedRole
+							},
+							type: "GET",
+							async: true,
+							dataType: 'json',
+							success: function(data) 
+							{
+								var inUse = false;
+								data.applications.forEach(function(synoptic){
+									if(synoptic.low_level_type == tplName && synoptic.ownership == "public") {
+										inUse = true;
+									}
+								});
+								if(inUse) {
+									alert("Public synoptics exist that use this template.\nPlease make them private first.");
+								}
+								else {		
+									if(confirm("Make "+tplName+" private?")) {
+										$.ajax({
+											url: "../controllers/changeSynopticTplVisibility.php",
+											data: {
+												id: tplId,
+												newVisibility: "private"
+											},
+											type: "GET",
+											async: true,
+											dataType: 'json',
+											success: function(data) {
+												if(data.detail == 'Ok') {
+													location.reload();
+												}
+												else {
+													alert("ERROR! The template could not be made public.");
+												}
+											},
+											error: function(errorData) {
+												alert("ERROR! The template could not be made public.");
+											}
+										});
+									}
+								}
+							}
+						});
+					});					
+					
+					
+					/*
+					$('.delSynTplBtnCard').off('click');
+					$('.delSynTplBtnCard').click(function() {
+						var tplId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
+						var tplTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');						
+						$.ajax({
+							url: "../controllers/getSynoptics.php",
+							data: {
+								orgFilter: "<?= @$_SESSION['loggedOrganization'] ?>",
+								param: param,
+								role: loggedRole
+							},
+							type: "GET",
+							async: true,
+							dataType: 'json',
+							success: function(data) 
+							{
+								var inUse = false;
+								data.applications.forEach(function(synoptic){
+									if(synoptic.low_level_type == tplTitle) {
+										inUse = true;
+									}
+								});
+								if(inUse) {
+									alert("The template is in use and it cannot be deleted.\nPlease delete its instances first.");
+								}
+								else {									
+									if(confirm('Delete '+tplTitle+"?")) {										
+										$.ajax({
+											url: "../controllers/deleteSynopticTemplate.php?id="+tplId,
+											type: "GET",
+											async: true,
+											success: function(data) {
+												if(data == 'Ok') {																							
+													location.reload(); 									
+												}
+												else {
+													alert("ERROR! The template could not be deleted.");
+												}
+											},
+											error: function(errorData) {
+												alert("ERROR! The template could not be deleted.");
+											}
+										});
+									}						
+								}
+							}
+						});						
+					});	
+					*/
+					$('.delSynTplBtnCard').off('click');
+					$('.delSynTplBtnCard').click(function() 
+					{
+						var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
+						var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
+						var dashboardUrl = $(this).parents('div.dashboardsListCardDiv').attr('data-url');
+						
+						$('#dashIdDelHidden').val(dashboardId);
+						$('#dashToDelName').html(dashboardTitle);
+						
+						$('#dashToDelPic').css("background-image", "url("+dashboardUrl+")");
+						$('#dashToDelPic').css("background-color", "white");
+						$('#dashToDelPic').css("background-size", "auto auto");
+						$('#dashToDelPic').css("background-repeat", "no-repeat");
+						$('#dashToDelPic').css("background-position", "center center");
+						$('#modalDelDash').modal('show');
+					});
+					
+					$('.delegateSynTplBtnCard').off('click');
+					$('.delegateSynTplBtnCard').click(function() {
+						var synId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');		
+						var synTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');								
+						var delegateUser = prompt("Grant/Revoke delegation for "+synTitle+" to (username):","");
+						if(!delegateUser) return;						
+						$.ajax({
+							url: "../controllers/getSynopticTplDelegations.php?id="+synId,
+							type: "GET",
+							async: true,
+							dataType: 'json',
+							success: function(delegations) {								
+								if(!delegations) {
+									alert("DELEGATION ERROR");
+									return;
+								}
+								var delegationId = null;
+								delegations.forEach(function(delegation){
+									if(delegation.delegatedUser == delegateUser) {
+										delegationId = delegation.delegationId;
+									}
+								});
+								if(delegationId) {
+									$.ajax({
+										url: "../controllers/delSynopticTplDelegation.php",
+										data: {
+											id: synId,
+											delegationId: delegationId
+										},
+										type: "GET",
+										async: true,
+										dataType: 'json',
+										success: function(response) {
+											if(response.detail == "Ok") {
+												alert("DELEGATION REVOKED\nTemplate: "+synTitle+"\nUser: "+delegateUser); 
+											}
+											else {
+												alert("DELEGATION ERROR");
+											}
+										},
+										error: function(err) {
+											alert("DELEGATION ERROR");
+										}
+									});							
+								}
+								else {
+									$.ajax({
+										url: "../controllers/addSynopticTplDelegation.php?id="+synId+"&newDelegated="+delegateUser, 
+										type: "GET",
+										async: true,
+										dataType: 'json',
+										success: function(response) {
+											if(response.detail == "Ok") {
+												alert("DELEGATION GRANTED\nTemplate: "+synTitle+"\nUsername: "+delegateUser);
+											}
+											else {
+												alert("DELEGATION ERROR");
+											}
+										},
+										error: function(err) {
+											alert("DELEGATION ERROR");
+										}
+									});	
+								}
+							},
+							error: function(err) { 
+								alert("DELEGATION ERROR");
+							}
+						});
+						
+					});
+					
+					$('.chownSynTplBtnCard').off('click');
+					$('.chownSynTplBtnCard').click(function() {
+						var tplId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');		
+						var tplTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');								
+						var newOwner = prompt("The new owner of "+tplTitle+" is (username):","");
+						if(!newOwner) return;						
+						$.ajax({
+							url: "../controllers/changeSynopticTplOwnership.php?id="+encodeURIComponent(tplId)+"&newOwner="+encodeURIComponent(newOwner)+"&tplTitle="+encodeURIComponent(tplTitle),
+							type: "GET",
+							async: true,
+							dataType: 'json',
+							success: function(response) {		
+								if(response.detail == 'Ok') {
+									alert("Ownership changed.");
+									location.reload();
+								}
+								else {
 									alert("ERROR! OWNERSHIP WAS NOT CHANGED.");
 								}
-							});	
-						});				
-						
-						////
+							},
+							error: function(err) {
+								alert("ERROR! OWNERSHIP WAS NOT CHANGED.");
+							}
+						});	
+					});				
+					
+					////
 
-						$('.mgmtDashBtnCard').off('click');
-						$('.mgmtDashBtnCard').click(function() 
+					$('.mgmtDashBtnCard').off('click');
+					$('.mgmtDashBtnCard').click(function() 
+					{
+						console.log("entered");
+						$('#delegationsTable tbody').empty();
+						$('#groupDelegationsTable tbody').empty();
+						var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
+						var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
+						var dashboardUrl = $(this).parents('div.dashboardsListCardDiv').attr('data-url');
+
+						$('#delegationsDashId').val(dashboardId);
+						$('#delegationsDashboardTitle').html(dashboardTitle);
+						if($(this).parents('div.dashboardsListCardDiv').find('div.dashboardsListCardVisibilityDiv').html().includes('Public'))
 						{
-							console.log("entered");
-							$('#delegationsTable tbody').empty();
-							$('#groupDelegationsTable tbody').empty();
-							var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
-							var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
-							var dashboardUrl = $(this).parents('div.dashboardsListCardDiv').attr('data-url');
-							
-							<?php if("RootAdmin" == $_SESSION["loggedRole"]) { ?>
-							// new organization 
-							var currOrg = $(this).parents('div.dashboardsListCardDiv').attr('data-org');
-							$.ajax({
-								url: "../api/organizations.php",
-								type: "GET",
-								async: true,
-								dataType: 'json',
-								success: function(orgs) {
-									orgs.forEach(function(org){
-										$('#newOrganization').append('<option value="'+org.organizationName+'" '+( currOrg == org.organizationName ? "selected" : "" )+'>'+org.organizationName+'</option>');									
-									});									
-								}
-							});
-							$("#newOrganizationConfirmBtn").on("click",function(){
-								$.ajax({
-									url: "../controllers/doChangeOrg.php?elmtType=SynopticTemplate&elmtId="+dashboardId+"&newOrg="+$('#newOrganization').val(),
-									type: "GET",
-									async: true,
-									success: function(res) {
-										$("#newOrganizationResultMsg").show();
-										$("#newOrganizationResultMsg").html("Organization saved successfully");
-										setTimeout(function() { location.reload(); }, 1250);
-									},
-									error: function(errMsg) {
-										$("#newOrganizationResultMsg").show();
-										$("#newOrganizationResultMsg").html("Error: the organization could not be saved");
-									}
-									
-								});
-							});
-							////
-							<?php } ?>							
-
-							$('#delegationsDashId').val(dashboardId);
-							$('#delegationsDashboardTitle').html(dashboardTitle);
-							if($(this).parents('div.dashboardsListCardDiv').find('div.dashboardsListCardVisibilityDiv').html().includes('Public'))
+							$('#newVisibility').val('public');
+							$('#delegationsFormRow').hide();
+							$('#groupDelegationsFormRow').hide();
+							$('#delegationsNotAvailableRow').show();
+							$('#groupDelegationsNotAvailableRow').show();
+						}
+						else
+						{
+							$('#newVisibility').val('private');
+							$('#delegationsNotAvailableRow').hide();
+							$('#groupDelegationsNotAvailableRow').hide();
+							$('#delegationsFormRow').show();
+							$('#groupDelegationsFormRow').show();
+						}
+						
+						$('#delegationsDashPic').css("background-image", "url("+dashboardUrl+")");
+						$('#delegationsDashPic').css("background-color", "white");
+						$('#delegationsDashPic').css("background-size", "100% auto");
+						$('#delegationsDashPic').css("background-repeat", "no-repeat");
+						$('#delegationsDashPic').css("background-position", "center center");
+						
+						$('#newOwner').val('');
+						$('#newOwner').off('input');
+						$('#newOwner').on('input',function(e)
+						{
+							if($(this).val().trim() === '')
 							{
-								$('#newVisibility').val('public');
-								$('#delegationsFormRow').hide();
-								$('#groupDelegationsFormRow').hide();
-								$('#delegationsNotAvailableRow').show();
-								$('#groupDelegationsNotAvailableRow').show();
+								$('#newOwnerMsg').css('color', '#f3cf58');
+								$('#newOwnerMsg').html('New owner username can\'t be empty');
+								$('#newOwnershipConfirmBtn').addClass('disabled');
 							}
 							else
 							{
-								$('#newVisibility').val('private');
-								$('#delegationsNotAvailableRow').hide();
-								$('#groupDelegationsNotAvailableRow').hide();
-								$('#delegationsFormRow').show();
-								$('#groupDelegationsFormRow').show();
-							}
-							
-							$('#delegationsDashPic').css("background-image", "url("+dashboardUrl+")");
-							$('#delegationsDashPic').css("background-color", "white");
-							$('#delegationsDashPic').css("background-size", "100% auto");
-							$('#delegationsDashPic').css("background-repeat", "no-repeat");
-							$('#delegationsDashPic').css("background-position", "center center");
-							
-							$('#newOwner').val('');
-							$('#newOwner').off('input');
-							$('#newOwner').on('input',function(e)
-							{
-								if($(this).val().trim() === '')
+								if(($(this).val().trim() === "<?= @$_SESSION['loggedUsername'] ?: '' ?>")&&("<?= @$_SESSION['loggedRole'] ?>" !== "RootAdmin"))
 								{
 									$('#newOwnerMsg').css('color', '#f3cf58');
-									$('#newOwnerMsg').html('New owner username can\'t be empty');
+									$('#newOwnerMsg').html('New owner can\'t be you');
 									$('#newOwnershipConfirmBtn').addClass('disabled');
 								}
 								else
 								{
-									if(($(this).val().trim() === "<?= @$_SESSION['loggedUsername'] ?: '' ?>")&&("<?= @$_SESSION['loggedRole'] ?>" !== "RootAdmin"))
-									{
-										$('#newOwnerMsg').css('color', '#f3cf58');
-										$('#newOwnerMsg').html('New owner can\'t be you');
-										$('#newOwnershipConfirmBtn').addClass('disabled');
-									}
-									else
-									{
-										$('#newOwnerMsg').css('color', 'white');
-										$('#newOwnerMsg').html('User can be new owner');
-										$('#newOwnershipConfirmBtn').removeClass('disabled');
+									$('#newOwnerMsg').css('color', 'white');
+									$('#newOwnerMsg').html('User can be new owner');
+									$('#newOwnershipConfirmBtn').removeClass('disabled');
+								}
+							}
+						});
+
+						$('#newDelegation').val('');
+						$('#newDelegation').off('input');
+						$('#newDelegation').on('input',function(e)
+						{
+							if($(this).val().trim() === '')
+							{
+								$('#newDelegatedMsg').css('color', '#f3cf58');
+								$('#newDelegatedMsg').html('Delegated username can\'t be empty');
+								$('#newDelegationConfirmBtn').addClass('disabled');
+							}
+							else
+							{
+								$('#newDelegatedMsg').css('color', 'white');
+								$('#newDelegatedMsg').html('User can be delegated');
+								$('#newDelegationConfirmBtn').removeClass('disabled');
+								
+								$('#delegationsTable tbody tr').each(function(i)
+								{
+								   if($(this).attr('data-delegated').trim() === $('#newDelegation').val())
+								   {
+									   $('#newDelegatedMsg').css('color', '#f3cf58');
+									   $('#newDelegatedMsg').html('User already delegated');
+									   $('#newDelegationConfirmBtn').addClass('disabled');
+								   }
+								});
+
+							}
+						});
+						
+						$('#delegationsModal').modal('show');
+						
+						$.ajax({
+							url: "../controllers/getSynopticTplDelegations.php",
+							data: 
+							{
+								id: dashboardId
+							},
+							type: "GET",
+							async: true,
+							dataType: 'json',
+							success: function(data) 
+							{
+								for(var i = 0; i < data.length; i++)
+								{
+									if (data[i].delegatedUser != null && data[i].delegatedUser != undefined) {
+										$('#delegationsTable tbody').append('<tr class="delegationTableRow" data-delegationId="' + data[i].delegationId + '" data-delegated="' + data[i].delegatedUser + '"><td class="delegatedName">' + data[i].delegatedUser + '</td><td><i class="fa fa-remove removeDelegationBtn"></i></td></tr>');
+									} else if (data[i].delegatedGroup != null && data[i].delegatedGroup != undefined) {
+										$('#groupDelegationsTable tbody').append('<tr class="groupDelegationTableRow" data-delegationId="' + data[i].delegationId + '" data-delegated="' + data[i].delegatedGroup + '"><td class="delegatedName">' + data[i].delegatedGroup + '</td><td><i class="fa fa-remove removeDelegationBtn"></i></td></tr>');
 									}
 								}
-							});
+								
+								$('#delegationsTable tbody .removeDelegationBtn').click(function(){
+									var rowToRemove = $(this).parents('tr');
+									$.ajax({
+										url: "../controllers/delSynopticTplDelegation.php",
+										data: 
+										{
+											id: dashboardId,
+											delegationId: $(this).parents('tr').attr('data-delegationId')
+										},
+										type: "POST",
+										async: true,
+										dataType: 'json',
+										success: function(data) 
+										{
+											if(data.detail === 'Ok')
+											{
+												rowToRemove.remove();
+											}
+											else
+											{
+												//TBD
+											}
+										},
+										error: function(errorData)
+										{
+										   //TBD
+											console.log("Del Synoptic Template ko: " + errorData);
+											console.log(JSON.stringify(errorData));
+										}
+									});
+								});
 
-							$('#newDelegation').val('');
-							$('#newDelegation').off('input');
-							$('#newDelegation').on('input',function(e)
+								$('#groupDelegationsTable tbody .removeDelegationBtn').click(function(){
+									document.body.style.cursor = "wait";
+									var rowToRemove = $(this).parents('tr');
+									$.ajax({
+										url: "../controllers/delSynopticTplGroupDelegation.php",
+										data:
+											{
+												id: dashboardId,
+												delegationId: $(this).parents('tr').attr('data-delegationId')
+											},
+										type: "POST",
+										async: true,
+										dataType: 'json',
+										success: function(data)
+										{
+											document.body.style.cursor = "default";
+											if(data.detail === 'Ok')
+											{
+												rowToRemove.remove();
+											}
+											else
+											{
+												//TBD
+											}
+										},
+										error: function(errorData)
+										{
+											//TBD
+											document.body.style.cursor = "default";
+											console.log("Del Synoptic Template Delegation ko: " + errorData);
+											console.log(JSON.stringify(errorData));
+										}
+									});
+								});
+
+							},
+							error: function(errorData)
 							{
-								if($(this).val().trim() === '')
+								console.log("Get Synoptic Template Delegation ko: " + errorData);
+								console.log(JSON.stringify(errorData));
+							}
+						});
+					});					
+
+					$('#newOwnershipConfirmBtn').off('click');
+					$('#newOwnershipConfirmBtn').click(function(){
+						$.ajax({
+							url: "../controllers/changeSynopticTplOwnership.php",
+							data: 
+							{
+								id: $('#delegationsDashId').val(),
+								tplTitle: $('#delegationsDashboardTitle').html(),
+								newOwner: $('#newOwner').val().toLowerCase()
+							},
+							type: "POST",
+							async: true,
+							dataType: 'json',
+							success: function(data) 
+							{
+								if(data.detail === 'Ok')
 								{
-									$('#newDelegatedMsg').css('color', '#f3cf58');
-									$('#newDelegatedMsg').html('Delegated username can\'t be empty');
-									$('#newDelegationConfirmBtn').addClass('disabled');
+									$('#newOwner').val('');
+									$('#newOwner').addClass('disabled');
+									$('#newOwnershipResultMsg').show();
+									$('#newOwnershipResultMsg').html('New ownership set correctly');
+									$('#newOwnershipResultMsg').css('color', 'white');
+									$('#newOwnershipConfirmBtn').addClass('disabled');
+									
+									setTimeout(function()
+									{
+										location.reload();
+									}, 1250);
+								}
+								else if (data.detail === 'checkUserKo')
+								{
+									$('#newOwner').addClass('disabled');
+									$('#newOwnershipResultMsg').show();
+									$('#newOwnershipResultMsg').html('Error: New owner does not exists or it is not a valid LDAP user');
+									$('#newOwnershipResultMsg').css('color', '#f3cf58');
+									$('#newOwnershipConfirmBtn').addClass('disabled');
+
+									setTimeout(function()
+									{
+										$('#newOwner').removeClass('disabled');
+										$('#newOwnershipResultMsg').html('');
+										$('#newOwnershipResultMsg').hide();
+									}, 1750);
+								}
+								else if (data.detail === 'ApiCallKo1')
+								{
+									$('#newOwner').addClass('disabled');
+									$('#newOwnershipResultMsg').show();
+									$('#newOwnershipResultMsg').html('Error: New owner has exceeded his limits for synoptic templates ownership');
+									$('#newOwnershipResultMsg').css('color', '#f3cf58');
+									$('#newOwnershipConfirmBtn').addClass('disabled');
+
+									setTimeout(function()
+									{
+										$('#newOwner').removeClass('disabled');
+										$('#newOwnershipResultMsg').html('');
+										$('#newOwnershipResultMsg').hide();
+									}, 1750);
 								}
 								else
 								{
-									$('#newDelegatedMsg').css('color', 'white');
-									$('#newDelegatedMsg').html('User can be delegated');
-									$('#newDelegationConfirmBtn').removeClass('disabled');
+									$('#newOwner').addClass('disabled');
+									$('#newOwnershipResultMsg').show();
+									$('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
+									$('#newOwnershipResultMsg').css('color', '#f3cf58');
+									$('#newOwnershipConfirmBtn').addClass('disabled');
 									
-									$('#delegationsTable tbody tr').each(function(i)
+									setTimeout(function()
 									{
-									   if($(this).attr('data-delegated').trim() === $('#newDelegation').val())
-									   {
-										   $('#newDelegatedMsg').css('color', '#f3cf58');
-										   $('#newDelegatedMsg').html('User already delegated');
-										   $('#newDelegationConfirmBtn').addClass('disabled');
-									   }
-									});
-
+										$('#newOwner').removeClass('disabled');
+										$('#newOwnershipResultMsg').html('');
+										$('#newOwnershipResultMsg').hide();
+									}, 1500);
 								}
-							});
-							
-							$('#delegationsModal').modal('show');
-							
-							$.ajax({
-								url: "../controllers/getSynopticTplDelegations.php",
-								data: 
+							},
+							error: function(errorData)
+							{
+								$('#newOwner').addClass('disabled');
+								$('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
+								$('#newOwnershipConfirmBtn').addClass('disabled');
+
+								setTimeout(function()
 								{
-									id: dashboardId
-								},
-								type: "GET",
-								async: true,
-								dataType: 'json',
-								success: function(data) 
+									$('#newOwner').removeClass('disabled');
+									$('#newOwnershipResultMsg').html('');
+									$('#newOwnershipResultMsg').hide();
+								}, 1500);
+							}
+						});
+					});					
+					
+					$('#newVisibilityConfirmBtn').off('click');
+					$('#newVisibilityConfirmBtn').click(function(){
+						var tplName = $('#delegationsDashboardTitle').html();							
+						$.ajax({
+							url: "../controllers/changeSynopticTplVisibility.php",
+							data: 
+							{
+								id: $('#delegationsDashId').val(),
+								tplTitle: $('#delegationsDashboardTitle').html(),
+								newVisibility: $('#newVisibility').val()
+							},
+							type: "POST",
+							async: true,
+							dataType: 'json',
+							success: function(data) 
+							{
+								if(data.detail === 'Ok')
 								{
-									for(var i = 0; i < data.length; i++)
-									{
-										if (data[i].delegatedUser != null && data[i].delegatedUser != undefined) {
-											$('#delegationsTable tbody').append('<tr class="delegationTableRow" data-delegationId="' + data[i].delegationId + '" data-delegated="' + data[i].delegatedUser + '"><td class="delegatedName">' + data[i].delegatedUser + '</td><td><i class="fa fa-remove removeDelegationBtn"></i></td></tr>');
-										} else if (data[i].delegatedGroup != null && data[i].delegatedGroup != undefined) {
-											$('#groupDelegationsTable tbody').append('<tr class="groupDelegationTableRow" data-delegationId="' + data[i].delegationId + '" data-delegated="' + data[i].delegatedGroup + '"><td class="delegatedName">' + data[i].delegatedGroup + '</td><td><i class="fa fa-remove removeDelegationBtn"></i></td></tr>');
-										}
-									}
+									$('#newVisibilityResultMsg').show();
+									$('#newVisibilityResultMsg').html('New visibility set correctly');
+									$('#newVisibilityConfirmBtn').addClass('disabled');
 									
+									setTimeout(function()
+									{
+										location.reload();
+									}, 1250);
+								}
+								else
+								{
+									$('#newVisibilityResultMsg').show();
+									$('#newVisibilityResultMsg').html('Error setting new visibility');
+									$('#newVisibilityConfirmBtn').addClass('disabled');
+									
+									setTimeout(function()
+									{
+										$('#newVisibilityConfirmBtn').removeClass('disabled');
+										$('#newVisibilityResultMsg').html('');
+										$('#newVisibilityResultMsg').hide();
+									}, 1500);
+								}
+							},
+							error: function(errorData)
+							{
+								$('#newVisibilityResultMsg').show();
+								$('#newVisibilityResultMsg').html('Error setting new visibility');
+								$('#newVisibilityConfirmBtn').addClass('disabled');
+
+								setTimeout(function()
+								{
+									$('#newVisibilityConfirmBtn').removeClass('disabled');
+									$('#newVisibilityResultMsg').html('');
+									$('#newVisibilityResultMsg').hide();
+								}, 1500);
+							}
+						});
+						
+					});
+					
+					$('#newDelegationConfirmBtn').off('click');
+					$('#newDelegationConfirmBtn').click(function(){
+						$.ajax({
+							url: "../controllers/addSynopticTplDelegation.php",
+							data: 
+							{
+								id: $('#delegationsDashId').val(),
+								newDelegated: $('#newDelegation').val()
+							},
+							type: "POST",
+							async: true,
+							dataType: 'json',
+							success: function(data) 
+							{
+								if(data.detail === 'Ok')
+								{
+									$('#delegationsTable tbody').append('<tr class="delegationTableRow" data-delegationId="' + data.delegationId + '" data-delegated="' + $('#newDelegation').val() + '"><td class="delegatedName">' + $('#newDelegation').val() + '</td><td><i class="fa fa-remove removeDelegationBtn"></i></td></tr>');
+									
+									$('#delegationsTable tbody .removeDelegationBtn').off('click');
 									$('#delegationsTable tbody .removeDelegationBtn').click(function(){
 										var rowToRemove = $(this).parents('tr');
 										$.ajax({
 											url: "../controllers/delSynopticTplDelegation.php",
 											data: 
 											{
-												id: dashboardId,
+												id: $('#delegationsDashId').val(),
 												delegationId: $(this).parents('tr').attr('data-delegationId')
 											},
 											type: "POST",
@@ -1458,317 +1495,56 @@
 											},
 											error: function(errorData)
 											{
-											   //TBD
-												console.log("Del Synoptic Template ko: " + errorData);
-												console.log(JSON.stringify(errorData));
+											   //TBD     
 											}
 										});
 									});
-
-									$('#groupDelegationsTable tbody .removeDelegationBtn').click(function(){
-										document.body.style.cursor = "wait";
-										var rowToRemove = $(this).parents('tr');
-										$.ajax({
-											url: "../controllers/delSynopticTplGroupDelegation.php",
-											data:
-												{
-													id: dashboardId,
-													delegationId: $(this).parents('tr').attr('data-delegationId')
-												},
-											type: "POST",
-											async: true,
-											dataType: 'json',
-											success: function(data)
-											{
-												document.body.style.cursor = "default";
-												if(data.detail === 'Ok')
-												{
-													rowToRemove.remove();
-												}
-												else
-												{
-													//TBD
-												}
-											},
-											error: function(errorData)
-											{
-												//TBD
-												document.body.style.cursor = "default";
-												console.log("Del Synoptic Template Delegation ko: " + errorData);
-												console.log(JSON.stringify(errorData));
-											}
-										});
-									});
-
-								},
-								error: function(errorData)
-								{
-									console.log("Get Synoptic Template Delegation ko: " + errorData);
-									console.log(JSON.stringify(errorData));
-								}
-							});
-						});					
-
-						$('#newOwnershipConfirmBtn').off('click');
-						$('#newOwnershipConfirmBtn').click(function(){
-							$.ajax({
-								url: "../controllers/changeSynopticTplOwnership.php",
-								data: 
-								{
-									id: $('#delegationsDashId').val(),
-									tplTitle: $('#delegationsDashboardTitle').html(),
-									newOwner: $('#newOwner').val().toLowerCase()
-								},
-								type: "POST",
-								async: true,
-								dataType: 'json',
-								success: function(data) 
-								{
-									if(data.detail === 'Ok')
-									{
-										$('#newOwner').val('');
-										$('#newOwner').addClass('disabled');
-										$('#newOwnershipResultMsg').show();
-										$('#newOwnershipResultMsg').html('New ownership set correctly');
-										$('#newOwnershipResultMsg').css('color', 'white');
-										$('#newOwnershipConfirmBtn').addClass('disabled');
-										
-										setTimeout(function()
-										{
-											location.reload();
-										}, 1250);
-									}
-									else if (data.detail === 'checkUserKo')
-									{
-										$('#newOwner').addClass('disabled');
-										$('#newOwnershipResultMsg').show();
-										$('#newOwnershipResultMsg').html('Error: New owner does not exists or it is not a valid LDAP user');
-										$('#newOwnershipResultMsg').css('color', '#f3cf58');
-										$('#newOwnershipConfirmBtn').addClass('disabled');
-
-										setTimeout(function()
-										{
-											$('#newOwner').removeClass('disabled');
-											$('#newOwnershipResultMsg').html('');
-											$('#newOwnershipResultMsg').hide();
-										}, 1750);
-									}
-									else if (data.detail === 'ApiCallKo1')
-									{
-										$('#newOwner').addClass('disabled');
-										$('#newOwnershipResultMsg').show();
-										$('#newOwnershipResultMsg').html('Error: New owner has exceeded his limits for synoptic templates ownership');
-										$('#newOwnershipResultMsg').css('color', '#f3cf58');
-										$('#newOwnershipConfirmBtn').addClass('disabled');
-
-										setTimeout(function()
-										{
-											$('#newOwner').removeClass('disabled');
-											$('#newOwnershipResultMsg').html('');
-											$('#newOwnershipResultMsg').hide();
-										}, 1750);
-									}
-									else
-									{
-										$('#newOwner').addClass('disabled');
-										$('#newOwnershipResultMsg').show();
-										$('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
-										$('#newOwnershipResultMsg').css('color', '#f3cf58');
-										$('#newOwnershipConfirmBtn').addClass('disabled');
-										
-										setTimeout(function()
-										{
-											$('#newOwner').removeClass('disabled');
-											$('#newOwnershipResultMsg').html('');
-											$('#newOwnershipResultMsg').hide();
-										}, 1500);
-									}
-								},
-								error: function(errorData)
-								{
-									$('#newOwner').addClass('disabled');
-									$('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
-									$('#newOwnershipConfirmBtn').addClass('disabled');
-
+									
+									$('#newDelegation').val('');
+									$('#newDelegation').addClass('disabled');
+									$('#newDelegatedMsg').css('color', 'white');
+									$('#newDelegatedMsg').html('New delegation added correctly');
+									$('#newDelegationConfirmBtn').addClass('disabled');
+									
 									setTimeout(function()
 									{
-										$('#newOwner').removeClass('disabled');
-										$('#newOwnershipResultMsg').html('');
-										$('#newOwnershipResultMsg').hide();
-									}, 1500);
-								}
-							});
-						});					
-						
-						$('#newVisibilityConfirmBtn').off('click');
-						$('#newVisibilityConfirmBtn').click(function(){
-							var tplName = $('#delegationsDashboardTitle').html();							
-							$.ajax({
-								url: "../controllers/changeSynopticTplVisibility.php",
-								data: 
-								{
-									id: $('#delegationsDashId').val(),
-									tplTitle: $('#delegationsDashboardTitle').html(),
-									newVisibility: $('#newVisibility').val()
-								},
-								type: "POST",
-								async: true,
-								dataType: 'json',
-								success: function(data) 
-								{
-									if(data.detail === 'Ok')
-									{
-										$('#newVisibilityResultMsg').show();
-										$('#newVisibilityResultMsg').html('New visibility set correctly');
-										$('#newVisibilityConfirmBtn').addClass('disabled');
-										
-										setTimeout(function()
-										{
-											location.reload();
-										}, 1250);
-									}
-									else
-									{
-										$('#newVisibilityResultMsg').show();
-										$('#newVisibilityResultMsg').html('Error setting new visibility');
-										$('#newVisibilityConfirmBtn').addClass('disabled');
-										
-										setTimeout(function()
-										{
-											$('#newVisibilityConfirmBtn').removeClass('disabled');
-											$('#newVisibilityResultMsg').html('');
-											$('#newVisibilityResultMsg').hide();
-										}, 1500);
-									}
-								},
-								error: function(errorData)
-								{
-									$('#newVisibilityResultMsg').show();
-									$('#newVisibilityResultMsg').html('Error setting new visibility');
-									$('#newVisibilityConfirmBtn').addClass('disabled');
-
-									setTimeout(function()
-									{
-										$('#newVisibilityConfirmBtn').removeClass('disabled');
-										$('#newVisibilityResultMsg').html('');
-										$('#newVisibilityResultMsg').hide();
-									}, 1500);
-								}
-							});
-							
-						});
-						
-						$('#newDelegationConfirmBtn').off('click');
-						$('#newDelegationConfirmBtn').click(function(){
-							$.ajax({
-								url: "../controllers/addSynopticTplDelegation.php",
-								data: 
-								{
-									id: $('#delegationsDashId').val(),
-									newDelegated: $('#newDelegation').val()
-								},
-								type: "POST",
-								async: true,
-								dataType: 'json',
-								success: function(data) 
-								{
-									if(data.detail === 'Ok')
-									{
-										$('#delegationsTable tbody').append('<tr class="delegationTableRow" data-delegationId="' + data.delegationId + '" data-delegated="' + $('#newDelegation').val() + '"><td class="delegatedName">' + $('#newDelegation').val() + '</td><td><i class="fa fa-remove removeDelegationBtn"></i></td></tr>');
-										
-										$('#delegationsTable tbody .removeDelegationBtn').off('click');
-										$('#delegationsTable tbody .removeDelegationBtn').click(function(){
-											var rowToRemove = $(this).parents('tr');
-											$.ajax({
-												url: "../controllers/delSynopticTplDelegation.php",
-												data: 
-												{
-													id: $('#delegationsDashId').val(),
-													delegationId: $(this).parents('tr').attr('data-delegationId')
-												},
-												type: "POST",
-												async: true,
-												dataType: 'json',
-												success: function(data) 
-												{
-													if(data.detail === 'Ok')
-													{
-														rowToRemove.remove();
-													}
-													else
-													{
-														//TBD
-													}
-												},
-												error: function(errorData)
-												{
-												   //TBD     
-												}
-											});
-										});
-										
-										$('#newDelegation').val('');
-										$('#newDelegation').addClass('disabled');
-										$('#newDelegatedMsg').css('color', 'white');
-										$('#newDelegatedMsg').html('New delegation added correctly');
-										$('#newDelegationConfirmBtn').addClass('disabled');
-										
-										setTimeout(function()
-										{
-											$('#newDelegation').removeClass('disabled');
-											$('#newDelegatedMsg').css('color', '#f3cf58');
-											$('#newDelegatedMsg').html('Delegated username can\'t be empty');
-										}, 1500);
-									}
-									else
-									{
-										var errorMsg = null;
-										switch(data.detail)
-										{
-											case "RootAdmin":
-												errorMsg = "You can\'t delegate a root admin";
-												break;
-												
-											case "ApiCallKo":
-												errorMsg = "Error calling Snap4City API";
-												break;  
-												
-											case "QueryKo":
-												errorMsg = "Database error";
-												break;
-												
-											case "LdapKo":
-												errorMsg = "LDAP error";
-												break;
-
-											case "Username_not_recognized":
-												errorMsg = "Invalid Username (not recognized)";
-												break;
-										}
-										
-										$('#newDelegation').val('');
-										$('#newDelegation').addClass('disabled');
+										$('#newDelegation').removeClass('disabled');
 										$('#newDelegatedMsg').css('color', '#f3cf58');
-										$('#newDelegatedMsg').html(errorMsg);
-										$('#newDelegationConfirmBtn').addClass('disabled');
-										
-										setTimeout(function()
-										{
-											$('#newDelegation').removeClass('disabled');
-											$('#newDelegatedMsg').css('color', '#f3cf58');
-											$('#newDelegatedMsg').html('Delegated username can\'t be empty');
-										}, 2000);
-									}
-								},
-								error: function(errorData)
+										$('#newDelegatedMsg').html('Delegated username can\'t be empty');
+									}, 1500);
+								}
+								else
 								{
-									var errorMsg = "Error calling internal API"; 
+									var errorMsg = null;
+									switch(data.detail)
+									{
+										case "RootAdmin":
+											errorMsg = "You can\'t delegate a root admin";
+											break;
+											
+										case "ApiCallKo":
+											errorMsg = "Error calling Snap4City API";
+											break;  
+											
+										case "QueryKo":
+											errorMsg = "Database error";
+											break;
+											
+										case "LdapKo":
+											errorMsg = "LDAP error";
+											break;
+
+										case "Username_not_recognized":
+											errorMsg = "Invalid Username (not recognized)";
+											break;
+									}
+									
 									$('#newDelegation').val('');
 									$('#newDelegation').addClass('disabled');
 									$('#newDelegatedMsg').css('color', '#f3cf58');
 									$('#newDelegatedMsg').html(errorMsg);
 									$('#newDelegationConfirmBtn').addClass('disabled');
-
+									
 									setTimeout(function()
 									{
 										$('#newDelegation').removeClass('disabled');
@@ -1776,137 +1552,138 @@
 										$('#newDelegatedMsg').html('Delegated username can\'t be empty');
 									}, 2000);
 								}
-							});
+							},
+							error: function(errorData)
+							{
+								var errorMsg = "Error calling internal API"; 
+								$('#newDelegation').val('');
+								$('#newDelegation').addClass('disabled');
+								$('#newDelegatedMsg').css('color', '#f3cf58');
+								$('#newDelegatedMsg').html(errorMsg);
+								$('#newDelegationConfirmBtn').addClass('disabled');
+
+								setTimeout(function()
+								{
+									$('#newDelegation').removeClass('disabled');
+									$('#newDelegatedMsg').css('color', '#f3cf58');
+									$('#newDelegatedMsg').html('Delegated username can\'t be empty');
+								}, 2000);
+							}
 						});
+					});
 
-						$('#newGroupDelegationConfirmBtn').off('click');
-						$('#newGroupDelegationConfirmBtn').click(function(){
-							if (!$('#newGroupDelegationConfirmBtn').hasClass('disabled')) {
-								var isPresentFlag = 0;
-								$('#groupDelegationsTable tbody tr').each(function (i) {
-									if ($(this).attr('data-delegated').trim() === $('#newDelegationOrganization').val() + " - " + $('#newDelegationGroup').val()) {
-										$('#newGroupDelegatedMsg').css('color', '#f3cf58');
-										$('#newGroupDelegatedMsg').html('Group already delegated');
-										$('#newGroupDelegationConfirmBtn').addClass('disabled');
-										isPresentFlag = 1;
-									} else {
-								   //     isPresentFlag = 0;
-									}
-								});
+					$('#newGroupDelegationConfirmBtn').off('click');
+					$('#newGroupDelegationConfirmBtn').click(function(){
+						if (!$('#newGroupDelegationConfirmBtn').hasClass('disabled')) {
+							var isPresentFlag = 0;
+							$('#groupDelegationsTable tbody tr').each(function (i) {
+								if ($(this).attr('data-delegated').trim() === $('#newDelegationOrganization').val() + " - " + $('#newDelegationGroup').val()) {
+									$('#newGroupDelegatedMsg').css('color', '#f3cf58');
+									$('#newGroupDelegatedMsg').html('Group already delegated');
+									$('#newGroupDelegationConfirmBtn').addClass('disabled');
+									isPresentFlag = 1;
+								} else {
+							   //     isPresentFlag = 0;
+								}
+							});
 
-								if (isPresentFlag === 0) {
-									var orgDel = $('#newDelegationOrganization').val();
-									var groupDel = $('#newDelegationGroup').val();
-									var newDelegatedString = "";
-									if (orgDel != null && orgDel != undefined) {
-										if (orgDel != "") {
-											if (groupDel != null && groupDel != undefined) {
-												if (groupDel != "" && groupDel != "All Groups"){
-													newDelegatedString = "cn=" + groupDel + ",ou=" + orgDel + "," + "dc=ldap,dc=disit,dc=org";
-												} else {
-													newDelegatedString = "ou=" + orgDel + "," + "dc=ldap,dc=disit,dc=org";
-												}
+							if (isPresentFlag === 0) {
+								var orgDel = $('#newDelegationOrganization').val();
+								var groupDel = $('#newDelegationGroup').val();
+								var newDelegatedString = "";
+								if (orgDel != null && orgDel != undefined) {
+									if (orgDel != "") {
+										if (groupDel != null && groupDel != undefined) {
+											if (groupDel != "" && groupDel != "All Groups"){
+												newDelegatedString = "cn=" + groupDel + ",ou=" + orgDel + "," + "dc=ldap,dc=disit,dc=org";
+											} else {
+												newDelegatedString = "ou=" + orgDel + "," + "dc=ldap,dc=disit,dc=org";
 											}
-										} else {
-											// NON Dovrebbe essere gestito!
 										}
+									} else {
+										// NON Dovrebbe essere gestito!
 									}
-									$.ajax({
-										url: "../controllers/addGroupSynopticTplDelegation.php",
-										data:
-											{
-												id: $('#delegationsDashId').val(),
-												newDelegated: newDelegatedString
-											},
-										type: "POST",
-										async: true,
-										dataType: 'json',
-										success: function (data) {
-											if (data.detail === 'Ok') {
+								}
+								$.ajax({
+									url: "../controllers/addGroupSynopticTplDelegation.php",
+									data:
+										{
+											id: $('#delegationsDashId').val(),
+											newDelegated: newDelegatedString
+										},
+									type: "POST",
+									async: true,
+									dataType: 'json',
+									success: function (data) {
+										if (data.detail === 'Ok') {
 
-												$('#groupDelegationsTable tbody').append('<tr class="groupDelegationTableRow" data-delegationId="' + data.delegationId + '" data-delegated="' + $('#newDelegationOrganization').val() + " - " + $('#newDelegationGroup').val() + '"><td class="delegatedName">' + $('#newDelegationOrganization').val() + " - " + $('#newDelegationGroup').val() + '</td><td><i class="fa fa-remove removeDelegationBtn"></i></td></tr>');
+											$('#groupDelegationsTable tbody').append('<tr class="groupDelegationTableRow" data-delegationId="' + data.delegationId + '" data-delegated="' + $('#newDelegationOrganization').val() + " - " + $('#newDelegationGroup').val() + '"><td class="delegatedName">' + $('#newDelegationOrganization').val() + " - " + $('#newDelegationGroup').val() + '</td><td><i class="fa fa-remove removeDelegationBtn"></i></td></tr>');
 
-												$('#groupDelegationsTable tbody .removeDelegationBtn').off('click');
-												$('#groupDelegationsTable tbody .removeDelegationBtn').click(function () {
-													var rowToRemove = $(this).parents('tr');
-													$.ajax({
-														url: "../controllers/delSynopticTplGroupDelegation.php",
-														data:
-															{
-																id: $('#delegationsDashId').val(),
-																delegationId: $(this).parents('tr').attr('data-delegationId')
-															},
-														type: "POST",
-														async: true,
-														dataType: 'json',
-														success: function (data) {
-															if (data.detail === 'Ok') {
-																rowToRemove.remove();
-															}
-															else {
-																//TBD
-															}
+											$('#groupDelegationsTable tbody .removeDelegationBtn').off('click');
+											$('#groupDelegationsTable tbody .removeDelegationBtn').click(function () {
+												var rowToRemove = $(this).parents('tr');
+												$.ajax({
+													url: "../controllers/delSynopticTplGroupDelegation.php",
+													data:
+														{
+															id: $('#delegationsDashId').val(),
+															delegationId: $(this).parents('tr').attr('data-delegationId')
 														},
-														error: function (errorData) {
+													type: "POST",
+													async: true,
+													dataType: 'json',
+													success: function (data) {
+														if (data.detail === 'Ok') {
+															rowToRemove.remove();
+														}
+														else {
 															//TBD
 														}
-													});
+													},
+													error: function (errorData) {
+														//TBD
+													}
 												});
+											});
 
-												$('#newDelegation').val('');
-												$('#newDelegation').addClass('disabled');
-												$('#newGroupDelegatedMsg').css('color', 'white');
-												$('#newGroupDelegatedMsg').html('New delegation added correctly');
-												//   $('#newGroupDelegationConfirmBtn').addClass('disabled');
+											$('#newDelegation').val('');
+											$('#newDelegation').addClass('disabled');
+											$('#newGroupDelegatedMsg').css('color', 'white');
+											$('#newGroupDelegatedMsg').html('New delegation added correctly');
+											//   $('#newGroupDelegationConfirmBtn').addClass('disabled');
 
-												/*    setTimeout(function()
-													{
-														$('#newDelegation').removeClass('disabled');
-														$('#newGroupDelegatedMsg').css('color', '#f3cf58');
-														$('#newGroupDelegatedMsg').html('Delegated username can\'t be empty');
-													}, 1500);   */
+											/*    setTimeout(function()
+												{
+													$('#newDelegation').removeClass('disabled');
+													$('#newGroupDelegatedMsg').css('color', '#f3cf58');
+													$('#newGroupDelegatedMsg').html('Delegated username can\'t be empty');
+												}, 1500);   */
+										}
+										else {
+											var errorMsg = null;
+											switch (data.detail) {
+												case "RootAdmin":
+													errorMsg = "You can\'t delegate a root admin";
+													break;
+
+												case "ApiCallKo":
+													errorMsg = "Error calling Snap4City API";
+													break;
+
+												case "QueryKo":
+													errorMsg = "Database error";
+													break;
+
+												case "LdapKo":
+													errorMsg = "LDAP error";
+													break;
 											}
-											else {
-												var errorMsg = null;
-												switch (data.detail) {
-													case "RootAdmin":
-														errorMsg = "You can\'t delegate a root admin";
-														break;
 
-													case "ApiCallKo":
-														errorMsg = "Error calling Snap4City API";
-														break;
-
-													case "QueryKo":
-														errorMsg = "Database error";
-														break;
-
-													case "LdapKo":
-														errorMsg = "LDAP error";
-														break;
-												}
-
-												$('#newDelegation').val('');
-												$('#newDelegation').addClass('disabled');
-												$('#newGroupDelegatedMsg').css('color', '#f3cf58');
-												$('#newGroupDelegatedMsg').html(errorMsg);
-												//   $('#newDelegationConfirmBtn').addClass('disabled');
-
-												/*  setTimeout(function()
-												  {
-													  $('#newDelegation').removeClass('disabled');
-													  $('#newGroupDelegatedMsg').css('color', '#f3cf58');
-													  $('#newGroupDelegatedMsg').html('Delegated username can\'t be empty');
-												  }, 2000);   */
-											}
-										},
-										error: function (errorData) {
-											var errorMsg = "Error calling internal API";
 											$('#newDelegation').val('');
 											$('#newDelegation').addClass('disabled');
 											$('#newGroupDelegatedMsg').css('color', '#f3cf58');
 											$('#newGroupDelegatedMsg').html(errorMsg);
-											//    $('#newGroupDelegationConfirmBtn').addClass('disabled');
+											//   $('#newDelegationConfirmBtn').addClass('disabled');
 
 											/*  setTimeout(function()
 											  {
@@ -1915,109 +1692,89 @@
 												  $('#newGroupDelegatedMsg').html('Delegated username can\'t be empty');
 											  }, 2000);   */
 										}
-									});
-								}
-							}
-						});
-						
-						$('#delDashConfirmBtn').off("click");
-						$('#delDashConfirmBtn').click(function(){
-							$('#delDashNameMsg').parents('div.row').hide();
-							$('#delDashCancelBtn').hide();
-							$('#delDashConfirmBtn').hide();
-							$('#delDashRunningMsg').show();
-							
-							var tplTitle = $('#dashToDelName').html();		
-							$.ajax({
-								url: "../controllers/getSynoptics.php",
-								data: {
-									//orgFilter: "<?= @$_SESSION['loggedOrganization'] ?>",
-									param: param,
-									role: loggedRole
-								},
-								type: "GET",
-								async: true,
-								dataType: 'json',
-								success: function(data) 
-								{
-									var inUse = false;
-									data.applications.forEach(function(synoptic){
-										if(synoptic.low_level_type == tplTitle) {
-											inUse = true;
-										}
-									});
-									if(inUse) {
-										//alert("The template is in use and it cannot be deleted.\nPlease delete its instances first."); //
-										$('#delDashRunningMsg').hide();
-										$('#delDashKoMsgTxt').html("The template is in use. Please delete its instances first.");
-										$('#delDashKoMsg').show();
-										console.log("Del synoptic template ko: The template is in use and it cannot be deleted. Please delete its instances first.");
-										setTimeout(function(){
-											$('#modalDelWidget').modal('hide');
-											setTimeout(function(){
-												$('#delDashKoMsg').hide();
-												$('#delDashKoMsgTxt').html("Error deleting template, please try again");
-												$('#delDashNameMsg').parents('div.row').show();
-												$('#delDashCancelBtn').show();
-												$('#delDashConfirmBtn').show();
-											}, 750);
-										}, 2500);
+									},
+									error: function (errorData) {
+										var errorMsg = "Error calling internal API";
+										$('#newDelegation').val('');
+										$('#newDelegation').addClass('disabled');
+										$('#newGroupDelegatedMsg').css('color', '#f3cf58');
+										$('#newGroupDelegatedMsg').html(errorMsg);
+										//    $('#newGroupDelegationConfirmBtn').addClass('disabled');
+
+										/*  setTimeout(function()
+										  {
+											  $('#newDelegation').removeClass('disabled');
+											  $('#newGroupDelegatedMsg').css('color', '#f3cf58');
+											  $('#newGroupDelegatedMsg').html('Delegated username can\'t be empty');
+										  }, 2000);   */
 									}
-									else {
+								});
+							}
+						}
+					});
+					
+					$('#delDashConfirmBtn').off("click");
+					$('#delDashConfirmBtn').click(function(){
+						$('#delDashNameMsg').parents('div.row').hide();
+						$('#delDashCancelBtn').hide();
+						$('#delDashConfirmBtn').hide();
+						$('#delDashRunningMsg').show();
+						
+						var tplTitle = $('#dashToDelName').html();		
+						$.ajax({
+							url: "../controllers/getSynoptics.php",
+							data: {
+								orgFilter: "<?= @$_SESSION['loggedOrganization'] ?>",
+								param: param,
+								role: loggedRole
+							},
+							type: "GET",
+							async: true,
+							dataType: 'json',
+							success: function(data) 
+							{
+								var inUse = false;
+								data.applications.forEach(function(synoptic){
+									if(synoptic.low_level_type == tplTitle) {
+										inUse = true;
+									}
+								});
+								if(inUse) {
+									//alert("The template is in use and it cannot be deleted.\nPlease delete its instances first."); //
+									$('#delDashRunningMsg').hide();
+									$('#delDashKoMsgTxt').html("The template is in use. Please delete its instances first.");
+									$('#delDashKoMsg').show();
+									console.log("Del synoptic template ko: The template is in use and it cannot be deleted. Please delete its instances first.");
+									setTimeout(function(){
+										$('#modalDelWidget').modal('hide');
+										setTimeout(function(){
+											$('#delDashKoMsg').hide();
+											$('#delDashKoMsgTxt').html("Error deleting template, please try again");
+											$('#delDashNameMsg').parents('div.row').show();
+											$('#delDashCancelBtn').show();
+											$('#delDashConfirmBtn').show();
+										}, 750);
+									}, 2500);
+								}
+								else {
 
-										$.ajax({
-											url: "../controllers/deleteSynopticTemplate.php",
-											data: {
-												id: $('#dashIdDelHidden').val(),
-												tplTitle: $('#dashToDelName').html()
-											},
-											async: true,
-											success: function(successData)
-											{
-												$('#delDashRunningMsg').hide();
+									$.ajax({
+										url: "../controllers/deleteSynopticTemplate.php",
+										data: {
+											id: $('#dashIdDelHidden').val(),
+											tplTitle: $('#dashToDelName').html()
+										},
+										async: true,
+										success: function(successData)
+										{
+											$('#delDashRunningMsg').hide();
 
-												if(successData !== 'Ok')
-												{
-													$('#delDashRunningMsg').hide();
-													$('#delDashKoMsg').show();
-													console.log("Del synoptic template ko: " + successData);
-													setTimeout(function(){													
-														$('#modalDelWidget').modal('hide');
-														setTimeout(function(){
-															$('#delDashKoMsg').hide();
-															$('#delDashNameMsg').parents('div.row').show();
-															$('#delDashCancelBtn').show();
-															$('#delDashConfirmBtn').show();
-														}, 750);
-													}, 2500);
-												}
-												else
-												{
-													$('#delDashOkMsg').show();
-													
-													setTimeout(function(){
-														location.reload();
-													}, 1250);
-													
-													/*var keyToDel = null;
-													for(var k = 0; k < dashboardsList.length; k++)
-													{
-														if(dashboardsList[k].Id === $('#dashIdDelHidden').val())
-														{
-															console.log(dashboardsList[k].title_header + " has been deleted: " + k);
-															keyToDel = k;
-														}
-													}
-													dashboardsList.splice(keyToDel, 1);
-													$('.dashboardsListCardDiv[data-uniqueid=' + $('#dashIdDelHidden').val() + ']').remove();
-													dynatable.process();*/
-												}
-											},
-											error: function(errorData)
+											if(successData !== 'Ok')
 											{
 												$('#delDashRunningMsg').hide();
 												$('#delDashKoMsg').show();
-												setTimeout(function(){
+												console.log("Del synoptic template ko: " + successData);
+												setTimeout(function(){													
 													$('#modalDelWidget').modal('hide');
 													setTimeout(function(){
 														$('#delDashKoMsg').hide();
@@ -2026,170 +1783,198 @@
 														$('#delDashConfirmBtn').show();
 													}, 750);
 												}, 2500);
-												console.log("Del synoptic template ko: " + errorData);
-												console.log(JSON.stringify(errorData));
 											}
-										});
-									}
+											else
+											{
+												$('#delDashOkMsg').show();
+												
+												setTimeout(function(){
+													location.reload();
+												}, 1250);
+												
+												/*var keyToDel = null;
+												for(var k = 0; k < dashboardsList.length; k++)
+												{
+													if(dashboardsList[k].Id === $('#dashIdDelHidden').val())
+													{
+														console.log(dashboardsList[k].title_header + " has been deleted: " + k);
+														keyToDel = k;
+													}
+												}
+												dashboardsList.splice(keyToDel, 1);
+												$('.dashboardsListCardDiv[data-uniqueid=' + $('#dashIdDelHidden').val() + ']').remove();
+												dynatable.process();*/
+											}
+										},
+										error: function(errorData)
+										{
+											$('#delDashRunningMsg').hide();
+											$('#delDashKoMsg').show();
+											setTimeout(function(){
+												$('#modalDelWidget').modal('hide');
+												setTimeout(function(){
+													$('#delDashKoMsg').hide();
+													$('#delDashNameMsg').parents('div.row').show();
+													$('#delDashCancelBtn').show();
+													$('#delDashConfirmBtn').show();
+												}, 750);
+											}, 2500);
+											console.log("Del synoptic template ko: " + errorData);
+											console.log(JSON.stringify(errorData));
+										}
+									});
 								}
-							});
+							}
 						});
-											
-						function updateGroupList(ouname){
-							$.ajax({
-								url: "../api/ldap.php",
-								data:{
-									action: "get_group_for_ou",
-									ou: ouname,
-									token : "<?= @$_SESSION['refreshToken'] ?>"
-								},
-								type: "POST",
-								async: true,
-								success: function (data)
+					});
+										
+					function updateGroupList(ouname){
+						$.ajax({
+							url: "../api/ldap.php",
+							data:{
+								action: "get_group_for_ou",
+								ou: ouname,
+								token : "<?= @$_SESSION['refreshToken'] ?>"
+							},
+							type: "POST",
+							async: true,
+							success: function (data)
+							{
+								if(data["status"] === 'ko')
 								{
-									if(data["status"] === 'ko')
-									{
-										$('#newDelegatedMsgGroup').css('color', '#f3cf58');
-										$('#newDelegatedMsgGroup').html(data["msg"]);
+									$('#newDelegatedMsgGroup').css('color', '#f3cf58');
+									$('#newDelegatedMsgGroup').html(data["msg"]);
+								}
+								else if (data["status"] === 'ok')
+								{
+									if ($('#newGroupDelegationConfirmBtn').hasClass('disabled')) {
+										$('#newGroupDelegationConfirmBtn').removeClass('disabled');
+										$('#newGroupDelegatedMsg').html('')
 									}
-									else if (data["status"] === 'ok')
-									{
-										if ($('#newGroupDelegationConfirmBtn').hasClass('disabled')) {
-											$('#newGroupDelegationConfirmBtn').removeClass('disabled');
-											$('#newGroupDelegatedMsg').html('')
-										}
-										var $dropdown = $("#newDelegationGroup");
-										//remove old ones
-										$dropdown.empty();
-										//adding empty to rootadmin
-										if (loggedRole=='RootAdmin') {
-										  //  console.log("adding empty");
-										  //  $dropdown.append($("<option />").val("").text(""));
-											console.log("adding All Groups");
-											$dropdown.append($("<option />").val("All Groups").text("All Groups"));
-										}
-										//add new ones
-										$.each(data['content'], function() {
-											$dropdown.append($("<option />").val(this).text(this));
-										  //  $dropdown.append($("<option />").val(this).text(this)[0].innerHTML);
-										});
+									var $dropdown = $("#newDelegationGroup");
+									//remove old ones
+									$dropdown.empty();
+									//adding empty to rootadmin
+									if (loggedRole=='RootAdmin') {
+									  //  console.log("adding empty");
+									  //  $dropdown.append($("<option />").val("").text(""));
+										console.log("adding All Groups");
+										$dropdown.append($("<option />").val("All Groups").text("All Groups"));
+									}
+									//add new ones
+									$.each(data['content'], function() {
+										$dropdown.append($("<option />").val(this).text(this));
+									  //  $dropdown.append($("<option />").val(this).text(this)[0].innerHTML);
+									});
 
-									}
-								},
-								error: function (data)
+								}
+							},
+							error: function (data)
+							{
+								$('#newDelegatedMsgGroup').css('color', '#f3cf58');
+								$('#newDelegatedMsgGroup').html('Error calling internal API');
+							}
+						});
+					}
+		
+					if (loggedRole=='RootAdmin') {
+						console.log("Refresh Token"); console.log("<?= @$_SESSION['refreshToken'] ?>");
+						$.ajax({
+							url: "../api/ldap.php",
+							data:{
+								action: "get_all_ou",
+								token : "<?= @$_SESSION['refreshToken'] ?>"
+							},
+							type: "POST",
+							async: false,
+							success: function (data)
+							{
+								console.log("Groups"); console.log(data); //!
+								if(data["status"] === 'ko')
 								{
 									$('#newDelegatedMsgGroup').css('color', '#f3cf58');
-									$('#newDelegatedMsgGroup').html('Error calling internal API');
+									$('#newDelegatedMsgGroup').html(data["msg"]);
 								}
-							});
-						}
-			
-						if (loggedRole=='RootAdmin') {
-							console.log("Refresh Token"); console.log("<?= @$_SESSION['refreshToken'] ?>");
-							$.ajax({
-								url: "../api/ldap.php",
-								data:{
-									action: "get_all_ou",
-									token : "<?= @$_SESSION['refreshToken'] ?>"
-								},
-								type: "POST",
-								async: false,
-								success: function (data)
+								else if (data["status"] === 'ok')
 								{
-									console.log("Groups"); console.log(data); //!
-									if(data["status"] === 'ko')
-									{
-										$('#newDelegatedMsgGroup').css('color', '#f3cf58');
-										$('#newDelegatedMsgGroup').html(data["msg"]);
-									}
-									else if (data["status"] === 'ok')
-									{
-										var $dropdown = $("#newDelegationOrganization");
-										$.each(data['content'], function() {
-											$dropdown.append($("<option />").val(this).text(this));
-										});
-									}
-								},
-								error: function (data)
-								{
-									$('#newDelegatedMsgGroup').css('color', '#f3cf58');
-									$('#newDelegatedMsgGroup').html('Error calling internal API');
+									var $dropdown = $("#newDelegationOrganization");
+									$.each(data['content'], function() {
+										$dropdown.append($("<option />").val(this).text(this));
+									});
 								}
-							});
-						}
-						//populate organization list with myorganization (otherwise)
-						else {
-							$.ajax({
-								url: "../api/ldap.php",
-								data:{
-									action: "get_logged_ou",
-									username: usr,
-									token : "<?= @$_SESSION['refreshToken'] ?>"
-								},
-								type: "POST",
-								async: false,
-								success: function (data)
+							},
+							error: function (data)
+							{
+								$('#newDelegatedMsgGroup').css('color', '#f3cf58');
+								$('#newDelegatedMsgGroup').html('Error calling internal API');
+							}
+						});
+					}
+					//populate organization list with myorganization (otherwise)
+					else {
+						$.ajax({
+							url: "../api/ldap.php",
+							data:{
+								action: "get_logged_ou",
+								username: usr,
+								token : "<?= @$_SESSION['refreshToken'] ?>"
+							},
+							type: "POST",
+							async: false,
+							success: function (data)
+							{
+								if(data["status"] === 'ko')
 								{
-									if(data["status"] === 'ko')
-									{
-										console.log("Error: "+data);
-										//TODO: manage error
-									}
-									else if(data["status"] === 'ok')
-									{
-										var $dropdown = $("#newDelegationOrganization");
-										$dropdown.append($("<option/>").val(data['content']).text(data['content']));
-									}
-								},
-								error: function (data)
-								{
-									console.log("Error: " +  data);
+									console.log("Error: "+data);
 									//TODO: manage error
 								}
-							});
-						}
-
-						// NEW TABS FOR GROPs/ORGANIZATIONs DELEGATION
-						//populate group list with selected organization
-						updateGroupList($("#newDelegationOrganization").val());
-
-						//eventually update the group list
-						$('#newDelegationOrganization').change( function() {
-							$(this).find(":selected").each(function () {
-								updateGroupList($(this).val());
-							});
-						});
-
-						//eventually update the group list
-						$('#newDelegationGroup').change( function() {
-						   // $(this).find(":selected").each(function () {
-								if ($('#newGroupDelegationConfirmBtn').hasClass('disabled')) {
-									$('#newGroupDelegationConfirmBtn').removeClass('disabled');
-									$('#newGroupDelegatedMsg').html('');
+								else if(data["status"] === 'ok')
+								{
+									var $dropdown = $("#newDelegationOrganization");
+									$dropdown.append($("<option/>").val(data['content']).text(data['content']));
 								}
-						  //  });
+							},
+							error: function (data)
+							{
+								console.log("Error: " +  data);
+								//TODO: manage error
+							}
 						});
-						
-						/////
-						
-						if( usr && ( loggedRole == 'RootAdmin' || loggedRole == 'ToolAdmin' || loggedRole == 'AreaManager' ) ) $('#link_start_wizard').show();						
-						$('#link_start_wizard').off('click');
-						$('#link_start_wizard').click(function() {
-							location.href = 'synopticTemplatesForm.php';
+					}
+
+					// NEW TABS FOR GROPs/ORGANIZATIONs DELEGATION
+					//populate group list with selected organization
+					updateGroupList($("#newDelegationOrganization").val());
+
+					//eventually update the group list
+					$('#newDelegationOrganization').change( function() {
+						$(this).find(":selected").each(function () {
+							updateGroupList($(this).val());
 						});
-						
-						$('.instSynTplBtnCard').off('click');
-						$('.instSynTplBtnCard').click(function() {
-							var tplName = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
-							location.href = 'synopticsForm.php?template='+encodeURIComponent(tplName);
-						});
-						
-					  });
-					  
-					  var dynatable = $('#list_dashboard_cards').data('dynatable');
-                      dynatable.sorts.clear();
-                      dynatable.sorts.add('unique_name_id', 1); // 1=ASCENDING, -1=DESCENDING
-                      dynatable.process();
+					});
+
+					//eventually update the group list
+					$('#newDelegationGroup').change( function() {
+					   // $(this).find(":selected").each(function () {
+							if ($('#newGroupDelegationConfirmBtn').hasClass('disabled')) {
+								$('#newGroupDelegationConfirmBtn').removeClass('disabled');
+								$('#newGroupDelegatedMsg').html('');
+							}
+					  //  });
+					});
+					
+					/////
+							
+					$('#link_start_wizard').off('click');
+					$('#link_start_wizard').click(function() {
+						location.href = 'synopticTemplatesForm.php';
+					});
+					
+					$('.instSynTplBtnCard').off('click');
+					$('.instSynTplBtnCard').click(function() {
+						var tplName = $(this).parents('div.dashboardsListCardDiv').attr('data-title');
+						location.href = 'synopticsForm.php?template='+encodeURIComponent(tplName);
+					});
 
                 },
                 error: function(errorData)

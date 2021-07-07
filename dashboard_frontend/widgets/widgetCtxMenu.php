@@ -37,29 +37,29 @@
 <div id="<?= $_REQUEST['name_w'] ?>_widgetCtxMenu" data-widgetName="<?= $_REQUEST['name_w'] ?>" data-shown="false" class="applicationCtxMenu fullCtxMenu container-fluid widgetCtxMenu">
 	<div class="row fullCtxMenuRow headerVisibility" data-selected="false" data-index="0">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Hide header</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Hide header")?></div>
 	</div>
 	<!-- MS> Entries for content visibility at page load, hide/show dimension controls, and allow/deny users (viewers) to collapse widget content -->
 	<div class="row fullCtxMenuRow contentVisibility" data-selected="false" data-index="0.5">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Hide content</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Hide content")?></div>
 	</div>
 	<div class="row fullCtxMenuRow dimControlsVisibility" data-selected="false" data-index="0.6">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Hide dim ctrl</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Hide dim ctrl")?></div>
 	</div>
 	<div class="row fullCtxMenuRow userCollapsible" data-selected="false" data-index="0.7">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Allow collapse</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Allow collapse")?></div>
 	</div>
 	<!-- <MS -->
 	<div class="row fullCtxMenuRow headerColorRow hasSubmenu" data-selected="false" data-index="1" data-boundTo="<?= $_REQUEST['name_w'] ?>_headerColorSubmenu">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Header color</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Header color")?></div>
 	</div>
 	<div id="<?= $_REQUEST['name_w'] ?>_headerColorSubmenu" data-clicked="false" data-boundTo="headerColorRow" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
 		<div class="row">
-                   <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div> 
+                   <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Palette")?></div> 
 		   <div id="<?= $_REQUEST['name_w'] ?>_headerColorPicker" class="col-xs-12 centerWithFlex"></div>
 		</div>
 		<div class="row">
@@ -82,7 +82,7 @@
                     <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
 		</div>
                 <div class="row lastUsedColorsRow">
-                    <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div> 
+                    <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div> 
                     <?php
                         for($i = 0; $i < count($lastUsedColors); $i++)
                         {
@@ -92,13 +92,13 @@
 		</div>
 		<div class="row contextMenuBtnsRow">
                     <div class="col-xs-4 centerWithFlex">
-                        <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_headerColorQuitBtn">Quit</button>
+                        <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_headerColorQuitBtn"><?= _("Quit")?></button>
                     </div>
                     <div class="col-xs-4 centerWithFlex">
-                        <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_headerColorCancelBtn">Undo</button>
+                        <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_headerColorCancelBtn"><?= _("Undo")?></button>
                     </div>
                     <div class="col-xs-4 centerWithFlex">
-                        <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_headerColorConfirmBtn">Apply</button>
+                        <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_headerColorConfirmBtn"><?= _("Apply")?></button>
                     </div>
 		</div>
 		<div class="row contextMenuMsgRow">
@@ -108,11 +108,11 @@
 	
 	<div class="row fullCtxMenuRow titleColorRow hasSubmenu" data-selected="false" data-index="2" data-boundTo="<?= $_REQUEST['name_w'] ?>_titleColorSubmenu">
 		<div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-		<div class="col-xs-10 fullCtxMenuTxt">Title color</div>
+		<div class="col-xs-10 fullCtxMenuTxt"><?= _("Title color")?></div>
 	</div>
 	<div id="<?= $_REQUEST['name_w'] ?>_titleColorSubmenu" data-clicked="false" data-boundTo="titleColorRow" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
 		<div class="row">
-                    <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div>
+                    <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Palette")?></div>
                     <div id="<?= $_REQUEST['name_w'] ?>_titleColorPicker" class="col-xs-12 centerWithFlex"></div>
 		</div>
 		<div class="row">
@@ -135,7 +135,7 @@
                     <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
 		</div>
                 <div class="row lastUsedColorsRow">
-                    <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div>
+                    <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div>
                     <?php
                         for($i = 0; $i < count($lastUsedColors); $i++)
                         {
@@ -145,13 +145,13 @@
 		</div>
 		<div class="row contextMenuBtnsRow">
                     <div class="col-xs-4 centerWithFlex">
-                        <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_titleColorQuitBtn">Quit</button>
+                        <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_titleColorQuitBtn"><?= _("Quit")?></button>
                     </div>
                     <div class="col-xs-4 centerWithFlex">
-                        <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_titleColorCancelBtn">Undo</button>
+                        <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_titleColorCancelBtn"><?= _("Undo")?></button>
                     </div>
                     <div class="col-xs-4 centerWithFlex">
-                        <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_titleColorConfirmBtn">Apply</button>
+                        <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_titleColorConfirmBtn"><?= _("Apply")?></button>
                     </div>
 		</div>
 		<div class="row contextMenuMsgRow">
@@ -161,11 +161,11 @@
 	
         <div class="row fullCtxMenuRow backgroundColorRow hasSubmenu" data-selected="false" data-index="3" data-boundTo="<?= $_REQUEST['name_w'] ?>_backgroundColorSubmenu">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Background color</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Background color")?></div>
 	</div>
 	<div id="<?= $_REQUEST['name_w'] ?>_backgroundColorSubmenu" data-clicked="false" data-boundTo="backgroundColorRow" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
             <div class="row">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Palette")?></div>
                 <div id="<?= $_REQUEST['name_w'] ?>_backgroundColorPicker" class="col-xs-12 centerWithFlex"></div>
             </div>
             <div class="row">
@@ -188,7 +188,7 @@
                 <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
             </div>
             <div class="row lastUsedColorsRow">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div>
                 <?php
                     for($i = 0; $i < count($lastUsedColors); $i++)
                     {
@@ -198,13 +198,13 @@
             </div>
             <div class="row contextMenuBtnsRow">
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_backgroundColorQuitBtn">Quit</button>
+                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_backgroundColorQuitBtn"><?= _("Quit")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_backgroundColorCancelBtn">Undo</button>
+                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_backgroundColorCancelBtn"><?= _("Undo")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_backgroundColorConfirmBtn">Apply</button>
+                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_backgroundColorConfirmBtn"><?= _("Apply")?></button>
                 </div>
             </div>
             <div class="row contextMenuMsgRow">
@@ -214,11 +214,11 @@
     
         <div id="<?= $_REQUEST['name_w'] ?>_chartColorMenuItem" data-selected="false" class="row fullCtxMenuRow chartColorRow hasSubmenu" data-index="4" data-boundTo="<?= $_REQUEST['name_w'] ?>_chartColorSubmenu">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Chart color</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Chart color")?></div>
 	</div>
 	<div id="<?= $_REQUEST['name_w'] ?>_chartColorSubmenu" data-clicked="false" data-boundTo="chartColorRow" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
             <div class="row">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Palette")?></div>
                 <div id="<?= $_REQUEST['name_w'] ?>_chartColorPicker" class="col-xs-12 centerWithFlex"></div>
             </div>
             <div class="row">
@@ -241,7 +241,7 @@
                 <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
             </div>
             <div class="row lastUsedColorsRow">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div>
                 <?php
                     for($i = 0; $i < count($lastUsedColors); $i++)
                     {
@@ -251,13 +251,13 @@
             </div>
             <div class="row contextMenuBtnsRow">
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_chartColorQuitBtn">Quit</button>
+                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_chartColorQuitBtn"><?= _("Quit")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_chartColorCancelBtn">Undo</button>
+                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_chartColorCancelBtn"><?= _("Undo")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_chartColorConfirmBtn">Apply</button>
+                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_chartColorConfirmBtn"><?= _("Apply")?></button>
                 </div>
             </div>
             <div class="row contextMenuMsgRow">
@@ -267,11 +267,11 @@
         
         <div id="<?= $_REQUEST['name_w'] ?>_chartAxesColorMenuItem" data-selected="false" class="row fullCtxMenuRow chartAxesColor hasSubmenu" data-index="5" data-boundTo="<?= $_REQUEST['name_w'] ?>_chartAxesColorSubmenu">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Axes color</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Axes color")?></div>
 	</div>
 	<div id="<?= $_REQUEST['name_w'] ?>_chartAxesColorSubmenu" data-clicked="false" data-boundTo="chartAxesColor" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
             <div class="row">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Apply")?></div>
                 <div id="<?= $_REQUEST['name_w'] ?>_chartAxesColorPicker" class="col-xs-12 centerWithFlex"></div>
             </div>
             <div class="row">
@@ -294,7 +294,7 @@
                 <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
             </div>
             <div class="row lastUsedColorsRow">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div>
                 <?php
                     for($i = 0; $i < count($lastUsedColors); $i++)
                     {
@@ -304,13 +304,13 @@
             </div>
             <div class="row contextMenuBtnsRow">
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_chartAxesColorQuitBtn">Quit</button>
+                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_chartAxesColorQuitBtn"><?= _("Quit")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_chartAxesColorCancelBtn">Undo</button>
+                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_chartAxesColorCancelBtn"><?= _("Undo")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_chartAxesColorConfirmBtn">Apply</button>
+                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_chartAxesColorConfirmBtn"><?= _("Apply")?></button>
                 </div>
             </div>
             <div class="row contextMenuMsgRow">
@@ -324,7 +324,7 @@
 	</div>
 	<div id="<?= $_REQUEST['name_w'] ?>_chartPlaneColorSubmenu" data-clicked="false" data-boundTo="chartPlaneColor" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
             <div class="row">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Apply")?></div>
                 <div id="<?= $_REQUEST['name_w'] ?>_chartPlaneColorPicker" class="col-xs-12 centerWithFlex"></div>
             </div>
             <div class="row">
@@ -347,7 +347,7 @@
                 <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
             </div>
             <div class="row lastUsedColorsRow">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div>
                 <?php
                     for($i = 0; $i < count($lastUsedColors); $i++)
                     {
@@ -357,13 +357,13 @@
             </div>
             <div class="row contextMenuBtnsRow">
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_chartPlaneColorQuitBtn">Quit</button>
+                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_chartPlaneColorQuitBtn"><?= _("Quit")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_chartPlaneColorCancelBtn">Undo</button>
+                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_chartPlaneColorCancelBtn"><?= _("Undo")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_chartPlaneColorConfirmBtn">Apply</button>
+                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_chartPlaneColorConfirmBtn"><?= _("Apply")?></button>
                 </div>
             </div>
             <div class="row contextMenuMsgRow">
@@ -377,7 +377,7 @@
 	</div>
 	<div id="<?= $_REQUEST['name_w'] ?>_chartLabelsColorSubmenu" data-clicked="false" data-boundTo="chartLabelsColor" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
             <div class="row">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Apply")?></div>
                 <div id="<?= $_REQUEST['name_w'] ?>_chartLabelsColorPicker" class="col-xs-12 centerWithFlex"></div>
             </div>
             <div class="row">
@@ -400,7 +400,7 @@
                 <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
             </div>
             <div class="row lastUsedColorsRow">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div>
                 <?php
                     for($i = 0; $i < count($lastUsedColors); $i++)
                     {
@@ -410,13 +410,13 @@
             </div>
             <div class="row contextMenuBtnsRow">
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_chartLabelsColorQuitBtn">Quit</button>
+                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_chartLabelsColorQuitBtn"><?= _("Quit")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_chartLabelsColorCancelBtn">Undo</button>
+                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_chartLabelsColorCancelBtn"><?= _("Undo")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_chartLabelsColorConfirmBtn">Apply</button>
+                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_chartLabelsColorConfirmBtn"><?= _("Apply")?></button>
                 </div>
             </div>
             <div class="row contextMenuMsgRow">
@@ -445,11 +445,11 @@
     
         <div id="<?= $_REQUEST['name_w'] ?>_borderMenuItem" data-selected="false" class="row fullCtxMenuRow borderRow hasSubmenu" data-index="8" data-boundTo="<?= $_REQUEST['name_w'] ?>_borderSubmenu">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-paint-brush"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Border color</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Border color")?></div>
 	</div>
         <div id="<?= $_REQUEST['name_w'] ?>_borderSubmenu" data-clicked="false" data-boundTo="borderRow" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
             <div class="row">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Palette</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Apply")?></div>
                 <div id="<?= $_REQUEST['name_w'] ?>_borderColorPicker" class="col-xs-12 centerWithFlex"></div>
             </div>
             <div class="row">
@@ -472,7 +472,7 @@
                 <div class="col-xs-1 ctxMenuPaletteColor" data-color="rgba(0, 0, 0, 1)"></div>
             </div>
             <div class="row lastUsedColorsRow">
-                <div class="col-xs-12 centerWithFlex submenuLabel">Last used</div>
+                <div class="col-xs-12 centerWithFlex submenuLabel"><?= _("Last used")?></div>
                 <?php
                     for($i = 0; $i < count($lastUsedColors); $i++)
                     {
@@ -482,13 +482,13 @@
             </div>
             <div class="row contextMenuBtnsRow">
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_borderColorQuitBtn">Quit</button>
+                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_borderColorQuitBtn"><?= _("Quit")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_borderCancelBtn">Undo</button>
+                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_borderCancelBtn"><?= _("Undo")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_borderConfirmBtn">Apply</button>
+                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_borderConfirmBtn"><?= _("Apply")?></button>
                 </div>
             </div>
             <div class="row contextMenuMsgRow">
@@ -498,7 +498,7 @@
     
         <div id="<?= $_REQUEST['name_w'] ?>_timeRangeMenuItem" data-selected="false" class="row fullCtxMenuRow timeRangeRow hasSubmenu" data-index="9" data-boundTo="<?= $_REQUEST['name_w'] ?>_timeRangeSubmenu">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-clock-o"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Time range</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Time range")?></div>
 	</div>
         <div id="<?= $_REQUEST['name_w'] ?>_timeRangeSubmenu" data-clicked="false" data-boundTo="timeRangeRow" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu container-fluid">
             <div class="row">
@@ -511,13 +511,13 @@
             </div>
             <div class="row contextMenuBtnsRow">
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_timeRangeQuitBtn">Quit</button>
+                    <button type="button" class="contextMenuQuitBtn" id="<?= $_REQUEST['name_w'] ?>_timeRangeQuitBtn"><?= _("Quit")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_timeRangeCancelBtn">Undo</button>
+                    <button type="button" class="contextMenuCancelBtn" id="<?= $_REQUEST['name_w'] ?>_timeRangeCancelBtn"><?= _("Undo")?></button>
                 </div>
                 <div class="col-xs-4 centerWithFlex">
-                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_timeRangeConfirmBtn">Apply</button>
+                    <button type="button" class="contextMenuConfirmBtn" id="<?= $_REQUEST['name_w'] ?>_timeRangeConfirmBtn"><?= _("Apply")?></button>
                 </div>
             </div>
             <div class="row contextMenuMsgRow">
@@ -527,7 +527,7 @@
 	
         <div id="<?= $_REQUEST['name_w'] ?>_changeMetricMenuItem" data-selected="false" class="row fullCtxMenuRow changeMetricRow hasSubmenu" data-index="10" data-boundTo="<?= $_REQUEST['name_w'] ?>_changeMetricSubmenu">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-database"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Change metric</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Change metric")?></div>
 	</div>
         <div id="<?= $_REQUEST['name_w'] ?>_changeMetricSubmenu" data-clicked="false" data-boundTo="changeMetricRow" class="fullCtxMenu fullCtxSubmenu dashboardCtxMenu widgetSubmenu widgetSubmenuLarge container-fluid">
             
@@ -536,21 +536,21 @@
     <!-- Nuova voce di menu per la modalitÃ  di aggiunta items a mappa (per ora) -->
     <div id="<?= $_REQUEST['name_w'] ?>_addMode" class="row fullCtxMenuRow addMode" data-selected="false" data-mode="additive" data-index="10">
         <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-plus-circle"></i></div>
-        <div class="col-xs-10 fullCtxMenuTxt">Additive mode</div>
+        <div class="col-xs-10 fullCtxMenuTxt"><?= _("Additive mode")?></div>
     </div>
     
         <!-- Di solito li lascio sempre in fondo -->
 	<div class="row fullCtxMenuRow advancedOptionsRow" data-selected="false" data-index="11">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-cogs"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">More options</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("More options")?></div>
 	</div>
 	<div class="row fullCtxMenuRow delWidgetRow" data-selected="false" data-index="12">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-close"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Delete widget</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Delete widget")?></div>
 	</div>
 	<div class="row fullCtxMenuRow quitRow" data-selected="false" data-index="13">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-mail-reply"></i></div>
-            <div class="col-xs-10 fullCtxMenuTxt">Quit</div>
+            <div class="col-xs-10 fullCtxMenuTxt"><?= _("Quit")?></div>
 	</div>
 </div>
 

@@ -16,6 +16,7 @@
 include('../config.php');
 include('process-form.php');
     include('../TourRepository.php');
+    //include '../locale.php';
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -385,7 +386,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                     New<br>dashboard
                                                 </div>-->
                                                 <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                    <button id="link_start_wizard" type="button" class="btn btn-warning">New dashboard</button>
+                                                    <button id="link_start_wizard" type="button" class="btn btn-warning"><?= _("New dashboard")?></button>
                                                 </div>
                                             </div>
 <?php endif; ?>                                      
@@ -397,16 +398,16 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                         <table id="list_dashboard" class="table">
                                             <thead class="dashboardsTableHeader">
                                                 <tr>
-                                                    <th data-dynatable-column="title_header">Title</th>
-                                                    <th data-dynatable-column="user">Creator</th>
-                                                    <th data-dynatable-column="creation_date">Creation date</th>
-                                                    <th data-dynatable-column="last_edit_date">Last edit date</th>
-                                                    <th data-dynatable-column="nAccessPerDay"># Access Today</th>
-                                                    <th data-dynatable-column="nMinutesPerDay">Minutes Opened Today</th>
-                                                    <th data-dynatable-column="status_dashboard">Status</th>
-                                                    <th>Edit</th>
-                                                    <th>View</th>
-                                                    <th>Organizations</th>
+                                                    <th data-dynatable-column="title_header"><?= _("Title")?></th>
+                                                    <th data-dynatable-column="user"><?= _("Creator")?></th>
+                                                    <th data-dynatable-column="creation_date"><?= _("Creation date")?></th>
+                                                    <th data-dynatable-column="last_edit_date"><?= _("Last edit date")?></th>
+                                                    <th data-dynatable-column="nAccessPerDay"><?= _("# Access Today")?></th>
+                                                    <th data-dynatable-column="nMinutesPerDay"><?= _("Minutes Opened Today")?></th>
+                                                    <th data-dynatable-column="status_dashboard"><?= _("Status")?></th>
+                                                    <th><?= _("Edit")?></th>
+                                                    <th><?= _("View")?></th>
+                                                    <th><?= _("Organizations")?></th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -443,11 +444,11 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                         <div id="modalStartWizardFooter" class="modal-footer">
                             <div class="row">
                                 <div class="col-xs-8 col-xs-offset-2 centerWithFlex">
-                                    <button type="button" id="addWidgetWizardPrevBtn" name="addWidgetWizardPrevBtn" class="btn confirmBtn">Prev</button>
-                                    <button type="button" id="addWidgetWizardNextBtn" name="addWidgetWizardNextBtn" class="btn confirmBtn">Next</button>
+                                    <button type="button" id="addWidgetWizardPrevBtn" name="addWidgetWizardPrevBtn" class="btn confirmBtn"><?= _("Prev")?></button>
+                                    <button type="button" id="addWidgetWizardNextBtn" name="addWidgetWizardNextBtn" class="btn confirmBtn"><?= _("Next")?></button>
                                 </div>    
                                 <div class="col-xs-2">
-                                    <button type="button" id="addWidgetWizardCancelBtn" class="btn cancelBtn" data-dismiss="modal">Close</button>
+                                    <button type="button" id="addWidgetWizardCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Close")?></button>
                                 </div>   
                             </div>
                         </div>
@@ -460,12 +461,12 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modalHeader centerWithFlex">
-                            Add new Dashboard
+                            <?= _("Add new Dashboard")?>
                         </div>
                         <div id="checkDashLimitsModalBody" class="modal-body modalBody">
                             <div class="row" id="limitsDashKoMsg">
                                 <div class="col-xs-12 modalCell">
-                                    <div class="col-xs-12 centerWithFlex modalDelMsg">Exceeded limits for Dashboard Creation for user <?php echo @$_SESSION['loggedUsername'] ? : ''; ?></div>
+                                    <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Exceeded limits for Dashboard Creation for user")?> <?php echo @$_SESSION['loggedUsername'] ? : ''; ?></div>
                                     <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                                 </div>
                             </div>
@@ -481,14 +482,14 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modalHeader centerWithFlex">
-                            Dashboard deletion
+                            <?= _("Dashboard deletion")?>
                         </div>
                         <input type="hidden" id="dashIdDelHidden" name="dashIdDelHidden" />
                         <div id="delDashModalBody" class="modal-body modalBody">
                             <div class="row">
                                 <div id="delDashNameMsg" class="col-xs-12 modalCell">
                                     <div class="modalDelMsg col-xs-12 centerWithFlex">
-                                        Do you want to delete the following dashboard?
+                                        <?= _("Do you want to delete the following dashboard?")?>
                                     </div>
                                     <div id="dashToDelName" class="modalDelObjName col-xs-12 centerWithFlex"></div>
                                     <div id="dashToDelPic" class="modalDelObjName col-xs-12 centerWithFlex"></div>
@@ -496,26 +497,26 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                             </div>
                             <div class="row" id="delDashRunningMsg">
                                 <div class="col-xs-12 modalCell">
-                                    <div class="col-xs-12 centerWithFlex modalDelMsg">Deleting dashboard, please wait</div>
+                                    <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Deleting dashboard, please wait")?></div>
                                     <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>
                                 </div>
                             </div>
                             <div class="row" id="delDashOkMsg">
                                 <div class="col-xs-12 modalCell">
-                                    <div class="col-xs-12 centerWithFlex modalDelMsg">Dashboard deleted successfully</div>
+                                    <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Dashboard deleted successfully")?></div>
                                     <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
                                 </div>
                             </div>
                             <div class="row" id="delDashKoMsg">
                                 <div class="col-xs-12 modalCell">
-                                    <div class="col-xs-12 centerWithFlex modalDelMsg">Error deleting dashboard, please try again</div>
+                                    <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Error deleting dashboard, please try again")?></div>
                                     <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                                 </div>
                             </div>
                         </div>
                         <div id="delDashModalFooter" class="modal-footer">
-                            <button type="button" id="delDashCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-                            <button type="button" id="delDashConfirmBtn" class="btn confirmBtn internalLink">Confirm</button>
+                            <button type="button" id="delDashCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                            <button type="button" id="delDashConfirmBtn" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
                         </div>
                     </div>
                 </div>
@@ -527,19 +528,19 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modalHeader centerWithFlex">
-                            Management
+                            <?= _("Management")?>
                         </div>
                         <form id="delegationsForm" class="form-horizontal" name="delegationsForm" role="form" method="post" action="" data-toggle="validator">
                             <div id="delegationsModalBody" class="modal-body modalBody">
                                 <!-- Tabs -->
                                 <ul id="delegationsTabsContainer" class="nav nav-tabs nav-justified">
                                 <!--<ul id="delegationsTabsContainer" class="nav nav-tabs nav-fill flex-row-reverse">-->
-                                    <li id="ownershipTab" class="nav-item active"><a data-toggle="tab" href="#ownershipCnt" class="nav-link dashboardWizardTabTxt">Ownership</a></li>
-                                    <li id="visibilityTab" class="nav-item"><a data-toggle="tab" href="#visibilityCnt" class="nav-link dashboardWizardTabTxt">Visibility</a></li>
-                                    <li id="delegationsTab" class="nav-item"><a data-toggle="tab" href="#delegationsCnt" class="nav-link dashboardWizardTabTxt">Delegations</a></li>
-                                    <li id="groupDelegationsTab" class="nav-item"><a data-toggle="tab" href="#groupDelegationsCnt" class="nav-link dashboardWizardTabTxt">Group Delegations</a></li>
+                                    <li id="ownershipTab" class="nav-item active"><a data-toggle="tab" href="#ownershipCnt" class="nav-link dashboardWizardTabTxt"><?= _("Ownership")?></a></li>
+                                    <li id="visibilityTab" class="nav-item"><a data-toggle="tab" href="#visibilityCnt" class="nav-link dashboardWizardTabTxt"><?= _("Visibility")?></a></li>
+                                    <li id="delegationsTab" class="nav-item"><a data-toggle="tab" href="#delegationsCnt" class="nav-link dashboardWizardTabTxt"><?= _("Delegations")?></a></li>
+                                    <li id="groupDelegationsTab" class="nav-item"><a data-toggle="tab" href="#groupDelegationsCnt" class="nav-link dashboardWizardTabTxt"><?= _("Group Delegations")?></a></li>
                                     <!-- Dashboard Trend -->
-                                    <li id="trendTab" class="nav-item"><a data-toggle="tab" href="#groupTrendCnt" class="nav-link dashboardWizardTabTxt">Accesses Trends</a></li>
+                                    <li id="trendTab" class="nav-item"><a data-toggle="tab" href="#groupTrendCnt" class="nav-link dashboardWizardTabTxt"><?= _("Accesses Trends")?></a></li>
                                     <!-- GP COMMENT TEMPORARY -->
                                 </ul> 
                                 <!-- Fine tabs -->
@@ -559,17 +560,17 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                         <div id="ownershipCnt" class="tab-pane fade in active">
                                             <div class="row" id="ownershipFormRow">
                                                 <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
-                                                    Change ownership
+                                                    <?= _("Change ownership")?> 
                                                 </div>
                                                 <div class="col-xs-12" id="newOwnershipCnt">
                                                     <div class="input-group">
                                                         <input type="text" class="form-control" id="newOwner" placeholder="New owner username">
                                                         <span class="input-group-btn">
-                                                            <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
+                                                            <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                         </span>
                                                     </div>
                                                     <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
-                                                        New owner username can't be empty
+                                                        <?= _("New owner username can't be empty")?>
                                                     </div>    
                                                 </div>
                                                 <div class="col-xs-12 centerWithFlex" id="newOwnershipResultMsg">
@@ -584,16 +585,16 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                         <div id="visibilityCnt" class="tab-pane fade in">
                                             <div class="row" id="visibilityFormRow">
                                                 <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
-                                                    Change visibility
+                                                    <?= _("Change visibility")?>
                                                 </div>
                                                 <div class="col-xs-12" id="newVisibilityCnt">
                                                     <div class="input-group">
                                                         <select id="newVisibility" class="form-control">
-                                                            <option value="public">Public</option>
-                                                            <option value="private">Private</option>
+                                                            <option value="public"><?= _("Public")?></option>
+                                                            <option value="private"><?= _("Private")?></option>
                                                         </select>
                                                         <span class="input-group-btn">
-                                                            <button type="button" id="newVisibilityConfirmBtn" class="btn confirmBtn">Confirm</button>
+                                                            <button type="button" id="newVisibilityConfirmBtn" class="btn confirmBtn"><?= _("Confirm")?></button>
                                                         </span>
                                                     </div>
                                                 </div>
@@ -607,32 +608,32 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                         <!-- Delegations cnt -->
                                         <div id="delegationsCnt" class="tab-pane fade in">
                                             <div class="row centerWithFlex modalFirstLbl" id="delegationsNotAvailableRow">
-                                                Delegations are not possibile on a public dashboard
+                                                <?= _("Delegations are not possibile on a public dashboard")?>
                                             </div>
                                             <div class="row" id="delegationsFormRow">
                                                 <div class="col-xs-12 centerWithFlex modalFirstLbl" id="newDelegationLbl">
-                                                    Add new delegation
+                                                    <?= _("Add new delegation")?>
                                                 </div>
                                                 <div class="col-xs-12" id="newDelegationCnt">
                                                     <div class="input-group">
                                                         <input type="text" class="form-control" id="newDelegation" placeholder="Delegated username">
                                                         <span class="input-group-btn">
-                                                            <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
+                                                            <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                         </span>
                                                     </div>
                                                     <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newDelegatedMsg">
-                                                        Delegated username can't be empty
+                                                        <?= _("Delegated username can't be empty")?>
                                                     </div>
                                                 </div>
 
                                                 <div class="col-xs-12 centerWithFlex" id="currentDelegationsLbl">
-                                                    Current user delegations
+                                                    <?= _("Current user delegations")?>
                                                 </div>
                                                 <div class="col-xs-12" id="delegationsTableCnt">
                                                     <table id="delegationsTable">
                                                         <thead>
-                                                        <th>Delegated user</th>
-                                                        <th>Remove</th>
+                                                        <th><?= _("Delegated user")?></th>
+                                                        <th><?= _("Remove")?></th>
                                                         </thead>
                                                         <tbody>
                                                         </tbody>
@@ -645,11 +646,11 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                         <!-- Group Delegations cnt -->
                                         <div id="groupDelegationsCnt" class="tab-pane fade in">
                                             <div class="row centerWithFlex modalFirstLbl" id="groupDelegationsNotAvailableRow">
-                                                Delegations are not possibile on a public dashboard
+                                                <?= _("Delegations are not possibile on a public dashboard")?>
                                             </div>
                                             <div class="row" id="groupDelegationsFormRow">
                                                 <div class="col-xs-12 centerWithFlex modalFirstLbl" id="newDelegationLbl">
-                                                    Add new group delegation
+                                                    <?= _("Add new group delegation")?>
                                                 </div>
                                                 <div class="col-xs-12" id="newGroupDelegationCnt">
                                                     <div class="col-xs-4">
@@ -661,7 +662,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                     </div>
                                                     <div class="col-xs-4">
                                                         <span class="input-group-btn">
-                                                            <button type="button" id="newGroupDelegationConfirmBtn" class="btn confirmBtn">Confirm</button>
+                                                            <button type="button" id="newGroupDelegationConfirmBtn" class="btn confirmBtn"><?= _("Confirm")?></button>
                                                         </span>
                                                     </div>
                                                     <!--    <div class="input-group">
@@ -676,13 +677,13 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                 </div>
 
                                                 <div class="col-xs-12 centerWithFlex" id="currentGroupDelegationsLbl">
-                                                    Current group delegations
+                                                   <?= _("Current group delegations")?> 
                                                 </div>
                                                 <div class="col-xs-12" id="groupDelegationsTableCnt">
                                                     <table id="groupDelegationsTable">
                                                         <thead>
-                                                        <th>Delegated group</th>
-                                                        <th>Remove</th>
+                                                        <th><?= _("Delegated group")?></th>
+                                                        <th><?= _("Remove")?></th>
                                                         </thead>
                                                         <tbody>
                                                         </tbody>
@@ -706,34 +707,34 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 
                                             <div id="control_access" class="control_list">
 
-                                                <a href="#" class="previous" title="show to previous" onclick="change_trend('access', 'previous')">&laquo; Previous</a>
+                                                <a href="#" class="previous" title="show to previous" onclick="change_trend('access', 'previous')">&laquo; <?= _("Previous")?></a>
                                                 <select id="menu_1" title="Show by ..." onchange="timetrendaccesses()">
-                                                    <option value=" 24 HOUR ">Last Day</option>
-                                                    <option value=" 1 WEEK ">Last Week</option>
-                                                    <option value=" 1 MONTH ">Last Month</option>
-                                                    <option value=" 6 MONTH ">Last Semester</option>
-                                                    <option value=" 1 YEAR ">Last Year</option>
+                                                    <option value=" 24 HOUR "><?= _("Last Day")?></option>
+                                                    <option value=" 1 WEEK "><?= _("Last Week")?></option>
+                                                    <option value=" 1 MONTH "><?= _("Last Month")?></option>
+                                                    <option value=" 6 MONTH "><?= _("Last Semester")?></option>
+                                                    <option value=" 1 YEAR "><?= _("Last Year")?></option>
                                                 </select>
-                                                <a href="#" class="next" title="show to next" onclick="change_trend('access', 'next')">Next &raquo;</a>
+                                                <a href="#" class="next" title="show to next" onclick="change_trend('access', 'next')"><?= _("Next")?> &raquo;</a>
                                             </div>
-                                            From <input type="text" id="end_accss" readonly> To 
+                                            <?= _("From")?> <input type="text" id="end_accss" readonly> <?= _("To")?> 
                                             <input type="text" id="start_accss" readonly>
 
                                             <div id="container_accesses" style="height: 200px">                                            
                                             </div><br />
                                             <div id="control_minutes" class="control_list">
 
-                                                <a href="#" class="previous" title="show to previous" onclick="change_trend('minutes', 'previous')">&laquo; Previous</a>
+                                                <a href="#" class="previous" title="show to previous" onclick="change_trend('minutes', 'previous')">&laquo; <?= _("Previous")?></a>
                                                 <select id="menu_2" title="Show by ..." onchange="timetrendminutes()">
-                                                    <option value=" 24 HOUR ">Last Day</option>
-                                                    <option value=" 1 WEEK ">Last Week</option>
-                                                    <option value=" 1 MONTH ">Last Month</option>
-                                                    <option value=" 6 MONTH ">Last Semester</option>
-                                                    <option value=" 1 YEAR ">Last Year</option>
+                                                    <option value=" 24 HOUR "><?= _("Last Day")?></option>
+                                                    <option value=" 1 WEEK "><?= _("Last Week")?></option>
+                                                    <option value=" 1 MONTH "><?= _("Last Month")?></option>
+                                                    <option value=" 6 MONTH "><?= _("Last Semester")?></option>
+                                                    <option value=" 1 YEAR "><?= _("Last Year")?></option>
                                                 </select>
-                                                <a href="#" class="next" title="show to next" onclick="change_trend('minutes', 'next')">Next &raquo;</a>
+                                                <a href="#" class="next" title="show to next" onclick="change_trend('minutes', 'next')"><?= _("Next")?> &raquo;</a>
                                             </div>
-                                            From <input type="text" id="end_min" readonly> To 
+                                            <?= _("From")?> <input type="text" id="end_min" readonly> <?= _("To")?> 
                                             <input type="text" id="start_min" readonly>
                                             <div id="container_minutes" style="height: 200px">                                            
                                             </div>
@@ -745,7 +746,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                 </div>
                             </div>
                             <div id="delegationsModalFooter" class="modal-footer">
-                                <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px">Close</button>
+                                <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px"><?= _("Close")?></button>
                             </div>
                         </form>    
                     </div>
@@ -758,7 +759,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modalHeader centerWithFlex">
-                            Dashboard duplication
+                            <?= _("Dashboard duplication")?> 
                         </div>
                         <form id="cloneDashboardForm" class="form-horizontal" name="cloneDashboardForm" role="form" method="post" action="" data-toggle="validator">
                             <div id="cloneDashboardModalBody" class="modal-body modalBody">
@@ -770,30 +771,30 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                     <div id="dashToClonePic" class="modalDelObjName col-xs-12 centerWithFlex"></div>
 
                                     <div class="col-xs-12 centerWithFlex" style="font-weight: bold !important; margin-top: 6px; color: white">
-                                        Cloned dashboard title
+                                        <?= _("Cloned dashboard title")?> 
                                     </div>
                                     <div class="col-xs-12 centerWithFlex" id="newDashboardTitleCnt">
                                         <input type="text" class="form-control" id="newDashboardTitle" name="NameNewDashboard" required>
                                     </div>
                                     <div id="cloneDashboardTitleMsg" class="col-xs-12 centerWithFlex ok">
-                                        New title OK
+                                        <?= _("New title OK")?>  
                                     </div>
                                     <input type="hidden" id="dashIdCloneHidden">
                                 </div>
                                 <div class="row" id="duplicateDashboardLoadingTitlesRow">
-                                    <div class="col-xs-12 centerWithFlex">Retrieving current dashboards titles, please wait</div>
+                                    <div class="col-xs-12 centerWithFlex"><?= _("Retrieving current dashboards titles, please wait")?> </div>
                                     <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
                                 </div>
                                 <div class="row" id="duplicateDashboardLoadingTitlesKoRow">
-                                    <div class="col-xs-12 centerWithFlex">Error retrieving current dashboards titles, please try again</div>
+                                    <div class="col-xs-12 centerWithFlex"><?= _("Error retrieving current dashboards titles, please try again")?></div>
                                     <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                                 </div>
                                 <div class="row" id="duplicateDashboardLoadingRow">
-                                    <div class="col-xs-12 centerWithFlex">Cloning dashboard, please wait</div>
+                                    <div class="col-xs-12 centerWithFlex"><?= _("Cloning dashboard, please wait")?></div>
                                     <div class="col-xs-12 centerWithFlex"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i></div>
                                 </div>
                                 <div class="row" id="duplicateDashboardOkRow">
-                                    <div class="col-xs-12 centerWithFlex">Dashboard cloned successfully</div>
+                                    <div class="col-xs-12 centerWithFlex"><?= _("Dashboard cloned successfully")?></div>
                                     <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
                                 </div>
                                 <div class="row" id="duplicateDashboardWarningRow">
@@ -801,13 +802,13 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                     <div class="col-xs-12 centerWithFlex"><i class="fa fa-exclamation-triangle" style="font-size:36px"></i></div>
                                 </div>
                                 <div class="row" id="duplicateDashboardKoRow">
-                                    <div class="col-xs-12 centerWithFlex">Error while cloning dashboard, please try again</div>
+                                    <div class="col-xs-12 centerWithFlex"><?= _("Error while cloning dashboard, please try again")?></div>
                                     <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                                 </div>
                             </div>
                             <div id="cloneDashboardModalFooter" class="modal-footer">
-                                <button type="button" id="duplicateDashboardCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-                                <button type="button" id="duplicateDashboardBtn" class="btn confirmBtn internalLink">Confirm</button>
+                                <button type="button" id="duplicateDashboardCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Close")?></button>
+                                <button type="button" id="duplicateDashboardBtn" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
                             </div>
                         </form>    
                     </div>
@@ -820,7 +821,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modalHeader centerWithFlex">
-                            Dashboard IOT apps 
+                            <?= _("Dashboard IOT apps")?> 
                         </div>
 
                         <div id="iotAppsModalBody" class="modal-body modalBody">
@@ -830,14 +831,14 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                     <div class="col-xs-12 centerWithFlex iotAppsModalLbl" id="iotAppsDashboardTitle"></div>
                                     <div id="iotAppsDashPic" class="modalDelObjName col-xs-12 centerWithFlex"></div>
 
-                                    <div class="col-xs-12 centerWithFlex iotAppsModalLbl">IOT applications list</div>
+                                    <div class="col-xs-12 centerWithFlex iotAppsModalLbl"> <?= _("IOT applications list")?> </div>
                                     <div class="col-xs-12" id="iotAppsNoAppsCnt">
-                                        You have no access rights for Apps connected to this dashboard or these Apps may have been deleted
+                                        <?= _("You have no access rights for Apps connected to this dashboard or these Apps may have been deleted")?>
                                     </div>    
                                     <div class="col-xs-12" id="iotAppsTableCnt">
                                         <table id="iotAppsTable">
                                             <thead>
-                                            <th>App</th>
+                                            <th><?= _("App")?></th>
                                             </thead>
                                             <tbody>
                                             </tbody>
@@ -848,7 +849,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 
                                 <!-- Colonna destra -->
                                 <div class="col-xs-10">
-                                    <div class="col-xs-12 centerWithFlex iotAppsModalLbl">Flow designer</div>
+                                    <div class="col-xs-12 centerWithFlex iotAppsModalLbl"><?= _("Flow designer")?></div>
                                     <div class="col-xs-12" id="iotAppsIframeCnt">
                                         <iframe id="iotAppsIframe"></iframe>
                                     </div>
@@ -858,7 +859,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                             </div>
                         </div>
                         <div id="iotAppsModalFooter" class="modal-footer">
-                            <button type="button" id="iotAppsCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
+                            <button type="button" id="iotAppsCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
                         </div>   
                     </div>
                 </div>
@@ -1030,7 +1031,8 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 
             var titleEscapedPre = record.title_header.replace(/\"/g, '&quot;');
             var titleEscaped = titleEscapedPre.replace(/\'/g, '&apos;');
-            var newRow = '<tr data-dashTitle="' + record.title_header + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.user + '"><td class="' + cssClass + '" style="font-weight: bold">' + title + '</td><td class="' + cssClass + '">' + user + '</td><td class="' + cssClass + '">' + record.creation_date + '</td><td class="' + cssClass + '">' + record.last_edit_date + '</td><td class="' + cssClass + '">' + record.nAccessPerDay + '</td><td class="' + cssClass + '">' + record.nMinutesPerDay + '</td><td class="' + cssClass + '">' + statusBtn + '</td><td class="' + cssClass + '"><button type="button" class="editDashBtn">edit</button></td><td class="' + cssClass + '"><button type="button" class="viewDashBtn">view</button></td><td class="' + cssClass + '">' + record.organizations + '</td></tr>';
+            var hrefTitle = '<a href="' + "<?=$LOGPath?>" + record.Id + '_' + title.replace(/ /g,"_") + '" target="_blank">' + title + '</a>';
+            var newRow = '<tr data-dashTitle="' + record.title_header + '" data-uniqueid="' + record.Id + '" data-authorName="' + record.user + '"><td class="' + cssClass + '" style="font-weight: bold">' + hrefTitle + '</td><td class="' + cssClass + '">' + user + '</td><td class="' + cssClass + '">' + record.creation_date + '</td><td class="' + cssClass + '">' + record.last_edit_date + '</td><td class="' + cssClass + '">' + record.nAccessPerDay + '</td><td class="' + cssClass + '">' + record.nMinutesPerDay + '</td><td class="' + cssClass + '">' + statusBtn + '</td><td class="' + cssClass + '"><button type="button" class="editDashBtn"><?php echo _("Edit"); ?></button></td><td class="' + cssClass + '"><button type="button" class="viewDashBtn"><?php echo _("View"); ?></button></td><td class="' + cssClass + '">' + record.organizations + '</td></tr>';
 
             return newRow;
         }
@@ -1073,22 +1075,22 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 
             if (brokerLbl && iotLbl)
             {
-                cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="<?= !$_SESSION['isPublic'] ? 'true' : 'false' ?>">IOT apps & broker</span>' + '</div>';
+                cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="<?= !$_SESSION['isPublic'] ? 'true' : 'false' ?>"><?php echo _("IOT apps & broker"); ?></span>' + '</div>';
             } else
             {
                 if ((!brokerLbl) && iotLbl)
                 {
-                    cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="<?= !$_SESSION['isPublic'] ? 'true' : 'false' ?>">IOT apps</span>' + '</div>';
+                    cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="<?= !$_SESSION['isPublic'] ? 'true' : 'false' ?>"><?php echo _("IOT apps"); ?></span>' + '</div>';
                 } else
                 {
                     if (brokerLbl && (!iotLbl))
                     {
-                        cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false">Broker</span>' + '</div>';
+                        cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false"><?php echo _("Broker"); ?></span>' + '</div>';
                     } else
                     {
                         if ((!brokerLbl) && (!iotLbl))
                         {
-                            cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false">Passive</span>' + '</div>';
+                            cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false"><?php echo _("Passive"); ?></span>' + '</div>';
                         }
                     }
                 }
@@ -1096,7 +1098,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 
 
             cardDiv = cardDiv + '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
-                    '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex">View</div>' +
+                    '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex"><?php echo _("View"); ?></div>' +
                     '<div class="dashboardsListCardImgDiv"></div>';
             var appendStr = "";
             var appendStr1 = "";
@@ -1138,13 +1140,13 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 <?php if (!$_SESSION['isPublic']) : ?>
                 if (editLbl === 'show')
                 {
-                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCard">Edit</button>';
+                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCard"><?php echo _("Edit"); ?></button>';
                 }
 
                 switch (managementLbl)
                 {
                     case "show":
-                        cardDiv = cardDiv + '<button type="button" class="dashBtnCard delegateDashBtnCard">Management</button>';
+                        cardDiv = cardDiv + '<button type="button" class="dashBtnCard delegateDashBtnCard"><?php echo _("Management"); ?></button>';
                         break;
 
                     default:
@@ -1153,12 +1155,12 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 
                 if (cloneLbl === 'show')
                 {
-                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard cloneDashBtnCard">Clone</button>';
+                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard cloneDashBtnCard"><?php echo _("Clone"); ?></button>';
                 }
 
                 if (deleteLbl === 'show')
                 {
-                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard deleteDashBtnCard">Delete</button>';
+                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard deleteDashBtnCard"><?php echo _("Delete"); ?></button>';
                 }
 <?php endif; ?>
             cardDiv = cardDiv + '</div>' +
@@ -1198,7 +1200,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                             //  console.log("adding empty");
                             //  $dropdown.append($("<option />").val("").text(""));
                             console.log("adding All Groups");
-                            $dropdown.append($("<option />").val("All Groups").text("All Groups"));
+                            $dropdown.append($("<option />").val("All Groups").text('<?php echo _("All Groups")?>'));
                         }
                         //add new ones
                         $.each(data['content'], function () {
@@ -1211,7 +1213,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 error: function (data)
                 {
                     $('#newDelegatedMsgGroup').css('color', '#f3cf58');
-                    $('#newDelegatedMsgGroup').html('Error calling internal API');
+                    $('#newDelegatedMsgGroup').html('<? _("Error calling internal API")?>');
                 }
             });
         }
@@ -1418,7 +1420,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                     $("#dynatable-query-search-list_dashboard_cards").prependTo("#dashboardListsSearchFilter div.dashboardsListMenuItemContent div.input-group");
                     $('#dynatable-search-list_dashboard_cards').remove();
                     $("#dynatable-query-search-list_dashboard_cards").css("border", "none");
-                    $("#dynatable-query-search-list_dashboard_cards").attr("placeholder", "Filter by dashboard title, author...");
+                    $("#dynatable-query-search-list_dashboard_cards").attr("placeholder", "<?php echo _('Filter by dashboard title, author...') ?>");
                     $("#dynatable-query-search-list_dashboard_cards").css("width", "100%");
                     $("#dynatable-query-search-list_dashboard_cards").addClass("form-control");
 
@@ -1507,7 +1509,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                                     dashboardTitlesList = data.titles;
                                                     if (dashboardTitlesList.indexOf($('#newDashboardTitle').val().trim()) > 0)
                                                     {
-                                                        $('#cloneDashboardTitleMsg').html("Title already in use");
+                                                        $('#cloneDashboardTitleMsg').html('<? _("Title already in use")?>');
                                                         $('#cloneDashboardTitleMsg').removeClass("ok");
                                                         $('#cloneDashboardTitleMsg').addClass("error");
                                                         $('#duplicateDashboardBtn').attr("disabled", true);
@@ -1516,18 +1518,18 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                                     //  {
                                                     $('#newDashboardTitle').on('input', function () {
                                                         if ($('#newDashboardTitle').val().trim().length < 4) {
-                                                            $('#cloneDashboardTitleMsg').html("Title can't be less than 4 characters long");
+                                                            $('#cloneDashboardTitleMsg').html('<? _("Title can\'t be less than 4 characters long")?>');
                                                             $('#cloneDashboardTitleMsg').removeClass("ok");
                                                             $('#cloneDashboardTitleMsg').addClass("error");
                                                             $('#duplicateDashboardBtn').attr("disabled", true);
                                                         } else {
                                                             if (dashboardTitlesList.indexOf($('#newDashboardTitle').val().trim()) > 0) {
-                                                                $('#cloneDashboardTitleMsg').html("Title already in use");
+                                                                $('#cloneDashboardTitleMsg').html('<? _("Title already in use")?>');
                                                                 $('#cloneDashboardTitleMsg').removeClass("ok");
                                                                 $('#cloneDashboardTitleMsg').addClass("error");
                                                                 $('#duplicateDashboardBtn').attr("disabled", true);
                                                             } else {
-                                                                $('#cloneDashboardTitleMsg').html("New title OK");
+                                                                $('#cloneDashboardTitleMsg').html('<? _("New title OK")?>');
                                                                 $('#cloneDashboardTitleMsg').removeClass("error");
                                                                 $('#cloneDashboardTitleMsg').addClass("ok");
                                                                 $('#duplicateDashboardBtn').attr("disabled", false);
@@ -1669,7 +1671,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                         $('#newOwner').val('');
                                         $('#newOwner').addClass('disabled');
                                         $('#newOwnershipResultMsg').show();
-                                        $('#newOwnershipResultMsg').html('New ownership set correctly');
+                                        $('#newOwnershipResultMsg').html('<? _("New ownership set correctly")?>');
                                         $('#newOwnershipResultMsg').css('color', 'white');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1681,7 +1683,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     {
                                         $('#newOwner').addClass('disabled');
                                         $('#newOwnershipResultMsg').show();
-                                        $('#newOwnershipResultMsg').html('Error: New owner does not exists or it is not a valid LDAP user');
+                                        $('#newOwnershipResultMsg').html('<? _("Error: New owner does not exists or it is not a valid LDAP user")?>');
                                         $('#newOwnershipResultMsg').css('color', '#f3cf58');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1695,7 +1697,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     {
                                         $('#newOwner').addClass('disabled');
                                         $('#newOwnershipResultMsg').show();
-                                        $('#newOwnershipResultMsg').html('Error: New owner has exceeded his limits for dashboard ownership');
+                                        $('#newOwnershipResultMsg').html('<?_("Error: New owner has exceeded his limits for dashboard ownership")?>');
                                         $('#newOwnershipResultMsg').css('color', '#f3cf58');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1709,7 +1711,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     {
                                         $('#newOwner').addClass('disabled');
                                         $('#newOwnershipResultMsg').show();
-                                        $('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
+                                        $('#newOwnershipResultMsg').html('<?_("Error setting new ownership: please try again")?>');
                                         $('#newOwnershipResultMsg').css('color', '#f3cf58');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1724,7 +1726,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                 error: function (errorData)
                                 {
                                     $('#newOwner').addClass('disabled');
-                                    $('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
+                                    $('#newOwnershipResultMsg').html('<?_("Error setting new ownership: please try again")?>');
                                     $('#newOwnershipConfirmBtn').addClass('disabled');
 
                                     setTimeout(function ()
@@ -1755,7 +1757,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     if (data.detail === 'Ok')
                                     {
                                         $('#newVisibilityResultMsg').show();
-                                        $('#newVisibilityResultMsg').html('New visibility set correctly');
+                                        $('#newVisibilityResultMsg').html('<?_("New visibility set correctly")?>');
                                         $('#newVisibilityConfirmBtn').addClass('disabled');
 
                                         setTimeout(function ()
@@ -1765,7 +1767,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     } else
                                     {
                                         $('#newVisibilityResultMsg').show();
-                                        $('#newVisibilityResultMsg').html('Error setting new visibility');
+                                        $('#newVisibilityResultMsg').html('<?_("Error setting new visibility")?>');
                                         $('#newVisibilityConfirmBtn').addClass('disabled');
 
                                         setTimeout(function ()
@@ -1779,7 +1781,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                 error: function (errorData)
                                 {
                                     $('#newVisibilityResultMsg').show();
-                                    $('#newVisibilityResultMsg').html('Error setting new visibility');
+                                    $('#newVisibilityResultMsg').html('<?_("Error setting new visibility")?>');
                                     $('#newVisibilityConfirmBtn').addClass('disabled');
 
                                     setTimeout(function ()
@@ -1843,14 +1845,14 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                         $('#newDelegation').val('');
                                         $('#newDelegation').addClass('disabled');
                                         $('#newDelegatedMsg').css('color', 'white');
-                                        $('#newDelegatedMsg').html('New delegation added correctly');
+                                        $('#newDelegatedMsg').html('<?_("New delegation added correctly")?>');
                                         $('#newDelegationConfirmBtn').addClass('disabled');
 
                                         setTimeout(function ()
                                         {
                                             $('#newDelegation').removeClass('disabled');
                                             $('#newDelegatedMsg').css('color', '#f3cf58');
-                                            $('#newDelegatedMsg').html('Delegated username can\'t be empty');
+                                            $('#newDelegatedMsg').html('<? _("Delegated username can\'t be empty")?>');
                                         }, 1500);
                                     } else
                                     {
@@ -1888,7 +1890,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                         {
                                             $('#newDelegation').removeClass('disabled');
                                             $('#newDelegatedMsg').css('color', '#f3cf58');
-                                            $('#newDelegatedMsg').html('Delegated username can\'t be empty');
+                                            $('#newDelegatedMsg').html('<? _("Error: Delegated username can\'t be empty")?>');
                                         }, 2000);
                                     }
                                 },
@@ -1905,7 +1907,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     {
                                         $('#newDelegation').removeClass('disabled');
                                         $('#newDelegatedMsg').css('color', '#f3cf58');
-                                        $('#newDelegatedMsg').html('Delegated username can\'t be empty');
+                                        $('#newDelegatedMsg').html('<? _("Delegated username can\'t be empty")?>');
                                     }, 2000);
                                 }
                             });
@@ -1918,7 +1920,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                 $('#groupDelegationsTable tbody tr').each(function (i) {
                                     if ($(this).attr('data-delegated').trim() === $('#newDelegationOrganization').val() + " - " + $('#newDelegationGroup').val()) {
                                         $('#newGroupDelegatedMsg').css('color', '#f3cf58');
-                                        $('#newGroupDelegatedMsg').html('Group already delegated');
+                                        $('#newGroupDelegatedMsg').html('<? _("Group already delegated")?>');
                                         $('#newGroupDelegationConfirmBtn').addClass('disabled');
                                         isPresentFlag = 1;
                                     } else {
@@ -1987,7 +1989,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                                 $('#newDelegation').val('');
                                                 $('#newDelegation').addClass('disabled');
                                                 $('#newGroupDelegatedMsg').css('color', 'white');
-                                                $('#newGroupDelegatedMsg').html('New delegation added correctly');
+                                                $('#newGroupDelegatedMsg').html('<?_("New delegation added correctly")?>');
                                                 //   $('#newGroupDelegationConfirmBtn').addClass('disabled');
 
                                                 /*    setTimeout(function()
@@ -2000,19 +2002,19 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                                 var errorMsg = null;
                                                 switch (data.detail) {
                                                     case "RootAdmin":
-                                                        errorMsg = "You can\'t delegate a root admin";
+                                                        errorMsg = '<? _("You can\'t delegate a root admin")?>';
                                                         break;
 
                                                     case "ApiCallKo":
-                                                        errorMsg = "Error calling Snap4City API";
+                                                        errorMsg = '<? _("Error calling Snap4City API")?>';
                                                         break;
 
                                                     case "QueryKo":
-                                                        errorMsg = "Database error";
+                                                        errorMsg = '<? _("Database error")?>';
                                                         break;
 
                                                     case "LdapKo":
-                                                        errorMsg = "LDAP error";
+                                                        errorMsg = '<? _("LDAP error")?>';
                                                         break;
                                                 }
 
@@ -2093,19 +2095,19 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     if ($(this).val().trim() === '')
                                     {
                                         $('#newOwnerMsg').css('color', '#f3cf58');
-                                        $('#newOwnerMsg').html('New owner username can\'t be empty');
+                                        $('#newOwnerMsg').html('<? _("New owner username can\'t be empty")?>');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
                                     } else
                                     {
                                         if (($(this).val().trim() === "<?= @$_SESSION['loggedUsername'] ? : '' ?>") && ("<?= @$_SESSION['loggedRole'] ?>" !== "RootAdmin"))
                                         {
                                             $('#newOwnerMsg').css('color', '#f3cf58');
-                                            $('#newOwnerMsg').html('New owner can\'t be you');
+                                            $('#newOwnerMsg').html('<? _("New owner can\'t be you")?>');
                                             $('#newOwnershipConfirmBtn').addClass('disabled');
                                         } else
                                         {
                                             $('#newOwnerMsg').css('color', 'white');
-                                            $('#newOwnerMsg').html('User can be new owner');
+                                            $('#newOwnerMsg').html('<? _("User can be new owner")?>');
                                             $('#newOwnershipConfirmBtn').removeClass('disabled');
                                         }
                                     }
@@ -2118,12 +2120,12 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     if ($(this).val().trim() === '')
                                     {
                                         $('#newDelegatedMsg').css('color', '#f3cf58');
-                                        $('#newDelegatedMsg').html('Delegated username can\'t be empty');
+                                        $('#newDelegatedMsg').html('<? _("Delegated username can\'t be empty")?>');
                                         $('#newDelegationConfirmBtn').addClass('disabled');
                                     } else
                                     {
                                         $('#newDelegatedMsg').css('color', 'white');
-                                        $('#newDelegatedMsg').html('User can be delegated');
+                                        $('#newDelegatedMsg').html('<? _("User can be delegated")?>');
                                         $('#newDelegationConfirmBtn').removeClass('disabled');
 
                                         $('#delegationsTable tbody tr').each(function (i)
@@ -2131,7 +2133,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                             if ($(this).attr('data-delegated').trim() === $('#newDelegation').val())
                                             {
                                                 $('#newDelegatedMsg').css('color', '#f3cf58');
-                                                $('#newDelegatedMsg').html('User already delegated');
+                                                $('#newDelegatedMsg').html('<? _("User already delegated")?>');
                                                 $('#newDelegationConfirmBtn').addClass('disabled');
                                             }
                                         });
@@ -2739,7 +2741,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                         $("#dynatable-query-search-list_dashboard").prependTo("#dashboardListsSearchFilter div.dashboardsListMenuItemContent div.input-group");
                         $('#dynatable-search-list_dashboard').remove();
                         $("#dynatable-query-search-list_dashboard").css("border", "none");
-                        $("#dynatable-query-search-list_dashboard").attr("placeholder", "Filter by dashboard title, author...");
+                        $("#dynatable-query-search-list_dashboard").attr("placeholder", "<?php echo _('Filter by dashboard title, author...') ?>");
                         $("#dynatable-query-search-list_dashboard").css("width", "100%");
                         $("#dynatable-query-search-list_dashboard").addClass("form-control");
 
@@ -2776,7 +2778,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     {
                                         console.log("Error updating dashboard status");
                                         console.log(data);
-                                        alert("Error updating dashboard status");
+                                        alert('<?= _("Error updating dashboard status") ?>');
                                         location.reload();
                                     } else
                                     {
@@ -2933,7 +2935,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                 error: function (data)
                 {
                     $('#newDelegatedMsgGroup').css('color', '#f3cf58');
-                    $('#newDelegatedMsgGroup').html('Error calling internal API');
+                    $('#newDelegatedMsgGroup').html('<? _("Error calling internal API")?>');
                 }
             });
         }
@@ -3000,16 +3002,16 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                 $('#inputTitleDashboard').on('input', function (e) {
                     if ($(this).val().trim() === '') {
                         $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title can\'t be empty');
+                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Dashboard title can\'t be empty")?>');
                         $('#inputTitleDashboardStatus').val('empty');
                     } else if ($(this).val().includes('"') || $(this).val().includes("'")) {
                         $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Single or double quotes are not allowed in dashboard title.');
+                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Single or double quotes are not allowed in dashboard title.")?>');
                         $('#inputTitleDashboardStatus').val('alreadyUsed');
                     } else {
                         if ($(this).val().length > 300) {
                             $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title can\'t be longer than 300 chars');
+                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Dashboard title can\'t be longer than 300 chars")?>');
                             $('#inputTitleDashboardStatus').val('tooLong');
                         } else {
                             var ok = true;
@@ -3027,11 +3029,11 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                             }
                             if (!ok) {
                                 $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                                $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title already in use');
+                                $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Dashboard title already in use")?>');
                                 $('#inputTitleDashboardStatus').val('alreadyUsed');
                             } else {
                                 $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', 'white');
-                                $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('Dashboard title OK');
+                                $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Dashboard title OK")?>');
                                 $('#inputTitleDashboardStatus').val('ok');
                             }
                         }

@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
@@ -50,6 +49,10 @@
         var serviceUri = "";
         var flipFlag = false;
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
+        var deviceLabels = [];
+        var metricLabels = [];
+        var sortSeriesStr, sortedSeries = null;
+        var followPointerFlag = false;
 
         console.log("Entrato in widgetBarSeries --> " + widgetName);
 
@@ -57,8 +60,8 @@
 
         function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr) {
 
-            var deviceLabels = [];
-            var metricLabels = [];
+            deviceLabels = [];
+            metricLabels = [];
             var auxLabels = [];
             let mappedSeriesDataArray = [];
 
@@ -84,6 +87,11 @@
                 deviceLabels = auxLabels;
             }
             series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag);
+            if (editLabels != null && flipFlag === true) {
+                if (deviceLabels[0] != editLabels[0]) {
+                    metricLabels = editLabels;
+                }
+            }
 
             xAxisCategories = metricLabels.slice();
 
@@ -119,7 +127,7 @@
                     async: true,
                     dataType: 'json',
                     success: function (widgetData) {
-                        
+
                     },
                     error: function (errorData) {
                         metricData = null;
@@ -221,7 +229,11 @@
                         } else {
                             seriesName = series.secondAxis.labels[i];
                         }
-                        seriesValues = series.secondAxis.series[i];
+                    /*    if (series.secondAxis.series[i] == "") {
+                            seriesValues = 0;
+                        } else {*/
+                            seriesValues = series.secondAxis.series[i];
+                    //    }
 
                         //if(styleParameters.barsColorsSelect === 'manual')
                         if((styleParameters.barsColorsSelect === 'manual')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
@@ -303,6 +315,14 @@
             if (seriesDataArray.length > 0) {
                 yAxisText = seriesDataArray[0].metricValueUnit;
             }
+            if (chartSeriesObject[0].data.length == -1) {
+                //    chartSeriesObject.sort((a, b) => (b.data - a.data))   // DESC
+            //    chartSeriesObject.sort((a, b) => (a.data - b.data))     // ASC
+                chartSeriesObject = sortSingleSerie(chartSeriesObject, "asc");
+            }
+            if (sortSeriesStr != null && sortSeriesStr != "no") {
+                followPointerFlag = true;
+            }
             chartRef = Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
                 chart: {
                     type: highchartsChartType,
@@ -310,7 +330,7 @@
                     //Funzione di applicazione delle soglie
                     events: {
                         load: onDraw,
-                        //redraw: onDraw
+                        redraw: onDraw
                     }
                 },
                 //Per disabilitare il menu in alto a destra
@@ -384,6 +404,7 @@
                     }
                 },
                 tooltip: {
+                    followPointer: followPointerFlag,
                     style: {
                         fontFamily: 'Montserrat',
                         fontSize: 12 + "px",
@@ -536,7 +557,11 @@
                     series: {
                         groupPadding: 0.1,
                         pointPadding: 0,
-                        stacking: stackingOption
+                        stacking: stackingOption,
+                    /*    dataSorting: {
+                            enabled: true,
+                        //    sortKey: 'y',
+                        }*/
                     },
                     bar: {
                         events: {
@@ -577,7 +602,42 @@
                     enabled: false
                 },
                 series: chartSeriesObject
+              /*  series: [{
+                    dataSorting: {
+                        enabled: true,
+                        sortKey: 'data'
+                    },
+                    data: chartSeriesObject
+                }]*/
             });
+            if (sortSeriesStr != null && sortSeriesStr != "no") {
+                chartRef.update({
+                    tooltip: {
+                        positioner: function(labelWidth, labelHeight, point) {
+                            if (styleParameters.chartType != "horizontal") {
+                                var tooltipX = point.plotX - labelWidth/3;
+                                var tooltipY = point.plotY - labelHeight;
+                                return {
+                                    x: tooltipX,
+                                    y: tooltipY
+                                };
+                            } else {
+                                if (sortSeriesStr != "ascendent") {
+                                    return {
+                                        x: point.plotX,
+                                        y: point.plotY + labelHeight/2
+                                    };
+                                } else {
+                                    return {
+                                        x: point.plotX,
+                                        y: point.plotY - labelHeight/2
+                                    };
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         function populateWidget() {
@@ -591,7 +651,7 @@
                 }
             }
 
-            if (metricName === 'AggregationSeries' || aggregationFlag === true || metricName.includes("NR_")) {
+            if (metricName === 'AggregationSeries' || aggregationFlag === true || nrMetricType != null) {
                 //   rowParameters = JSON.parse(rowParameters);
                 aggregationGetData = [];
                 getDataFinishCount = 0;
@@ -829,6 +889,10 @@
         //Metodo di aggiunta dei tasti info, di disegno delle soglie e di completamento dei dropdown delle legende
         function onDraw()
         {
+            if (sortSeriesStr != null && sortSeriesStr != "no" && this.series[0].points.length > 0) {
+                sortedSeries = sortMultiSerieForBarCharts(this.series, sortSeriesStr, chartType);
+            }
+
             var dropDownElement, infoIcon, l = null;
             //Gestori della pressione del pulsante info per i campi    
             $('#<?= $_REQUEST['name_w'] ?>_chartContainer i.fa-info-circle[data-axis=x]').on("click", showModalFieldsInfoFirstAxis);
@@ -1384,7 +1448,9 @@
                 serviceUri = widgetData.params.serviceUri;
                 idMetric = widgetData.params.id_metric;
 
-                openWs();
+                if (nrMetricType != null) {
+                    openWs();
+                }
                     
                 if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
                 {
@@ -1451,6 +1517,7 @@
                 }
 
                 chartType = styleParameters.chartType;
+                sortSeriesStr = styleParameters.sortBarValuesM;
 
                 switch(styleParameters.dataLabelsRotation)
                 {

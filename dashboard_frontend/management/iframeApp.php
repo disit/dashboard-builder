@@ -174,10 +174,13 @@
         
     </body>
 </html>
+<?php 
+$curr_lang = selectLanguage($localizations); 
+?>
 
 <script type='text/javascript'>
     $(document).ready(function () 
-    {
+    {  
         console.log("Entrato in iFrame");
        var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
@@ -247,8 +250,11 @@
         }
 
         // NEW PENTEST: mettere escapeForJS per $_REQUEST['pageTitle'] ?
-        $('#headerTitleCnt').html(decodeURI("<?= sanitizeGetString('pageTitle') ?>"));
-        
+        var curr_lang = '<?php echo $curr_lang?>';
+        var pageTitle = ('<?php echo translate_string(sanitizeGetString('pageTitle'), $curr_lang, $link);?>');
+        $('#headerTitleCnt').html(decodeURI(pageTitle));
+        //$('#headerTitleCnt').html(decodeURI("<?= sanitizeGetString('pageTitle') ?>"));
+       
         if('<?= escapeForJS(sanitizeGetString('linkUrl'))?>' === 'myAnnotationsOnServicesAndData')
         {
             $('#iframeApp').attr('src', '../api/personalAnnotationsSecureLoad.php');

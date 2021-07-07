@@ -103,7 +103,7 @@ checkSession('Manager');
             </div>
           </div>
           <div class="row">
-            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">New Synoptic</div>
+            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt"><?= _("New Synoptic")?></div>
             <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
           </div>
           <div class="row">
@@ -113,7 +113,7 @@ checkSession('Manager');
               
 			  <div class="row mainContentRow" style="background-color: transparent">
                 <div class="col-xs-12 col-sm-6 col-md-3 centerWithFlex">
-					<h2>Synoptic</h2>
+					<h2><?= _("Synoptic")?></h2>
                 </div>
 
 				<div class="col-xs-12 col-sm-6 col-md-3">
@@ -124,7 +124,7 @@ checkSession('Manager');
                         <?php if($_GET["template"]) { ?> 
 							<select id="low_level_type" class="form-control" disabled></select><input type="hidden" name="low_level_type" value="<?=htmlentities($_GET["template"])?>">
 						<?php } else { ?>
-							<select id="low_level_type" name="low_level_type" class="form-control" required="required"></select> 
+                        <select id="low_level_type" name="low_level_type" class="form-control" required="required"></select>
 						<?php } ?>
 						
                     </div> 
@@ -132,7 +132,7 @@ checkSession('Manager');
 
 				 <div class="col-xs-12 col-sm-6 col-md-3">
                     <div class="col-xs-12 synopticLabel centerWithFlex">
-                        Name
+                        <?= _("Name")?>
                     </div>
                     <div class="col-xs-12">
                         <input type="text" id="unique_name_id" name="unique_name_id" class="form-control" required="required"></input>
@@ -155,13 +155,13 @@ checkSession('Manager');
 				
 				<div id="inputs" class="row mainContentRow" style="background-color: transparent">
 				 <div class="col-xs-12 col-sm-6 col-md-3">
-					<div style="margin-left:14px;"><h2>Read variables</h2>Select the variables from the lists</div>
+					<div style="margin-left:14px;"><h2><?= _("Read variables")?></h2><?= _("Select the variables from the lists")?></div>
                 </div>
 				</div>
 				
 				<div id="outputs" class="row mainContentRow" style="background-color: transparent">
 				  <div class="col-xs-12 col-sm-6 col-md-3">
-					<div style="margin-left:14px;"><h2>Write variables</h2>Select the variables from the lists</div>
+					<div style="margin-left:14px;"><h2><?= _("Write variables")?></h2><?= _("Select the variables from the lists")?></div>
                   </div>
 				</div>
 				<?php } ?>
@@ -169,20 +169,20 @@ checkSession('Manager');
 			
 			<!-- <div class="row mainContentRow" style="background-color: transparent"> -->
 				<div class="col-xs-12 " id="addSynopticBtnRow">
-						<button type="button" id="addSynopticCancelBtn" class="btn cancelBtn pull-right" data-dismiss="modal">Reset</button>
-						<button type="submit" id="addSynopticConfirmBtn" class="btn confirmBtn pull-right" style="margin-right:15px;">Save</button>							
-						<button type="button" id="addSynopticBackBtn" class="btn cancelBtn " data-dismiss="modal" style="margin-left:15px;">Back</button> 
+						<button type="button" id="addSynopticCancelBtn" class="btn cancelBtn pull-right" data-dismiss="modal"><?= _("Reset")?></button>
+						<button type="submit" id="addSynopticConfirmBtn" class="btn confirmBtn pull-right" style="margin-right:15px;"><?= _("Save")?></button>							
+						<button type="button" id="addSynopticBackBtn" class="btn cancelBtn " data-dismiss="modal" style="margin-left:15px;"><?= _("Back")?></button> 
 
-				</div>				
+				</div>
 			<!-- </div> -->
 				
 			<!-- <div class="row mainContentRow" style="background-color: transparent">			 -->	
                 <div class="col-xs-12" id="addSynopticResultsRow">
                     <div class="col-xs-12 col-sm-6 col-sm-offset-3 centerWithFlex" id="addSynopticResultMsg"></div>
                     <div class="col-xs-12 col-sm-6 col-sm-offset-3 centerWithFlex" id="addSynopticResultBtns">
-                        <button type="button" id="addSynopticOpenNewBtn" class="btn confirmBtn">Open Synoptic</button>
+                        <button type="button" id="addSynopticOpenNewBtn" class="btn confirmBtn"><?= _("Open Synoptic")?></button>
                         <!-- <button type="button" id="addSynopticOpenListBtn" class="btn confirmBtn">Open synoptics list</button> -->
-                        <button type="button" id="addSynopticNoActionBtn" class="btn confirmBtn">No further action</button>
+                        <button type="button" id="addSynopticNoActionBtn" class="btn confirmBtn"><?= _("No further action")?></button>
                     </div>
                 </div>    
 			  <!-- </div> -->
@@ -199,14 +199,14 @@ checkSession('Manager');
 		<div class="modal-dialog" role="document">
 		  <div class="modal-content">
 			<div class="modalHeader centerWithFlex">
-			  New Shared Variable
+			  <?= _("New Shared Variable")?>
 			</div>
 			<input type="hidden" id="dashIdDelHidden" name="dashIdDelHidden" />
 			<div id="delDashModalBody" class="modal-body modalBody">
 				<div class="row">
 					<div id="delDashNameMsg" class="col-xs-12 modalCell">
 						<div class="modalDelMsg col-xs-12 centerWithFlex">
-							Variable name:
+							<?= _("Variable name:")?>
 						</div>
 					</div>
 				</div>
@@ -222,8 +222,8 @@ checkSession('Manager');
 				</div>
 			</div>
 			<div id="delDashModalFooter" class="modal-footer">
-			  <button type="button" id="delDashCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-			  <button type="button" id="delDashConfirmBtn" class="btn confirmBtn internalLink disabled" data-dismiss="modal">Confirm</button>
+			  <button type="button" id="delDashCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+			  <button type="button" id="delDashConfirmBtn" class="btn confirmBtn internalLink disabled" data-dismiss="modal"><?= _("Confirm")?></button>
 			</div>
 		  </div>
 		</div>
@@ -235,14 +235,14 @@ checkSession('Manager');
 		<div class="modal-dialog" role="document">
 		  <div class="modal-content">
 			<div class="modalHeader centerWithFlex">
-			  Set to a fixed value
+			  <?= _("Set to a fixed value")?>
 			</div>
 			<input type="hidden" id="dashIdDelHidden2" name="dashIdDelHidden2" />
 			<div id="delDashModalBody" class="modal-body modalBody">
 				<div class="row">
 					<div id="delDashNameMsg" class="col-xs-12 modalCell">
 						<div class="modalDelMsg col-xs-12 centerWithFlex">
-							Value:
+							<?= _("Value")?>:
 						</div>
 					</div>
 				</div>
@@ -258,8 +258,8 @@ checkSession('Manager');
 				</div>
 			</div>
 			<div id="delDashModalFooter" class="modal-footer">
-			  <button type="button" id="delDashCancelBtn2" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-			  <button type="button" id="delDashConfirmBtn2" class="btn confirmBtn internalLink" data-dismiss="modal">Confirm</button>
+			  <button type="button" id="delDashCancelBtn2" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+			  <button type="button" id="delDashConfirmBtn2" class="btn confirmBtn internalLink" data-dismiss="modal"><?= _("Confirm")?></button>
 			</div>
 		  </div>
 		</div>
@@ -290,7 +290,7 @@ checkSession('Manager');
 	  return (str.length > n) ? str.substr(0, n-1) + '&hellip;' : str;
 	};
 	
-	$(document).ready(function () 
+    $(document).ready(function () 
     {
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
@@ -373,7 +373,7 @@ checkSession('Manager');
         $('#addSynopticCancelBtn').click(function(){
             $('#addSynopticForm')[0].reset();
         });
-		
+        
 		$('#addSynopticBackBtn').click(function(){
             //location.href = "synoptics.php?linkId=synopticsLink&pageTitle=Synoptics&fromSubmenu=false&sorts[title]=1";
 			window.history.go(-1); return false;
@@ -527,7 +527,7 @@ checkSession('Manager');
 												});
 												if(!inputObj["dataType"]) inputObj["dataType"] = "any";
 												inputs[siow.event] = inputObj;
-											}
+										}
 										}
 										else {
 											siow.actions.forEach(function(action){
@@ -569,7 +569,7 @@ checkSession('Manager');
 													if(varList[parseInt(oneVarID)]["isFavourite"] && varList[parseInt(oneVarID)+1] && !varList[parseInt(oneVarID)+1]["isFavourite"]) $("#input_"+input).append("<option value=\""+input.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");													
 												//}
 												}
-											});	
+											});											
 
 											$("#input_"+input).append("<option value=\""+input.replace(/[^\w\.-]/g,'').substr(0,249)+"\"></option>");
 											
@@ -579,7 +579,7 @@ checkSession('Manager');
 													$('#dashIdDelHidden').val("#input_"+input);
 													$('#modalDelDash').modal('show');
 												}
-											});
+										});
 											
 											$("#input_"+input).append("<option value=\"do_set_to_fixed_value\">Set to a fixed value&hellip;</option>");
 											$("#input_"+input).change(function(){
@@ -598,17 +598,17 @@ checkSession('Manager');
 												Object.keys(varList).forEach(function(oneVarID) {
 													if(varList[oneVarID]["isMyOwn"] || varList[oneVarID]["isShared"]) {
 														if( [ varList[oneVarID]["dataType"], "any" ].includes(outputs[output]["dataType"])) {
-															var myown = "";
-															if(varList[oneVarID]["isMyOwn"]) myown = "My own";
-															if(varList[oneVarID]["isDelegated"]) myown = "Delegated";
-															if('<?=$_SESSION["loggedRole"]?>' == 'RootAdmin') myown = (myown=="Delegated"?"Delegated - ":"") + " " + varList[oneVarID]["username"]+" "+varList[oneVarID]["organizations"].substring(4,varList[oneVarID]["organizations"].indexOf(','))+")";
-															if(myown) myown = ' - '+myown.trim();
-															var ownership = varList[oneVarID]["ownership"].charAt(0).toUpperCase() + varList[oneVarID]["ownership"].slice(1);
+														var myown = "";
+														if(varList[oneVarID]["isMyOwn"]) myown = "My own";
+														if(varList[oneVarID]["isDelegated"]) myown = "Delegated";
+														if('<?=$_SESSION["loggedRole"]?>' == 'RootAdmin') myown = (myown=="Delegated"?"Delegated - ":"") + " " + varList[oneVarID]["username"]+" "+varList[oneVarID]["organizations"].substring(4,varList[oneVarID]["organizations"].indexOf(','))+")";
+														if(myown) myown = ' - '+myown.trim();
+														var ownership = varList[oneVarID]["ownership"].charAt(0).toUpperCase() + varList[oneVarID]["ownership"].slice(1);
 															if(!(varList[oneVarID]["isSensor"] || varList[oneVarID]["isActuator"] || varList[oneVarID]["isShared"])) $("#output_"+output).append("<option value=\"" + varList[oneVarID]["id"] + "\">MyKPI - " + varList[oneVarID]["id"] + " - " + varList[oneVarID]["valueName"] + myown + " - " + ownership + "</option>");		
 															else if(varList[oneVarID]["isActuator"]) $("#output_"+output).append("<option value=\"" + varList[oneVarID]["id"] + "\">Actuator - " + varList[oneVarID]["valueName"] + " " + varList[oneVarID]["valueType"] + myown + " - " + ownership + "</option>");	
 															else if(varList[oneVarID]["isShared"]) $("#output_"+output).append("<option value=\"" + varList[oneVarID]["varName"] + "\">Shared  - " + varList[oneVarID]["varName"] + "</option>");	
 															if(varList[parseInt(oneVarID)]["isFavourite"] && varList[parseInt(oneVarID)+1] && !varList[parseInt(oneVarID)+1]["isFavourite"]) $("#output_"+output).append("<option value=\"\"></option>");	
-														}															
+													}
 													}
 												});
 												
@@ -620,28 +620,28 @@ checkSession('Manager');
 														$('#dashIdDelHidden').val("#output_"+output);
 														$('#modalDelDash').modal('show');
 													}
-												});
-												
+										});
+								
 												/* $("#output_"+output).append("<option value=\"do_set_to_fixed_value\">Set to a fixed value&hellip;</option>");
 												$("#output_"+output).change(function(){
 													if(this.value == "do_set_to_fixed_value") {
 														$('#dashIdDelHidden2').val("#output_"+output);
 														$('#modalDelDash2').modal('show');
-													}
-												});		 */										
-												
-										});
-										
-										if(Object.keys(outputs).length == 0) $("#outputs").hide();										
-								
 									}
+												});		 */										
 									
 								});
 								
+										if(Object.keys(outputs).length == 0) $("#outputs").hide();										
+								
 							}
+									
 						});
+								
 					}
 				});				
+			}
+		});
 			}
 		});
 		
@@ -650,7 +650,7 @@ checkSession('Manager');
 			$("select.varpicker").prepend('<option value="shared_'+$("#newSharedVariableName").val()+'">New Shared - shared_'+$("#newSharedVariableName").val()+'</option>');	
 			$($("#dashIdDelHidden").val()).val("shared_"+$("#newSharedVariableName").val());
 		});
-			
+		
 		String.prototype.toKafkaTopic = function() {
 			str = this;
 			str = str.split(" ").join("_").replace(/[^\w\.-]/g,'').substr(0,249);
@@ -678,12 +678,12 @@ checkSession('Manager');
 				$('#delDashConfirmBtn').removeClass('disabled');		
 			}				
 		});
-		
+			
 		$('#delDashConfirmBtn2').off("click");
 		$('#delDashConfirmBtn2').click(function(){
 			$($("#dashIdDelHidden2").val()).prepend('<option value="const_'+window.btoa($("#fixedValue").val())+'">Fixed value: '+HTMLEncode(trunc($("#fixedValue").val(),20))+'</option>');	
 			$($("#dashIdDelHidden2").val()).val("const_"+window.btoa($("#fixedValue").val()));
 		});	
-		
+                        
     });
 </script>  

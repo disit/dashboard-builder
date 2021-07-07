@@ -2,17 +2,16 @@
 /* Dashboard Builder.
   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+  This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 include('../config.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
@@ -4285,27 +4284,29 @@ $title = $_REQUEST['title_w'];
                                 }
                             });
 
-                            var minVal = colorScale[0].min;
-                            if (minVal === null || minVal === undefined) {
-                                minVal = heatmapRangeObject[0].range1Inf;
-                            }
+                            if (colorScale && colorScale.length > 0) {
+                                var minVal = colorScale[0].min;
+                                if (minVal === null || minVal === undefined) {
+                                    minVal = heatmapRangeObject[0].range1Inf;
+                                }
 
-                            var maxVal = colorScale[colorScale.length - 1].min;
-                            if (maxVal === null || maxVal === undefined) {
-                                maxVal = heatmapRangeObject[0].range10Inf;
+                                var maxVal = colorScale[colorScale.length - 1].min;
+                                if (maxVal === null || maxVal === undefined) {
+                                    maxVal = heatmapRangeObject[0].range10Inf;
+                                }
+                                colorGradient[0] = 0;
+                                colorGradient[colorScale.length - 1] = 1;
+                                gradientString = '{ "' + colorGradient[0] + '": "#' + fullColorHex(colorScale[0].rgb.substring(1, colorScale[0].rgb.length - 1)) + '", ';
+                                for (let k1 = 1; k1 < colorScale.length - 1; k1++) {
+                                    colorGradient[k1] = (colorScale[k1].min - minVal) / (maxVal - minVal);
+                                    gradientString = gradientString + '"' + colorGradient[k1] + '": "#' + fullColorHex(colorScale[k1].rgb.substring(1, colorScale[k1].rgb.length - 1)) + '", ';
+                                }
+                                gradientString = gradientString + '"' + colorGradient[colorScale.length - 1] + '": "#' + fullColorHex(colorScale[colorScale.length - 1].rgb.substring(1, colorScale[colorScale.length - 1].rgb.length - 1)) + '"}';
+                                map.cfg.gradient = JSON.parse(gradientString);
+                                map.heatmapLayer = new HeatmapOverlay(map.cfg);
+                                //map.heatmapLayer.zIndex = 20;
+                                //  map.legendHeatmap = L.control({position: 'topright'});
                             }
-                            colorGradient[0] = 0;
-                            colorGradient[colorScale.length - 1] = 1;
-                            gradientString = '{ "' + colorGradient[0] + '": "#' + fullColorHex(colorScale[0].rgb.substring(1, colorScale[0].rgb.length - 1)) + '", ';
-                            for (let k1 = 1; k1 < colorScale.length - 1; k1++) {
-                                colorGradient[k1] = (colorScale[k1].min - minVal) / (maxVal - minVal);
-                                gradientString = gradientString + '"' + colorGradient[k1] + '": "#' + fullColorHex(colorScale[k1].rgb.substring(1, colorScale[k1].rgb.length - 1)) + '", ';
-                            }
-                            gradientString = gradientString + '"' + colorGradient[colorScale.length - 1] + '": "#' + fullColorHex(colorScale[colorScale.length - 1].rgb.substring(1, colorScale[colorScale.length - 1].rgb.length - 1)) + '"}';
-                            map.cfg.gradient = JSON.parse(gradientString);
-                            map.heatmapLayer = new HeatmapOverlay(map.cfg);
-                            //map.heatmapLayer.zIndex = 20;
-                            //  map.legendHeatmap = L.control({position: 'topright'});
                         }
 
                         if (!map.legendHeatmap) {

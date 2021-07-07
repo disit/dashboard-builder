@@ -703,8 +703,10 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
                                 fatherNode = originalData.Service;
                             }
 
-                            if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
-                                tmpData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
+                            if (fatherNode.features[0].properties.realtimeAttributes[metric[i]] != null) {
+                                if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
+                                    tmpData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
+                                }
                             }
                             tmpData.measuredTime = originalData.realtime.results.bindings[t].measuredTime.value;
                             extractedData.value[t] = tmpData;
@@ -727,8 +729,10 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
                             fatherNode = originalData.Service;
                         }
 
-                        if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
-                            extractedData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
+                        if (fatherNode.features[0].properties.realtimeAttributes[metric[i]] != null) {
+                            if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
+                                extractedData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
+                            }
                         }
                         extractedData.measuredTime = originalData.realtime.results.bindings[0].measuredTime.value;
                     }
@@ -1542,4 +1546,90 @@ function buildSvgIcon (path, value, lolLevel, pinContainer, svgContainer, widget
         });
  //   });
 
+}
+
+function checkSingleMetricObject(obj) {
+    var isSingle = true;
+    for (let n = 1; n < obj.length; n++) {
+        if (obj[n].transX - obj[n-1].transX != 0) {
+            isSingle = false;
+        }
+    }
+    return isSingle
+}
+
+function sortSingleSerie(seriesObj, order) {
+    seriesObj.sort(function (a, b) {
+        if (typeof (a.data[0]) != "number") {
+            a.data[0] = 0;
+        }
+        if (typeof (b.data[0]) != "number") {
+            b.data[0] = 0;
+        }
+        if (order == "asc") {
+            return a.data[0] - b.data[0];
+        } else if (order == "desc") {
+            return b.data[0] - a.data[0];
+        }
+    });
+    return seriesObj;
+}
+
+function sortMultiSerieForBarCharts(seriesObj, order, chartType)
+{
+    for (let i = 0; i < seriesObj[0].points.length; i++) {
+        let pointsPos = [];
+        let pointsGroup = [];
+
+        seriesObj.forEach(function (series, j) {
+            let point = series.points[i];
+            if (series.visible) {
+                let args = point.shapeArgs;
+                pointsGroup.push(series.points[i]);
+                pointsPos.push({
+                    transX: args.x,
+                    width: args.width
+                })
+            }
+        });
+
+        let distX = 0;
+
+        pointsGroup.sort(function (a, b) {
+            if (typeof (a.y) != "number") {
+                a.y = 0;
+            }
+            if (typeof (b.y) != "number") {
+                b.y = 0;
+            }
+            if (order == "ascendent") {
+                return a.y - b.y
+            } else if (order == "descendent") {
+                return b.y - a.y
+            }
+        }).forEach(function (point, i) {
+            if (chartType != "horizontal") {
+                if (point.dataLabel != null) {
+                    point.dataLabel.attr({
+                      //  x: pointsPos[i].transX
+                        x: pointsPos[i].transX + pointsPos[i].width/3
+                    })
+                }
+            } else {
+                let chart = point.series.chart,
+                    plotHeigh = chart.plotSizeX -20;
+                if (point.dataLabel != null) {
+                    point.dataLabel.attr({
+                        y: plotHeigh - pointsPos[i].transX
+                    })
+                }
+            }
+            if (point.graphic != null) {
+                point.graphic.attr({
+                    x: pointsPos[i].transX
+                })
+            }
+        })
+    }
+    return seriesObj;
 }

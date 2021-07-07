@@ -367,22 +367,22 @@ $lastUsedColors = null;
         <table id="changeMetricTable" class="addWidgetWizardTable table table-striped dt-responsive nowrap">
             <thead class="widgetWizardColTitle">
                 <tr>
-                    <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Nature">Nature</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="SubNature">Subnature</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Parameters">Parameters</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Id">Id</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
+                    <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType"><?= _("High-Level Type")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Nature"><?= _("Nature")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="SubNature"><?= _("Subnature")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="ValueType"><?= _("Value Type")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><?= _("Value Name")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"><?= _("Instance URI")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="DataType"><?= _("Data Type")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="LastDate"><?= _("Last Date")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="LastValue"><?= _("Last Value")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Healthiness"><?= _("Healthiness")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"><?= _("Instance URI")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Parameters"><?= _("Parameters")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Id"><?= _("Id")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="LastCheck"><?= _("Last Check")?></th>
                     <th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Ownership"><?= _("Ownership")?></th>
                 </tr>
             </thead>
         </table>
@@ -392,10 +392,10 @@ $lastUsedColors = null;
         <table id="changeMetricSelectedRowsTable" class="addWidgetWizardTableSelected table table-striped dt-responsive nowrap">
             <thead class="widgetWizardColTitle">
                 <tr>
-                    <th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
-                    <th class="widgetWizardTitleCell" data-cellTitle="Remove">Remove</th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="ValueType"><?= _("Value Type")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><?= _("Value Name")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="LastValue"><?= _("Last Value")?></th>
+                    <th class="widgetWizardTitleCell" data-cellTitle="Remove"><?= _("Remove")?></th>
                 </tr>
             </thead>
         </table>
@@ -606,14 +606,14 @@ $lastUsedColors = null;
                     <button type="button" class="close" id="button_conf_edit">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                    <h5 class="modal-title" id="exampleModalLabel">Edit Parameter</h5>
+                    <h5 class="modal-title" id="exampleModalLabel"><?= _("Edit Parameter")?></h5>
                 </div>
                 <div class="modal-body">
-                    Are you sure do you want edit parameters from this tab?
+                   <?= _("Are you sure do you want edit parameters from this tab?")?> 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="close_conf_edit">Close</button>
-                    <button type="button" class="btn btn-primary" id="conf_edit">Confirm</button>
+                    <button type="button" class="btn btn-secondary" id="close_conf_edit"><?= _("Close")?></button>
+                    <button type="button" class="btn btn-primary" id="conf_edit"><?= _("Confirm")?></button>
                 </div>
             </div>
         </div>
@@ -628,7 +628,7 @@ $lastUsedColors = null;
                         <button type="button" class="close" id="button_conf_edit2">
                             <span aria-hidden="true">&times;</span>
                         </button>
-                        <h5 class="modal-title" id="exampleModalLabel">Edit Parameter</h5>
+                        <h5 class="modal-title" id="exampleModalLabel"><?= _("Edit Parameter")?></h5>
 
                     </div>
                     <div id="edit_lic_mod" style="display:none;">
@@ -645,11 +645,11 @@ $lastUsedColors = null;
                     </div>
                     <div class="modal-body">
                         <div id="check_errors"></div>
-                        Are you sure do you want confirm?
+                        <?= _("Are you sure do you want confirm?")?>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" id="close_conf_edit2" >Close</button>
-                        <button type="submit" class="btn btn-primary" id="conf_edit2">Confirm</button>
+                        <button type="button" class="btn btn-secondary" id="close_conf_edit2" ><?= _("Close")?></button>
+                        <button type="submit" class="btn btn-primary" id="conf_edit2"><?= _("Confirm")?></button>
                     </div>
                 </div>
             </form>
@@ -720,7 +720,7 @@ $lastUsedColors = null;
             var role_session_active = "<?= $_SESSION['loggedRole']; ?>";
             if (role_session_active === 'RootAdmin') {
                 //
-                $('#div_edit_licence').html('<span  id="edit_licence" style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" data-toggle="modal" role="button" style="margin-right: 10px;" id="edit_button_lic" data-target="#confirmModal">Edit parameters</a></span>');
+                $('#div_edit_licence').html('<span  id="edit_licence" style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" data-toggle="modal" role="button" style="margin-right: 10px;" id="edit_button_lic" data-target="#confirmModal"><?= _("Edit parameters")?></a></span>');
                 //confirmModal
                 //$('#div_edit_licence').html('<span  id="edit_licence" style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;" id="confirmModal">Edit parameters</a></span>');
                 $('.licence_tab_div').show();
@@ -744,14 +744,14 @@ $lastUsedColors = null;
             //$('#person').val();
             var hour_option = "";
             if (role_session_active === 'RootAdmin') {
-                hour_option = '<option value="hourly">Hourly</option>';
+                hour_option = '<option value="hourly"><?=_("Hourly")?></option>';
             }else{
                 hour_option = '';
             }
             //$('#web').val();
             ////////////////////////
             if (role_session_active === 'RootAdmin') {
-                  $('#admin_report_config').html('<div class="panel panel-default"><div class="panel-heading">Define Report</div><div class="panel-body"><input type="text" id="job" style="display:none;"></input><label for="activation">Activation:</label><input id="activation" type="checkbox"></br><label for="periods">Periodicity:</label><select id="periods"><option value="undefined"></option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option>'+hour_option+'</select></div><div class="panel-footer"><button class="btn btn-primary" role="button" id="modify_report" style="margin-right: 10px;">Confirm</button></div></div>');
+                  $('#admin_report_config').html('<div class="panel panel-default"><div class="panel-heading"><?= _("Define Report"); ?></div><div class="panel-body"><input type="text" id="job" style="display:none;"></input><label for="activation"><?=_("Activation:")?></label><input id="activation" type="checkbox"></br><label for="periods"><?= _("Periodicity:")?></label><select id="periods"><option value="undefined"></option><option value="monthly"><?= _("Monthly")?></option><option value="quarterly"><?= _("Quarterly")?></option>'+hour_option+'</select></div><div class="panel-footer"><button class="btn btn-primary" role="button" id="modify_report" style="margin-right: 10px;"><?= _("Confirm")?></button></div></div>');
              }else{
                  $('#admin_report_config').empty();
              }
@@ -780,7 +780,7 @@ $lastUsedColors = null;
                         if (value.status === "Yes"){
 						//$('#report_link').html('<button type="button" id="button_link" class="btn btn-primary">Download Report</button>');
                                                 if (link !==""){
-                                                     $('#report_link').html('<a class="btn btn-primary" href="'+link+'" role="button" target="_blank">Download Report</a>');
+                                                     $('#report_link').html('<a class="btn btn-primary" href="'+link+'" role="button" target="_blank"><?=_("Download Report")?></a>');
                                                 }
                                                 if (role_session_active === 'RootAdmin') {
                                                     $('#activation').prop('checked', true);
@@ -869,7 +869,7 @@ $lastUsedColors = null;
                     $("#healthiness_table").hide();
                     $('#data_source').val('Special Process');
                     $('#input_ch2').empty();
-                    $('#sm_link').append('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to External Service</a>');
+                    $('#sm_link').append('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to External Service")?></a>');
                     //
                     //icon
                     var url = '../img/externalServices/' + icon;
@@ -888,7 +888,7 @@ $lastUsedColors = null;
                 case 'Heatmap':
                     $("#healthiness_table").hide();
                     $('#input_ch2').show();
-                    $('#input_ch2').html('<span class="input-group-addon">Healthiness Criteria 2:</span><span class="input-group-addon"><span id="s2_date"></span><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_2" type="text" class="form-control" value="" readonly/>');
+                    $('#input_ch2').html('<span class="input-group-addon"><?=_("Healthiness Criteria 2:")?></span><span class="input-group-addon"><span id="s2_date"></span><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_2" type="text" class="form-control" value="" readonly/>');
                     break;
                 case 'POI':
                     $(".etl_sensor").hide();
@@ -912,7 +912,7 @@ $lastUsedColors = null;
                     $('#data_source').val('Km4cityRTData');
                     var func_dash = function_dashKpi(parameters);
                     $('#inspector_image').append('<img src="../img/dataInspectorIcons/data-inspector.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;">');
-                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
+                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Service Map")?></a>');
                     break;
                 case 'MyKPI':
                     $(".etl_sensor").hide();
@@ -983,7 +983,7 @@ $lastUsedColors = null;
                 case 'Sensor':
                     $('#tab3').show();
                     $("#healthiness_table").show();
-                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
+                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Service Map")?></a>');
 
                     if ((parameters.includes("iot/")) || (name_Subnature.includes("IoT/")) || (name_Nature.includes("IOT/"))) {
                         $('#data_source').val("IoT");
@@ -1009,8 +1009,8 @@ $lastUsedColors = null;
                         var url_iotBrok = "<?= $iot_directory ?>";
                         //https://www.snap4city.org/iotdirectorytest/management/ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false
                         //
-                        $('#iot_link').html('<a href="' + url_iot + 'ssoLogin.php?redirect=value.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directory</a>');
-                        $('#broker_link').html('<a href="' + url_iotBrok + 'ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Broker</a>');
+                        $('#iot_link').html('<a href="' + url_iot + 'ssoLogin.php?redirect=value.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to IoT Directory")?></a>');
+                        $('#broker_link').html('<a href="' + url_iotBrok + 'ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to IoT Broker")?></a>');
                     } else {
                         $('#data_source').val("ETL");
                         $(".etl_sensor").show();
@@ -1040,7 +1040,7 @@ $lastUsedColors = null;
                         var url_iotBrok = "<?=$iot_directory ?>";
                         //var test = check_iot(url_iot);
                         $('#broker_link').show();
-                        $('#broker_link').html('<a href="' + url_iotBrok + 'ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Broker</a>');
+                        $('#broker_link').html('<a href="' + url_iotBrok + 'ssoLogin.php?redirect=contextbroker.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to IoT Broker")?></a>');
                         //$('#disces_link').append('<a href="' + url_iot + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Directoy</a>');
                     } else {
                         $('#data_source').val("ETL");
@@ -1068,7 +1068,7 @@ $lastUsedColors = null;
                     $('#data_source').val('Direct Input');
                     var id_microserv = 'microApplications.php?linkId=microApplicationsLink&fromSubmenu=false&pageTitle=Micro+Applications&sorts[sub_nature]=1&queries[search]=' + id_row;
                     if (id_row) {
-                        $('#ms_link').html('<a href="' + id_microserv + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to MicroApplication</a>');
+                        $('#ms_link').html('<a href="' + id_microserv + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?= _("Link to MicroApplication")?></a>');
                     }
                     break;
                 case 'Special Widget':
@@ -1103,7 +1103,7 @@ $lastUsedColors = null;
                 case 'From Dashboard to IOT Device':
                     var das = function_dashboard(data_get_instances);
                     //var test = check_iot(iot_device);
-                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
+                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Service Map")?></a>');
                     //$('#iot_link').html('<a href="' + iot_device + 'ssoLogin.php?redirect=devices.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
                     //$('#dash_link').html('<a href="' + das + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Dashboard</a>');
                     $('#disces_link').empty();
@@ -1115,7 +1115,7 @@ $lastUsedColors = null;
                     //
                     //var test = check_iot(iot_device);
                     //$('#iot_link').html('<a href="' + iot_device + 'ssoLogin.php?redirect=devices.php%3FshowFrame=false" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
-                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
+                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Service Map")?></a>');
                     $('#disces_link').empty();
                     $(".etl_sensor").hide();
                     $(".sensor_own").hide();
@@ -1153,7 +1153,7 @@ $lastUsedColors = null;
                     var test = check_iot(data_get_instances);
                     //$('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT App</a>');
                     //$('#dash_link').html('<a href="' + iot_device + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to IoT Device</a>');
-                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Service Map</a>');
+                    $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Service Map")?></a>');
                     $('#disces_link').empty();
                     $(".sensor_own").hide();
                     $('#broker_link').hide();
@@ -1277,7 +1277,7 @@ $lastUsedColors = null;
                                     }
                                 }
                                 //console.log(data.list_ETL[0]);
-                                $('#listETL_link').html('<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Devices<span class="caret"></span></button><ul class="dropdown-menu scrollable-menu dropdown1" role="menu">' + list_result + '</ul></div>');
+                                $('#listETL_link').html('<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><?=_("List of Devices")?><span class="caret"></span></button><ul class="dropdown-menu scrollable-menu dropdown1" role="menu">' + list_result + '</ul></div>');
                             }
                         }
                     }
@@ -1515,7 +1515,7 @@ $lastUsedColors = null;
                     //UPLOAD IMAGE//upload_image
                     //upload_image
                     if (role_session_active === 'RootAdmin') {
-                        $('#upload_image').html('<div id="uplaod" class="input-group mb-3"><div class="input-group iot_sensor"><div class="input-group-prepend"><span class="input-group-text" id="inputGroup-sizing-default">Upload</span></div><input type="file" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="uploadField" name="uploadField"/><div class="input-group-append"><button class="btn btn-primary uploadImageClass" role="button" id="upload_command" style="margin-right: 10px;">Upload Image</button></div></div></div>');
+                        $('#upload_image').html('<div id="uplaod" class="input-group mb-3"><div class="input-group iot_sensor"><div class="input-group-prepend"><span class="input-group-text" id="inputGroup-sizing-default"><?=_("Upload")?></span></div><input type="file" class="form-control" aria-label="Default" aria-describedby="inputGroup-sizing-default" id="uploadField" name="uploadField"/><div class="input-group-append"><button class="btn btn-primary uploadImageClass" role="button" id="upload_command" style="margin-right: 10px;"><?=_("Upload Image")?></button></div></div></div>');
                         //$('#div_edit_licence').html('<span  id="edit_licence" style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;">Edit paramters</a></span>');
                     }
                     ///////
@@ -1527,13 +1527,13 @@ $lastUsedColors = null;
                     //
                     var etl = $('#data_source').val();
                     if ((total_data > 0) && ($('#disces_link').empty()) && (etl === 'ETL')) {
-                        $('#disces_link').html('<a href="' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Disces</a>');
+                        $('#disces_link').html('<a href="' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Disces")?></a>');
                     }
                     if (etl === 'IoT') {
-                        $('#disces_link').html('<a href="' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Disces</a>');
+                        $('#disces_link').html('<a href="' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Disces")?></a>');
                     }
                     if (parameters.includes('http')) {
-                        $('#kb_link').html('<a href="' + parameters + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
+                        $('#kb_link').html('<a href="' + parameters + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Knowledge Base")?></a>');
                     }
                     //$('#kb_link').html('<a href="' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
                     //
@@ -1543,12 +1543,12 @@ $lastUsedColors = null;
                 if ($('#data_source').val() === '') {
                     $('#data_source').val(parameters);
                 }
-                $('#arcgis_link').html('<a href="' + parameters + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to ArcGIS</a>');
+                $('#arcgis_link').html('<a href="' + parameters + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to ArcGIS")?></a>');
 
             }
             if (high_level === 'Heatmap') {
                 var heatmap_manger = "<?= $resource_manager; ?>";
-                $('#heatmap_link').html('<a href="' + heatmap_manger + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Heatmap</a>');
+                $('#heatmap_link').html('<a href="' + heatmap_manger + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Heatmap")?></a>');
             }
             //
             //  } else {
@@ -1709,7 +1709,7 @@ $(document).on('click', '#modify_report', function () {
         $(document).on('click', '#confirm_modify', function () {
 
             //$('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" role="button" style="margin-right: 10px;"  data-target="#exampleModal">Confirm</a></span>');
-            $('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" id="confirm_modify" role="button" style="margin-right: 10px;" data-target="#exampleModal2" data-toggle="modal">Confirm</a></span>');
+            $('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" id="confirm_modify" role="button" style="margin-right: 10px;" data-target="#exampleModal2" data-toggle="modal"><?=_("Confirm")?></a></span>');
             $('#edit_button_lic').hide();
             $('.licence_par').attr("readonly", false);
             //
@@ -1730,7 +1730,7 @@ $(document).on('click', '#modify_report', function () {
             //$('#confirmModal').removeClass("modal-backdrop")
             //$('#edit_button_lic').hide();
             $('#confirmModal').hide();
-            $('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" id="confirm_modify" role="button" style="margin-right: 10px;" data-target="#exampleModal2" data-toggle="modal">Confirm</a></span>');
+            $('#div_edit_licence_confirm').html('<span style="float: left;"></span><span style="margin-right: 10 px;"><a class="btn btn-primary" id="confirm_modify" role="button" style="margin-right: 10px;" data-target="#exampleModal2" data-toggle="modal"><?=_("Confirm")?></a></span>');
             $('#edit_button_lic').hide();
             //$('#confirmModal').fadeOut();
             //var c_lic =$('#licence').val();
@@ -1900,7 +1900,7 @@ $(document).on('click', '#modify_report', function () {
                 if (valid_mail === false) {
                     error_text_mail = " <b>email</b> Parameter not valid ";
                 }
-                $('#check_errors').html('<div class="panel panel-danger"><div class="panel-heading">Not Valid parameters</div><div class="panel-body">' + error_text_url + '<br/>' + error_text_mail + '</div></div>');
+                $('#check_errors').html('<div class="panel panel-danger"><div class="panel-heading"><?=_("Not Valid parameters")?></div><div class="panel-body">' + error_text_url + '<br/>' + error_text_mail + '</div></div>');
                 $('#conf_edit2').prop('disabled', true);
             }
         });
@@ -1941,7 +1941,7 @@ $(document).on('click', '#modify_report', function () {
             $('#processPath').val('');
             $('#licenceLabel').empty('');
             $('#licence').val('');
-            $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
+            $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" ><?=_("Licence:")?></div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
             //
             $('#check_errors').empty();
             $('#conf_edit2').prop('disabled', false);
@@ -2031,7 +2031,7 @@ $(document).on('click', '#modify_report', function () {
             $('#processPath').val('');
             $('#licenceLabel').empty('');
             $('#licence').val('');
-            $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" >Licence:</div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
+            $('#panel_lic').html('<div class="panel-heading licence_text" style="background-color: #EEE" ><?=_("Licence:")?></div><div class="panel-body" id="licence" style="background-color: #EEE"></div>');
             //
             $('#check_errors').empty();
             $('#conf_edit2').prop('disabled', false);
@@ -2197,7 +2197,7 @@ $(document).on('click', '#modify_report', function () {
             console.log('string_l:     ' + string_l);
             if (string_l < 64) {
                 if (link.startsWith("nr")) {
-                    $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Iot App</a>');
+                    $('#iot_link').html('<a href="https://iot-app.snap4city.org/nodered/' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Iot App")?></a>');
                 }
             }
             //https://iot-app.snap4city.org/nodered/
@@ -2259,27 +2259,27 @@ $(document).on('click', '#modify_report', function () {
                                             for (var z = 0; z < arr_l; z++) {
                                                 //arr_l
                                                 var ind = "https://iot-app.snap4city.org/nodered/" + array_dash_Name[z];
-                                                link_dash = link_dash + '<li><a href="' + ind + '" Target= "_blank">Link to IotApp ' + array_dash_Name[z] + '</a></li>';
+                                                link_dash = link_dash + '<li><a href="' + ind + '" Target= "_blank"><?=_("Link to IotApp")?> ' + array_dash_Name[z] + '</a></li>';
                                             }
                                         }
                                     } else {
-                                        link_dash = link_dash + '<li><a href="#" Target= "_blank">Link to IotApp Not founded</a></li>';
+                                        link_dash = link_dash + '<li><a href="#" Target= "_blank"><?=_("Link to IotApp Not founded")?></a></li>';
                                     }
                                     //alert(json_data);
                                 }
                             } else {
                                 console.log('FAILED');
-                                link_dash = '<li><a href="#">No dashboards connected</a></li>';
+                                link_dash = '<li><a href="#"><?=_("No dashboards connected")?></a></li>';
                             }
-                            var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of IotApp<span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
+                            var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><?=_("List of IotApp")?><span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
                             $('#list_kpi_dash').html(content);
                             //console.log('ciao');
                         }
                     }
                 });
             } else {
-                var link_dash = '<li><a href="#" Target= "_blank">Link to IotApp Not founded</a></li>';
-                var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of IotApp<span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
+                var link_dash = '<li><a href="#" Target= "_blank"><?=_("Link to IotApp Not founded")?></a></li>';
+                var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><?=_("List of IotApp")?><span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
                 $('#list_kpi_dash').html(content);
             }
         }
@@ -2337,19 +2337,19 @@ $(document).on('click', '#modify_report', function () {
                                             for (var z = 0; z < arr_l; z++) {
                                                 //arr_l
                                                 var ind = "https://iot-app.snap4city.org/nodered/" + array_dash_Name[z];
-                                                link_dash = link_dash + '<li><a href="' + ind + '" Target= "_blank">Link to Iot Apps ' + array_dash_Name[z] + '</a></li>';
+                                                link_dash = link_dash + '<li><a href="' + ind + '" Target= "_blank"><?=_("Link to Iot Apps")?> ' + array_dash_Name[z] + '</a></li>';
                                             }
                                         }
                                     } else {
-                                        link_dash = link_dash + '<li><a href="#" Target= "_blank">Link to IotApp Not founded</a></li>';
+                                        link_dash = link_dash + '<li><a href="#" Target= "_blank"><?=_("Link to IotApp Not founded")?></a></li>';
                                     }
                                     //alert(json_data);
                                 }
                             } else {
                                 console.log('FAILED');
-                                link_dash = '<li><a href="#">No dashboards connected</a></li>';
+                                link_dash = '<li><a href="#"><?=_("No dashboards connected")?></a></li>';
                             }
-                            var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Iot Apps<span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
+                            var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><?=_("List of Iot Apps")?><span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
                             $('#list_kpi_dash').html(content);
                             //console.log('ciao');
                         }
@@ -2406,12 +2406,12 @@ $(document).on('click', '#modify_report', function () {
                             //alert(json_data);
                         }
                     } else {
-                        link_dash = '<li><a href="#">No dashboards connected</a></li>';
+                        link_dash = '<li><a href="#"><?_("No dashboards connected")?></a></li>';
                     }
                     //result = array_dash;
                     //var content = '<div class="btn-group"><button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Link to Dashboard List</button><div class="dropdown-menu"><div class="link-list-wrapper"><ul class="link-list"><li><a class="list-item" href="#"><span>Azione 1</span></a></li></ul></div></div></div>';
 
-                    var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">List of Dashboard<span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
+                    var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><?=_("List of Dashboard")?><span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
 
                     $('#list_dashboard_link').html(content);
                     //FIne List

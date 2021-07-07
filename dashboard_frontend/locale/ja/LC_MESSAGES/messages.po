@@ -1,0 +1,4326 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2021-06-22 14:35+0200\n"
+"PO-Revision-Date: 2021-06-22 17:21+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.3\n"
+"X-Poedit-Basepath: ../../..\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Poedit-SearchPath-0: controllers\n"
+"X-Poedit-SearchPath-1: management\n"
+"X-Poedit-SearchPath-2: view\n"
+"X-Poedit-SearchPath-3: widgets\n"
+"X-Poedit-SearchPathExcluded-0: widgets/layers\n"
+"X-Poedit-SearchPathExcluded-1: view/node_modules\n"
+
+#: management/addWidgetWizardInclusionCode.php:13
+msgid "Dashboard features"
+msgstr "ダッシュボードの機能"
+
+#: management/addWidgetWizardInclusionCode.php:14
+msgid "Data and widgets"
+msgstr "データとウィジェット"
+
+#: management/addWidgetWizardInclusionCode.php:15
+msgid "Check and summary"
+msgstr "チェックとサマリー"
+
+#: management/addWidgetWizardInclusionCode.php:23
+#: management/addWidgetWizardInclusionCode2.php:23
+msgid "Dashboard title"
+msgstr "ダッシュボードのタイトル"
+
+#: management/addWidgetWizardInclusionCode.php:32
+#: management/addWidgetWizardInclusionCode2.php:32
+msgid "Dashboard title can't be empty"
+msgstr "ダッシュボードのタイトルを空にすることはできません"
+
+#: management/addWidgetWizardInclusionCode.php:39
+#: management/addWidgetWizardInclusionCode2.php:39
+msgid "Dashboard template"
+msgstr "ダッシュボード テンプレート"
+
+#: management/addWidgetWizardInclusionCode.php:40
+#: management/addWidgetWizardInclusionCode2.php:40
+msgid "Click on a template to choose it, click on it again to unselect it"
+msgstr "テンプレートをクリックして選択し、もう一度クリックして選択を解除します"
+
+#: management/addWidgetWizardInclusionCode.php:123
+#: management/addWidgetWizardInclusionCode.php:6594
+#: management/addWidgetWizardInclusionCode2.php:124
+msgid "You must choose one template"
+msgstr "テンプレートを 1 つ選択する必要があります"
+
+#: management/addWidgetWizardInclusionCode.php:134
+#: management/addWidgetWizardInclusionCode2.php:135
+#: management/dashboard_configdash.php:15390
+#: management/dashboard_configdash.php:15708
+#: management/dashboard_configdash.php:31615
+#: management/dashboard_configdash.php:32064
+msgid "Map"
+msgstr "マップ"
+
+#: management/addWidgetWizardInclusionCode.php:143
+#: management/addWidgetWizardInclusionCode2.php:144
+msgid "Single data widgets"
+msgstr "単一データウィジェット"
+
+#: management/addWidgetWizardInclusionCode.php:148
+#: management/addWidgetWizardInclusionCode2.php:149
+msgid "Multi data widgets"
+msgstr "マルチデータウィジェット"
+
+#: management/addWidgetWizardInclusionCode.php:153
+msgid "Map Controls:"
+msgstr "マップ コントロール:"
+
+#: management/addWidgetWizardInclusionCode.php:157
+#: management/addWidgetWizardInclusionCode2.php:158
+msgid "FilterMap"
+msgstr "フィルターマップ"
+
+#: management/addWidgetWizardInclusionCode.php:159
+#: management/addWidgetWizardInclusionCode2.php:160
+msgid "GPSUser"
+msgstr "GPSユーザー"
+
+#: management/addWidgetWizardInclusionCode.php:160
+#: management/addWidgetWizardInclusionCode2.php:161
+msgid "GPSOrg"
+msgstr "GPSOrg"
+
+#: management/addWidgetWizardInclusionCode.php:170
+#: management/addWidgetWizardInclusionCode2.php:184
+msgid "Actuator options"
+msgstr "アクチュエータオプション"
+
+#: management/addWidgetWizardInclusionCode.php:175
+#: management/addWidgetWizardInclusionCode2.php:189
+msgid "Existent or new target"
+msgstr "存在するターゲットまたは新しいターゲット"
+
+#: management/addWidgetWizardInclusionCode.php:179
+#: management/addWidgetWizardInclusionCode2.php:193
+msgid "Existent"
+msgstr "現在の"
+
+#: management/addWidgetWizardInclusionCode.php:180
+#: management/addWidgetWizardInclusionCode2.php:194
+msgid "New"
+msgstr "新着"
+
+#: management/addWidgetWizardInclusionCode.php:187
+#: management/addWidgetWizardInclusionCode2.php:201
+msgid "New actuator target type"
+msgstr "存在するターゲットまたは新しいターゲット"
+
+#: management/addWidgetWizardInclusionCode.php:191
+#: management/addWidgetWizardInclusionCode2.php:205
+msgid "IOT device on broker"
+msgstr "IOT アプリケーション"
+
+#: management/addWidgetWizardInclusionCode.php:201
+#: management/addWidgetWizardInclusionCode2.php:215
+msgid "Device name"
+msgstr "装置名"
+
+#: management/addWidgetWizardInclusionCode.php:210
+#: management/addWidgetWizardInclusionCode.php:331
+#: management/addWidgetWizardInclusionCode.php:1853
+#: management/addWidgetWizardInclusionCode.php:2000
+#: management/addWidgetWizardInclusionCode2.php:224
+#: management/dashboard_configdash.php:1185
+#: management/dashboard_configdash.php:1895
+msgid "Value type"
+msgstr "存在するターゲットまたは新しいターゲット"
+
+#: management/addWidgetWizardInclusionCode.php:221
+#: management/addWidgetWizardInclusionCode2.php:235
+msgid "Min/Base value"
+msgstr "最小/基本値"
+
+#: management/addWidgetWizardInclusionCode.php:230
+#: management/addWidgetWizardInclusionCode2.php:244
+msgid "Max/Impulse value"
+msgstr "最大/インパルス値"
+
+#: management/addWidgetWizardInclusionCode.php:241
+#: management/addWidgetWizardInclusionCode2.php:255
+msgid "Data sources"
+msgstr "単一データウィジェット"
+
+#: management/addWidgetWizardInclusionCode.php:244
+#: management/addWidgetWizardInclusionCode2.php:258
+msgid "No rows selected: please select some rows and try again."
+msgstr "行が選択されていません：いくつかの行を選択して、再試行してください。"
+
+#: management/addWidgetWizardInclusionCode.php:262
+#: management/addWidgetWizardInclusionCode.php:287
+#: management/addWidgetWizardInclusionCode.php:293
+#: management/dashboard_configdash.php:2455
+#: management/dashboard_configdash.php:2460 management/inspector.php:375
+#: management/inspector.php:380
+msgid "Instance URI"
+msgstr "インスタンス URI"
+
+#: management/addWidgetWizardInclusionCode.php:263
+#: management/addWidgetWizardInclusionCode.php:294
+#: management/dashboard_configdash.php:2461 management/inspector.php:381
+msgid "Parameters"
+msgstr "パラメータ"
+
+#: management/addWidgetWizardInclusionCode.php:264
+#: management/addWidgetWizardInclusionCode.php:295
+#: management/dashboard_configdash.php:2462 management/inspector.php:382
+#: management/iotApplications.php:196
+msgid "Id"
+msgstr "ID"
+
+#: management/addWidgetWizardInclusionCode.php:282
+#: management/addWidgetWizardInclusionCode.php:368
+#: management/addWidgetWizardInclusionCode.php:1853
+#: management/addWidgetWizardInclusionCode.php:2000
+#: management/dashboard_configdash.php:2450 management/inspector.php:370
+msgid "High-Level Type"
+msgstr "ハイレベルタイプ"
+
+#: management/addWidgetWizardInclusionCode.php:283
+#: management/addWidgetWizardInclusionCode.php:329
+#: management/addWidgetWizardInclusionCode.php:369
+#: management/addWidgetWizardInclusionCode.php:1853
+#: management/dashboard_configdash.php:2451 management/inspector.php:371
+#: management/synopticTemplatesForm.php:132
+msgid "Nature"
+msgstr "自然"
+
+#: management/addWidgetWizardInclusionCode.php:284
+#: management/addWidgetWizardInclusionCode.php:330
+#: management/addWidgetWizardInclusionCode.php:370
+#: management/addWidgetWizardInclusionCode.php:1853
+#: management/dashboard_configdash.php:2452 management/inspector.php:372
+#: management/synopticTemplatesForm.php:142
+msgid "Subnature"
+msgstr "亜自然"
+
+#: management/addWidgetWizardInclusionCode.php:285
+#: management/addWidgetWizardInclusionCode.php:371
+#: management/dashboard_configdash.php:2453
+#: management/dashboard_configdash.php:2475 management/inspector.php:373
+#: management/inspector.php:395
+msgid "Value Type"
+msgstr "値の種類"
+
+#: management/addWidgetWizardInclusionCode.php:286
+#: management/addWidgetWizardInclusionCode.php:372
+#: management/dashboard_configdash.php:2454
+#: management/dashboard_configdash.php:2476 management/inspector.php:374
+#: management/inspector.php:396
+msgid "Value Name"
+msgstr "値の名前"
+
+#: management/addWidgetWizardInclusionCode.php:288
+#: management/addWidgetWizardInclusionCode.php:374
+#: management/dashboard_configdash.php:2456 management/inspector.php:376
+msgid "Data Type"
+msgstr "データ型"
+
+#: management/addWidgetWizardInclusionCode.php:289
+#: management/addWidgetWizardInclusionCode.php:339
+#: management/addWidgetWizardInclusionCode.php:383
+msgid "Value Unit"
+msgstr "存在するターゲットまたは新しいターゲット"
+
+#: management/addWidgetWizardInclusionCode.php:290
+#: management/addWidgetWizardInclusionCode.php:375
+#: management/dashboard_configdash.php:2457 management/inspector.php:377
+msgid "Last Date"
+msgstr "新規作成"
+
+#: management/addWidgetWizardInclusionCode.php:291
+#: management/addWidgetWizardInclusionCode.php:376
+#: management/dashboard_configdash.php:2458
+#: management/dashboard_configdash.php:2477 management/inspector.php:378
+#: management/inspector.php:397
+msgid "Last Value"
+msgstr "最後の値"
+
+#: management/addWidgetWizardInclusionCode.php:292
+#: management/addWidgetWizardInclusionCode.php:336
+#: management/addWidgetWizardInclusionCode.php:377
+#: management/dashboard_configdash.php:2459 management/inspector.php:379
+msgid "Healthiness"
+msgstr "健康"
+
+#: management/addWidgetWizardInclusionCode.php:296
+#: management/addWidgetWizardInclusionCode.php:380
+#: management/dashboard_configdash.php:2463 management/inspector.php:383
+msgid "Last Check"
+msgstr "最後のチェック"
+
+#: management/addWidgetWizardInclusionCode.php:298
+#: management/addWidgetWizardInclusionCode.php:338
+#: management/addWidgetWizardInclusionCode.php:382
+#: management/dashboard_configdash.php:2465 management/dashboards.php:538
+#: management/inspector.php:385 management/iotApplications.php:272
+#: management/synopticTemplates.php:254 management/synoptics.php:271
+msgid "Ownership"
+msgstr "所有"
+
+#: management/addWidgetWizardInclusionCode.php:303
+#: management/dashboards.php:410
+msgid "Organizations"
+msgstr "組織"
+
+#: management/addWidgetWizardInclusionCode.php:304
+msgid "Latitude"
+msgstr "緯度"
+
+#: management/addWidgetWizardInclusionCode.php:305
+msgid "Longitude"
+msgstr "経度"
+
+#: management/addWidgetWizardInclusionCode.php:306
+msgid "sm_based"
+msgstr "sm_based"
+
+#: management/addWidgetWizardInclusionCode.php:307
+msgid "ownerHash"
+msgstr "ownerHash"
+
+#: management/addWidgetWizardInclusionCode.php:308
+msgid "delegatedHash"
+msgstr "デリゲートされたハッシュ"
+
+#: management/addWidgetWizardInclusionCode.php:309
+msgid "delegatedGroupHash"
+msgstr "delegatedGroupHash"
+
+#: management/addWidgetWizardInclusionCode.php:322
+#: management/addWidgetWizardInclusionCode2.php:330
+msgid "Hide columns"
+msgstr "列を非表示にする"
+
+#: management/addWidgetWizardInclusionCode.php:328
+msgid "High level type"
+msgstr "ハイレベルタイプ"
+
+#: management/addWidgetWizardInclusionCode.php:332
+#: management/addWidgetWizardInclusionCode.php:1853
+#: management/addWidgetWizardInclusionCode.php:2000
+msgid "Value name"
+msgstr "値の名前"
+
+#: management/addWidgetWizardInclusionCode.php:333
+#: management/addWidgetWizardInclusionCode.php:1853
+#: management/addWidgetWizardInclusionCode.php:2000
+msgid "Data type"
+msgstr "データ型"
+
+#: management/addWidgetWizardInclusionCode.php:334
+msgid "Last date"
+msgstr "新規作成"
+
+#: management/addWidgetWizardInclusionCode.php:335
+msgid "Last value"
+msgstr "最後の値"
+
+#: management/addWidgetWizardInclusionCode.php:337
+msgid "Last check"
+msgstr "最後のチェック"
+
+#: management/addWidgetWizardInclusionCode.php:347
+#: management/addWidgetWizardInclusionCode2.php:355
+msgid "Reset filters"
+msgstr "フィルタをリセットする"
+
+#: management/addWidgetWizardInclusionCode.php:351
+#: management/addWidgetWizardInclusionCode2.php:359
+msgid "Selected rows: 0"
+msgstr "選択した行：0"
+
+#: management/addWidgetWizardInclusionCode.php:359
+#: management/addWidgetWizardInclusionCode2.php:368
+msgid "Choosen data sources"
+msgstr "単一データウィジェット"
+
+#: management/addWidgetWizardInclusionCode.php:362
+#: management/addWidgetWizardInclusionCode2.php:371
+msgid ""
+"Red rows are not compatible with choosen widget type and will not be "
+"instantiated"
+msgstr ""
+"赤い行は選択したウィジェットタイプと互換性がなく、インスタンス化されません"
+
+#: management/addWidgetWizardInclusionCode.php:384
+#: management/dashboard_configdash.php:2478 management/dashboards.php:636
+#: management/dashboards.php:686 management/inspector.php:398
+#: management/synopticTemplates.php:350 management/synopticTemplates.php:400
+#: management/synoptics.php:394 management/synoptics.php:444
+msgid "Remove"
+msgstr "削除する"
+
+#: management/addWidgetWizardInclusionCode.php:409
+msgid "Summary"
+msgstr "チェックとサマリー"
+
+#: management/addWidgetWizardInclusionCode.php:410
+msgid "A synthesis of your choices and what is going to be created"
+msgstr "あなたの選択と何が作成されるかを統合する"
+
+#: management/addWidgetWizardInclusionCode.php:416
+msgid "Check"
+msgstr "最後のチェック"
+
+#: management/addWidgetWizardInclusionCode.php:417
+msgid "Alerts about possible missing or wrong input that deny instantiation"
+msgstr ""
+"インスタンス化を拒否する可能性のある欠落または誤った入力に関するアラート"
+
+#: management/addWidgetWizardInclusionCode.php:423
+msgid "Instantiation"
+msgstr "インスタンス化"
+
+#: management/addWidgetWizardInclusionCode.php:424
+msgid "Button to proceed with items creation"
+msgstr "アイテムの作成を続行するためのボタン"
+
+#: management/addWidgetWizardInclusionCode.php:429
+msgid "Create dashboard/widgets"
+msgstr "ダッシュボード/ウィジェットの作成"
+
+#: management/addWidgetWizardInclusionCode.php:432
+msgid ""
+"You can't proceed with items creation before fixing wrong or missing inputs"
+msgstr ""
+"間違った入力や欠落している入力を修正する前に、アイテムの作成を続行することは"
+"できません"
+
+#: management/addWidgetWizardInclusionCode.php:1393
+#: management/addWidgetWizardInclusionCode.php:1409
+msgid "Selection is OK"
+msgstr "選択はOKです"
+
+#: management/addWidgetWizardInclusionCode.php:1400
+msgid "Some of the new actuator fields are not filled correctly"
+msgstr "新しいアクチュエータフィールドの一部が正しく入力されていません"
+
+#: management/addWidgetWizardInclusionCode.php:1417
+msgid "You must select actuator target type"
+msgstr "アクチュエータのターゲットタイプを選択する必要があります"
+
+#: management/addWidgetWizardInclusionCode.php:1428
+msgid "You must select one widget type"
+msgstr "ウィジェットタイプを1つ選択する必要があります"
+
+#: management/addWidgetWizardInclusionCode.php:1537
+#: management/addWidgetWizardInclusionCode.php:1683
+msgid "No dashboard template selected"
+msgstr "ダッシュボードテンプレートが選択されていません"
+
+#: management/addWidgetWizardInclusionCode.php:1549
+#: management/addWidgetWizardInclusionCode.php:1592
+#: management/addWidgetWizardInclusionCode.php:1702
+#: management/addWidgetWizardInclusionCode.php:6605
+#: management/addWidgetWizardInclusionCode2.php:7389
+#: management/dashboards.php:3005
+msgid "Dashboard title can\\'t be empty"
+msgstr "委任されたユーザー名を空にすることはできません"
+
+#: management/addWidgetWizardInclusionCode.php:1554
+#: management/addWidgetWizardInclusionCode.php:1597
+#: management/addWidgetWizardInclusionCode.php:1707
+#: management/addWidgetWizardInclusionCode.php:6610
+#: management/addWidgetWizardInclusionCode2.php:7394
+#: management/dashboards.php:3032
+msgid "Dashboard title already in use"
+msgstr "すでに使用されているタイトル"
+
+#: management/addWidgetWizardInclusionCode.php:1559
+#: management/addWidgetWizardInclusionCode.php:1602
+#: management/addWidgetWizardInclusionCode.php:1712
+#: management/addWidgetWizardInclusionCode.php:6615
+#: management/addWidgetWizardInclusionCode2.php:7399
+msgid "Dashboard title longer than 300 chars"
+msgstr "ダッシュボードのタイトルは300文字を超えることはできません"
+
+#: management/addWidgetWizardInclusionCode.php:1581
+#: management/addWidgetWizardInclusionCode.php:1691
+msgid "No widget type selected"
+msgstr "タイプ"
+
+#: management/addWidgetWizardInclusionCode.php:1612
+#: management/addWidgetWizardInclusionCode.php:1721
+msgid "You have to select at least one row from data sources table"
+msgstr "データソーステーブルから少なくとも1つの行を選択する必要があります"
+
+#: management/addWidgetWizardInclusionCode.php:1620
+#: management/addWidgetWizardInclusionCode.php:1658
+#: management/addWidgetWizardInclusionCode.php:1729
+#: management/addWidgetWizardInclusionCode.php:1767
+msgid "You can\\'t select rows from both IOT Apps and broker"
+msgstr "IOTアプリとブローカーの両方から行を選択することはできません"
+
+#: management/addWidgetWizardInclusionCode.php:1627
+#: management/addWidgetWizardInclusionCode.php:1665
+#: management/addWidgetWizardInclusionCode.php:1736
+#: management/addWidgetWizardInclusionCode.php:1774
+msgid ""
+"Some fields for new device creation on broker are empty or wrongly filled"
+msgstr ""
+"ブローカーで新しいデバイスを作成するための一部のフィールドが空であるか、間"
+"違って入力されています"
+
+#: management/addWidgetWizardInclusionCode.php:1650
+#: management/addWidgetWizardInclusionCode.php:1759
+msgid "You have to select at least one row"
+msgstr "少なくとも1つの行を選択する必要があります"
+
+#: management/addWidgetWizardInclusionCode.php:1813
+msgid "Dashboard template and title"
+msgstr "ダッシュボードのテンプレートとタイトル"
+
+#: management/addWidgetWizardInclusionCode.php:1829
+#: management/addWidgetWizardInclusionCode.php:3249
+msgid "Details"
+msgstr "詳細"
+
+#: management/addWidgetWizardInclusionCode.php:1830
+msgid ""
+"A fully custom dashboard is created empty, so no widget details are available"
+msgstr ""
+"完全にカスタム化されたダッシュボードは空で作成されるため、ウィジェットの詳細"
+"は利用できません"
+
+#: management/addWidgetWizardInclusionCode.php:1843
+#: management/addWidgetWizardInclusionCode.php:1906
+#: management/addWidgetWizardInclusionCode.php:1981
+msgid "Widget type details"
+msgstr "ウィジェットタイプの詳細"
+
+#: management/addWidgetWizardInclusionCode.php:1851
+#: management/addWidgetWizardInclusionCode.php:1919
+#: management/addWidgetWizardInclusionCode.php:2018
+msgid "Instances details"
+msgstr "詳細"
+
+#: management/addWidgetWizardInclusionCode.php:1853
+msgid "Widget"
+msgstr "ウィジェット"
+
+#: management/addWidgetWizardInclusionCode.php:1894
+msgid "Main widget(s) and relative data"
+msgstr "メインウィジェットと相対データ"
+
+#: management/addWidgetWizardInclusionCode.php:1920
+msgid ""
+"One new device entity will be created on context broker and linked to new "
+"actuator on dashboard"
+msgstr ""
+"1つの新しいデバイスエンティティがコンテキストブローカーに作成され、ダッシュ"
+"ボードの新しいアクチュエータにリンクされます"
+
+#: management/addWidgetWizardInclusionCode.php:1925
+msgid "Device details"
+msgstr "詳細"
+
+#: management/addWidgetWizardInclusionCode.php:1968
+msgid "Instantiation instructions"
+msgstr "インスタンス化"
+
+#: management/addWidgetWizardInclusionCode.php:1969
+msgid ""
+"At the moment it\\'s not possible to instantiate a new actuator and its "
+"corrispondent block on a IOT personal application. In order to complete this "
+"task, please follow this flow: 1) Open NodeRED flow designer of a personal "
+"app of your choice"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode.php:1969
+msgid ""
+" 2) Add a new actuator block (geolocator, dimer, impulsive button, switch, "
+"keyboard)"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode.php:1969
+msgid ""
+"3) Choose the dashboard where you want it to be (or create a new one) via "
+"block edit menu"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode.php:1969
+#, fuzzy
+#| msgid "Delete application..."
+msgid "4) Deploy your application"
+msgstr "アプリケーションを削除..."
+
+#: management/addWidgetWizardInclusionCode.php:1969
+msgid ""
+"5) Open (or refresh) your dashboard of choice: actuator widget will be "
+"automatically be instantiated"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode.php:1998
+msgid "Main widget and relative data"
+msgstr "メインウィジェットと相対データ"
+
+#: management/addWidgetWizardInclusionCode.php:2046
+#, fuzzy
+#| msgid "When pressed"
+msgid "Can proceed"
+msgstr "押されたとき"
+
+#: management/addWidgetWizardInclusionCode.php:2050
+msgid "Summary is not available until you fix missing or wrong inputs"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode.php:3249
+#: management/addWidgetWizardInclusionCode2.php:3208
+msgid "RT data"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode.php:3256
+#: management/addWidgetWizardInclusionCode2.php:3208
+#: management/addWidgetWizardInclusionCode2.php:3215
+#: management/dashboard_configdash.php:8656
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20483
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+#, fuzzy
+#| msgid "Entity description"
+msgid "Description"
+msgstr "エンティティの説明"
+
+#: management/addWidgetWizardInclusionCode.php:3257
+#: management/addWidgetWizardInclusionCode2.php:3216
+#: management/synopticsForm.php:245 management/synopticsMappingForm.php:245
+#, fuzzy
+#| msgid "Value type"
+msgid "Value"
+msgstr "存在するターゲットまたは新しいターゲット"
+
+#: management/addWidgetWizardInclusionCode.php:3327
+#, fuzzy
+#| msgid "Last date"
+msgid "Last update"
+msgstr "新規作成"
+
+#: management/addWidgetWizardInclusionCode.php:6432
+#, fuzzy
+#| msgid "Widget deletion"
+msgid "Template choosen OK"
+msgstr "ウィジェットの削除"
+
+#: management/addWidgetWizardInclusionCode.php:6710
+#: management/addWidgetWizardInclusionCode.php:6715
+#: management/addWidgetWizardInclusionCode.php:6721
+#, fuzzy
+#| msgid "Error deleting dashboard, please try again"
+msgid "Error during dashboard creation, please try again"
+msgstr "新しい所有権の設定中にエラーが発生しました：再試行してください"
+
+#: management/addWidgetWizardInclusionCode2.php:154
+#, fuzzy
+#| msgid "Map Controls:"
+msgid "Map Controls"
+msgstr "マップ コントロール:"
+
+#: management/addWidgetWizardInclusionCode2.php:165
+msgid "Now displaying in Standard Mode"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode2.php:166
+msgid ""
+"Switch to the Synoptic Mode to select MyKPIs and sensors that you need for "
+"your synoptics."
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode2.php:167
+msgid "Switch now to the Synoptic Mode"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode2.php:171
+msgid "Now displaying in Synoptic Mode"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode2.php:172
+msgid ""
+"Switch back to the Standard Mode to return making the traditional use of the "
+"Data Inspector."
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode2.php:173
+msgid "Switch now to the Standard Mode"
+msgstr ""
+
+#: management/addWidgetWizardInclusionCode2.php:414
+#: management/dashboard_configdash.php:411
+#: management/synopticTemplatesForm.php:168 management/synopticsForm.php:173
+#: management/synopticsMappingForm.php:174
+msgid "Save"
+msgstr "セーブ"
+
+#: management/dashboard_configdash.php:375 management/iotApplications.php:270
+msgid "Properties"
+msgstr "プロパティ"
+
+#: management/dashboard_configdash.php:381
+#: management/dashboard_configdash.php:1105
+msgid "Wizard"
+msgstr "ウィザード"
+
+#: management/dashboard_configdash.php:387
+msgid "Add widget"
+msgstr "ウィジェットを追加"
+
+#: management/dashboard_configdash.php:393
+msgid "Separator"
+msgstr "セパレーター"
+
+#: management/dashboard_configdash.php:399
+msgid "Embedding"
+msgstr "埋め込み"
+
+#: management/dashboard_configdash.php:405
+msgid "Screenshot"
+msgstr "スクリーンショット"
+
+#: management/dashboard_configdash.php:417
+msgid "Preview"
+msgstr "プレビュー"
+
+#: management/dashboard_configdash.php:433
+#: management/dashboard_configdash.php:2127 widgets/widgetCtxMenu.php:58
+msgid "Header color"
+msgstr "ヘッダーの色"
+
+#: management/dashboard_configdash.php:437 widgets/widgetCtxMenu.php:111
+msgid "Title color"
+msgstr "タイトルの色"
+
+#: management/dashboard_configdash.php:441
+msgid "Widgets area color"
+msgstr "ウィジェットエリアの色"
+
+#: management/dashboard_configdash.php:445
+msgid "External area color"
+msgstr "外部領域の色"
+
+#: management/dashboard_configdash.php:449
+msgid "Background darkness"
+msgstr "背景の暗さ"
+
+#: management/dashboard_configdash.php:807
+#: management/dashboard_configdash.php:850
+#: management/dashboard_configdash.php:899
+#: management/dashboard_configdash.php:947
+#: management/dashboard_configdash.php:995 widgets/widgetCtxMenu.php:95
+#: widgets/widgetCtxMenu.php:148 widgets/widgetCtxMenu.php:201
+#: widgets/widgetCtxMenu.php:254 widgets/widgetCtxMenu.php:307
+#: widgets/widgetCtxMenu.php:360 widgets/widgetCtxMenu.php:413
+#: widgets/widgetCtxMenu.php:485 widgets/widgetCtxMenu.php:514
+#: widgets/widgetCtxMenu.php:553
+msgid "Quit"
+msgstr "終了する"
+
+#: management/dashboard_configdash.php:817
+#: management/dashboard_configdash.php:866
+#: management/dashboard_configdash.php:914
+#: management/dashboard_configdash.php:962 widgets/widgetCtxMenu.php:62
+#: widgets/widgetCtxMenu.php:115 widgets/widgetCtxMenu.php:168
+#: widgets/widgetCtxMenu.php:221
+msgid "Palette"
+msgstr "パレット"
+
+#: management/dashboard_configdash.php:840
+#: management/dashboard_configdash.php:889
+#: management/dashboard_configdash.php:937
+#: management/dashboard_configdash.php:985 widgets/widgetCtxMenu.php:85
+#: widgets/widgetCtxMenu.php:138 widgets/widgetCtxMenu.php:191
+#: widgets/widgetCtxMenu.php:244 widgets/widgetCtxMenu.php:297
+#: widgets/widgetCtxMenu.php:350 widgets/widgetCtxMenu.php:403
+#: widgets/widgetCtxMenu.php:475
+msgid "Last used"
+msgstr "新規作成"
+
+#: management/dashboard_configdash.php:853
+#: management/dashboard_configdash.php:902
+#: management/dashboard_configdash.php:950
+#: management/dashboard_configdash.php:998 widgets/widgetCtxMenu.php:98
+#: widgets/widgetCtxMenu.php:151 widgets/widgetCtxMenu.php:204
+#: widgets/widgetCtxMenu.php:257 widgets/widgetCtxMenu.php:310
+#: widgets/widgetCtxMenu.php:363 widgets/widgetCtxMenu.php:416
+#: widgets/widgetCtxMenu.php:488 widgets/widgetCtxMenu.php:517
+msgid "Undo"
+msgstr "元に戻す"
+
+#: management/dashboard_configdash.php:856
+#: management/dashboard_configdash.php:905
+#: management/dashboard_configdash.php:953
+#: management/dashboard_configdash.php:1001 widgets/widgetCtxMenu.php:101
+#: widgets/widgetCtxMenu.php:154 widgets/widgetCtxMenu.php:207
+#: widgets/widgetCtxMenu.php:260 widgets/widgetCtxMenu.php:274
+#: widgets/widgetCtxMenu.php:313 widgets/widgetCtxMenu.php:327
+#: widgets/widgetCtxMenu.php:366 widgets/widgetCtxMenu.php:380
+#: widgets/widgetCtxMenu.php:419 widgets/widgetCtxMenu.php:452
+#: widgets/widgetCtxMenu.php:491 widgets/widgetCtxMenu.php:520
+msgid "Apply"
+msgstr "適用する"
+
+#: management/dashboard_configdash.php:1011
+msgid "Darkness"
+msgstr "背景の暗さ"
+
+#: management/dashboard_configdash.php:1115 management/dashboards.php:447
+msgid "Prev"
+msgstr "前"
+
+#: management/dashboard_configdash.php:1116 management/dashboards.php:448
+#: management/dashboards.php:718 management/dashboards.php:735
+msgid "Next"
+msgstr "次"
+
+#: management/dashboard_configdash.php:1119 management/dashboards.php:451
+#: management/dashboards.php:749 management/dashboards.php:810
+#: management/inspector.php:615 management/inspector.php:651
+#: management/iotApplications.php:349 management/synopticTemplates.php:416
+#: management/synoptics.php:478
+msgid "Close"
+msgstr "閉じる"
+
+#: management/dashboard_configdash.php:1133
+msgid "Add new widget to dashboard"
+msgstr "ウィジェットを追加"
+
+#: management/dashboard_configdash.php:1138
+#: management/dashboard_configdash.php:1869
+msgid "Metric and widget choice"
+msgstr "メトリックとウィジェットの選択"
+
+#: management/dashboard_configdash.php:1141
+#: management/dashboard_configdash.php:1872
+msgid "Widget category"
+msgstr "ウィジェットカテゴリ"
+
+#: management/dashboard_configdash.php:1146
+msgid "Actuator"
+msgstr "アクチュエータ"
+
+#: management/dashboard_configdash.php:1147
+msgid "Data viewer"
+msgstr "データビューア"
+
+#: management/dashboard_configdash.php:1154
+msgid "Metrics category"
+msgstr "メトリックカテゴリ"
+
+#: management/dashboard_configdash.php:1159
+msgid "Personal metrics"
+msgstr "個人指標"
+
+#: management/dashboard_configdash.php:1160
+msgid "Shared metrics"
+msgstr "共有メトリック"
+
+#: management/dashboard_configdash.php:1167
+#: management/dashboard_configdash.php:1880
+msgid "Actuator target"
+msgstr "存在するターゲットまたは新しいターゲット"
+
+#: management/dashboard_configdash.php:1170
+msgid "Personal apps"
+msgstr "個人指標"
+
+#: management/dashboard_configdash.php:1171
+msgid "Context broker"
+msgstr "コンテキストブローカー"
+
+#: management/dashboard_configdash.php:1178
+msgid "Inputs from personal apps"
+msgstr "パーソナルアプリからの入力"
+
+#: management/dashboard_configdash.php:1192
+#: management/dashboard_configdash.php:1901
+msgid "Start value"
+msgstr "開始値"
+
+#: management/dashboard_configdash.php:1200
+#: management/dashboard_configdash.php:1907
+msgid "Domain type"
+msgstr "ドメインタイプ"
+
+#: management/dashboard_configdash.php:1207
+#: management/dashboard_configdash.php:1914
+#: management/dashboard_configdash.php:7541
+#: management/dashboard_configdash.php:18758
+#: management/dashboard_configdash.php:19737
+msgid "Min value"
+msgstr "最小値"
+
+#: management/dashboard_configdash.php:1214
+#: management/dashboard_configdash.php:1921
+#: management/dashboard_configdash.php:7548
+#: management/dashboard_configdash.php:18766
+#: management/dashboard_configdash.php:19745
+msgid "Max value"
+msgstr "最大値"
+
+#: management/dashboard_configdash.php:1221
+#: management/dashboard_configdash.php:1928
+#: management/dashboard_configdash.php:7122
+#: management/dashboard_configdash.php:19408
+msgid "Off value"
+msgstr "オフ値"
+
+#: management/dashboard_configdash.php:1228
+#: management/dashboard_configdash.php:1935
+#: management/dashboard_configdash.php:7129
+#: management/dashboard_configdash.php:19415
+msgid "On value"
+msgstr "価値について"
+
+#: management/dashboard_configdash.php:1235
+#: management/dashboard_configdash.php:1305
+#: management/dashboard_configdash.php:1345
+#: management/dashboard_configdash.php:1389
+#: management/dashboard_configdash.php:1942
+#: management/dashboard_configdash.php:1995
+#: management/dashboard_configdash.php:2017
+msgid "Widget type"
+msgstr "ウィジェットタイプ"
+
+#: management/dashboard_configdash.php:1246
+#: management/dashboard_configdash.php:1960
+msgid "Entity type"
+msgstr "エンティティタイプ"
+
+#: management/dashboard_configdash.php:1255
+#: management/dashboard_configdash.php:1967
+msgid "Entity description"
+msgstr "エンティティの説明"
+
+#: management/dashboard_configdash.php:1264
+#: management/dashboard_configdash.php:1974
+#: management/dashboard_configdash.php:8270
+#: management/dashboard_configdash.php:8412
+#: management/dashboard_configdash.php:20227
+msgid "Attribute name"
+msgstr "属性名"
+
+#: management/dashboard_configdash.php:1273
+#: management/dashboard_configdash.php:1981
+msgid "Attribute description"
+msgstr "属性の説明"
+
+#: management/dashboard_configdash.php:1282
+#: management/dashboard_configdash.php:1988
+msgid "Attribute type"
+msgstr "属性タイプ"
+
+#: management/dashboard_configdash.php:1287
+msgid "Integer"
+msgstr "整数"
+
+#: management/dashboard_configdash.php:1288
+msgid "Float"
+msgstr "浮く"
+
+#: management/dashboard_configdash.php:1289
+msgid "String"
+msgstr "ストリング"
+
+#: management/dashboard_configdash.php:1290
+msgid "Boolean"
+msgstr "ブール値"
+
+#: management/dashboard_configdash.php:1296
+msgid "Attribute initial value"
+msgstr "属性の初期値"
+
+#: management/dashboard_configdash.php:1316
+#: management/dashboard_configdash.php:1360
+#: management/dashboard_configdash.php:2005
+msgid "Metric"
+msgstr "メトリック"
+
+#: management/dashboard_configdash.php:1324
+#: management/dashboard_configdash.php:1368
+#: management/dashboard_configdash.php:2046
+msgid "Metric description"
+msgstr "メトリックの説明"
+
+#: management/dashboard_configdash.php:1331
+#: management/dashboard_configdash.php:1375
+#: management/dashboard_configdash.php:2026
+msgid "Context"
+msgstr "環境"
+
+#: management/dashboard_configdash.php:1352
+#: management/dashboard_configdash.php:1396
+#: management/dashboard_configdash.php:2040
+msgid "Widget link"
+msgstr "ウィジェットリンク"
+
+#: management/dashboard_configdash.php:1403
+#: management/dashboard_configdash.php:2052
+msgid "Scheduler"
+msgstr "スケジューラー"
+
+#: management/dashboard_configdash.php:1411
+#: management/dashboard_configdash.php:2060
+msgid "Jobs areas"
+msgstr "ジョブ領域"
+
+#: management/dashboard_configdash.php:1420
+#: management/dashboard_configdash.php:2068
+msgid "Jobs groups"
+msgstr "ジョブ グループ"
+
+#: management/dashboard_configdash.php:1429
+#: management/dashboard_configdash.php:2076
+msgid "Jobs names"
+msgstr "ジョブ名"
+
+#: management/dashboard_configdash.php:1451
+#: management/dashboard_configdash.php:2098
+msgid "Generic widget properties"
+msgstr "汎用ウィジェットのプロパティ"
+
+#: management/dashboard_configdash.php:1454
+#: management/dashboard_configdash.php:2101
+#: management/dashboard_configdash.php:32023 management/dashboards.php:401
+#: management/externalServices.php:208 management/iotApplications.php:192
+#: management/microApplications.php:212 management/synopticTemplates.php:219
+#: management/synoptics.php:236
+msgid "Title"
+msgstr "タイトル"
+
+#: management/dashboard_configdash.php:1459
+#: management/dashboard_configdash.php:32024 widgets/widgetCtxMenu.php:164
+msgid "Background color"
+msgstr "背景色"
+
+#: management/dashboard_configdash.php:1468
+msgid "Content"
+msgstr "コンテンツ"
+
+#: management/dashboard_configdash.php:1468
+msgid "font size"
+msgstr "フォントサイズ"
+
+#: management/dashboard_configdash.php:1473
+#: management/dashboard_configdash.php:2118
+msgid "Content font color"
+msgstr "コンテンツフォントの色"
+
+#: management/dashboard_configdash.php:1489
+#: management/dashboard_configdash.php:2134
+msgid "Header text color"
+msgstr "ヘッダーテキスト色"
+
+#: management/dashboard_configdash.php:1498
+#: management/dashboard_configdash.php:2143
+msgid "Period"
+msgstr "期間"
+
+#: management/dashboard_configdash.php:1501
+#: management/dashboard_configdash.php:1550
+#: management/dashboard_configdash.php:2146
+#: management/dashboard_configdash.php:2194
+#: management/dashboard_configdash.php:2264
+#: management/dashboard_configdash.php:2272
+#: management/dashboard_configdash.php:8210
+#: management/dashboard_configdash.php:10862
+#: management/dashboard_configdash.php:11048
+#: management/dashboard_configdash.php:11419
+#: management/dashboard_configdash.php:11832
+#: management/dashboard_configdash.php:12250
+#: management/dashboard_configdash.php:12837
+#: management/dashboard_configdash.php:12949
+#: management/dashboard_configdash.php:13113
+#: management/dashboard_configdash.php:13500
+#: management/dashboard_configdash.php:13699
+#: management/dashboard_configdash.php:14430
+#: management/dashboard_configdash.php:14477
+#: management/dashboard_configdash.php:15442
+#: management/dashboard_configdash.php:15450
+#: management/dashboard_configdash.php:15766
+#: management/dashboard_configdash.php:15775
+#: management/dashboard_configdash.php:16074
+#: management/dashboard_configdash.php:24596
+#: management/dashboard_configdash.php:24805
+#: management/dashboard_configdash.php:25390
+#: management/dashboard_configdash.php:25790
+#: management/dashboard_configdash.php:26149
+#: management/dashboard_configdash.php:26650
+#: management/dashboard_configdash.php:27109
+#: management/dashboard_configdash.php:27465
+#: management/dashboard_configdash.php:27664
+#: management/dashboard_configdash.php:27951
+#: management/dashboard_configdash.php:28418
+#: management/dashboard_configdash.php:28655
+#: management/dashboard_configdash.php:28702
+#: management/dashboard_configdash.php:28716
+#: management/dashboard_configdash.php:28870
+#: management/dashboard_configdash.php:29825
+#: management/dashboard_configdash.php:29888
+#: management/dashboard_configdash.php:30014
+#: management/dashboard_configdash.php:30263
+#: management/dashboard_configdash.php:30276
+#: management/dashboard_configdash.php:30368
+#: management/dashboard_configdash.php:31208
+#: management/dashboard_configdash.php:31225
+#: management/dashboard_configdash.php:31287
+#: management/dashboard_configdash.php:31310
+#: management/dashboard_configdash.php:31483
+#: management/dashboard_configdash.php:31667
+#: management/dashboard_configdash.php:31676
+#: management/dashboard_configdash.php:32121
+#: management/dashboard_configdash.php:32131
+msgid "No"
+msgstr "いいえ"
+
+#: management/dashboard_configdash.php:1502
+#: management/dashboard_configdash.php:2147
+msgid "4 Hours"
+msgstr "4時間"
+
+#: management/dashboard_configdash.php:1503
+#: management/dashboard_configdash.php:2148
+msgid "12 Hours"
+msgstr "12時間"
+
+#: management/dashboard_configdash.php:1504
+#: management/dashboard_configdash.php:2149
+msgid "Day"
+msgstr "日"
+
+#: management/dashboard_configdash.php:1505
+#: management/dashboard_configdash.php:2150
+msgid "Week"
+msgstr "週"
+
+#: management/dashboard_configdash.php:1506
+#: management/dashboard_configdash.php:2151
+msgid "Month"
+msgstr "月"
+
+#: management/dashboard_configdash.php:1507
+#: management/dashboard_configdash.php:2152
+msgid "6 Months"
+msgstr "6ヵ月"
+
+#: management/dashboard_configdash.php:1508
+#: management/dashboard_configdash.php:2153
+msgid "Year"
+msgstr "年"
+
+#: management/dashboard_configdash.php:1509
+#: management/dashboard_configdash.php:2154
+msgid "2 Years"
+msgstr "2年"
+
+#: management/dashboard_configdash.php:1510
+#: management/dashboard_configdash.php:2155
+msgid "10 Years"
+msgstr "10年"
+
+#: management/dashboard_configdash.php:1513
+#: management/dashboard_configdash.php:2158
+msgid "Refresh rate (s)"
+msgstr "リフレッシュレート（s）"
+
+#: management/dashboard_configdash.php:1520
+#: management/dashboard_configdash.php:2164
+msgid "Height"
+msgstr "Height"
+
+#: management/dashboard_configdash.php:1525
+#: management/dashboard_configdash.php:2169
+msgid "Width"
+msgstr "幅"
+
+#: management/dashboard_configdash.php:1532
+#: management/dashboard_configdash.php:2176
+msgid "U/M"
+msgstr "U/M"
+
+#: management/dashboard_configdash.php:1537
+#: management/dashboard_configdash.php:2181
+msgid "U/M position"
+msgstr "U / Mポジション"
+
+#: management/dashboard_configdash.php:1540
+#: management/dashboard_configdash.php:2184
+msgid "Next to value"
+msgstr "値の横"
+
+#: management/dashboard_configdash.php:1541
+#: management/dashboard_configdash.php:2185
+msgid "Below value"
+msgstr "値を下回る"
+
+#: management/dashboard_configdash.php:1546
+#: management/dashboard_configdash.php:1655
+#: management/dashboard_configdash.php:2190
+#: management/dashboard_configdash.php:2267
+msgid "Show header"
+msgstr "ヘッダーを表示"
+
+#: management/dashboard_configdash.php:1549
+#: management/dashboard_configdash.php:2193
+#: management/dashboard_configdash.php:2263
+#: management/dashboard_configdash.php:2273
+#: management/dashboard_configdash.php:10861
+#: management/dashboard_configdash.php:11047
+#: management/dashboard_configdash.php:11418
+#: management/dashboard_configdash.php:11831
+#: management/dashboard_configdash.php:12249
+#: management/dashboard_configdash.php:12836
+#: management/dashboard_configdash.php:12948
+#: management/dashboard_configdash.php:13112
+#: management/dashboard_configdash.php:13499
+#: management/dashboard_configdash.php:13698
+#: management/dashboard_configdash.php:14429
+#: management/dashboard_configdash.php:14476
+#: management/dashboard_configdash.php:15441
+#: management/dashboard_configdash.php:15449
+#: management/dashboard_configdash.php:15765
+#: management/dashboard_configdash.php:15774
+#: management/dashboard_configdash.php:16073
+#: management/dashboard_configdash.php:24595
+#: management/dashboard_configdash.php:24804
+#: management/dashboard_configdash.php:25389
+#: management/dashboard_configdash.php:25791
+#: management/dashboard_configdash.php:26148
+#: management/dashboard_configdash.php:26649
+#: management/dashboard_configdash.php:27464
+#: management/dashboard_configdash.php:27663
+#: management/dashboard_configdash.php:27950
+#: management/dashboard_configdash.php:28417
+#: management/dashboard_configdash.php:28654
+#: management/dashboard_configdash.php:28701
+#: management/dashboard_configdash.php:28715
+#: management/dashboard_configdash.php:28869
+#: management/dashboard_configdash.php:29824
+#: management/dashboard_configdash.php:29887
+#: management/dashboard_configdash.php:30013
+#: management/dashboard_configdash.php:30262
+#: management/dashboard_configdash.php:30275
+#: management/dashboard_configdash.php:30367
+#: management/dashboard_configdash.php:31207
+#: management/dashboard_configdash.php:31224
+#: management/dashboard_configdash.php:31286
+#: management/dashboard_configdash.php:31309
+#: management/dashboard_configdash.php:31482
+#: management/dashboard_configdash.php:31666
+#: management/dashboard_configdash.php:31675
+#: management/dashboard_configdash.php:32120
+#: management/dashboard_configdash.php:32130
+msgid "Yes"
+msgstr "はい"
+
+#: management/dashboard_configdash.php:1553
+#: management/dashboard_configdash.php:2198
+msgid "Font type (autosuggestion)"
+msgstr "フォントタイプ（自動暗示）"
+
+#: management/dashboard_configdash.php:1562
+#: management/dashboard_configdash.php:2207
+msgid "Specific widget properties"
+msgstr "特定のウィジェットのプロパティ"
+
+#: management/dashboard_configdash.php:1578
+#: management/dashboard_configdash.php:1713
+#: management/dashboard_configdash.php:1751
+#: management/dashboard_configdash.php:2228
+#: management/dashboard_configdash.php:2337
+#: management/dashboard_configdash.php:2401 management/dashboards.php:519
+#: management/dashboards.php:569 management/dashboards.php:597
+#: management/dashboards.php:621 management/dashboards.php:665
+#: management/dashboards.php:811 management/inspector.php:616
+#: management/inspector.php:652 management/inspector.php:754
+#: management/inspector.php:1712 management/inspector.php:1733
+#: management/iotApplications.php:254 management/iotApplications.php:286
+#: management/synopticTemplates.php:283 management/synopticTemplates.php:311
+#: management/synopticTemplates.php:335 management/synopticTemplates.php:379
+#: management/synopticTemplates.php:463 management/synoptics.php:304
+#: management/synoptics.php:355 management/synoptics.php:379
+#: management/synoptics.php:423 management/synoptics.php:525
+#: management/synopticsForm.php:226 management/synopticsForm.php:262
+#: management/synopticsMappingForm.php:226
+#: management/synopticsMappingForm.php:262 view/index.php:2398
+msgid "Confirm"
+msgstr "確認"
+
+#: management/dashboard_configdash.php:1579
+#: management/dashboard_configdash.php:1712
+#: management/dashboard_configdash.php:1750
+#: management/dashboard_configdash.php:2229
+#: management/dashboard_configdash.php:2336
+#: management/dashboard_configdash.php:2400 management/dashboards.php:518
+#: management/dashboards.php:862 management/iotApplications.php:253
+#: management/synopticTemplates.php:462 management/synoptics.php:524
+#: management/synopticsForm.php:225 management/synopticsForm.php:261
+#: management/synopticsMappingForm.php:225
+#: management/synopticsMappingForm.php:261 view/index.php:2397
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: management/dashboard_configdash.php:1594
+msgid "Dashboard properties"
+msgstr "プロパティ"
+
+#: management/dashboard_configdash.php:1598
+msgid "Measures"
+msgstr "対策"
+
+#: management/dashboard_configdash.php:1599
+msgid "Header"
+msgstr "ヘッダーの色"
+
+#: management/dashboard_configdash.php:1600
+msgid "Background"
+msgstr "背景の暗さ"
+
+#: management/dashboard_configdash.php:1609
+msgid "Responsive"
+msgstr "レスポンシブ"
+
+#: management/dashboard_configdash.php:1618
+msgid "Dashboard width (cells)"
+msgstr "自分のダッシュボード"
+
+#: management/dashboard_configdash.php:1664
+msgid "Header logo"
+msgstr "ヘッダーの色"
+
+#: management/dashboard_configdash.php:1674
+msgid "Header logo link"
+msgstr "ヘッダーの色"
+
+#: management/dashboard_configdash.php:1687
+msgid "Use image"
+msgstr "すでに使用されているタイトル"
+
+#: management/dashboard_configdash.php:1695
+msgid "Upload new image"
+msgstr "新規作成"
+
+#: management/dashboard_configdash.php:1728
+msgid "Dashboard screenshot"
+msgstr "スクリーンショット"
+
+#: management/dashboard_configdash.php:1734
+msgid "1) Open the dashboard in view mode"
+msgstr "1）ダッシュボードを表示モードで開きます"
+
+#: management/dashboard_configdash.php:1735
+msgid "2) Take a snapshot (e.g. with STAMP or with specific tools)"
+msgstr "2）スナップショットを作成します（例：STAMPまたは特定のツールを使用）"
+
+#: management/dashboard_configdash.php:1736
+msgid "3) Save it in your mass memory"
+msgstr "3）大容量メモリに保存します"
+
+#: management/dashboard_configdash.php:1737
+msgid "4) Upload it from the following input"
+msgstr "4）次の入力からアップロードします"
+
+#: management/dashboard_configdash.php:1765 view/index.php:2409
+msgid "External content"
+msgstr "コンテンツ"
+
+#: management/dashboard_configdash.php:1782 view/index.php:2426
+msgid "evacuation plan status management"
+msgstr "避難計画状況管理"
+
+#: management/dashboard_configdash.php:1787 view/index.php:2431
+msgid "plan identifier"
+msgstr "計画の特定"
+
+#: management/dashboard_configdash.php:1790 view/index.php:2434
+msgid "current approval status"
+msgstr "現在の承認状況"
+
+#: management/dashboard_configdash.php:1800 view/index.php:2444
+msgid "new approval status"
+msgstr "新しい承認ステータス"
+
+#: management/dashboard_configdash.php:1812 view/index.php:2456
+msgid "updating status, please wait"
+msgstr "ステータスの更新、お待ちください"
+
+#: management/dashboard_configdash.php:1824 view/index.php:2468
+msgid "status successfully updated"
+msgstr "ステータスが正常に更新されました"
+
+#: management/dashboard_configdash.php:1836 view/index.php:2480
+msgid "error while trying to send new status to server, please try again"
+msgstr ""
+"サーバーに新しいステータスを送信しようとしたときにエラーが発生しました。再試"
+"行してください"
+
+#: management/dashboard_configdash.php:1850 view/index.php:2494
+msgid "cancel"
+msgstr "キャンセル"
+
+#: management/dashboard_configdash.php:1851 view/index.php:2495
+msgid "confirm"
+msgstr "確認"
+
+#: management/dashboard_configdash.php:1863
+msgid "Modify widget"
+msgstr "ウィジェットを変更する"
+
+#: management/dashboard_configdash.php:1889
+msgid "Input from personal apps"
+msgstr "パーソナルアプリからの入力"
+
+#: management/dashboard_configdash.php:1953
+msgid "Entity id"
+msgstr "エンティティID"
+
+#: management/dashboard_configdash.php:2011
+msgid "Widget name"
+msgstr "ウィジェット名"
+
+#: management/dashboard_configdash.php:2105
+msgid "Backgound color"
+msgstr "背景色"
+
+#: management/dashboard_configdash.php:2243
+msgid "Embed this dashboard"
+msgstr "プロパティ"
+
+#: management/dashboard_configdash.php:2250
+msgid "Iframe markup generation"
+msgstr "Iframeマークアップの生成"
+
+#: management/dashboard_configdash.php:2254
+#: management/dashboard_configdash.php:29561
+msgid "Automatic"
+msgstr "自動"
+
+#: management/dashboard_configdash.php:2255
+#: management/dashboard_configdash.php:29562
+msgid "Manual"
+msgstr "マニュアル"
+
+#: management/dashboard_configdash.php:2258
+msgid "Embed mode"
+msgstr "埋め込みモード"
+
+#: management/dashboard_configdash.php:2276
+msgid "Autofit"
+msgstr "オートフィット"
+
+#: management/dashboard_configdash.php:2282
+msgid "Iframe width (px)"
+msgstr "Iframeの幅（px）"
+
+#: management/dashboard_configdash.php:2288
+msgid "Iframe height (px)"
+msgstr "Iframeの高さ（px）"
+
+#: management/dashboard_configdash.php:2292
+msgid "Code to embed this dashboard"
+msgstr "このダッシュボードを埋め込むためのコード"
+
+#: management/dashboard_configdash.php:2296
+msgid "Save in txt file"
+msgstr "テキストファイルに保存"
+
+#: management/dashboard_configdash.php:2299
+msgid "Save in html file"
+msgstr "HTMLファイルに保存"
+
+#: management/dashboard_configdash.php:2302
+msgid "Embedding authorized pages"
+msgstr "許可されたページの埋め込み"
+
+#: management/dashboard_configdash.php:2306
+msgid "Authorized pages"
+msgstr "許可されたページの埋め込み"
+
+#: management/dashboard_configdash.php:2313
+msgid "Update list"
+msgstr "更新リスト"
+
+#: management/dashboard_configdash.php:2316
+msgid "List updated correctly"
+msgstr "リストが正しく更新されました"
+
+#: management/dashboard_configdash.php:2319
+msgid "List update error, try again"
+msgstr "リストの更新エラー、再試行してください"
+
+#: management/dashboard_configdash.php:2327
+msgid "Iframe preview"
+msgstr "Iframeプレビュー"
+
+#: management/dashboard_configdash.php:2349
+msgid "Save dashboard"
+msgstr "セーブ"
+
+#: management/dashboard_configdash.php:2352
+msgid "Saving dashboard, please wait"
+msgstr "ダッシュボードを保存しています。しばらくお待ちください"
+
+#: management/dashboard_configdash.php:2368
+msgid "Widget deletion"
+msgstr "ウィジェットの削除"
+
+#: management/dashboard_configdash.php:2375
+msgid "Do you want to confirm cancellation of the following widget?"
+msgstr "次のウィジェットのキャンセルを確認しますか？"
+
+#: management/dashboard_configdash.php:2382
+msgid "Deleting widget, please wait"
+msgstr "ウィジェットを削除します、お待ちください"
+
+#: management/dashboard_configdash.php:2388
+msgid "Widget deleted successfully"
+msgstr "ウィジェットが正常に削除されました"
+
+#: management/dashboard_configdash.php:2394
+msgid "Error deleting widget, please try again"
+msgstr "ウィジェットの削除中にエラーが発生しました。もう一度お試しください"
+
+#: management/dashboard_configdash.php:2419
+msgid ""
+"Here you can insert detailed info of your choice about this widget: you can "
+"use the GUI editor or custom HTML code."
+msgstr ""
+"ここに、このウィジェットに関する選択した詳細情報を挿入できます。GUIエディター"
+"またはカスタムHTMLコードを使用できます。"
+
+#: management/dashboard_configdash.php:2420
+msgid ""
+"If you leave the editor empty, the info button won't be shown in the view."
+msgstr "エディターを空のままにすると、情報ボタンはビューに表示されません。"
+
+#: management/dashboard_configdash.php:2487
+msgid "Change Metric"
+msgstr "メトリックの変更"
+
+#: management/dashboard_configdash.php:2839
+msgid "Please allow popups for this website"
+msgstr "このウェブサイトのポップアップを許可してください"
+
+#: management/dashboard_configdash.php:3002
+#: management/dashboard_configdash.php:3026
+msgid "Error while adding new separator"
+msgstr "新しいセパレータの追加中にエラーが発生しました"
+
+#: management/dashboard_configdash.php:3787
+#: management/dashboard_configdash.php:3830
+#: management/dashboard_configdash.php:3926
+#: management/dashboard_configdash.php:3976
+msgid "Click to edit"
+msgstr "クリックして編集する"
+
+#: management/dashboard_configdash.php:4627
+msgid "Choose page title"
+msgstr "ページタイトルを選択"
+
+#: management/dashboard_configdash.php:4731
+msgid "Loading new screenshot, please wait"
+msgstr "新しいスクリーンショットを読み込んでいます。しばらくお待ちください"
+
+#: management/dashboard_configdash.php:4745
+msgid "New screenshot loaded correctly"
+msgstr "新しいスクリーンショットが正しく読み込まれました"
+
+#: management/dashboard_configdash.php:4761
+#: management/dashboard_configdash.php:4775
+msgid "Error loading new screenshot"
+msgstr "新しいスクリーンショットの読み込み中にエラーが発生しました"
+
+#: management/dashboard_configdash.php:4910
+msgid "Content font size"
+msgstr "コンテンツフォントの色"
+
+#: management/dashboard_configdash.php:5119
+#: management/dashboard_configdash.php:6027
+#: management/dashboard_configdash.php:6362
+#: management/dashboard_configdash.php:7477
+#: management/dashboard_configdash.php:17873
+#: management/dashboard_configdash.php:18748
+#: management/dashboard_configdash.php:19704
+msgid "Display color"
+msgstr "ヘッダーの色"
+
+#: management/dashboard_configdash.php:5127
+#: management/dashboard_configdash.php:6370
+msgid "Display font color"
+msgstr "コンテンツフォントの色"
+
+#: management/dashboard_configdash.php:5138
+#: management/dashboard_configdash.php:6381
+msgid "Buttons color"
+msgstr "ヘッダーの色"
+
+#: management/dashboard_configdash.php:5146
+#: management/dashboard_configdash.php:6389
+msgid "Buttons font color"
+msgstr "コンテンツフォントの色"
+
+#: management/dashboard_configdash.php:5199
+#: management/dashboard_configdash.php:5465
+#: management/dashboard_configdash.php:5730
+#: management/dashboard_configdash.php:6442
+#: management/dashboard_configdash.php:6724
+#: management/dashboard_configdash.php:7091
+#: management/dashboard_configdash.php:17948
+#: management/dashboard_configdash.php:18202
+#: management/dashboard_configdash.php:18455
+#: management/dashboard_configdash.php:19086
+#: management/dashboard_configdash.php:19376
+msgid "View mode"
+msgstr "ビューモード"
+
+#: management/dashboard_configdash.php:5202
+#: management/dashboard_configdash.php:5468
+#: management/dashboard_configdash.php:5733
+#: management/dashboard_configdash.php:6445
+#: management/dashboard_configdash.php:6727
+#: management/dashboard_configdash.php:7094
+#: management/dashboard_configdash.php:17951
+#: management/dashboard_configdash.php:18205
+#: management/dashboard_configdash.php:18458
+#: management/dashboard_configdash.php:19089
+#: management/dashboard_configdash.php:19379
+msgid "Empty button"
+msgstr "空のボタン"
+
+#: management/dashboard_configdash.php:5203
+#: management/dashboard_configdash.php:5469
+#: management/dashboard_configdash.php:5734
+#: management/dashboard_configdash.php:6446
+#: management/dashboard_configdash.php:6728
+#: management/dashboard_configdash.php:7095
+#: management/dashboard_configdash.php:17952
+#: management/dashboard_configdash.php:18206
+#: management/dashboard_configdash.php:18459
+#: management/dashboard_configdash.php:19090
+#: management/dashboard_configdash.php:19380
+msgid "Icon only"
+msgstr "アイコンのみ"
+
+#: management/dashboard_configdash.php:5204
+#: management/dashboard_configdash.php:5470
+#: management/dashboard_configdash.php:5735
+#: management/dashboard_configdash.php:6447
+#: management/dashboard_configdash.php:6729
+#: management/dashboard_configdash.php:7096
+#: management/dashboard_configdash.php:17953
+#: management/dashboard_configdash.php:18207
+#: management/dashboard_configdash.php:18460
+#: management/dashboard_configdash.php:19091
+#: management/dashboard_configdash.php:19381
+msgid "Text only"
+msgstr "テキストのみ"
+
+#: management/dashboard_configdash.php:5205
+#: management/dashboard_configdash.php:5471
+#: management/dashboard_configdash.php:5736
+#: management/dashboard_configdash.php:6448
+#: management/dashboard_configdash.php:6730
+#: management/dashboard_configdash.php:7097
+#: management/dashboard_configdash.php:17954
+#: management/dashboard_configdash.php:18208
+#: management/dashboard_configdash.php:18461
+#: management/dashboard_configdash.php:19092
+#: management/dashboard_configdash.php:19382
+msgid "Value display only"
+msgstr "値表示のみ"
+
+#: management/dashboard_configdash.php:5206
+#: management/dashboard_configdash.php:5472
+#: management/dashboard_configdash.php:5737
+#: management/dashboard_configdash.php:6449
+#: management/dashboard_configdash.php:6731
+#: management/dashboard_configdash.php:7098
+#: management/dashboard_configdash.php:17955
+#: management/dashboard_configdash.php:18209
+#: management/dashboard_configdash.php:18462
+#: management/dashboard_configdash.php:19093
+#: management/dashboard_configdash.php:19383
+msgid "Icon and text"
+msgstr "アイコンとテキスト"
+
+#: management/dashboard_configdash.php:5207
+#: management/dashboard_configdash.php:5473
+#: management/dashboard_configdash.php:5738
+#: management/dashboard_configdash.php:6450
+#: management/dashboard_configdash.php:6732
+#: management/dashboard_configdash.php:7099
+#: management/dashboard_configdash.php:17956
+#: management/dashboard_configdash.php:18210
+#: management/dashboard_configdash.php:18463
+#: management/dashboard_configdash.php:19094
+#: management/dashboard_configdash.php:19384
+msgid "Icon and value display"
+msgstr "アイコンと値の表示"
+
+#: management/dashboard_configdash.php:5208
+#: management/dashboard_configdash.php:5474
+#: management/dashboard_configdash.php:5739
+#: management/dashboard_configdash.php:6451
+#: management/dashboard_configdash.php:6733
+#: management/dashboard_configdash.php:7100
+#: management/dashboard_configdash.php:17957
+#: management/dashboard_configdash.php:18211
+#: management/dashboard_configdash.php:18464
+#: management/dashboard_configdash.php:19095
+#: management/dashboard_configdash.php:19385
+msgid "Display and text"
+msgstr "表示とテキスト"
+
+#: management/dashboard_configdash.php:5209
+#: management/dashboard_configdash.php:5475
+#: management/dashboard_configdash.php:5740
+#: management/dashboard_configdash.php:6452
+#: management/dashboard_configdash.php:6734
+#: management/dashboard_configdash.php:7101
+#: management/dashboard_configdash.php:17958
+#: management/dashboard_configdash.php:18212
+#: management/dashboard_configdash.php:18465
+#: management/dashboard_configdash.php:19096
+#: management/dashboard_configdash.php:19386
+msgid "Icon, text and value display"
+msgstr "アイコン、テキスト、値の表示"
+
+#: management/dashboard_configdash.php:5214
+#: management/dashboard_configdash.php:5480
+#: management/dashboard_configdash.php:5745
+#: management/dashboard_configdash.php:6457
+#: management/dashboard_configdash.php:6739
+#: management/dashboard_configdash.php:7106
+#: management/dashboard_configdash.php:17964
+#: management/dashboard_configdash.php:18218
+#: management/dashboard_configdash.php:18471
+#: management/dashboard_configdash.php:19102
+#: management/dashboard_configdash.php:19392
+msgid "Button radius (%)"
+msgstr "ボタンの半径（％）"
+
+#: management/dashboard_configdash.php:5231
+#: management/dashboard_configdash.php:6474
+msgid "Geolocation mode"
+msgstr "地理位置情報モード"
+
+#: management/dashboard_configdash.php:5234
+#: management/dashboard_configdash.php:6477
+msgid "On press only"
+msgstr "プレスのみ"
+
+#: management/dashboard_configdash.php:5235
+#: management/dashboard_configdash.php:6478
+msgid "Periodically"
+msgstr "定期的に"
+
+#: management/dashboard_configdash.php:5236
+#: management/dashboard_configdash.php:6479
+msgid "Periodically and on press"
+msgstr "定期的かつプレス"
+
+#: management/dashboard_configdash.php:5244
+#: management/dashboard_configdash.php:5509
+#: management/dashboard_configdash.php:6487
+#: management/dashboard_configdash.php:6823
+#: management/dashboard_configdash.php:17995
+#: management/dashboard_configdash.php:18248
+#: management/dashboard_configdash.php:19149
+msgid "Button color"
+msgstr "ボタンの色"
+
+#: management/dashboard_configdash.php:5252
+#: management/dashboard_configdash.php:5517
+#: management/dashboard_configdash.php:6495
+#: management/dashboard_configdash.php:6831
+#: management/dashboard_configdash.php:18003
+#: management/dashboard_configdash.php:18256
+#: management/dashboard_configdash.php:19157
+msgid "Button color on click"
+msgstr "クリック時のボタンの色"
+
+#: management/dashboard_configdash.php:5262
+#: management/dashboard_configdash.php:5527
+#: management/dashboard_configdash.php:6505
+#: management/dashboard_configdash.php:6841
+#: management/dashboard_configdash.php:18013
+#: management/dashboard_configdash.php:18266
+#: management/dashboard_configdash.php:19167
+msgid "Symbol color"
+msgstr "シンボルカラー"
+
+#: management/dashboard_configdash.php:5270
+#: management/dashboard_configdash.php:5535
+#: management/dashboard_configdash.php:6513
+#: management/dashboard_configdash.php:6849
+#: management/dashboard_configdash.php:18021
+#: management/dashboard_configdash.php:18274
+#: management/dashboard_configdash.php:19175
+msgid "Symbol color on click"
+msgstr "クリック時の記号の色"
+
+#: management/dashboard_configdash.php:5282
+#: management/dashboard_configdash.php:5547
+#: management/dashboard_configdash.php:6525
+#: management/dashboard_configdash.php:6861
+#: management/dashboard_configdash.php:18033
+#: management/dashboard_configdash.php:18286
+#: management/dashboard_configdash.php:19187
+msgid "Text color"
+msgstr "テキストの色"
+
+#: management/dashboard_configdash.php:5290
+#: management/dashboard_configdash.php:5555
+#: management/dashboard_configdash.php:6533
+#: management/dashboard_configdash.php:6869
+#: management/dashboard_configdash.php:18041
+#: management/dashboard_configdash.php:18294
+#: management/dashboard_configdash.php:19195
+msgid "Text color on click"
+msgstr "クリック時のテキストの色"
+
+#: management/dashboard_configdash.php:5302
+#: management/dashboard_configdash.php:5567
+#: management/dashboard_configdash.php:5821
+#: management/dashboard_configdash.php:6545
+#: management/dashboard_configdash.php:6881
+#: management/dashboard_configdash.php:7223
+#: management/dashboard_configdash.php:18052
+#: management/dashboard_configdash.php:18305
+#: management/dashboard_configdash.php:18546
+#: management/dashboard_configdash.php:19206
+#: management/dashboard_configdash.php:19485
+msgid "Text font size"
+msgstr "テキストのフォントサイズ"
+
+#: management/dashboard_configdash.php:5309
+#: management/dashboard_configdash.php:5574
+#: management/dashboard_configdash.php:5828
+#: management/dashboard_configdash.php:6552
+#: management/dashboard_configdash.php:6888
+#: management/dashboard_configdash.php:7230
+#: management/dashboard_configdash.php:18059
+#: management/dashboard_configdash.php:18312
+#: management/dashboard_configdash.php:18553
+#: management/dashboard_configdash.php:19213
+#: management/dashboard_configdash.php:19492
+msgid "Display font size"
+msgstr "表示フォントサイズ"
+
+#: management/dashboard_configdash.php:5320
+#: management/dashboard_configdash.php:5585
+#: management/dashboard_configdash.php:6563
+#: management/dashboard_configdash.php:6899
+#: management/dashboard_configdash.php:18070
+#: management/dashboard_configdash.php:18323
+#: management/dashboard_configdash.php:19224
+msgid "Display text color"
+msgstr "テキストの色を表示する"
+
+#: management/dashboard_configdash.php:5328
+#: management/dashboard_configdash.php:5593
+#: management/dashboard_configdash.php:5847
+#: management/dashboard_configdash.php:6571
+#: management/dashboard_configdash.php:6907
+#: management/dashboard_configdash.php:7249
+#: management/dashboard_configdash.php:18572
+#: management/dashboard_configdash.php:19511
+msgid "On display text color"
+msgstr "表示テキストの色"
+
+#: management/dashboard_configdash.php:5341
+#: management/dashboard_configdash.php:5606
+#: management/dashboard_configdash.php:5860
+#: management/dashboard_configdash.php:6584
+#: management/dashboard_configdash.php:6920
+#: management/dashboard_configdash.php:7262
+#: management/dashboard_configdash.php:18091
+#: management/dashboard_configdash.php:18344
+#: management/dashboard_configdash.php:18585
+#: management/dashboard_configdash.php:19245
+#: management/dashboard_configdash.php:19524
+msgid "Display background color"
+msgstr "背景色を表示する"
+
+#: management/dashboard_configdash.php:5349
+#: management/dashboard_configdash.php:5614
+#: management/dashboard_configdash.php:5868
+#: management/dashboard_configdash.php:6592
+#: management/dashboard_configdash.php:6928
+#: management/dashboard_configdash.php:7270
+#: management/dashboard_configdash.php:18099
+#: management/dashboard_configdash.php:18352
+#: management/dashboard_configdash.php:18593
+#: management/dashboard_configdash.php:19253
+#: management/dashboard_configdash.php:19532
+msgid "Display radius (%)"
+msgstr "表示半径（％）"
+
+#: management/dashboard_configdash.php:5366
+#: management/dashboard_configdash.php:5631
+#: management/dashboard_configdash.php:5885
+#: management/dashboard_configdash.php:6609
+#: management/dashboard_configdash.php:6945
+#: management/dashboard_configdash.php:7287
+#: management/dashboard_configdash.php:18116
+#: management/dashboard_configdash.php:18369
+#: management/dashboard_configdash.php:18610
+#: management/dashboard_configdash.php:19270
+#: management/dashboard_configdash.php:19549
+msgid "Display width (%)"
+msgstr "表示幅（％）"
+
+#: management/dashboard_configdash.php:5380
+#: management/dashboard_configdash.php:5645
+#: management/dashboard_configdash.php:5899
+#: management/dashboard_configdash.php:6623
+#: management/dashboard_configdash.php:6959
+#: management/dashboard_configdash.php:7301
+#: management/dashboard_configdash.php:18130
+#: management/dashboard_configdash.php:18383
+#: management/dashboard_configdash.php:18624
+#: management/dashboard_configdash.php:19284
+#: management/dashboard_configdash.php:19563
+msgid "Display height (%)"
+msgstr "ディスプレイの高さ（％）"
+
+#: management/dashboard_configdash.php:5397
+#: management/dashboard_configdash.php:5662
+#: management/dashboard_configdash.php:5916
+#: management/dashboard_configdash.php:6640
+#: management/dashboard_configdash.php:6976
+#: management/dashboard_configdash.php:7318
+#: management/dashboard_configdash.php:18146
+#: management/dashboard_configdash.php:18399
+#: management/dashboard_configdash.php:18641
+#: management/dashboard_configdash.php:19300
+#: management/dashboard_configdash.php:19580
+msgid "Neon effect"
+msgstr "ネオン効果"
+
+#: management/dashboard_configdash.php:5400
+#: management/dashboard_configdash.php:5665
+#: management/dashboard_configdash.php:5919
+#: management/dashboard_configdash.php:6643
+#: management/dashboard_configdash.php:6979
+#: management/dashboard_configdash.php:7321
+#: management/dashboard_configdash.php:18149
+#: management/dashboard_configdash.php:18402
+#: management/dashboard_configdash.php:18644
+#: management/dashboard_configdash.php:19303
+#: management/dashboard_configdash.php:19583
+msgid "Never"
+msgstr "決して"
+
+#: management/dashboard_configdash.php:5401
+#: management/dashboard_configdash.php:5666
+#: management/dashboard_configdash.php:6644
+#: management/dashboard_configdash.php:6980
+#: management/dashboard_configdash.php:18150
+#: management/dashboard_configdash.php:18403
+#: management/dashboard_configdash.php:19304
+msgid "When pressed"
+msgstr "押されたとき"
+
+#: management/dashboard_configdash.php:5402
+#: management/dashboard_configdash.php:5667
+#: management/dashboard_configdash.php:5922
+#: management/dashboard_configdash.php:6645
+#: management/dashboard_configdash.php:6981
+#: management/dashboard_configdash.php:7324
+#: management/dashboard_configdash.php:18151
+#: management/dashboard_configdash.php:18404
+#: management/dashboard_configdash.php:18647
+#: management/dashboard_configdash.php:19305
+#: management/dashboard_configdash.php:19586
+msgid "Always"
+msgstr "常に"
+
+#: management/dashboard_configdash.php:5497
+#: management/dashboard_configdash.php:6811
+msgid "Impulse mode"
+msgstr "インパルスモード"
+
+#: management/dashboard_configdash.php:5500
+#: management/dashboard_configdash.php:6814
+msgid "Send impulse on release"
+msgstr "リリース時にインパルスを送信"
+
+#: management/dashboard_configdash.php:5761
+#: management/dashboard_configdash.php:7163
+#: management/dashboard_configdash.php:18487
+#: management/dashboard_configdash.php:19426
+msgid "Off button color"
+msgstr "オフ ボタンの色"
+
+#: management/dashboard_configdash.php:5769
+#: management/dashboard_configdash.php:7171
+#: management/dashboard_configdash.php:18495
+#: management/dashboard_configdash.php:19434
+msgid "On button color"
+msgstr "ボタンの色"
+
+#: management/dashboard_configdash.php:5781
+#: management/dashboard_configdash.php:7183
+#: management/dashboard_configdash.php:18507
+#: management/dashboard_configdash.php:19446
+msgid "Off symbol color"
+msgstr "オフ シンボルの色"
+
+#: management/dashboard_configdash.php:5789
+#: management/dashboard_configdash.php:7191
+#: management/dashboard_configdash.php:18515
+#: management/dashboard_configdash.php:19454
+msgid "On symbol color"
+msgstr "シンボルカラー"
+
+#: management/dashboard_configdash.php:5801
+msgid "Off text color"
+msgstr "オフテキストの色"
+
+#: management/dashboard_configdash.php:5809
+msgid "On text color"
+msgstr "テキストの色"
+
+#: management/dashboard_configdash.php:5839
+#: management/dashboard_configdash.php:7241
+#: management/dashboard_configdash.php:18564
+#: management/dashboard_configdash.php:19503
+msgid "Off display text color"
+msgstr "オフ表示テキストの色"
+
+#: management/dashboard_configdash.php:5920
+#: management/dashboard_configdash.php:7322
+#: management/dashboard_configdash.php:18645
+#: management/dashboard_configdash.php:19584
+msgid "When on"
+msgstr "オンのとき"
+
+#: management/dashboard_configdash.php:5921
+#: management/dashboard_configdash.php:7323
+#: management/dashboard_configdash.php:18646
+#: management/dashboard_configdash.php:19585
+msgid "When off"
+msgstr "オフ値"
+
+#: management/dashboard_configdash.php:5978
+#: management/dashboard_configdash.php:7420
+#: management/dashboard_configdash.php:18699
+#: management/dashboard_configdash.php:19646
+msgid "Indicator radius (%)"
+msgstr "インジケータ半径 (%)"
+
+#: management/dashboard_configdash.php:5985
+#: management/dashboard_configdash.php:7427
+#: management/dashboard_configdash.php:18706
+#: management/dashboard_configdash.php:19653
+msgid "Value display radius (%)"
+msgstr "値表示半径 (%)"
+
+#: management/dashboard_configdash.php:6009
+#: management/dashboard_configdash.php:7451
+#: management/dashboard_configdash.php:18730
+#: management/dashboard_configdash.php:19677
+msgid "Start angle"
+msgstr "開始角度"
+
+#: management/dashboard_configdash.php:6016
+#: management/dashboard_configdash.php:7458
+#: management/dashboard_configdash.php:18737
+#: management/dashboard_configdash.php:19684
+msgid "End angle"
+msgstr "終了角度"
+
+#: management/dashboard_configdash.php:6053
+#: management/dashboard_configdash.php:7558
+#: management/dashboard_configdash.php:18777
+#: management/dashboard_configdash.php:19756
+msgid "Labels font size"
+msgstr "ラベルのフォント サイズ"
+
+#: management/dashboard_configdash.php:6060
+#: management/dashboard_configdash.php:7565
+#: management/dashboard_configdash.php:18784
+#: management/dashboard_configdash.php:19763
+msgid "Labels font color"
+msgstr "ラベルのフォントの色"
+
+#: management/dashboard_configdash.php:6071
+#: management/dashboard_configdash.php:7576
+#: management/dashboard_configdash.php:18795
+#: management/dashboard_configdash.php:19774
+msgid "Increase value"
+msgstr "値を増やす"
+
+#: management/dashboard_configdash.php:6708
+msgid "Target entity"
+msgstr "ターゲット エンティティ"
+
+#: management/dashboard_configdash.php:6715
+msgid "Target entity attribute"
+msgstr "ターゲット エンティティ属性"
+
+#: management/dashboard_configdash.php:6756
+msgid "Base value"
+msgstr "最小/基本値"
+
+#: management/dashboard_configdash.php:6782
+msgid "Impulse value"
+msgstr "最大/インパルス値"
+
+#: management/dashboard_configdash.php:6815
+msgid "Send impulses until pressed"
+msgstr "押されるまで衝動を送る"
+
+#: management/dashboard_configdash.php:8263
+#: management/dashboard_configdash.php:8349
+#: management/dashboard_configdash.php:8405
+#: management/dashboard_configdash.php:20082
+#: management/dashboard_configdash.php:20166
+#: management/dashboard_configdash.php:20219
+msgid "Entity ID"
+msgstr "エンティティID"
+
+#: management/dashboard_configdash.php:8280
+#: management/dashboard_configdash.php:8421
+#: management/dashboard_configdash.php:20101
+#: management/dashboard_configdash.php:20238
+msgid "Update time(s)"
+msgstr "更新時刻"
+
+#: management/dashboard_configdash.php:8546
+#: management/dashboard_configdash.php:8717
+#: management/dashboard_configdash.php:8856
+#: management/dashboard_configdash.php:8995
+#: management/dashboard_configdash.php:20357
+#: management/dashboard_configdash.php:20766
+#: management/dashboard_configdash.php:21157
+#: management/dashboard_configdash.php:21977
+msgid "Map widgets"
+msgstr "マップ ウィジェット"
+
+#: management/dashboard_configdash.php:8627
+#: management/dashboard_configdash.php:8767
+#: management/dashboard_configdash.php:8906
+#: management/dashboard_configdash.php:9045
+#: management/dashboard_configdash.php:20448
+#: management/dashboard_configdash.php:20819
+#: management/dashboard_configdash.php:21221
+#: management/dashboard_configdash.php:22027
+msgid "Active rows font color"
+msgstr "アクティブな行のフォントの色"
+
+#: management/dashboard_configdash.php:8656
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20483
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+#, fuzzy
+#| msgid "Default tab"
+msgid "Default"
+msgstr "デフォルトのタブ"
+
+#: management/dashboard_configdash.php:8656
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20483
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+#, fuzzy
+#| msgid "Symbol color"
+msgid "Symbol mode"
+msgstr "シンボルカラー"
+
+#: management/dashboard_configdash.php:8656
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20483
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+#, fuzzy
+#| msgid "Symbol color"
+msgid "Symbol choice"
+msgstr "シンボルカラー"
+
+#: management/dashboard_configdash.php:8656
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20483
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+#, fuzzy
+#| msgid "Iframe preview"
+msgid "Symbol preview"
+msgstr "Iframeプレビュー"
+
+#: management/dashboard_configdash.php:8656
+#: management/dashboard_configdash.php:20483
+msgid "Link"
+msgstr ""
+
+#: management/dashboard_configdash.php:8656
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20483
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+#, fuzzy
+#| msgid "Color"
+msgid "Color1"
+msgstr "色"
+
+#: management/dashboard_configdash.php:8656
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20483
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+#, fuzzy
+#| msgid "Color"
+msgid "Color2"
+msgstr "色"
+
+#: management/dashboard_configdash.php:8656
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20483
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+msgid "Order"
+msgstr ""
+
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+msgid "Query"
+msgstr ""
+
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:21317
+#: management/dashboard_configdash.php:22062
+#, fuzzy
+#| msgid "Data and widgets"
+msgid "Data widgets"
+msgstr "データとウィジェット"
+
+#: management/dashboard_configdash.php:8796
+#: management/dashboard_configdash.php:8935
+#: management/dashboard_configdash.php:9060
+#: management/dashboard_configdash.php:20854
+#: management/dashboard_configdash.php:21316
+#: management/dashboard_configdash.php:22062
+#, fuzzy
+#| msgid "Display color"
+msgid "Display"
+msgstr "ヘッダーの色"
+
+#: management/dashboard_configdash.php:8919
+#: management/dashboard_configdash.php:21240
+msgid "Icon/Text Mode"
+msgstr ""
+
+#: management/dashboard_configdash.php:8922
+#: management/dashboard_configdash.php:21243
+#, fuzzy
+#| msgid "Icon only"
+msgid "Icon Only"
+msgstr "アイコンのみ"
+
+#: management/dashboard_configdash.php:8923
+#: management/dashboard_configdash.php:21244
+#, fuzzy
+#| msgid "Entity description"
+msgid "Text Description"
+msgstr "エンティティの説明"
+
+#: management/dashboard_configdash.php:9113
+#: management/dashboard_configdash.php:22554
+msgid "Shown data"
+msgstr "表示されるデータ"
+
+#: management/dashboard_configdash.php:9116
+#, fuzzy
+#| msgid "Last Date"
+msgid "Date"
+msgstr "新規作成"
+
+#: management/dashboard_configdash.php:9117
+msgid "Time"
+msgstr ""
+
+#: management/dashboard_configdash.php:9118
+#, fuzzy
+#| msgid "Data and widgets"
+msgid "Date and time"
+msgstr "データとウィジェット"
+
+#: management/dashboard_configdash.php:9124
+#: management/dashboard_configdash.php:22565
+msgid "Font type"
+msgstr "フォントタイプ"
+
+#: management/dashboard_configdash.php:9127
+msgid "Normal"
+msgstr ""
+
+#: management/dashboard_configdash.php:9128
+msgid "LCD like"
+msgstr ""
+
+#: management/dashboard_configdash.php:9182
+#: management/dashboard_configdash.php:9276
+#: management/dashboard_configdash.php:9370
+#: management/dashboard_configdash.php:9467
+#: management/dashboard_configdash.php:9592
+#: management/dashboard_configdash.php:9718
+#: management/dashboard_configdash.php:9853
+#: management/dashboard_configdash.php:9990
+#: management/dashboard_configdash.php:10112
+#: management/dashboard_configdash.php:10252
+#: management/dashboard_configdash.php:10392
+#: management/dashboard_configdash.php:14766
+#: management/dashboard_configdash.php:14920
+#: management/dashboard_configdash.php:22618
+#: management/dashboard_configdash.php:22720
+#: management/dashboard_configdash.php:22823
+#: management/dashboard_configdash.php:22923
+#: management/dashboard_configdash.php:23050
+#: management/dashboard_configdash.php:23171
+#: management/dashboard_configdash.php:23326
+#: management/dashboard_configdash.php:23469
+#: management/dashboard_configdash.php:23595
+#: management/dashboard_configdash.php:23810
+#: management/dashboard_configdash.php:23959
+#: management/dashboard_configdash.php:30495
+#: management/dashboard_configdash.php:30645
+msgid "Available geolocation widgets"
+msgstr "利用可能な地理位置情報ウィジェット"
+
+#: management/dashboard_configdash.php:9505
+#: management/dashboard_configdash.php:9630
+#: management/dashboard_configdash.php:10028
+#: management/dashboard_configdash.php:10150
+#: management/dashboard_configdash.php:10290
+#: management/dashboard_configdash.php:10430
+#: management/dashboard_configdash.php:14807
+#: management/dashboard_configdash.php:14959
+#: management/dashboard_configdash.php:22964
+#: management/dashboard_configdash.php:23088
+#: management/dashboard_configdash.php:23510
+#: management/dashboard_configdash.php:23633
+#: management/dashboard_configdash.php:23851
+#: management/dashboard_configdash.php:23997
+#: management/dashboard_configdash.php:30535
+#: management/dashboard_configdash.php:30683
+msgid "Events to show on selected map"
+msgstr "選択したマップに表示するイベント"
+
+#: management/dashboard_configdash.php:9509
+#: management/dashboard_configdash.php:9634
+#: management/dashboard_configdash.php:22968
+#: management/dashboard_configdash.php:23092
+msgid "Approved"
+msgstr ""
+
+#: management/dashboard_configdash.php:9510
+#: management/dashboard_configdash.php:9635
+#: management/dashboard_configdash.php:22969
+#: management/dashboard_configdash.php:23093
+#, fuzzy
+#| msgid "Close"
+msgid "Closed"
+msgstr "閉じる"
+
+#: management/dashboard_configdash.php:9511
+#: management/dashboard_configdash.php:9636
+#: management/dashboard_configdash.php:22970
+#: management/dashboard_configdash.php:23094
+#, fuzzy
+#| msgid "When pressed"
+msgid "In progress"
+msgstr "押されたとき"
+
+#: management/dashboard_configdash.php:9512
+#: management/dashboard_configdash.php:9637
+#: management/dashboard_configdash.php:22971
+#: management/dashboard_configdash.php:23095
+msgid "Proposed"
+msgstr ""
+
+#: management/dashboard_configdash.php:9513
+#: management/dashboard_configdash.php:9638
+#: management/dashboard_configdash.php:22972
+#: management/dashboard_configdash.php:23096
+msgid "Rejected"
+msgstr ""
+
+#: management/dashboard_configdash.php:9727
+#: management/dashboard_configdash.php:9862
+#: management/dashboard_configdash.php:23180
+#: management/dashboard_configdash.php:23335
+msgid "Available autopan widgets"
+msgstr "単一データウィジェット"
+
+#: management/dashboard_configdash.php:10234
+msgid "Default category"
+msgstr "既定のオルソマップ"
+
+#: management/dashboard_configdash.php:10237
+#: management/dashboard_configdash.php:10377
+#: management/dashboard_configdash.php:13607
+#: management/dashboard_configdash.php:15393
+#: management/dashboard_configdash.php:15711
+#: management/dashboard_configdash.php:21769
+#: management/dashboard_configdash.php:23795
+#: management/dashboard_configdash.php:23944
+#: management/dashboard_configdash.php:31618
+#: management/dashboard_configdash.php:32067
+msgid "None"
+msgstr "無し"
+
+#: management/dashboard_configdash.php:10238
+#: management/dashboard_configdash.php:10378
+#: management/dashboard_configdash.php:23796
+#: management/dashboard_configdash.php:23945
+msgid "Incidents"
+msgstr "インシデント"
+
+#: management/dashboard_configdash.php:10239
+#: management/dashboard_configdash.php:10379
+#: management/dashboard_configdash.php:23797
+#: management/dashboard_configdash.php:23946
+msgid "Road works"
+msgstr "道路工事"
+
+#: management/dashboard_configdash.php:10240
+#: management/dashboard_configdash.php:10380
+#: management/dashboard_configdash.php:23798
+#: management/dashboard_configdash.php:23947
+msgid "Snow"
+msgstr "雪"
+
+#: management/dashboard_configdash.php:10241
+#: management/dashboard_configdash.php:10381
+#: management/dashboard_configdash.php:23799
+#: management/dashboard_configdash.php:23948
+msgid "Weather data"
+msgstr "気象データ"
+
+#: management/dashboard_configdash.php:10242
+#: management/dashboard_configdash.php:10382
+#: management/dashboard_configdash.php:23800
+#: management/dashboard_configdash.php:23949
+msgid "Wind"
+msgstr "風"
+
+#: management/dashboard_configdash.php:10519
+#: management/dashboard_configdash.php:24096
+#: management/dashboard_configdash.php:24110
+msgid "Visualization mode"
+msgstr "視覚化モード"
+
+#: management/dashboard_configdash.php:10522
+#: management/dashboard_configdash.php:24099
+msgid "Single hospital - Totals only"
+msgstr "単一病院-合計のみ"
+
+#: management/dashboard_configdash.php:10523
+#: management/dashboard_configdash.php:24100
+msgid "Single hospital - Details"
+msgstr "単一病院-詳細"
+
+#: management/dashboard_configdash.php:10524
+#: management/dashboard_configdash.php:24101
+msgid "Multiple hospitals overview"
+msgstr "複数の病院の概要"
+
+#: management/dashboard_configdash.php:10533
+msgid "First aid"
+msgstr "応急処置"
+
+#: management/dashboard_configdash.php:10541
+#: management/dashboard_configdash.php:24118
+msgid "First aids"
+msgstr "応急処置"
+
+#: management/dashboard_configdash.php:10858
+#: management/dashboard_configdash.php:12945
+#: management/dashboard_configdash.php:24592
+#: management/dashboard_configdash.php:27660
+msgid "Show first cell"
+msgstr "最初のセルを表示"
+
+#: management/dashboard_configdash.php:10878
+#: management/dashboard_configdash.php:12962
+#: management/dashboard_configdash.php:24614
+#: management/dashboard_configdash.php:27676
+msgid "First cell font size"
+msgstr "最初のセルのフォントサイズ"
+
+#: management/dashboard_configdash.php:10892
+#: management/dashboard_configdash.php:12973
+#: management/dashboard_configdash.php:24631
+#: management/dashboard_configdash.php:27687
+msgid "First cell font color"
+msgstr "最初のセルのフォントの色"
+
+#: management/dashboard_configdash.php:10916
+#: management/dashboard_configdash.php:12593
+#: management/dashboard_configdash.php:12990
+#: management/dashboard_configdash.php:24655
+#: management/dashboard_configdash.php:27123
+#: management/dashboard_configdash.php:27704
+msgid "Rows labels font size"
+msgstr "行ラベルのフォントサイズ"
+
+#: management/dashboard_configdash.php:10930
+#: management/dashboard_configdash.php:12604
+#: management/dashboard_configdash.php:13001
+#: management/dashboard_configdash.php:24672
+#: management/dashboard_configdash.php:27134
+#: management/dashboard_configdash.php:27715
+msgid "Rows labels font color"
+msgstr "行ラベルフォントの色"
+
+#: management/dashboard_configdash.php:10954
+#: management/dashboard_configdash.php:12624
+#: management/dashboard_configdash.php:13018
+#: management/dashboard_configdash.php:24697
+#: management/dashboard_configdash.php:27151
+#: management/dashboard_configdash.php:27732
+msgid "Cols labels font size"
+msgstr "列ラベルのフォントサイズ"
+
+#: management/dashboard_configdash.php:10965
+#: management/dashboard_configdash.php:12635
+#: management/dashboard_configdash.php:13029
+#: management/dashboard_configdash.php:24708
+#: management/dashboard_configdash.php:27162
+#: management/dashboard_configdash.php:27743
+msgid "Cols labels font color"
+msgstr "列ラベルのフォントの色"
+
+#: management/dashboard_configdash.php:11010
+#: management/dashboard_configdash.php:13078
+#: management/dashboard_configdash.php:24749
+#: management/dashboard_configdash.php:27792
+msgid "Table borders"
+msgstr ""
+
+#: management/dashboard_configdash.php:11024
+#: management/dashboard_configdash.php:13092
+#: management/dashboard_configdash.php:24763
+#: management/dashboard_configdash.php:27806
+#, fuzzy
+#| msgid "Header color"
+msgid "Table borders color"
+msgstr "ヘッダーの色"
+
+#: management/dashboard_configdash.php:11044
+#: management/dashboard_configdash.php:11415
+#: management/dashboard_configdash.php:11828
+#: management/dashboard_configdash.php:12246
+#: management/dashboard_configdash.php:12833
+#: management/dashboard_configdash.php:13109
+#: management/dashboard_configdash.php:14426
+#: management/dashboard_configdash.php:14473
+#: management/dashboard_configdash.php:24801
+#: management/dashboard_configdash.php:25386
+#: management/dashboard_configdash.php:26145
+#: management/dashboard_configdash.php:26646
+#: management/dashboard_configdash.php:27461
+#: management/dashboard_configdash.php:27947
+#: management/dashboard_configdash.php:29821
+#: management/dashboard_configdash.php:29884
+#: management/dashboard_configdash.php:30010
+msgid "Set thresholds"
+msgstr "しきい値を設定する"
+
+#: management/dashboard_configdash.php:11061
+#: management/dashboard_configdash.php:12263
+#: management/dashboard_configdash.php:12850
+#: management/dashboard_configdash.php:13126
+#: management/dashboard_configdash.php:14490
+#: management/dashboard_configdash.php:24854
+#: management/dashboard_configdash.php:26158
+#: management/dashboard_configdash.php:26659
+#: management/dashboard_configdash.php:27474
+#: management/dashboard_configdash.php:27964
+#: management/dashboard_configdash.php:29897
+#: management/dashboard_configdash.php:30023
+msgid "Thresholds target set"
+msgstr "しきい値ターゲット セット"
+
+#: management/dashboard_configdash.php:11078
+#: management/dashboard_configdash.php:11868
+#: management/dashboard_configdash.php:12286
+#: management/dashboard_configdash.php:12868
+#: management/dashboard_configdash.php:13143
+#: management/dashboard_configdash.php:14443
+#: management/dashboard_configdash.php:14506
+#: management/dashboard_configdash.php:24873
+#: management/dashboard_configdash.php:26183
+#: management/dashboard_configdash.php:26681
+#: management/dashboard_configdash.php:27492
+#: management/dashboard_configdash.php:27980
+#: management/dashboard_configdash.php:29837
+#: management/dashboard_configdash.php:29913
+#: management/dashboard_configdash.php:30039
+msgid "Thresholds target field"
+msgstr "しきい値ターゲット・フィールド"
+
+#: management/dashboard_configdash.php:11123
+#: management/dashboard_configdash.php:25007
+msgid "limit"
+msgstr ""
+
+#: management/dashboard_configdash.php:11187
+#: management/dashboard_configdash.php:11577
+#: management/dashboard_configdash.php:11995
+#: management/dashboard_configdash.php:25100
+#: management/dashboard_configdash.php:25602
+msgid "X-Axis labels font size"
+msgstr "X 軸ラベルのフォント サイズ"
+
+#: management/dashboard_configdash.php:11198
+#: management/dashboard_configdash.php:11588
+#: management/dashboard_configdash.php:12006
+#: management/dashboard_configdash.php:25111
+#: management/dashboard_configdash.php:25613
+msgid "X-Axis labels font color"
+msgstr "X 軸ラベルのフォントの色"
+
+#: management/dashboard_configdash.php:11218
+#: management/dashboard_configdash.php:11608
+#: management/dashboard_configdash.php:12026
+#: management/dashboard_configdash.php:25128
+#: management/dashboard_configdash.php:25630
+#, fuzzy
+#| msgid "X-Axis labels font size"
+msgid "Y-Axis labels font size"
+msgstr "X 軸ラベルのフォント サイズ"
+
+#: management/dashboard_configdash.php:11229
+#: management/dashboard_configdash.php:11619
+#: management/dashboard_configdash.php:12037
+#: management/dashboard_configdash.php:25139
+#: management/dashboard_configdash.php:25641
+#, fuzzy
+#| msgid "X-Axis labels font color"
+msgid "Y-Axis labels font color"
+msgstr "X 軸ラベルのフォントの色"
+
+#: management/dashboard_configdash.php:11249
+#: management/dashboard_configdash.php:11639
+#: management/dashboard_configdash.php:12057
+#: management/dashboard_configdash.php:12655
+#: management/dashboard_configdash.php:14073
+#: management/dashboard_configdash.php:25156
+#: management/dashboard_configdash.php:25690
+#: management/dashboard_configdash.php:27179
+#: management/dashboard_configdash.php:29268
+msgid "Data labels font size"
+msgstr "データ ラベルのフォント サイズ"
+
+#: management/dashboard_configdash.php:11260
+#: management/dashboard_configdash.php:11650
+#: management/dashboard_configdash.php:12068
+#: management/dashboard_configdash.php:12666
+#: management/dashboard_configdash.php:14107
+#: management/dashboard_configdash.php:25167
+#: management/dashboard_configdash.php:25701
+#: management/dashboard_configdash.php:27190
+#: management/dashboard_configdash.php:29326
+msgid "Data labels font color"
+msgstr "データ ラベルのフォントの色"
+
+#: management/dashboard_configdash.php:11280
+#: management/dashboard_configdash.php:11670
+#: management/dashboard_configdash.php:12088
+#: management/dashboard_configdash.php:12686
+#: management/dashboard_configdash.php:14029
+#: management/dashboard_configdash.php:25184
+#: management/dashboard_configdash.php:25718
+#: management/dashboard_configdash.php:27207
+#: management/dashboard_configdash.php:29213
+#, fuzzy
+#| msgid "Labels font size"
+msgid "Legend font size"
+msgstr "ラベルのフォント サイズ"
+
+#: management/dashboard_configdash.php:13268
+#: management/dashboard_configdash.php:13380
+#: management/dashboard_configdash.php:15049
+#: management/dashboard_configdash.php:15324
+#: management/dashboard_configdash.php:28176
+#: management/dashboard_configdash.php:28290
+#: management/dashboard_configdash.php:30772
+#: management/dashboard_configdash.php:31098
+msgid "Default tab"
+msgstr "デフォルトのタブ"
+
+#: management/dashboard_configdash.php:13282
+#: management/dashboard_configdash.php:13394
+#: management/dashboard_configdash.php:28191
+#: management/dashboard_configdash.php:28305
+msgid "Meteo tab font size"
+msgstr "メテオタブのフォントサイズ"
+
+#: management/dashboard_configdash.php:13297
+#: management/dashboard_configdash.php:13409
+#: management/dashboard_configdash.php:28206
+#: management/dashboard_configdash.php:28320
+msgid "General tab font size"
+msgstr "[全般] タブのフォント サイズ"
+
+#: management/dashboard_configdash.php:13309
+#: management/dashboard_configdash.php:13421
+#: management/dashboard_configdash.php:28218
+#: management/dashboard_configdash.php:28332
+msgid "General tab font color"
+msgstr "[全般] タブのフォントの色"
+
+#: management/dashboard_configdash.php:13484
+#: management/dashboard_configdash.php:28401
+msgid "Border radius"
+msgstr "ボーダーの半径"
+
+#: management/dashboard_configdash.php:13496
+#: management/dashboard_configdash.php:28414
+msgid "Button image"
+msgstr "ボタン画像"
+
+#: management/dashboard_configdash.php:13511
+#: management/dashboard_configdash.php:28435
+msgid "Image file"
+msgstr "画像ファイル"
+
+#: management/dashboard_configdash.php:13532
+#: management/dashboard_configdash.php:28461
+msgid "Image width"
+msgstr "画像幅"
+
+#: management/dashboard_configdash.php:13545
+#: management/dashboard_configdash.php:28485
+msgid "Image height"
+msgstr "画像の高さ"
+
+#: management/dashboard_configdash.php:13613
+msgid "Available metrics for selected widget"
+msgstr "選択したウィジェットで使用可能なメトリック"
+
+#: management/dashboard_configdash.php:13653
+msgid "No metric change"
+msgstr "メトリック変更なし"
+
+#: management/dashboard_configdash.php:13695
+msgid "Show button text"
+msgstr "ボタンテキストを表示"
+
+#: management/dashboard_configdash.php:13704
+msgid "Available widgets to show link content"
+msgstr "リンクコンテンツを表示する利用可能なウィジェット"
+
+#: management/dashboard_configdash.php:14122
+#: management/dashboard_configdash.php:29341
+msgid "Inner radius (%)"
+msgstr "内半径 (%)"
+
+#: management/dashboard_configdash.php:14163
+#: management/dashboard_configdash.php:29411
+msgid "Start angle (°)"
+msgstr "開始角度 (°)"
+
+#: management/dashboard_configdash.php:14171
+#: management/dashboard_configdash.php:29420
+msgid "End angle (°)"
+msgstr "終了角度 (°)"
+
+#: management/dashboard_configdash.php:14182
+#: management/dashboard_configdash.php:29432
+msgid "Diagram center Y(%)"
+msgstr "ダイアグラムセンター Y(%)"
+
+#: management/dashboard_configdash.php:14192
+#: management/dashboard_configdash.php:29443
+msgid "Slices colors"
+msgstr "スライスの色"
+
+#: management/dashboard_configdash.php:14750
+#: management/dashboard_configdash.php:14904
+#: management/dashboard_configdash.php:15133
+#: management/dashboard_configdash.php:15386
+#: management/dashboard_configdash.php:15704
+#: management/dashboard_configdash.php:30479
+#: management/dashboard_configdash.php:30629
+#: management/dashboard_configdash.php:30850
+#: management/dashboard_configdash.php:31611
+#: management/dashboard_configdash.php:32060
+msgid "Widget mode"
+msgstr "ウィジェットモード"
+
+#: management/dashboard_configdash.php:15389
+#: management/dashboard_configdash.php:15707
+#: management/dashboard_configdash.php:31614
+#: management/dashboard_configdash.php:32063
+msgid "Web link"
+msgstr "ウェブリンク"
+
+#: management/dashboard_configdash.php:15391
+#: management/dashboard_configdash.php:15709
+#: management/dashboard_configdash.php:31616
+#: management/dashboard_configdash.php:32065
+msgid "Selector target"
+msgstr "セレクターターゲット"
+
+#: management/dashboard_configdash.php:15392
+#: management/dashboard_configdash.php:15710
+#: management/dashboard_configdash.php:31617
+#: management/dashboard_configdash.php:32066
+msgid "Selector Web target"
+msgstr "選択 Web ターゲット"
+
+#: management/dashboard_configdash.php:15402
+#: management/dashboard_configdash.php:15722
+#: management/dashboard_configdash.php:16032
+#: management/dashboard_configdash.php:31165
+#: management/dashboard_configdash.php:31626
+#: management/dashboard_configdash.php:32076
+msgid "Start lat"
+msgstr "開始緯度"
+
+#: management/dashboard_configdash.php:15410
+#: management/dashboard_configdash.php:15731
+#: management/dashboard_configdash.php:16041
+#: management/dashboard_configdash.php:31174
+#: management/dashboard_configdash.php:31634
+#: management/dashboard_configdash.php:32085
+msgid "Start lng"
+msgstr "開始経度"
+
+#: management/dashboard_configdash.php:15418
+#: management/dashboard_configdash.php:15740
+#: management/dashboard_configdash.php:16050
+#: management/dashboard_configdash.php:31183
+#: management/dashboard_configdash.php:31642
+#: management/dashboard_configdash.php:32094
+msgid "Start zoom"
+msgstr "ズームを開始する"
+
+#: management/dashboard_configdash.php:15438
+#: management/dashboard_configdash.php:15762
+#: management/dashboard_configdash.php:31663
+#: management/dashboard_configdash.php:32117
+msgid "Enable fullscreen in new tab"
+msgstr "新しいタブでフルスクリーンを有効にする"
+
+#: management/dashboard_configdash.php:15446
+#: management/dashboard_configdash.php:15771
+#: management/dashboard_configdash.php:16070
+#: management/dashboard_configdash.php:31306
+#: management/dashboard_configdash.php:31672
+#: management/dashboard_configdash.php:32127
+msgid "Enable fullscreen in a popup"
+msgstr "ポップアップでフルスクリーンを有効にする"
+
+#: management/dashboard_configdash.php:15457
+#: management/dashboard_configdash.php:15783
+#: management/dashboard_configdash.php:31682
+#: management/dashboard_configdash.php:32138
+msgid "Coords collection URI"
+msgstr "コアーズ コレクション URI"
+
+#: management/dashboard_configdash.php:15468
+#: management/dashboard_configdash.php:15795
+#: management/dashboard_configdash.php:31693
+#: management/dashboard_configdash.php:32150
+msgid "Zoom controls visibility"
+msgstr "ズーム コントロールの表示設定"
+
+#: management/dashboard_configdash.php:15478
+#: management/dashboard_configdash.php:15806
+#: management/dashboard_configdash.php:31706
+#: management/dashboard_configdash.php:32164
+msgid "Zoom factor (%)"
+msgstr "ズーム倍率 (%)"
+
+#: management/dashboard_configdash.php:15490
+#: management/dashboard_configdash.php:15819
+#: management/dashboard_configdash.php:31721
+#: management/dashboard_configdash.php:32180
+msgid "Zoom controls position"
+msgstr "ズーム コントロールの位置"
+
+#: management/dashboard_configdash.php:15493
+#: management/dashboard_configdash.php:15822
+#: management/dashboard_configdash.php:31724
+#: management/dashboard_configdash.php:32183
+msgid "Top left"
+msgstr "左上"
+
+#: management/dashboard_configdash.php:15494
+#: management/dashboard_configdash.php:15823
+#: management/dashboard_configdash.php:31725
+#: management/dashboard_configdash.php:32184
+msgid "Top center"
+msgstr "トップセンター"
+
+#: management/dashboard_configdash.php:15495
+#: management/dashboard_configdash.php:15824
+#: management/dashboard_configdash.php:31726
+#: management/dashboard_configdash.php:32185
+msgid "Top right"
+msgstr "右上"
+
+#: management/dashboard_configdash.php:15496
+#: management/dashboard_configdash.php:15825
+#: management/dashboard_configdash.php:31727
+#: management/dashboard_configdash.php:32186
+msgid "Middle right"
+msgstr "右中"
+
+#: management/dashboard_configdash.php:15497
+#: management/dashboard_configdash.php:15826
+#: management/dashboard_configdash.php:31728
+#: management/dashboard_configdash.php:32187
+msgid "Bottom right"
+msgstr "右下"
+
+#: management/dashboard_configdash.php:15498
+#: management/dashboard_configdash.php:15827
+#: management/dashboard_configdash.php:31729
+#: management/dashboard_configdash.php:32188
+msgid "Bottom middle"
+msgstr "真ん中下"
+
+#: management/dashboard_configdash.php:15499
+#: management/dashboard_configdash.php:15828
+#: management/dashboard_configdash.php:31730
+#: management/dashboard_configdash.php:32189
+msgid "Bottom left"
+msgstr "左下"
+
+#: management/dashboard_configdash.php:15500
+#: management/dashboard_configdash.php:15829
+#: management/dashboard_configdash.php:31731
+#: management/dashboard_configdash.php:32190
+msgid "Middle left"
+msgstr "左中"
+
+#: management/dashboard_configdash.php:17072
+#: management/dashboard_configdash.php:17079
+msgid "Error while updating dashboard scaleFactor"
+msgstr "ダッシュボードのスケールファクターの更新中にエラーが発生しました"
+
+#: management/dashboard_configdash.php:18078
+#: management/dashboard_configdash.php:18331
+#: management/dashboard_configdash.php:19232
+#, fuzzy
+#| msgid "Display text color"
+msgid "Display text color on click"
+msgstr "テキストの色を表示する"
+
+#: management/dashboard_configdash.php:21053
+#: management/dashboard_configdash.php:21752
+#: management/dashboard_configdash.php:22429
+msgid "Pins"
+msgstr ""
+
+#: management/dashboard_configdash.php:21054
+#: management/dashboard_configdash.php:21753
+#: management/dashboard_configdash.php:22430
+#, fuzzy
+#| msgid "Personal metrics"
+msgid "Geometries"
+msgstr "個人指標"
+
+#: management/dashboard_configdash.php:21055
+#: management/dashboard_configdash.php:21754
+#: management/dashboard_configdash.php:22431
+msgid "Pins and geometries"
+msgstr ""
+
+#: management/dashboard_configdash.php:21286
+msgid "Map Pin Icon"
+msgstr ""
+
+#: management/dashboard_configdash.php:21289
+msgid "Square Icon"
+msgstr ""
+
+#: management/dashboard_configdash.php:21290
+#, fuzzy
+#| msgid "Icons"
+msgid "Pin Icon"
+msgstr "アイコン"
+
+#: management/dashboard_configdash.php:25763
+msgid ""
+"Please note that the Stacked Areas option correctly works only for equally-"
+"sampled data series"
+msgstr ""
+"[スタック領域]オプションは、均等にサンプリングされたデータ系列に対してのみ正"
+"しく機能することに注意してください"
+
+#: management/dashboard_configdash.php:27760
+#, fuzzy
+#| msgid "Rows labels font color"
+msgid "Rows labels backgr. color"
+msgstr "行ラベルフォントの色"
+
+#: management/dashboard_configdash.php:27775
+#, fuzzy
+#| msgid "Cols labels font color"
+msgid "Cols labels backgr. color"
+msgstr "列ラベルのフォントの色"
+
+#: management/dashboard_configdash.php:28698
+#: management/dashboard_configdash.php:28866
+#: management/dashboard_configdash.php:30259
+#: management/dashboard_configdash.php:30364
+msgid "Open Web Link in a New Tab"
+msgstr "新しいタブでWebリンクを開く"
+
+#: management/dashboard_configdash.php:30380
+msgid "Compare Period"
+msgstr "期間の比較"
+
+#: management/dashboard_configdash.php:30388
+#: management/dashboard_configdash.php:33624
+msgid "4 previous hours"
+msgstr "過去4時間"
+
+#: management/dashboard_configdash.php:30389
+#: management/dashboard_configdash.php:33625
+msgid "4 hours day before"
+msgstr "4時間前"
+
+#: management/dashboard_configdash.php:30392
+#: management/dashboard_configdash.php:33629
+msgid "12 previous hours"
+msgstr "過去12時間"
+
+#: management/dashboard_configdash.php:30393
+#: management/dashboard_configdash.php:33630
+msgid "12 hours day before"
+msgstr "前日12時間"
+
+#: management/dashboard_configdash.php:30396
+#: management/dashboard_configdash.php:33634
+msgid "previous day"
+msgstr "前日"
+
+#: management/dashboard_configdash.php:30397
+#: management/dashboard_configdash.php:33635
+msgid "same day previous week"
+msgstr "前週の同じ日"
+
+#: management/dashboard_configdash.php:30398
+#: management/dashboard_configdash.php:33636
+msgid "same day previous month"
+msgstr "前月同日"
+
+#: management/dashboard_configdash.php:30401
+#: management/dashboard_configdash.php:33640
+msgid "previous week"
+msgstr "前の週"
+
+#: management/dashboard_configdash.php:30402
+#: management/dashboard_configdash.php:33641
+msgid "previous week starting Monday"
+msgstr "月曜日から始まる前の週"
+
+#: management/dashboard_configdash.php:30405
+#: management/dashboard_configdash.php:33645
+msgid "previous month"
+msgstr "前月"
+
+#: management/dashboard_configdash.php:30406
+#: management/dashboard_configdash.php:33646
+msgid "previous month - day 1"
+msgstr "前月-1日目"
+
+#: management/dashboard_configdash.php:30407
+#: management/dashboard_configdash.php:33647
+msgid "same month prev year - day 1"
+msgstr "前年同月-1日目"
+
+#: management/dashboard_configdash.php:30410
+#: management/dashboard_configdash.php:33651
+msgid "previous 6 months"
+msgstr "前の6ヶ月"
+
+#: management/dashboard_configdash.php:30411
+#: management/dashboard_configdash.php:33652
+msgid "previous 6 months - day 1 of prev 6 months"
+msgstr "前の6ヶ月 - 前の6ヶ月の1日目"
+
+#: management/dashboard_configdash.php:30412
+#: management/dashboard_configdash.php:33653
+msgid "same 6 months of prev year - day 1"
+msgstr "前年度の同じ6ヶ月 - 1日目"
+
+#: management/dashboard_configdash.php:30413
+#: management/dashboard_configdash.php:33654
+msgid "same 6 months of prev year - day 1 month 1 or 7"
+msgstr "前年度の同じ6ヶ月 - 日1ヶ月1または7"
+
+#: management/dashboard_configdash.php:30416
+#: management/dashboard_configdash.php:33658
+msgid "previous year"
+msgstr "前年"
+
+#: management/dashboard_configdash.php:30417
+#: management/dashboard_configdash.php:33659
+msgid "previous year - day 1 of prev year"
+msgstr "前年度 - 前年度の 1 日目"
+
+#: management/dashboard_configdash.php:30418
+#: management/dashboard_configdash.php:33660
+msgid "previous year - month 1"
+msgstr "前の年 - 月 1"
+
+#: management/dashboard_configdash.php:30421
+#: management/dashboard_configdash.php:33664
+msgid "previous 2 years"
+msgstr "前の2年間"
+
+#: management/dashboard_configdash.php:30424
+#: management/dashboard_configdash.php:33668
+msgid "previous 10 years"
+msgstr "過去10年間"
+
+#: management/dashboard_configdash.php:30633
+msgid "Search filter, results on list"
+msgstr "検索フィルタ、検索結果一覧"
+
+#: management/dashboard_configdash.php:30634
+msgid "Search filter, results on map"
+msgstr "検索フィルター,地図上の結果"
+
+#: management/dashboard_configdash.php:30635
+msgid "Search filter, results on list and map"
+msgstr "検索フィルター、リストとマップの結果"
+
+#: management/dashboard_configdash.php:30853
+msgid "Horizontal"
+msgstr "水平"
+
+#: management/dashboard_configdash.php:30854
+msgid "Vertical"
+msgstr "垂直"
+
+#: management/dashboard_configdash.php:30855
+msgid "VerticalCompact"
+msgstr "垂直コンパクト"
+
+#: management/dashboard_configdash.php:30856
+msgid "Today only"
+msgstr "今日のみ"
+
+#: management/dashboard_configdash.php:30867
+msgid "Language"
+msgstr "言語"
+
+#: management/dashboard_configdash.php:30885
+msgid "Today box dimension"
+msgstr "今日のボックスの寸法"
+
+#: management/dashboard_configdash.php:30899
+msgid "Background mode"
+msgstr "バックグラウンドモード"
+
+#: management/dashboard_configdash.php:30902
+msgid "Color"
+msgstr "色"
+
+#: management/dashboard_configdash.php:30903
+msgid "Automatic picture"
+msgstr "自動画像"
+
+#: management/dashboard_configdash.php:30913
+msgid "Weather symbols"
+msgstr "天気記号"
+
+#: management/dashboard_configdash.php:30916
+msgid "Images"
+msgstr "画像"
+
+#: management/dashboard_configdash.php:30917
+msgid "Icons"
+msgstr "アイコン"
+
+#: management/dashboard_configdash.php:31024
+msgid "Set Min Value"
+msgstr "最小値"
+
+#: management/dashboard_configdash.php:31034
+msgid "Set Max Value"
+msgstr "最大値"
+
+#: management/dashboard_configdash.php:31203
+msgid "Show Orthomaps Controls"
+msgstr "オルソマップ コントロールを表示"
+
+#: management/dashboard_configdash.php:31220
+msgid "Default Orthomap"
+msgstr "既定のオルソマップ"
+
+#: management/dashboard_configdash.php:31282
+msgid "Connect to WS"
+msgstr "WS に接続する"
+
+#: management/dashboard_configdash.php:32153
+msgid "Always visible"
+msgstr "常に表示"
+
+#: management/dashboard_configdash.php:33229
+msgid "You can select only one metric for this type of widget"
+msgstr "このタイプのウィジェットに対して選択できるメトリックは 1 つだけです。"
+
+#: management/dashboard_configdash.php:33468
+#: management/dashboard_configdash.php:33475
+#: management/dashboard_configdash.php:33481
+msgid "Error during widget update, please try again"
+msgstr "ウィジェットの更新中にエラーが発生しました。"
+
+#: management/dashboard_configdash.php:33487
+msgid "Error during widget update, cannot change metric"
+msgstr "ウィジェットの更新中にエラーが発生しました。"
+
+#: management/dashboards.php:389
+msgid "New dashboard"
+msgstr "新しいダッシュボード"
+
+#: management/dashboards.php:402 management/externalServices.php:209
+#: management/iotApplications.php:193 management/microApplications.php:213
+#: management/synopticTemplates.php:220 management/synoptics.php:237
+msgid "Creator"
+msgstr "クリエイター"
+
+#: management/dashboards.php:403 management/externalServices.php:210
+#: management/iotApplications.php:194 management/microApplications.php:214
+#: management/synopticTemplates.php:221 management/synoptics.php:238
+msgid "Creation date"
+msgstr "新規作成"
+
+#: management/dashboards.php:404 management/externalServices.php:211
+#: management/microApplications.php:215 management/synopticTemplates.php:222
+#: management/synoptics.php:239
+msgid "Last edit date"
+msgstr "最終編集日"
+
+#: management/dashboards.php:405
+msgid "# Access Today"
+msgstr "＃今日アクセス"
+
+#: management/dashboards.php:406
+msgid "Minutes Opened Today"
+msgstr "本日オープンした議事録"
+
+#: management/dashboards.php:407 management/externalServices.php:212
+#: management/iotApplications.php:190 management/microApplications.php:216
+#: management/synopticTemplates.php:223 management/synoptics.php:240
+msgid "Status"
+msgstr "状態"
+
+#: management/dashboards.php:408 management/dashboards.php:1035
+#: management/dashboards.php:1143 management/externalServices.php:213
+#: management/synopticTemplates.php:642 management/synoptics.php:241
+#: management/synoptics.php:716
+msgid "Edit"
+msgstr "編集"
+
+#: management/dashboards.php:409 management/dashboards.php:1035
+#: management/dashboards.php:1101 management/externalServices.php:214
+#: management/externalServices.php:396 management/microApplications.php:399
+#: management/synopticTemplates.php:638 management/synoptics.php:242
+#: management/synoptics.php:711
+msgid "View"
+msgstr "見る"
+
+#: management/dashboards.php:464
+msgid "Add new Dashboard"
+msgstr "新しいダッシュボードの追加"
+
+#: management/dashboards.php:469
+msgid "Exceeded limits for Dashboard Creation for user"
+msgstr "ユーザーのダッシュボード作成の制限を超えました"
+
+#: management/dashboards.php:485
+msgid "Dashboard deletion"
+msgstr "ダッシュボードの削除"
+
+#: management/dashboards.php:492
+msgid "Do you want to delete the following dashboard?"
+msgstr "次のダッシュボードを削除しますか？"
+
+#: management/dashboards.php:500
+msgid "Deleting dashboard, please wait"
+msgstr "ダッシュボードを削除しています"
+
+#: management/dashboards.php:506
+msgid "Dashboard deleted successfully"
+msgstr "委任されたユーザー名を空にすることはできません"
+
+#: management/dashboards.php:512
+msgid "Error deleting dashboard, please try again"
+msgstr "新しい所有権の設定中にエラーが発生しました：再試行してください"
+
+#: management/dashboards.php:531 management/dashboards.php:1149
+#: management/iotApplications.php:198 management/iotApplications.php:582
+#: management/iotApplications.php:643 management/synopticTemplates.php:248
+#: management/synopticTemplates.php:643 management/synoptics.php:717
+msgid "Management"
+msgstr "管理"
+
+#: management/dashboards.php:539 management/synopticTemplates.php:255
+#: management/synoptics.php:275 management/synoptics.php:463
+msgid "Visibility"
+msgstr "視認性"
+
+#: management/dashboards.php:540 management/synopticTemplates.php:256
+#: management/synoptics.php:276
+msgid "Delegations"
+msgstr "代表団"
+
+#: management/dashboards.php:541 management/synopticTemplates.php:258
+#: management/synoptics.php:278
+msgid "Group Delegations"
+msgstr "グループ代表団"
+
+#: management/dashboards.php:543
+msgid "Accesses Trends"
+msgstr "トレンドにアクセス"
+
+#: management/dashboards.php:563 management/iotApplications.php:280
+#: management/synopticTemplates.php:277 management/synoptics.php:298
+msgid "Change ownership"
+msgstr "所有権を変更する"
+
+#: management/dashboards.php:573 management/iotApplications.php:290
+#: management/synopticTemplates.php:287 management/synoptics.php:308
+msgid "New owner username can't be empty"
+msgstr "新しい所有者のユーザー名を空にすることはできません"
+
+#: management/dashboards.php:588 management/synopticTemplates.php:302
+#: management/synoptics.php:346
+msgid "Change visibility"
+msgstr "可視性を変更する"
+
+#: management/dashboards.php:593 management/synopticTemplates.php:307
+#: management/synoptics.php:351
+msgid "Public"
+msgstr "公衆"
+
+#: management/dashboards.php:594 management/synopticTemplates.php:308
+#: management/synoptics.php:352
+msgid "Private"
+msgstr "民間"
+
+#: management/dashboards.php:611 management/dashboards.php:649
+msgid "Delegations are not possibile on a public dashboard"
+msgstr "委任はパブリックダッシュボードでは不可能です"
+
+#: management/dashboards.php:615 management/synopticTemplates.php:329
+#: management/synoptics.php:373
+msgid "Add new delegation"
+msgstr "新しい委任を追加する"
+
+#: management/dashboards.php:625 management/synopticTemplates.php:339
+#: management/synoptics.php:383
+msgid "Delegated username can't be empty"
+msgstr "委任されたユーザー名を空にすることはできません"
+
+#: management/dashboards.php:630 management/synopticTemplates.php:344
+#: management/synoptics.php:388
+msgid "Current user delegations"
+msgstr "現在のユーザー代表団"
+
+#: management/dashboards.php:635 management/synopticTemplates.php:349
+#: management/synoptics.php:393
+msgid "Delegated user"
+msgstr "ユーザーを委任できます"
+
+#: management/dashboards.php:653 management/synopticTemplates.php:367
+#: management/synoptics.php:411
+msgid "Add new group delegation"
+msgstr "新しいグループ委任を追加する"
+
+#: management/dashboards.php:680 management/synopticTemplates.php:394
+#: management/synoptics.php:438
+msgid "Current group delegations"
+msgstr "現在のグループ代表団"
+
+#: management/dashboards.php:685 management/synopticTemplates.php:399
+#: management/synoptics.php:443
+msgid "Delegated group"
+msgstr "ユーザーはすでに委任されています"
+
+#: management/dashboards.php:710 management/dashboards.php:727
+msgid "Previous"
+msgstr "前"
+
+#: management/dashboards.php:712 management/dashboards.php:729
+msgid "Last Day"
+msgstr "最終日"
+
+#: management/dashboards.php:713 management/dashboards.php:730
+msgid "Last Week"
+msgstr "先週"
+
+#: management/dashboards.php:714 management/dashboards.php:731
+msgid "Last Month"
+msgstr "先月"
+
+#: management/dashboards.php:715 management/dashboards.php:732
+msgid "Last Semester"
+msgstr "前学期"
+
+#: management/dashboards.php:716 management/dashboards.php:733
+msgid "Last Year"
+msgstr "昨年"
+
+#: management/dashboards.php:720 management/dashboards.php:737
+msgid "From"
+msgstr "から"
+
+#: management/dashboards.php:720 management/dashboards.php:737
+msgid "To"
+msgstr "に"
+
+#: management/dashboards.php:762
+msgid "Dashboard duplication"
+msgstr "プロパティ"
+
+#: management/dashboards.php:774
+msgid "Cloned dashboard title"
+msgstr "委任されたダッシュボード"
+
+#: management/dashboards.php:780 management/dashboards.php:1532
+msgid "New title OK"
+msgstr "選択はOKです"
+
+#: management/dashboards.php:785
+msgid "Retrieving current dashboards titles, please wait"
+msgstr "現在のダッシュボードのタイトルを取得しています。しばらくお待ちください"
+
+#: management/dashboards.php:789
+msgid "Error retrieving current dashboards titles, please try again"
+msgstr ""
+"現在のダッシュボードのタイトルの取得中にエラーが発生しました。もう一度お試し"
+"ください"
+
+#: management/dashboards.php:793
+msgid "Cloning dashboard, please wait"
+msgstr "クローンダッシュボード、お待ちください"
+
+#: management/dashboards.php:797
+msgid "Dashboard cloned successfully"
+msgstr "ダッシュボードのクローンが正常に作成されました"
+
+#: management/dashboards.php:805
+msgid "Error while cloning dashboard, please try again"
+msgstr ""
+"ダッシュボードのクローン作成中にエラーが発生しました。再試行してください"
+
+#: management/dashboards.php:824
+msgid "Dashboard IOT apps"
+msgstr "ダッシュボード IOT アプリ"
+
+#: management/dashboards.php:834
+msgid "IOT applications list"
+msgstr "IOT アプリケーションの一覧"
+
+#: management/dashboards.php:836
+msgid ""
+"You have no access rights for Apps connected to this dashboard or these Apps "
+"may have been deleted"
+msgstr ""
+"このダッシュボードに接続されているアプリのアクセス権がない、またはこれらのア"
+"プリが削除されている可能性があります"
+
+#: management/dashboards.php:841
+msgid "App"
+msgstr "アプリ"
+
+#: management/dashboards.php:852
+msgid "Flow designer"
+msgstr "フローデザイナー"
+
+#: management/dashboards.php:1078
+msgid "IOT apps & broker"
+msgstr "IOTアプリ&ブローカー"
+
+#: management/dashboards.php:1083
+msgid "IOT apps"
+msgstr "ダッシュボード IOT アプリ"
+
+#: management/dashboards.php:1088
+msgid "Broker"
+msgstr "ブローカ"
+
+#: management/dashboards.php:1093
+msgid "Passive"
+msgstr "受動的"
+
+#: management/dashboards.php:1158
+msgid "Clone"
+msgstr "クローン"
+
+#: management/dashboards.php:1163 management/synopticTemplates.php:648
+#: management/synoptics.php:720
+msgid "Delete"
+msgstr "削除"
+
+#: management/dashboards.php:1203
+msgid "All Groups"
+msgstr "すべてのグループ"
+
+#: management/dashboards.php:1216 management/dashboards.php:2938
+#: management/synoptics.php:2086 management/synoptics.php:2120
+msgid "Error calling internal API"
+msgstr "内部APIの呼び出し中にエラーが発生しました"
+
+#: management/dashboards.php:1423 management/dashboards.php:2744
+msgid "Filter by dashboard title, author..."
+msgstr "ダッシュボードのタイトル、作成者でフィルタリング..."
+
+#: management/dashboards.php:1512 management/dashboards.php:1527
+msgid "Title already in use"
+msgstr "すでに使用されているタイトル"
+
+#: management/dashboards.php:1521
+msgid "Title can\\'t be less than 4 characters long"
+msgstr "タイトルの長さは4文字以上にする必要があります"
+
+#: management/dashboards.php:1674 management/synoptics.php:1563
+msgid "New ownership set correctly"
+msgstr "新しい所有権が正しく設定されました"
+
+#: management/dashboards.php:1686 management/synoptics.php:1576
+msgid "Error: New owner does not exists or it is not a valid LDAP user"
+msgstr "エラー：新しい所有者が存在しないか、有効なLDAPユーザーではありません"
+
+#: management/dashboards.php:1700
+msgid "Error: New owner has exceeded his limits for dashboard ownership"
+msgstr "エラー：新しい所有者がダッシュボードの所有権の制限を超えました"
+
+#: management/dashboards.php:1714 management/dashboards.php:1729
+#: management/synoptics.php:1606 management/synoptics.php:1621
+msgid "Error setting new ownership: please try again"
+msgstr "新しい所有権の設定中にエラーが発生しました：再試行してください"
+
+#: management/dashboards.php:1760
+msgid "New visibility set correctly"
+msgstr "新しい可視性が正しく設定されました"
+
+#: management/dashboards.php:1770 management/dashboards.php:1784
+msgid "Error setting new visibility"
+msgstr "新しい可視性の設定中にエラーが発生しました"
+
+#: management/dashboards.php:1848 management/dashboards.php:1992
+#: management/synoptics.php:1757 management/synoptics.php:1903
+msgid "New delegation added correctly"
+msgstr "新しい委任が正しく追加されました"
+
+#: management/dashboards.php:1855 management/dashboards.php:1910
+#: management/dashboards.php:2123 management/synoptics.php:1423
+#: management/synoptics.php:1764 management/synoptics.php:1803
+#: management/synoptics.php:1820
+msgid "Delegated username can\\'t be empty"
+msgstr "委任されたユーザー名を空にすることはできません"
+
+#: management/dashboards.php:1893
+msgid "Error: Delegated username can\\'t be empty"
+msgstr "エラー：委任されたユーザー名を空にすることはできません"
+
+#: management/dashboards.php:1923 management/synoptics.php:1833
+msgid "Group already delegated"
+msgstr "ユーザーはすでに委任されています"
+
+#: management/dashboards.php:2005
+msgid "You can\\'t delegate a root admin"
+msgstr "ルート管理者を委任することはできません"
+
+#: management/dashboards.php:2009
+msgid "Error calling Snap4City API"
+msgstr "Snap4CityAPIの呼び出し中にエラーが発生しました"
+
+#: management/dashboards.php:2013
+msgid "Database error"
+msgstr "データベースエラー"
+
+#: management/dashboards.php:2017
+msgid "LDAP error"
+msgstr "LDAPエラー"
+
+#: management/dashboards.php:2098 management/synoptics.php:1396
+msgid "New owner username can\\'t be empty"
+msgstr "新しい所有者のユーザー名を空にすることはできません"
+
+#: management/dashboards.php:2105 management/synoptics.php:1404
+msgid "New owner can\\'t be you"
+msgstr "新しい所有者はあなたになることはできません"
+
+#: management/dashboards.php:2110 management/synoptics.php:1410
+msgid "User can be new owner"
+msgstr "ユーザーは新しい所有者になることができます"
+
+#: management/dashboards.php:2128
+msgid "User can be delegated"
+msgstr "ユーザーを委任できます"
+
+#: management/dashboards.php:2136 management/synoptics.php:1437
+msgid "User already delegated"
+msgstr "ユーザーはすでに委任されています"
+
+#: management/dashboards.php:2781
+msgid "Error updating dashboard status"
+msgstr "ダッシュボードステータスの更新中にエラーが発生しました"
+
+#: management/dashboards.php:3009
+msgid "Single or double quotes are not allowed in dashboard title."
+msgstr ""
+"ダッシュボードのタイトルに一重引用符または二重引用符を使用することはできませ"
+"ん。"
+
+#: management/dashboards.php:3014
+msgid "Dashboard title can\\'t be longer than 300 chars"
+msgstr "ダッシュボードのタイトルは300文字を超えることはできません"
+
+#: management/dashboards.php:3036
+msgid "Dashboard title OK"
+msgstr "ダッシュボードタイトル OK"
+
+#: management/externalServices.php:376 management/microApplications.php:378
+msgid "edit"
+msgstr ""
+
+#: management/externalServices.php:376 management/microApplications.php:378
+#: management/synoptics.php:681
+#, fuzzy
+#| msgid "Preview"
+msgid "view"
+msgstr "プレビュー"
+
+#: management/externalServices.php:392 management/microApplications.php:394
+#: management/synoptics.php:707
+#, fuzzy
+#| msgid "New dashboard"
+msgid "New Tab"
+msgstr "新しいダッシュボード"
+
+#: management/inspector.php:609 management/inspector.php:631
+#, fuzzy
+#| msgid "Parameters"
+msgid "Edit Parameter"
+msgstr "パラメータ"
+
+#: management/inspector.php:612
+msgid "Are you sure do you want edit parameters from this tab?"
+msgstr ""
+
+#: management/inspector.php:648
+msgid "Are you sure do you want confirm?"
+msgstr ""
+
+#: management/inspector.php:723
+#, fuzzy
+#| msgid "Parameters"
+msgid "Edit parameters"
+msgstr "パラメータ"
+
+#: management/inspector.php:747
+#, fuzzy
+#| msgid "4 Hours"
+msgid "Hourly"
+msgstr "4時間"
+
+#: management/inspector.php:754
+msgid "Define Report"
+msgstr ""
+
+#: management/inspector.php:754
+msgid "Activation:"
+msgstr ""
+
+#: management/inspector.php:754
+#, fuzzy
+#| msgid "Periodically"
+msgid "Periodicity:"
+msgstr "定期的に"
+
+#: management/inspector.php:754
+#, fuzzy
+#| msgid "Month"
+msgid "Monthly"
+msgstr "月"
+
+#: management/inspector.php:754
+msgid "Quarterly"
+msgstr ""
+
+#: management/inspector.php:783
+msgid "Download Report"
+msgstr ""
+
+#: management/inspector.php:872
+msgid "Link to External Service"
+msgstr ""
+
+#: management/inspector.php:891
+#, fuzzy
+#| msgid "Healthiness"
+msgid "Healthiness Criteria 2:"
+msgstr "健康"
+
+#: management/inspector.php:915 management/inspector.php:986
+#: management/inspector.php:1106 management/inspector.php:1118
+#: management/inspector.php:1156
+msgid "Link to Service Map"
+msgstr ""
+
+#: management/inspector.php:1012
+msgid "Link to IoT Directory"
+msgstr ""
+
+#: management/inspector.php:1013 management/inspector.php:1043
+msgid "Link to IoT Broker"
+msgstr ""
+
+#: management/inspector.php:1071
+#, fuzzy
+#| msgid "Create IoT Application"
+msgid "Link to MicroApplication"
+msgstr "IOT アプリケーション"
+
+#: management/inspector.php:1280
+msgid "List of Devices"
+msgstr ""
+
+#: management/inspector.php:1518
+msgid "Upload"
+msgstr ""
+
+#: management/inspector.php:1518
+#, fuzzy
+#| msgid "Upload new image"
+msgid "Upload Image"
+msgstr "新規作成"
+
+#: management/inspector.php:1530 management/inspector.php:1533
+msgid "Link to Disces"
+msgstr ""
+
+#: management/inspector.php:1536
+msgid "Link to Knowledge Base"
+msgstr ""
+
+#: management/inspector.php:1546
+msgid "Link to ArcGIS"
+msgstr ""
+
+#: management/inspector.php:1551
+msgid "Link to Heatmap"
+msgstr ""
+
+#: management/inspector.php:1903
+#, fuzzy
+#| msgid "Parameters"
+msgid "Not Valid parameters"
+msgstr "パラメータ"
+
+#: management/inspector.php:1944 management/inspector.php:2034
+msgid "Licence:"
+msgstr ""
+
+#: management/inspector.php:2200
+msgid "Link to Iot App"
+msgstr ""
+
+#: management/inspector.php:2262
+msgid "Link to IotApp"
+msgstr ""
+
+#: management/inspector.php:2266 management/inspector.php:2281
+#: management/inspector.php:2344
+msgid "Link to IotApp Not founded"
+msgstr ""
+
+#: management/inspector.php:2272 management/inspector.php:2350
+#: management/inspector.php:2409
+#, fuzzy
+#| msgid "No dashboard template selected"
+msgid "No dashboards connected"
+msgstr "ダッシュボードテンプレートが選択されていません"
+
+#: management/inspector.php:2274 management/inspector.php:2282
+msgid "List of IotApp"
+msgstr ""
+
+#: management/inspector.php:2340
+msgid "Link to Iot Apps"
+msgstr ""
+
+#: management/inspector.php:2352
+msgid "List of Iot Apps"
+msgstr ""
+
+#: management/inspector.php:2414
+#, fuzzy
+#| msgid "Dashboards"
+msgid "List of Dashboard"
+msgstr "自分のダッシュボード"
+
+#: management/iotApplications.php:113
+msgid "IOT Applications"
+msgstr "IOT アプリケーション"
+
+#: management/iotApplications.php:181
+msgid "Create new"
+msgstr "新規作成"
+
+#: management/iotApplications.php:191 management/synoptics.php:463
+msgid "Type"
+msgstr "タイプ"
+
+#: management/iotApplications.php:195
+msgid "Modification date"
+msgstr "変更日"
+
+#: management/iotApplications.php:197
+msgid "Dashboards"
+msgstr "自分のダッシュボード"
+
+#: management/iotApplications.php:220
+msgid "Create IoT Application"
+msgstr "IOT アプリケーション"
+
+#: management/iotApplications.php:226
+msgid "Application name"
+msgstr "アプリケーション名"
+
+#: management/iotApplications.php:235
+msgid "Application type"
+msgstr "アプリケーションタイプ"
+
+#: management/iotApplications.php:239 management/iotApplications.php:317
+msgid "Basic"
+msgstr "基本"
+
+#: management/iotApplications.php:240 management/iotApplications.php:318
+msgid "Advanced"
+msgstr "高度な"
+
+#: management/iotApplications.php:241 management/iotApplications.php:320
+msgid "Web scraper (portia)"
+msgstr "Webスクレイパー（portia）"
+
+#: management/iotApplications.php:264
+msgid "IoT Application Management"
+msgstr "IOT アプリケーション"
+
+#: management/iotApplications.php:271
+msgid "Control"
+msgstr "コントロール"
+
+#: management/iotApplications.php:304
+msgid "Application name:"
+msgstr "アプリケーション名："
+
+#: management/iotApplications.php:313
+msgid "Application type:"
+msgstr "アプリケーションタイプ："
+
+#: management/iotApplications.php:319
+msgid "Data analytic"
+msgstr "単一データウィジェット"
+
+#: management/iotApplications.php:327
+msgid "Created:"
+msgstr "新規作成:"
+
+#: management/iotApplications.php:335
+msgid "Update"
+msgstr "更新"
+
+#: management/iotApplications.php:342
+msgid "Delete application..."
+msgstr "アプリケーションを削除..."
+
+#: management/iotApplications.php:343
+msgid "Restart application..."
+msgstr "アプリケーションを再起動します..."
+
+#: management/iotApplications.php:671
+msgid "View as table"
+msgstr ""
+
+#: management/iotApplications.php:672
+msgid "View as cards"
+msgstr ""
+
+#: management/synopticTemplates.php:210
+#, fuzzy
+#| msgid "Dashboard template"
+msgid "New template"
+msgstr "ダッシュボード テンプレート"
+
+#: management/synopticTemplates.php:325 management/synopticTemplates.php:363
+#, fuzzy
+#| msgid "Delegations are not possibile on a public dashboard"
+msgid "Delegations are not possibile on a public template"
+msgstr "委任はパブリックダッシュボードでは不可能です"
+
+#: management/synopticTemplates.php:429
+#, fuzzy
+#| msgid "Widget deletion"
+msgid "Template deletion"
+msgstr "ウィジェットの削除"
+
+#: management/synopticTemplates.php:436
+#, fuzzy
+#| msgid "Do you want to delete the following dashboard?"
+msgid "Do you want to delete the following template?"
+msgstr "次のダッシュボードを削除しますか？"
+
+#: management/synopticTemplates.php:444
+#, fuzzy
+#| msgid "Deleting widget, please wait"
+msgid "Deleting template, please wait"
+msgstr "ウィジェットを削除します、お待ちください"
+
+#: management/synopticTemplates.php:450
+#, fuzzy
+#| msgid "Widget deleted successfully"
+msgid "Template deleted successfully"
+msgstr "ウィジェットが正常に削除されました"
+
+#: management/synopticTemplates.php:456
+#, fuzzy
+#| msgid "Error deleting widget, please try again"
+msgid "Error deleting template, please try again"
+msgstr "ウィジェットの削除中にエラーが発生しました。もう一度お試しください"
+
+#: management/synopticTemplates.php:644
+#, fuzzy
+#| msgid "Instantiation"
+msgid "Instantiate"
+msgstr "インスタンス化"
+
+#: management/synopticTemplates.php:645 management/synoptics.php:718
+#, fuzzy
+#| msgid "Delete"
+msgid "Delegate"
+msgstr "削除"
+
+#: management/synopticTemplates.php:646 management/synoptics.php:719
+#: management/synoptics.php:721
+#, fuzzy
+#| msgid "Change ownership"
+msgid "Chg Owner"
+msgstr "所有権を変更する"
+
+#: management/synopticTemplates.php:647
+#, fuzzy
+#| msgid "Public"
+msgid "Make Public"
+msgstr "公衆"
+
+#: management/synopticTemplates.php:649 management/synoptics.php:722
+#, fuzzy
+#| msgid "Private"
+msgid "Make Private"
+msgstr "民間"
+
+#: management/synopticTemplatesForm.php:106
+#, fuzzy
+#| msgid "Widget deletion"
+msgid "Synoptic Template"
+msgstr "ウィジェットの削除"
+
+#: management/synopticTemplatesForm.php:117 management/synopticsForm.php:135
+#: management/synopticsMappingForm.php:133
+msgid "Name"
+msgstr ""
+
+#: management/synopticTemplatesForm.php:152
+#, fuzzy
+#| msgid "Widget deletion"
+msgid "SVG Template File"
+msgstr "ウィジェットの削除"
+
+#: management/synopticTemplatesForm.php:160
+#, fuzzy
+#| msgid "Icons"
+msgid "Icon"
+msgstr "アイコン"
+
+#: management/synopticTemplatesForm.php:167 management/synopticsForm.php:172
+#: management/synopticsMappingForm.php:173
+msgid "Reset"
+msgstr ""
+
+#: management/synopticTemplatesForm.php:169 management/synopticsForm.php:174
+#: management/synopticsMappingForm.php:175
+msgid "Back"
+msgstr ""
+
+#: management/synopticTemplatesForm.php:174
+#, fuzzy
+#| msgid "Dashboard template"
+msgid "Open template"
+msgstr "ダッシュボード テンプレート"
+
+#: management/synopticTemplatesForm.php:176 management/synopticsForm.php:185
+#: management/synopticsMappingForm.php:185
+msgid "No further action"
+msgstr ""
+
+#: management/synoptics.php:227
+msgid "New synoptic"
+msgstr ""
+
+#: management/synoptics.php:273
+#, fuzzy
+#| msgid "Organizations"
+msgid "Organization"
+msgstr "組織"
+
+#: management/synoptics.php:279
+msgid "Variables"
+msgstr ""
+
+#: management/synoptics.php:323
+#, fuzzy
+#| msgid "Organizations"
+msgid "Change organization"
+msgstr "組織"
+
+#: management/synoptics.php:369 management/synoptics.php:407
+#, fuzzy
+#| msgid "Delegations are not possibile on a public dashboard"
+msgid "Delegations are not possibile on a public synoptic"
+msgstr "委任はパブリックダッシュボードでは不可能です"
+
+#: management/synoptics.php:457
+msgid "List of the variables read and written by this synoptic"
+msgstr ""
+
+#: management/synoptics.php:462 management/synopticsMappingForm.php:124
+msgid "Template"
+msgstr ""
+
+#: management/synoptics.php:462 management/synopticsForm.php:116
+#: management/synopticsMappingForm.php:119
+msgid "Synoptic"
+msgstr ""
+
+#: management/synoptics.php:463
+msgid "Variable"
+msgstr ""
+
+#: management/synoptics.php:491
+#, fuzzy
+#| msgid "Widget deletion"
+msgid "Synoptic deletion"
+msgstr "ウィジェットの削除"
+
+#: management/synoptics.php:498
+#, fuzzy
+#| msgid "Do you want to delete the following dashboard?"
+msgid "Do you want to delete the following synoptic?"
+msgstr "次のダッシュボードを削除しますか？"
+
+#: management/synoptics.php:506
+#, fuzzy
+#| msgid "Deleting widget, please wait"
+msgid "Deleting synoptic, please wait"
+msgstr "ウィジェットを削除します、お待ちください"
+
+#: management/synoptics.php:512
+#, fuzzy
+#| msgid "Widget deleted successfully"
+msgid "Synoptic deleted successfully"
+msgstr "ウィジェットが正常に削除されました"
+
+#: management/synoptics.php:518
+#, fuzzy
+#| msgid "Error deleting widget, please try again"
+msgid "Error deleting synoptic, please try again"
+msgstr "ウィジェットの削除中にエラーが発生しました。もう一度お試しください"
+
+#: management/synoptics.php:1199
+msgid "show"
+msgstr ""
+
+#: management/synoptics.php:1329
+#, fuzzy
+#| msgid "Dashboard cloned successfully"
+msgid "Organization saved successfully"
+msgstr "ダッシュボードのクローンが正常に作成されました"
+
+#: management/synoptics.php:1334
+msgid "Error: the new organization could not be saved"
+msgstr ""
+
+#: management/synoptics.php:1591
+#, fuzzy
+#| msgid "Error: New owner has exceeded his limits for dashboard ownership"
+msgid "Error: New owner has exceeded his limits for synoptics ownership"
+msgstr "エラー：新しい所有者がダッシュボードの所有権の制限を超えました"
+
+#: management/synopticsForm.php:106
+msgid "New Synoptic"
+msgstr ""
+
+#: management/synopticsForm.php:158 management/synopticsMappingForm.php:153
+msgid "Read variables"
+msgstr ""
+
+#: management/synopticsForm.php:158 management/synopticsForm.php:164
+#: management/synopticsMappingForm.php:153
+#: management/synopticsMappingForm.php:159
+msgid "Select the variables from the lists"
+msgstr ""
+
+#: management/synopticsForm.php:164 management/synopticsMappingForm.php:159
+msgid "Write variables"
+msgstr ""
+
+#: management/synopticsForm.php:183 management/synopticsMappingForm.php:183
+msgid "Open Synoptic"
+msgstr ""
+
+#: management/synopticsForm.php:202 management/synopticsMappingForm.php:202
+msgid "New Shared Variable"
+msgstr ""
+
+#: management/synopticsForm.php:209
+#, fuzzy
+#| msgid "Value name"
+msgid "Variable name:"
+msgstr "値の名前"
+
+#: management/synopticsForm.php:238 management/synopticsMappingForm.php:238
+#, fuzzy
+#| msgid "Next to value"
+msgid "Set to a fixed value"
+msgstr "値の横"
+
+#: management/synopticsMappingForm.php:106
+msgid "Edit Synoptic"
+msgstr ""
+
+#: management/synopticsMappingForm.php:209
+#, fuzzy
+#| msgid "Value name"
+msgid "Variable name"
+msgstr "値の名前"
+
+#: management/synopticsMappingForm.php:712
+#, fuzzy
+#| msgid "New owner username can't be empty"
+msgid "The variable name cannot be empty"
+msgstr "新しい所有者のユーザー名を空にすることはできません"
+
+#: management/synopticsMappingForm.php:717
+msgid "Please only use letters, digits, underscores, dashes, and dots."
+msgstr ""
+
+#: management/synopticsMappingForm.php:722
+msgid "A shared variable already exists with that name"
+msgstr ""
+
+#: management/synopticsMappingForm.php:727
+msgid "The name is good. Hit CONFIRM to proceed."
+msgstr ""
+
+#: view/index.php:2226
+msgid "Privacy Policy"
+msgstr ""
+
+#: view/index.php:2227
+msgid "Cookies Policy"
+msgstr ""
+
+#: view/index.php:2228
+msgid "Terms and Conditions"
+msgstr ""
+
+#: view/index.php:2229
+msgid "Contact us"
+msgstr ""
+
+#: view/index.php:2268
+#, fuzzy
+#| msgid "Dashboard screenshot"
+msgid "Dashboard Management System"
+msgstr "スクリーンショット"
+
+#: view/index.php:2274
+msgid "Restricted access dashboard"
+msgstr ""
+
+#: view/index.php:2382
+#, fuzzy
+#| msgid "Do you want to delete the following dashboard?"
+msgid "Do you want to confirm logout from this dashboard?"
+msgstr "次のダッシュボードを削除しますか？"
+
+#: view/index.php:2388
+msgid "Logout correctly executed"
+msgstr ""
+
+#: view/index.php:2392
+#, fuzzy
+#| msgid "Error deleting widget, please try again"
+msgid "Logout not possibile, please try again"
+msgstr "ウィジェットの削除中にエラーが発生しました。もう一度お試しください"
+
+#: view/index.php:2506
+msgid "Toggle navigation"
+msgstr ""
+
+#: view/index.php:2511
+#, fuzzy
+#| msgid "Dashboard screenshot"
+msgid "Dashboard management system"
+msgstr "スクリーンショット"
+
+#: view/index.php:2516
+msgid "Error"
+msgstr ""
+
+#: view/index.php:2517
+#, fuzzy
+#| msgid "Error while cloning dashboard, please try again"
+msgid "Error while trying to get dashboard visibility: please try again"
+msgstr ""
+"ダッシュボードのクローン作成中にエラーが発生しました。再試行してください"
+
+#: view/index.php:2523
+#, fuzzy
+#| msgid "updating status, please wait"
+msgid "Auto refit in progress, please wait"
+msgstr "ステータスの更新、お待ちください"
+
+#: widgets/widgetCtxMenu.php:40
+#, fuzzy
+#| msgid "Header"
+msgid "Hide header"
+msgstr "ヘッダーの色"
+
+#: widgets/widgetCtxMenu.php:45
+#, fuzzy
+#| msgid "Hide columns"
+msgid "Hide content"
+msgstr "列を非表示にする"
+
+#: widgets/widgetCtxMenu.php:49
+msgid "Hide dim ctrl"
+msgstr ""
+
+#: widgets/widgetCtxMenu.php:53
+msgid "Allow collapse"
+msgstr ""
+
+#: widgets/widgetCtxMenu.php:217
+#, fuzzy
+#| msgid "Header color"
+msgid "Chart color"
+msgstr "ヘッダーの色"
+
+#: widgets/widgetCtxMenu.php:270
+#, fuzzy
+#| msgid "Text color"
+msgid "Axes color"
+msgstr "テキストの色"
+
+#: widgets/widgetCtxMenu.php:448
+#, fuzzy
+#| msgid "Header color"
+msgid "Border color"
+msgstr "ヘッダーの色"
+
+#: widgets/widgetCtxMenu.php:501
+msgid "Time range"
+msgstr ""
+
+#: widgets/widgetCtxMenu.php:530
+#, fuzzy
+#| msgid "Change Metric"
+msgid "Change metric"
+msgstr "メトリックの変更"
+
+#: widgets/widgetCtxMenu.php:539
+#, fuzzy
+#| msgid "View mode"
+msgid "Additive mode"
+msgstr "ビューモード"
+
+#: widgets/widgetCtxMenu.php:545
+#, fuzzy
+#| msgid "Actuator options"
+msgid "More options"
+msgstr "アクチュエータオプション"
+
+#: widgets/widgetCtxMenu.php:549
+#, fuzzy
+#| msgid "Data and widgets"
+msgid "Delete widget"
+msgstr "データとウィジェット"
+
+#~ msgid "Sort ascending"
+#~ msgstr "昇順"
+
+#~ msgid "Sort descending"
+#~ msgstr "降順にソート"

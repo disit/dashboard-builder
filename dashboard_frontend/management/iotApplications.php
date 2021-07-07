@@ -15,6 +15,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
 include('../config.php');
+include '../locale.php';
 include('process-form.php');
 if (!isset($_SESSION)) {
   session_start();
@@ -109,7 +110,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
             </div>
           </div>
           <div class="row">
-            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">IOT Applications</div>
+            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt"><?= _("IOT Applications")?></div>
             <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
           </div>
           <div class="row">
@@ -177,7 +178,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                           New<br>dashboard
                       </div>-->
                       <div class="iotAppsListMenuItemContent centerWithFlex col-xs-12">
-                        <button id="link_add_iotapp" data-toggle="modal" type="button" class="btn btn-warning">Create new</button>
+                        <button id="link_add_iotapp" data-toggle="modal" type="button" class="btn btn-warning"><?= _("Create new") ?></button>
                       </div>
                     </div>
                   </div>
@@ -186,15 +187,15 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                   <table id="list_dashboard" class="table">
                     <thead class="iotAppsTableHeader">
                       <tr>
-                        <th data-dynatable-column="status">Status</th>
-                        <th data-dynatable-column="type">Type</th>
-                        <th data-dynatable-column="name">Title</th>
-                        <th data-dynatable-column="username">Creator</th>
-                        <th data-dynatable-column="created">Creation date</th>
-                        <th data-dynatable-column="modified">Modification date</th>
-                        <th data-dynatable-column="id">Id</th>
-                        <th>Dashboards</th>
-                        <th>Management</th>
+                        <th data-dynatable-column="status"><?= _("Status")?></th>
+                        <th data-dynatable-column="type"><?= _("Type")?></th>
+                        <th data-dynatable-column="name"><?= _("Title")?></th>
+                        <th data-dynatable-column="username"><?= _("Creator")?></th>
+                        <th data-dynatable-column="created"><?= _("Creation date")?></th>
+                        <th data-dynatable-column="modified"><?= _("Modification date")?></th>
+                        <th data-dynatable-column="id"><?= _("Id")?></th>
+                        <th><?= _("Dashboards")?></th>
+                        <th><?= _("Management")?></th>
                       </tr>
                     </thead>
                     <tbody></tbody>
@@ -216,13 +217,13 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
       <div class="modal-dialog" role="document">
         <div class="modal-content modalContentWizardForm" style="top:150px;">
           <div class="modalHeader centerWithFlex" style="background-color: rgba(51, 64, 69, 1) !important">
-            Create IoT Application
+            <?= _("Create IoT Application")?>
           </div>
 
           <div id="modalAddIoTAppBody" class="modal-body modalBody" style="background-color: rgba(108, 135, 147, 1) !important">   
             <div class="row iotAppModalRow">
               <div class="col-xs-4 centerWithFlex iotAppModalLbl">
-                Application name:
+                 <?= _("Application name").":"?>
               </div>
               <div class="col-xs-8">
                 <input type="text" name="inputTitleIoTApp" id="inputTitleIoTApp" value="" class="form-control" style="width: 100%;" required> 
@@ -231,13 +232,13 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
 <?php if($_SESSION['loggedRole']!='Manager') : ?>
             <div class="row iotAppModalRow">
               <div class="col-xs-4 centerWithFlex iotAppModalLbl">
-                Application type:
+                 <?= _("Application type").":"?>
               </div>
               <div class="col-xs-8">
                 <select id="applicationType" class="form-control">
-                    <option value="basic">Basic</option>
-                    <option value="advanced">Advanced</option>
-                    <option value="portia">Web scraper (portia)</option>
+                    <option value="basic"><?= _("Basic")?></option>
+                    <option value="advanced"><?= _("Advanced")?></option>
+                    <option value="portia"><?= _("Web scraper (portia)")?></option>
                 </select>    
               </div>
             </div>  
@@ -249,8 +250,8 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
               </div>                           
             </div>
             <div id="modalAddIoTAppFooter" class="modal-footer">
-              <button type="button" id="modalAddIoTAppCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
-              <button type="button" id="modalAddIoTAppConfirmBtn" name="addDashboardWizardConfirmBtn" class="btn confirmBtn internalLink">Confirm</button>
+              <button type="button" id="modalAddIoTAppCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+              <button type="button" id="modalAddIoTAppConfirmBtn" name="addDashboardWizardConfirmBtn" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
             </div>
           </div>    <!-- Fine modal content -->
         </div> <!-- Fine modal dialog -->
@@ -260,33 +261,33 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
       <div class="modal-dialog" role="document">
         <div class="modal-content modalContentWizardForm" style="top:150px;">
           <div class="modalHeader centerWithFlex" style="background-color: rgba(51, 64, 69, 1) !important">
-            IoT Application Management
+            <?= _("IoT Application Management")?>
           </div>
 
           <div id="modalEditIoTAppBody" class="modal-body modalBody" style="background-color: rgba(108, 135, 147, 1) !important">   
             <!-- Tabs -->
             <ul id="iotappTabsContainer" class="nav nav-tabs nav-justified">
-                <li id="propertiesTab" class="active"><a data-toggle="tab" href="#propertiesCnt">Properties</a></li>
-                <li id="controlTab"><a data-toggle="tab" href="#controlCnt" class="dashboardWizardTabTxt">Control</a></li>
-                <li id="ownershipTab"><a data-toggle="tab" href="#ownershipCnt" class="dashboardWizardTabTxt">Ownership</a></li>
+                <li id="propertiesTab" class="active"><a data-toggle="tab" href="#propertiesCnt"><?= _("Properties")?></a></li>
+                <li id="controlTab"><a data-toggle="tab" href="#controlCnt" class="dashboardWizardTabTxt"><?= _("Control")?></a></li>
+                <li id="ownershipTab"><a data-toggle="tab" href="#ownershipCnt" class="dashboardWizardTabTxt"><?= _("Ownership")?></a></li>
             </ul> 
             <!-- Fine tabs -->
             <div class="tab-content" style="height:200px">
               <!-- Ownership cnt -->
               <div id="ownershipCnt" class="tab-pane fade in">
                   <div class="row" id="ownershipFormRow">
-                      <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
-                          Change ownership
+                      <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">      
+                          <?= _("Change ownership")?>
                       </div>
                       <div class="col-xs-12" id="newOwnershipCnt">
                           <div class="input-group">
                               <input type="text" class="form-control" id="newOwner" placeholder="New owner username">
                               <span class="input-group-btn">
-                                <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
+                                <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                               </span>
                           </div>
                           <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
-                              New owner username can't be empty
+                              <?= _("New owner username can't be empty")?>
                           </div>    
                       </div>
                       <div class="col-xs-12 centerWithFlex" id="newOwnershipResultMsg">
@@ -300,7 +301,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                 <input type="hidden" id="iotAppNameHidden" name="iotAppNameHidden" />
                 <div class="row iotAppModalRow">
                   <div class="col-xs-4 centerWithFlex iotAppModalLbl">
-                    Application name:
+                     <?= _("Application name:")?>
                   </div>
                   <div class="col-xs-8">
                     <input type="text" name="inputTitleEditIoTApp" id="inputTitleEditIoTApp" value="" class="form-control" style="width: 100%;" required> 
@@ -309,21 +310,21 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
     <?php if($_SESSION['loggedRole']!='Manager') : ?>
                 <div class="row iotAppModalRow">
                   <div class="col-xs-4 centerWithFlex iotAppModalLbl">
-                    Application type:
+                     <?= _("Application type:")?>
                   </div>
                   <div class="col-xs-8">
                     <select id="appTypeEditIoTApp" class="form-control" disabled>
-                        <option value="basic">Basic</option>
-                        <option value="advanced">Advanced</option>
-                        <option value="plumber">Data analytic</option>
-                        <option value="portia">Web scraper (portia)</option>
+                        <option value="basic"><?= _("Basic")?></option>
+                        <option value="advanced"><?= _("Advanced")?></option>
+                        <option value="plumber"><?= _("Data analytic")?></option>
+                        <option value="portia"><?= _("Web scraper (portia)")?></option>
                     </select>    
                   </div>     
                 </div>
     <?php endif; ?>
                 <div class="row iotAppModalRow">
                   <div class="col-xs-4 centerWithFlex iotAppModalLbl">
-                    Created:
+                    <?= _("Created:")?>
                   </div>
                   <div class="col-xs-8">
                     <input type="text" readonly name="createdEditIoTApp" id="createdEditIoTApp" value="10 min" class="form-control">   
@@ -331,21 +332,21 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                 </div>
                 <div class="row iotAppModalRow">
                   <div class="col-xs-12 centerWithFlex">
-                    <button type="button" id="modalEditIoTAppConfirmBtn" name="addDashboardWizardConfirmBtn" class="btn confirmBtn internalLink">Update</button>
+                    <button type="button" id="modalEditIoTAppConfirmBtn" name="addDashboardWizardConfirmBtn" class="btn confirmBtn internalLink"><?= _("Update")?></button>
                   </div>     
                 </div>
               </div>
               <div id="controlCnt" class="tab-pane fade in">
                 <div class="row iotAppModalRow" style="padding-top:85px">
                   <div class="col-xs-12 centerWithFlex">
-                    <button type="button" id="modalEditIoTAppDeleteBtn" class="btn deleteBtn" data-dismiss="modal">Delete application...</button>
-                    <button type="button" id="modalEditIoTAppRestartBtn" class="btn restartBtn" data-dismiss="modal">Restart application...</button>
+                    <button type="button" id="modalEditIoTAppDeleteBtn" class="btn deleteBtn" data-dismiss="modal"><?= _("Delete application...")?></button>
+                    <button type="button" id="modalEditIoTAppRestartBtn" class="btn restartBtn" data-dismiss="modal"><?= _("Restart application...")?></button>
                   </div>     
                 </div>
               </div>
             </div>
             <div id="modalAddIoTAppFooter" class="modal-footer">
-              <button type="button" id="modalEditIoTAppCancelBtn" class="btn cancelBtn" data-dismiss="modal">Close</button>
+              <button type="button" id="modalEditIoTAppCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Close")?></button>
             </div>          
         </div>
       </div>
@@ -578,7 +579,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                   '<td class="' + cssClass + '">' + record.id + '</td>'+
                   '<td class="' + cssClass + '">' + dashboards + '</td>'+
                   //'<td class="' + cssClass + '">' + record.image + '</td>'+
-                  '<td class="' + cssClass + '"><button type="button" class="viewDashBtn">Management</button></td>'+
+                  '<td class="' + cssClass + '"><button type="button" class="viewDashBtn"><?= _("Management")?></button></td>'+
                   '</tr>';
 
             return newRow;
@@ -639,7 +640,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                                   '<div class="iotAppsListCardVisibilityDiv col-xs-12 centerWithFlex">'+owner+'</div>'+
                                   '<div class="iotAppsListCardClick2EditDiv col-xs-12" style="background-color: inherit; color: inherit">' + 
                                   '<div style="float:left;width: 135px;height: 25px;overflow: auto;" id="dashboardsListCardDashs">'+dashboards+'</div>' +
-                                  '<button type="button" class="dashBtnCard propertiesIoTAppBtnCard" style="float:right;" >Management</button></div>' + 
+                                  '<button type="button" class="dashBtnCard propertiesIoTAppBtnCard" style="float:right;" ><?= _("Management")?></button></div>' + 
                                   '</div>' +  
                                '</div>' +
                             '</div>';
@@ -667,8 +668,8 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                         $('#iotAppsListTableRow').css('padding-bottom', '0px');
                         
                         $('#dashboardListsViewModeInput').bootstrapToggle({
-                            on: 'View as table',
-                            off: 'View as cards',
+                            on: '<?= _("View as table")?>',
+                            off: '<?= _("View as cards")?>',
                             onstyle: 'default',
                             offstyle: 'info',
                             size: 'normal'

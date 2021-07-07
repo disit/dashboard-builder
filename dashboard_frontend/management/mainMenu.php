@@ -2,7 +2,9 @@
         <div id="headerClaimCnt" class="col-md-12 centerWithFlex">
             <?php
                 include 'config.php';
-
+                include_once '../locale.php';
+                include_once '../translation.php';
+                
                 error_reporting(E_ERROR);
                 date_default_timezone_set('Europe/Rome');
                 
@@ -12,6 +14,7 @@
                 $domainId = null;
                 
                 $currDom = $_SERVER['HTTP_HOST'];
+				//echo ($currDom);
 
                 $domQ = "SELECT * FROM Dashboard.Domains WHERE domains LIKE '%$currDom%'";
                 $r = mysqli_query($link, $domQ);
@@ -32,6 +35,24 @@
                 else
                 {
                     echo 'Claim';
+                }
+                
+              // $curr_lang ="";
+               if ($localizationEnabled){
+                 // if(strpos($localizationsRoles, "Public")){
+                        if (isset($_REQUEST['lang'])){
+                           $curr_lang =$_REQUEST['lang']; 
+                        }
+                  }
+               
+             $curr_lang = selectLanguage($localizations);
+            // $curr_lang =$lang;
+             //echo('$curr_lang:  '.$curr_lang);
+               // $flagicon ='';
+                if (($curr_lang !== '')&&($curr_lang !== null)){
+                    $flagicon ='../img/flagicons/'.$curr_lang.'.png';
+                }else{
+                    //$flagicon ='../img/flagicons/en_US.png';
                 }
             ?>
         </div>
@@ -57,13 +78,25 @@
                     </div>  -->
                     <div class="col-xs-12 centerWithFlex" id="mainMenuUsrLogoutCnt">
                         <button type="button" id="mainMenuUsrLogoutBtn" class="editDashBtn">logout</button>
+                        <?php 
+  if (strpos($localizationsRoles, $_SESSION['loggedRole'])) {
+    echo('<a href="#" id="mainMenuSelectLanguageBtn" style="font-size: 10px;"><img src="'.$flagicon.'" id="flagicon" alt="'.$_SESSION['lang'].'" style="padding:5px; height: 24px;  width: 31px;"></a>');
+}
+?>
+                        
                     </div>
-<?php else : ?>
+<?php else : ?>                 
                  <!--   <div class="col-md-12 centerWithFlex" id="mainMenuUsrLoginCnt">
                         <br/>Login<br/>
                     </div>  -->
                     <div class="col-xs-12 centerWithFlex" id="mainMenuUsrLogoutCnt">
                         <button type="button" id="mainMenuUsrLoginBtn" class="editDashBtn">login</button>
+                        <?php 
+                       //  if(strpos($localizationsRoles, "Public")){
+                          if ($localizationEnabled){
+     echo('<a href="#" id="mainMenuSelectLanguageBtn" style="font-size: 10px;"><img src="'.$flagicon.'" id="flagicon" alt="'.$curr_lang.'" style="padding:5px; height: 24px;  width: 31px;"></a>');
+     }
+     ?>
                         <script> </script>
                     </div>
 <?php endif; ?>                  
@@ -79,7 +112,7 @@
                       $organization = "None";
                       $organizationSql = "Other";
                     }
-
+                    
                     $link = mysqli_connect($host, $username, $password);
                     mysqli_select_db($link, $dbname);
 
@@ -151,6 +184,8 @@
                                             '</a>';
                                     }
                                 } */
+                               $text =  translate_string($text, $curr_lang, $link);
+                                //echo($text);
                                 $newItem = buildMenuTag($linkUrl,$linkId,null,$openMode,$pageTitle,$externalApp,$icon,$iconColor,$text,true);
                             }
 
@@ -179,6 +214,9 @@
                                     $linkId2 = $row2['linkId'];
                                     $icon2 = $row2['icon'];  
                                     $text2 = $row2['text'];
+                                    //
+                                    $text2 =  translate_string($text2, $curr_lang, $link);
+                                    //
                                     $privileges2 = $row2['privileges'];      
                                     $userType2 = $row2['userType']; 
                                     $externalApp2 = $row2['externalApp'];
@@ -253,7 +291,30 @@
             </div>   
 </div>
 
-
+<?php 
+//if (strpos($localizationsRoles, $_SESSION['loggedRole'])) {
+ if ((strpos($localizationsRoles, $_SESSION['loggedRole']))||  ($localizationEnabled)) {
+     $control_role = 'true';
+   $obj = json_decode($localizations, true);
+   $languages = $obj['languages'];
+   $tot_leng = count($languages);
+   if ($tot_leng > 0){
+       echo ('<div id="translate-modal" class="modal fade bd-example-modal-sm" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+        <div class="modal-body">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>');
+     for($i=0; $i<$tot_leng; $i++){
+         $lang = $obj['languages'][$i];
+         echo('<input class="form-check-input select_lang" type="checkbox" value="col-md-12 mainMenuItemCnt mainMenuItemCntActive" onclick="select_lang(\''.$lang['code'].'\',\''.$_SESSION['loggedRole'].'\')"> <img src="../img/flagicons/'.$lang['code'].'.png" alt="alternatetext" style="padding:5px; height: 24px; width: 31px;"> <span>'.$lang['lang'].'</span><br />');
+     }                   
+      echo ('</div>                      
+    </div>
+  </div>
+    </div>');
+}
+}
+?>
 <script type='text/javascript'>
      
               
@@ -406,5 +467,49 @@
             $('#mainMenuScrollableCnt').css("overflow-y", "auto");
         });
     });
+    
+    //
+    $('#mainMenuSelectLanguageBtn').click(function () {
+            //alert("Confirmed");
+            $(".select_lang").prop("checked", false);
+            //
+            //Ajax su translate//
+            $('#translate-modal').modal('show'); 
+            
+            //
+        });
+        
+        function select_lang(lang, role){
+            //$(".select_lang").prop("checked", false);
+            
+            $.ajax({
+                async: true,
+                type: 'POST',
+                url: 'setlocale.php',
+                data: {
+                    lang: lang
+                },
+                success: function (data) {
+                    //alert(role);
+                    //location.reload();
+                    if ((role === null)||(role === "")||(role === undefined)){
+                        //location.search = location.search.replace(/lang=[^&$]*/i, 'lang='+lang);
+                        //window.location.search = jQuery.query.set("lang", lang);
+                     //window.location.search += '&lang='+lang;
+                     // window.location.search;
+                     // Construct URLSearchParams object instance from current URL querystring.
+                    var queryParams = new URLSearchParams(window.location.search);
+                    // Set new or modify existing parameter value. 
+                    queryParams.set("lang",lang);
+                    // Replace current querystring with the new one.
+                    history.replaceState(null, null, "?"+queryParams.toString());
+                    location.reload();
+                }else{
+                    location.reload();
+                }
+                    }
+                });
+            }
+            
 </script>    
 
