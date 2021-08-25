@@ -420,7 +420,11 @@ if (isset($_SESSION['loggedRole'])) {
 
             $org = mysqli_real_escape_string($link, $_POST['org']);
             $org = filter_var($org, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
-            $org = strip_tags($org);
+            //$org = strip_tags($org);
+            if (strpos($org, '*')){
+                $org="*";
+            }
+             $org = strip_tags($org);
 
             //
             $menuOrder = mysqli_real_escape_string($link, $_POST['menuOrder']);
@@ -554,6 +558,10 @@ if (isset($_SESSION['loggedRole'])) {
             $org_arr = filter_var($org_arr, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
             $org_arr = strip_tags($org_arr);
             //$org_arr = html_entity_decode($org_arr);
+             if (strpos($org_arr, '*')){
+                $org_arr="*";
+            }
+            $org_arr = html_entity_decode($org_arr);
 
             $menuOrder = mysqli_real_escape_string($link, $_POST['menuOrder']);
             $menuOrder = filter_var($menuOrder, FILTER_SANITIZE_STRING);

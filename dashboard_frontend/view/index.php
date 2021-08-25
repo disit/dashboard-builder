@@ -218,13 +218,21 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     <script src="../js/highcharts/code/modules/exporting.js"></script>
     <script src="../js/highcharts/code/highcharts-more.js"></script>
     <script src="../js/highcharts/code/modules/solid-gauge.js"></script>
-    <script src="../js/highcharts/code/highcharts-3d.js"></script>  -->
+    <script src="../js/highcharts/code/highcharts-3d.js"></script>
     <script src="../js/highcharts-8.0.0/code/highcharts.js"></script>
     <script src="../js/highcharts-8.0.0/code/modules/exporting.js"></script>
     <script src="../js/highcharts-8.0.0/code/highcharts-more.js"></script>
     <script src="../js/highcharts-8.0.0/code/modules/parallel-coordinates.js"></script>
     <script src="../js/highcharts-8.0.0/code/modules/solid-gauge.js"></script>
-    <script src="../js/highcharts-8.0.0/code/highcharts-3d.js"></script>
+    <script src="../js/highcharts-8.0.0/code/highcharts-3d.js"></script>  -->
+
+    <script src="../js/highcharts-9/code/highcharts.js"></script>
+    <script src="../js/highcharts-9/code/modules/exporting.js"></script>
+    <script src="../js/highcharts-9/code/highcharts-more.js"></script>
+    <script src="../js/highcharts-9/code/modules/parallel-coordinates.js"></script>
+    <script src="../js/highcharts-9/code/modules/solid-gauge.js"></script>
+    <script src="../js/highcharts-9/code/highcharts-3d.js"></script>
+    <script src="../js/highcharts-9/code/modules/streamgraph.js"></script>
     
     <!-- TinyColors -->
     <script src="../js/tinyColor.js" type="text/javascript" charset="utf-8"></script>

@@ -1089,7 +1089,7 @@
                     $styleParameters = json_encode($styleParametersArray);
                 }
 
-                if(($type_widget == "widgetLineSeries") || ($type_widget == "widgetCurvedLineSeries"))
+                if(($type_widget == "widgetLineSeries") || ($type_widget == "widgetCurvedLineSeries") || ($type_widget == "widgetDataCube"))
                 {
                     if(isset($_POST['rowsLabelsFontSize'])&&($_POST['rowsLabelsFontSize']!=""))
                     {
@@ -2556,6 +2556,7 @@
         $xAxisLabel = NULL;
         $yAxisLabel = NULL;
         $rowParameters = NULL;
+        $defaultUnit = NULL;
     //    $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
         if (sanitizePostString('inputFontFamilyWidgetM') === null) {       // New pentest
             $fontFamily = mysqli_real_escape_string($link, sanitizeGetString('inputFontFamilyWidgetM'));
@@ -2938,8 +2939,13 @@
             $styleParametersM = json_encode($styleParametersArrayM);
         }
 
-        if(($type_widget_m == "widgetLineSeries") || ($type_widget_m == "widgetCurvedLineSeries"))
+        if(($type_widget_m == "widgetLineSeries") || ($type_widget_m == "widgetCurvedLineSeries") || ($type_widget_m == "widgetDataCube"))
         {
+
+            if($type_widget_m == "widgetDataCube" && isset($_POST['defaultUnit']) && ($_POST['defaultUnit']!=""))
+            {
+                $defaultUnit = mysqli_real_escape_string($link, sanitizePostString('defaultUnit'));
+            }
 
             if(isset($_POST['rowsLabelsFontSizeM'])&&($_POST['rowsLabelsFontSizeM']!=""))
             {
@@ -3045,6 +3051,9 @@
             //}
 
             $styleParametersArrayM = array();
+            if ($type_widget_m == "widgetDataCube") {
+                $styleParametersArrayM['defaultUnit'] = $defaultUnit;
+            }
             $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
             $styleParametersArrayM['rowsLabelsFontColor'] = $rowsLabelsFontColorM;
             $styleParametersArrayM['colsLabelsFontSize'] = $colsLabelsFontSizeM;
@@ -3818,7 +3827,7 @@
         {
             $int_temp_widget_m = mysqli_real_escape_string($link, $_POST['select-IntTemp-Widget-m']);
         }
-        else if (($type_widget_m == 'widgetCurvedLineSeries') || ($type_widget_m == 'widgetCalendar'))
+        else if (($type_widget_m == 'widgetCurvedLineSeries') || ($type_widget_m == 'widgetCalendar') || ($type_widget_m == 'widgetDataCube'))
         {
             $temporalRangeQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w = '" . escapeForSQL($name_widget_m, $link) . "' AND id_dashboard = '" . escapeForSQL($id_dashboard2, $link) . "'";
             $temporalRangeRs = mysqli_query($link, $temporalRangeQuery);

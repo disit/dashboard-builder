@@ -1,10 +1,11 @@
 <?php
 
-class WidgetPieChartFactory extends aGenericWidgetFactory
+class WidgetDataCubeFactory extends aGenericWidgetFactory
 {
     //Sovrascrive l'originaria
     function completeWidget()
     {
+        eventLog("ENTATO PER DATACUBE");
         $myQuery = null;
         $myDesc = null;
         $myQueryType = null;
@@ -14,7 +15,6 @@ class WidgetPieChartFactory extends aGenericWidgetFactory
         $rowParameters = [];
         $this->startParams->id_metric = "AggregationSeries";
         $this->startParams->name_w = str_replace("ToBeReplacedByFactory", "AggregationSeries", $this->startParams->name_w);
-        $myKPIFlag = 0;
 
         $count = 0;
         foreach($this->selectedRows as $selectedRowKey => $selectedRow) 
@@ -42,15 +42,23 @@ class WidgetPieChartFactory extends aGenericWidgetFactory
                     }
                     break;
 
+                case "IoT Device Variable":
+                case "Data Table Variable":
+                case "Mobile Device Variable":
+                case "Sensor Device":
                 case "Sensor":
-                    $myMetricId = $selectedRow['get_instances'];
+                    $myMetricId = $selectedRow['parameters'];
                     $myMetricName = $selectedRow['unique_name_id'];
-                    $myMetricType = $selectedRow['low_level_type'];
+                    $mySmField = $selectedRow['low_level_type'];
                     $myServiceUri = $selectedRow['get_instances'];
                     break;
 
                 case "MyKPI":
-                    $myKPIFlag = 1;
+                    $myMetricId = $selectedRow['parameters'];
+                    $myMetricName = $selectedRow['unique_name_id'];
+                    $mySmField = $selectedRow['low_level_type'];
+                    $myServiceUri = $selectedRow['get_instances'];
+
                     if($selectedRow['parameters']) {
                         $myMetricId = $selectedRow['parameters'];
                     } else if($selectedRow['get_instances']) {
@@ -59,33 +67,30 @@ class WidgetPieChartFactory extends aGenericWidgetFactory
 
                     $myMetricName = $selectedRow['unique_name_id'];
                     $myMetricType = $selectedRow['low_level_type'];
-                    $myServiceUri = $selectedRow['get_instances'];
+
                     break;
 
                 default:
-                    //Per ora aggiungiamo solo i KPI, poi si specializzerà
+                    //Per ora aggiungiamo solo i KPI e i sensors, poi si specializzerà
                     break;
             }
             
             array_push($styleParameters->barsColors, $defaultColors1[$count%7]);
+            
+            $newQueryObj = ["metricId" => $myMetricId,
+                            "metricHighLevelType" => $selectedRow['high_level_type'],
+                            "metricName" => $myMetricName,
+                            "smField" => $mySmField,
+                            "serviceUri" => $myServiceUri];
 
-      //      if ($myKPIFlag != 1) {
-      //          $newQueryObj = ["metricId" => $myMetricId,
-      //              "metricHighLevelType" => $selectedRow['high_level_type'],
-      //              "metricName" => $myMetricName];
-      //      } else {
-                $newQueryObj = ["metricId" => $myMetricId,
-                    "metricHighLevelType" => $selectedRow['high_level_type'],
-                    "metricName" => $myMetricName,
-                    "metricType" => $myMetricType,
-                    "serviceUri" => $myServiceUri];
-      //      }
             array_push($rowParameters, $newQueryObj);
             $count++;
         }
         
+        $styleParameters->xAxisDataset = "Time";
         $this->startParams->styleParameters = json_encode($styleParameters);
         $this->startParams->rowParameters = json_encode($rowParameters);
+        $this->startParams->title_w = "Time trend comparison";
         //$this->startParams->size_rows = $count;
         
         return $this->startParams;

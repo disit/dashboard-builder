@@ -513,7 +513,7 @@ $lastUsedColors = null;
                     </div>
                     <br /> <div class="input-group"><span ><b>Organization: </b></span>
                         <div id="org_list">
-
+                            <input class="form-check-input org_sel" type="checkbox" value="*" id="all_e"></input><span>*</span><br />
                         </div><br />
                     </div>
                     <div class="modal-footer">
@@ -603,7 +603,7 @@ $lastUsedColors = null;
                     </div>
                     <br /><div class="input-group"><span ><b>Organization: </b></span>
                         <div id="org_list_c">
-
+                                 <input class="form-check-input org_sel_c" type="checkbox" value="*" id="all_c" /><span>*</span><br />
                         </div><br />
                     </div>
                 </div>
@@ -768,7 +768,7 @@ $lastUsedColors = null;
                     </div>
                     <br /> <div class="input-group"><span ><b>Organization: </b></span>
                         <div id="org_list_add">
-
+                             <input class="form-check-input org_sel_c" type="checkbox" value="*" id="all_add"></input><span>*</span><br />
                         </div><br />
                     </div>
                     <div class="modal-footer">
@@ -1070,12 +1070,25 @@ $lastUsedColors = null;
                     for (var i = 0; i < data1.length; i++)
                     {
                         //console.log(data1[i])
-                        $('#org_list').append('<input class="form-check-input org_sel" type="checkbox" value="' + data1[i] + '" id="' + data1[i] + '_e"></input><span>' + data1[i] + '</span><br />');
-                        $('#org_list_c').append('<input class="form-check-input org_sel_c" type="checkbox" value="' + data1[i] + '" id="' + data1[i] + '_c"></input><span>' + data1[i] + '</span><br />');
-                        $('#org_list_add').append('<input class="form-check-input org_sel_c" type="checkbox" value="' + data1[i] + '" id="' + data1[i] + '_c"></input><span>' + data1[i] + '</span><br />');
+                        $('#org_list').append('<input class="form-check-input org_sel n_ast_new" type="checkbox" value="' + data1[i] + '" id="' + data1[i] + '_e" /><span>' + data1[i] + '</span><br />');
+                        $('#org_list_c').append('<input class="form-check-input org_sel_c n_ast" type="checkbox" value="' + data1[i] + '" id="' + data1[i] + '_c" /><span>' + data1[i] + '</span><br />');
+                        $('#org_list_add').append('<input class="form-check-input org_sel_c n_ast_add" type="checkbox" value="' + data1[i] + '" id="' + data1[i] + '_c" /><span>' + data1[i] + '</span><br />');
                         /***/
                         /***/
                     }
+                     $(".n_ast_new").click(function() {
+                        console.log('clicked n_ast_new');
+                                $("#all_e").prop( "checked", false );
+                     });
+                     $(".n_ast_add").click(function() {
+                        console.log('clicked');
+                        $('#all_add').prop( "checked", false );
+                     });
+                     $(".n_ast").click(function() {
+                        console.log('clicked n_ast');
+                                $("#all_c").prop( "checked", false );
+                        //
+                     });
                     //
                 }
             });
@@ -1110,6 +1123,47 @@ $lastUsedColors = null;
                     $('#add_icon').append('<option  value="other">Other...</option>');
                 }
             });
+            
+                    $("#all_c").click(function() {
+                        console.log('clicked');
+                                if ( $("#all_c").is(":checked")){
+                                    $(".n_ast").prop( "checked", false );
+                                    $("#all_c").prop( "checked", true );
+                                }
+                     });
+                      /*$(".n_ast").click(function() {
+                        console.log('clicked');
+                                $("#all_c").prop( "checked", false );
+                        //
+                     });*/
+                     
+                     $("#all_add").click(function() {
+                        console.log('clicked');
+                                if ( $("#all_add").is(":checked")){
+                                    $(".n_ast_add").prop( "checked", false );
+                                    $("#all_add").prop( "checked", true );
+                                }
+                     });
+                      /*$(".n_ast_add").click(function() {
+                        console.log('clicked');
+                        $('#all_add').prop( "checked", false );
+                     });*/
+                     
+                      $("#all_e").click(function() {
+                        console.log('clicked');
+                                if ( $("#all_e").is(":checked")){
+                                    $(".n_ast_new").prop( "checked", false );
+                                    $("#all_e").prop( "checked", true );
+                                    }
+                             });
+                     /*$(".n_ast_new").click(function() {
+                        console.log('clicked n_ast_new');
+                          //if ( $("#all_e").is(":checked")){
+                                $("#all_e").prop( "checked", false );
+                           // }
+                        //
+                     });*/
+
         });
         function newData() {
             console.log('NEW RULE');
@@ -1664,6 +1718,9 @@ $lastUsedColors = null;
                     console.log("'" + arr_org[z] + "_c'");
                 } else {
                     console.log("Not found: " + arr_org[z]);
+                    if (arr_org[z] == '*'){
+                        document.getElementById('all_c').checked = true;
+                    }
                 }
                 //$('#'+arr_org[z]+'_e').checked = true;
             }
@@ -1970,7 +2027,7 @@ $lastUsedColors = null;
         function filtroAllData() {
             console.log('OK');
         }
-
+        
     </script>
 </body>
 

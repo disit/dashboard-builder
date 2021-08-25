@@ -542,6 +542,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                     <!-- Dashboard Trend -->
                                     <li id="trendTab" class="nav-item"><a data-toggle="tab" href="#groupTrendCnt" class="nav-link dashboardWizardTabTxt"><?= _("Accesses Trends")?></a></li>
                                     <!-- GP COMMENT TEMPORARY -->
+                                    <li id="graphTab" class="nav-item"><a data-toggle="tab" href="#groupGraphCnt" class="nav-link dashboardWizardTabTxt"><?= _("Structure")?></a></li>
                                 </ul> 
                                 <!-- Fine tabs -->
 
@@ -744,6 +745,30 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                     </div>
                                     <!-- Fine Group Trend cnt -->
                                 </div>
+                                <!-- -->
+                                <div id="graphmodal" hidden>
+                                    <div class="col-xs-12 centerWithFlex delegationsModalTxt modalFirstLbl" id="graphDashboardTitle">
+                                    </div>
+                                    <div id="groupGraphCnt" class="tab-pane fade in">
+                                        <div class="row" id="groupGraphFormRow" >
+                                            <input type="text" id="idDash_graph" hidden></input>
+                                            <!-- Aggiungere dei valori di Trend della Dashboard
+                                            <iframe id ="graph_iframe" src="" allowtransparency="true"></iframe>
+                                            -->
+                                        </div>
+                                        <div class="row" id="linkGraphInspector" >
+                                        </div>
+                                        <br />
+                                         <div class="row" >
+                                             <div class="panel panel-default">
+                                                    <div class="panel-heading">Dashboard Hierarchy</div>
+                                                    <div class="panel-body" id="hierarchy"></div>
+                                                  </div>
+                                         </div>
+                                    </div>
+                                    <!-- Fine Group Trend cnt -->
+                                </div>
+                                <!-- -->
                             </div>
                             <div id="delegationsModalFooter" class="modal-footer">
                                 <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px"><?= _("Close")?></button>
@@ -1213,7 +1238,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 error: function (data)
                 {
                     $('#newDelegatedMsgGroup').css('color', '#f3cf58');
-                    $('#newDelegatedMsgGroup').html('<? _("Error calling internal API")?>');
+                    $('#newDelegatedMsgGroup').html('<?= _("Error calling internal API")?>');
                 }
             });
         }
@@ -1455,6 +1480,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                             $('#cloneDashboardTitleMsg').addClass("ok");
                             $('#duplicateDashboardBtn').attr("disabled", false);
                             var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
+                            $('#idDash_graph').val(dashboardId);
                             var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-dashTitle');
                             $.ajax({
                                 url: "../controllers/checkDashboardLimits.php",
@@ -1509,7 +1535,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                                     dashboardTitlesList = data.titles;
                                                     if (dashboardTitlesList.indexOf($('#newDashboardTitle').val().trim()) > 0)
                                                     {
-                                                        $('#cloneDashboardTitleMsg').html('<? _("Title already in use")?>');
+                                                        $('#cloneDashboardTitleMsg').html('<?= _("Title already in use")?>');
                                                         $('#cloneDashboardTitleMsg').removeClass("ok");
                                                         $('#cloneDashboardTitleMsg').addClass("error");
                                                         $('#duplicateDashboardBtn').attr("disabled", true);
@@ -1518,18 +1544,18 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                                     //  {
                                                     $('#newDashboardTitle').on('input', function () {
                                                         if ($('#newDashboardTitle').val().trim().length < 4) {
-                                                            $('#cloneDashboardTitleMsg').html('<? _("Title can\'t be less than 4 characters long")?>');
+                                                            $('#cloneDashboardTitleMsg').html('<?= _("Title can\'t be less than 4 characters long")?>');
                                                             $('#cloneDashboardTitleMsg').removeClass("ok");
                                                             $('#cloneDashboardTitleMsg').addClass("error");
                                                             $('#duplicateDashboardBtn').attr("disabled", true);
                                                         } else {
                                                             if (dashboardTitlesList.indexOf($('#newDashboardTitle').val().trim()) > 0) {
-                                                                $('#cloneDashboardTitleMsg').html('<? _("Title already in use")?>');
+                                                                $('#cloneDashboardTitleMsg').html('<?= _("Title already in use")?>');
                                                                 $('#cloneDashboardTitleMsg').removeClass("ok");
                                                                 $('#cloneDashboardTitleMsg').addClass("error");
                                                                 $('#duplicateDashboardBtn').attr("disabled", true);
                                                             } else {
-                                                                $('#cloneDashboardTitleMsg').html('<? _("New title OK")?>');
+                                                                $('#cloneDashboardTitleMsg').html('<?= _("New title OK")?>');
                                                                 $('#cloneDashboardTitleMsg').removeClass("error");
                                                                 $('#cloneDashboardTitleMsg').addClass("ok");
                                                                 $('#duplicateDashboardBtn').attr("disabled", false);
@@ -1671,7 +1697,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                         $('#newOwner').val('');
                                         $('#newOwner').addClass('disabled');
                                         $('#newOwnershipResultMsg').show();
-                                        $('#newOwnershipResultMsg').html('<? _("New ownership set correctly")?>');
+                                        $('#newOwnershipResultMsg').html('<?= _("New ownership set correctly")?>');
                                         $('#newOwnershipResultMsg').css('color', 'white');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1683,7 +1709,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     {
                                         $('#newOwner').addClass('disabled');
                                         $('#newOwnershipResultMsg').show();
-                                        $('#newOwnershipResultMsg').html('<? _("Error: New owner does not exists or it is not a valid LDAP user")?>');
+                                        $('#newOwnershipResultMsg').html('<?= _("Error: New owner does not exists or it is not a valid LDAP user")?>');
                                         $('#newOwnershipResultMsg').css('color', '#f3cf58');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1697,7 +1723,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     {
                                         $('#newOwner').addClass('disabled');
                                         $('#newOwnershipResultMsg').show();
-                                        $('#newOwnershipResultMsg').html('<?_("Error: New owner has exceeded his limits for dashboard ownership")?>');
+                                        $('#newOwnershipResultMsg').html('<?= _("Error: New owner has exceeded his limits for dashboard ownership")?>');
                                         $('#newOwnershipResultMsg').css('color', '#f3cf58');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1711,7 +1737,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     {
                                         $('#newOwner').addClass('disabled');
                                         $('#newOwnershipResultMsg').show();
-                                        $('#newOwnershipResultMsg').html('<?_("Error setting new ownership: please try again")?>');
+                                        $('#newOwnershipResultMsg').html('<?= _("Error setting new ownership: please try again")?>');
                                         $('#newOwnershipResultMsg').css('color', '#f3cf58');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
 
@@ -1726,7 +1752,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                 error: function (errorData)
                                 {
                                     $('#newOwner').addClass('disabled');
-                                    $('#newOwnershipResultMsg').html('<?_("Error setting new ownership: please try again")?>');
+                                    $('#newOwnershipResultMsg').html('<?= _("Error setting new ownership: please try again")?>');
                                     $('#newOwnershipConfirmBtn').addClass('disabled');
 
                                     setTimeout(function ()
@@ -1757,7 +1783,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     if (data.detail === 'Ok')
                                     {
                                         $('#newVisibilityResultMsg').show();
-                                        $('#newVisibilityResultMsg').html('<?_("New visibility set correctly")?>');
+                                        $('#newVisibilityResultMsg').html('<?= _("New visibility set correctly")?>');
                                         $('#newVisibilityConfirmBtn').addClass('disabled');
 
                                         setTimeout(function ()
@@ -1767,7 +1793,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     } else
                                     {
                                         $('#newVisibilityResultMsg').show();
-                                        $('#newVisibilityResultMsg').html('<?_("Error setting new visibility")?>');
+                                        $('#newVisibilityResultMsg').html('<?= _("Error setting new visibility")?>');
                                         $('#newVisibilityConfirmBtn').addClass('disabled');
 
                                         setTimeout(function ()
@@ -1781,7 +1807,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                 error: function (errorData)
                                 {
                                     $('#newVisibilityResultMsg').show();
-                                    $('#newVisibilityResultMsg').html('<?_("Error setting new visibility")?>');
+                                    $('#newVisibilityResultMsg').html('<?= _("Error setting new visibility")?>');
                                     $('#newVisibilityConfirmBtn').addClass('disabled');
 
                                     setTimeout(function ()
@@ -1845,14 +1871,14 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                         $('#newDelegation').val('');
                                         $('#newDelegation').addClass('disabled');
                                         $('#newDelegatedMsg').css('color', 'white');
-                                        $('#newDelegatedMsg').html('<?_("New delegation added correctly")?>');
+                                        $('#newDelegatedMsg').html('<?= _("New delegation added correctly")?>');
                                         $('#newDelegationConfirmBtn').addClass('disabled');
 
                                         setTimeout(function ()
                                         {
                                             $('#newDelegation').removeClass('disabled');
                                             $('#newDelegatedMsg').css('color', '#f3cf58');
-                                            $('#newDelegatedMsg').html('<? _("Delegated username can\'t be empty")?>');
+                                            $('#newDelegatedMsg').html('<?= _("Delegated username can\'t be empty")?>');
                                         }, 1500);
                                     } else
                                     {
@@ -1890,7 +1916,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                         {
                                             $('#newDelegation').removeClass('disabled');
                                             $('#newDelegatedMsg').css('color', '#f3cf58');
-                                            $('#newDelegatedMsg').html('<? _("Error: Delegated username can\'t be empty")?>');
+                                            $('#newDelegatedMsg').html('<?= _("Error: Delegated username can\'t be empty")?>');
                                         }, 2000);
                                     }
                                 },
@@ -1907,7 +1933,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     {
                                         $('#newDelegation').removeClass('disabled');
                                         $('#newDelegatedMsg').css('color', '#f3cf58');
-                                        $('#newDelegatedMsg').html('<? _("Delegated username can\'t be empty")?>');
+                                        $('#newDelegatedMsg').html('<?= _("Delegated username can\'t be empty")?>');
                                     }, 2000);
                                 }
                             });
@@ -1920,7 +1946,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                 $('#groupDelegationsTable tbody tr').each(function (i) {
                                     if ($(this).attr('data-delegated').trim() === $('#newDelegationOrganization').val() + " - " + $('#newDelegationGroup').val()) {
                                         $('#newGroupDelegatedMsg').css('color', '#f3cf58');
-                                        $('#newGroupDelegatedMsg').html('<? _("Group already delegated")?>');
+                                        $('#newGroupDelegatedMsg').html('<?= _("Group already delegated")?>');
                                         $('#newGroupDelegationConfirmBtn').addClass('disabled');
                                         isPresentFlag = 1;
                                     } else {
@@ -1989,7 +2015,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                                 $('#newDelegation').val('');
                                                 $('#newDelegation').addClass('disabled');
                                                 $('#newGroupDelegatedMsg').css('color', 'white');
-                                                $('#newGroupDelegatedMsg').html('<?_("New delegation added correctly")?>');
+                                                $('#newGroupDelegatedMsg').html('<?= _("New delegation added correctly")?>');
                                                 //   $('#newGroupDelegationConfirmBtn').addClass('disabled');
 
                                                 /*    setTimeout(function()
@@ -2063,6 +2089,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                 var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-dashTitle');
 
                                 $('#delegationsDashId').val(dashboardId);
+                                $('#idDash_graph').val(dashboardId);
                                 $('#delegationsDashboardTitle').html(dashboardTitle);
                                 //
                                 timetrend();
@@ -2095,19 +2122,19 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     if ($(this).val().trim() === '')
                                     {
                                         $('#newOwnerMsg').css('color', '#f3cf58');
-                                        $('#newOwnerMsg').html('<? _("New owner username can\'t be empty")?>');
+                                        $('#newOwnerMsg').html('<?= _("New owner username can\'t be empty")?>');
                                         $('#newOwnershipConfirmBtn').addClass('disabled');
                                     } else
                                     {
                                         if (($(this).val().trim() === "<?= @$_SESSION['loggedUsername'] ? : '' ?>") && ("<?= @$_SESSION['loggedRole'] ?>" !== "RootAdmin"))
                                         {
                                             $('#newOwnerMsg').css('color', '#f3cf58');
-                                            $('#newOwnerMsg').html('<? _("New owner can\'t be you")?>');
+                                            $('#newOwnerMsg').html('<?= _("New owner can\'t be you")?>');
                                             $('#newOwnershipConfirmBtn').addClass('disabled');
                                         } else
                                         {
                                             $('#newOwnerMsg').css('color', 'white');
-                                            $('#newOwnerMsg').html('<? _("User can be new owner")?>');
+                                            $('#newOwnerMsg').html('<?= _("User can be new owner")?>');
                                             $('#newOwnershipConfirmBtn').removeClass('disabled');
                                         }
                                     }
@@ -2120,12 +2147,12 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     if ($(this).val().trim() === '')
                                     {
                                         $('#newDelegatedMsg').css('color', '#f3cf58');
-                                        $('#newDelegatedMsg').html('<? _("Delegated username can\'t be empty")?>');
+                                        $('#newDelegatedMsg').html('<?= _("Delegated username can\'t be empty")?>');
                                         $('#newDelegationConfirmBtn').addClass('disabled');
                                     } else
                                     {
                                         $('#newDelegatedMsg').css('color', 'white');
-                                        $('#newDelegatedMsg').html('<? _("User can be delegated")?>');
+                                        $('#newDelegatedMsg').html('<?= _("User can be delegated")?>');
                                         $('#newDelegationConfirmBtn').removeClass('disabled');
 
                                         $('#delegationsTable tbody tr').each(function (i)
@@ -2133,7 +2160,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                             if ($(this).attr('data-delegated').trim() === $('#newDelegation').val())
                                             {
                                                 $('#newDelegatedMsg').css('color', '#f3cf58');
-                                                $('#newDelegatedMsg').html('<? _("User already delegated")?>');
+                                                $('#newDelegatedMsg').html('<?= _("User already delegated")?>');
                                                 $('#newDelegationConfirmBtn').addClass('disabled');
                                             }
                                         });
@@ -2256,6 +2283,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                             var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-dashTitle');
 
                             $('#dashIdDelHidden').val(dashboardId);
+                            $('#idDash_graph').val(dashboardId);
                             $('#dashToDelName').html(dashboardTitle);
 
                             $('#dashToDelPic').css("background-image", "url(../img/dashScr/dashboard" + dashboardId + "/lastDashboardScr.png)");
@@ -2935,7 +2963,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                 error: function (data)
                 {
                     $('#newDelegatedMsgGroup').css('color', '#f3cf58');
-                    $('#newDelegatedMsgGroup').html('<? _("Error calling internal API")?>');
+                    $('#newDelegatedMsgGroup').html('<?= _("Error calling internal API")?>');
                 }
             });
         }
@@ -3002,16 +3030,16 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                 $('#inputTitleDashboard').on('input', function (e) {
                     if ($(this).val().trim() === '') {
                         $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Dashboard title can\'t be empty")?>');
+                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<?= _("Dashboard title can\'t be empty")?>');
                         $('#inputTitleDashboardStatus').val('empty');
                     } else if ($(this).val().includes('"') || $(this).val().includes("'")) {
                         $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Single or double quotes are not allowed in dashboard title.")?>');
+                        $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<?= _("Single or double quotes are not allowed in dashboard title.")?>');
                         $('#inputTitleDashboardStatus').val('alreadyUsed');
                     } else {
                         if ($(this).val().length > 300) {
                             $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Dashboard title can\'t be longer than 300 chars")?>');
+                            $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<?= _("Dashboard title can\'t be longer than 300 chars")?>');
                             $('#inputTitleDashboardStatus').val('tooLong');
                         } else {
                             var ok = true;
@@ -3029,11 +3057,11 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                             }
                             if (!ok) {
                                 $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', '#f3cf58');
-                                $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Dashboard title already in use")?>');
+                                $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<?= _("Dashboard title already in use")?>');
                                 $('#inputTitleDashboardStatus').val('alreadyUsed');
                             } else {
                                 $('#modalAddDashboardWizardTitleAlreadyUsedMsg').css('color', 'white');
-                                $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<? _("Dashboard title OK")?>');
+                                $('#modalAddDashboardWizardTitleAlreadyUsedMsg .centerWithFlex').html('<?= _("Dashboard title OK")?>');
                                 $('#inputTitleDashboardStatus').val('ok');
                             }
                         }
@@ -3054,7 +3082,113 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             });
 <?php endif; ?>
         //    }
-
+ $('#graphTab').click(function () {
+     //
+       
+     var graph_iframe = '';
+     //var url = 'https://www.snap4city.org/ldgraph/?sparql=http://virtuoso-kb:8890/sparql&uri=http://model.snap4city.org/Dashboard_2748_Bubble-Chart_Map_Test&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)"';
+     var LOGPath = '<?php echo($LOGPath) ?>';
+     var ldgraphPath = '<?php echo($ldgraphPath) ?>';
+     //var url = LOGPath+'2748_Bubble-Chart_Map_Test&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)"';
+     var myStr = $('#delegationsDashboardTitle').text();
+     var newStr = myStr.replaceAll(" ", "_");
+     var id_dash = '2748';
+     //
+     var dashboardId = $('#idDash_graph').val();
+     var url = LOGPath+''+dashboardId+'_'+newStr+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)"';
+     $('#linkGraphInspector').html('<a href="'+url+'" Target= "_blank" class="btn btn-primary" role="button" ><?= _("Link to Graph") ?></a>');
+    //
+    var example_graph = ldgraphPath+dashboardId+"_"+newStr+".json";
+     console.log(example_graph);
+     ////////
+     //listDataDashboard.php
+     
+      $.ajax({
+                async: true,
+                type: 'POST',
+                //url: url_parameters,
+                dataType: 'json',
+                url: 'listDataDashboard.php',
+                data: {
+                    service: example_graph
+                   // virtuoso: url
+                },
+                success: function (data) {
+                    console.log(data);
+                    if (data['message'] == 'error'){
+                        $('#hierarchy').html('<span>'+myStr+'<br /><ul><?= _("Not Found Hierarchy") ?></ul></span>');
+                    }else{
+                        //var data1 = data.data; 
+                    //var obj = JSON.parse(data1);
+                    //console.log(obj.data);
+                    var obj = data['data'];
+                    var desc = data['desc'];
+                    var cpunt = obj['widget-data'].length;
+                    var list = "";
+                    
+                    for (var i =0; i<cpunt; i++){
+                        var name = obj['widget-data'][i]['data'][0]['name'];
+                        var valueName = "";
+                        //valueName = name.split('/');
+                        var c = valueName.length;
+                        var vn = "";
+                        var root_link = "";
+                        var vn_link = "";
+                        //
+                        console.log(desc[i]['unique_name_id']);
+                        vn = desc[i]['unique_name_id']; 
+                        if (vn === ""){
+                              vn_link = "";
+                         }else{
+                             
+                              vn_link = "?valuename="+desc[i]['unique_name_id'];
+                              
+                              if (obj['widget-data'][i]['data'][0]['class'].indexOf("kpi") >= 0){
+                                vn_link = "?valuename="+desc[i]['unique_name_id']+"&type="+obj['widget-data'][i]['data'][0]['class'];
+                            }
+                         }
+                         //if my-kpi o poi
+                         var class1 = obj['widget-data'][i]['data'][0]['class'];
+                         if ((class1=='my-kpi')||(class1=='sensor')||(typeof vn === "undefined")){
+                            //name
+                            console.log('class1: '+class1);
+                            console.log('name: '+name);
+                            //
+                            var n1 = name.split("/");
+                            var l = n1.length;
+                            var n2 = n1[l-1];
+                            vn = n2;
+                            vn_link = "?valuename="+n2;
+                            //if (class1.indexOf("kpi") >= 0){
+                                vn_link = "?valuename="+n2+"&high-level-type="+class1;
+                           // }
+                         }
+                         //
+                         var text_link = obj['widget-data'][i]['data'][0]['name'];
+                         var text_link_count = text_link.length;
+                         if (text_link_count > 70){
+                             text_link = text_link.substring(0,67);
+                             text_link = text_link + '...';
+                         }
+                         
+                         if (vn_link == ""){
+                             root_link = "(root)";
+                         }
+                        //var log_link = 'https://www.snap4city.org/ldgraph/?sparql=http://virtuoso-kb:8890/sparql&uri='+data['data']['name']+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)';
+                        var LOGPath1 = LOGPath.replaceAll("http://model.snap4city.org/Dashboard_", "");
+                        var log_link = LOGPath1+obj['widget-data'][i]['data'][0]['name']+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)';
+                        console.log(log_link);
+                        list = list +'<li><b><?= _("Widget") ?>: </b>'+desc[i]['title_w']+' - <i>('+desc[i]['type_w']+')</i></li><li><b><?= _("Use Data") ?>: </b><ul><li><b>'+obj['widget-data'][i]['data'][0]['class']+':</b> '+vn+'</li><li><b><?= _("Query") ?>: </b><a href="'+obj['widget-data'][i]['data'][0]['name']+'" target="_blank" rel="tooltip" title="'+obj['widget-data'][i]['data'][0]['name']+'">'+text_link+'</a></li></li><li><a href="inspector.php'+vn_link+'" target="_blank" ><?= _("Link to Data Inspector") ?></a>  '+root_link+'</li><li><a href="'+log_link+'" Target= "_blank" ><?= _("Link to Graph log") ?></a></li></ul></li></br />';
+                    }
+                    $('#hierarchy').html('<span><b><?= _("Dashboard") ?>:   </b>'+myStr+'<br /><ul>'+list+'</ul></span>');
+                }
+                }
+            });
+            $('#trendmodal').hide();
+            $('#delegationsModalRightCnt').hide();
+            $('#delegationsModalLeftCnt').hide();
+            $('#graphmodal').show();
+ });
         //$('#delegateDashBtnCard').click(function() {
         $('#trendTab').click(function () {
             //
@@ -3150,6 +3284,10 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#trendmodal').show();
             $('#delegationsModalRightCnt').hide();
             $('#delegationsModalLeftCnt').hide();
+            $('#graphmodal').hide();
+            $('#list_metrics').empty();
+            $('#hierarchy').empty();
+            $('#graphTab').removeClass('active');
             //
             var del = $('#delegationsDashboardTitle').text();
             $('#trendDashboardTitle').text(del);
@@ -3167,6 +3305,10 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
         //Manage other tabs
         $('.dashboardWizardTabTxt').click(function () {
             $('#trendmodal').hide();
+            $('#graphmodal').hide();
+            $('#list_metrics').empty();
+            $('#hierarchy').empty();
+            $('#graphTab').removeClass('active');
             $('#delegationsModalRightCnt').show();
             $('#delegationsModalLeftCnt').show();
             $('#delegationsCancelBtn').css('margin-top','50px');
@@ -3178,6 +3320,9 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#container_accesses').empty();
             $('#container_minutes').empty();
             $('#trendmodal').hide();
+            $('#graphmodal').hide();
+            $('#hierarchy').empty();
+            $('#list_metrics').empty();
             $('#delegationsModalRightCnt').show();
             $('#delegationsModalLeftCnt').show();
             //togliere actiive
@@ -3186,6 +3331,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
              timetrend();
             $('#trendTab').removeClass('active');
             $('#ownershipTab').addClass('active');
+            $('#graphTab').removeClass('active');
             $('#delegationsCancelBtn').css('margin-top','50px');
             //
         });
@@ -3193,6 +3339,10 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#container_accesses').empty();
             $('#container_minutes').empty();
             $('#trendmodal').hide();
+            $('#graphmodal').hide();
+            $('#list_metrics').empty();
+            $('#hierarchy').empty();
+            $('#graphTab').removeClass('active');
             $('#delegationsModalRightCnt').show();
             $('#delegationsModalLeftCnt').show();
              //togliere actiive
@@ -3207,12 +3357,15 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
            $('#container_accesses').empty();
             $('#container_minutes').empty();
             $('#trendmodal').hide();
+            $('#graphmodal').hide();
+            $('#list_metrics').empty();
             $('#delegationsModalRightCnt').show();
             $('#delegationsModalLeftCnt').show();
              //togliere actiive
              $('#menu_1').val(' 1 YEAR ');
              $('#menu_2').val(' 1 YEAR ');
              timetrend();
+             $('#graphTab').removeClass('active');
             $('#trendTab').removeClass('active');
             $('#ownershipTab').addClass('active');
             $('#delegationsCancelBtn').css('margin-top','50px');

@@ -1,17 +1,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2021-06-22 14:34+0200\n"
-"PO-Revision-Date: 2021-07-28 17:11+0200\n"
+"POT-Creation-Date: 2021-07-07 11:27+0200\n"
+"PO-Revision-Date: 2021-07-07 11:27+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
-"Language: el_GR\n"
+"Language: es_ES\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.0\n"
 "X-Poedit-Basepath: ../../..\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-SearchPath-0: controllers\n"
 "X-Poedit-SearchPath-1: management\n"
 "X-Poedit-SearchPath-2: view\n"
@@ -21,43 +21,41 @@ msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:13
 msgid "Dashboard features"
-msgstr "Χαρακτηριστικά Dashboard"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:14
 msgid "Data and widgets"
-msgstr "Δεδομένα και Widgets"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:15
 msgid "Check and summary"
-msgstr "Έλεγχος και περίληψη"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:23
 #: management/addWidgetWizardInclusionCode2.php:23
 msgid "Dashboard title"
-msgstr "Τίτλος_ Dashboard"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:32
 #: management/addWidgetWizardInclusionCode2.php:32
 msgid "Dashboard title can't be empty"
-msgstr "Ο τίτλος του Dashboard δεν μπορεί να είναι κενός"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:39
 #: management/addWidgetWizardInclusionCode2.php:39
 msgid "Dashboard template"
-msgstr "Πρότυπο Dashboard"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:40
 #: management/addWidgetWizardInclusionCode2.php:40
 msgid "Click on a template to choose it, click on it again to unselect it"
 msgstr ""
-"Κάντε κλικ σε ένα πρότυπο για να το επιλέξετε, κάντε ξανά κλικ σε αυτό για "
-"να το καταργήσετε"
 
 #: management/addWidgetWizardInclusionCode.php:123
 #: management/addWidgetWizardInclusionCode.php:6594
 #: management/addWidgetWizardInclusionCode2.php:124
 msgid "You must choose one template"
-msgstr "Πρέπει να επιλέξετε ένα πρότυπο"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:134
 #: management/addWidgetWizardInclusionCode2.php:135
@@ -66,71 +64,71 @@ msgstr "Πρέπει να επιλέξετε ένα πρότυπο"
 #: management/dashboard_configdash.php:31615
 #: management/dashboard_configdash.php:32064
 msgid "Map"
-msgstr "Χάρτης"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:143
 #: management/addWidgetWizardInclusionCode2.php:144
 msgid "Single data widgets"
-msgstr "Widgets μεμονωμένων δεδομένων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:148
 #: management/addWidgetWizardInclusionCode2.php:149
 msgid "Multi data widgets"
-msgstr "Widgets πολλαπλών δεδομένων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:153
 msgid "Map Controls:"
-msgstr "Ρύθμιση Χάρτη:"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:157
 #: management/addWidgetWizardInclusionCode2.php:158
 msgid "FilterMap"
-msgstr "Φιλτράρισμα_Χάρτη:"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:159
 #: management/addWidgetWizardInclusionCode2.php:160
 msgid "GPSUser"
-msgstr "Χρήστης GPS"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:160
 #: management/addWidgetWizardInclusionCode2.php:161
 msgid "GPSOrg"
-msgstr "GPS του οργανισμού"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:170
 #: management/addWidgetWizardInclusionCode2.php:184
 msgid "Actuator options"
-msgstr "Επιλογές ενεργοποιητή"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:175
 #: management/addWidgetWizardInclusionCode2.php:189
 msgid "Existent or new target"
-msgstr "Υπάρχων ή νέος στόχος"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:179
 #: management/addWidgetWizardInclusionCode2.php:193
 msgid "Existent"
-msgstr "Υπάρχων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:180
 #: management/addWidgetWizardInclusionCode2.php:194
 msgid "New"
-msgstr "Νέο"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:187
 #: management/addWidgetWizardInclusionCode2.php:201
 msgid "New actuator target type"
-msgstr "Νέος τύπος στόχου ενεργοποιητή"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:191
 #: management/addWidgetWizardInclusionCode2.php:205
 msgid "IOT device on broker"
-msgstr "IOT Device στον Broker"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:201
 #: management/addWidgetWizardInclusionCode2.php:215
 msgid "Device name"
-msgstr "Όνομα Συσκευής"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:210
 #: management/addWidgetWizardInclusionCode.php:331
@@ -140,27 +138,27 @@ msgstr "Όνομα Συσκευής"
 #: management/dashboard_configdash.php:1185
 #: management/dashboard_configdash.php:1895
 msgid "Value type"
-msgstr "Τύπος Τιμής"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:221
 #: management/addWidgetWizardInclusionCode2.php:235
 msgid "Min/Base value"
-msgstr "Ελάχιστη Tιμή"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:230
 #: management/addWidgetWizardInclusionCode2.php:244
 msgid "Max/Impulse value"
-msgstr "Μέγιστη Tιμή"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:241
 #: management/addWidgetWizardInclusionCode2.php:255
 msgid "Data sources"
-msgstr "Πηγές δεδομένων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:244
 #: management/addWidgetWizardInclusionCode2.php:258
 msgid "No rows selected: please select some rows and try again."
-msgstr "Δεν έχουν επιλεγεί σειρές: επιλέξτε μερικές σειρές και δοκιμάστε ξανά."
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:262
 #: management/addWidgetWizardInclusionCode.php:287
@@ -169,20 +167,20 @@ msgstr "Δεν έχουν επιλεγεί σειρές: επιλέξτε μερ
 #: management/dashboard_configdash.php:2460 management/inspector.php:375
 #: management/inspector.php:380
 msgid "Instance URI"
-msgstr "URI Εγκατάστασης"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:263
 #: management/addWidgetWizardInclusionCode.php:294
 #: management/dashboard_configdash.php:2461 management/inspector.php:381
 msgid "Parameters"
-msgstr "Παράμετροι"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:264
 #: management/addWidgetWizardInclusionCode.php:295
 #: management/dashboard_configdash.php:2462 management/inspector.php:382
 #: management/iotApplications.php:196
 msgid "Id"
-msgstr "Id  Aναγνωριστική Τιμή "
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:282
 #: management/addWidgetWizardInclusionCode.php:368
@@ -190,7 +188,7 @@ msgstr "Id  Aναγνωριστική Τιμή "
 #: management/addWidgetWizardInclusionCode.php:2000
 #: management/dashboard_configdash.php:2450 management/inspector.php:370
 msgid "High-Level Type"
-msgstr "High-Level Type"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:283
 #: management/addWidgetWizardInclusionCode.php:329
@@ -199,7 +197,7 @@ msgstr "High-Level Type"
 #: management/dashboard_configdash.php:2451 management/inspector.php:371
 #: management/synopticTemplatesForm.php:132
 msgid "Nature"
-msgstr "Nature"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:284
 #: management/addWidgetWizardInclusionCode.php:330
@@ -208,7 +206,7 @@ msgstr "Nature"
 #: management/dashboard_configdash.php:2452 management/inspector.php:372
 #: management/synopticTemplatesForm.php:142
 msgid "Subnature"
-msgstr "Subnature"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:285
 #: management/addWidgetWizardInclusionCode.php:371
@@ -216,7 +214,7 @@ msgstr "Subnature"
 #: management/dashboard_configdash.php:2475 management/inspector.php:373
 #: management/inspector.php:395
 msgid "Value Type"
-msgstr "Τύπος Τιμής"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:286
 #: management/addWidgetWizardInclusionCode.php:372
@@ -224,25 +222,25 @@ msgstr "Τύπος Τιμής"
 #: management/dashboard_configdash.php:2476 management/inspector.php:374
 #: management/inspector.php:396
 msgid "Value Name"
-msgstr "Όνομα Τιμής"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:288
 #: management/addWidgetWizardInclusionCode.php:374
 #: management/dashboard_configdash.php:2456 management/inspector.php:376
 msgid "Data Type"
-msgstr "Τύπος Δεδομένων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:289
 #: management/addWidgetWizardInclusionCode.php:339
 #: management/addWidgetWizardInclusionCode.php:383
 msgid "Value Unit"
-msgstr "Μονάδα Μέτρησης Τιμής"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:290
 #: management/addWidgetWizardInclusionCode.php:375
 #: management/dashboard_configdash.php:2457 management/inspector.php:377
 msgid "Last Date"
-msgstr "Τελευταία ημερομηνία"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:291
 #: management/addWidgetWizardInclusionCode.php:376
@@ -250,20 +248,20 @@ msgstr "Τελευταία ημερομηνία"
 #: management/dashboard_configdash.php:2477 management/inspector.php:378
 #: management/inspector.php:397
 msgid "Last Value"
-msgstr "Τελευταία τιμή"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:292
 #: management/addWidgetWizardInclusionCode.php:336
 #: management/addWidgetWizardInclusionCode.php:377
 #: management/dashboard_configdash.php:2459 management/inspector.php:379
 msgid "Healthiness"
-msgstr "Κατάσταση_Συσκευής "
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:296
 #: management/addWidgetWizardInclusionCode.php:380
 #: management/dashboard_configdash.php:2463 management/inspector.php:383
 msgid "Last Check"
-msgstr "Τελευταίος έλεγχος"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:298
 #: management/addWidgetWizardInclusionCode.php:338
@@ -272,84 +270,84 @@ msgstr "Τελευταίος έλεγχος"
 #: management/inspector.php:385 management/iotApplications.php:272
 #: management/synopticTemplates.php:254 management/synoptics.php:271
 msgid "Ownership"
-msgstr "Ιδιοκτησία"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:303
 #: management/dashboards.php:410
 msgid "Organizations"
-msgstr "Οργανισμοί"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:304
 msgid "Latitude"
-msgstr "Γεωγραφικό πλάτος"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:305
 msgid "Longitude"
-msgstr "Γεωγραφικό μήκος"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:306
 msgid "sm_based"
-msgstr "sm_based"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:307
 msgid "ownerHash"
-msgstr "Κάτοχος_Hash"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:308
 msgid "delegatedHash"
-msgstr "EξουσιοδοτήμενοςHash"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:309
 msgid "delegatedGroupHash"
-msgstr "Εξουσιοδοτημένη_Ομάδα_Hash"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:322
 #: management/addWidgetWizardInclusionCode2.php:330
 msgid "Hide columns"
-msgstr "Απόκρυψη στηλών"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:328
 msgid "High level type"
-msgstr "High Level Type"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:332
 #: management/addWidgetWizardInclusionCode.php:1853
 #: management/addWidgetWizardInclusionCode.php:2000
 msgid "Value name"
-msgstr "Όνομα Τιμής"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:333
 #: management/addWidgetWizardInclusionCode.php:1853
 #: management/addWidgetWizardInclusionCode.php:2000
 msgid "Data type"
-msgstr "Τύπος Δεδομένων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:334
 msgid "Last date"
-msgstr "Τελευταία ημερομηνία"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:335
 msgid "Last value"
-msgstr "Τελευταία τιμή"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:337
 msgid "Last check"
-msgstr "Τελευταίος έλεγχος"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:347
 #: management/addWidgetWizardInclusionCode2.php:355
 msgid "Reset filters"
-msgstr "Επαναφορά φίλτρων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:351
 #: management/addWidgetWizardInclusionCode2.php:359
 msgid "Selected rows: 0"
-msgstr "Επιλεγμένες σειρές: 0"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:359
 #: management/addWidgetWizardInclusionCode2.php:368
 msgid "Choosen data sources"
-msgstr "Επιλεγμένες πηγές δεδομένων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:362
 #: management/addWidgetWizardInclusionCode2.php:371
@@ -357,93 +355,87 @@ msgid ""
 "Red rows are not compatible with choosen widget type and will not be "
 "instantiated"
 msgstr ""
-"Οι κόκκινες σειρές δεν είναι συμβατές με τον επιλεγμένο τύπο Widget και δεν "
-"θα δημιουργηθούν"
 
 #: management/addWidgetWizardInclusionCode.php:384
-#: management/dashboard_configdash.php:2478 management/dashboards.php:636
-#: management/dashboards.php:686 management/inspector.php:398
+#: management/dashboard_configdash.php:2478 management/dashboards.php:637
+#: management/dashboards.php:687 management/inspector.php:398
 #: management/synopticTemplates.php:350 management/synopticTemplates.php:400
 #: management/synoptics.php:394 management/synoptics.php:444
 msgid "Remove"
-msgstr "Αφαιρώ"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:409
 msgid "Summary"
-msgstr "Περίληψη"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:410
 msgid "A synthesis of your choices and what is going to be created"
-msgstr "Μια σύνθεση των επιλογών σας και τι πρόκειται να δημιουργηθεί"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:416
 msgid "Check"
-msgstr "Ελεγχος"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:417
 msgid "Alerts about possible missing or wrong input that deny instantiation"
 msgstr ""
-"Ειδοποιήσεις σχετικά με πιθανές ελλείπουσες ή λανθασμένες πληροφορίες που "
-"αρνούνται την οργάνωση"
 
 #: management/addWidgetWizardInclusionCode.php:423
 msgid "Instantiation"
-msgstr "Δημιουργία"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:424
 msgid "Button to proceed with items creation"
-msgstr "Κουμπί για να προχωρήσετε με τη δημιουργία αντικειμένων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:429
 msgid "Create dashboard/widgets"
-msgstr "Δημιουργία Dashboard/Widgets"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:432
 msgid ""
 "You can't proceed with items creation before fixing wrong or missing inputs"
 msgstr ""
-"Δεν μπορείτε να προχωρήσετε στη δημιουργία αντικειμένων προτού διορθώσετε "
-"λανθασμένες ή ελλιπείς καταχωρήσεις"
 
 #: management/addWidgetWizardInclusionCode.php:1393
 #: management/addWidgetWizardInclusionCode.php:1409
 msgid "Selection is OK"
-msgstr "Η επιλογή είναι εντάξει"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1400
 msgid "Some of the new actuator fields are not filled correctly"
-msgstr "Ορισμένα από τα νέα πεδία ενεργοποιητών δεν έχουν συμπληρωθεί σωστά"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1417
 msgid "You must select actuator target type"
-msgstr "Πρέπει να επιλέξετε τον τύπο προορισμού του ενεργοποιητή"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1428
 msgid "You must select one widget type"
-msgstr "Πρέπει να επιλέξετε έναν τύπο Widget"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1537
 #: management/addWidgetWizardInclusionCode.php:1683
 msgid "No dashboard template selected"
-msgstr "Δεν έχει επιλεγεί πρότυπο Dashboard"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1549
 #: management/addWidgetWizardInclusionCode.php:1592
 #: management/addWidgetWizardInclusionCode.php:1702
 #: management/addWidgetWizardInclusionCode.php:6605
 #: management/addWidgetWizardInclusionCode2.php:7389
-#: management/dashboards.php:3005
+#: management/dashboards.php:3032
 msgid "Dashboard title can\\'t be empty"
-msgstr "Ο τίτλος του Dashboard δεν μπορεί να είναι κενός"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1554
 #: management/addWidgetWizardInclusionCode.php:1597
 #: management/addWidgetWizardInclusionCode.php:1707
 #: management/addWidgetWizardInclusionCode.php:6610
 #: management/addWidgetWizardInclusionCode2.php:7394
-#: management/dashboards.php:3032
+#: management/dashboards.php:3059
 msgid "Dashboard title already in use"
-msgstr "Ο τίτλος του Dashboard χρησιμοποιείται ήδη"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1559
 #: management/addWidgetWizardInclusionCode.php:1602
@@ -451,18 +443,17 @@ msgstr "Ο τίτλος του Dashboard χρησιμοποιείται ήδη"
 #: management/addWidgetWizardInclusionCode.php:6615
 #: management/addWidgetWizardInclusionCode2.php:7399
 msgid "Dashboard title longer than 300 chars"
-msgstr "Ο τίτλος του Dashboard έχει περισσότερους από 300 χαρακτήρες"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1581
 #: management/addWidgetWizardInclusionCode.php:1691
 msgid "No widget type selected"
-msgstr "Δεν επιλέχθηκε τύπος Widget"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1612
 #: management/addWidgetWizardInclusionCode.php:1721
 msgid "You have to select at least one row from data sources table"
 msgstr ""
-"Πρέπει να επιλέξετε τουλάχιστον μία σειρά από τον πίνακα προέλευσης δεδομένων"
 
 #: management/addWidgetWizardInclusionCode.php:1620
 #: management/addWidgetWizardInclusionCode.php:1658
@@ -470,7 +461,6 @@ msgstr ""
 #: management/addWidgetWizardInclusionCode.php:1767
 msgid "You can\\'t select rows from both IOT Apps and broker"
 msgstr ""
-"Δεν μπορείτε να επιλέξετε σειρές τόσο από τις IoT Apps όσο και από τον Broker"
 
 #: management/addWidgetWizardInclusionCode.php:1627
 #: management/addWidgetWizardInclusionCode.php:1665
@@ -479,65 +469,59 @@ msgstr ""
 msgid ""
 "Some fields for new device creation on broker are empty or wrongly filled"
 msgstr ""
-"Ορισμένα πεδία για τη δημιουργία νέας συσκευής στον Broker είναι κενά ή δεν "
-"έχουν συμπληρωθεί σωστά"
 
 #: management/addWidgetWizardInclusionCode.php:1650
 #: management/addWidgetWizardInclusionCode.php:1759
 msgid "You have to select at least one row"
-msgstr "Πρέπει να επιλέξετε τουλάχιστον μία σειρά"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1813
 msgid "Dashboard template and title"
-msgstr "Πρότυπο και Tίτλος Dashboard"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1829
 #: management/addWidgetWizardInclusionCode.php:3249
 msgid "Details"
-msgstr "Λεπτομέρειες"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1830
 msgid ""
 "A fully custom dashboard is created empty, so no widget details are available"
 msgstr ""
-"Ένας πλήρως προσαρμοσμένο Dashboard δημιουργείται κενό, οπότε δεν υπάρχουν "
-"διαθέσιμες λεπτομέρειες για τα Widgets"
 
 #: management/addWidgetWizardInclusionCode.php:1843
 #: management/addWidgetWizardInclusionCode.php:1906
 #: management/addWidgetWizardInclusionCode.php:1981
 msgid "Widget type details"
-msgstr "Λεπτομέρειες για τον τύπο Widget"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1851
 #: management/addWidgetWizardInclusionCode.php:1919
 #: management/addWidgetWizardInclusionCode.php:2018
 msgid "Instances details"
-msgstr "Λεπτομέρειες Εγκαταστάσεων"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1853
 msgid "Widget"
-msgstr "Widget"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1894
 msgid "Main widget(s) and relative data"
-msgstr "Κύρια Widgets και σχετικά δεδομένα"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1920
 msgid ""
 "One new device entity will be created on context broker and linked to new "
 "actuator on dashboard"
 msgstr ""
-"Μια νέα οντότητα συσκευής θα δημιουργηθεί στον Broker και θα συνδεθεί με νέο "
-"ενεργοποιητή στο Dashboard"
 
 #: management/addWidgetWizardInclusionCode.php:1925
 msgid "Device details"
-msgstr "Λεπτομέρειες Συσκευής"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1968
 msgid "Instantiation instructions"
-msgstr "Οδηγίες Εγκατάστασης "
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid ""
@@ -546,57 +530,45 @@ msgid ""
 "task, please follow this flow: 1) Open NodeRED flow designer of a personal "
 "app of your choice"
 msgstr ""
-"Προς το παρόν, δεν είναι δυνατό να δημιουργηθεί ένας νέος ενεργοποιητής και "
-"το μπλοκ του σε μια προσωπική ΙοΤ εφαρμογή. Για να ολοκληρώσετε αυτήν την "
-"εργασία, ακολουθήστε αυτήν τη ροή: 1) Ανοίξτε το σχεδιαστή ροής NodeRED μιας "
-"προσωπικής εφαρμογής της επιλογής σας"
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid ""
 " 2) Add a new actuator block (geolocator, dimer, impulsive button, switch, "
 "keyboard)"
 msgstr ""
-" 2) Προσθέστε ένα νέο μπλοκ ενεργοποιητή (geolocator, dimer, impulsive "
-"button, switch, keyboard)"
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid ""
 "3) Choose the dashboard where you want it to be (or create a new one) via "
 "block edit menu"
 msgstr ""
-"3) Επιλέξτε το Dashboard στο οποίο θέλετε να είναι (ή δημιουργήστε έναν νέο) "
-"μέσω του μενού επεξεργασίας μπλοκ"
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid "4) Deploy your application"
-msgstr "4) Αναπτύξτε την εφαρμογή σας"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid ""
 "5) Open (or refresh) your dashboard of choice: actuator widget will be "
 "automatically be instantiated"
 msgstr ""
-"5) Ανοίξτε (ή ανανεώστε) το Dashboard της επιλογής σας: το Widget του "
-"ενεργοποιητή θα δημιουργηθεί αυτόματα"
 
 #: management/addWidgetWizardInclusionCode.php:1998
 msgid "Main widget and relative data"
-msgstr "Κύριο Widget και σχετικά δεδομένα"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:2046
 msgid "Can proceed"
-msgstr "Μπορεί να προχωρήσει"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:2050
 msgid "Summary is not available until you fix missing or wrong inputs"
 msgstr ""
-"Η σύνοψη δεν είναι διαθέσιμη έως ότου διορθώσετε τις ελλείπουσες ή "
-"λανθασμένες εισόδους"
 
 #: management/addWidgetWizardInclusionCode.php:3249
 #: management/addWidgetWizardInclusionCode2.php:3208
 msgid "RT data"
-msgstr "RT δεδομένα"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:3256
 #: management/addWidgetWizardInclusionCode2.php:3208
@@ -611,120 +583,116 @@ msgstr "RT δεδομένα"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Description"
-msgstr "Περιγραφή"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:3257
 #: management/addWidgetWizardInclusionCode2.php:3216
 #: management/synopticsForm.php:245 management/synopticsMappingForm.php:245
 msgid "Value"
-msgstr "Τιμή"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:3327
 msgid "Last update"
-msgstr "Τελευταία ενημέρωση"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:6432
 msgid "Template choosen OK"
-msgstr "Το πρότυπο επιλέχθηκε"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:6710
 #: management/addWidgetWizardInclusionCode.php:6715
 #: management/addWidgetWizardInclusionCode.php:6721
 msgid "Error during dashboard creation, please try again"
-msgstr "Σφάλμα κατά τη διαγραφή του Dashboard, δοκιμάστε ξανά"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode2.php:154
 msgid "Map Controls"
-msgstr "Έλεγχος Χάρτη"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode2.php:165
 msgid "Now displaying in Standard Mode"
-msgstr "Εμφάνιση σε Standard Mode"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode2.php:166
 msgid ""
 "Switch to the Synoptic Mode to select MyKPIs and sensors that you need for "
 "your synoptics."
 msgstr ""
-"Μεταβείτε σε συνοπτική λειτουργία  για να επιλέξετε τα MyKPI και τους "
-"αισθητήρες  που χρειάζεστε για τα Synoptics σας."
 
 #: management/addWidgetWizardInclusionCode2.php:167
 msgid "Switch now to the Synoptic Mode"
-msgstr "Μετάβαση  σε συνοπτική λειτουργία"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode2.php:171
 msgid "Now displaying in Synoptic Mode"
-msgstr "Εμφάνιση σε Συνοπτική Λειτουργία "
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode2.php:172
 msgid ""
 "Switch back to the Standard Mode to return making the traditional use of the "
 "Data Inspector."
 msgstr ""
-"Αλλαγή σε  Κανονική Λειτουργία  για να επιστρέψετε στην κλασσική χρήση του "
-"Data Inspector."
 
 #: management/addWidgetWizardInclusionCode2.php:173
 msgid "Switch now to the Standard Mode"
-msgstr "Μετάβαση σε  Κανονική Λειτουργία"
+msgstr ""
 
 #: management/addWidgetWizardInclusionCode2.php:414
 #: management/dashboard_configdash.php:411
 #: management/synopticTemplatesForm.php:168 management/synopticsForm.php:173
 #: management/synopticsMappingForm.php:174
 msgid "Save"
-msgstr "Αποθήκευση"
+msgstr ""
 
 #: management/dashboard_configdash.php:375 management/iotApplications.php:270
 msgid "Properties"
-msgstr "Ιδιότητες"
+msgstr ""
 
 #: management/dashboard_configdash.php:381
 #: management/dashboard_configdash.php:1105
 msgid "Wizard"
-msgstr "Οδηγός"
+msgstr ""
 
 #: management/dashboard_configdash.php:387
 msgid "Add widget"
-msgstr "Προσθήκη Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:393
 msgid "Separator"
-msgstr "Διαχωριστής"
+msgstr ""
 
 #: management/dashboard_configdash.php:399
 msgid "Embedding"
-msgstr "Ενσωμάτωση"
+msgstr ""
 
 #: management/dashboard_configdash.php:405
 msgid "Screenshot"
-msgstr "Στιγμιότυπο οθόνης"
+msgstr ""
 
 #: management/dashboard_configdash.php:417
 msgid "Preview"
-msgstr "Προεπισκόπηση"
+msgstr ""
 
 #: management/dashboard_configdash.php:433
 #: management/dashboard_configdash.php:2127 widgets/widgetCtxMenu.php:58
 msgid "Header color"
-msgstr "Χρώμα κεφαλίδας"
+msgstr ""
 
 #: management/dashboard_configdash.php:437 widgets/widgetCtxMenu.php:111
 msgid "Title color"
-msgstr "Χρώμα τίτλου"
+msgstr ""
 
 #: management/dashboard_configdash.php:441
 msgid "Widgets area color"
-msgstr "Χρώμα περιοχής Widgets"
+msgstr ""
 
 #: management/dashboard_configdash.php:445
 msgid "External area color"
-msgstr "Χρώμα εξωτερικής περιοχής"
+msgstr ""
 
 #: management/dashboard_configdash.php:449
 msgid "Background darkness"
-msgstr "Σκίαση φόντου"
+msgstr ""
 
 #: management/dashboard_configdash.php:807
 #: management/dashboard_configdash.php:850
@@ -737,7 +705,7 @@ msgstr "Σκίαση φόντου"
 #: widgets/widgetCtxMenu.php:485 widgets/widgetCtxMenu.php:514
 #: widgets/widgetCtxMenu.php:553
 msgid "Quit"
-msgstr "Διακοπή"
+msgstr ""
 
 #: management/dashboard_configdash.php:817
 #: management/dashboard_configdash.php:866
@@ -746,7 +714,7 @@ msgstr "Διακοπή"
 #: widgets/widgetCtxMenu.php:115 widgets/widgetCtxMenu.php:168
 #: widgets/widgetCtxMenu.php:221
 msgid "Palette"
-msgstr "Παλέτα"
+msgstr ""
 
 #: management/dashboard_configdash.php:840
 #: management/dashboard_configdash.php:889
@@ -757,7 +725,7 @@ msgstr "Παλέτα"
 #: widgets/widgetCtxMenu.php:350 widgets/widgetCtxMenu.php:403
 #: widgets/widgetCtxMenu.php:475
 msgid "Last used"
-msgstr "Τελευταία χρήση"
+msgstr ""
 
 #: management/dashboard_configdash.php:853
 #: management/dashboard_configdash.php:902
@@ -768,7 +736,7 @@ msgstr "Τελευταία χρήση"
 #: widgets/widgetCtxMenu.php:363 widgets/widgetCtxMenu.php:416
 #: widgets/widgetCtxMenu.php:488 widgets/widgetCtxMenu.php:517
 msgid "Undo"
-msgstr "Αναίρεση"
+msgstr ""
 
 #: management/dashboard_configdash.php:856
 #: management/dashboard_configdash.php:905
@@ -781,89 +749,89 @@ msgstr "Αναίρεση"
 #: widgets/widgetCtxMenu.php:419 widgets/widgetCtxMenu.php:452
 #: widgets/widgetCtxMenu.php:491 widgets/widgetCtxMenu.php:520
 msgid "Apply"
-msgstr "Εφαρμογή"
+msgstr ""
 
 #: management/dashboard_configdash.php:1011
 msgid "Darkness"
-msgstr "Σκίαση"
+msgstr ""
 
 #: management/dashboard_configdash.php:1115 management/dashboards.php:447
 msgid "Prev"
-msgstr "Προηγούμενο"
+msgstr ""
 
 #: management/dashboard_configdash.php:1116 management/dashboards.php:448
-#: management/dashboards.php:718 management/dashboards.php:735
+#: management/dashboards.php:719 management/dashboards.php:736
 msgid "Next"
-msgstr "Επόμενο"
+msgstr ""
 
 #: management/dashboard_configdash.php:1119 management/dashboards.php:451
-#: management/dashboards.php:749 management/dashboards.php:810
+#: management/dashboards.php:773 management/dashboards.php:834
 #: management/inspector.php:615 management/inspector.php:651
 #: management/iotApplications.php:349 management/synopticTemplates.php:416
 #: management/synoptics.php:478
 msgid "Close"
-msgstr "Κλείσιμο"
+msgstr ""
 
 #: management/dashboard_configdash.php:1133
 msgid "Add new widget to dashboard"
-msgstr "Προσθέστε νέο Widget στο Dashboard"
+msgstr ""
 
 #: management/dashboard_configdash.php:1138
 #: management/dashboard_configdash.php:1869
 msgid "Metric and widget choice"
-msgstr "Επιλογή μετρικής και Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:1141
 #: management/dashboard_configdash.php:1872
 msgid "Widget category"
-msgstr "Κατηγορία Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:1146
 msgid "Actuator"
-msgstr "Ενεργοποιητής"
+msgstr ""
 
 #: management/dashboard_configdash.php:1147
 msgid "Data viewer"
-msgstr "Πρόγραμμα προβολής δεδομένων"
+msgstr ""
 
 #: management/dashboard_configdash.php:1154
 msgid "Metrics category"
-msgstr "Κατηγορία μετρικών"
+msgstr ""
 
 #: management/dashboard_configdash.php:1159
 msgid "Personal metrics"
-msgstr "Προσωπικές μετρικές"
+msgstr ""
 
 #: management/dashboard_configdash.php:1160
 msgid "Shared metrics"
-msgstr "Κοινόχρηστες μετρικές"
+msgstr ""
 
 #: management/dashboard_configdash.php:1167
 #: management/dashboard_configdash.php:1880
 msgid "Actuator target"
-msgstr "Στόχος ενεργοποιητή"
+msgstr ""
 
 #: management/dashboard_configdash.php:1170
 msgid "Personal apps"
-msgstr "Προσωπικές εφαρμογές"
+msgstr ""
 
 #: management/dashboard_configdash.php:1171
 msgid "Context broker"
-msgstr "Context Broker"
+msgstr ""
 
 #: management/dashboard_configdash.php:1178
 msgid "Inputs from personal apps"
-msgstr "Εισροές από προσωπικές εφαρμογές"
+msgstr ""
 
 #: management/dashboard_configdash.php:1192
 #: management/dashboard_configdash.php:1901
 msgid "Start value"
-msgstr "Τιμή έναρξης"
+msgstr ""
 
 #: management/dashboard_configdash.php:1200
 #: management/dashboard_configdash.php:1907
 msgid "Domain type"
-msgstr "Τύπος τομέα"
+msgstr ""
 
 #: management/dashboard_configdash.php:1207
 #: management/dashboard_configdash.php:1914
@@ -871,7 +839,7 @@ msgstr "Τύπος τομέα"
 #: management/dashboard_configdash.php:18758
 #: management/dashboard_configdash.php:19737
 msgid "Min value"
-msgstr "Ελάχιστη τιμή"
+msgstr ""
 
 #: management/dashboard_configdash.php:1214
 #: management/dashboard_configdash.php:1921
@@ -879,21 +847,21 @@ msgstr "Ελάχιστη τιμή"
 #: management/dashboard_configdash.php:18766
 #: management/dashboard_configdash.php:19745
 msgid "Max value"
-msgstr "Μέγιστη τιμή"
+msgstr ""
 
 #: management/dashboard_configdash.php:1221
 #: management/dashboard_configdash.php:1928
 #: management/dashboard_configdash.php:7122
 #: management/dashboard_configdash.php:19408
 msgid "Off value"
-msgstr "Τιμή εκτός λειτουργίας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1228
 #: management/dashboard_configdash.php:1935
 #: management/dashboard_configdash.php:7129
 #: management/dashboard_configdash.php:19415
 msgid "On value"
-msgstr "Τιμή εν ενεργεία"
+msgstr ""
 
 #: management/dashboard_configdash.php:1235
 #: management/dashboard_configdash.php:1305
@@ -903,17 +871,17 @@ msgstr "Τιμή εν ενεργεία"
 #: management/dashboard_configdash.php:1995
 #: management/dashboard_configdash.php:2017
 msgid "Widget type"
-msgstr "Τύπος Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:1246
 #: management/dashboard_configdash.php:1960
 msgid "Entity type"
-msgstr "Τύπος οντότητας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1255
 #: management/dashboard_configdash.php:1967
 msgid "Entity description"
-msgstr "Περιγραφή οντότητας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1264
 #: management/dashboard_configdash.php:1974
@@ -921,86 +889,86 @@ msgstr "Περιγραφή οντότητας"
 #: management/dashboard_configdash.php:8412
 #: management/dashboard_configdash.php:20227
 msgid "Attribute name"
-msgstr "Όνομα χαρακτηριστικού"
+msgstr ""
 
 #: management/dashboard_configdash.php:1273
 #: management/dashboard_configdash.php:1981
 msgid "Attribute description"
-msgstr "Περιγραφή χαρακτηριστικού"
+msgstr ""
 
 #: management/dashboard_configdash.php:1282
 #: management/dashboard_configdash.php:1988
 msgid "Attribute type"
-msgstr "Τύπος χαρακτηριστικού"
+msgstr ""
 
 #: management/dashboard_configdash.php:1287
 msgid "Integer"
-msgstr "Integer"
+msgstr ""
 
 #: management/dashboard_configdash.php:1288
 msgid "Float"
-msgstr "Float"
+msgstr ""
 
 #: management/dashboard_configdash.php:1289
 msgid "String"
-msgstr "String"
+msgstr ""
 
 #: management/dashboard_configdash.php:1290
 msgid "Boolean"
-msgstr "Boolean"
+msgstr ""
 
 #: management/dashboard_configdash.php:1296
 msgid "Attribute initial value"
-msgstr "Αρχική τιμή χαρακτηριστικού"
+msgstr ""
 
 #: management/dashboard_configdash.php:1316
 #: management/dashboard_configdash.php:1360
 #: management/dashboard_configdash.php:2005
 msgid "Metric"
-msgstr "Μετρική"
+msgstr ""
 
 #: management/dashboard_configdash.php:1324
 #: management/dashboard_configdash.php:1368
 #: management/dashboard_configdash.php:2046
 msgid "Metric description"
-msgstr "Περιγραφή Μετρικής"
+msgstr ""
 
 #: management/dashboard_configdash.php:1331
 #: management/dashboard_configdash.php:1375
 #: management/dashboard_configdash.php:2026
 msgid "Context"
-msgstr "Συμφραζόμενα"
+msgstr ""
 
 #: management/dashboard_configdash.php:1352
 #: management/dashboard_configdash.php:1396
 #: management/dashboard_configdash.php:2040
 msgid "Widget link"
-msgstr "Σύνδεσμος Widget "
+msgstr ""
 
 #: management/dashboard_configdash.php:1403
 #: management/dashboard_configdash.php:2052
 msgid "Scheduler"
-msgstr "Scheduler"
+msgstr ""
 
 #: management/dashboard_configdash.php:1411
 #: management/dashboard_configdash.php:2060
 msgid "Jobs areas"
-msgstr "Περιοχές εργασιών"
+msgstr ""
 
 #: management/dashboard_configdash.php:1420
 #: management/dashboard_configdash.php:2068
 msgid "Jobs groups"
-msgstr "Ομάδες εργασιών"
+msgstr ""
 
 #: management/dashboard_configdash.php:1429
 #: management/dashboard_configdash.php:2076
 msgid "Jobs names"
-msgstr "Ονόματα εργασιών"
+msgstr ""
 
 #: management/dashboard_configdash.php:1451
 #: management/dashboard_configdash.php:2098
 msgid "Generic widget properties"
-msgstr "Γενικές ιδιότητες Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:1454
 #: management/dashboard_configdash.php:2101
@@ -1009,35 +977,35 @@ msgstr "Γενικές ιδιότητες Widget"
 #: management/microApplications.php:212 management/synopticTemplates.php:219
 #: management/synoptics.php:236
 msgid "Title"
-msgstr "Τίτλος"
+msgstr ""
 
 #: management/dashboard_configdash.php:1459
 #: management/dashboard_configdash.php:32024 widgets/widgetCtxMenu.php:164
 msgid "Background color"
-msgstr "Χρώμα φόντου"
+msgstr ""
 
 #: management/dashboard_configdash.php:1468
 msgid "Content"
-msgstr "Περιεχόμενο"
+msgstr ""
 
 #: management/dashboard_configdash.php:1468
 msgid "font size"
-msgstr "μέγεθος γραμματοσειράς"
+msgstr ""
 
 #: management/dashboard_configdash.php:1473
 #: management/dashboard_configdash.php:2118
 msgid "Content font color"
-msgstr "Χρώμα γραμματοσειράς περιεχομένου"
+msgstr ""
 
 #: management/dashboard_configdash.php:1489
 #: management/dashboard_configdash.php:2134
 msgid "Header text color"
-msgstr "Χρώμα κειμένου κεφαλίδας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1498
 #: management/dashboard_configdash.php:2143
 msgid "Period"
-msgstr "Περίοδος"
+msgstr ""
 
 #: management/dashboard_configdash.php:1501
 #: management/dashboard_configdash.php:1550
@@ -1094,94 +1062,94 @@ msgstr "Περίοδος"
 #: management/dashboard_configdash.php:32121
 #: management/dashboard_configdash.php:32131
 msgid "No"
-msgstr "Αριθμός"
+msgstr ""
 
 #: management/dashboard_configdash.php:1502
 #: management/dashboard_configdash.php:2147
 msgid "4 Hours"
-msgstr "4 Ώρες"
+msgstr ""
 
 #: management/dashboard_configdash.php:1503
 #: management/dashboard_configdash.php:2148
 msgid "12 Hours"
-msgstr "12 Ώρες"
+msgstr ""
 
 #: management/dashboard_configdash.php:1504
 #: management/dashboard_configdash.php:2149
 msgid "Day"
-msgstr "Ημέρα"
+msgstr ""
 
 #: management/dashboard_configdash.php:1505
 #: management/dashboard_configdash.php:2150
 msgid "Week"
-msgstr "Εβδομάδα"
+msgstr ""
 
 #: management/dashboard_configdash.php:1506
 #: management/dashboard_configdash.php:2151
 msgid "Month"
-msgstr "Μήνας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1507
 #: management/dashboard_configdash.php:2152
 msgid "6 Months"
-msgstr "6 Μήνες"
+msgstr ""
 
 #: management/dashboard_configdash.php:1508
 #: management/dashboard_configdash.php:2153
 msgid "Year"
-msgstr "Χρόνος"
+msgstr ""
 
 #: management/dashboard_configdash.php:1509
 #: management/dashboard_configdash.php:2154
 msgid "2 Years"
-msgstr "2 Χρόνια"
+msgstr ""
 
 #: management/dashboard_configdash.php:1510
 #: management/dashboard_configdash.php:2155
 msgid "10 Years"
-msgstr "10 Χρόνια"
+msgstr ""
 
 #: management/dashboard_configdash.php:1513
 #: management/dashboard_configdash.php:2158
 msgid "Refresh rate (s)"
-msgstr "Refresh rate (s)"
+msgstr ""
 
 #: management/dashboard_configdash.php:1520
 #: management/dashboard_configdash.php:2164
 msgid "Height"
-msgstr "Ύψος"
+msgstr ""
 
 #: management/dashboard_configdash.php:1525
 #: management/dashboard_configdash.php:2169
 msgid "Width"
-msgstr "Πλάτος"
+msgstr ""
 
 #: management/dashboard_configdash.php:1532
 #: management/dashboard_configdash.php:2176
 msgid "U/M"
-msgstr "U / Μ"
+msgstr ""
 
 #: management/dashboard_configdash.php:1537
 #: management/dashboard_configdash.php:2181
 msgid "U/M position"
-msgstr "Θέση U / M"
+msgstr ""
 
 #: management/dashboard_configdash.php:1540
 #: management/dashboard_configdash.php:2184
 msgid "Next to value"
-msgstr "Δίπλα στην τιμή"
+msgstr ""
 
 #: management/dashboard_configdash.php:1541
 #: management/dashboard_configdash.php:2185
 msgid "Below value"
-msgstr "Παρακάτω τιμή"
+msgstr ""
 
 #: management/dashboard_configdash.php:1546
 #: management/dashboard_configdash.php:1655
 #: management/dashboard_configdash.php:2190
 #: management/dashboard_configdash.php:2267
 msgid "Show header"
-msgstr "Εμφάνιση κεφαλίδας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1549
 #: management/dashboard_configdash.php:2193
@@ -1234,17 +1202,17 @@ msgstr "Εμφάνιση κεφαλίδας"
 #: management/dashboard_configdash.php:32120
 #: management/dashboard_configdash.php:32130
 msgid "Yes"
-msgstr "Ναι"
+msgstr ""
 
 #: management/dashboard_configdash.php:1553
 #: management/dashboard_configdash.php:2198
 msgid "Font type (autosuggestion)"
-msgstr "Τύπος γραμματοσειράς (αυτόματη πρόταση)"
+msgstr ""
 
 #: management/dashboard_configdash.php:1562
 #: management/dashboard_configdash.php:2207
 msgid "Specific widget properties"
-msgstr "Συγκεκριμένες ιδιότητες Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:1578
 #: management/dashboard_configdash.php:1713
@@ -1252,9 +1220,9 @@ msgstr "Συγκεκριμένες ιδιότητες Widget"
 #: management/dashboard_configdash.php:2228
 #: management/dashboard_configdash.php:2337
 #: management/dashboard_configdash.php:2401 management/dashboards.php:519
-#: management/dashboards.php:569 management/dashboards.php:597
-#: management/dashboards.php:621 management/dashboards.php:665
-#: management/dashboards.php:811 management/inspector.php:616
+#: management/dashboards.php:570 management/dashboards.php:598
+#: management/dashboards.php:622 management/dashboards.php:666
+#: management/dashboards.php:835 management/inspector.php:616
 #: management/inspector.php:652 management/inspector.php:754
 #: management/inspector.php:1712 management/inspector.php:1733
 #: management/iotApplications.php:254 management/iotApplications.php:286
@@ -1267,7 +1235,7 @@ msgstr "Συγκεκριμένες ιδιότητες Widget"
 #: management/synopticsMappingForm.php:226
 #: management/synopticsMappingForm.php:262 view/index.php:2398
 msgid "Confirm"
-msgstr "Επιβεβαιώνω"
+msgstr ""
 
 #: management/dashboard_configdash.php:1579
 #: management/dashboard_configdash.php:1712
@@ -1275,290 +1243,283 @@ msgstr "Επιβεβαιώνω"
 #: management/dashboard_configdash.php:2229
 #: management/dashboard_configdash.php:2336
 #: management/dashboard_configdash.php:2400 management/dashboards.php:518
-#: management/dashboards.php:862 management/iotApplications.php:253
+#: management/dashboards.php:886 management/iotApplications.php:253
 #: management/synopticTemplates.php:462 management/synoptics.php:524
 #: management/synopticsForm.php:225 management/synopticsForm.php:261
 #: management/synopticsMappingForm.php:225
 #: management/synopticsMappingForm.php:261 view/index.php:2397
 msgid "Cancel"
-msgstr "Ακύρωση"
+msgstr ""
 
 #: management/dashboard_configdash.php:1594
 msgid "Dashboard properties"
-msgstr "Ιδιότητες Dashboard"
+msgstr ""
 
 #: management/dashboard_configdash.php:1598
 msgid "Measures"
-msgstr "Μέτρα"
+msgstr ""
 
 #: management/dashboard_configdash.php:1599
 msgid "Header"
-msgstr "Κεφαλίδα"
+msgstr ""
 
 #: management/dashboard_configdash.php:1600
 msgid "Background"
-msgstr "Φόντο"
+msgstr ""
 
 #: management/dashboard_configdash.php:1609
 msgid "Responsive"
-msgstr "Ανταποκρίνεται"
+msgstr ""
 
 #: management/dashboard_configdash.php:1618
 msgid "Dashboard width (cells)"
-msgstr "Πλάτος Dashboard (κελιά)"
+msgstr ""
 
 #: management/dashboard_configdash.php:1664
 msgid "Header logo"
-msgstr "Λογότυπο κεφαλίδας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1674
 msgid "Header logo link"
-msgstr "Link λογότυπου κεφαλίδας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1687
 msgid "Use image"
-msgstr "Χρήση Εικόνας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1695
 msgid "Upload new image"
-msgstr "Ανέβασμα νέας εικόνας"
+msgstr ""
 
 #: management/dashboard_configdash.php:1728
 msgid "Dashboard screenshot"
-msgstr "Στιγμιότυπο οθόνης Dashboard"
+msgstr ""
 
 #: management/dashboard_configdash.php:1734
 msgid "1) Open the dashboard in view mode"
-msgstr "1) Ανοίξτε το Dashboard σε λειτουργία προβολής"
+msgstr ""
 
 #: management/dashboard_configdash.php:1735
 msgid "2) Take a snapshot (e.g. with STAMP or with specific tools)"
-msgstr "2) Τραβήξτε ένα στιγμιότυπο (π.χ. με STAMP ή με συγκεκριμένα εργαλεία)"
+msgstr ""
 
 #: management/dashboard_configdash.php:1736
 msgid "3) Save it in your mass memory"
-msgstr "3) Αποθηκεύστε το στη μνήμη"
+msgstr ""
 
 #: management/dashboard_configdash.php:1737
 msgid "4) Upload it from the following input"
-msgstr "4) Ανεβάστε το από την ακόλουθη είσοδο"
+msgstr ""
 
 #: management/dashboard_configdash.php:1765 view/index.php:2409
 msgid "External content"
-msgstr "Εξωτερικό περιεχόμενο"
+msgstr ""
 
 #: management/dashboard_configdash.php:1782 view/index.php:2426
 msgid "evacuation plan status management"
-msgstr "διαχείριση κατάστασης σχεδίου εκκένωσης"
+msgstr ""
 
 #: management/dashboard_configdash.php:1787 view/index.php:2431
 msgid "plan identifier"
-msgstr "αναγνωριστικό σχεδίου"
+msgstr ""
 
 #: management/dashboard_configdash.php:1790 view/index.php:2434
 msgid "current approval status"
-msgstr "τρέχουσα κατάσταση έγκρισης"
+msgstr ""
 
 #: management/dashboard_configdash.php:1800 view/index.php:2444
 msgid "new approval status"
-msgstr "νέα κατάσταση έγκρισης"
+msgstr ""
 
 #: management/dashboard_configdash.php:1812 view/index.php:2456
 msgid "updating status, please wait"
-msgstr "ενημέρωση κατάστασης, παρακαλώ περιμένετε"
+msgstr ""
 
 #: management/dashboard_configdash.php:1824 view/index.php:2468
 msgid "status successfully updated"
-msgstr "η κατάσταση ενημερώθηκε με επιτυχία"
+msgstr ""
 
 #: management/dashboard_configdash.php:1836 view/index.php:2480
 msgid "error while trying to send new status to server, please try again"
 msgstr ""
-"σφάλμα κατά την προσπάθεια αποστολής νέας κατάστασης στο διακομιστή, "
-"παρακαλώ δοκιμάστε ξανά"
 
 #: management/dashboard_configdash.php:1850 view/index.php:2494
 msgid "cancel"
-msgstr "Ακύρωση"
+msgstr ""
 
 #: management/dashboard_configdash.php:1851 view/index.php:2495
 msgid "confirm"
-msgstr "Επιβεβαίωση"
+msgstr ""
 
 #: management/dashboard_configdash.php:1863
 msgid "Modify widget"
-msgstr "Τροποποίηση Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:1889
 msgid "Input from personal apps"
-msgstr "Εισαγωγή από προσωπικές εφαρμογές"
+msgstr ""
 
 #: management/dashboard_configdash.php:1953
 msgid "Entity id"
-msgstr "ID οντότητας"
+msgstr ""
 
 #: management/dashboard_configdash.php:2011
 msgid "Widget name"
-msgstr "Όνομα Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:2105
 msgid "Backgound color"
-msgstr "Χρώμα φόντου"
+msgstr ""
 
 #: management/dashboard_configdash.php:2243
 msgid "Embed this dashboard"
-msgstr "Ενσωμάτωση αυτού του Dashboard"
+msgstr ""
 
 #: management/dashboard_configdash.php:2250
 msgid "Iframe markup generation"
-msgstr "Δημιουργία markup iframe"
+msgstr ""
 
 #: management/dashboard_configdash.php:2254
 #: management/dashboard_configdash.php:29561
 msgid "Automatic"
-msgstr "Αυτόματο"
+msgstr ""
 
 #: management/dashboard_configdash.php:2255
 #: management/dashboard_configdash.php:29562
 msgid "Manual"
-msgstr "Χειροκίνητο"
+msgstr ""
 
 #: management/dashboard_configdash.php:2258
 msgid "Embed mode"
-msgstr "Λειτουργία ενσωμάτωσης"
+msgstr ""
 
 #: management/dashboard_configdash.php:2276
 msgid "Autofit"
-msgstr "Autofit"
+msgstr ""
 
 #: management/dashboard_configdash.php:2282
 msgid "Iframe width (px)"
-msgstr "Πλάτος iframe (px)"
+msgstr ""
 
 #: management/dashboard_configdash.php:2288
 msgid "Iframe height (px)"
-msgstr "Ύψος iframe (px)"
+msgstr ""
 
 #: management/dashboard_configdash.php:2292
 msgid "Code to embed this dashboard"
-msgstr "Κωδικός για την ενσωμάτωση αυτού του Dashboard"
+msgstr ""
 
 #: management/dashboard_configdash.php:2296
 msgid "Save in txt file"
-msgstr "Αποθήκευση σε αρχείο txt"
+msgstr ""
 
 #: management/dashboard_configdash.php:2299
 msgid "Save in html file"
-msgstr "Αποθήκευση σε αρχείο HTML"
+msgstr ""
 
 #: management/dashboard_configdash.php:2302
 msgid "Embedding authorized pages"
-msgstr "Ενσωμάτωση εξουσιοδοτημένων σελίδων"
+msgstr ""
 
 #: management/dashboard_configdash.php:2306
 msgid "Authorized pages"
-msgstr "Εξουσιοδοτημένες σελίδες"
+msgstr ""
 
 #: management/dashboard_configdash.php:2313
 msgid "Update list"
-msgstr "Ενημέρωση λίστας"
+msgstr ""
 
 #: management/dashboard_configdash.php:2316
 msgid "List updated correctly"
-msgstr "Η λίστα ενημερώθηκε σωστά"
+msgstr ""
 
 #: management/dashboard_configdash.php:2319
 msgid "List update error, try again"
-msgstr "Σφάλμα ενημέρωσης λίστας, προσπαθήστε ξανά"
+msgstr ""
 
 #: management/dashboard_configdash.php:2327
 msgid "Iframe preview"
-msgstr "Προεπισκόπηση iframe"
+msgstr ""
 
 #: management/dashboard_configdash.php:2349
 msgid "Save dashboard"
-msgstr "Αποθήκευση Dashboard"
+msgstr ""
 
 #: management/dashboard_configdash.php:2352
 msgid "Saving dashboard, please wait"
-msgstr "Αποθήκευση Dashboard, παρακαλώ περιμένετε"
+msgstr ""
 
 #: management/dashboard_configdash.php:2368
 msgid "Widget deletion"
-msgstr "Διαγραφή Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:2375
 msgid "Do you want to confirm cancellation of the following widget?"
-msgstr "Θέλετε να επιβεβαιώσετε την ακύρωση του παρακάτω Widget;"
+msgstr ""
 
 #: management/dashboard_configdash.php:2382
 msgid "Deleting widget, please wait"
-msgstr "Διαγραφή Widget, παρακαλώ περιμένετε"
+msgstr ""
 
 #: management/dashboard_configdash.php:2388
 msgid "Widget deleted successfully"
-msgstr "Το Widget διαγράφηκε με επιτυχία"
+msgstr ""
 
 #: management/dashboard_configdash.php:2394
 msgid "Error deleting widget, please try again"
-msgstr "Σφάλμα κατά τη διαγραφή Widget, δοκιμάστε ξανά"
+msgstr ""
 
 #: management/dashboard_configdash.php:2419
 msgid ""
 "Here you can insert detailed info of your choice about this widget: you can "
 "use the GUI editor or custom HTML code."
 msgstr ""
-"Εδώ μπορείτε να εισαγάγετε λεπτομερείς πληροφορίες της επιλογής σας σχετικά "
-"με αυτό το Widget: μπορείτε να χρησιμοποιήσετε τον επεξεργαστή GUI ή τον "
-"προσαρμοσμένο κώδικα HTML."
 
 #: management/dashboard_configdash.php:2420
 msgid ""
 "If you leave the editor empty, the info button won't be shown in the view."
 msgstr ""
-"Εάν αφήσετε τον επεξεργαστή κενό, το κουμπί πληροφοριών δεν θα εμφανίζεται "
-"στην προβολή."
 
 #: management/dashboard_configdash.php:2487
 msgid "Change Metric"
-msgstr "Αλλαγή μέτρησης"
+msgstr ""
 
 #: management/dashboard_configdash.php:2839
 msgid "Please allow popups for this website"
-msgstr "Επιτρέψτε τα αναδυόμενα παράθυρα για αυτόν τον ιστότοπο"
+msgstr ""
 
 #: management/dashboard_configdash.php:3002
 #: management/dashboard_configdash.php:3026
 msgid "Error while adding new separator"
-msgstr "Σφάλμα κατά την προσθήκη νέου διαχωριστικού"
+msgstr ""
 
 #: management/dashboard_configdash.php:3787
 #: management/dashboard_configdash.php:3830
 #: management/dashboard_configdash.php:3926
 #: management/dashboard_configdash.php:3976
 msgid "Click to edit"
-msgstr "Κάντε κλικ για επεξεργασία"
+msgstr ""
 
 #: management/dashboard_configdash.php:4627
 msgid "Choose page title"
-msgstr "Επιλέξτε τίτλο σελίδας"
+msgstr ""
 
 #: management/dashboard_configdash.php:4731
 msgid "Loading new screenshot, please wait"
-msgstr "Φόρτωση νέου στιγμιότυπου οθόνης, παρακαλώ περιμένετε"
+msgstr ""
 
 #: management/dashboard_configdash.php:4745
 msgid "New screenshot loaded correctly"
-msgstr "Νέο στιγμιότυπο οθόνης που φορτώθηκε σωστά"
+msgstr ""
 
 #: management/dashboard_configdash.php:4761
 #: management/dashboard_configdash.php:4775
 msgid "Error loading new screenshot"
-msgstr "Σφάλμα φόρτωσης νέου στιγμιότυπου οθόνης"
+msgstr ""
 
 #: management/dashboard_configdash.php:4910
 msgid "Content font size"
-msgstr "Μέγεθος γραμματοσειράς περιεχομένου"
+msgstr ""
 
 #: management/dashboard_configdash.php:5119
 #: management/dashboard_configdash.php:6027
@@ -1568,22 +1529,22 @@ msgstr "Μέγεθος γραμματοσειράς περιεχομένου"
 #: management/dashboard_configdash.php:18748
 #: management/dashboard_configdash.php:19704
 msgid "Display color"
-msgstr "Εμφάνιση χρώματος"
+msgstr ""
 
 #: management/dashboard_configdash.php:5127
 #: management/dashboard_configdash.php:6370
 msgid "Display font color"
-msgstr "Εμφάνιση χρώματος γραμματοσειράς"
+msgstr ""
 
 #: management/dashboard_configdash.php:5138
 #: management/dashboard_configdash.php:6381
 msgid "Buttons color"
-msgstr "Χρώμα κουμπιών"
+msgstr ""
 
 #: management/dashboard_configdash.php:5146
 #: management/dashboard_configdash.php:6389
 msgid "Buttons font color"
-msgstr "Χρώμα γραμματοσειράς κουμπιών"
+msgstr ""
 
 #: management/dashboard_configdash.php:5199
 #: management/dashboard_configdash.php:5465
@@ -1597,7 +1558,7 @@ msgstr "Χρώμα γραμματοσειράς κουμπιών"
 #: management/dashboard_configdash.php:19086
 #: management/dashboard_configdash.php:19376
 msgid "View mode"
-msgstr "Λειτουργία προβολής"
+msgstr ""
 
 #: management/dashboard_configdash.php:5202
 #: management/dashboard_configdash.php:5468
@@ -1611,7 +1572,7 @@ msgstr "Λειτουργία προβολής"
 #: management/dashboard_configdash.php:19089
 #: management/dashboard_configdash.php:19379
 msgid "Empty button"
-msgstr "Κενό Κουμπί"
+msgstr ""
 
 #: management/dashboard_configdash.php:5203
 #: management/dashboard_configdash.php:5469
@@ -1625,7 +1586,7 @@ msgstr "Κενό Κουμπί"
 #: management/dashboard_configdash.php:19090
 #: management/dashboard_configdash.php:19380
 msgid "Icon only"
-msgstr "Μόνο εικονίδιο"
+msgstr ""
 
 #: management/dashboard_configdash.php:5204
 #: management/dashboard_configdash.php:5470
@@ -1639,7 +1600,7 @@ msgstr "Μόνο εικονίδιο"
 #: management/dashboard_configdash.php:19091
 #: management/dashboard_configdash.php:19381
 msgid "Text only"
-msgstr "Μόνο Κείμενο"
+msgstr ""
 
 #: management/dashboard_configdash.php:5205
 #: management/dashboard_configdash.php:5471
@@ -1653,7 +1614,7 @@ msgstr "Μόνο Κείμενο"
 #: management/dashboard_configdash.php:19092
 #: management/dashboard_configdash.php:19382
 msgid "Value display only"
-msgstr "Εμφάνιση τιμής μόνο"
+msgstr ""
 
 #: management/dashboard_configdash.php:5206
 #: management/dashboard_configdash.php:5472
@@ -1667,7 +1628,7 @@ msgstr "Εμφάνιση τιμής μόνο"
 #: management/dashboard_configdash.php:19093
 #: management/dashboard_configdash.php:19383
 msgid "Icon and text"
-msgstr "Εικονίδιο και κείμενο"
+msgstr ""
 
 #: management/dashboard_configdash.php:5207
 #: management/dashboard_configdash.php:5473
@@ -1681,7 +1642,7 @@ msgstr "Εικονίδιο και κείμενο"
 #: management/dashboard_configdash.php:19094
 #: management/dashboard_configdash.php:19384
 msgid "Icon and value display"
-msgstr "Εμφάνιση εικονιδίου και τιμής"
+msgstr ""
 
 #: management/dashboard_configdash.php:5208
 #: management/dashboard_configdash.php:5474
@@ -1695,7 +1656,7 @@ msgstr "Εμφάνιση εικονιδίου και τιμής"
 #: management/dashboard_configdash.php:19095
 #: management/dashboard_configdash.php:19385
 msgid "Display and text"
-msgstr "Εμφάνιση και κείμενο"
+msgstr ""
 
 #: management/dashboard_configdash.php:5209
 #: management/dashboard_configdash.php:5475
@@ -1709,7 +1670,7 @@ msgstr "Εμφάνιση και κείμενο"
 #: management/dashboard_configdash.php:19096
 #: management/dashboard_configdash.php:19386
 msgid "Icon, text and value display"
-msgstr "Εμφάνιση εικονιδίου, κειμένου και τιμής"
+msgstr ""
 
 #: management/dashboard_configdash.php:5214
 #: management/dashboard_configdash.php:5480
@@ -1723,27 +1684,27 @@ msgstr "Εμφάνιση εικονιδίου, κειμένου και τιμή�
 #: management/dashboard_configdash.php:19102
 #: management/dashboard_configdash.php:19392
 msgid "Button radius (%)"
-msgstr "Ακτίνα κουμπιών (%)"
+msgstr ""
 
 #: management/dashboard_configdash.php:5231
 #: management/dashboard_configdash.php:6474
 msgid "Geolocation mode"
-msgstr "Λειτουργία γεωγραφικής τοποθεσίας"
+msgstr ""
 
 #: management/dashboard_configdash.php:5234
 #: management/dashboard_configdash.php:6477
 msgid "On press only"
-msgstr "Μόνο με το πάτημα"
+msgstr ""
 
 #: management/dashboard_configdash.php:5235
 #: management/dashboard_configdash.php:6478
 msgid "Periodically"
-msgstr "Περιοδικά"
+msgstr ""
 
 #: management/dashboard_configdash.php:5236
 #: management/dashboard_configdash.php:6479
 msgid "Periodically and on press"
-msgstr "Περιοδικά και μόνο με το πάτημα"
+msgstr ""
 
 #: management/dashboard_configdash.php:5244
 #: management/dashboard_configdash.php:5509
@@ -1753,7 +1714,7 @@ msgstr "Περιοδικά και μόνο με το πάτημα"
 #: management/dashboard_configdash.php:18248
 #: management/dashboard_configdash.php:19149
 msgid "Button color"
-msgstr "Χρώμα Κουμπιού"
+msgstr ""
 
 #: management/dashboard_configdash.php:5252
 #: management/dashboard_configdash.php:5517
@@ -1763,7 +1724,7 @@ msgstr "Χρώμα Κουμπιού"
 #: management/dashboard_configdash.php:18256
 #: management/dashboard_configdash.php:19157
 msgid "Button color on click"
-msgstr "Χρώμα κουμπιού στο κλικ"
+msgstr ""
 
 #: management/dashboard_configdash.php:5262
 #: management/dashboard_configdash.php:5527
@@ -1773,7 +1734,7 @@ msgstr "Χρώμα κουμπιού στο κλικ"
 #: management/dashboard_configdash.php:18266
 #: management/dashboard_configdash.php:19167
 msgid "Symbol color"
-msgstr "Χρώμα συμβόλου"
+msgstr ""
 
 #: management/dashboard_configdash.php:5270
 #: management/dashboard_configdash.php:5535
@@ -1783,7 +1744,7 @@ msgstr "Χρώμα συμβόλου"
 #: management/dashboard_configdash.php:18274
 #: management/dashboard_configdash.php:19175
 msgid "Symbol color on click"
-msgstr "Χρώμα συμβόλου στο κλικ"
+msgstr ""
 
 #: management/dashboard_configdash.php:5282
 #: management/dashboard_configdash.php:5547
@@ -1793,7 +1754,7 @@ msgstr "Χρώμα συμβόλου στο κλικ"
 #: management/dashboard_configdash.php:18286
 #: management/dashboard_configdash.php:19187
 msgid "Text color"
-msgstr "Χρώμα κειμένου"
+msgstr ""
 
 #: management/dashboard_configdash.php:5290
 #: management/dashboard_configdash.php:5555
@@ -1803,7 +1764,7 @@ msgstr "Χρώμα κειμένου"
 #: management/dashboard_configdash.php:18294
 #: management/dashboard_configdash.php:19195
 msgid "Text color on click"
-msgstr "Χρώμα κειμένου στο κλικ"
+msgstr ""
 
 #: management/dashboard_configdash.php:5302
 #: management/dashboard_configdash.php:5567
@@ -1817,7 +1778,7 @@ msgstr "Χρώμα κειμένου στο κλικ"
 #: management/dashboard_configdash.php:19206
 #: management/dashboard_configdash.php:19485
 msgid "Text font size"
-msgstr "Μέγεθος γραμματοσειράς κειμένου"
+msgstr ""
 
 #: management/dashboard_configdash.php:5309
 #: management/dashboard_configdash.php:5574
@@ -1831,7 +1792,7 @@ msgstr "Μέγεθος γραμματοσειράς κειμένου"
 #: management/dashboard_configdash.php:19213
 #: management/dashboard_configdash.php:19492
 msgid "Display font size"
-msgstr "Εμφάνιση μεγέθους γραμματοσειράς"
+msgstr ""
 
 #: management/dashboard_configdash.php:5320
 #: management/dashboard_configdash.php:5585
@@ -1841,7 +1802,7 @@ msgstr "Εμφάνιση μεγέθους γραμματοσειράς"
 #: management/dashboard_configdash.php:18323
 #: management/dashboard_configdash.php:19224
 msgid "Display text color"
-msgstr "Εμφάνιση χρώματος κειμένου"
+msgstr ""
 
 #: management/dashboard_configdash.php:5328
 #: management/dashboard_configdash.php:5593
@@ -1852,7 +1813,7 @@ msgstr "Εμφάνιση χρώματος κειμένου"
 #: management/dashboard_configdash.php:18572
 #: management/dashboard_configdash.php:19511
 msgid "On display text color"
-msgstr "Χρώμα κειμένου στην εμφάνιση"
+msgstr ""
 
 #: management/dashboard_configdash.php:5341
 #: management/dashboard_configdash.php:5606
@@ -1866,7 +1827,7 @@ msgstr "Χρώμα κειμένου στην εμφάνιση"
 #: management/dashboard_configdash.php:19245
 #: management/dashboard_configdash.php:19524
 msgid "Display background color"
-msgstr "Εμφάνιση χρώματος φόντου"
+msgstr ""
 
 #: management/dashboard_configdash.php:5349
 #: management/dashboard_configdash.php:5614
@@ -1880,7 +1841,7 @@ msgstr "Εμφάνιση χρώματος φόντου"
 #: management/dashboard_configdash.php:19253
 #: management/dashboard_configdash.php:19532
 msgid "Display radius (%)"
-msgstr "Ακτίνα εμφάνισης (%)"
+msgstr ""
 
 #: management/dashboard_configdash.php:5366
 #: management/dashboard_configdash.php:5631
@@ -1894,7 +1855,7 @@ msgstr "Ακτίνα εμφάνισης (%)"
 #: management/dashboard_configdash.php:19270
 #: management/dashboard_configdash.php:19549
 msgid "Display width (%)"
-msgstr "Πλάτος εμφάνισης (%)"
+msgstr ""
 
 #: management/dashboard_configdash.php:5380
 #: management/dashboard_configdash.php:5645
@@ -1908,7 +1869,7 @@ msgstr "Πλάτος εμφάνισης (%)"
 #: management/dashboard_configdash.php:19284
 #: management/dashboard_configdash.php:19563
 msgid "Display height (%)"
-msgstr "Ύψος εμφάνισης (%)"
+msgstr ""
 
 #: management/dashboard_configdash.php:5397
 #: management/dashboard_configdash.php:5662
@@ -1922,7 +1883,7 @@ msgstr "Ύψος εμφάνισης (%)"
 #: management/dashboard_configdash.php:19300
 #: management/dashboard_configdash.php:19580
 msgid "Neon effect"
-msgstr "Αποτέλεσμα Neon"
+msgstr ""
 
 #: management/dashboard_configdash.php:5400
 #: management/dashboard_configdash.php:5665
@@ -1936,7 +1897,7 @@ msgstr "Αποτέλεσμα Neon"
 #: management/dashboard_configdash.php:19303
 #: management/dashboard_configdash.php:19583
 msgid "Never"
-msgstr "Ποτέ"
+msgstr ""
 
 #: management/dashboard_configdash.php:5401
 #: management/dashboard_configdash.php:5666
@@ -1946,7 +1907,7 @@ msgstr "Ποτέ"
 #: management/dashboard_configdash.php:18403
 #: management/dashboard_configdash.php:19304
 msgid "When pressed"
-msgstr "Όταν πατηθεί"
+msgstr ""
 
 #: management/dashboard_configdash.php:5402
 #: management/dashboard_configdash.php:5667
@@ -1960,143 +1921,143 @@ msgstr "Όταν πατηθεί"
 #: management/dashboard_configdash.php:19305
 #: management/dashboard_configdash.php:19586
 msgid "Always"
-msgstr "Πάντα"
+msgstr ""
 
 #: management/dashboard_configdash.php:5497
 #: management/dashboard_configdash.php:6811
 msgid "Impulse mode"
-msgstr "Λειτουργία ώθησης"
+msgstr ""
 
 #: management/dashboard_configdash.php:5500
 #: management/dashboard_configdash.php:6814
 msgid "Send impulse on release"
-msgstr "Αποστολή ώθησης κατά την απελευθέρωση"
+msgstr ""
 
 #: management/dashboard_configdash.php:5761
 #: management/dashboard_configdash.php:7163
 #: management/dashboard_configdash.php:18487
 #: management/dashboard_configdash.php:19426
 msgid "Off button color"
-msgstr "Χρώμα κουμπιού απενεργοποιήσης"
+msgstr ""
 
 #: management/dashboard_configdash.php:5769
 #: management/dashboard_configdash.php:7171
 #: management/dashboard_configdash.php:18495
 #: management/dashboard_configdash.php:19434
 msgid "On button color"
-msgstr "Χρώμα κουμπιού ενεργοποίησης"
+msgstr ""
 
 #: management/dashboard_configdash.php:5781
 #: management/dashboard_configdash.php:7183
 #: management/dashboard_configdash.php:18507
 #: management/dashboard_configdash.php:19446
 msgid "Off symbol color"
-msgstr "Χρώμα συμβόλου απενεργοποιήσης"
+msgstr ""
 
 #: management/dashboard_configdash.php:5789
 #: management/dashboard_configdash.php:7191
 #: management/dashboard_configdash.php:18515
 #: management/dashboard_configdash.php:19454
 msgid "On symbol color"
-msgstr "Χρώμα συμβόλου ενεργοποιήσης"
+msgstr ""
 
 #: management/dashboard_configdash.php:5801
 msgid "Off text color"
-msgstr "Χρώμα κειμένου απενεργοποιήσης"
+msgstr ""
 
 #: management/dashboard_configdash.php:5809
 msgid "On text color"
-msgstr "Χρώμα κειμένου ενεργοποίησης"
+msgstr ""
 
 #: management/dashboard_configdash.php:5839
 #: management/dashboard_configdash.php:7241
 #: management/dashboard_configdash.php:18564
 #: management/dashboard_configdash.php:19503
 msgid "Off display text color"
-msgstr "Χρώμα κειμένου εμφάνισης απενεργοποίησης"
+msgstr ""
 
 #: management/dashboard_configdash.php:5920
 #: management/dashboard_configdash.php:7322
 #: management/dashboard_configdash.php:18645
 #: management/dashboard_configdash.php:19584
 msgid "When on"
-msgstr "Όταν είναι ενεργοποιημένο"
+msgstr ""
 
 #: management/dashboard_configdash.php:5921
 #: management/dashboard_configdash.php:7323
 #: management/dashboard_configdash.php:18646
 #: management/dashboard_configdash.php:19585
 msgid "When off"
-msgstr "Όταν είναι απενεργοποιημένο"
+msgstr ""
 
 #: management/dashboard_configdash.php:5978
 #: management/dashboard_configdash.php:7420
 #: management/dashboard_configdash.php:18699
 #: management/dashboard_configdash.php:19646
 msgid "Indicator radius (%)"
-msgstr "Ακτίνα δείκτη (%)"
+msgstr ""
 
 #: management/dashboard_configdash.php:5985
 #: management/dashboard_configdash.php:7427
 #: management/dashboard_configdash.php:18706
 #: management/dashboard_configdash.php:19653
 msgid "Value display radius (%)"
-msgstr "Ακτίνα εμφάνισης τιμής (%)"
+msgstr ""
 
 #: management/dashboard_configdash.php:6009
 #: management/dashboard_configdash.php:7451
 #: management/dashboard_configdash.php:18730
 #: management/dashboard_configdash.php:19677
 msgid "Start angle"
-msgstr "Γωνία έναρξης"
+msgstr ""
 
 #: management/dashboard_configdash.php:6016
 #: management/dashboard_configdash.php:7458
 #: management/dashboard_configdash.php:18737
 #: management/dashboard_configdash.php:19684
 msgid "End angle"
-msgstr "Γωνία τέλους"
+msgstr ""
 
 #: management/dashboard_configdash.php:6053
 #: management/dashboard_configdash.php:7558
 #: management/dashboard_configdash.php:18777
 #: management/dashboard_configdash.php:19756
 msgid "Labels font size"
-msgstr "Μέγεθος γραμματοσειράς ετικετών"
+msgstr ""
 
 #: management/dashboard_configdash.php:6060
 #: management/dashboard_configdash.php:7565
 #: management/dashboard_configdash.php:18784
 #: management/dashboard_configdash.php:19763
 msgid "Labels font color"
-msgstr "Χρώμα γραμματοσειράς ετικετών"
+msgstr ""
 
 #: management/dashboard_configdash.php:6071
 #: management/dashboard_configdash.php:7576
 #: management/dashboard_configdash.php:18795
 #: management/dashboard_configdash.php:19774
 msgid "Increase value"
-msgstr "Αύξηση τιμής"
+msgstr ""
 
 #: management/dashboard_configdash.php:6708
 msgid "Target entity"
-msgstr "Οντότητα στόχος"
+msgstr ""
 
 #: management/dashboard_configdash.php:6715
 msgid "Target entity attribute"
-msgstr "Χαρακτηριστικό οντότητας στόχου"
+msgstr ""
 
 #: management/dashboard_configdash.php:6756
 msgid "Base value"
-msgstr "Βασική τιμή"
+msgstr ""
 
 #: management/dashboard_configdash.php:6782
 msgid "Impulse value"
-msgstr "Τιμή ώθησης"
+msgstr ""
 
 #: management/dashboard_configdash.php:6815
 msgid "Send impulses until pressed"
-msgstr "Αποστολή ώθησης μέχρι να πατηθεί"
+msgstr ""
 
 #: management/dashboard_configdash.php:8263
 #: management/dashboard_configdash.php:8349
@@ -2105,14 +2066,14 @@ msgstr "Αποστολή ώθησης μέχρι να πατηθεί"
 #: management/dashboard_configdash.php:20166
 #: management/dashboard_configdash.php:20219
 msgid "Entity ID"
-msgstr "ID Oντότητας"
+msgstr ""
 
 #: management/dashboard_configdash.php:8280
 #: management/dashboard_configdash.php:8421
 #: management/dashboard_configdash.php:20101
 #: management/dashboard_configdash.php:20238
 msgid "Update time(s)"
-msgstr "Χρόνος ενημέρωσης"
+msgstr ""
 
 #: management/dashboard_configdash.php:8546
 #: management/dashboard_configdash.php:8717
@@ -2123,7 +2084,7 @@ msgstr "Χρόνος ενημέρωσης"
 #: management/dashboard_configdash.php:21157
 #: management/dashboard_configdash.php:21977
 msgid "Map widgets"
-msgstr "Widget χάρτη"
+msgstr ""
 
 #: management/dashboard_configdash.php:8627
 #: management/dashboard_configdash.php:8767
@@ -2134,7 +2095,7 @@ msgstr "Widget χάρτη"
 #: management/dashboard_configdash.php:21221
 #: management/dashboard_configdash.php:22027
 msgid "Active rows font color"
-msgstr "Χρώμα γραμματοσειράς ενεργών γραμμών"
+msgstr ""
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2146,7 +2107,7 @@ msgstr "Χρώμα γραμματοσειράς ενεργών γραμμών"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Default"
-msgstr "Προεπιλογή"
+msgstr ""
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2158,7 +2119,7 @@ msgstr "Προεπιλογή"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Symbol mode"
-msgstr "Λειτουργία Symbol"
+msgstr ""
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2170,7 +2131,7 @@ msgstr "Λειτουργία Symbol"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Symbol choice"
-msgstr "Επιλογή Symbol"
+msgstr ""
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2182,12 +2143,12 @@ msgstr "Επιλογή Symbol"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Symbol preview"
-msgstr "Προεπισκόπηση Symbol"
+msgstr ""
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:20483
 msgid "Link"
-msgstr "Σύνδεσμος"
+msgstr ""
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2199,7 +2160,7 @@ msgstr "Σύνδεσμος"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Color1"
-msgstr "Χρώμα1"
+msgstr ""
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2211,7 +2172,7 @@ msgstr "Χρώμα1"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Color2"
-msgstr "Χρώμα2"
+msgstr ""
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2223,7 +2184,7 @@ msgstr "Χρώμα2"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Order"
-msgstr "Σειρά"
+msgstr ""
 
 #: management/dashboard_configdash.php:8796
 #: management/dashboard_configdash.php:8935
@@ -2233,7 +2194,7 @@ msgstr "Σειρά"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Query"
-msgstr "Ερώτημα"
+msgstr ""
 
 #: management/dashboard_configdash.php:8796
 #: management/dashboard_configdash.php:8935
@@ -2243,7 +2204,7 @@ msgstr "Ερώτημα"
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Data widgets"
-msgstr "Widgets Δεδομένων"
+msgstr ""
 
 #: management/dashboard_configdash.php:8796
 #: management/dashboard_configdash.php:8935
@@ -2252,52 +2213,52 @@ msgstr "Widgets Δεδομένων"
 #: management/dashboard_configdash.php:21316
 #: management/dashboard_configdash.php:22062
 msgid "Display"
-msgstr "Απεικόνιση"
+msgstr ""
 
 #: management/dashboard_configdash.php:8919
 #: management/dashboard_configdash.php:21240
 msgid "Icon/Text Mode"
-msgstr "Λειτουργία Icon/Text"
+msgstr ""
 
 #: management/dashboard_configdash.php:8922
 #: management/dashboard_configdash.php:21243
 msgid "Icon Only"
-msgstr "Μόνο εικονίδιο"
+msgstr ""
 
 #: management/dashboard_configdash.php:8923
 #: management/dashboard_configdash.php:21244
 msgid "Text Description"
-msgstr "Περιγραφή με κείμενο"
+msgstr ""
 
 #: management/dashboard_configdash.php:9113
 #: management/dashboard_configdash.php:22554
 msgid "Shown data"
-msgstr "Δεδομένα που εμφανίζονται"
+msgstr ""
 
 #: management/dashboard_configdash.php:9116
 msgid "Date"
-msgstr "Ημερομηνία"
+msgstr ""
 
 #: management/dashboard_configdash.php:9117
 msgid "Time"
-msgstr "Ώρα"
+msgstr ""
 
 #: management/dashboard_configdash.php:9118
 msgid "Date and time"
-msgstr "Ημερομηνία και ώρα"
+msgstr ""
 
 #: management/dashboard_configdash.php:9124
 #: management/dashboard_configdash.php:22565
 msgid "Font type"
-msgstr "Τύπος γραμματοσειράς"
+msgstr ""
 
 #: management/dashboard_configdash.php:9127
 msgid "Normal"
-msgstr "Κανονικό"
+msgstr ""
 
 #: management/dashboard_configdash.php:9128
 msgid "LCD like"
-msgstr "όμοιο_με_ LCD"
+msgstr ""
 
 #: management/dashboard_configdash.php:9182
 #: management/dashboard_configdash.php:9276
@@ -2326,7 +2287,7 @@ msgstr "όμοιο_με_ LCD"
 #: management/dashboard_configdash.php:30495
 #: management/dashboard_configdash.php:30645
 msgid "Available geolocation widgets"
-msgstr "Διαθέσιμα Widget γεωεντοπισμού"
+msgstr ""
 
 #: management/dashboard_configdash.php:9505
 #: management/dashboard_configdash.php:9630
@@ -2345,53 +2306,53 @@ msgstr "Διαθέσιμα Widget γεωεντοπισμού"
 #: management/dashboard_configdash.php:30535
 #: management/dashboard_configdash.php:30683
 msgid "Events to show on selected map"
-msgstr "Συμβάντα που θα εμφανίζονται στον επιλεγμένο χάρτη"
+msgstr ""
 
 #: management/dashboard_configdash.php:9509
 #: management/dashboard_configdash.php:9634
 #: management/dashboard_configdash.php:22968
 #: management/dashboard_configdash.php:23092
 msgid "Approved"
-msgstr "Εγκεκριμένο"
+msgstr ""
 
 #: management/dashboard_configdash.php:9510
 #: management/dashboard_configdash.php:9635
 #: management/dashboard_configdash.php:22969
 #: management/dashboard_configdash.php:23093
 msgid "Closed"
-msgstr "Κλειστό"
+msgstr ""
 
 #: management/dashboard_configdash.php:9511
 #: management/dashboard_configdash.php:9636
 #: management/dashboard_configdash.php:22970
 #: management/dashboard_configdash.php:23094
 msgid "In progress"
-msgstr "Σε εξέλιξη"
+msgstr ""
 
 #: management/dashboard_configdash.php:9512
 #: management/dashboard_configdash.php:9637
 #: management/dashboard_configdash.php:22971
 #: management/dashboard_configdash.php:23095
 msgid "Proposed"
-msgstr "Προτεινόμενο"
+msgstr ""
 
 #: management/dashboard_configdash.php:9513
 #: management/dashboard_configdash.php:9638
 #: management/dashboard_configdash.php:22972
 #: management/dashboard_configdash.php:23096
 msgid "Rejected"
-msgstr "Απορριφθέν"
+msgstr ""
 
 #: management/dashboard_configdash.php:9727
 #: management/dashboard_configdash.php:9862
 #: management/dashboard_configdash.php:23180
 #: management/dashboard_configdash.php:23335
 msgid "Available autopan widgets"
-msgstr "Διαθέσιμα Autopan Widgets"
+msgstr ""
 
 #: management/dashboard_configdash.php:10234
 msgid "Default category"
-msgstr "Προεπιλεγμένη κατηγορία"
+msgstr ""
 
 #: management/dashboard_configdash.php:10237
 #: management/dashboard_configdash.php:10377
@@ -2404,93 +2365,93 @@ msgstr "Προεπιλεγμένη κατηγορία"
 #: management/dashboard_configdash.php:31618
 #: management/dashboard_configdash.php:32067
 msgid "None"
-msgstr "Κανένα"
+msgstr ""
 
 #: management/dashboard_configdash.php:10238
 #: management/dashboard_configdash.php:10378
 #: management/dashboard_configdash.php:23796
 #: management/dashboard_configdash.php:23945
 msgid "Incidents"
-msgstr "Περιστατικά"
+msgstr ""
 
 #: management/dashboard_configdash.php:10239
 #: management/dashboard_configdash.php:10379
 #: management/dashboard_configdash.php:23797
 #: management/dashboard_configdash.php:23946
 msgid "Road works"
-msgstr "Οδικά έργα"
+msgstr ""
 
 #: management/dashboard_configdash.php:10240
 #: management/dashboard_configdash.php:10380
 #: management/dashboard_configdash.php:23798
 #: management/dashboard_configdash.php:23947
 msgid "Snow"
-msgstr "Χιονι"
+msgstr ""
 
 #: management/dashboard_configdash.php:10241
 #: management/dashboard_configdash.php:10381
 #: management/dashboard_configdash.php:23799
 #: management/dashboard_configdash.php:23948
 msgid "Weather data"
-msgstr "Δεδομένα καιρού"
+msgstr ""
 
 #: management/dashboard_configdash.php:10242
 #: management/dashboard_configdash.php:10382
 #: management/dashboard_configdash.php:23800
 #: management/dashboard_configdash.php:23949
 msgid "Wind"
-msgstr "Άνεμος"
+msgstr ""
 
 #: management/dashboard_configdash.php:10519
 #: management/dashboard_configdash.php:24096
 #: management/dashboard_configdash.php:24110
 msgid "Visualization mode"
-msgstr "Λειτουργία οπτικοποίησης"
+msgstr ""
 
 #: management/dashboard_configdash.php:10522
 #: management/dashboard_configdash.php:24099
 msgid "Single hospital - Totals only"
-msgstr "Νοσοκομείο - Μόνο σύνολα"
+msgstr ""
 
 #: management/dashboard_configdash.php:10523
 #: management/dashboard_configdash.php:24100
 msgid "Single hospital - Details"
-msgstr "Νοσοκομείο - Λεπτομέρειες"
+msgstr ""
 
 #: management/dashboard_configdash.php:10524
 #: management/dashboard_configdash.php:24101
 msgid "Multiple hospitals overview"
-msgstr "Επισκόπηση πολλαπλών νοσοκομείων"
+msgstr ""
 
 #: management/dashboard_configdash.php:10533
 msgid "First aid"
-msgstr "Πρώτη βοήθεια"
+msgstr ""
 
 #: management/dashboard_configdash.php:10541
 #: management/dashboard_configdash.php:24118
 msgid "First aids"
-msgstr "Πρώτες βοήθειες"
+msgstr ""
 
 #: management/dashboard_configdash.php:10858
 #: management/dashboard_configdash.php:12945
 #: management/dashboard_configdash.php:24592
 #: management/dashboard_configdash.php:27660
 msgid "Show first cell"
-msgstr "Εμφάνιση πρώτου κελιού"
+msgstr ""
 
 #: management/dashboard_configdash.php:10878
 #: management/dashboard_configdash.php:12962
 #: management/dashboard_configdash.php:24614
 #: management/dashboard_configdash.php:27676
 msgid "First cell font size"
-msgstr "Μέγεθος γραμματοσειράς πρώτου κελιού"
+msgstr ""
 
 #: management/dashboard_configdash.php:10892
 #: management/dashboard_configdash.php:12973
 #: management/dashboard_configdash.php:24631
 #: management/dashboard_configdash.php:27687
 msgid "First cell font color"
-msgstr "Χρώμα γραμματοσειράς πρώτου κελιού"
+msgstr ""
 
 #: management/dashboard_configdash.php:10916
 #: management/dashboard_configdash.php:12593
@@ -2499,7 +2460,7 @@ msgstr "Χρώμα γραμματοσειράς πρώτου κελιού"
 #: management/dashboard_configdash.php:27123
 #: management/dashboard_configdash.php:27704
 msgid "Rows labels font size"
-msgstr "Μέγεθος γραμματοσειράς ετικετών γραμμών"
+msgstr ""
 
 #: management/dashboard_configdash.php:10930
 #: management/dashboard_configdash.php:12604
@@ -2508,7 +2469,7 @@ msgstr "Μέγεθος γραμματοσειράς ετικετών γραμμ�
 #: management/dashboard_configdash.php:27134
 #: management/dashboard_configdash.php:27715
 msgid "Rows labels font color"
-msgstr "Χρώμα γραμματοσειράς ετικετών γραμμών"
+msgstr ""
 
 #: management/dashboard_configdash.php:10954
 #: management/dashboard_configdash.php:12624
@@ -2517,7 +2478,7 @@ msgstr "Χρώμα γραμματοσειράς ετικετών γραμμών"
 #: management/dashboard_configdash.php:27151
 #: management/dashboard_configdash.php:27732
 msgid "Cols labels font size"
-msgstr "Μέγεθος γραμματοσειράς ετικετών στηλών"
+msgstr ""
 
 #: management/dashboard_configdash.php:10965
 #: management/dashboard_configdash.php:12635
@@ -2526,21 +2487,21 @@ msgstr "Μέγεθος γραμματοσειράς ετικετών στηλώ�
 #: management/dashboard_configdash.php:27162
 #: management/dashboard_configdash.php:27743
 msgid "Cols labels font color"
-msgstr "Χρώμα γραμματοσειράς ετικετών στηλών"
+msgstr ""
 
 #: management/dashboard_configdash.php:11010
 #: management/dashboard_configdash.php:13078
 #: management/dashboard_configdash.php:24749
 #: management/dashboard_configdash.php:27792
 msgid "Table borders"
-msgstr "Περίγραμμα πίνακα"
+msgstr ""
 
 #: management/dashboard_configdash.php:11024
 #: management/dashboard_configdash.php:13092
 #: management/dashboard_configdash.php:24763
 #: management/dashboard_configdash.php:27806
 msgid "Table borders color"
-msgstr "Χρώμα περιγράμματος πίνακα"
+msgstr ""
 
 #: management/dashboard_configdash.php:11044
 #: management/dashboard_configdash.php:11415
@@ -2560,7 +2521,7 @@ msgstr "Χρώμα περιγράμματος πίνακα"
 #: management/dashboard_configdash.php:29884
 #: management/dashboard_configdash.php:30010
 msgid "Set thresholds"
-msgstr "Ορίστε όρια"
+msgstr ""
 
 #: management/dashboard_configdash.php:11061
 #: management/dashboard_configdash.php:12263
@@ -2575,7 +2536,7 @@ msgstr "Ορίστε όρια"
 #: management/dashboard_configdash.php:29897
 #: management/dashboard_configdash.php:30023
 msgid "Thresholds target set"
-msgstr "Όριο συνόλου στόχου"
+msgstr ""
 
 #: management/dashboard_configdash.php:11078
 #: management/dashboard_configdash.php:11868
@@ -2593,12 +2554,12 @@ msgstr "Όριο συνόλου στόχου"
 #: management/dashboard_configdash.php:29913
 #: management/dashboard_configdash.php:30039
 msgid "Thresholds target field"
-msgstr "Όριο πεδίου στόχου"
+msgstr ""
 
 #: management/dashboard_configdash.php:11123
 #: management/dashboard_configdash.php:25007
 msgid "limit"
-msgstr "όριο"
+msgstr ""
 
 #: management/dashboard_configdash.php:11187
 #: management/dashboard_configdash.php:11577
@@ -2606,7 +2567,7 @@ msgstr "όριο"
 #: management/dashboard_configdash.php:25100
 #: management/dashboard_configdash.php:25602
 msgid "X-Axis labels font size"
-msgstr "Μέγεθος γραμματοσειράς ετικετών Άξονα-X"
+msgstr ""
 
 #: management/dashboard_configdash.php:11198
 #: management/dashboard_configdash.php:11588
@@ -2614,7 +2575,7 @@ msgstr "Μέγεθος γραμματοσειράς ετικετών Άξονα-
 #: management/dashboard_configdash.php:25111
 #: management/dashboard_configdash.php:25613
 msgid "X-Axis labels font color"
-msgstr "Χρώμα γραμματοσειράς ετικετών Άξονα-X"
+msgstr ""
 
 #: management/dashboard_configdash.php:11218
 #: management/dashboard_configdash.php:11608
@@ -2622,7 +2583,7 @@ msgstr "Χρώμα γραμματοσειράς ετικετών Άξονα-X"
 #: management/dashboard_configdash.php:25128
 #: management/dashboard_configdash.php:25630
 msgid "Y-Axis labels font size"
-msgstr "Μέγεθος γραμματοσειράς ετικετών Άξονα-Υ"
+msgstr ""
 
 #: management/dashboard_configdash.php:11229
 #: management/dashboard_configdash.php:11619
@@ -2630,7 +2591,7 @@ msgstr "Μέγεθος γραμματοσειράς ετικετών Άξονα-
 #: management/dashboard_configdash.php:25139
 #: management/dashboard_configdash.php:25641
 msgid "Y-Axis labels font color"
-msgstr "Χρώμα γραμματοσειράς ετικετών Άξονα-Υ"
+msgstr ""
 
 #: management/dashboard_configdash.php:11249
 #: management/dashboard_configdash.php:11639
@@ -2642,7 +2603,7 @@ msgstr "Χρώμα γραμματοσειράς ετικετών Άξονα-Υ"
 #: management/dashboard_configdash.php:27179
 #: management/dashboard_configdash.php:29268
 msgid "Data labels font size"
-msgstr "Μέγεθος γραμματοσειράς ετικετών δεδομένων"
+msgstr ""
 
 #: management/dashboard_configdash.php:11260
 #: management/dashboard_configdash.php:11650
@@ -2654,7 +2615,7 @@ msgstr "Μέγεθος γραμματοσειράς ετικετών δεδομ�
 #: management/dashboard_configdash.php:27190
 #: management/dashboard_configdash.php:29326
 msgid "Data labels font color"
-msgstr "Χρώμα γραμματοσειράς ετικετών δεδομένων"
+msgstr ""
 
 #: management/dashboard_configdash.php:11280
 #: management/dashboard_configdash.php:11670
@@ -2666,7 +2627,7 @@ msgstr "Χρώμα γραμματοσειράς ετικετών δεδομέν�
 #: management/dashboard_configdash.php:27207
 #: management/dashboard_configdash.php:29213
 msgid "Legend font size"
-msgstr "Μέγεθος γραμματοσειράς υπομνήματος"
+msgstr ""
 
 #: management/dashboard_configdash.php:13268
 #: management/dashboard_configdash.php:13380
@@ -2677,94 +2638,94 @@ msgstr "Μέγεθος γραμματοσειράς υπομνήματος"
 #: management/dashboard_configdash.php:30772
 #: management/dashboard_configdash.php:31098
 msgid "Default tab"
-msgstr "Προεπιλεγμένη καρτέλα"
+msgstr ""
 
 #: management/dashboard_configdash.php:13282
 #: management/dashboard_configdash.php:13394
 #: management/dashboard_configdash.php:28191
 #: management/dashboard_configdash.php:28305
 msgid "Meteo tab font size"
-msgstr "Μέγεθος γραμματοσειράς καρτέλας Meteo"
+msgstr ""
 
 #: management/dashboard_configdash.php:13297
 #: management/dashboard_configdash.php:13409
 #: management/dashboard_configdash.php:28206
 #: management/dashboard_configdash.php:28320
 msgid "General tab font size"
-msgstr "Μέγεθος γραμματοσειράς γενικής καρτέλας"
+msgstr ""
 
 #: management/dashboard_configdash.php:13309
 #: management/dashboard_configdash.php:13421
 #: management/dashboard_configdash.php:28218
 #: management/dashboard_configdash.php:28332
 msgid "General tab font color"
-msgstr "Χρώμα γραμματοσειράς γενικής καρτέλας"
+msgstr ""
 
 #: management/dashboard_configdash.php:13484
 #: management/dashboard_configdash.php:28401
 msgid "Border radius"
-msgstr "Ακτίνα συνόρου"
+msgstr ""
 
 #: management/dashboard_configdash.php:13496
 #: management/dashboard_configdash.php:28414
 msgid "Button image"
-msgstr "Κουμπί εικόνα"
+msgstr ""
 
 #: management/dashboard_configdash.php:13511
 #: management/dashboard_configdash.php:28435
 msgid "Image file"
-msgstr "Αρχείο εικόνας"
+msgstr ""
 
 #: management/dashboard_configdash.php:13532
 #: management/dashboard_configdash.php:28461
 msgid "Image width"
-msgstr "Πλάτος εικόνας"
+msgstr ""
 
 #: management/dashboard_configdash.php:13545
 #: management/dashboard_configdash.php:28485
 msgid "Image height"
-msgstr "Ύψος εικόνας"
+msgstr ""
 
 #: management/dashboard_configdash.php:13613
 msgid "Available metrics for selected widget"
-msgstr "Διαθέσιμες μετρικές για επιλεγμένο widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:13653
 msgid "No metric change"
-msgstr "Δεν υπάρχει αλλαγή μετρικής"
+msgstr ""
 
 #: management/dashboard_configdash.php:13695
 msgid "Show button text"
-msgstr "Εμφάνιση κειμένου κουμπιού"
+msgstr ""
 
 #: management/dashboard_configdash.php:13704
 msgid "Available widgets to show link content"
-msgstr "Διαθέσιμα widget για εμφάνιση περιεχομένου συνδέσμου"
+msgstr ""
 
 #: management/dashboard_configdash.php:14122
 #: management/dashboard_configdash.php:29341
 msgid "Inner radius (%)"
-msgstr "Εσωτερική ακτίνα (%)"
+msgstr ""
 
 #: management/dashboard_configdash.php:14163
 #: management/dashboard_configdash.php:29411
 msgid "Start angle (°)"
-msgstr "Γωνία έναρξης (°)"
+msgstr ""
 
 #: management/dashboard_configdash.php:14171
 #: management/dashboard_configdash.php:29420
 msgid "End angle (°)"
-msgstr "Τελική γωνία (°)"
+msgstr ""
 
 #: management/dashboard_configdash.php:14182
 #: management/dashboard_configdash.php:29432
 msgid "Diagram center Y(%)"
-msgstr "Κέντρο διαγράμματος Y (%)"
+msgstr ""
 
 #: management/dashboard_configdash.php:14192
 #: management/dashboard_configdash.php:29443
 msgid "Slices colors"
-msgstr "Χρώματα φέτες"
+msgstr ""
 
 #: management/dashboard_configdash.php:14750
 #: management/dashboard_configdash.php:14904
@@ -2777,28 +2738,28 @@ msgstr "Χρώματα φέτες"
 #: management/dashboard_configdash.php:31611
 #: management/dashboard_configdash.php:32060
 msgid "Widget mode"
-msgstr "Λειτουργία Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:15389
 #: management/dashboard_configdash.php:15707
 #: management/dashboard_configdash.php:31614
 #: management/dashboard_configdash.php:32063
 msgid "Web link"
-msgstr "Σύνδεσμος Ιστού"
+msgstr ""
 
 #: management/dashboard_configdash.php:15391
 #: management/dashboard_configdash.php:15709
 #: management/dashboard_configdash.php:31616
 #: management/dashboard_configdash.php:32065
 msgid "Selector target"
-msgstr "Επιλογέας στόχου"
+msgstr ""
 
 #: management/dashboard_configdash.php:15392
 #: management/dashboard_configdash.php:15710
 #: management/dashboard_configdash.php:31617
 #: management/dashboard_configdash.php:32066
 msgid "Selector Web target"
-msgstr "Στόχος επιλογέα ιστού"
+msgstr ""
 
 #: management/dashboard_configdash.php:15402
 #: management/dashboard_configdash.php:15722
@@ -2807,7 +2768,7 @@ msgstr "Στόχος επιλογέα ιστού"
 #: management/dashboard_configdash.php:31626
 #: management/dashboard_configdash.php:32076
 msgid "Start lat"
-msgstr "Έναρξη γεωγραφικού πλάτους"
+msgstr ""
 
 #: management/dashboard_configdash.php:15410
 #: management/dashboard_configdash.php:15731
@@ -2816,7 +2777,7 @@ msgstr "Έναρξη γεωγραφικού πλάτους"
 #: management/dashboard_configdash.php:31634
 #: management/dashboard_configdash.php:32085
 msgid "Start lng"
-msgstr "Έναρξη γεωγραφικού μήκους"
+msgstr ""
 
 #: management/dashboard_configdash.php:15418
 #: management/dashboard_configdash.php:15740
@@ -2825,14 +2786,14 @@ msgstr "Έναρξη γεωγραφικού μήκους"
 #: management/dashboard_configdash.php:31642
 #: management/dashboard_configdash.php:32094
 msgid "Start zoom"
-msgstr "Ξεκινήστε το ζουμ"
+msgstr ""
 
 #: management/dashboard_configdash.php:15438
 #: management/dashboard_configdash.php:15762
 #: management/dashboard_configdash.php:31663
 #: management/dashboard_configdash.php:32117
 msgid "Enable fullscreen in new tab"
-msgstr "Ενεργοποίηση πλήρους οθόνης σε νέα καρτέλα"
+msgstr ""
 
 #: management/dashboard_configdash.php:15446
 #: management/dashboard_configdash.php:15771
@@ -2841,1338 +2802,1325 @@ msgstr "Ενεργοποίηση πλήρους οθόνης σε νέα καρ�
 #: management/dashboard_configdash.php:31672
 #: management/dashboard_configdash.php:32127
 msgid "Enable fullscreen in a popup"
-msgstr "Ενεργοποίηση πλήρους οθόνης σε ένα αναδυόμενο παράθυρο"
+msgstr ""
 
 #: management/dashboard_configdash.php:15457
 #: management/dashboard_configdash.php:15783
 #: management/dashboard_configdash.php:31682
 #: management/dashboard_configdash.php:32138
 msgid "Coords collection URI"
-msgstr "URI Συλλογής Συντεταγμένων"
+msgstr ""
 
 #: management/dashboard_configdash.php:15468
 #: management/dashboard_configdash.php:15795
 #: management/dashboard_configdash.php:31693
 #: management/dashboard_configdash.php:32150
 msgid "Zoom controls visibility"
-msgstr "Το ζουμ ελέγχει την ορατότητα"
+msgstr ""
 
 #: management/dashboard_configdash.php:15478
 #: management/dashboard_configdash.php:15806
 #: management/dashboard_configdash.php:31706
 #: management/dashboard_configdash.php:32164
 msgid "Zoom factor (%)"
-msgstr "Συντελεστής ζουμ (%)"
+msgstr ""
 
 #: management/dashboard_configdash.php:15490
 #: management/dashboard_configdash.php:15819
 #: management/dashboard_configdash.php:31721
 #: management/dashboard_configdash.php:32180
 msgid "Zoom controls position"
-msgstr "Το ζουμ ελέγχει τη θέση"
+msgstr ""
 
 #: management/dashboard_configdash.php:15493
 #: management/dashboard_configdash.php:15822
 #: management/dashboard_configdash.php:31724
 #: management/dashboard_configdash.php:32183
 msgid "Top left"
-msgstr "Επάνω αριστερά"
+msgstr ""
 
 #: management/dashboard_configdash.php:15494
 #: management/dashboard_configdash.php:15823
 #: management/dashboard_configdash.php:31725
 #: management/dashboard_configdash.php:32184
 msgid "Top center"
-msgstr "Επάνω κέντρο"
+msgstr ""
 
 #: management/dashboard_configdash.php:15495
 #: management/dashboard_configdash.php:15824
 #: management/dashboard_configdash.php:31726
 #: management/dashboard_configdash.php:32185
 msgid "Top right"
-msgstr "Επάνω δεξιά"
+msgstr ""
 
 #: management/dashboard_configdash.php:15496
 #: management/dashboard_configdash.php:15825
 #: management/dashboard_configdash.php:31727
 #: management/dashboard_configdash.php:32186
 msgid "Middle right"
-msgstr "Μέση δεξιά"
+msgstr ""
 
 #: management/dashboard_configdash.php:15497
 #: management/dashboard_configdash.php:15826
 #: management/dashboard_configdash.php:31728
 #: management/dashboard_configdash.php:32187
 msgid "Bottom right"
-msgstr "Κάτω δεξιά"
+msgstr ""
 
 #: management/dashboard_configdash.php:15498
 #: management/dashboard_configdash.php:15827
 #: management/dashboard_configdash.php:31729
 #: management/dashboard_configdash.php:32188
 msgid "Bottom middle"
-msgstr "Κάτω μέση"
+msgstr ""
 
 #: management/dashboard_configdash.php:15499
 #: management/dashboard_configdash.php:15828
 #: management/dashboard_configdash.php:31730
 #: management/dashboard_configdash.php:32189
 msgid "Bottom left"
-msgstr "Κάτω αριστερά"
+msgstr ""
 
 #: management/dashboard_configdash.php:15500
 #: management/dashboard_configdash.php:15829
 #: management/dashboard_configdash.php:31731
 #: management/dashboard_configdash.php:32190
 msgid "Middle left"
-msgstr "Μέση αριστερά"
+msgstr ""
 
 #: management/dashboard_configdash.php:17072
 #: management/dashboard_configdash.php:17079
 msgid "Error while updating dashboard scaleFactor"
-msgstr "Σφάλμα κατά την ενημέρωση του scaleFactor στο Dashboard"
+msgstr ""
 
 #: management/dashboard_configdash.php:18078
 #: management/dashboard_configdash.php:18331
 #: management/dashboard_configdash.php:19232
 msgid "Display text color on click"
-msgstr "Εμφάνιση χρώματος κειμένου στο κλικ"
+msgstr ""
 
 #: management/dashboard_configdash.php:21053
 #: management/dashboard_configdash.php:21752
 #: management/dashboard_configdash.php:22429
 msgid "Pins"
-msgstr "Πινέζες"
+msgstr ""
 
 #: management/dashboard_configdash.php:21054
 #: management/dashboard_configdash.php:21753
 #: management/dashboard_configdash.php:22430
 msgid "Geometries"
-msgstr "Γεωμετρίες"
+msgstr ""
 
 #: management/dashboard_configdash.php:21055
 #: management/dashboard_configdash.php:21754
 #: management/dashboard_configdash.php:22431
 msgid "Pins and geometries"
-msgstr "Πινέζες και γεωμετρίες"
+msgstr ""
 
 #: management/dashboard_configdash.php:21286
 msgid "Map Pin Icon"
-msgstr "Εικονίδιο πινέζας χάρτη"
+msgstr ""
 
 #: management/dashboard_configdash.php:21289
 msgid "Square Icon"
-msgstr "Tετράγωνο εικονίδιο"
+msgstr ""
 
 #: management/dashboard_configdash.php:21290
 msgid "Pin Icon"
-msgstr "Εικονίδιο πινέζας"
+msgstr ""
 
 #: management/dashboard_configdash.php:25763
 msgid ""
 "Please note that the Stacked Areas option correctly works only for equally-"
 "sampled data series"
 msgstr ""
-"Λάβετε υπόψη ότι η επιλογή Stacked Areas λειτουργεί σωστά μόνο για σειρές "
-"δεδομένων ισοδύναμου δείγματος"
 
 #: management/dashboard_configdash.php:27760
 msgid "Rows labels backgr. color"
-msgstr "Χρώμα φόντου ετικετών γραμμών"
+msgstr ""
 
 #: management/dashboard_configdash.php:27775
 msgid "Cols labels backgr. color"
-msgstr "Χρώμα φόντου ετικετών στηλών"
+msgstr ""
 
 #: management/dashboard_configdash.php:28698
 #: management/dashboard_configdash.php:28866
 #: management/dashboard_configdash.php:30259
 #: management/dashboard_configdash.php:30364
 msgid "Open Web Link in a New Tab"
-msgstr "Άνοιγμα συνδέσμου ιστού σε νέα καρτέλα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30380
 msgid "Compare Period"
-msgstr "Σύγκριση περιόδου"
+msgstr ""
 
 #: management/dashboard_configdash.php:30388
 #: management/dashboard_configdash.php:33624
 msgid "4 previous hours"
-msgstr "4 προηγούμενες ώρες"
+msgstr ""
 
 #: management/dashboard_configdash.php:30389
 #: management/dashboard_configdash.php:33625
 msgid "4 hours day before"
-msgstr "4 ώρες την ημέρα πριν"
+msgstr ""
 
 #: management/dashboard_configdash.php:30392
 #: management/dashboard_configdash.php:33629
 msgid "12 previous hours"
-msgstr "12 προηγούμενες ώρες"
+msgstr ""
 
 #: management/dashboard_configdash.php:30393
 #: management/dashboard_configdash.php:33630
 msgid "12 hours day before"
-msgstr "12 ώρες την ημέρα πριν"
+msgstr ""
 
 #: management/dashboard_configdash.php:30396
 #: management/dashboard_configdash.php:33634
 msgid "previous day"
-msgstr "προηγούμενη μέρα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30397
 #: management/dashboard_configdash.php:33635
 msgid "same day previous week"
-msgstr "την ίδια μέρα την προηγούμενη εβδομάδα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30398
 #: management/dashboard_configdash.php:33636
 msgid "same day previous month"
-msgstr "την ίδια ημέρα τον προηγούμενο μήνα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30401
 #: management/dashboard_configdash.php:33640
 msgid "previous week"
-msgstr "προηγούμενη εβδομάδα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30402
 #: management/dashboard_configdash.php:33641
 msgid "previous week starting Monday"
-msgstr "προηγούμενη εβδομάδα από τη Δευτέρα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30405
 #: management/dashboard_configdash.php:33645
 msgid "previous month"
-msgstr "προηγούμενος μήνας"
+msgstr ""
 
 #: management/dashboard_configdash.php:30406
 #: management/dashboard_configdash.php:33646
 msgid "previous month - day 1"
-msgstr "πρώτη ημέρα  του προηγούμενου μήνα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30407
 #: management/dashboard_configdash.php:33647
 msgid "same month prev year - day 1"
-msgstr "πρώτη ημέρα, ίδιου μήνα, προηγούμενο έτος"
+msgstr ""
 
 #: management/dashboard_configdash.php:30410
 #: management/dashboard_configdash.php:33651
 msgid "previous 6 months"
-msgstr "προηγούμενους 6 μήνες"
+msgstr ""
 
 #: management/dashboard_configdash.php:30411
 #: management/dashboard_configdash.php:33652
 msgid "previous 6 months - day 1 of prev 6 months"
-msgstr "πρώτη ημέρα του μήνα 6 μήνες πριν"
+msgstr ""
 
 #: management/dashboard_configdash.php:30412
 #: management/dashboard_configdash.php:33653
 msgid "same 6 months of prev year - day 1"
-msgstr "πρώτη ημέρα, ίδιοι 6 μήνες του προηγούμενου έτους"
+msgstr ""
 
 #: management/dashboard_configdash.php:30413
 #: management/dashboard_configdash.php:33654
 msgid "same 6 months of prev year - day 1 month 1 or 7"
 msgstr ""
-"πρώτη ημέρα, πρώτος ή έβδομος μήνας, 6 μήνες πριν του προηγούμενου έτους"
 
 #: management/dashboard_configdash.php:30416
 #: management/dashboard_configdash.php:33658
 msgid "previous year"
-msgstr "προηγούμενο έτος"
+msgstr ""
 
 #: management/dashboard_configdash.php:30417
 #: management/dashboard_configdash.php:33659
 msgid "previous year - day 1 of prev year"
-msgstr "πρώτη ημέρα, προηγούμενου έτους"
+msgstr ""
 
 #: management/dashboard_configdash.php:30418
 #: management/dashboard_configdash.php:33660
 msgid "previous year - month 1"
-msgstr "πρώτος μήνας, προηγούμενου έτους"
+msgstr ""
 
 #: management/dashboard_configdash.php:30421
 #: management/dashboard_configdash.php:33664
 msgid "previous 2 years"
-msgstr "προηγούμενα 2 χρόνια"
+msgstr ""
 
 #: management/dashboard_configdash.php:30424
 #: management/dashboard_configdash.php:33668
 msgid "previous 10 years"
-msgstr "προηγούμενα 10 χρόνια"
+msgstr ""
 
 #: management/dashboard_configdash.php:30633
 msgid "Search filter, results on list"
-msgstr "Φίλτρο αναζήτησης, αποτελέσματα στη λίστα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30634
 msgid "Search filter, results on map"
-msgstr "Φίλτρο αναζήτησης, αποτελέσματα στο χάρτη"
+msgstr ""
 
 #: management/dashboard_configdash.php:30635
 msgid "Search filter, results on list and map"
-msgstr "Φίλτρο αναζήτησης, αποτελέσματα στη λίστα και στο χάρτη"
+msgstr ""
 
 #: management/dashboard_configdash.php:30853
 msgid "Horizontal"
-msgstr "Οριζόντιος"
+msgstr ""
 
 #: management/dashboard_configdash.php:30854
 msgid "Vertical"
-msgstr "Κάθετος"
+msgstr ""
 
 #: management/dashboard_configdash.php:30855
 msgid "VerticalCompact"
-msgstr "Κάθετο συμπαγές"
+msgstr ""
 
 #: management/dashboard_configdash.php:30856
 msgid "Today only"
-msgstr "Μόνο σήμερα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30867
 msgid "Language"
-msgstr "Γλώσσα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30885
 msgid "Today box dimension"
-msgstr "Διάσταση κουτιού σήμερα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30899
 msgid "Background mode"
-msgstr "Λειτουργία φόντου"
+msgstr ""
 
 #: management/dashboard_configdash.php:30902
 msgid "Color"
-msgstr "Χρώμα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30903
 msgid "Automatic picture"
-msgstr "Αυτόματη εικόνα"
+msgstr ""
 
 #: management/dashboard_configdash.php:30913
 msgid "Weather symbols"
-msgstr "Σύμβολα καιρού"
+msgstr ""
 
 #: management/dashboard_configdash.php:30916
 msgid "Images"
-msgstr "Εικόνες"
+msgstr ""
 
 #: management/dashboard_configdash.php:30917
 msgid "Icons"
-msgstr "Εικονίδια"
+msgstr ""
 
 #: management/dashboard_configdash.php:31024
 msgid "Set Min Value"
-msgstr "Ορισμός ελάχιστης τιμής"
+msgstr ""
 
 #: management/dashboard_configdash.php:31034
 msgid "Set Max Value"
-msgstr "Ορισμός μέγιστης τιμής"
+msgstr ""
 
 #: management/dashboard_configdash.php:31203
 msgid "Show Orthomaps Controls"
-msgstr "Εμφάνιση στοιχείων ελέγχου Orthomaps"
+msgstr ""
 
 #: management/dashboard_configdash.php:31220
 msgid "Default Orthomap"
-msgstr "Προεπιλεγμένος Orthomap"
+msgstr ""
 
 #: management/dashboard_configdash.php:31282
 msgid "Connect to WS"
-msgstr "Συνδεθείτε στο WS"
+msgstr ""
 
 #: management/dashboard_configdash.php:32153
 msgid "Always visible"
-msgstr "Πάντα ορατό"
+msgstr ""
 
 #: management/dashboard_configdash.php:33229
 msgid "You can select only one metric for this type of widget"
-msgstr "Μπορείτε να επιλέξετε μόνο μία μέτρηση για αυτόν τον τύπο Widget"
+msgstr ""
 
 #: management/dashboard_configdash.php:33468
 #: management/dashboard_configdash.php:33475
 #: management/dashboard_configdash.php:33481
 msgid "Error during widget update, please try again"
-msgstr "Σφάλμα κατά την ενημέρωση του Widget, δοκιμάστε ξανά"
+msgstr ""
 
 #: management/dashboard_configdash.php:33487
 msgid "Error during widget update, cannot change metric"
 msgstr ""
-"Σφάλμα κατά την ενημέρωση Widget, δεν είναι δυνατή η αλλαγή της μέτρησης"
 
 #: management/dashboards.php:389
 msgid "New dashboard"
-msgstr "Νέο Dashboard"
+msgstr ""
 
 #: management/dashboards.php:402 management/externalServices.php:209
 #: management/iotApplications.php:193 management/microApplications.php:213
 #: management/synopticTemplates.php:220 management/synoptics.php:237
 msgid "Creator"
-msgstr "Δημιουργός"
+msgstr ""
 
 #: management/dashboards.php:403 management/externalServices.php:210
 #: management/iotApplications.php:194 management/microApplications.php:214
 #: management/synopticTemplates.php:221 management/synoptics.php:238
 msgid "Creation date"
-msgstr "Ημερομηνία δημιουργίας"
+msgstr ""
 
 #: management/dashboards.php:404 management/externalServices.php:211
 #: management/microApplications.php:215 management/synopticTemplates.php:222
 #: management/synoptics.php:239
 msgid "Last edit date"
-msgstr "Τελευταία ημερομηνία επεξεργασίας"
+msgstr ""
 
 #: management/dashboards.php:405
 msgid "# Access Today"
-msgstr "# Πρόσβαση σήμερα"
+msgstr ""
 
 #: management/dashboards.php:406
 msgid "Minutes Opened Today"
-msgstr "Λεπτά που άνοιξε σήμερα"
+msgstr ""
 
 #: management/dashboards.php:407 management/externalServices.php:212
 #: management/iotApplications.php:190 management/microApplications.php:216
 #: management/synopticTemplates.php:223 management/synoptics.php:240
 msgid "Status"
-msgstr "Κατάσταση"
+msgstr ""
 
-#: management/dashboards.php:408 management/dashboards.php:1035
-#: management/dashboards.php:1143 management/externalServices.php:213
+#: management/dashboards.php:408 management/dashboards.php:1059
+#: management/dashboards.php:1167 management/externalServices.php:213
 #: management/synopticTemplates.php:642 management/synoptics.php:241
 #: management/synoptics.php:716
 msgid "Edit"
-msgstr "Επεξεργασία"
+msgstr ""
 
-#: management/dashboards.php:409 management/dashboards.php:1035
-#: management/dashboards.php:1101 management/externalServices.php:214
+#: management/dashboards.php:409 management/dashboards.php:1059
+#: management/dashboards.php:1125 management/externalServices.php:214
 #: management/externalServices.php:396 management/microApplications.php:399
 #: management/synopticTemplates.php:638 management/synoptics.php:242
 #: management/synoptics.php:711
 msgid "View"
-msgstr "Προβολή"
+msgstr ""
 
 #: management/dashboards.php:464
 msgid "Add new Dashboard"
-msgstr "Προσθήκη νέου Dashboard"
+msgstr ""
 
 #: management/dashboards.php:469
 msgid "Exceeded limits for Dashboard Creation for user"
-msgstr "Υπέρβαση ορίων για τη δημιουργία Dashboard για τον χρήστη"
+msgstr ""
 
 #: management/dashboards.php:485
 msgid "Dashboard deletion"
-msgstr "Διαγραφή Dashboard"
+msgstr ""
 
 #: management/dashboards.php:492
 msgid "Do you want to delete the following dashboard?"
-msgstr "Θέλετε να διαγράψετε τον ακόλουθο Dashboard;"
+msgstr ""
 
 #: management/dashboards.php:500
 msgid "Deleting dashboard, please wait"
-msgstr "Διαγραφή Dashboard, παρακαλώ περιμένετε"
+msgstr ""
 
 #: management/dashboards.php:506
 msgid "Dashboard deleted successfully"
-msgstr "Το Dashboard διαγράφηκε με επιτυχία"
+msgstr ""
 
 #: management/dashboards.php:512
 msgid "Error deleting dashboard, please try again"
-msgstr "Σφάλμα κατά τη διαγραφή του Dashboard, δοκιμάστε ξανά"
+msgstr ""
 
-#: management/dashboards.php:531 management/dashboards.php:1149
+#: management/dashboards.php:531 management/dashboards.php:1173
 #: management/iotApplications.php:198 management/iotApplications.php:582
 #: management/iotApplications.php:643 management/synopticTemplates.php:248
 #: management/synopticTemplates.php:643 management/synoptics.php:717
 msgid "Management"
-msgstr "Διαχείριση"
+msgstr ""
 
 #: management/dashboards.php:539 management/synopticTemplates.php:255
 #: management/synoptics.php:275 management/synoptics.php:463
 msgid "Visibility"
-msgstr "Ορατότητα"
+msgstr ""
 
 #: management/dashboards.php:540 management/synopticTemplates.php:256
 #: management/synoptics.php:276
 msgid "Delegations"
-msgstr "Αναθέσεις"
+msgstr ""
 
 #: management/dashboards.php:541 management/synopticTemplates.php:258
 #: management/synoptics.php:278
 msgid "Group Delegations"
-msgstr "Ομαδικές αναθέσεις"
+msgstr ""
 
 #: management/dashboards.php:543
 msgid "Accesses Trends"
-msgstr "Πρόσβαση στις τάσεις"
+msgstr ""
 
-#: management/dashboards.php:563 management/iotApplications.php:280
+#: management/dashboards.php:545
+msgid "Structure"
+msgstr ""
+
+#: management/dashboards.php:564 management/iotApplications.php:280
 #: management/synopticTemplates.php:277 management/synoptics.php:298
 msgid "Change ownership"
-msgstr "Αλλαγή ιδιοκτησίας"
+msgstr ""
 
-#: management/dashboards.php:573 management/iotApplications.php:290
+#: management/dashboards.php:574 management/iotApplications.php:290
 #: management/synopticTemplates.php:287 management/synoptics.php:308
 msgid "New owner username can't be empty"
-msgstr "Το νέο όνομα χρήστη κατόχου δεν μπορεί να είναι κενό"
+msgstr ""
 
-#: management/dashboards.php:588 management/synopticTemplates.php:302
+#: management/dashboards.php:589 management/synopticTemplates.php:302
 #: management/synoptics.php:346
 msgid "Change visibility"
-msgstr "Αλλαγή ορατότητας"
+msgstr ""
 
-#: management/dashboards.php:593 management/synopticTemplates.php:307
+#: management/dashboards.php:594 management/synopticTemplates.php:307
 #: management/synoptics.php:351
 msgid "Public"
-msgstr "Δημόσιο"
+msgstr ""
 
-#: management/dashboards.php:594 management/synopticTemplates.php:308
+#: management/dashboards.php:595 management/synopticTemplates.php:308
 #: management/synoptics.php:352
 msgid "Private"
-msgstr "Ιδιωτικό"
+msgstr ""
 
-#: management/dashboards.php:611 management/dashboards.php:649
+#: management/dashboards.php:612 management/dashboards.php:650
 msgid "Delegations are not possibile on a public dashboard"
-msgstr "Οι αναθέσεις δεν είναι δυνατές σε δημόσιο Dashboard"
+msgstr ""
 
-#: management/dashboards.php:615 management/synopticTemplates.php:329
+#: management/dashboards.php:616 management/synopticTemplates.php:329
 #: management/synoptics.php:373
 msgid "Add new delegation"
-msgstr "Προσθήκη νέας ανάθεσης"
+msgstr ""
 
-#: management/dashboards.php:625 management/synopticTemplates.php:339
+#: management/dashboards.php:626 management/synopticTemplates.php:339
 #: management/synoptics.php:383
 msgid "Delegated username can't be empty"
-msgstr "Το εκχωρημένο όνομα χρήστη δεν μπορεί να είναι κενό"
+msgstr ""
 
-#: management/dashboards.php:630 management/synopticTemplates.php:344
+#: management/dashboards.php:631 management/synopticTemplates.php:344
 #: management/synoptics.php:388
 msgid "Current user delegations"
-msgstr "Αναθέσεις αυτού του χρήστη"
+msgstr ""
 
-#: management/dashboards.php:635 management/synopticTemplates.php:349
+#: management/dashboards.php:636 management/synopticTemplates.php:349
 #: management/synoptics.php:393
 msgid "Delegated user"
-msgstr "Εκχωρημένος χρήστης"
+msgstr ""
 
-#: management/dashboards.php:653 management/synopticTemplates.php:367
+#: management/dashboards.php:654 management/synopticTemplates.php:367
 #: management/synoptics.php:411
 msgid "Add new group delegation"
-msgstr "Προσθήκη νέας ομαδικής ανάθεσης"
+msgstr ""
 
-#: management/dashboards.php:680 management/synopticTemplates.php:394
+#: management/dashboards.php:681 management/synopticTemplates.php:394
 #: management/synoptics.php:438
 msgid "Current group delegations"
-msgstr "Αναθέσεις αυτής της ομάδας"
+msgstr ""
 
-#: management/dashboards.php:685 management/synopticTemplates.php:399
+#: management/dashboards.php:686 management/synopticTemplates.php:399
 #: management/synoptics.php:443
 msgid "Delegated group"
-msgstr "Εκχωρημένη ομάδα"
+msgstr ""
 
-#: management/dashboards.php:710 management/dashboards.php:727
+#: management/dashboards.php:711 management/dashboards.php:728
 msgid "Previous"
-msgstr "Προηγούμενος"
-
-#: management/dashboards.php:712 management/dashboards.php:729
-msgid "Last Day"
-msgstr "Χθες"
+msgstr ""
 
 #: management/dashboards.php:713 management/dashboards.php:730
-msgid "Last Week"
-msgstr "Την προηγούμενη εβδομάδα"
+msgid "Last Day"
+msgstr ""
 
 #: management/dashboards.php:714 management/dashboards.php:731
-msgid "Last Month"
-msgstr "Τον προηγούμενο μήνα"
+msgid "Last Week"
+msgstr ""
 
 #: management/dashboards.php:715 management/dashboards.php:732
-msgid "Last Semester"
-msgstr "Τελευταίο εξάμηνο"
+msgid "Last Month"
+msgstr ""
 
 #: management/dashboards.php:716 management/dashboards.php:733
+msgid "Last Semester"
+msgstr ""
+
+#: management/dashboards.php:717 management/dashboards.php:734
 msgid "Last Year"
-msgstr "Πέρυσι"
+msgstr ""
 
-#: management/dashboards.php:720 management/dashboards.php:737
+#: management/dashboards.php:721 management/dashboards.php:738
 msgid "From"
-msgstr "Από"
+msgstr ""
 
-#: management/dashboards.php:720 management/dashboards.php:737
+#: management/dashboards.php:721 management/dashboards.php:738
 msgid "To"
-msgstr "Προς"
+msgstr ""
 
-#: management/dashboards.php:762
+#: management/dashboards.php:786
 msgid "Dashboard duplication"
-msgstr "Κλωνοποίηση Dashboard"
+msgstr ""
 
-#: management/dashboards.php:774
+#: management/dashboards.php:798
 msgid "Cloned dashboard title"
-msgstr "Τίτλος κλωνοποιημένου Dashboard"
+msgstr ""
 
-#: management/dashboards.php:780 management/dashboards.php:1532
+#: management/dashboards.php:804 management/dashboards.php:1557
 msgid "New title OK"
-msgstr "Νέος τίτλος ΟΚ"
+msgstr ""
 
-#: management/dashboards.php:785
+#: management/dashboards.php:809
 msgid "Retrieving current dashboards titles, please wait"
-msgstr "Ανάκτηση τίτλων τρέχοντος Dashboard, παρακαλώ περιμένετε"
+msgstr ""
 
-#: management/dashboards.php:789
+#: management/dashboards.php:813
 msgid "Error retrieving current dashboards titles, please try again"
 msgstr ""
-"Σφάλμα κατά την ανάκτηση τίτλων τρέχοντος Dashboard, παρακαλώ δοκιμάστε ξανά"
 
-#: management/dashboards.php:793
+#: management/dashboards.php:817
 msgid "Cloning dashboard, please wait"
-msgstr "Κλωνοποίηση Dashboard, παρακαλώ περιμένετε"
+msgstr ""
 
-#: management/dashboards.php:797
+#: management/dashboards.php:821
 msgid "Dashboard cloned successfully"
-msgstr "Το Dashboard κλωνοποιήθηκε με επιτυχία"
+msgstr ""
 
-#: management/dashboards.php:805
+#: management/dashboards.php:829
 msgid "Error while cloning dashboard, please try again"
-msgstr "Σφάλμα κατά την κλωνοποίηση του Dashboard, παρακαλώ δοκιμάστε ξανά"
+msgstr ""
 
-#: management/dashboards.php:824
+#: management/dashboards.php:848
 msgid "Dashboard IOT apps"
-msgstr "Dashboard IoT Apps"
+msgstr ""
 
-#: management/dashboards.php:834
+#: management/dashboards.php:858
 msgid "IOT applications list"
-msgstr "Λίστα IoT Apps"
+msgstr ""
 
-#: management/dashboards.php:836
+#: management/dashboards.php:860
 msgid ""
 "You have no access rights for Apps connected to this dashboard or these Apps "
 "may have been deleted"
 msgstr ""
-"Δεν έχετε δικαιώματα πρόσβασης για εφαρμογές που είναι συνδεδεμένες σε αυτόν "
-"τον dashboard ή αυτές οι εφαρμογές ενδέχεται να έχουν διαγραφεί"
 
-#: management/dashboards.php:841
+#: management/dashboards.php:865
 msgid "App"
-msgstr "Εφαρμογή"
+msgstr ""
 
-#: management/dashboards.php:852
+#: management/dashboards.php:876
 msgid "Flow designer"
-msgstr "Σχεδιαστής ροής"
+msgstr ""
 
-#: management/dashboards.php:1078
+#: management/dashboards.php:1102
 msgid "IOT apps & broker"
-msgstr "IοT Αpps & Broker"
+msgstr ""
 
-#: management/dashboards.php:1083
+#: management/dashboards.php:1107
 msgid "IOT apps"
-msgstr "Εφαρμογές IoT"
+msgstr ""
 
-#: management/dashboards.php:1088
+#: management/dashboards.php:1112
 msgid "Broker"
-msgstr "Broker"
+msgstr ""
 
-#: management/dashboards.php:1093
+#: management/dashboards.php:1117
 msgid "Passive"
-msgstr "Παθητικός"
+msgstr ""
 
-#: management/dashboards.php:1158
+#: management/dashboards.php:1182
 msgid "Clone"
-msgstr "Κλώνος"
+msgstr ""
 
-#: management/dashboards.php:1163 management/synopticTemplates.php:648
+#: management/dashboards.php:1187 management/synopticTemplates.php:648
 #: management/synoptics.php:720
 msgid "Delete"
-msgstr "Διαγραφή"
+msgstr ""
 
-#: management/dashboards.php:1203
+#: management/dashboards.php:1227
 msgid "All Groups"
-msgstr "Όλες οι ομάδες"
+msgstr ""
 
-#: management/dashboards.php:1216 management/dashboards.php:2938
+#: management/dashboards.php:1240 management/dashboards.php:2965
 #: management/synoptics.php:2086 management/synoptics.php:2120
 msgid "Error calling internal API"
-msgstr "Σφάλμα κατά την κλήση εσωτερικού API City2Live"
+msgstr ""
 
-#: management/dashboards.php:1423 management/dashboards.php:2744
+#: management/dashboards.php:1447 management/dashboards.php:2771
 msgid "Filter by dashboard title, author..."
-msgstr "Φιλτράρισμα κατα τίτλο, δημιουργό…"
+msgstr ""
 
-#: management/dashboards.php:1512 management/dashboards.php:1527
+#: management/dashboards.php:1537 management/dashboards.php:1552
 msgid "Title already in use"
-msgstr "Ο τίτλος χρησιμοποιείται ήδη"
+msgstr ""
 
-#: management/dashboards.php:1521
+#: management/dashboards.php:1546
 msgid "Title can\\'t be less than 4 characters long"
-msgstr "Ο τίτλος δεν μπορεί να έχει μήκος μικρότερο από 4 χαρακτήρες"
+msgstr ""
 
-#: management/dashboards.php:1674 management/synoptics.php:1563
+#: management/dashboards.php:1699 management/synoptics.php:1563
 msgid "New ownership set correctly"
-msgstr "Η νέα ιδιοκτησία ορίστηκε σωστά"
+msgstr ""
 
-#: management/dashboards.php:1686 management/synoptics.php:1576
+#: management/dashboards.php:1711 management/synoptics.php:1576
 msgid "Error: New owner does not exists or it is not a valid LDAP user"
-msgstr "Σφάλμα: Ο νέος κάτοχος δεν υπάρχει ή δεν είναι έγκυρος χρήστης LDAP"
+msgstr ""
 
-#: management/dashboards.php:1700
+#: management/dashboards.php:1725
 msgid "Error: New owner has exceeded his limits for dashboard ownership"
 msgstr ""
-"Σφάλμα: Ο νέος κάτοχος έχει υπερβεί τα όρια του για την ιδιοκτησία Dashboard"
 
-#: management/dashboards.php:1714 management/dashboards.php:1729
+#: management/dashboards.php:1739 management/dashboards.php:1754
 #: management/synoptics.php:1606 management/synoptics.php:1621
 msgid "Error setting new ownership: please try again"
-msgstr "Σφάλμα κατά τον καθορισμό νέας ιδιοκτησίας: Δοκιμάστε ξανά"
+msgstr ""
 
-#: management/dashboards.php:1760
+#: management/dashboards.php:1785
 msgid "New visibility set correctly"
-msgstr "Ορίστηκε νέα ορατότητα σωστά"
+msgstr ""
 
-#: management/dashboards.php:1770 management/dashboards.php:1784
+#: management/dashboards.php:1795 management/dashboards.php:1809
 msgid "Error setting new visibility"
-msgstr "Σφάλμα κατά τη ρύθμιση νέας ορατότητας"
+msgstr ""
 
-#: management/dashboards.php:1848 management/dashboards.php:1992
+#: management/dashboards.php:1873 management/dashboards.php:2017
 #: management/synoptics.php:1757 management/synoptics.php:1903
 msgid "New delegation added correctly"
-msgstr "Η νέα ανάθεση προστέθηκε σωστά"
+msgstr ""
 
-#: management/dashboards.php:1855 management/dashboards.php:1910
-#: management/dashboards.php:2123 management/synoptics.php:1423
+#: management/dashboards.php:1880 management/dashboards.php:1935
+#: management/dashboards.php:2149 management/synoptics.php:1423
 #: management/synoptics.php:1764 management/synoptics.php:1803
 #: management/synoptics.php:1820
 msgid "Delegated username can\\'t be empty"
-msgstr "Το εκχωρημένο όνομα χρήστη δεν μπορεί να είναι κενό"
-
-#: management/dashboards.php:1893
-msgid "Error: Delegated username can\\'t be empty"
-msgstr "Σφάλμα: Το εκχωρημένο όνομα χρήστη δεν μπορεί να είναι κενό"
-
-#: management/dashboards.php:1923 management/synoptics.php:1833
-msgid "Group already delegated"
-msgstr "Η ομάδα έχει ήδη ανατεθεί"
-
-#: management/dashboards.php:2005
-msgid "You can\\'t delegate a root admin"
-msgstr "Δεν μπορείτε να αναθέσετε έναν root admin"
-
-#: management/dashboards.php:2009
-msgid "Error calling Snap4City API"
-msgstr "Σφάλμα κατά την κλήση του City2Live API"
-
-#: management/dashboards.php:2013
-msgid "Database error"
-msgstr "Σφάλμα βάσης δεδομένων"
-
-#: management/dashboards.php:2017
-msgid "LDAP error"
-msgstr "Σφάλμα LDAP"
-
-#: management/dashboards.php:2098 management/synoptics.php:1396
-msgid "New owner username can\\'t be empty"
-msgstr "Το νέο όνομα χρήστη κατόχου δεν μπορεί να είναι κενό"
-
-#: management/dashboards.php:2105 management/synoptics.php:1404
-msgid "New owner can\\'t be you"
-msgstr "Ο νέος κάτοχος δεν μπορεί να είστε εσείς"
-
-#: management/dashboards.php:2110 management/synoptics.php:1410
-msgid "User can be new owner"
-msgstr "Ο χρήστης μπορεί να είναι νέος κάτοχος"
-
-#: management/dashboards.php:2128
-msgid "User can be delegated"
-msgstr "Ο χρήστης μπορεί να εξουσιοδοτηθεί"
-
-#: management/dashboards.php:2136 management/synoptics.php:1437
-msgid "User already delegated"
-msgstr "Ο χρήστης έχει ήδη εξουσιοδοτηθεί"
-
-#: management/dashboards.php:2781
-msgid "Error updating dashboard status"
-msgstr "Σφάλμα κατά την ενημέρωση της κατάστασης του Dashboard"
-
-#: management/dashboards.php:3009
-msgid "Single or double quotes are not allowed in dashboard title."
 msgstr ""
-"Μεμονωμένα ή διπλά εισαγωγικά δεν επιτρέπονται στον τίτλο του Dashboard."
 
-#: management/dashboards.php:3014
-msgid "Dashboard title can\\'t be longer than 300 chars"
-msgstr "Ο τίτλος του Dashboard δεν μπορεί να υπερβαίνει τους 300 χαρακτήρες"
+#: management/dashboards.php:1918
+msgid "Error: Delegated username can\\'t be empty"
+msgstr ""
+
+#: management/dashboards.php:1948 management/synoptics.php:1833
+msgid "Group already delegated"
+msgstr ""
+
+#: management/dashboards.php:2030
+msgid "You can\\'t delegate a root admin"
+msgstr ""
+
+#: management/dashboards.php:2034
+msgid "Error calling Snap4City API"
+msgstr ""
+
+#: management/dashboards.php:2038
+msgid "Database error"
+msgstr ""
+
+#: management/dashboards.php:2042
+msgid "LDAP error"
+msgstr ""
+
+#: management/dashboards.php:2124 management/synoptics.php:1396
+msgid "New owner username can\\'t be empty"
+msgstr ""
+
+#: management/dashboards.php:2131 management/synoptics.php:1404
+msgid "New owner can\\'t be you"
+msgstr ""
+
+#: management/dashboards.php:2136 management/synoptics.php:1410
+msgid "User can be new owner"
+msgstr ""
+
+#: management/dashboards.php:2154
+msgid "User can be delegated"
+msgstr ""
+
+#: management/dashboards.php:2162 management/synoptics.php:1437
+msgid "User already delegated"
+msgstr ""
+
+#: management/dashboards.php:2808
+msgid "Error updating dashboard status"
+msgstr ""
 
 #: management/dashboards.php:3036
+msgid "Single or double quotes are not allowed in dashboard title."
+msgstr ""
+
+#: management/dashboards.php:3041
+msgid "Dashboard title can\\'t be longer than 300 chars"
+msgstr ""
+
+#: management/dashboards.php:3063
 msgid "Dashboard title OK"
-msgstr "Ο τίτλος του Dashboard είναι ΟΚ"
+msgstr ""
+
+#: management/dashboards.php:3097 management/dashboards.php:3132
+msgid "Link to Graph"
+msgstr ""
 
 #: management/externalServices.php:376 management/microApplications.php:378
 msgid "edit"
-msgstr "επεξεργασία"
+msgstr ""
 
 #: management/externalServices.php:376 management/microApplications.php:378
 #: management/synoptics.php:681
 msgid "view"
-msgstr "προεπισκόπηση"
+msgstr ""
 
 #: management/externalServices.php:392 management/microApplications.php:394
 #: management/synoptics.php:707
 msgid "New Tab"
-msgstr "Νέα Καρτέλα"
+msgstr ""
 
 #: management/inspector.php:609 management/inspector.php:631
 msgid "Edit Parameter"
-msgstr "Επεξεργασία Παραμέτρου"
+msgstr ""
 
 #: management/inspector.php:612
 msgid "Are you sure do you want edit parameters from this tab?"
 msgstr ""
-"Είστε βέβαιοι ότι θέλετε να επεξεργαστείτε τις παραμέτρους της τρέχων "
-"καρτέλα;"
 
 #: management/inspector.php:648
 msgid "Are you sure do you want confirm?"
-msgstr "Είστε βέβαιοι ότι θέλετε επιβεβαίωση;"
+msgstr ""
 
 #: management/inspector.php:723
 msgid "Edit parameters"
-msgstr "Επεξεργασία Παραμέτρων"
+msgstr ""
 
 #: management/inspector.php:747
 msgid "Hourly"
-msgstr "Ωριαίος"
+msgstr ""
 
 #: management/inspector.php:754
 msgid "Define Report"
-msgstr "Kαθορισμός Αναφοράς"
+msgstr ""
 
 #: management/inspector.php:754
 msgid "Activation:"
-msgstr "Ενεργοποίηση:"
+msgstr ""
 
 #: management/inspector.php:754
 msgid "Periodicity:"
-msgstr "Περιοδικότητα:"
+msgstr ""
 
 #: management/inspector.php:754
 msgid "Monthly"
-msgstr "Μηνιαίο"
+msgstr ""
 
 #: management/inspector.php:754
 msgid "Quarterly"
-msgstr "Τετραμηνιαίο"
+msgstr ""
 
 #: management/inspector.php:783
 msgid "Download Report"
-msgstr "Λήψη Aναφοράς"
+msgstr ""
 
 #: management/inspector.php:872
 msgid "Link to External Service"
-msgstr "Σύνδεσμος προς External Service"
+msgstr ""
 
 #: management/inspector.php:891
 msgid "Healthiness Criteria 2:"
-msgstr "Κριτήριο Υγείας 2:"
+msgstr ""
 
 #: management/inspector.php:915 management/inspector.php:986
 #: management/inspector.php:1106 management/inspector.php:1118
 #: management/inspector.php:1156
 msgid "Link to Service Map"
-msgstr "Σύνδεσμος προς Service Map"
+msgstr ""
 
 #: management/inspector.php:1012
 msgid "Link to IoT Directory"
-msgstr "Σύνδεσμος προς IoT Directory"
+msgstr ""
 
 #: management/inspector.php:1013 management/inspector.php:1043
 msgid "Link to IoT Broker"
-msgstr "Σύνδεσμος προς IoT Broker"
+msgstr ""
 
 #: management/inspector.php:1071
 msgid "Link to MicroApplication"
-msgstr "Σύνδεσμος προς MicroApplication"
+msgstr ""
 
 #: management/inspector.php:1280
 msgid "List of Devices"
-msgstr "Λίστα των Devices"
+msgstr ""
 
 #: management/inspector.php:1518
 msgid "Upload"
-msgstr "Μεταφόρτωση"
+msgstr ""
 
 #: management/inspector.php:1518
 msgid "Upload Image"
-msgstr "Μεταφορτώση εικόνας"
+msgstr ""
 
 #: management/inspector.php:1530 management/inspector.php:1533
 msgid "Link to Disces"
-msgstr "Σύνδεσμος προς Disces"
+msgstr ""
 
 #: management/inspector.php:1536
 msgid "Link to Knowledge Base"
-msgstr "Σύνδεσμος προς Knowledge Base"
+msgstr ""
 
 #: management/inspector.php:1546
 msgid "Link to ArcGIS"
-msgstr "Σύνδεσμος προς ArcGIS"
+msgstr ""
 
 #: management/inspector.php:1551
 msgid "Link to Heatmap"
-msgstr "Σύνδεσμος προς Heatmap"
+msgstr ""
 
 #: management/inspector.php:1903
 msgid "Not Valid parameters"
-msgstr "Μη έγκυρες παράμετροι"
+msgstr ""
 
 #: management/inspector.php:1944 management/inspector.php:2034
 msgid "Licence:"
-msgstr "Άδεια:"
+msgstr ""
 
 #: management/inspector.php:2200
 msgid "Link to Iot App"
-msgstr "Σύνδεσμος προς IoT App"
+msgstr ""
 
 #: management/inspector.php:2262
 msgid "Link to IotApp"
-msgstr "Σύνδεσμος προς IoT App"
+msgstr ""
 
 #: management/inspector.php:2266 management/inspector.php:2281
 #: management/inspector.php:2344
 msgid "Link to IotApp Not founded"
-msgstr "Δεν βρέθηκε σύνδεσμος για IoT App"
+msgstr ""
 
 #: management/inspector.php:2272 management/inspector.php:2350
 #: management/inspector.php:2409
 msgid "No dashboards connected"
-msgstr "Δεν έχουν συνδεθεί Dashboards"
+msgstr ""
 
 #: management/inspector.php:2274 management/inspector.php:2282
 msgid "List of IotApp"
-msgstr "Λίστα IoT App"
+msgstr ""
 
 #: management/inspector.php:2340
 msgid "Link to Iot Apps"
-msgstr "Σύνδεσμος προς IoT Apps"
+msgstr ""
 
 #: management/inspector.php:2352
 msgid "List of Iot Apps"
-msgstr "Λίστα από Iot Apps"
+msgstr ""
 
 #: management/inspector.php:2414
 msgid "List of Dashboard"
-msgstr "Λίστα από Dashboard"
+msgstr ""
 
 #: management/iotApplications.php:113
 msgid "IOT Applications"
-msgstr "Εφαρμογές IoT"
+msgstr ""
 
 #: management/iotApplications.php:181
 msgid "Create new"
-msgstr "Δημιουργήστε νέο"
+msgstr ""
 
 #: management/iotApplications.php:191 management/synoptics.php:463
 msgid "Type"
-msgstr "Τύπος"
+msgstr ""
 
 #: management/iotApplications.php:195
 msgid "Modification date"
-msgstr "Ημερομηνία τροποποίησης"
+msgstr ""
 
 #: management/iotApplications.php:197
 msgid "Dashboards"
-msgstr "Dashboards"
+msgstr ""
 
 #: management/iotApplications.php:220
 msgid "Create IoT Application"
-msgstr "Δημιουργία εφαρμογής IoT"
+msgstr ""
 
 #: management/iotApplications.php:226
 msgid "Application name"
-msgstr "'Oνομα Εφαρμογής"
+msgstr ""
 
 #: management/iotApplications.php:235
 msgid "Application type"
-msgstr "Τύπος εφαρμογής"
+msgstr ""
 
 #: management/iotApplications.php:239 management/iotApplications.php:317
 msgid "Basic"
-msgstr "Βασικός"
+msgstr ""
 
 #: management/iotApplications.php:240 management/iotApplications.php:318
 msgid "Advanced"
-msgstr "Προχωρημένος"
+msgstr ""
 
 #: management/iotApplications.php:241 management/iotApplications.php:320
 msgid "Web scraper (portia)"
-msgstr "Web scraper (portia)"
+msgstr ""
 
 #: management/iotApplications.php:264
 msgid "IoT Application Management"
-msgstr "Διαχείριση IoT Applications"
+msgstr ""
 
 #: management/iotApplications.php:271
 msgid "Control"
-msgstr "'Eλεγχος"
+msgstr ""
 
 #: management/iotApplications.php:304
 msgid "Application name:"
-msgstr "Ονομα εφαρμογής:"
+msgstr ""
 
 #: management/iotApplications.php:313
 msgid "Application type:"
-msgstr "Τύπος εφαρμογής:"
+msgstr ""
 
 #: management/iotApplications.php:319
 msgid "Data analytic"
-msgstr "Ανάλυση δεδομένων"
+msgstr ""
 
 #: management/iotApplications.php:327
 msgid "Created:"
-msgstr "Δημιουργήθηκε:"
+msgstr ""
 
 #: management/iotApplications.php:335
 msgid "Update"
-msgstr "Ενημέρωση"
+msgstr ""
 
 #: management/iotApplications.php:342
 msgid "Delete application..."
-msgstr "Διαγραφή εφαρμογής..."
+msgstr ""
 
 #: management/iotApplications.php:343
 msgid "Restart application..."
-msgstr "Επανεκκινήστε την εφαρμογή..."
+msgstr ""
 
 #: management/iotApplications.php:671
 msgid "View as table"
-msgstr "Προβολή ως πίνακα"
+msgstr ""
 
 #: management/iotApplications.php:672
 msgid "View as cards"
-msgstr "Προβολή ως κάρτες"
+msgstr ""
 
 #: management/synopticTemplates.php:210
 msgid "New template"
-msgstr "Νέο πρότυπο"
+msgstr ""
 
 #: management/synopticTemplates.php:325 management/synopticTemplates.php:363
 msgid "Delegations are not possibile on a public template"
-msgstr "Οι αντιπροσωπείες δεν είναι δυνατές σε δημόσιο πρότυπο"
+msgstr ""
 
 #: management/synopticTemplates.php:429
 msgid "Template deletion"
-msgstr "Διαγραφή προτύπου"
+msgstr ""
 
 #: management/synopticTemplates.php:436
 msgid "Do you want to delete the following template?"
-msgstr "Θέλετε να διαγράψετε το ακόλουθο πρότυπο;"
+msgstr ""
 
 #: management/synopticTemplates.php:444
 msgid "Deleting template, please wait"
-msgstr "Διαγραφή προτύπου, παρακαλώ περιμένετε"
+msgstr ""
 
 #: management/synopticTemplates.php:450
 msgid "Template deleted successfully"
-msgstr "Το πρότυπο διαγράφηκε με επιτυχία"
+msgstr ""
 
 #: management/synopticTemplates.php:456
 msgid "Error deleting template, please try again"
-msgstr "Σφάλμα κατά τη διαγραφή προτύπου, δοκιμάστε ξανά"
+msgstr ""
 
 #: management/synopticTemplates.php:644
 msgid "Instantiate"
-msgstr "Οργάνωση"
+msgstr ""
 
 #: management/synopticTemplates.php:645 management/synoptics.php:718
 msgid "Delegate"
-msgstr "Eξουσιοδότηση πρόσβασης"
+msgstr ""
 
 #: management/synopticTemplates.php:646 management/synoptics.php:719
 #: management/synoptics.php:721
 msgid "Chg Owner"
-msgstr "Αλλαγή Ιδιοκτήτη"
+msgstr ""
 
 #: management/synopticTemplates.php:647
 msgid "Make Public"
-msgstr "Δημοσίευση"
+msgstr ""
 
 #: management/synopticTemplates.php:649 management/synoptics.php:722
 msgid "Make Private"
-msgstr "Κάντε ιδιωτικό"
+msgstr ""
 
 #: management/synopticTemplatesForm.php:106
 msgid "Synoptic Template"
-msgstr "Συνοπτικό (Synoptic) προτύπου"
+msgstr ""
 
 #: management/synopticTemplatesForm.php:117 management/synopticsForm.php:135
 #: management/synopticsMappingForm.php:133
 msgid "Name"
-msgstr "Όνομα"
+msgstr ""
 
 #: management/synopticTemplatesForm.php:152
 msgid "SVG Template File"
-msgstr "Αρχείο προτύπου SVG"
+msgstr ""
 
 #: management/synopticTemplatesForm.php:160
 msgid "Icon"
-msgstr "Εικονίδιο"
+msgstr ""
 
 #: management/synopticTemplatesForm.php:167 management/synopticsForm.php:172
 #: management/synopticsMappingForm.php:173
 msgid "Reset"
-msgstr "Eπαναφορά"
+msgstr ""
 
 #: management/synopticTemplatesForm.php:169 management/synopticsForm.php:174
 #: management/synopticsMappingForm.php:175
 msgid "Back"
-msgstr "Πίσω"
+msgstr ""
 
 #: management/synopticTemplatesForm.php:174
 msgid "Open template"
-msgstr "Ανοίξτε το πρότυπο"
+msgstr ""
 
 #: management/synopticTemplatesForm.php:176 management/synopticsForm.php:185
 #: management/synopticsMappingForm.php:185
 msgid "No further action"
-msgstr "Καμία περαιτέρω δράση"
+msgstr ""
 
 #: management/synoptics.php:227
 msgid "New synoptic"
-msgstr "Νέο Synoptic"
+msgstr ""
 
 #: management/synoptics.php:273
 msgid "Organization"
-msgstr "Οργανισμός"
+msgstr ""
 
 #: management/synoptics.php:279
 msgid "Variables"
-msgstr "Μεταβλητές"
+msgstr ""
 
 #: management/synoptics.php:323
 msgid "Change organization"
-msgstr "Αλλαγή οργανισμού"
+msgstr ""
 
 #: management/synoptics.php:369 management/synoptics.php:407
 msgid "Delegations are not possibile on a public synoptic"
-msgstr "Οι αντιπροσωπείες δεν είναι δυνατές σε δημόσιο Synoptic"
+msgstr ""
 
 #: management/synoptics.php:457
 msgid "List of the variables read and written by this synoptic"
 msgstr ""
-"Λίστα των μεταβλητών που διαβάζονται και γράφονται από αυτό το Synoptic"
 
 #: management/synoptics.php:462 management/synopticsMappingForm.php:124
 msgid "Template"
-msgstr "Πρότυπο"
+msgstr ""
 
 #: management/synoptics.php:462 management/synopticsForm.php:116
 #: management/synopticsMappingForm.php:119
 msgid "Synoptic"
-msgstr "Synoptic"
+msgstr ""
 
 #: management/synoptics.php:463
 msgid "Variable"
-msgstr "Μεταβλητή"
+msgstr ""
 
 #: management/synoptics.php:491
 msgid "Synoptic deletion"
-msgstr "Διαγραφή Synoptic"
+msgstr ""
 
 #: management/synoptics.php:498
 msgid "Do you want to delete the following synoptic?"
-msgstr "Θέλετε να διαγράψετε το ακόλουθο Synoptic;"
+msgstr ""
 
 #: management/synoptics.php:506
 msgid "Deleting synoptic, please wait"
-msgstr "Διαγραφή Synoptic, παρακαλώ περιμένετε"
+msgstr ""
 
 #: management/synoptics.php:512
 msgid "Synoptic deleted successfully"
-msgstr "Το Synoptic διαγράφηκε με επιτυχία"
+msgstr ""
 
 #: management/synoptics.php:518
 msgid "Error deleting synoptic, please try again"
-msgstr "Σφάλμα κατά τη διαγραφή Synoptic, δοκιμάστε ξανά"
+msgstr ""
 
 #: management/synoptics.php:1199
 msgid "show"
-msgstr "προβολή"
+msgstr ""
 
 #: management/synoptics.php:1329
 msgid "Organization saved successfully"
-msgstr "Ο οργανισμός αποθηκεύτηκε με επιτυχία"
+msgstr ""
 
 #: management/synoptics.php:1334
 msgid "Error: the new organization could not be saved"
-msgstr "Σφάλμα: δεν ήταν δυνατή η αποθήκευση του νέου οργανισμού"
+msgstr ""
 
 #: management/synoptics.php:1591
 msgid "Error: New owner has exceeded his limits for synoptics ownership"
 msgstr ""
-"Σφάλμα: Ο νέος κάτοχος έχει υπερβεί τα όριά του για την ιδιοκτησία του "
-"Synoptic"
 
 #: management/synopticsForm.php:106
 msgid "New Synoptic"
-msgstr "Νέο Synoptic"
+msgstr ""
 
 #: management/synopticsForm.php:158 management/synopticsMappingForm.php:153
 msgid "Read variables"
-msgstr "Διαβάστε μεταβλητές"
+msgstr ""
 
 #: management/synopticsForm.php:158 management/synopticsForm.php:164
 #: management/synopticsMappingForm.php:153
 #: management/synopticsMappingForm.php:159
 msgid "Select the variables from the lists"
-msgstr "Επιλέξτε τις μεταβλητές από τις λίστες"
+msgstr ""
 
 #: management/synopticsForm.php:164 management/synopticsMappingForm.php:159
 msgid "Write variables"
-msgstr "Γράψτε μεταβλητές"
+msgstr ""
 
 #: management/synopticsForm.php:183 management/synopticsMappingForm.php:183
 msgid "Open Synoptic"
-msgstr "Ανοίξτε το Synoptic"
+msgstr ""
 
 #: management/synopticsForm.php:202 management/synopticsMappingForm.php:202
 msgid "New Shared Variable"
-msgstr "Νέα κοινόχρηστη μεταβλητή"
+msgstr ""
 
 #: management/synopticsForm.php:209
 msgid "Variable name:"
-msgstr "Όνομα μεταβλητής:"
+msgstr ""
 
 #: management/synopticsForm.php:238 management/synopticsMappingForm.php:238
 msgid "Set to a fixed value"
-msgstr "Ορίστε σε μια σταθερή τιμή"
+msgstr ""
 
 #: management/synopticsMappingForm.php:106
 msgid "Edit Synoptic"
-msgstr "Επεξεργασία Synoptic"
+msgstr ""
 
 #: management/synopticsMappingForm.php:209
 msgid "Variable name"
-msgstr "Όνομα μεταβλητής"
+msgstr ""
 
 #: management/synopticsMappingForm.php:712
 msgid "The variable name cannot be empty"
-msgstr "Το όνομα της μεταβλητής δεν μπορεί να είναι κενό"
+msgstr ""
 
 #: management/synopticsMappingForm.php:717
 msgid "Please only use letters, digits, underscores, dashes, and dots."
-msgstr "Χρησιμοποιήστε μόνο γράμματα, ψηφία, κάτω παύλες, παύλες και τελείες."
+msgstr ""
 
 #: management/synopticsMappingForm.php:722
 msgid "A shared variable already exists with that name"
-msgstr "Υπάρχει ήδη μια κοινόχρηστη μεταβλητή με αυτό το όνομα"
+msgstr ""
 
 #: management/synopticsMappingForm.php:727
 msgid "The name is good. Hit CONFIRM to proceed."
-msgstr "Το όνομα είναι καλό. Πατήστε Επιβαιβέωση για να συνεχίσετε."
+msgstr ""
 
 #: view/index.php:2226
 msgid "Privacy Policy"
-msgstr "Πολιτική απορρήτου"
+msgstr ""
 
 #: view/index.php:2227
 msgid "Cookies Policy"
-msgstr "Πολιτική Cookies"
+msgstr ""
 
 #: view/index.php:2228
 msgid "Terms and Conditions"
-msgstr "'Oροι και Προϋποθέσεις"
+msgstr ""
 
 #: view/index.php:2229
 msgid "Contact us"
-msgstr "Επικοινωνήστε μαζί μας"
+msgstr ""
 
 #: view/index.php:2268
 msgid "Dashboard Management System"
-msgstr "Dashboard Management System"
+msgstr ""
 
 #: view/index.php:2274
 msgid "Restricted access dashboard"
-msgstr "Dashboard περιορισμένης πρόσβασης"
+msgstr ""
 
 #: view/index.php:2382
 msgid "Do you want to confirm logout from this dashboard?"
-msgstr "Θέλετε να επιβεβαιώσετε την αποσύνδεση από αυτόν τον Dashboard;"
+msgstr ""
 
 #: view/index.php:2388
 msgid "Logout correctly executed"
-msgstr "Η αποσύνδεση πραγματοποιήθηκε σωστά"
+msgstr ""
 
 #: view/index.php:2392
 msgid "Logout not possibile, please try again"
-msgstr "Δεν είναι δυνατή η αποσύνδεση, παρακαλώ δοκιμάστε ξανά"
+msgstr ""
 
 #: view/index.php:2506
 msgid "Toggle navigation"
-msgstr "Ενεργοποίηση / απενεργοποίηση πλοήγησης"
+msgstr ""
 
 #: view/index.php:2511
 msgid "Dashboard management system"
-msgstr "Dashboard Management System"
+msgstr ""
 
 #: view/index.php:2516
 msgid "Error"
-msgstr "Σφάλμα"
+msgstr ""
 
 #: view/index.php:2517
 msgid "Error while trying to get dashboard visibility: please try again"
 msgstr ""
-"Σφάλμα κατά την προσπάθεια λήψης της ορατότητας του Dashboard: δοκιμάστε ξανά"
 
 #: view/index.php:2523
 msgid "Auto refit in progress, please wait"
-msgstr "Αυτόματη επισκευή σε εξέλιξη, περιμένετε"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:40
 msgid "Hide header"
-msgstr "Απόκρυψη κεφαλίδας"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:45
 msgid "Hide content"
-msgstr "Απόκρυψη περιεχομένου"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:49
 msgid "Hide dim ctrl"
-msgstr "Απόκρυψη ελέγχου ντιμαρίσματος"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:53
 msgid "Allow collapse"
-msgstr "Να επιτρέπεται η σύμπτηξη"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:217
 msgid "Chart color"
-msgstr "Χρώμα γραφήματος"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:270
 msgid "Axes color"
-msgstr "Χρώμα αξόνων"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:448
 msgid "Border color"
-msgstr "Χρώμα πλαισίου"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:501
 msgid "Time range"
-msgstr "Εύρος χρόνου"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:530
 msgid "Change metric"
-msgstr "Αλλαγή μέτρησης"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:539
 msgid "Additive mode"
-msgstr "Πρόσθετη λειτουργία"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:545
 msgid "More options"
-msgstr "Περισσότερες επιλογές"
+msgstr ""
 
 #: widgets/widgetCtxMenu.php:549
 msgid "Delete widget"
-msgstr "Διαγραφή widget"
-
-#~ msgid "Sort ascending"
-#~ msgstr "昇順"
-
-#~ msgid "Sort descending"
-#~ msgstr "降順にソート"
+msgstr ""
