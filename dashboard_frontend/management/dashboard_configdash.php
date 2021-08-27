@@ -17725,7 +17725,7 @@
                                 var info_mess = data['info_mess'];
                                 $("#inputShowTitleM").val(data['showTitle']);
                                 
-                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries" && widgetTypeM != "widgetRadarSeries"  && widgetTypeM != "widgetGaugeChart" && widgetTypeM != "widgetSpeedometer" && widgetTypeM != "widgetPieChart" && widgetTypeM != "widgetSingleContent" && widgetTypeM != "widgetTable" && widgetTypeM != "widgetCalendar" && widgetTypeM != "widgetDataCube")
+                                if(((entityJson !== null)||(data.actuatorTarget === 'app')) && widgetTypeM != "widgetBarSeries" && widgetTypeM != "widgetCurvedLineSeries" && widgetTypeM != "widgetRadarSeries"  && widgetTypeM != "widgetGaugeChart" && widgetTypeM != "widgetSpeedometer" && widgetTypeM != "widgetPieChart" && widgetTypeM != "widgetSingleContent" && widgetTypeM != "widgetTable" && widgetTypeM != "widgetCalendar" && widgetTypeM != "widgetDataCube" && widgetTypeM != "widgetTimeTrend")
                                 {
                                     $('#actuatorTargetM').parents('div.row').show();
                                     if((data.actuatorTarget === 'app'))
@@ -30769,7 +30769,7 @@
                                         // UDM x-Offset
                                         newLabel = $('<label for="xOffsetUdm" class="col-md-2 control-label">U/M x-offset (px)</label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
-                                        newInput = $('<input type="text" class="form-control" id="xOffsetUdm" name="xOffsetUdm" required>');
+                                        newInput = $('<input type="text" class="form-control" id="xOffsetUdm" name="xOffsetUdm">');
                                         newInnerDiv.append(newInput);
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
