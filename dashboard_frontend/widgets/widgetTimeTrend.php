@@ -40,7 +40,7 @@
         var thresholdObject, chartColor, chartRef, styleParameters, metricType, pattern, totValues, shownValues, showTitle, showHeader, hasTimer, timeRange, globalDiagramRange, myKPITimeRange,
             threshold, thresholdEval, delta, deltaPerc, originalMetricType, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, fontSize, fontColor, timeToReload, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor,
             widgetParameters, sizeRowsWidget, desc, plotLinesArray, sm_based, rowParameters, sm_field, value, day, dayParts, timeParts, date, maxValue, minValue, nInterval, alarmSet, plotLineObj, metricName,
-            widgetTitle, countdownRef,widgetOriginalBorderColor, serviceMapTimeRange, unitsWidget, webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed, gridLineColor, chartAxesColor, infoJson = null;
+            widgetTitle, countdownRef,widgetOriginalBorderColor, serviceMapTimeRange, unitsWidget, webSocket, openWs, manageIncomingWsMsg, nrMetricType, openWsConn, wsClosed, gridLineColor, chartAxesColor, infoJson = null;
         var elToEmpty = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer");
         var seriesData = [];
         var valuesData = [];
@@ -1718,7 +1718,7 @@
             {
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').hide();
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv a.info_source').show();
-                
+
                 switch(localTimeRange)
                 {
                     case "4 Ore":
@@ -2530,6 +2530,7 @@
                 chartLabelsFontSize = widgetData.params.chartLabelsFontSize; 
                 chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
                 infoJson = widgetData.params.infoJson;
+                nrMetricType = widgetData.params.nrMetricType;
                 
                 sm_based = widgetData.params.sm_based;
 
@@ -2704,7 +2705,7 @@
                 }
 
                 //Web socket
-                openWs = function(e)
+                openWs = function(widgetName)
                 {
                     try
                     {
@@ -2722,7 +2723,7 @@
                             echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
                         ?>
 
-                        webSocket.addEventListener('open', openWsConn);
+                    /*    webSocket.addEventListener('open', openWsConn);
                         webSocket.addEventListener('close', wsClosed);
 
                         setTimeout(function(){
@@ -2731,7 +2732,16 @@
                             webSocket.removeEventListener('message', manageIncomingWsMsg);
                             webSocket.close();
                             webSocket = null;  
-                        }, (timeToReload - 2)*1000);
+                        }, (timeToReload - 2)*1000);    */
+                        webSocket=null;
+                        initWebsocket(widgetName, wsUrl, null, wsRetryTime*1000, function(socket){
+                            //   console.log('socket initialized!');
+                            //do something with socket...
+                            webSocket = socket;
+                            openWsConn();
+                        }, function(){
+                            console.log('init of socket on failed!');
+                        });
                     }
                     catch(e)
                     {
@@ -2790,20 +2800,52 @@
 
                 wsClosed = function(e)
                 {
-                    webSocket.removeEventListener('close', wsClosed);
-                    webSocket.removeEventListener('open', openWsConn);
-                    webSocket.removeEventListener('message', manageIncomingWsMsg);
-                    webSocket = null;
-                    if(wsRetryActive === 'yes')
-                    {
-                        setTimeout(openWs, parseInt(wsRetryTime*1000));
-                    }	
+                    if (webSocket != null) {
+                        webSocket.removeEventListener('close', wsClosed);
+                        webSocket.removeEventListener('open', openWsConn);
+                        webSocket.removeEventListener('message', manageIncomingWsMsg);
+                        webSocket = null;
+                        if (wsRetryActive === 'yes') {
+                            setTimeout(openWs, parseInt(wsRetryTime * 1000));
+                        }
+                    }
                 };
 
                 //Per ora non usata
                 wsError = function(e)
                 {
                     
+                };
+
+                function initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed) {
+                    if (!existingWebsocket || existingWebsocket.readyState != existingWebsocket.OPEN) {
+                        if (existingWebsocket) {
+                            existingWebsocket.close();
+                        }
+                        var websocket = new WebSocket(url);
+                        websocket.widget = widget;
+                        console.log("store websocket for "+widget)
+                        //    Window.webSockets[widget] = websocket;
+                        websocket.onopen = function () {
+                            console.info('websocket opened! url: ' + url);
+                            success(websocket);
+                        };
+                        websocket.onclose = function () {
+                            console.info('websocket closed! url: ' + url + " reconnect in "+retryTimeMs+"ms");
+                            //reconnect after a retryTime
+                            setTimeout(function(){
+                                initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed);
+                            }, retryTimeMs);
+                        };
+                        websocket.onerror = function (e) {
+                            console.info('websocket error! url: ' + url);
+                            console.info(e);
+                        };
+                    } else {
+                        success(existingWebsocket);
+                    }
+
+                    return;
                 };
 
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>").on('customResizeEvent', function(event){

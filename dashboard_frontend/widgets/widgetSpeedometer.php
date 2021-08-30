@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
@@ -1101,11 +1100,11 @@
                                 }
                                 populateWidget();
 
-                                if (needWebSocket) {
+                            /*    if (needWebSocket) {
                                     if (webSocket == null) {
                                         openWs();
                                     }
-                                }
+                                }   */
                             },
                             error: function (errorData) {
                                 metricData = null;
@@ -1357,7 +1356,7 @@
                 idMetric =  widgetData.params.id_metric;
 
                 if (nrMetricType != null && webSocket == null) {
-                    openWs();
+                    openWs(widgetName);
                 }
 
                 if (rowParameters != null && rowParameters != '') {
@@ -1448,7 +1447,7 @@
         });
 
         //Web socket
-        openWs = function(e)
+        openWs = function(widgetName)
         {
             try
             {
@@ -1466,7 +1465,7 @@
                 echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
                 ?>
 
-                webSocket.addEventListener('open', openWsConn);
+            /*    webSocket.addEventListener('open', openWsConn);
                 webSocket.addEventListener('close', wsClosed);
 
                 setTimeout(function(){
@@ -1475,7 +1474,16 @@
                     webSocket.removeEventListener('message', manageIncomingWsMsg);
                     webSocket.close();
                     webSocket = null;
-                }, (timeToReload - 2)*1000);
+                }, (timeToReload - 2)*1000);    */
+                webSocket=null;
+                initWebsocket(widgetName, wsUrl, null, wsRetryTime*1000, function(socket){
+                    //   console.log('socket initialized!');
+                    //do something with socket...
+                    webSocket = socket;
+                    openWsConn();
+                }, function(){
+                    console.log('init of socket on failed!');
+                });
             }
             catch(e)
             {
@@ -1536,13 +1544,14 @@
 
         wsClosed = function(e)
         {
-            webSocket.removeEventListener('close', wsClosed);
-            webSocket.removeEventListener('open', openWsConn);
-            webSocket.removeEventListener('message', manageIncomingWsMsg);
-            webSocket = null;
-            if(wsRetryActive === 'yes')
-            {
-                setTimeout(openWs, parseInt(wsRetryTime*1000));
+            if (webSocket != null) {
+                webSocket.removeEventListener('close', wsClosed);
+                webSocket.removeEventListener('open', openWsConn);
+                webSocket.removeEventListener('message', manageIncomingWsMsg);
+                webSocket = null;
+                if (wsRetryActive === 'yes') {
+                    setTimeout(openWs(widgetName), parseInt(wsRetryTime * 1000));
+                }
             }
         };
 
@@ -1550,6 +1559,37 @@
         wsError = function(e)
         {
 
+        };
+
+        function initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed) {
+            if (!existingWebsocket || existingWebsocket.readyState != existingWebsocket.OPEN) {
+                if (existingWebsocket) {
+                    existingWebsocket.close();
+                }
+                var websocket = new WebSocket(url);
+                websocket.widget = widget;
+                console.log("store websocket for "+widget)
+                //    Window.webSockets[widget] = websocket;
+                websocket.onopen = function () {
+                    console.info('websocket opened! url: ' + url);
+                    success(websocket);
+                };
+                websocket.onclose = function () {
+                    console.info('websocket closed! url: ' + url + " reconnect in "+retryTimeMs+"ms");
+                    //reconnect after a retryTime
+                    setTimeout(function(){
+                        initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed);
+                    }, retryTimeMs);
+                };
+                websocket.onerror = function (e) {
+                    console.info('websocket error! url: ' + url);
+                    console.info(e);
+                };
+            } else {
+                success(existingWebsocket);
+            }
+
+            return;
         };
 
     });//Fine document.ready            
