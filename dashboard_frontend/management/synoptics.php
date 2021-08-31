@@ -1196,7 +1196,7 @@
 						$('#dashToDelPic').css("background-size", "auto auto");
 						$('#dashToDelPic').css("background-repeat", "no-repeat");
 						$('#dashToDelPic').css("background-position", "center center");
-						$('#modalDelDash').modal('<? _("show")?>');
+						$('#modalDelDash').modal('show');
 					});
 					
 					$('.delegateSynBtnCard').off('click');

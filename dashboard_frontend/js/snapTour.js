@@ -271,7 +271,7 @@
     win.SnapTour = {
         init(steps, options) {
             if (!steps || steps.length == 0)
-                throw new Error("Initialized SnapTour without steps");
+                return; //throw new Error("Initialized SnapTour without steps");
 
             const tourId = steps[0].tourName;
             const tour = new SnapTourManager(tourId, options);
