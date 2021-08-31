@@ -30,7 +30,7 @@ This array should be encoded in json
 header("Content-type: application/json");
 header("Access-Control-Allow-Origin: *\r\n");
 include ('../config.php');
-include ('../common.php');
+require_once '../common.php';
 // session_start();
 
 //Altrimenti restituisce in output le warning
@@ -126,7 +126,7 @@ else if($action == 'get_logged_ou')
 else if($action == 'get_group_for_ou')
 {
         $connection = ldap_connect($ldapServer, $ldapPort);
-        if (checkAlphaNumAndSpaces($_REQUEST['ou']) === true) {
+        if (checkAlphaNumAndSpaces($_REQUEST['ou']) === true || preg_match('/^[\w\-\s\p{L}]+$/', $_REQUEST['ou'])) {
             $resultldap = ldap_search($connection, $ldapBaseDN, '(&(objectClass=groupOfNames)(ou=' . $_REQUEST['ou'] . '))');
             $entries = ldap_get_entries($connection, $resultldap);
         } else {
