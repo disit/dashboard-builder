@@ -270,7 +270,7 @@
 
     win.SnapTour = {
         init(steps, options) {
-            if (!steps && steps.lenght > 0)
+            if (!steps || steps.length == 0)
                 throw new Error("Initialized SnapTour without steps");
 
             const tourId = steps[0].tourName;
