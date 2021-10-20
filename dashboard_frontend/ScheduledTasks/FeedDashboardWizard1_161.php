@@ -14,7 +14,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
-ini_set('memory_limit', '1024M');
+ini_set('memory_limit', '2048M');
 error_reporting(E_ERROR);
 
 $processId = 1;     // 0 = SELECT & UPDATE; 1 = UPSERT
@@ -26,7 +26,7 @@ $startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
-echo("Starting FeedDashboardWizard205 SCRIPT on HEL/ANTW KB at: ".$start_time_ok."\n");
+echo("Starting FeedDashboardWizard on Greece-UNISYSTEMS KB SCRIPT at: ".$start_time_ok."\n");
 
 $high_level_type = "Sensor";
 $nature = "";
@@ -49,17 +49,9 @@ $sm_based = "";
 $parameters = "";
 $healthiness = "";
 $ownership = "public";
-$organizationFromKb = "";
-$organizations = "";
-$organizationHelsTemplate = "Helsinki";
-$organizationAntwTemplate = "Antwerp";
-$organizationDubvTemplate = "Dubrovnik";
-$organizationValeTemplate = "Valencia";
-$organizationWGreeTemplate = "WestGreece";
-$organizationPoGarTemplate = "PontDuGard-Occitanie";
 
-
-$kbUrl = "";
+$organizations = "Greece-UNISYSTEMS";
+$kbUrl = $kbUrlGreeceUnisystems;
 
 $s = "";
 $a = "";
@@ -79,19 +71,20 @@ while ($sparqlErrorFlag === false) {
         "OPTIONAL {?a km4c:value_type ?avt.} " .
         "OPTIONAL {?s schema:name|foaf:name ?n}." .
         "OPTIONAL {?s km4c:ownership ?ow.} " .
-        "OPTIONAL {?s km4c:organization ?org.} " .
+        "?s km4c:organization ?org. " .
         "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat.} " .
         "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#long> ?lon.} " .
         "?s a ?sType. " .
         "?sType rdfs:subClassOf ?sCategory. " .
         "?sCategory rdfs:subClassOf km4c:Service. " .
         "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType) " .
-        "MINUS{?s a sosa:Sensor} MINUS {?s a sosa:Actuator}}} " .
+        "MINUS{?s a km4c:IoTSensor} MINUS {?s a km4c:IoTActuator} " .
+        "MINUS{?s a sosa:Sensor} MINUS {?s a sosa:Actuator}" .
+        "FILTER regex(?org, 'Greece-UNISYSTEMS')}} " .
         "OFFSET " . $sparqlOffset .
-        "LIMIT " . $sparqlLimit;
+        " LIMIT " . $sparqlLimit;
 
-    $queryAscapiEtl = $kbHostUrlAntHel . ":8890/sparql?default-graph-uri=&query=" . urlencode($queryAscapiEtlDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
-
+    $queryAscapiEtl = $kbHostUrlGreeceUnisystems . ":8890/sparql?default-graph-uri=&query=" . urlencode($queryAscapiEtlDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
     try {
         $options = array(
             'http' => array(
@@ -106,7 +99,11 @@ while ($sparqlErrorFlag === false) {
         echo ("ERRORE SPARQL QUERY: " . $e->getMessage() . "\n");
         $sparqlErrorFlag = true;
     }
+//    echo("SPARQL file_get_contents response: " . $queryAscapiEtlRresults. "\n");
     $resArrayEtl = json_decode($queryAscapiEtlRresults, true);
+    echo("SPARQL Query (Not Encoded): " . $queryAscapiEtlDecoded. "\n");
+    echo("SPARQL Query (URL-Encoded): " . $queryAscapiEtl. "\n");
+    echo("SPARQL Response records length: " . sizeof($resArrayEtl['results']['bindings']) . "\n");
     if (sizeof($resArrayEtl['results']['bindings']) == 0) {
         $sparqlErrorFlag = true;
     }
@@ -121,49 +118,37 @@ while ($sparqlErrorFlag === false) {
 
         $count++;
         $batchCounter = $count + $sparqlOffset - 1;
-        echo($batchCounter . " - ETL DEVICE: ".$s.", MEASURE: ".$a."\n");
+        echo($batchCounter . " - DEVICE: ".$s.", MEASURE: ".$a."\n");
         $s = $resArrayEtl['results']['bindings'][$key]['s']['value'];   // $s --> serviceUri
         $a = $resArrayEtl['results']['bindings'][$key]['a']['value'];   // $a --> attribute
         $n = $resArrayEtl['results']['bindings'][$key]['n']['value'];   // $a --> name
         $value_name = $resArrayEtl['results']['bindings'][$key]['avn']['value'];
         $value_type = $resArrayEtl['results']['bindings'][$key]['avt']['value'];
         $value_type = explode("value_type/", $value_type)[1];
+
         $dt = $resArrayEtl['results']['bindings'][$key]['dt']['value'];
         $u = $resArrayEtl['results']['bindings'][$key]['u']['value'];
         $serviceType = $resArrayEtl['results']['bindings'][$key]['serviceType']['value'];   // $n --> serviceName
-
+        //   $unique_name_id = explode($baseKm4CityUri, $s)[1];
         if ($n && $n != '') {
             $unique_name_id = $n;
         } else {
             $unique_name_id = explode($baseKm4CityUri, $s)[1];
         }
+        //   $unique_name_id = $n;
+        //  $ownership = $resArrayEtl['results']['bindings'][$key]['ow']['value']; // $ow --> ownership
 
-        $organizationFromKb = $resArrayEtl['results']['bindings'][$key]['org']['value'];
-        if (strcmp($organizationFromKb, "Helsinki") == 0) {
-            $organizations = $organizationHelsTemplate;
-            $kbUrl = $kbUrlHelsinki;
-        } else if (strcmp($organizationFromKb, "Antwerp") == 0) {
-            $organizations = $organizationAntwTemplate;
-            $kbUrl = $kbUrlAntwerp;
-        } else if (strcmp($organizationFromKb, "Dubrovnik") == 0) {
-            $organizations = $organizationDubvTemplate;
-            $kbUrl = $kbUrlDubrovnik;
-        } else if (strcmp($organizationFromKb, "Valencia") == 0) {
-            $organizations = $organizationValeTemplate;
-            $kbUrl = $kbUrlValencia;
-        } else if (strcmp($organizationFromKb, "WestGreece") == 0) {
-            $organizations = $organizationWGreeTemplate;
-            $kbUrl = $kbUrlWestGreece;
-        } else if (strcmp($organizationFromKb, "PontDuGard-Occitanie") == 0) {
-            $organizations = $organizationPoGarTemplate;
-            $kbUrl = $kbUrlPontDuGard;
-        } else {
-            $organizations = "Other";
-            $kbUrl = $kbUrlSuperServiceMap;
-        }
+     /*   $org = $resArrayEtl['results']['bindings'][$key]['org']['value'];
+        if ($org && $org != '') {
+            $organizations = $org;
+        }*/
+
+        $organizations = "Greece-UNISYSTEMS";
 
         $latitude = $resArrayEtl['results']['bindings'][$key]['lat']['value'];
         $longitude = $resArrayEtl['results']['bindings'][$key]['lon']['value'];
+
+        echo($count." - DEVICE: ".$s.", MEASURE: ".$a."\n");
 
         if ($serviceType != "Emergency_First_aid" && $serviceType != "Pollen_monitoring_station") {
 
@@ -174,10 +159,12 @@ while ($sparqlErrorFlag === false) {
             $nature = explode("_", $serviceType)[0];
             $sub_nature = explode($nature . "_", $serviceType)[1];
 
-            $low_level_type = explode($s . "/", $a)[1];
+            $low_level_type = substr($a, strrpos($a, '/') + 1);
 
+            //  $instance_uri = $s;
             $instance_uri = "any + status";
 
+            //  $unique_name_id = explode($baseKm4CityUri, $s)[1];
             $unit = $dt;
             $get_instances = $s;
 
@@ -191,12 +178,12 @@ while ($sparqlErrorFlag === false) {
             if ($serviceChangeBuffer["current"] != $serviceChangeBuffer["last"]) {
                 $sm_based = "yes";
                 if ($processId == 0) {
-                    $generalServiceQuery = "SELECT * FROM DashboardWizard WHERE high_level_type = '". $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND unit = 'sensor_map' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+                    $generalServiceQuery = "SELECT * FROM DashboardWizard WHERE high_level_type = '". $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND unit = 'sensor_map' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
                     $resGeneralServiceQuery = mysqli_query($link, $generalServiceQuery);
                     $result = [];
                     if($resGeneralServiceQuery) {
                         if ($row = mysqli_fetch_assoc($resGeneralServiceQuery)) {
-                            $updateGeneralServiceQuery = "UPDATE DashboardWizard SET high_level_type = 'Sensor Device', device_model_name = '$unique_name_id' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "' AND unit = 'sensor_map';";
+                            $updateGeneralServiceQuery = "UPDATE DashboardWizard SET high_level_type = 'Sensor Device', device_model_name = '$unique_name_id' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "' AND unit = 'sensor_map';";
                             mysqli_query($link, $updateGeneralServiceQuery);
                         }
                     }
@@ -204,12 +191,7 @@ while ($sparqlErrorFlag === false) {
                     $insertGeneralServiceQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, device_model_name) VALUES ('$nature', 'Sensor Device', '$sub_nature','', '$unique_name_id', '$instance_uri', '$get_instances', 'sensor_map', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$unique_name_id') ON DUPLICATE KEY UPDATE high_level_type = 'Sensor Device', sub_nature = '" . $sub_nature . "', low_level_type = '', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', device_model_name = '" . $unique_name_id . "';";
                     mysqli_query($link, $insertGeneralServiceQuery);
                 }
-
             }
-
-        //    $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, value_unit) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$u') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', value_unit = '" . $u . "';";
-            // NON AGGIORNARE OWNERSHIP
-        //    $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, value_unit) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$u') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = ownership, organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', value_unit = '" . $u . "';";
 
             if ($processId == 0) {
                 $serviceQuery = "SELECT * FROM DashboardWizard WHERE high_level_type = '". $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
@@ -217,7 +199,7 @@ while ($sparqlErrorFlag === false) {
                 $result = [];
                 if($resServiceQuery) {
                     if ($row = mysqli_fetch_assoc($resServiceQuery)) {
-                        $updateServiceQuery = "UPDATE DashboardWizard SET value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $unique_name_id . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+                        $updateServiceQuery = "UPDATE DashboardWizard SET value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $unique_name_id . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
                         mysqli_query($link, $updateServiceQuery);
                     }
                 }
@@ -230,9 +212,8 @@ while ($sparqlErrorFlag === false) {
 
 
         } else {
-            $stop_flag = 4;
+            $stop_flag = 1;
         }
-
 
     }
 
@@ -258,4 +239,4 @@ $endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);
-echo("End FeedDashboardWizard205 SCRIPT on on HEL/ANTW KB at: ".$end_time_ok);
+echo("End FeedDashboardWizard SCRIPT on Greece-UNISYSTEMS kb at: ".$end_time_ok);

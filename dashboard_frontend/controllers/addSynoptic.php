@@ -17,7 +17,7 @@
 	require '../sso/autoload.php';
 	use Jumbojett\OpenIDConnectClient;
 	
-    error_reporting(E_ERROR | E_NOTICE);
+    error_reporting(E_ERROR);
     date_default_timezone_set('Europe/Rome');
 
     session_start();
@@ -136,8 +136,8 @@
 	
     $lastCheck = date("Y-m-d H:i:s");
     
-    $q = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, last_date, last_value, unit, metric, saved_direct, kb_based, sm_based, user, widgets, parameters, healthiness, microAppExtServIcon, lastCheck, ownership, organizations) " .
-         "VALUES ('$nature','Synoptic', '$subnature', '$lowLevelType', '$uniqueNameId', NULL, NULL, NULL, NULL, 'webpage', 'no', 'direct', NULL, 'no', NULL, NULL,'$synBaseUrl', 'true', '', '$lastCheck', '$ownership', '$organizationArray')";
+    $q = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, last_date, last_value, unit, metric, saved_direct, kb_based, sm_based, user, widgets, parameters, healthiness, microAppExtServIcon, lastCheck, ownership, organizations, value_name, device_model_name) " .
+         "VALUES ('$nature','Synoptic', '$subnature', '$lowLevelType', '$uniqueNameId', NULL, NULL, NULL, NULL, 'webpage', 'no', 'direct', NULL, 'no', NULL, NULL,'$synBaseUrl', 'true', '', '$lastCheck', '$ownership', '$organizationArray', '$uniqueNameId', '$lowLevelType')";
     $r = mysqli_query($link, $q);
 
     if($r)
@@ -247,7 +247,7 @@
     else
     {
         $response['result'] = "Ko";
-		$response['detail'] = "The new synoptic could not be saved.";
+		$response['detail'] = "The new synoptic could not be saved. ".mysqli_error($link);
     }
     			
 	mysqli_close($link);

@@ -2,37 +2,22 @@
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-
-function getAccessToken($token_endpoint, $username, $password, $client_id){
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL,$token_endpoint);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS,
-        "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $curl_response = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($curl_response)->access_token;
-
-}
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
 
 error_reporting(E_ERROR);
 
+$processId = 1;     // 0 = SELECT & UPDATE; 1 = UPSERT
 $link = mysqli_connect($host, $username, $password);
 //error_reporting(E_ALL);
 mysqli_select_db($link, $dbname);
@@ -54,7 +39,8 @@ $client_id= $personalDataFileContent["client_id_PD"][$genFileContent['environmen
 $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']['value']];
 $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
 
-$accessToken=getAccessToken($token_endpoint, $username, $password, $client_id);
+$accessToken=get_access_token($token_endpoint, $username, $password, $client_id);
+
 $apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=IOTID";
 // MOD-GP 2019 Query Per prendere TUTTI i DELEGATED ANONYMOUS
 //$apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
@@ -114,6 +100,10 @@ $sub_nature = "";
 $low_level_type = "";
 $unique_name_to_split = "";
 $unique_name_id = "";
+
+$value_name = "";
+$value_type = "";
+
 $instance_uri = "";
 $get_instances = "";
 $unit = "";
@@ -134,13 +124,15 @@ $actSensArray = [];
 $rs = mysqli_query($link, $query);
 $result = [];
 
-$actSensKbQueryDecoded = "select distinct ?s ?n ?a ?dt ?serviceType ?av ?ow (coalesce(?org,\"DISIT\") as ?organization) ?brokerName ?lat ?lon { " .
+$actSensKbQueryDecoded = "select distinct ?s ?n ?a  ?avn ?avt ?dt ?serviceType ?av ?ow (coalesce(?org,\"DISIT\") as ?organization) ?brokerName ?lat ?lon { " .
     "?s a km4c:IoTActuator. " .
     "?s schema:name ?n. " .
     "?s km4c:hasAttribute ?a. " .
     "?s <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker. " .
     "?broker <http://schema.org/name> ?brokerName. " .
     "?a km4c:data_type ?dt. " .
+    "OPTIONAL {?a km4c:value_name ?avn.} " .
+    "OPTIONAL {?a km4c:value_type ?avt.} " .
     "OPTIONAL {?s km4c:availability ?av.} " .
     "OPTIONAL {?s km4c:ownership ?ow.} " .
     "OPTIONAL {?s km4c:organization ?org.} " .
@@ -175,6 +167,9 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
 
     $s = $resArray['results']['bindings'][$key]['s']['value'];   // $s --> serviceUri
     $n = $resArray['results']['bindings'][$key]['n']['value'];   // $n --> service name
+    $value_name = $resArray['results']['bindings'][$key]['avn']['value'];
+    $value_type = $resArray['results']['bindings'][$key]['avt']['value'];
+    $value_type = explode("value_type/", $value_type)[1];
 
     //  if (in_array($n, $actSensArray)) {
 
@@ -279,8 +274,10 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
         }
 
         $serviceChangeBuffer["current"] = $unique_name_id;
-        $nature = "From Dashboard to IOT Device";
-        $sub_nature = "IoTSensor-Actuator";
+    //    $nature = "From Dashboard to IOT Device";
+    //    $sub_nature = "IoTSensor-Actuator";
+        $nature = explode("_", $serviceType)[0];
+        $sub_nature = explode($nature . "_", $serviceType)[1];
         $low_level_type = explode($s . "/", $a)[1];
         $instance_uri = 'single_marker';
 
@@ -317,12 +314,33 @@ foreach ($resArray['results']['bindings'] as $key => $val) {
         if ($ownership != "private") {
             $ownership = "public";
         }
+        if ($processId == 0) {
+            $serviceQuery = "SELECT * FROM DashboardWizard WHERE high_level_type = '". $high_level_type . "' AND low_level_type = '" . $low_level_type . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+            $resServiceQuery = mysqli_query($link, $serviceQuery);
+            $result = [];
+            if($resServiceQuery) {
+                if ($row = mysqli_fetch_assoc($resServiceQuery)) {
+                    $updateServiceQuery = "UPDATE DashboardWizard SET nature = '" . $nature . "', sub_nature = '" . $sub_nature . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $n . "', broker_name = '" . $brokerName . "' WHERE high_level_type = '" . $high_level_type . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+                    mysqli_query($link, $updateServiceQuery);
+                }
+            }
+            $serviceSensQuery = "SELECT * FROM DashboardWizard WHERE high_level_type = 'Sensor' AND low_level_type = '" . $low_level_type . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+            $resServiceSensQuery = mysqli_query($link, $serviceSensQuery);
+            $resultSens = [];
+            if($resServiceSensQuery) {
+                if ($rowSens = mysqli_fetch_assoc($resServiceSensQuery)) {
+                    $updateServiceSensQuery = "UPDATE DashboardWizard SET nature = '" . $nature . "', sub_nature = '" . $sub_nature . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $n . "', broker_name = '" . $brokerName . "' WHERE high_level_type = 'Sensor' AND sub_nature = 'IoTSensor' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+                    mysqli_query($link, $updateServiceSensQuery);
+                }
+            }
+        } else {
 
-        $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, ownerHash, delegatedHash, delegatedGroupHash) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "';";
-        mysqli_query($link, $insertQuery);
+            $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, ownerHash, delegatedHash, delegatedGroupHash, value_name, value_type, device_model_name, broker) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr', '$value_name', '$value_type', '$n', '$brokerName') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $n . "', broker_name = '" . $brokerName . "';";
+            mysqli_query($link, $insertQuery);
 
-        $insertQuerySens = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, ownerHash, delegatedHash, delegatedGroupHash) VALUES ('$nature', 'Sensor', 'IoTSensor', '$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unitSens', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr') ON DUPLICATE KEY UPDATE high_level_type = 'Sensor', sub_nature = 'IoTSensor', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', unit = '" . $unitSens . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "';";
-        mysqli_query($link, $insertQuerySens);
+            $insertQuerySens = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, ownerHash, delegatedHash, delegatedGroupHash, value_name, value_type, device_model_name, broker) VALUES ('$nature', 'Sensor', 'IoTSensor', '$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unitSens', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr', '$value_name', '$value_type', '$n', '$brokerName') ON DUPLICATE KEY UPDATE high_level_type = 'Sensor Variable', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', unit = '" . $unitSens . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $n . "', broker_name = '" . $brokerName . "';";
+            mysqli_query($link, $insertQuerySens);
+        }
 
         $serviceChangeBuffer["last"] = $unique_name_id;
     }

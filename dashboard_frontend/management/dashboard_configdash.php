@@ -223,6 +223,9 @@
     <script src="ol/ol.js"></script>
     <link rel="stylesheet" href="ol/ol.css" />
     
+    <!--Deck.gl-->
+    <script src="../widgets/layers/deckgl.min.js"></script>
+    
 <!-- Dynamic Routing -->
     <!--- Leaflet.drawer plugin -->
     <script src="../js/dynamic_routing/leaflet.draw.js"></script>
@@ -362,6 +365,19 @@
 
         .slider.round:before {
             border-radius: 50%;}
+        
+        .datetime-control {
+            display: block;
+            width: 100%;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
     </style>
 
 <body> 
@@ -31874,6 +31890,716 @@
 
                                             break;
 
+                                        case "widget3DMapDeck":
+                                            if(styleParamsRaw !== null)
+                                            {
+                                                styleParameters = JSON.parse(styleParamsRaw);
+                                            }
+                                            //Rimozione eventuali campi del subform general per widget process
+                                            removeWidgetProcessGeneralFields("editWidget");
+
+                                            var gisTargetCenterParametersM = null;
+                                            $('#urlWidgetM').attr('disabled', false);
+                                            //$('#urlWidgetM').prop('required', true);
+                                            $("#titleLabelM").html("Title");
+                                            $("#bckColorLabelM").html("Background color");
+                                            $('#inputColorWidgetM').val("");
+                                            $('#inputColorWidgetM').attr('disabled', false);
+                                            $('#inputColorWidgetM').attr('required', true);
+                                            $('#color_widget_M').css("background-color", "#eeeeee");
+                                            $('#inputFontSizeM').val("");
+                                            $('#inputFontSizeM').attr('disabled', true);
+                                            $('#inputFontColorM').val("");
+                                            $('#inputFontColorM').attr('disabled', true);
+                                            $('#widgetFontColorM').css("background-color", "#eeeeee");
+                                            $('#link_help_modal-add-widgetM').css("display", "");
+                                            $('#inputFrameColorWidgetM').attr('disabled', false);
+                                            $('#inputFrameColorWidgetM').val('#eeeeee');
+                                            $('#inputFrameColorWidgetM').prop('required', false);
+                                            $('#select-IntTemp-Widget-m').val(-1);
+                                            $('#select-IntTemp-Widget-m').attr('disabled', true);
+                                            $('#select-IntTemp-Widget-m').prop('required', false);
+                                            $('#inputFreqWidgetM').attr('disabled', true);
+                                            $('#inputFreqWidgetM').val("");
+                                            $('#inputFreqWidgetM').prop('required', false);
+                                            $('#inputHeaderFontColorWidgetM').attr('disabled', false);
+                                            $('#inputHeaderFontColorWidgetM').prop('required', true);
+                                            $('#inputUdmWidgetM').prop("required", false);
+                                            $('#inputUdmWidgetM').attr("disabled", true);
+                                            $('#inputUdmWidgetM').val("");
+                                            $('#inputUdmPositionM').prop("required", false);
+                                            $('#inputUdmPositionM').attr("disabled", true);
+                                            $('#inputUdmPositionM').val(-1);
+
+                                            //Parametri specifici del widget
+                                            $('#specificParamsM .row').remove();
+
+                                            //Nuova riga
+                                            //Centro della mappa per modalitÃ  GIS target
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label class="col-md-2 control-label">Latitude</label>');
+                                            newInnerDiv = $('<div class="col-md-2">' +
+                                                '<input type="text" id="gisTargetCenterLatM" class="form-control"/>' +
+                                                '</div>');
+                                            newLabel.css("padding-right", "8px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label class="col-md-2 control-label">Longitude</label>');
+                                            newInnerDiv = $('<div class="col-md-2">' +
+                                                '<input type="text" id="gisTargetCenterLngM" class="form-control"/>' +
+                                                '</div>');
+                                            newLabel.css("padding-right", "8px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label class="col-md-2 control-label">Zoom</label>');
+                                            newInnerDiv = $('<div class="col-md-2">' +
+                                                '<input type="text" id="gisTargetCenterZoomM" class="form-control"/>' +
+                                                '</div>');
+                                            newLabel.css("padding-right", "8px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label class="col-md-2 control-label">Tilt</label>');
+                                            newInnerDiv = $('<div class="col-md-2">' +
+                                                '<input type="text" id="gisTargetCenterPitchM" class="form-control"/>' +
+                                                '</div>');
+                                            newLabel.css("padding-right", "8px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label class="col-md-2 control-label">Rotation</label>');
+                                            newInnerDiv = $('<div class="col-md-2">' +
+                                                '<input type="text" id="gisTargetCenterBearingM" class="form-control"/>' +
+                                                '</div>');
+                                            newLabel.css("padding-right", "8px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label class="col-md-2 control-label">3D/2D</label>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newLabel.css("padding-right", "8px");
+                                            newSelect = $('<select class="form-control" id="mapType"></select>');
+                                            newSelect.append('<option value="3D">3D</option>');
+                                            newSelect.append('<option value="2D">2D</option>');
+                                            //newSelect.val()
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newSelect.on('change', function() {
+                                                const value = $('#mapType').val();
+                                                gisTargetCenterParametersM.mapType = value;
+                                                $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                console.log('set ' + value);
+                                            });
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newInnerDiv = $('<div id="gisTargetCenter3DMapDeckDivM" class="col-md-12"></div>');
+                                            newInnerDiv.css('height', '175px');
+                                            //newInnerDiv.css('margin-top', '10px');
+                                            newFormRow.append(newInnerDiv);
+
+                                            var map3d;
+                                            var lightData = {};
+                                            const defaultBuildingData = '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson';
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label class="col-md-2 control-label">Building color</label>');
+                                            newInnerDiv = $('<div class="col-md-4"><div class="input-group">' +
+                                                '<input type="text" id="gisTargetBuildingColorM" name="gisTargetBuildingColorM" class="form-control"/>' +
+                                                '<span class="input-group-addon"><i id="widgetBuildingColorM"></i></span>' +
+                                                '</div></div>');
+                                            if (styleParameters != null && styleParameters.buildingColor != null) {
+                                                newInnerDiv.colorpicker({color: styleParameters.buildingColor, format: 'rgba'});
+                                            } else {
+                                                newInnerDiv.colorpicker({color: 'rgba(255, 102, 0, 1)', format: 'rgba'});
+                                            }
+                                            newInnerDiv.on('changeColor', function() {
+                                                if (map3d != null) {
+                                                    var input = $('#gisTargetBuildingColorM').val();
+                                                    const rgba = input.replace(/[^\d,.]/g, '').split(',');
+                                                    for (var i = 0; i < rgba.length; i++)
+                                                        rgba[i] = parseFloat(rgba[i]);
+                                                    rgba[3] = parseInt(rgba[3] * 255);
+                                                    var oldLayers = map3d.props.layers;
+                                                    const newBuildingLayer = createBuildingLayer(defaultBuildingData, rgba);
+                                                    map3d.setProps({
+                                                        layers: [
+                                                            oldLayers[0],
+                                                            newBuildingLayer,
+                                                        ],
+                                                    });
+                                                }
+                                            });
+                                            //newLabel.css("padding-left", "8px");
+                                            //newLabel.css("padding-right", "8px");
+                                            //newInnerDiv.css("padding-left", "0px");
+                                            //newInnerDiv.css("padding-right", "0px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label class="col-md-2 control-label">Building Type</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newSelect = $('<select class="form-control" id="buildingTypeM" name="buildingTypeM"></select>');
+                                            newSelect.append('<option value="default">Default</option>');
+                                            newSelect.append('<option value="mesh">Meshed</option>');
+                                            newSelect.append('<option value="mesh-notext">Meshed without texture</option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            if (styleParameters != null && styleParameters.buildingType != null) {
+                                                newSelect.val(styleParameters.buildingType);
+                                            }
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label class="col-md-2 control-label">Use light (experimental)</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newSelect = $('<select class="form-control" id="useLigthingM" name="useLigthingM"></select>');
+                                            newSelect.append('<option value="no">No</option>');
+                                            newSelect.append('<option value="yes">Yes</option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label id="lightTimestampLabelM" class="col-md-2 control-label">Timestamp</label>');
+                                            newInnerDiv = $('<div class="col-md-4">' +
+                                                '<input type="datetime-local" id="lightTimestampM" name="lightTimestampM" class="datetime-control"/>' +
+                                                '</div>');
+                                            //newInnerDiv.css("padding-left", "8px");
+                                            //newInnerDiv.css("padding-right", "8px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newFormRow = $('<div id="lightOptions" class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label class="col-md-2 control-label">Light color</label>');
+                                            newInnerDiv = $('<div class="col-md-4"><div class="input-group">' +
+                                                '<input type="text" id="lightColorM" name="lightColorM" class="form-control"/>' +
+                                                '<span class="input-group-addon"><i id="widgetLightColorM"></i></span>' +
+                                                '</div></div>');
+                                            newInnerDiv.colorpicker({color: 'rgb(255, 255, 255)', format: 'rgb'});
+                                            newInnerDiv.on('changeColor', function() {
+                                                reloadLight(true);
+                                            });
+                                            //newLabel.css("padding-left", "8px");
+                                            //newLabel.css("padding-right", "8px");
+                                            //newInnerDiv.css("padding-left", "0px");
+                                            //newInnerDiv.css("padding-right", "0px");
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label class="col-md-2 control-label">Light intensity</label>');
+                                            newInnerDiv = $('<div class="col-md-4">' +
+                                                '<input type="text" id="intensityColorM" name="intensityColorM" class="form-control"/>' +
+                                                '</div>');
+                                            newInnerDiv.on('input', function() {
+                                                reloadLight(true);
+                                            });
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            if (styleParameters != null && styleParameters.lightIntensity != null) {
+                                                $('#intensityColorM').val(styleParameters.lightIntensity);
+                                            } else {
+                                                $('#intensityColorM').val(1);
+                                            }
+
+
+                                            if (styleParameters != null && styleParameters.useLighting != null && styleParameters.useLighting == 'yes') {
+                                                $('#useLigthingM').val(styleParameters.useLighting);
+                                                $('#lightTimestampM').val(styleParameters.lightTimestamp);
+                                                $('#lightColorM').val(styleParameters.lightColor);
+                                                $('#intensityColorM').val(styleParameters.lightIntensity);
+                                            } else {
+                                                $('#useLigthingM').val('no');
+                                                $('#lightTimestampM').hide();
+                                                $('#lightTimestampLabelM').hide();
+                                                $('#lightOptions').hide();
+                                                $('#lightTimestampM').val(formatDatetime(Date.now()));
+                                            }
+
+                                            $('#lightTimestampM').on('input', function() {
+                                                reloadLight(true);
+                                            });
+
+                                            $('#useLigthingM').change(function() {
+                                                const value = $('#useLigthingM').val();
+                                                if (value == 'yes') {
+                                                    $('#lightTimestampM').show();
+                                                    $('#lightTimestampLabelM').show();
+                                                    $('#lightOptions').show();
+                                                    
+                                                    reloadLight(true);
+                                                } else {
+                                                    $('#lightTimestampM').hide();
+                                                    $('#lightTimestampLabelM').hide();
+                                                    $('#lightOptions').hide();
+
+                                                    reloadLight(false);
+                                                }
+                                            });
+
+                                            
+                                            //Nuova riga
+                                            //Show Orthomaps
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="showOrthomapsM" class="col-md-2 control-label">Show Othomaps Controls</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newSelect = $('<select class="form-control" id="showOrthomapsM" name="showOrthomapsM"></select>');
+                                            newSelect.append('<option style="display:none">');
+                                            newSelect.append('<option value="yes">Yes</option>');
+                                            newSelect.append('<option value="no">No</option>');
+                                            if (styleParameters != null) {
+                                                if (styleParameters.showOrthomaps) {
+                                                    newSelect.val(styleParameters.showOrthomaps);
+                                                }
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+
+                                            //Default Orthomap
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="defaultOrthomapM" id="defaultOrthomapLabelM" class="col-md-2 control-label">Default Orthomap</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newSelect = $('<select class="form-control" id="defaultOrthomapM" name="defaultOrthomapM"></select>');
+                                            newSelect.append('<option style="display:none">');
+                                         //   newSelect.append('<option value="yes">Yes</option>');
+                                         //   newSelect.append('<option value="no">No</option>');
+                                            var jsonOrthomaps = null;
+                                            if (styleParameters != null) {
+                                               if (styleParameters.showOrthomaps && currentParams.dropdownMenu) {
+                                                    if (styleParameters.showOrthomaps == 'yes') {
+                                                        for (let j = 0; j < currentParams.dropdownMenu.length; j++) {
+                                                            newSelect.append('<option value="' + currentParams.dropdownMenu[j].id + '">' + currentParams.dropdownMenu[j].label + '</option>');
+                                                        }
+                                                    }
+                                                }
+                                                if (styleParameters.defaultOrthomap) {
+                                                    newSelect.val(styleParameters.defaultOrthomap);
+                                                }
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            if ($('#showOrthomapsM').val() === "yes") {
+                                                $('#defaultOrthomapM').show();
+                                                $('#defaultOrthomapLabelM').show();
+                                            } else {
+                                                $('#defaultOrthomapM').hide();
+                                                $('#defaultOrthomapLabelM').hide();
+                                            }
+
+                                            $('#showOrthomapsM').change(function()
+                                            {
+                                                if($('#showOrthomapsM').val() === "yes")
+                                                {
+                                                    $('#defaultOrthomapM').show();
+                                                    $('#defaultOrthomapLabelM').show();
+                                                    if (currentParams.dropdownMenu) {
+                                                        for (let j = 0; j < currentParams.dropdownMenu.length; j++) {
+                                                            newSelect.append('<option value="' + currentParams.dropdownMenu[j].id + '">' + currentParams.dropdownMenu[j].label + '</option>');
+                                                        }
+                                                    } else {
+                                                        getOrthomaps(data.name_widget, function(extractedOrthomaps) {
+                                                            for (let j = 0; j < extractedOrthomaps[0].length; j++) {
+                                                                for (var key in extractedOrthomaps[0][j]) {
+                                                                    // check if the property/key is defined in the object itself, not in parent
+                                                                    if (extractedOrthomaps[0][j].hasOwnProperty(key)) {
+                                                                        $('#defaultOrthomapM').append('<option value="' + key + '">' + extractedOrthomaps[0][j][key] + '</option>');
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $('#defaultOrthomapM').hide();
+                                                    $('#defaultOrthomapLabelM').hide();
+                                                }
+                                            });
+                                            
+                                            //Nuova riga
+                                            //Full screen controls
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label">Enable fullscreen in a popup</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newSelect = $('<select class="form-control" id="enableFullscreenModalM" name="enableFullscreenModalM"></select>');
+                                            newSelect.append('<option value="yes">Yes</option>');
+                                            newSelect.append('<option value="no">No</option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            gisTargetCenterParametersM = currentParams;
+                                            if (gisTargetCenterParametersM.mapType == null || gisTargetCenterParametersM.mapType == '') {
+                                                gisTargetCenterParametersM.mapType = '3D';
+                                            }
+                                            $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                            $("#widgetModeM").val(data.url);
+                                            $("#urlWidgetM").parents("div.row").hide();
+
+                                            $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                            $("#inputShowTitleM").val("yes");
+                                            $("#enableFullscreenTabM").val("yes");
+
+                                            console.log('gis target params');
+                                            console.log(gisTargetCenterParametersM);
+
+                                            $("#gisTargetCenterLatM").val(gisTargetCenterParametersM.latLng[0]);
+                                            $("#gisTargetCenterLngM").val(gisTargetCenterParametersM.latLng[1]);
+                                            $("#gisTargetCenterZoomM").val(gisTargetCenterParametersM.zoom);
+                                            $("#gisTargetCenterPitchM").val(gisTargetCenterParametersM.pitch || 30);
+                                            $("#gisTargetCenterBearingM").val(gisTargetCenterParametersM.bearing || 0);
+                                            $("#mapType").val(gisTargetCenterParametersM.mapType);
+                                            $('#coordsCollectionUriM').parents("div.row").show();
+
+                                            function reloadLight(effectsOn) {
+                                                if (effectsOn) {
+                                                    const input = $('#lightTimestampM').val();
+
+                                                    var now;
+                                                    if (input == '')
+                                                        now = Date.now();
+                                                    else 
+                                                        now = Date.parse(input);
+
+                                                    var inputColor = $('#lightColorM').val();
+                                                    const rgb = inputColor.replace(/[^\d,.]/g, '').split(',');
+                                                    for (var i = 0; i < rgb.length; i++)
+                                                        rgb[i] = parseFloat(rgb[i]);
+
+                                                    var intensity = $('#intensityColorM').val();
+                                                    intensity = intensity == '' ? 1 : parseFloat(intensity);
+
+                                                    const sunLight = new deck._SunLight({
+                                                        timestamp: now, 
+                                                        color: rgb,
+                                                        intensity: intensity,
+                                                    });
+
+                                                    const lightEffect = new deck.LightingEffect({sunLight});
+                                                    map3d.setProps({
+                                                        effects: [lightEffect],
+                                                    });
+                                                } else {
+                                                    map3d.setProps({
+                                                        effects: [],
+                                                    });
+                                                }
+                                            }
+                                            function formatDatetime(timestamp) {
+                                                const datetime = new Date(timestamp);
+                                                const year = datetime.getFullYear();
+                                                const month = formatNumberDate(datetime.getMonth());
+                                                const day = formatNumberDate(datetime.getDate());
+                                                const hour = formatNumberDate(datetime.getHours());
+                                                const minute = formatNumberDate(datetime.getMinutes());
+                                                const ris = `${year}-${month}-${day}T${hour}:${minute}`;
+                                                console.log('dateformat: ' + ris);
+                                                return ris;
+                                            }
+                                            function formatNumberDate(number) {
+                                                if (number == 0) {
+                                                    return '00';
+                                                } else if (number < 10) {
+                                                    return `0${number}`;
+                                                } else {
+                                                    return `${number}`;
+                                                }
+                                            }
+                                            function createTileLayer(data, id = 'map-layer') {
+                                                return new deck.TileLayer({
+                                                    id: id,
+                                                    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
+                                                    data: data,
+                                            
+                                                    minZoom: 0,
+                                                    maxZoom: 20,
+                                                    tileSize: 256,
+                                                    opacity: 1,
+                                                    pickable: true,
+                                            
+                                                    renderSubLayers: props => {
+                                                        const {
+                                                            bbox: { west, south, east, north }
+                                                        } = props.tile;
+                                            
+                                                        return new deck.BitmapLayer(props, {
+                                                            data: null,
+                                                            image: props.data,
+                                                            bounds: [west, south, east, north]
+                                                        });
+                                                    },
+                                                });
+                                            }
+
+                                            function createBuildingLayer(data, color, id = 'building-layer') {
+                                                return new deck.GeoJsonLayer({
+                                                    id: id,
+                                                    data: data,
+                                                    extruded: true,
+                                                    // pickable: true,
+                                                    stroked: false,
+                                                    filled: true,
+                                                    lineWidthScale: 20,
+                                                    lineWidthMinPixels: 2,
+                                                    //getFillColor: [255, 102, 0, 255],
+                                                    getFillColor: color,
+                                                    getLineColor: [255, 255, 255],
+                                                    getElevation: f => f.properties.height,
+                                                    getRadius: 100,
+                                                    getLineWidth: 1,
+                                                });
+                                            }
+
+
+                                            if (gisTargetCenterMapDivRefM === null) {
+                                                $("#gisTargetCenterLatM").parents("div.row").show();
+                                                $("#gisTargetCenterMapDivM").parents("div.row").show();
+
+                                                //Bisogna aspettare che il modale sia completamente in posizione e visibile, sennÃ² il load della mappa dÃ  problemi di visualizzazione dei tiles
+                                                setTimeout(function () {
+                                                    gisTargetCenter3DMapDeckDivM = "gisTargetCenter3DMapDeckDivM";
+                                                    const lightTileData = 'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png';
+                                                    const defaultLayer = createTileLayer(lightTileData);
+
+                                                    var buildingColor = [255, 102, 0, 255];
+                                                    console.log('styleParameters');
+                                                    console.log(styleParameters);
+                                                    if (styleParameters != null && styleParameters.buildingColor != null) {
+                                                        const input = styleParameters.buildingColor;
+                                                        const rgba = input.replace(/[^\d,.]/g, '').split(',');
+                                                        for (var i = 0; i < rgba.length; i++)
+                                                            rgba[i] = parseFloat(rgba[i]);
+                                                        rgba[3] = parseInt(rgba[3] * 255);
+                                                        buildingColor = rgba;
+                                                    }
+                                                    const buildingLayer = createBuildingLayer('../widgets/layers/edificato/AltezzeEdificiFirenze.geojson', buildingColor);
+
+                                                    const height = $("#" + gisTargetCenter3DMapDeckDivM).height();
+                                                    const width = $("#" + gisTargetCenter3DMapDeckDivM).width();
+
+                                                    const now = Date.now();
+
+                                                    var currentViewState = {
+                                                            altitude: 1.5,
+                                                            latitude: gisTargetCenterParametersM.latLng[0],
+                                                            longitude: gisTargetCenterParametersM.latLng[1],
+                                                            zoom: gisTargetCenterParametersM.zoom,
+                                                            maxZoom: 18,
+                                                            minZoom: 1,
+                                                            pitch: gisTargetCenterParametersM.pitch || 30,
+                                                            maxPitch: 75,
+                                                            bearing: gisTargetCenterParametersM.bearing || 0,
+                                                            height: height,
+                                                            width: width,
+                                                    };
+                                                    var effects = [];
+                                                    if (styleParameters != null && styleParameters.useLighting != null && styleParameters.useLighting == 'yes' ) {
+                                                        var inputColor = styleParameters.lightColor;
+                                                        const rgb = inputColor.replace(/[^\d,.]/g, '').split(',');
+                                                        for (var i = 0; i < rgb.length; i++)
+                                                            rgb[i] = parseFloat(rgb[i]);
+
+                                                        console.log(Date.parse(styleParameters.lightTimestamp));
+                                                        console.log(rgb);
+                                                        console.log(styleParameters.lightIntensity);
+                                                        const sunLight = new deck._SunLight({
+                                                            timestamp: Date.parse(styleParameters.lightTimestamp), 
+                                                            color: rgb,
+                                                            intensity: parseInt(styleParameters.lightIntensity),
+                                                        });
+
+                                                        const lightEffect = new deck.LightingEffect({sunLight});
+                                                        effects = [lightEffect];
+                                                    } 
+                                                    map3d = new deck.DeckGL({
+                                                        mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
+                                                        viewState: currentViewState,
+                                                        controller: true,
+                                                        container: gisTargetCenter3DMapDeckDivM,
+                                                        effects,
+                                                        layers: [
+                                                            defaultLayer,
+                                                            buildingLayer,
+                                                        ],
+                                                        onViewStateChange: ({ viewState }) => {
+                                                            $("#gisTargetCenterZoomM").val(viewState.zoom);
+                                                            $("#gisTargetCenterLatM").val(viewState.latitude);
+                                                            $("#gisTargetCenterLngM").val(viewState.longitude);
+                                                            $("#gisTargetCenterPitchM").val(viewState.pitch);
+                                                            $("#gisTargetCenterBearingM").val(viewState.bearing);
+
+                                                            gisTargetCenterParametersM.zoom = viewState.zoom;
+                                                            gisTargetCenterParametersM.latLng[0] = viewState.latitude;
+                                                            gisTargetCenterParametersM.latLng[1] = viewState.longitude;
+                                                            gisTargetCenterParametersM.pitch = viewState.pitch;
+                                                            gisTargetCenterParametersM.bearing = viewState.bearing;
+                                                            $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+
+                                                            map3d.setProps({
+                                                                viewState: viewState,
+                                                            });
+                                                            return viewState;
+                                                        },
+                                                        //onDragEnd: ({ viewport }) => cursorType = 'grab',
+                                                        //onDragStart: ({ viewport }) => {
+                                                            //manuallyControlled = false;
+                                                            //cursorType = 'grabbing'
+                                                        //},
+                                                    });
+
+                                                    function createTileLayer(data, id = 'map-layer') {
+                                                        return new deck.TileLayer({
+                                                            id: id,
+                                                            // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
+                                                            data: data,
+                                                    
+                                                            minZoom: 0,
+                                                            maxZoom: 20,
+                                                            tileSize: 256,
+                                                            opacity: 1,
+                                                            pickable: true,
+                                                    
+                                                            renderSubLayers: props => {
+                                                                const {
+                                                                    bbox: { west, south, east, north }
+                                                                } = props.tile;
+                                                    
+                                                                return new deck.BitmapLayer(props, {
+                                                                    data: null,
+                                                                    image: props.data,
+                                                                    bounds: [west, south, east, north]
+                                                                });
+                                                            },
+                                                        });
+                                                    }
+
+                                                    function createBuildingLayer(data, color, id = 'building-layer') {
+                                                        return new deck.GeoJsonLayer({
+                                                            id: id,
+                                                            data: data,
+                                                            extruded: true,
+                                                            // pickable: true,
+                                                            stroked: false,
+                                                            filled: true,
+                                                            lineWidthScale: 20,
+                                                            lineWidthMinPixels: 2,
+                                                            //getFillColor: [255, 102, 0, 255],
+                                                            getFillColor: color,
+                                                            getLineColor: [255, 255, 255],
+                                                            getElevation: f => f.properties.height,
+                                                            getRadius: 100,
+                                                            getLineWidth: 1,
+                                                        });
+                                                    }
+
+                                                    $("#gisTargetCenterZoomM").off("input");
+                                                    $("#gisTargetCenterZoomM").on("input", function (event) {
+                                                        gisTargetCenterParametersM.zoom = $("#gisTargetCenterZoomM").val();
+                                                        var currViewState = map3d.props.viewState;
+                                                        map3d.setProps({
+                                                            viewState: {
+                                                                ...currViewState,
+                                                                zoom: parseFloat(gisTargetCenterParametersM.zoom),
+                                                            }
+                                                        });
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    $("#gisTargetCenterPitchM").off("input");
+                                                    $("#gisTargetCenterPitchM").on("input", function (event) {
+                                                        gisTargetCenterParametersM.pitch = $("#gisTargetCenterPitchM").val();
+                                                        var currViewState = map3d.props.viewState;
+                                                        map3d.setProps({
+                                                            viewState: {
+                                                                ...currViewState,
+                                                                pitch: parseFloat(gisTargetCenterParametersM.pitch),
+                                                            }
+                                                        });
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    $("#gisTargetCenterBearingM").off("input");
+                                                    $("#gisTargetCenterBearingM").on("input", function (event) {
+                                                        gisTargetCenterParametersM.bearing = $("#gisTargetCenterBearingM").val();
+                                                        var currViewState = map3d.props.viewState;
+                                                        map3d.setProps({
+                                                            viewState: {
+                                                                ...currViewState,
+                                                                bearing: parseFloat(gisTargetCenterParametersM.bearing),
+                                                            }
+                                                        });
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    $("#gisTargetCenterLatM").off("input");
+                                                    $("#gisTargetCenterLatM").on("input", function (event) {
+                                                        gisTargetCenterParametersM.latLng[0] = $("#gisTargetCenterLatM").val();
+                                                        var currViewState = map3d.props.viewState;
+                                                        map3d.setProps({
+                                                            viewState: {
+                                                                ...currViewState,
+                                                                latitude: parseFloat(gisTargetCenterParametersM.latLng[0]),
+                                                            }
+                                                        });
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    $("#gisTargetCenterLngM").off("input");
+                                                    $("#gisTargetCenterLngM").on("input", function (event) {
+                                                        console.log($("#gisTargetCenterLngM").val());
+                                                        console.log($(this).val());
+                                                        gisTargetCenterParametersM.latLng[1] = $("#gisTargetCenterLngM").val();
+                                                        var currViewState = map3d.props.viewState;
+                                                        map3d.setProps({
+                                                            viewState: {
+                                                                ...currViewState,
+                                                                longitude: parseFloat(gisTargetCenterParametersM.latLng[1]),
+                                                            }
+                                                        });
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    $("#gisTargetBuildingColorM").off("input");
+                                                    $("#gisTargetBuildingColorM").on("input", function (event) {
+                                                        console.log($("#gisTargetBuildingColorM").val());
+                                                        console.log(map3d);
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    $("#gisTargetBuildingColorM").off("changeColor");
+                                                    $("#gisTargetBuildingColorM").on("changeColor", function (event) {
+                                                        console.log("building color changed");
+                                                        console.log($("#gisTargetBuildingColorM").val());
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+
+                                                    if (gisTargetCenterParametersM.coordsCollectionUri !== null) {
+                                                        $('#coordsCollectionUriM').val(gisTargetCenterParametersM.coordsCollectionUri);
+                                                    }
+
+                                                    $('#coordsCollectionUriM').change(function () {
+                                                        gisTargetCenterParametersM.coordsCollectionUri = $(this).val();
+                                                        $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                                    });
+                                                }, 700);
+                                            }
+                                                
+                                            break;
+                                            
                                         /*
                                         case "widget3DMap":
                                             //Rimozione eventuali campi del subform general per widget process

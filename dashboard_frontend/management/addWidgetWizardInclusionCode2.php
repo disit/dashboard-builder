@@ -7,6 +7,20 @@
        session_start();
     }
     checkSession('Manager');
+        $valuename_filter = "";
+    if (isset ($_GET['valuename'])){
+        $valuename_filter = $_GET['valuename'];
+        $newstr = filter_var($valuename_filter, FILTER_SANITIZE_STRING);
+        $valuename_filter = $newstr;
+        unset($_GET['valuename']);
+    }
+    $type="";
+    if (isset ($_GET['high-level-type'])){
+        $type0 = $_GET['high-level-type'];
+        $type1 = filter_var($type0, FILTER_SANITIZE_STRING);
+        $type = $type1;
+        unset($_GET['high-level-type']);
+    }
 ?>
 
 <!-- <ul id="wizardTabsContainer" class="nav nav-tabs nav-justified">   -->
@@ -73,6 +87,10 @@
                         $healthinessSelection = $row['healthinessSelection'];
                         $ownershipSelection = $row['ownershipSelection'];
                         $valueUnitSelection = $row['valueUnitSelection'];
+                        $brokerSelection = $row['brokerSelection'];
+                        $modelSelection = $row['modelSelection'];
+                        $valueTypeNSelection = $row['valueTypeNSelection'];
+                        $valueNameNSelection = $row['valueNameNSelection'];
                         $highLevelTypeVisible = $row['highLevelTypeVisible'];
                         $natureVisible = $row['natureVisible'];
                         $subnatureVisible = $row['subnatureVisible'];
@@ -85,6 +103,10 @@
                         $lastCheckVisible = $row['lastCheckVisible'];
                         $ownershipVisible = $row['ownershipVisible'];
                         $valueUnitVisible = $row['valueUnitVisible'];
+                        $brokerVisible = $row['brokerVisible'];
+                        $valueTypeNVisible = $row['valueTypeNVisible'];
+                        $valueNameNVisible = $row['valueNameNVisible'];
+                        $modelVisible = $row['modelVisible'];
                         $hasActuators = $row['hasActuators'];
                         
                         if($widgetType == 'any')
@@ -103,7 +125,7 @@
                             }
                         }
 
-                        $newItem = '<div class="col-xs-10 col-sm-4 col-md-3 modalAddDashboardWizardChoiceCnt" data-hasActuators="' . $hasActuators . '" data-highLevelTypeVisible = "' . $highLevelTypeVisible . '" data-natureVisible = "' . $natureVisible . '" data-subnatureVisible = "' . $subnatureVisible . '" data-valueTypeVisible = "' . $valueTypeVisible . '" data-valueNameVisible = "' . $valueNameVisible . '" data-dataTypeVisible = "' . $dataTypeVisible . '" data-lastDateVisible = "' . $lastDateVisible . '" data-lastValueVisible = "' . $lastValueVisible . '" data-healthinessVisible = "' . $healthinessVisible . '" data-lastCheckVisible = "' . $lastCheckVisible . '" data-ownershipVisible = "' . $ownershipVisible . '" data-valueUnitVisible = "' . $valueUnitVisible . '" data-dataTypeSel="' . $dataTypeSelection . '" data-valueNameSel="' . $valueNameSelection . '" data-valueTypeSel="' . $valueTypeSelection . '" data-subnatureSel="' . $subnatureSelection . '" data-natureSel="' . $natureSelection . '" data-highLevelSel="' . $highLevelTypeSelection . '" data-healthinessSel="' . $healthinessSelection . '" data-ownershipSel="' . $ownershipSelection . '" data-valueUnitSel="' . $valueUnitSelection . '" data-available="' . $templateAvailable . '" data-selected="false" data-templateName="' . $templateName . '" data-widgetType="' . $widgetType . '">
+                        $newItem = '<div class="col-xs-10 col-sm-4 col-md-3 modalAddDashboardWizardChoiceCnt" data-hasActuators="' . $hasActuators . '" data-highLevelTypeVisible = "' . $highLevelTypeVisible . '" data-natureVisible = "' . $natureVisible . '" data-subnatureVisible = "' . $subnatureVisible . '" data-valueTypeVisible = "' . $valueTypeVisible . '" data-valueNameVisible = "' . $valueNameVisible . '" data-dataTypeVisible = "' . $dataTypeVisible . '" data-lastDateVisible = "' . $lastDateVisible . '" data-lastValueVisible = "' . $lastValueVisible . '" data-healthinessVisible = "' . $healthinessVisible . '" data-lastCheckVisible = "' . $lastCheckVisible . '" data-ownershipVisible = "' . $ownershipVisible . '" data-valueUnitVisible = "' . $valueUnitVisible . '" data-brokerVisible = "' . $brokerVisible . '"  data-modelVisible = "' . $modelVisible . '" data-valueTypeNVisible = "' . $valueTypeNVisible . '" data-valueNameNVisible = "' . $valueNameNVisible . '" data-dataTypeSel="' . $dataTypeSelection . '" data-valueNameSel="' . $valueNameSelection . '" data-valueTypeSel="' . $valueTypeSelection . '" data-subnatureSel="' . $subnatureSelection . '" data-natureSel="' . $natureSelection . '" data-highLevelSel="' . $highLevelTypeSelection . '" data-healthinessSel="' . $healthinessSelection . '" data-ownershipSel="' . $ownershipSelection . '" data-valueUnitSel="' . $valueUnitSelection . '" data-available="' . $templateAvailable . '" data-selected="false" data-templateName="' . $templateName . '" data-widgetType="' . $widgetType . '">
                                         <div class="col-xs-12 modalAddDashboardWizardChoicePic" style="background-image: url(' . $templateIcon . ')"> 
 
                                         </div>
@@ -259,7 +281,7 @@
                 </div>
 
                 <div id="widgetWizardTableContainer" class="col-xs-12">
-                    <table id="widgetWizardTable" class="addWidgetWizardTable table table-striped dt-responsive nowrap"> 
+                    <table id="widgetWizardTable" class="addWidgetWizardTable table table-striped dt-responsive nowrap" style="margin-left:-15px">
                         <thead class="widgetWizardColTitle">
                             <tr>  
                                 <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType"><div id="highLevelTypeColumnFilter"></div></th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
@@ -268,6 +290,10 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="ValueType"><div id="lowLevelTypeColumnFilter"></div></th>   <!-- Ex LOW_LEVEL_TYPE -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><div id="uniqueNameIdColumnFilter"></div></th>      <!-- Ex NAME-ID -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri"></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="DeviceModel"><div id="deviceModelColumnFilter"></div></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Broker"><div id="brokerColumnFilter"></div></th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="ValueNameN"><div id="valueNameColumnFilter"></div></th>   <!-- New VALUE NAME -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="ValueTypeN"><div id="valueTypeColumnFilter"></div></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="DataType"><div id="unitColumnFilter"></th>    <!-- Data Type Ex UNIT -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="valueUnit"><div id="valueUnitColumnFilter"></th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastDate"></th>
@@ -296,6 +322,10 @@
                                 <th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>   <!-- Ex LOW_LEVEL_TYPE -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      <!-- Ex NAME-ID -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="DeviceModel">Device/Model</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="Broker">Broker</th>
+                                <th class="widgetWizardTitleCell" data-cellTitle="ValueNameN">Value Name</th>    <!-- New VALUE NAME -->
+                                <th class="widgetWizardTitleCell" data-cellTitle="ValueTypeN">Value Type</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>    <!-- Ex UNIT -->
                                 <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
                                 <th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
@@ -336,15 +366,17 @@
                                     <li><a href="#" class="small" data-value="option1" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="high_level_type"/>&nbsp;High level type</a></li>
                                     <li><a href="#" class="small" data-value="option2" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="nature"/>&nbsp;Nature</a></li>
                                     <li><a href="#" class="small" data-value="option3" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="sub_nature"/>&nbsp;Subnature</a></li>
-                                    <li><a href="#" class="small" data-value="option4" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="low_level_type"/>&nbsp;Value type</a></li>
-                                    <li><a href="#" class="small" data-value="option5" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="unique_name_id"/>&nbsp;Value name</a></li>
-                                    <li><a href="#" class="small" data-value="option6" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="unit"/>&nbsp;Data type</a></li>
-                                    <li><a href="#" class="small" data-value="option7" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="last_date"/>&nbsp;Last date</a></li>
-                                    <li><a href="#" class="small" data-value="option8" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="last_value"/>&nbsp;Last value</a></li>
-                                    <li><a href="#" class="small" data-value="option9" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="healthiness"/>&nbsp;Healthiness</a></li>
-                                    <li><a href="#" class="small" data-value="option10" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="lastCheck"/>&nbsp;Last check</a></li>
-                                    <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="ownership"/>&nbsp;Ownership</a></li>
-                                    <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="value_unit"/>&nbsp;Value Unit</a></li>
+                                    <li><a href="#" class="small" data-value="option4" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="device_model_name"/>&nbsp;Device/Model</a></li>
+                                    <li><a href="#" class="small" data-value="option5" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="broker_name"/>&nbsp;Broker</a></li>
+                                    <li><a href="#" class="small" data-value="option6" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="value_name"/>&nbsp;Value name</a></li>
+                                    <li><a href="#" class="small" data-value="option7" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="value_type"/>&nbsp;Value type</a></li>
+                                    <li><a href="#" class="small" data-value="option8" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="unit"/>&nbsp;Data type</a></li>
+                                    <li><a href="#" class="small" data-value="option9" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="value_unit"/>&nbsp;Value Unit</a></li>
+                                    <li><a href="#" class="small" data-value="option10" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="last_date"/>&nbsp;Last date</a></li>
+                                    <li><a href="#" class="small" data-value="option11" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="last_value"/>&nbsp;Last value</a></li>
+                                    <li><a href="#" class="small" data-value="option12" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="healthiness"/>&nbsp;Healthiness</a></li>
+                                    <li><a href="#" class="small" data-value="option13" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="lastCheck"/>&nbsp;Last check</a></li>
+                                    <li><a href="#" class="small" data-value="option14" tabIndex="-1"><input type="checkbox" class="checkWidgWizCol" data-fieldTitle="ownership"/>&nbsp;Ownership</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -371,34 +403,30 @@
 						<?= _("Red rows are not compatible with choosen widget type and will not be instantiated")?>
 					</div>
 					<div id="widgetWizardSelectedRowsTableContainer" class="col-xs-12">
-						<table id="widgetWizardSelectedRowsTable" class="addWidgetWizardTableSelected table table-striped dt-responsive nowrap"> 
+						<table id="widgetWizardSelectedRowsTable" class="addWidgetWizardTableSelected table table-striped dt-responsive nowrap" style="margin-left:-15px">
 							<thead class="widgetWizardColTitle">
 								<tr>
-									<th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType">High-Level Type</th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
-									<th class="widgetWizardTitleCell" data-cellTitle="Nature">Nature</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="SubNature">Subnature</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="ValueType">Value Type</th>   <!-- Ex LOW_LEVEL_TYPE -->
-									<th class="widgetWizardTitleCell" data-cellTitle="ValueName">Value Name</th>      <!-- Ex NAME-ID -->
-									<th class="widgetWizardTitleCell" data-cellTitle="_col5">_col5</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>    <!-- Ex UNIT -->
-									<th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="_col11">_col11</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="_col12">_col12</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="_col13">_col13</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="_col15">_col15</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>	
-									<th class="widgetWizardTitleCell" data-cellTitle="_col17">_col17</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="_col18">_col18</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="_col19">_col19</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="_col20">_col20</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="_col21">_col21</th>
-									<th class="widgetWizardTitleCell" data-cellTitle="_col22">_col22</th>			
-									<th class="widgetWizardTitleCell" data-cellTitle="_col23">_col23</th>									
-									<th class="widgetWizardTitleCell" data-cellTitle="Remove">Remove</th>
+                                    <th id="hihghLevelTypeColTitle" class="widgetWizardTitleCell" data-cellTitle="HighLevelType"><?= _("High-Level Type")?></th>  <!-- Potrebbe diventare DEVICE TYPE ??? -->
+                                    <th class="widgetWizardTitleCell" data-cellTitle="Nature">Nature</th>
+                                    <th class="widgetWizardTitleCell" data-cellTitle="SubNature">Subnature</th>
+                                    <!--    <th class="widgetWizardTitleCell" data-cellTitle="ValueType"><?= _("Value Type")?></th> -->   <!-- Ex LOW_LEVEL_TYPE -->
+                                    <!--    <th class="widgetWizardTitleCell" data-cellTitle="ValueName"><?= _("Value Name")?></th> -->      <!-- Ex NAME-ID -->
+                                    <!--<th class="widgetWizardTitleCell" data-cellTitle="InstanceUri">Instance URI</th>-->
+                                    <th class="widgetWizardTitleCell" data-cellTitle="DeviceModel">Device/Model</th>
+                                    <th class="widgetWizardTitleCell" data-cellTitle="Broker">Broker</th>
+                                    <th class="widgetWizardTitleCell" data-cellTitle="ValueNameN">Value Name</th>    <!-- New VALUE NAME -->
+                                    <th class="widgetWizardTitleCell" data-cellTitle="ValueTypeN">Value Type</th>
+                                    <th class="widgetWizardTitleCell" data-cellTitle="DataType">Data Type</th>    <!-- Ex UNIT -->
+                                    <th class="widgetWizardTitleCell" data-cellTitle="valueUnit">Value Unit</th>
+                                    <th class="widgetWizardTitleCell" data-cellTitle="LastDate">Last Date</th>
+                                    <th class="widgetWizardTitleCell" data-cellTitle="LastValue">Last Value</th>
+                                    <th class="widgetWizardTitleCell" data-cellTitle="Healthiness">Healthiness</th>
+                                    <!--<th class="widgetWizardTitleCell" data-cellTitle="Parameters">Parameters</th>
+                                    <th class="widgetWizardTitleCell" data-cellTitle="Id">Id</th>-->
+                                    <th class="widgetWizardTitleCell" data-cellTitle="LastCheck">Last Check</th>
+                                    <!--<th class="widgetWizardTitleCell" data-cellTitle="GetInstances"></th>-->
+                                    <th class="widgetWizardTitleCell" data-cellTitle="Ownership">Ownership</th>
+                                    <th class="widgetWizardTitleCell" data-cellTitle="Remove">Remove</th>
 								</tr>  							
 							</thead>
 						</table>
@@ -512,11 +540,12 @@
         var orionBrokerValueTypes = null;
         var markersCache = {};
         var FreezeMap = null;
-        noPOIFlag = 0;
+        noPOIFlag = -1;
         poiSubNature = "";
         poiNature = "";
         poiNatureArray = [];
         poiSubNatureArray = [];
+        var bounds = null;
 
         // Check LDAP Organization to centre Wizard Map
         $.ajax({
@@ -578,6 +607,12 @@
             }
         });
 
+        if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+            invisibleCols = [3, 4, 5, 15, 16, 17, 19, 21, 22, 23, 24, 25, 26, 27];
+        } else {
+            invisibleCols = [3, 4, 5, 15, 16, 17, 19, 21, 22, 23, 24, 25, 26, 27];
+        }
+
         //False se è violata, true se è rispettata
         var validityConditions = {
             dashTemplateSelected: false,
@@ -633,7 +668,7 @@
                 dataType: 'json',
                 success: function (data)
                 {
-                    if (data.detail === 'OK_Nature_AND_SubNature') {
+                    if (data.detail === 'All Queries OK!') {
                         poiNatureArray = data.nature;
                         poiSubNatureArray = data.sub_nature;
                     } else {
@@ -695,41 +730,46 @@
                 }
             },
             'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[13]);
+                $(row).attr('data-rowId', data[17]);
                 $(row).attr('data-high_level_type', data[0]);
                 $(row).attr('data-nature', data[1]);
                 $(row).attr('data-sub_nature', data[2]);
                 $(row).attr('data-low_level_type', data[3]);
                 $(row).attr('data-unique_name_id', data[4]);
                 $(row).attr('data-instance_uri', data[5]);
-                $(row).attr('data-unit', data[6]);
+                $(row).attr('data-value_name',data[24]);
+                $(row).attr('data-value_type',data[25]);
+                $(row).attr('data-device_model_name',data[26]);
+                $(row).attr('data-broker_name',data[27]);
+                $(row).attr('data-unit', data[10]);
                 $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[15]);
-                $(row).attr('data-sm_based', data[20]);
-                $(row).attr('data-parameters', data[12]);
+                $(row).attr('data-get_instances', data[19]);
+                $(row).attr('data-sm_based', data[24]);
+                $(row).attr('data-parameters', data[16]);
                 $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[9]);
-                $(row).attr('data-latitude', data[18]);
-                $(row).attr('data-longitude', data[19]);
-                $(row).attr('data-organizations', data[17]);
-                $(row).attr('last_date',data[8]);
-                $(row).attr('data-valueUnit',data[7]);
-                $(row).attr('ownership',data[16]);
-				if(data.length > 14) $(row).attr('data-last_check',data[14]);
-				if(data.length > 10) $(row).attr('data-healthiness',data[10]);
+                $(row).attr('data-last_value', data[13]);
+                $(row).attr('data-latitude', data[22]);
+                $(row).attr('data-longitude', data[23]);
+                $(row).attr('data-organizations', data[21]);
+                $(row).attr('last_date',data[12]);
+                $(row).attr('data-valueUnit',data[11]);
+                $(row).attr('ownership',data[20]);
+				if(data.length > 18) $(row).attr('data-last_check',data[18]);
+				if(data.length > 14) $(row).attr('data-healthiness',data[14]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
+                //    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
+                    "targets": invisibleCols,
                     "visible": false
                 },
                 {
-                    "targets": 10,
+                    "targets": 14,
                     "searchable": true,
                     "render": function (data, type, row, meta) {
                         var imageUrl = null;
-                        if (row[10]) {
-                            if (row[10] === 'true') {
+                        if (row[14]) {
+                            if (row[14] === 'true') {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
                             } else {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
@@ -742,14 +782,14 @@
                     }
                 },
                 {
-                    "targets": 11,
+                    "targets": 15,
                     "searchable": true,
                     "visible": false
                 },
             ],
             initComplete: function () {
-
-                var stopFlag = 1;
+                $("#widgetWizardTable_wrapper").css("overflow-x", "auto");
+                $("#widgetWizardTable_wrapper").css("overflow-y", "hidden");
             }
         });
 
@@ -763,14 +803,14 @@
             $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
             $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
                
-           }else{
+           } else {
                addWidgetWizardMapRef.removeControl(addWidgetWizardMapRef.zoomControl);
                FreezeMap = true;
                addWidgetWizardMapRef.dragging.disable();
                addWidgetWizardMapRef.keyboard.disable();
                addWidgetWizardMapRef.scrollWheelZoom.disable();
                addWidgetWizardMapRef.doubleClickZoom.disable();
-               var bounds = addWidgetWizardMapRef.getBounds();
+               bounds = addWidgetWizardMapRef.getBounds();
                var northEastPointLat = bounds._northEast.lat;
                var northEastPointLat2 = northEastPointLat.toString();
                var northEastPointLng = bounds._northEast.lng;
@@ -781,282 +821,150 @@
                var southWestPointLng2 = southWestPointLng.toString();
                resetFilter();
                widgetWizardTable.clear().destroy();//la mappa viene distrutta e ricreata ad ogni volta che viene azionato il bottone
-            var oi=document.getElementById('widgetWizardTable_paginate');
-            oi.outerHTML="";
-            $('#widgetWizardTable_paginate').empty();
-            var oi2=document.getElementById('widgetWizardTable_filter');
-            oi2.outerHTML="";
+               var oi=document.getElementById('widgetWizardTable_paginate');
+               oi.outerHTML="";
+               $('#widgetWizardTable_paginate').empty();
+               var oi2=document.getElementById('widgetWizardTable_filter');
+               oi2.outerHTML="";
                $('#widgetWizardTable_filter').empty();
-                 widgetWizardTable = $('#widgetWizardTable').DataTable({
-                 
-            "bLengthChange": false,
-            "bInfo": false,
-            "language": {search: ""},
-            aaSorting: [[0, 'asc']],
-            "processing": true,
-            "serverSide": true,
-            "pageLength": widgetWizardPageLength,
-            "ajax": {
-                async: true, 
-                url: "../controllers/dashboardWizardController.php?initWidgetWizard=true&synMode=<?=$synMode?$synMode:0?>",
-                data: function(d){
-                    d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>",
-                    d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>",
-                    d.northEastPointLat = northEastPointLat,
-                    d.northEastPointLng = northEastPointLng,
-                    d.southWestPointLat = southWestPointLat,
-                    d.southWestPointLng = southWestPointLng,
-                    d.filterOrg = orgFilter,
-                    d.poiFlag = getPOIFlag(),
-                    d.poiNature = getPOINature(),
-                    d.poiSubNature = getPOISubNature()
-                }
-            },
-            'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[13]);
-                $(row).attr('data-high_level_type', data[0]);
-                $(row).attr('data-nature', data[1]);
-                $(row).attr('data-sub_nature', data[2]);
-                $(row).attr('data-low_level_type', data[3]);
-                $(row).attr('data-unique_name_id', data[4]);
-                $(row).attr('data-instance_uri', data[5]);
-                $(row).attr('data-unit', data[6]);
-                $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[15]);
-                $(row).attr('data-sm_based', data[20]);
-                $(row).attr('data-parameters', data[12]);
-                $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[9]);
-                $(row).attr('data-latitude', data[18]);
-                $(row).attr('data-longitude', data[19]);
-                $(row).attr('data-organizations', data[17]);
-                $(row).attr('last_date',data[8]);
-                $(row).attr('data-valueUnit',data[7]);
-                $(row).attr('ownership',data[16]);
-				if(data.length > 14) $(row).attr('data-last_check',data[14]);
-				if(data.length > 10) $(row).attr('data-healthiness',data[10]);
-            },
-            "columnDefs": [
-                {
-                    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
-                    "visible": false
-                },
-                {
-                    "targets": 10,
-                    "searchable": true,
-                    "render": function (data, type, row, meta) {
-                        var imageUrl = null;
-                        if (row[10]) {
-                            if (row[10] === 'true') {
-                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
-                            } else {
-                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
-                            }
-                        } else {
-                            imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+               widgetWizardTable = $('#widgetWizardTable').DataTable({
+
+                    "bLengthChange": false,
+                    "bInfo": false,
+                    "language": {search: ""},
+                    aaSorting: [[0, 'asc']],
+                    "processing": true,
+                    "serverSide": true,
+                    "pageLength": widgetWizardPageLength,
+                    "ajax": {
+                        async: true,
+                        url: "../controllers/dashboardWizardController.php?initWidgetWizard=true&synMode=<?=$synMode?$synMode:0?>",
+                        data: function(d){
+                            d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>",
+                            d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>",
+                            d.northEastPointLat = northEastPointLat,
+                            d.northEastPointLng = northEastPointLng,
+                            d.southWestPointLat = southWestPointLat,
+                            d.southWestPointLng = southWestPointLng,
+                            d.filterOrg = orgFilter,
+                            d.poiFlag = getPOIFlag(),
+                            d.poiNature = getPOINature(),
+                            d.poiSubNature = getPOISubNature()
                         }
-                        return imageUrl;
-                    }
-                },
-                {
-                    "targets": 11,
-                    "searchable": true,
-                    "visible": false
-                },
-            ],
-            initComplete: function () {
-
-                var stopFlag = 2;
-
-                $("#widgetWizardTable_paginate").appendTo("#widgetWizardTableCommandsContainer");
-                $("#widgetWizardTable_paginate").addClass("col-xs-12");
-                $("#widgetWizardTable_paginate").addClass("col-md-4");
-                $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
-                $("#widgetWizardTable_filter").addClass("col-xs-12");
-                $("#widgetWizardTable_filter").addClass("col-md-3");
-                $("#widgetWizardTable_filter input").attr("placeholder", "Search");
-                $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
-                $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
-
-
-
-
-                //window.history.pushState({"northEastPointLat":northEastPointLat,"southWestPointLat":southWestPointLat,"northEastPointLng":northEastPointLng,"southWestPointLng":southWestPointLng},"",url);
-                //window.location.href = window.location.href + "&northEastPointLat="+ northEastPointLat + "&southWestPointLat="+ southWestPointLat + "&northEastPointLng="+ northEastPointLng + "&southWestPointLng="+ southWestPointLng;
-                <?php
-                include('../config.php');
-                header("Cache-Control: private, max-age=$cacheControlMaxAge");
-                $link = mysqli_connect($host, $username, $password);
-                mysqli_select_db($link, $dbname);
-                $northEastPointLat= $_GET['northEastPointLat'];
-                $northEastPointLng= $_GET['northEastPointLng'];
-                $southWestPointLat= $_GET['southWestPointLat'];
-                $southWestPointLng= $_GET['southWestPointLng'];
-                $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <='".mysqli_real_escape_string($link,$northEastPointLat)."' and latitude >='".mysqli_real_escape_string($link,$southWestPointLat)."' and longitude <='".mysqli_real_escape_string($link,$northEastPointLng)."' and longitude >='".mysqli_real_escape_string($link,$southWestPointLng)."'";
-                $r = mysqli_query($link, $menuQuery);
-                if($r)
-                {
-                    $array=array();
-                    $ii=0;
-                    while($row = mysqli_fetch_assoc($r))
-                    {
-                        $idrow=$row['id'];
-                        $latitude=$row['latitude'];
-                        $longitude=$row['longitude'];
-                        $array[$ii]['id']=$idrow;
-                        $array[$ii]['latitude']=$latitude;
-                        $array[$ii]['longitude']=$longitude;
-                        $ii=$ii+1;
-                    }
-                    $size = sizeof($array);
-                }
-                ?>
-
-          /*      var search = [];
-                //   search=["Sensor"];
-                search = "";
-                var nOptions = 9;
-
-                globalSqlFilterDI[0].allSelected = (search.length == nOptions && nOptions == highLevelTypeSelectStartOptions);
-                if(search.length == nOptions && nOptions == highLevelTypeSelectStartOptions)
-                    search = [];
-                globalSqlFilterDI[0].selectedVals = search;
-
-                if (search != "") {
-                    search = search.join('|');
-                }
-                globalSqlFilterDI[0].value = search;
-                if (search == '' && !globalSqlFilterDI[0].allSelected) {
-                    search = 'oiunqauhalknsufhvnoqwpnvfv';
-                }
-                widgetWizardTable.column(0).search(search, false, false).draw();
-                globalSqlFilterDI[0].value = search;
-                var h = $('#highLevelTypeSelect');
-
-                // Chiamata a funzione per popolare menù multi-select di filtraggio
-                for (var n = 0; n < 9; n++)
-                {
-                    if (n !== 4 && n != 5)
-                    {
-                        populateSelectMenus("high_level_type", search,$('#highLevelTypeSelect'), "#highLevelTypeColumnFilter", n, false, true);
-                    }
-                }
-*/
-            }
-        });
-        
-         /*   $("#widgetWizardTable_paginate").appendTo("#widgetWizardTableCommandsContainer");
-            $("#widgetWizardTable_paginate").addClass("col-xs-12");
-            $("#widgetWizardTable_paginate").addClass("col-md-4");
-            $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
-            $("#widgetWizardTable_filter").addClass("col-xs-12");
-            $("#widgetWizardTable_filter").addClass("col-md-3");
-            $("#widgetWizardTable_filter input").attr("placeholder", "Search");
-            $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
-            $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
-             
-        
-        
-
-               //window.history.pushState({"northEastPointLat":northEastPointLat,"southWestPointLat":southWestPointLat,"northEastPointLng":northEastPointLng,"southWestPointLng":southWestPointLng},"",url);
-               //window.location.href = window.location.href + "&northEastPointLat="+ northEastPointLat + "&southWestPointLat="+ southWestPointLat + "&northEastPointLng="+ northEastPointLng + "&southWestPointLng="+ southWestPointLng;
-               <?php /*
-                include('../config.php');
-                header("Cache-Control: private, max-age=$cacheControlMaxAge");
-                $link = mysqli_connect($host, $username, $password);
-                mysqli_select_db($link, $dbname);
-                echo $_GET['northEastPointLat'];
-                $northEastPointLng= $_GET['northEastPointLng'];
-                $southWestPointLat= $_GET['southWestPointLat'];
-                $southWestPointLng= $_GET['southWestPointLng'];
-                    $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <=".mysql_real_escape_string($nordEastPointLat)." and latitude >=".mysql_real_escape_string($southWestPointLat)." and longitude <=".mysql_real_escape_string($nordEastPointLng)." and longitude >=".mysql_real_escape_string($southWestPointLng)."";
-                    $r = mysqli_query($link, $menuQuery);
-                    if($r)
-                    {
-                        $array=array();
-                        $ii=0;
-                        while($row = mysqli_fetch_assoc($r))
+                    },
+                    'createdRow': function (row, data, dataIndex) {
+                        $(row).attr('data-rowId', data[17]);
+                        $(row).attr('data-high_level_type', data[0]);
+                        $(row).attr('data-nature', data[1]);
+                        $(row).attr('data-sub_nature', data[2]);
+                        $(row).attr('data-low_level_type', data[3]);
+                        $(row).attr('data-unique_name_id', data[4]);
+                        $(row).attr('data-instance_uri', data[5]);
+                        $(row).attr('data-value_name',data[24]);
+                        $(row).attr('data-value_type',data[25]);
+                        $(row).attr('data-device_model_name',data[26]);
+                        $(row).attr('data-broker_name',data[27]);
+                        $(row).attr('data-unit', data[10]);
+                        $(row).attr('data-servicetype', data[2]);
+                        $(row).attr('data-get_instances', data[19]);
+                        $(row).attr('data-sm_based', data[24]);
+                        $(row).attr('data-parameters', data[16]);
+                        $(row).attr('data-selected', 'false');
+                        $(row).attr('data-last_value', data[13]);
+                        $(row).attr('data-latitude', data[22]);
+                        $(row).attr('data-longitude', data[23]);
+                        $(row).attr('data-organizations', data[21]);
+                        $(row).attr('last_date',data[12]);
+                        $(row).attr('data-valueUnit',data[11]);
+                        $(row).attr('ownership',data[20]);
+                        if(data.length > 18) $(row).attr('data-last_check',data[18]);
+                        if(data.length > 14) $(row).attr('data-healthiness',data[14]);
+                    },
+                    "columnDefs": [
                         {
-                            $idrow=$row['id'];
-                            $latitude=$row['latitude'];
-                            $longitude=$row['longitude'];
-                            $array[$ii]['id']=$idrow;
-                            $array[$ii]['latitude']=$latitude;
-                            $array[$ii]['longitude']=$longitude;
-                            $ii=$ii+1;
-                        }
-                        $size = sizeof($array);
-                    }*/
-                ?>
-                                
-               var search = [];
-            //   search=["Sensor"];
-            //   search = "";
-               var nOptions = 9;
-                                
-               globalSqlFilterDI[0].allSelected = (search.length == nOptions && nOptions == highLevelTypeSelectStartOptions);
-               if(search.length == nOptions && nOptions == highLevelTypeSelectStartOptions)
-                   search = [];
-               globalSqlFilterDI[0].selectedVals = search;
+                        //    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
+                            "targets": invisibleCols,
+                            "visible": false
+                        },
+                        {
+                            "targets": 14,
+                            "searchable": true,
+                            "render": function (data, type, row, meta) {
+                                var imageUrl = null;
+                                if (row[14]) {
+                                    if (row[14] === 'true') {
+                                        imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
+                                    } else {
+                                        imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                                    }
+                                } else {
+                                    imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
+                                }
+                                return imageUrl;
+                            }
+                        },
+                        {
+                            "targets": 15,
+                            "searchable": true,
+                            "visible": false
+                        },
+                    ],
+                    initComplete: function () {
 
-               if (search != "") {
-                   search = search.join('|');
-               }
-               globalSqlFilterDI[0].value = search;
-               if (search == '' && !globalSqlFilterDI[0].allSelected) {
-                  search = 'oiunqauhalknsufhvnoqwpnvfv';
-               }
-               widgetWizardTable.column(0).search(search, false, false).draw();
-               globalSqlFilterDI[0].value = search;
-               var h = $('#highLevelTypeSelect');
+                        $("#widgetWizardTable_wrapper").css("overflow-x", "auto");
+                        $("#widgetWizardTable_wrapper").css("overflow-y", "hidden");
+
+                        $("#widgetWizardTable_paginate").appendTo("#widgetWizardTableCommandsContainer");
+                        $("#widgetWizardTable_paginate").addClass("col-xs-12");
+                        $("#widgetWizardTable_paginate").addClass("col-md-4");
+                        $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
+                        $("#widgetWizardTable_filter").addClass("col-xs-12");
+                        $("#widgetWizardTable_filter").addClass("col-md-3");
+                        $("#widgetWizardTable_filter input").attr("placeholder", "Search");
+                        $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
+                        $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
+
+                        //window.history.pushState({"northEastPointLat":northEastPointLat,"southWestPointLat":southWestPointLat,"northEastPointLng":northEastPointLng,"southWestPointLng":southWestPointLng},"",url);
+                        //window.location.href = window.location.href + "&northEastPointLat="+ northEastPointLat + "&southWestPointLat="+ southWestPointLat + "&northEastPointLng="+ northEastPointLng + "&southWestPointLng="+ southWestPointLng;
+                        <?php
+                        include('../config.php');
+                        header("Cache-Control: private, max-age=$cacheControlMaxAge");
+                        $link = mysqli_connect($host, $username, $password);
+                        mysqli_select_db($link, $dbname);
+                        $northEastPointLat= $_GET['northEastPointLat'];
+                        $northEastPointLng= $_GET['northEastPointLng'];
+                        $southWestPointLat= $_GET['southWestPointLat'];
+                        $southWestPointLng= $_GET['southWestPointLng'];
+                        $menuQuery = "select id, latitude, longitude from Dashboard.DashboardWizard where latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <='".mysqli_real_escape_string($link,$northEastPointLat)."' and latitude >='".mysqli_real_escape_string($link,$southWestPointLat)."' and longitude <='".mysqli_real_escape_string($link,$northEastPointLng)."' and longitude >='".mysqli_real_escape_string($link,$southWestPointLng)."'";
+                        $r = mysqli_query($link, $menuQuery);
+                        if($r)
+                        {
+                            $array=array();
+                            $ii=0;
+                            while($row = mysqli_fetch_assoc($r))
+                            {
+                                $idrow=$row['id'];
+                                $latitude=$row['latitude'];
+                                $longitude=$row['longitude'];
+                                $array[$ii]['id']=$idrow;
+                                $array[$ii]['latitude']=$latitude;
+                                $array[$ii]['longitude']=$longitude;
+                                $ii=$ii+1;
+                            }
+                            $size = sizeof($array);
+                        }
+                        ?>
+                    }
+                });
 
                // Chiamata a funzione per popolare menù multi-select di filtraggio
-               for (var n = 0; n < 9; n++) 
-               {
-                    if (n !== 4 && n != 5) 
-                    {
-                        populateSelectMenus("high_level_type", search,$('#highLevelTypeSelect'), "#highLevelTypeColumnFilter", n, false, true);
-                    }
-                }
-                           */
-           /*     checkTab1Conditions();
-                countSelectedRows(); 
-                var array2 =<?php echo json_encode($array) ?>;
-                console.log(array2);
-                var array3 = [];
-                var es=array2[0]['latitude'];
-                es=parseFloat(es);
-                var index=0;
-                for(var m=0; m < array2.length; m++){
-                    if(((southWestPointLat <= parseFloat(array2[m]['latitude'])) && (parseFloat(array2[m]['latitude']) <= parseFloat(northEastPointLat))) && ((southWestPointLng <= parseFloat(array2[m]['longitude']))&&( parseFloat(array2[m]['longitude']) <= northEastPointLng))){
-                        array3[index]=array2[m]['id'];
-                        index++;
-                        console.log('lat est '+ northEastPointLat);
-                        console.log('lat ovest' + southWestPointLat);
-                        console.log('lat sensor' + array2[m]['latitude']);
-                        console.log('lng est '+ northEastPointLng);
-                        console.log('lng ovest' + southWestPointLng);
-                        console.log('lng sensor' + array2[m]['longitude']);
-                    }else{
-                        var row = $('#widgetWizardTable').find('tr[data-rowid="' + array2[m]['id'] + '"]');
-                        var table = document.getElementById('widgetWizardTable');
-                        var row2 = table.rows[2];
-                        var attr = $(row2).attr('data-rowid');
-                        var length = table.rows.length;
-                        for(var o=2; o<table.rows.length; o++){
-                            var attr=$(table.rows[o]).attr('data-rowid');
-                            if(parseInt(attr)==parseInt(array2[m]['id'])){
-                                table.rows[o].style.display="none";
-                            }
-                        }
-                        var tr=$("#widgetWizardTable tbody tr[data-rowid='" + parseInt(array2[m]['id']) + "']");
-                        //row.style.display="none";//$('tr[data-rowid="' + parseInt(array2[m]['id']) + '"]');
-                        console.log('row '+ row);
-                    }
-                    
-                }
-                console.log(array3.length); */
-            }   
+               for(var n = 0; n < globalSqlFilterDI.length; n++) {
+                   if(n !== 4 && n != 5) {
+                       // populateSelectMenus("none", "oiunqauhalknsufhvnoqwpnvfv", unitSelect, "#unitColumnFilter", n, true, false, FreezeMap, bounds);
+                       populateSelectMenus("", "", null, "", n, false, true, FreezeMap, bounds);
+                   }
+               }
+           }
        })
         
         function updateSelectedUnits(mode, deselectedUnit)
@@ -2363,6 +2271,10 @@
         var unitSelectStartOptions = 0;
         var healthinessSelectStartOptions = 0;
         var ownershipSelectStartOptions = 0;
+        var valueUnitSelectStartOptions = 0;
+        var brokerSelectStartOptions = 0;
+        var valueNameSelectStartOptions = 0;
+        var valueTypeSelectStartOptions = 0;
 
         var globalSqlFilterDI = [
             {
@@ -2434,6 +2346,27 @@
                 "active": "false",
                 "selectedVals": [],
                 "allSelected": true
+            },
+            {
+                "field": "broker_name",
+                "value": "",
+                "active": "false",
+                "selectedVals": [],
+                "allSelected": true
+            },
+            {
+                "field": "value_name",
+                "value": "",
+                "active": "false",
+                "selectedVals": [],
+                "allSelected": true
+            },
+            {
+                "field": "value_type",
+                "value": "",
+                "active": "false",
+                "selectedVals": [],
+                "allSelected": true
             }
         ];
 
@@ -2473,7 +2406,7 @@
             {
                 if (n !== 4 && n != 5)
                 {
-                    populateSelectMenus("high_level_type", search, $('#highLevelTypeSelect'), "#highLevelTypeColumnFilter", n, false, true);
+                    populateSelectMenus("high_level_type", search, $('#highLevelTypeSelect'), "#highLevelTypeColumnFilter", n, false, true, FreezeMap, bounds);
                 }
             }
             
@@ -2515,7 +2448,7 @@
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
-                    populateSelectMenus("nature", search, $('#natureSelect'), "#natureColumnFilter", n, false, true);
+                    populateSelectMenus("nature", search, $('#natureSelect'), "#natureColumnFilter", n, false, true, FreezeMap, bounds);
                 }
             }
             
@@ -2561,7 +2494,7 @@
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
-                    populateSelectMenus("sub_nature", search, $('#subnatureSelect'), "#subnatureColumnFilter", n, false, true);
+                    populateSelectMenus("sub_nature", search, $('#subnatureSelect'), "#subnatureColumnFilter", n, false, true, FreezeMap, bounds);
                 }
             }
             
@@ -2604,7 +2537,7 @@
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
-                    populateSelectMenus("low_level_type", search, $('#lowLevelTypeSelect'), "#lowLevelTypeColumnFilter", n, false, true);
+                    populateSelectMenus("low_level_type", search, $('#lowLevelTypeSelect'), "#lowLevelTypeColumnFilter", n, false, true, FreezeMap, bounds);
                 }
             }
             
@@ -2640,13 +2573,13 @@
             if (search == '' && !globalSqlFilterDI[6].allSelected) {
                 search = 'oiunqauhalknsufhvnoqwpnvfv';
             }
-            widgetWizardTable.column(6).search(search, false, false).draw();
+            widgetWizardTable.column(10).search(search, false, false).draw();
             globalSqlFilterDI[6].value = search;
 
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
-                    populateSelectMenus("unit", search, $('#unitSelect'), "#unitColumnFilter", n, false, true);
+                    populateSelectMenus("unit", search, $('#unitSelect'), "#unitColumnFilter", n, false, true, FreezeMap, bounds);
                 }
             }
             
@@ -2689,7 +2622,7 @@
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
-                    populateSelectMenus("healthiness", search, $('#healthinessSelect'), "#healthinessColumnFilter", n, false, true);
+                    populateSelectMenus("healthiness", search, $('#healthinessSelect'), "#healthinessColumnFilter", n, false, true, FreezeMap, bounds);
                 }
             }
             
@@ -2732,7 +2665,7 @@
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
-                    populateSelectMenus("ownership", search, $('#ownershipSelect'), "#ownershipColumnFilter", n, false, true);
+                    populateSelectMenus("ownership", search, $('#ownershipSelect'), "#ownershipColumnFilter", n, false, true, FreezeMap, bounds);
                 }
             }
 
@@ -2769,7 +2702,118 @@
             // Chiamata a funzione per popolare menù multi-select di filtraggio
             for (var n = 0; n < globalSqlFilterDI.length; n++) {
                 if (n !== 4 && n != 5) {
-                    populateSelectMenus("value_unit", search, $('#valueUnitSelect'), "#valueUnitColumnFilter", n, false, true);
+                    populateSelectMenus("value_unit", search, $('#valueUnitSelect'), "#valueUnitColumnFilter", n, false, true, FreezeMap, bounds);
+                }
+            }
+
+            checkTab1Conditions();
+            countSelectedRows();
+        }
+
+        function applyBrokerFilter()
+        {
+
+            var search = [];
+            $.each($('#brokerSelect option:selected'), function () {
+                search.push($(this).val());
+
+            });
+            var nOptions = 0;
+            $.each($('#brokerSelect option'), function () {
+                nOptions++;
+            });
+
+            globalSqlFilterDI[10].allSelected = (search.length == nOptions);
+            if (search.length == nOptions)
+                search = [];
+            globalSqlFilterDI[10].selectedVals = search;
+            search = search.join('|');
+
+            globalSqlFilterDI[10].value = search;
+            if (search == '' && !globalSqlFilterDI[10].allSelected) {
+                search = 'oiunqauhalknsufhvnoqwpnvfv';
+            }
+            widgetWizardTable.column(20).search(search, false, false).draw();
+            globalSqlFilterDI[10].value = search;
+
+            // Chiamata a funzione per popolare menù multi-select di filtraggio
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
+                if (n !== 4 && n != 5) {
+                    populateSelectMenus("broker_name", search, $('#brokerSelect'), "#brokerColumnFilter", n, false, true, FreezeMap, bounds);
+                }
+            }
+
+            checkTab1Conditions();
+            countSelectedRows();
+        }
+
+        function applyValueNameFilter()
+        {
+
+            var search = [];
+            $.each($('#valueNameSelect option:selected'), function () {
+                search.push($(this).val());
+
+            });
+            var nOptions = 0;
+            $.each($('#valueNameSelect option'), function () {
+                nOptions++;
+            });
+
+            globalSqlFilterDI[11].allSelected = (search.length == nOptions);
+            if (search.length == nOptions)
+                search = [];
+            globalSqlFilterDI[11].selectedVals = search;
+            search = search.join('|');
+
+            globalSqlFilterDI[11].value = search;
+            if (search == '' && !globalSqlFilterDI[11].allSelected) {
+                search = 'oiunqauhalknsufhvnoqwpnvfv';
+            }
+            widgetWizardTable.column(8).search(search, false, false).draw();
+            globalSqlFilterDI[11].value = search;
+
+            // Chiamata a funzione per popolare menù multi-select di filtraggio
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
+                if (n !== 4 && n != 5) {
+                    populateSelectMenus("value_name", search, $('#valueNameSelect'), "#valueNameColumnFilter", n, false, true, FreezeMap, bounds);
+                }
+            }
+
+            checkTab1Conditions();
+            countSelectedRows();
+        }
+
+        function applyValueTypeFilter()
+        {
+
+            var search = [];
+            $.each($('#valueTypeSelect option:selected'), function () {
+                search.push($(this).val());
+
+            });
+            var nOptions = 0;
+            $.each($('#valueTypeSelect option'), function () {
+                nOptions++;
+            });
+
+            globalSqlFilterDI[12].allSelected = (search.length == nOptions);
+            if (search.length == nOptions)
+                search = [];
+            globalSqlFilterDI[12].selectedVals = search;
+            search = search.join('|');
+
+            globalSqlFilterDI[12].value = search;
+            if (search == '' && !globalSqlFilterDI[12].allSelected) {
+                search = 'oiunqauhalknsufhvnoqwpnvfv';
+            }
+            widgetWizardTable.column(9).search(search, false, false).draw();
+            globalSqlFilterDI[12].value = search;
+
+            // Chiamata a funzione per popolare menù multi-select di filtraggio
+            for (var n = 0; n < globalSqlFilterDI.length; n++) {
+                if (n !== 4 && n != 5) {
+                    populateSelectMenus("value_type", search, $('#valueTypeSelect'), "#valueTypeColumnFilter", n, false, true, FreezeMap, bounds);
                 }
             }
 
@@ -4220,19 +4264,27 @@
             } else if ($(this).attr('data-fieldTitle') === "unique_name_id") {
                 var idx = 4;
             } else if ($(this).attr('data-fieldTitle') === "unit") {
-                var idx = 6;
-            } else if ($(this).attr('data-fieldTitle') === "last_date") {
-                var idx = 8;
-            } else if ($(this).attr('data-fieldTitle') === "last_value") {
-                var idx = 9;
-            } else if ($(this).attr('data-fieldTitle') === "healthiness") {
                 var idx = 10;
-            } else if ($(this).attr('data-fieldTitle') === "lastCheck") {
+            } else if ($(this).attr('data-fieldTitle') === "last_date") {
+                var idx = 12;
+            } else if ($(this).attr('data-fieldTitle') === "last_value") {
+                var idx = 13;
+            } else if ($(this).attr('data-fieldTitle') === "healthiness") {
                 var idx = 14;
+            } else if ($(this).attr('data-fieldTitle') === "lastCheck") {
+                var idx = 18;
             } else if ($(this).attr('data-fieldTitle') === "value_unit") {
-                var idx = 7;
+                var idx = 11;
             } else if ($(this).attr('data-fieldTitle') === "ownership") {
-                var idx = 16;
+                var idx = 20;
+            } else if ($(this).attr('data-fieldTitle') === "device_model_name") {
+                var idx = 6;
+            } else if ($(this).attr('data-fieldTitle') === "broker_name") {
+                var idx = 7;
+            } else if ($(this).attr('data-fieldTitle') === "value_name") {
+                var idx = 8;
+            } else if ($(this).attr('data-fieldTitle') === "value_type") {
+                var idx = 9;
             }
 			
 			if ($(this).is(":checked")) {
@@ -4251,7 +4303,7 @@
         //$('#uniqueNameIdColumnFilter').append('<input id="widgetWIzardTableSearch" type="text" placeholder="Search Value Name" />');
 
         // Funzione per il popolamento del menù multi-select di filtraggio tabella widgetWIzardTable
-        function populateSelectMenus(field, searchTerm, selectElement, columnFilterDivId, n, fromIconFlag, updateIconsFlag)
+        function populateSelectMenus(field, searchTerm, selectElement, columnFilterDivId, n, fromIconFlag, updateIconsFlag, FreezeMap, bounds)
         {
             globalSqlFilterDI[n].active = "";
             var distinctField = "";
@@ -4279,6 +4331,12 @@
                 distinctField = "ownership";
             } else if (n == 9) {
                 distinctField = "value_unit";
+            } else if (n == 10) {
+                distinctField = "broker_name";
+            } else if (n == 11) {
+                distinctField = "value_name";
+            } else if (n == 12) {
+                distinctField = "value_type";
             }
 
             var nActive = 0;
@@ -4292,121 +4350,91 @@
             //if(distinctField !== field || nActive == 0) 
             if((distinctField !== field || nActive == 0)||fromIconFlag) 
             {
-                /*if(fromIconFlag == false) 
-                {*/
-                /*    var whereString = "";
-
-
-                    // FARE QUI COMPOSIZIONE FILTRO GLOBALE STRINGA  GUARDANDO QUALE NON E' FIELD !
-                    for (i = 0; i < 9; i++) {
-                        if (i !== 4 && i != 5) {
-                            if ((i != n || nActive > 1)) {
-                                var str = globalSqlFilterDI[i].value;
-                                if(typeof str == 'object' && str.length == 0) {
-                                    str = "";
-                                }
-                                var auxArray = str.split("|");
-                                var auxFilterString = "";
-                                for (var j in auxArray) {
-                                    if (auxArray[j] != '') {
-                                        if (j != 0) {
-                                            auxFilterString = auxFilterString + " OR " + globalSqlFilterDI[i].field + " LIKE '%" + auxArray[j] + "%'";
-                                        } else {
-                                            auxFilterString = globalSqlFilterDI[i].field + " LIKE '%" + auxArray[j] + "%'";
-                                        }
-                                    }
-                                }
-
-                                if (auxFilterString != '') {
-                                    if (i != 0) {
-                                        whereString = whereString + " AND (" + auxFilterString + ")";
-                                    } else {
-                                        whereString = whereString + "(" + auxFilterString + ")";
-                                    }
-                                }
-                            }
+                let neLat, neLng, swLat, swLng = null;
+                if (bounds) {
+                    neLat = bounds._northEast.lat;
+                    neLng = bounds._northEast.lng;
+                    swLat = bounds._southWest.lat;
+                    swLng = bounds._southWest.lng;
+                }
+                $.ajax({
+                    url: "../controllers/dashboardWizardController.php",
+                    type: "GET",
+                    async: true,
+                    dataType: 'json',
+                    data:
+                    {
+                        orgFilter: "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>",
+                        globalSqlFilter: globalSqlFilterDI,
+                        nActive: nActive,
+                        n: n,
+                        filter: distinctField,
+                        //    filterGlobal: whereString,
+                        distinctField: distinctField,
+                        synMode: "<?=$synMode?$synMode:0?>",
+                        filterOrg: orgFilter,
+                        northEastPointLat: neLat,
+                        northEastPointLng: neLng,
+                        southWestPointLat: swLat,
+                        southWestPointLng: swLng,
+                        FreezeMap: FreezeMap,
+                    },
+                    success: function (data)
+                    {
+                        var dataNew = [];
+                        var select = "";
+                        if (distinctField === "high_level_type") {
+                            select = $("#highLevelTypeSelect");
+                        } else if (distinctField === "nature") {
+                            select = $("#natureSelect");
+                        } else if (distinctField === "sub_nature") {
+                            select = $("#subnatureSelect");
+                        } else if (distinctField === "low_level_type") {
+                            select = $("#lowLevelTypeSelect");
+                        } else if (distinctField === "unit") {
+                            select = $("#unitSelect");
+                        } else if (distinctField === "healthiness") {
+                            select = $("#healthinessSelect");
+                        } else if (distinctField === "ownership") {
+                            select = $("#ownershipSelect");
+                        } else if (distinctField === "value_unit") {
+                            select = $("#valueUnitSelect");
+                        } else if (distinctField === "broker_name") {
+                            select = $("#brokerSelect");
+                        } else if (distinctField === "value_name") {
+                            select = $("#valueNameSelect");
+                        } else if (distinctField === "value_type") {
+                            select = $("#valueTypeSelect");
                         }
-                    }
 
-                    if (whereString === "") {
-                     //   whereString = " WHERE organizations REGEXP '" + orgFilter + "' OR ownership = 'private'";
-                        whereString = " organizations REGEXP '" + orgFilter + "'";
-                    } else {
-                     //   whereString = " AND organizations REGEXP '" + orgFilter + "' OR ownership = 'private'";
-                        whereString = whereString + " AND organizations REGEXP '" + orgFilter + "'";
-                    }
-*/
-                    $.ajax({
-                        url: "../controllers/dashboardWizardController.php",
-                        type: "GET",
-                        async: true, 
-                        dataType: 'json',
-                        data:
+                        for (var x = 0; x < data.table.length; x++)
                         {
-                            orgFilter: "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>",
-                            globalSqlFilter: globalSqlFilterDI,
-                            nActive: nActive,
-                            n: n,
-                            filter: distinctField,
-                            //    filterGlobal: whereString,
-                            distinctField: distinctField ,
-							synMode: "<?=$synMode?$synMode:0?>"
-                        },
-                        success: function (data)
-                        {
-                            var dataNew = [];
-                            var select = "";
-                            if (distinctField === "high_level_type") {
-                                select = $("#highLevelTypeSelect");
-                            } else if (distinctField === "nature") {
-                                select = $("#natureSelect");
-                            } else if (distinctField === "sub_nature") {
-                                select = $("#subnatureSelect");
-                            } else if (distinctField === "low_level_type") {
-                                select = $("#lowLevelTypeSelect");
-                            } else if (distinctField === "unit") {
-                                select = $("#unitSelect");
-                            } else if (distinctField === "healthiness") {
-                                select = $("#healthinessSelect");
-                            } else if (distinctField === "ownership") {
-                                select = $("#ownershipSelect");
-                            } else if (distinctField === "value_unit") {
-                                select = $("#valueUnitSelect");
-                            }
-
-                            for (var x = 0; x < data.table.length; x++) 
+                            if (x == 0)
                             {
-                                if (x == 0) 
-                                {
-                                    select.children('option').remove().end();
-                                }
-
-                                var auxVar = data.table[x][Object.keys(data.table[x])[0]];
-                                
-                                options = '<option value="' + auxVar + '">' + auxVar + '</option>';
-                                select.append(options);
-                                
-                                var selectedFlag = globalSqlFilterDI[n].allSelected || globalSqlFilterDI[n].selectedVals.includes(auxVar);
-                                dataNew[x] = {label: auxVar, value: auxVar, selected: selectedFlag};
-                            }
-                            
-                            if((n === 6)&&updateIconsFlag) 
-                            {
-                                updateIcons(dataNew);
+                                select.children('option').remove().end();
                             }
 
-                            select.multiselect('dataprovider', dataNew);
-                        },
-                        error: function (errorData) {
-                            console.log("Errore in Populate Select Menu Wizard: ");
-                            console.log(JSON.stringify(errorData));
+                            var auxVar = data.table[x][Object.keys(data.table[x])[0]];
+
+                            options = '<option value="' + auxVar + '">' + auxVar + '</option>';
+                            select.append(options);
+
+                            var selectedFlag = globalSqlFilterDI[n].allSelected || globalSqlFilterDI[n].selectedVals.includes(auxVar);
+                            dataNew[x] = {label: auxVar, value: auxVar, selected: selectedFlag};
                         }
-                    });
-                /*}
-                else
-                {
-                    console.log("Icon flag false");
-                }*/
+
+                        if((n === 6)&&updateIconsFlag)
+                        {
+                            updateIcons(dataNew);
+                        }
+
+                        select.multiselect('dataprovider', dataNew);
+                    },
+                    error: function (errorData) {
+                        console.log("Errore in Populate Select Menu Wizard: ");
+                        console.log(JSON.stringify(errorData));
+                    }
+                });
             }
         }
 
@@ -4459,12 +4487,17 @@
         //Handler del bottone di reset dei filtri
         function resetFilter()
         {
-            noPOIFlag = 0;
+            if(FreezeMap) {
+                $('#togBtn').click();
+            }
+            noPOIFlag = -1;
             poiSubNature = "";
             poiNature = "";
             widgetWizardSelectedSingleRow = null;
             widgetWizardSelectedRows = {};
             choosenWidgetIconName = null;
+            var valuename_filter_value= widgetWizardTable.column(4).search("").draw();
+            var valuename_filter_value2= widgetWizardTable.column(15).search("").draw();
             $('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-selected', false);
             widgetWizardSelectedRowsTable.clear().draw(false);
             validityConditions.widgetTypeSelected = false;
@@ -4528,6 +4561,22 @@
             var selectedValsValueUnit = [];
             var allSelectedValueUnit = true;
             var searchValueValueUnit = "";
+
+            var selectedValsModel = [];
+            var allSelectedModel = true;
+            var searchValueModel = "";
+
+            var selectedValsBroker = [];
+            var allSelectedBroker = true;
+            var searchValueBroker = "";
+
+            var selectedValsValueName = [];
+            var allSelectedValueName = true;
+            var searchValueValueName = "";
+
+            var selectedValsValueType = [];
+            var allSelectedValueType = true;
+            var searchValueValueType = "";
             
             //Questo if distingue il caso in cui stiamo agendo sui template di dashboard
             if(!location.href.includes("dashboard_configdash.php")&&!location.href.includes("inspector.php"))
@@ -4595,6 +4644,35 @@
                     allSelectedValueUnit = false;
                     searchValueValueUnit = selectedValsValueUnit.join('|');
                 }
+
+                if($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-modelsel') !== 'any')
+                {
+                    selectedValsModel = $('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-modelsel').split('|');
+                    allSelectedModel = false;
+                    searchValueModel = selectedValsModel.join('|');
+                }
+
+                if($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-brokersel') !== 'any')
+                {
+                    selectedValsBroker = $('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-brokersel').split('|');
+                    allSelectedBroker = false;
+                    searchValueBroker = selectedValsBroker.join('|');
+                }
+
+                if($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-valuenameNsel') !== 'any')
+                {
+                    selectedValsValueName = $('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-valuenameNsel').split('|');
+                    allSelectedValueName = false;
+                    searchValueValueName = selectedValsValueName.join('|');
+                }
+
+                if($('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-valuetypeNsel') !== 'any')
+                {
+                    selectedValsValueType = $('.modalAddDashboardWizardChoiceCnt[data-selected="true"]').attr('data-valuetypeNsel').split('|');
+                    allSelectedValueType = false;
+                    searchValueValueType = selectedValsValueType.join('|');
+                }
+
             }
 
             globalSqlFilterDI = [
@@ -4667,10 +4745,31 @@
                     "active": "false",
                     "selectedVals": selectedValsValueUnit,
                     "allSelected": allSelectedValueUnit
+                },
+                {
+                    "field": "broker_name",
+                    "value": searchValueBroker,
+                    "active": "false",
+                    "selectedVals": selectedValsBroker,
+                    "allSelected": allSelectedBroker
+                },
+                {
+                    "field": "value_name",
+                    "value": searchValueValueName,
+                    "active": "false",
+                    "selectedVals": selectedValsValueName,
+                    "allSelected": allSelectedValueName
+                },
+                {
+                    "field": "value_type",
+                    "value": searchValueValueType,
+                    "active": "false",
+                    "selectedVals": selectedValsValueType,
+                    "allSelected": allSelectedValueType
                 }
             ];
             
-            for(n = 0; n < 19; n++)
+            for(n = 0; n < 23; n++)
             {
                 switch(n)
                 {
@@ -4688,24 +4787,35 @@
                         
                     case 3:
                         widgetWizardTable.column(n).search(searchValueLowLevelType, true, false); 
-                        break;        
-                        
-                    case 6:
-                        widgetWizardTable.column(n).search(searchValueUnit, true, false); 
-                        break;    
-                        
-                    case 10:
-                        widgetWizardTable.column(n).search(searchValueHealth, true, false); 
                         break;
 
                     case 7:
+                        widgetWizardTable.column(n).search(searchValueBroker, true, false);
+                        break;
+
+                    case 8:
+                        widgetWizardTable.column(n).search(searchValueValueName, true, false);
+                        break;
+
+                    case 9:
+                        widgetWizardTable.column(n).search(searchValueValueType, true, false);
+                        break;
+
+                    case 10:
+                        widgetWizardTable.column(n).search(searchValueUnit, true, false);
+                        break;
+
+                    case 14:
+                        widgetWizardTable.column(n).search(searchValueHealth, true, false);
+                        break;
+
+                    case 11:
                         widgetWizardTable.column(n).search(searchValueValueUnit, true, false);
                         break;
 
-                    case 16:
-                        widgetWizardTable.column(n).search(searchValueOwnership, true, false); 
+                    case 20:
+                        widgetWizardTable.column(n).search(searchValueOwnership, true, false);
                         break;
-
                         
                     default://Ci cadono anche 4 e 5
                         break;
@@ -4718,7 +4828,7 @@
             {
                 if (n !== 4 && n != 5) 
                 {
-                    populateSelectMenus("", "", null, "", n, false, true);
+                    populateSelectMenus("", "", null, "", n, false, true, FreezeMap, bounds);
                 }
             }
             
@@ -4834,12 +4944,33 @@
                     "active": "false",
                     "selectedVals": [],
                     "allSelected": true
+                },
+                {
+                    "field": "broker_name",
+                    "value": "",
+                    "active": "false",
+                    "selectedVals": [],
+                    "allSelected": true
+                },
+                {
+                    "field": "value_name",
+                    "value": "",
+                    "active": "false",
+                    "selectedVals": [],
+                    "allSelected": true
+                },
+                {
+                    "field": "value_type",
+                    "value": "",
+                    "active": "false",
+                    "selectedVals": [],
+                    "allSelected": true
                 }
             ];
             
             selectedValsHighLevelType = selectedValsHighLevelType.join('|');
             
-            for (n = 0; n < 19; n++)
+            for (n = 0; n < 23; n++)
             {
                 if((n != 4)&&(n != 5)) 
                 {
@@ -4853,7 +4984,7 @@
             {
                 if (n !== 4 && n != 5) 
                 {
-                    populateSelectMenus("", "", null, "", n, false, true);
+                    populateSelectMenus("", "", null, "", n, false, true, FreezeMap, bounds);
                 }
             }
             
@@ -4884,7 +5015,7 @@
                 }
             },
             "createdRow": function (row, data, index) {
-                $(row).attr('data-rowId', data[13]);
+                $(row).attr('data-rowId', data[15]);
                 $(row).attr('data-widgetCompatible', true);
 
                 $(row).find('.widgetWizardSelectedRowsDelBtn').click(function ()
@@ -4919,58 +5050,16 @@
                 });
             },
             "columnDefs": [
-                {
-                    "targets": [5, 11, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
-                    "visible": false
-                },
 				{
-                    "targets": 10,
-                    "searchable": true,
-                    "render": function (data, type, row, meta) {
-                        var imageUrl = null;
-                        if (row[10]) {
-							if (row[10] === 'true' || row[10] === '<i class="fa fa-circle" style="font-size:16px;color:#33cc33"></i>') {
-                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
-                            } else {
-                                imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
-                            }
-
-                        } else {
-                            imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
-                        }
-                        return imageUrl;
-                    }
-                },
-				{
-                    "targets": 24,
+                    "targets": 14,
                     "searchable": false,
                     "render": function (data, type, row, meta) {
                         return '<i class="fa fa-close widgetWizardSelectedRowsDelBtn"></i>';
                     }
                 }
-            ],
+            ] ,
             initComplete: function () {
-				var data = this.api().rows().data();
-				for(var i = 0; i < data.length; i++) {
-					widgetWizardSelectedRows['row' + data[i][13]] = 
-					{
-						high_level_type: data[i][0],
-						nature: data[i][1],
-						sub_nature: data[i][2], 
-						low_level_type: data[i][3], // Ora si chiama Value type
-						unique_name_id: data[i][4], // Ora si chiama Value name
-						instance_uri: data[i][5],
-						unit: data[i][6],
-						servicetype: data[i][6], // Doppione?
-						sm_based: data[i][20],
-						parameters: data[i][11],
-						widgetCompatible: true,
-						get_instances: data[i][15],
-						last_value: data[i][9],
-						value_unit: data[i][7]
-					};
-				}
-				countSelectedRows();				
+
 			}
         });
 
@@ -5023,41 +5112,46 @@
                 }   */
             },
             'createdRow': function (row, data, dataIndex) {
-                $(row).attr('data-rowId', data[13]);
+                $(row).attr('data-rowId', data[17]);
                 $(row).attr('data-high_level_type', data[0]);
                 $(row).attr('data-nature', data[1]);
                 $(row).attr('data-sub_nature', data[2]);
                 $(row).attr('data-low_level_type', data[3]);
-                $(row).attr('data-unique_name_id', data[4]);
+                    $(row).attr('data-unique_name_id', data[4]);
                 $(row).attr('data-instance_uri', data[5]);
-                $(row).attr('data-unit', data[6]);
+                $(row).attr('data-value_name',data[24]);
+                $(row).attr('data-value_type',data[25]);
+                $(row).attr('data-device_model_name',data[26]);
+                $(row).attr('data-broker_name',data[27]);
+                $(row).attr('data-unit', data[10]);
                 $(row).attr('data-servicetype', data[2]);
-                $(row).attr('data-get_instances', data[15]);
-                $(row).attr('data-sm_based', data[20]);
-                $(row).attr('data-parameters', data[12]);
+                $(row).attr('data-get_instances', data[19]);
+                $(row).attr('data-sm_based', data[24]);
+                $(row).attr('data-parameters', data[16]);
                 $(row).attr('data-selected', 'false');
-                $(row).attr('data-last_value', data[9]);
-                $(row).attr('data-latitude', data[18]);
-                $(row).attr('data-longitude', data[19]);
-                $(row).attr('data-organizations', data[17]);
-                $(row).attr('last_date',data[8]);
-                $(row).attr('data-valueUnit',data[7]);
-                $(row).attr('ownership',data[16]);
-				if(data.length > 14) $(row).attr('data-last_check',data[14]);
-				if(data.length > 10) $(row).attr('data-healthiness',data[10]);
+                $(row).attr('data-last_value', data[13]);
+                $(row).attr('data-latitude', data[22]);
+                $(row).attr('data-longitude', data[23]);
+                $(row).attr('data-organizations', data[21]);
+                $(row).attr('last_date',data[12]);
+                $(row).attr('data-valueUnit',data[11]);
+                $(row).attr('ownership',data[20]);
+				if(data.length > 18) $(row).attr('data-last_check',data[18]);
+				if(data.length > 14) $(row).attr('data-healthiness',data[14]);
             },
             "columnDefs": [
                 {
-                    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
+                //    "targets": [5, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23],
+                    "targets": invisibleCols,
                     "visible": false
                 },
                 {
-                    "targets": 10,
+                    "targets": 14,
                     "searchable": true,
                     "render": function (data, type, row, meta) {
                         var imageUrl = null;
-                        if (row[10]) {
-                            if (row[10] === 'true') {
+                        if (row[14]) {
+                            if (row[14] === 'true') {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#33cc33'></i>";
                             } else {
                                 imageUrl = "<i class='fa fa-circle' style='font-size:16px;color:#ff3300'></i>";
@@ -5070,13 +5164,15 @@
                     }
                 },
                 {
-                    "targets": 11,
+                    "targets": 15,
                     "searchable": true,
                     "visible": false
                 },
             ],
             initComplete: function () {
 
+                $("#widgetWizardTable_wrapper").css("overflow-x", "auto");
+                $("#widgetWizardTable_wrapper").css("overflow-y", "hidden");
                 // HIGH-LEVEL TYPE COLUMN
                 this.api().columns([0]).every(function () {
                     var select = $('<select id="highLevelTypeSelect" style="color: black;" multiple="multiple"></select>')
@@ -5091,7 +5187,9 @@
 
                                 var search = [];
                                 $.each($('#highLevelTypeSelect option:selected'), function () {
-                                    search.push($(this).val());
+                                    if ($(this).val() != null && $(this).val() != "null") {
+                                        search.push($(this).val());
+                                    }
                                 });
                                 var nOptions = 0;
                                 $.each($('#highLevelTypeSelect option'), function () {
@@ -5115,10 +5213,10 @@
                                 // MODIFICA per ORG BUTTON
                                 var hltSelectedFilter = buildFilterSearchArray(globalSqlFilterDI[0]['value']);
                             //    if (globalSqlFilterDI[0]['allSelected'] == false && globalSqlFilterDI[0]['value'] != 'POI') {
-                                if (globalSqlFilterDI[0]['allSelected'] == false && !hltSelectedFilter.includes('POI')) {
+                                if (globalSqlFilterDI[0]['allSelected'] == false && (!hltSelectedFilter.includes('POI') && !hltSelectedFilter.includes('IoT Device Model')  && !hltSelectedFilter.includes('Mobile Device Model') && !hltSelectedFilter.includes('Data Table Model'))) {
                                     noPOIFlag = 1;
                                 } else {
-                                    noPOIFlag = 0;
+                                    noPOIFlag = hltSelectedFilter;
                                 }
                                 widgetWizardTable.ajax.reload();
 
@@ -5130,7 +5228,7 @@
                                 {
                                     if (n !== 4 && n != 5) 
                                     {
-                                        populateSelectMenus("high_level_type", search, select, "#highLevelTypeColumnFilter", n, false, true, true);
+                                        populateSelectMenus("high_level_type", search, select, "#highLevelTypeColumnFilter", n, false, true, FreezeMap, bounds);
                                     }
                                 }
                                 
@@ -5210,7 +5308,9 @@
 
                                 var search = [];
                                 $.each($('#natureSelect option:selected'), function () {   // CHANGE
-                                    search.push($(this).val());
+                                    if ($(this).val() != null && $(this).val() != "null") {
+                                        search.push($(this).val());
+                                    }
                                 });
                                 var nOptions = 0;
                                 $.each($('#natureSelect option'), function () {
@@ -5256,8 +5356,9 @@
                                     noPOIFlag = 1;
                                     poiNature = "";
                                 } else {
-                                    noPOIFlag = 0;
+                                //    noPOIFlag = -1;
                                 //    poiNature = globalSqlFilterDI[1]['value'];
+                                    noPOIFlag = globalSqlFilterDI[0]['value'];
                                     poiNature = natureQuery;
                                 }
                                 widgetWizardTable.ajax.reload();
@@ -5268,7 +5369,7 @@
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
-                                        populateSelectMenus("nature", search, select, "#natureColumnFilter", n, false, true);
+                                        populateSelectMenus("nature", search, select, "#natureColumnFilter", n, false, true, FreezeMap, bounds);
                                     }
                                 }
                                 
@@ -5317,8 +5418,9 @@
 
                                 var search = [];
                                 $.each($('#subnatureSelect option:selected'), function () {   // CHANGE
-                                    search.push($(this).val());
-
+                                    if ($(this).val() != null && $(this).val() != "null") {
+                                        search.push($(this).val());
+                                    }
                                 });
                                 var nOptions = 0;
                                 $.each($('#subnatureSelect option'), function () {
@@ -5376,8 +5478,9 @@
                                     noPOIFlag = 1;
                                     poiSubNature = "";
                                 } else {
-                                    noPOIFlag = 0;
+                                 //   noPOIFlag = -1;
                                     //    poiNature = globalSqlFilterDI[1]['value'];
+                                    noPOIFlag = globalSqlFilterDI[0]['value'];
                                     poiSubNature = subnatureQuery;
                                 }
                                 widgetWizardTable.ajax.reload();
@@ -5388,7 +5491,7 @@
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
-                                        populateSelectMenus("sub_nature", search, select, "#subnatureColumnFilter", n, false, true);
+                                        populateSelectMenus("sub_nature", search, select, "#subnatureColumnFilter", n, false, true, FreezeMap, bounds);
                                     }
                                 }
                                 
@@ -5440,8 +5543,9 @@
 
                                 var search = [];
                                 $.each($('#lowLevelTypeSelect option:selected'), function () {   // CHANGE
-                                    search.push($(this).val());
-
+                                    if ($(this).val() != null && $(this).val() != "null") {
+                                        search.push($(this).val());
+                                    }
                                 });
                                 var nOptions = 0;
                                 $.each($('#lowLevelTypeSelect option'), function () {
@@ -5464,7 +5568,7 @@
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
-                                        populateSelectMenus("low_level_type", search, select, "#lowLevelTypeColumnFilter", n, false, true);
+                                        populateSelectMenus("low_level_type", search, select, "#lowLevelTypeColumnFilter", n, false, true, FreezeMap, bounds);
                                     }
                                 }
                                 
@@ -5503,7 +5607,7 @@
                 });
 
                 // UNIT <-> DATA TYPE COLUMN
-                this.api().columns([6]).every(function () {       // UNIT - DATA_TYPE
+                this.api().columns([10]).every(function () {       // UNIT - DATA_TYPE
 
                     var column = this;
                     var select = $('<select id="unitSelect" style="color: black;" multiple="multiple"></select>')
@@ -5518,8 +5622,9 @@
 
                                 var search = [];
                                 $.each($('#unitSelect option:selected'), function () {
-                                    search.push($(this).val());
-
+                                    if ($(this).val() != null && $(this).val() != "null") {
+                                        search.push($(this).val());
+                                    }
                                 });
                                 var nOptions = 0;
                                 $.each($('#unitSelect option'), function () {
@@ -5547,13 +5652,13 @@
                                 }
                                 widgetWizardTable.ajax.reload();*/
 
-                                widgetWizardTable.column(6).search(search, false, false).draw();
+                                widgetWizardTable.column(10).search(search, false, false).draw();
                                 globalSqlFilterDI[6].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
-                                        populateSelectMenus("unit", search, select, "#unitColumnFilter", n, false, true);
+                                        populateSelectMenus("unit", search, select, "#unitColumnFilter", n, false, true, FreezeMap, bounds);
                                     }
                                 }
                                 
@@ -5585,7 +5690,7 @@
                 });
 
                 // HEALTHINESS COLUMN
-                this.api().columns([10]).every(function () {       // HEALTHINESS
+                this.api().columns([14]).every(function () {       // HEALTHINESS
 
                     var column = this;
                     var select = $('<select id="healthinessSelect" style="color: black;" multiple="multiple"></select>')
@@ -5600,8 +5705,9 @@
 
                                 var search = [];
                                 $.each($('#healthinessSelect option:selected'), function () {
-                                    search.push($(this).val());
-
+                                    if ($(this).val() != null && $(this).val() != "null") {
+                                        search.push($(this).val());
+                                    }
                                 });
                                 var nOptions = 0;
                                 $.each($('#healthinessSelect option'), function () {
@@ -5630,13 +5736,13 @@
                                 widgetWizardTable.ajax.reload();*/
 
 
-                                widgetWizardTable.column(10).search(search, false, false).draw();
+                                widgetWizardTable.column(14).search(search, false, false).draw();
                                 globalSqlFilterDI[7].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
-                                        populateSelectMenus("healthiness", search, select, "#healthinessColumnFilter", n, false, true);
+                                        populateSelectMenus("healthiness", search, select, "#healthinessColumnFilter", n, false, true, FreezeMap, bounds);
                                     }
                                 }
                                 
@@ -5677,7 +5783,7 @@
                 });
 
                 // OWNERSHIP COLUMN
-                this.api().columns([16]).every(function ()
+                this.api().columns([20]).every(function ()
                 {     
                     var select = $('<select id="ownershipSelect" style="color: black;" multiple="multiple"></select>')
                             .appendTo($("#ownershipColumnFilter"))
@@ -5690,8 +5796,9 @@
 
                                 var search = [];
                                 $.each($('#ownershipSelect option:selected'), function () {
-                                    search.push($(this).val());
-
+                                    if ($(this).val() != null && $(this).val() != "null") {
+                                        search.push($(this).val());
+                                    }
                                 });
                                 var nOptions = 0;
                                 $.each($('#ownershipSelect option'), function () {
@@ -5719,13 +5826,13 @@
                                 }
                                 widgetWizardTable.ajax.reload();*/
 
-                                widgetWizardTable.column(16).search(search, false, false).draw();
+                                widgetWizardTable.column(20).search(search, false, false).draw();
                                 globalSqlFilterDI[8].value = search;
 
                                 // Chiamata a funzione per popolare menù multi-select di filtraggio
                                 for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                     if (n !== 4 && n != 5) {
-                                        populateSelectMenus("ownership", search, select, "#ownershipColumnFilter", n, false, true);
+                                        populateSelectMenus("ownership", search, select, "#ownershipColumnFilter", n, false, true, FreezeMap, bounds);
                                     }
                                 }
                                 
@@ -5766,7 +5873,7 @@
                 });
 
                 // VALUE_UNIT
-                this.api().columns([7]).every(function ()
+                this.api().columns([11]).every(function ()
                 {
                     var select = $('<select id="valueUnitSelect" style="color: black;" multiple="multiple"></select>')
                         .appendTo($("#valueUnitColumnFilter"))
@@ -5779,8 +5886,9 @@
 
                             var search = [];
                             $.each($('#valueUnitSelect option:selected'), function () {
-                                search.push($(this).val());
-
+                                if ($(this).val() != null && $(this).val() != "null") {
+                                    search.push($(this).val());
+                                }
                             });
                             var nOptions = 0;
                             $.each($('#valueUnitSelect option'), function () {
@@ -5797,13 +5905,13 @@
                             if (search == '' && !globalSqlFilterDI[9].allSelected) {
                                 search = 'oiunqauhalknsufhvnoqwpnvfv';
                             }
-                            widgetWizardTable.column(7).search(search, false, false).draw();
+                            widgetWizardTable.column(11).search(search, false, false).draw();
                             globalSqlFilterDI[9].value = search;
 
                             // Chiamata a funzione per popolare menù multi-select di filtraggio
                             for (var n = 0; n < globalSqlFilterDI.length; n++) {
                                 if (n !== 4 && n != 5) {
-                                    populateSelectMenus("value_unit", search, select, "#valueUnitColumnFilter", n, false, true);
+                                    populateSelectMenus("value_unit", search, select, "#valueUnitColumnFilter", n, false, true, FreezeMap, bounds);
                                 }
                             }
 
@@ -5837,12 +5945,245 @@
                         });
 
                 });
+
+                // BROKER
+                this.api().columns([7]).every(function ()
+                {
+                    var select = $('<select id="brokerSelect" style="color: black;" multiple="multiple"></select>')
+                        .appendTo($("#brokerColumnFilter"))
+                        .on('change', function () {
+                            /*widgetWizardSelectedRows = {};
+                            widgetWizardSelectedRowsTable.clear().draw(false);
+                            validityConditions.atLeastOneRowSelected = false;
+                            checkTab1Conditions();
+                            countSelectedRows();*/
+
+                            var search = [];
+                            $.each($('#brokerSelect option:selected'), function () {
+                                if ($(this).val() != null && $(this).val() != "null") {
+                                    search.push($(this).val());
+                                }
+                            });
+                            var nOptions = 0;
+                            $.each($('#brokerSelect option'), function () {
+                                nOptions++;
+                            });
+
+                            globalSqlFilterDI[10].allSelected = (search.length == nOptions && nOptions == brokerSelectStartOptions);
+                            if (search.length == nOptions && nOptions == brokerSelectStartOptions)
+                                search = [];
+                            globalSqlFilterDI[10].selectedVals = search;
+                            search = search.join('|');
+
+                            if (search.charAt(0) == '|') {  // CLEAR FIRST CHARACTER IF "|"
+                                search = search.substr(1);
+                            }
+
+                            globalSqlFilterDI[10].value = search;
+                            if (search == '' && !globalSqlFilterDI[10].allSelected) {
+                                search = 'oiunqauhalknsufhvnoqwpnvfv';
+                            }
+                            widgetWizardTable.column(7).search(search, false, false).draw();
+                            globalSqlFilterDI[10].value = search;
+
+                            // Chiamata a funzione per popolare menù multi-select di filtraggio
+                            for (var n = 0; n < globalSqlFilterDI.length; n++) {
+                                if (n !== 4 && n != 5) {
+                                    populateSelectMenus("broker_name", search, select, "#brokerColumnFilter", n, false, true, FreezeMap, bounds);
+                                }
+                            }
+
+                            checkTab1Conditions();
+                            countSelectedRows();
+
+                        });
+
+                    brokerSelectStartOptions = 0;
+                    $.getJSON('../controllers/dashboardWizardController.php?filterDistinct=true',
+                        {
+                            filter: "broker_name",
+                            filterOrg: orgFilter,
+                            ajax: 'true'
+                        },
+                        function (data) {
+                            var options = '';
+                            var attrib = '';
+                            for (var x = 0; x < data.table.length; x++) {
+                                options = '<option value="' + data.table[x].broker_name + '" selected="selected">' + data.table[x].broker_name + '</option>';         // CHANGE
+                                //    options = '<option value="' + attrib + '" selected="selected">' + attrib + '</option>';         // CHANGE
+                                select.append(options);
+                                brokerSelectStartOptions++;
+                            }
+                            $('#brokerSelect').multiselect({
+                                maxHeight: 165,
+                                includeSelectAllOption: true,
+                                // enableFiltering: true
+                            }).multiselect('selectAll', true).multiselect('updateButtonText');
+                        });
+
+                });
+
+                // VALUE NAME
+                this.api().columns([8]).every(function ()
+                {
+                    var select = $('<select id="valueNameSelect" style="color: black;" multiple="multiple"></select>')
+                        .appendTo($("#valueNameColumnFilter"))
+                        .on('change', function () {
+                            /*widgetWizardSelectedRows = {};
+                            widgetWizardSelectedRowsTable.clear().draw(false);
+                            validityConditions.atLeastOneRowSelected = false;
+                            checkTab1Conditions();
+                            countSelectedRows();*/
+
+                            var search = [];
+                            $.each($('#valueNameSelect option:selected'), function () {
+                                if ($(this).val() != null && $(this).val() != "null") {
+                                    search.push($(this).val());
+                                }
+                            });
+                            var nOptions = 0;
+                            $.each($('#valueNameSelect option'), function () {
+                                nOptions++;
+                            });
+
+                            globalSqlFilterDI[11].allSelected = (search.length == nOptions && nOptions == valueNameSelectStartOptions);
+                            if (search.length == nOptions && nOptions == valueNameSelectStartOptions)
+                                search = [];
+                            globalSqlFilterDI[11].selectedVals = search;
+                            search = search.join('|');
+
+                            if (search.charAt(0) == '|') {  // CLEAR FIRST CHARACTER IF "|"
+                                search = search.substr(1);
+                            }
+
+                            globalSqlFilterDI[11].value = search;
+                            if (search == '' && !globalSqlFilterDI[11].allSelected) {
+                                search = 'oiunqauhalknsufhvnoqwpnvfv';
+                            }
+                            widgetWizardTable.column(8).search(search, false, false).draw();
+                            globalSqlFilterDI[11].value = search;
+
+                            // Chiamata a funzione per popolare menù multi-select di filtraggio
+                            for (var n = 0; n < globalSqlFilterDI.length; n++) {
+                                if (n !== 4 && n != 5) {
+                                    populateSelectMenus("value_name", search, select, "#valueNameColumnFilter", n, false, true, FreezeMap, bounds);
+                                }
+                            }
+
+                            checkTab1Conditions();
+                            countSelectedRows();
+
+                        });
+
+                    valueNameSelectStartOptions = 0;
+                    $.getJSON('../controllers/dashboardWizardController.php?filterDistinct=true',
+                        {
+                            filter: "value_name",
+                            filterOrg: orgFilter,
+                            ajax: 'true'
+                        },
+                        function (data) {
+                            var options = '';
+                            var attrib = '';
+                            for (var x = 0; x < data.table.length; x++) {
+                                options = '<option value="' + data.table[x].value_name + '" selected="selected">' + data.table[x].value_name + '</option>';         // CHANGE
+                                //    options = '<option value="' + attrib + '" selected="selected">' + attrib + '</option>';         // CHANGE
+                                select.append(options);
+                                valueNameSelectStartOptions++;
+                            }
+                            $('#valueNameSelect').multiselect({
+                                maxHeight: 165,
+                                includeSelectAllOption: true,
+                                // enableFiltering: true
+                            }).multiselect('selectAll', true).multiselect('updateButtonText');
+                        });
+
+                });
+
+                // VALUE TYPE
+                this.api().columns([9]).every(function ()
+                {
+                    var select = $('<select id="valueTypeSelect" style="color: black;" multiple="multiple"></select>')
+                        .appendTo($("#valueTypeColumnFilter"))
+                        .on('change', function () {
+                            /*widgetWizardSelectedRows = {};
+                            widgetWizardSelectedRowsTable.clear().draw(false);
+                            validityConditions.atLeastOneRowSelected = false;
+                            checkTab1Conditions();
+                            countSelectedRows();*/
+
+                            var search = [];
+                            $.each($('#valueTypeSelect option:selected'), function () {
+                                if ($(this).val() != null && $(this).val() != "null") {
+                                    search.push($(this).val());
+                                }
+                            });
+                            var nOptions = 0;
+                            $.each($('#valueTypeSelect option'), function () {
+                                nOptions++;
+                            });
+
+                            globalSqlFilterDI[12].allSelected = (search.length == nOptions && nOptions == valueTypeSelectStartOptions);
+                            if (search.length == nOptions && nOptions == valueTypeSelectStartOptions)
+                                search = [];
+                            globalSqlFilterDI[12].selectedVals = search;
+                            search = search.join('|');
+
+                            if (search.charAt(0) == '|') {  // CLEAR FIRST CHARACTER IF "|"
+                                search = search.substr(1);
+                            }
+
+                            globalSqlFilterDI[12].value = search;
+                            if (search == '' && !globalSqlFilterDI[11].allSelected) {
+                                search = 'oiunqauhalknsufhvnoqwpnvfv';
+                            }
+                            widgetWizardTable.column(9).search(search, false, false).draw();
+                            globalSqlFilterDI[12].value = search;
+
+                            // Chiamata a funzione per popolare menù multi-select di filtraggio
+                            for (var n = 0; n < globalSqlFilterDI.length; n++) {
+                                if (n !== 4 && n != 5) {
+                                    populateSelectMenus("value_type", search, select, "#valueTypeColumnFilter", n, false, true, FreezeMap, bounds);
+                                }
+                            }
+
+                            checkTab1Conditions();
+                            countSelectedRows();
+
+                        });
+
+                    valueTypeSelectStartOptions = 0;
+                    $.getJSON('../controllers/dashboardWizardController.php?filterDistinct=true',
+                        {
+                            filter: "value_type",
+                            filterOrg: orgFilter,
+                            ajax: 'true'
+                        },
+                        function (data) {
+                            var options = '';
+                            var attrib = '';
+                            for (var x = 0; x < data.table.length; x++) {
+                                options = '<option value="' + data.table[x].value_type + '" selected="selected">' + data.table[x].value_type + '</option>';         // CHANGE
+                                //    options = '<option value="' + attrib + '" selected="selected">' + attrib + '</option>';         // CHANGE
+                                select.append(options);
+                                valueTypeSelectStartOptions++;
+                            }
+                            $('#valueTypeSelect').multiselect({
+                                maxHeight: 165,
+                                includeSelectAllOption: true,
+                                // enableFiltering: true
+                            }).multiselect('selectAll', true).multiselect('updateButtonText');
+                        });
+
+                });
 				
             }
         });
         
         //Settaggio righe selezionate e incompatibili quando si cambia pagina della tabella selected rows
         $('#widgetWizardSelectedRowsTable').on('draw.dt', function () {
+            $("#widgetWizardSelectedRowsTable_wrapper").css("overflow-x", "auto");
+            $("#widgetWizardSelectedRowsTable_wrapper").css("overflow-y", "hidden");
             if(Object.keys(widgetWizardSelectedRows).length > 0)
             {
                 $('#widgetWizardSelectedRowsTable tbody tr').each(function (i) {
@@ -5940,6 +6281,10 @@
                     unique_name_id: $(this).attr('data-unique_name_id'), //Ora si chiama Value name
                     instance_uri: $(this).attr('data-instance_uri'),
                     unit: $(this).attr('data-unit'),
+                    device_model_name: $(this).attr('data-device_model_name'),
+                    broker_name: $(this).attr('data-broker_name'),
+                    value_name: $(this).attr('data-value_name'),
+                    value_type: $(this).attr('data-value_type'),
                     servicetype: $(this).attr('data-servicetype'),//Doppione?
                     sm_based: $(this).attr('data-sm_based'),
                     parameters: $(this).attr('data-parameters'),
@@ -5962,6 +6307,9 @@
                     $(this).find('td').eq(9).html(),
                     $(this).find('td').eq(10).html(),
                     $(this).find('td').eq(11).html(),
+                    $(this).find('td').eq(12).html(),
+                    $(this).find('td').eq(13).html(),
+                    $(this).find('td').eq(14).html(),
                     $(this).attr('data-rowid'),
                     true
                 ]).draw(false);		
@@ -5976,7 +6324,7 @@
             checkTab1Conditions();
             
             //Aggiunta/rimozione pins su mappa
-            var bounds = addWidgetWizardMapRef.getBounds();
+            bounds = addWidgetWizardMapRef.getBounds();
             var serviceType = $(this).attr("data-servicetype");
             var uniqueNameId = $(this).attr("data-unique_name_id");
             var instanceUri = $(this).attr("data-instance_uri");
@@ -6099,6 +6447,9 @@
                         } else if (orgName != null && orgName != '') {
                             var baseUrl = orgKbUrl;
                             urlKbToCall = baseUrl + "?selection=" + southWestPointLat + ";" + southWestPointLng + ";" + northEastPointLat + ";" + northEastPointLng + "&categories=" + serviceType + "&format=json&fullCount=false&maxResults=500";
+                        }
+                        if ($(this).attr("data-high_level_type") === "IoT Device Model" || $(this).attr("data-high_level_type") === "Data Table Model" || $(this).attr("data-high_level_type") === "Mobile Device Model") {
+                            urlKbToCall = urlKbToCall + "&model=" + uniqueNameId;
                         }
                         $.ajax({
                             url: "<?= $superServiceMapProxy ?>" + urlKbToCall,
@@ -6412,7 +6763,7 @@
             else
             {
 				$(this).addClass('selected');
-                widgetWizardSelectedRows['row' + $(this).attr('data-rowid')] = 
+            /*    widgetWizardSelectedRows['row' + $(this).attr('data-rowid')] =
                 {
                     high_level_type: $(this).attr('data-high_level_type'),
                     nature: $(this).attr('data-nature'),
@@ -6421,6 +6772,10 @@
                     unique_name_id: $(this).attr('data-unique_name_id'), //Ora si chiama Value name
                     instance_uri: $(this).attr('data-instance_uri'),
                     unit: $(this).attr('data-unit'),
+                    device_model_name: $(this).attr('data-device_model_name'),
+                    broker_name: $(this).attr('data-broker_name'),
+                    value_name: $(this).attr('data-value_name'),
+                    value_type: $(this).attr('data-value_type'),
                     servicetype: $(this).attr('data-servicetype'),//Doppione?
                     sm_based: $(this).attr('data-sm_based'),
                     parameters: $(this).attr('data-parameters'),
@@ -6436,8 +6791,12 @@
                     $(this).attr('data-sub_nature'), // $(this).find('td').eq(2).html(),
                     $(this).attr('data-low_level_type'), // $(this).find('td').eq(3).html(),
                     $(this).attr('data-unique_name_id'), // $(this).find('td').eq(4).html(),
-                    "",
+                    $(this).attr('data-instance_uri'),
 					$(this).attr('data-unit'), // $(this).find('td').eq(5).html(),
+                    $(this).attr('data-device_model_name'),
+                    $(this).attr('data-broker_name'),
+                    $(this).attr('data-value_name'),
+                    $(this).attr('data-value_type'),
                     $(this).attr('data-valueUnit'), // $(this).find('td').eq(6).html(),
                     $(this).attr('last_date'), // $(this).find('td').eq(7).html(),
                     $(this).attr('data-last_value'), // $(this).find('td').eq(8).html(),
@@ -6448,8 +6807,52 @@
                     $(this).attr('data-last_check'), // $(this).find('td').eq(10).html(),
 					"",
 					$(this).attr('ownership') //$(this).find('td').eq(11).html()
-                ]).draw(false);		
-				
+                ]).draw(false);
+
+             */
+
+                widgetWizardSelectedRows['row' + $(this).attr('data-rowid')] =
+                    {
+                        high_level_type: $(this).attr('data-high_level_type'),
+                        nature: $(this).attr('data-nature'),
+                        sub_nature: $(this).attr('data-sub_nature'), //Questa è da mandare a ServiceMap
+                        low_level_type: $(this).attr('data-low_level_type'), //Ora si chiama Value type
+                        unique_name_id: $(this).attr('data-unique_name_id'), //Ora si chiama Value name
+                        instance_uri: $(this).attr('data-instance_uri'),
+                        unit: $(this).attr('data-unit'),
+                        device_model_name: $(this).attr('data-device_model_name'),
+                        broker_name: $(this).attr('data-broker_name'),
+                        value_name: $(this).attr('data-value_name'),
+                        value_type: $(this).attr('data-value_type'),
+                        servicetype: $(this).attr('data-servicetype'),//Doppione?
+                        sm_based: $(this).attr('data-sm_based'),
+                        parameters: $(this).attr('data-parameters'),
+                        widgetCompatible: true,
+                        get_instances: $(this).attr('data-get_instances'),
+                        last_value: $(this).attr('data-last_value'),
+                        value_unit: $(this).attr('data-valueunit')
+                    };
+
+                widgetWizardSelectedRowsTable.row.add([
+                    $(this).find('td').eq(0).html(),
+                    $(this).find('td').eq(1).html(),
+                    $(this).find('td').eq(2).html(),
+                    $(this).find('td').eq(3).html(),
+                    $(this).find('td').eq(4).html(),
+                    $(this).find('td').eq(5).html(),
+                    $(this).find('td').eq(6).html(),
+                    $(this).find('td').eq(7).html(),
+                    $(this).find('td').eq(8).html(),
+                    $(this).find('td').eq(9).html(),
+                    $(this).find('td').eq(10).html(),
+                    $(this).find('td').eq(11).html(),
+                    $(this).find('td').eq(12).html(),
+                    $(this).find('td').eq(13).html(),
+                    $(this).find('td').eq(14).html(),
+                    $(this).attr('data-rowid'),
+                    true
+                ]).draw(false);
+
 
 /****
 
@@ -7275,11 +7678,11 @@
                     
                     if($(this).attr("data-dataTypeVisible") === 'true')
                     {
-                        widgetWizardTable.column(6).visible(true);
+                        widgetWizardTable.column(10).visible(true);
                     }
                     else
                     {
-                        widgetWizardTable.column(6).visible(false);
+                        widgetWizardTable.column(10).visible(false);
                     }
                     
                     if($(this).attr("data-lastDateVisible") === 'true')
@@ -7410,7 +7813,7 @@
                     widgetWizardTable.column(2).visible(true);
                     widgetWizardTable.column(3).visible(true);
                     widgetWizardTable.column(4).visible(true);
-                    widgetWizardTable.column(6).visible(true);
+                    widgetWizardTable.column(10).visible(true);
                     widgetWizardTable.column(7).visible(true);
                     widgetWizardTable.column(8).visible(true);
                     widgetWizardTable.column(9).visible(true);
@@ -7620,6 +8023,34 @@
 				error: function (data) { $("#wizardTab1MsgCnt").html("Error! Your selection was not saved."); }
 			});
 		});
+                
+                                
+                /////////
+                 var filteredData = "";
+                 var valuename_filter = "<?php echo $valuename_filter; ?>";
+                 var type_filter = "<?php echo $type; ?>";
+                 console.log('type_filter: '+ type_filter);
+                 if (valuename_filter !==""){
+                     if (type_filter ==="my-kpi"){
+                         var valuename_filter0 = widgetWizardTable.column(15).search(valuename_filter, true, false).draw();
+                     }else{
+                        var valuename_filter0 = widgetWizardTable.column(4).search(valuename_filter).draw();
+                    }
+                        $('*[type="search"]').val(valuename_filter);
+                    }
+              
+                /////////
+                $( "#widgetWizardTable_filter" ).keypress(function() {
+                        //console.log('OK');
+                     if (valuename_filter !==""){
+                         if (type_filter ==="my-kpi"){
+                         var valuename_filter0 = widgetWizardTable.column(15).search('').draw();
+                     }else{
+                         var valuename_filter0 = widgetWizardTable.column(4).search('').draw();
+                             
+                         }
+                    }
+                  });
         
     });
 </script>   

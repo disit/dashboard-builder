@@ -42,7 +42,11 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                         $myDesc = $selectedRow['unique_name_id'];
                         $myQueryType = "wfs";
                         break;
-                    
+
+                    case "Sensor Device";
+                    case "IoT Device":
+                    case "Mobile Device":
+                    case "Data Table Device":
                     case "Sensor":
                         $myQuery = $selectedRow['parameters'] . "&fromTime=3-day";
                         $myDesc = $selectedRow['unique_name_id'];
@@ -55,10 +59,36 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                         $myQueryType = "MyPOI";
                         break;
 
+                    case "Traffic Flow":
                     case "Heatmap":
                         $myQuery = $selectedRow['parameters'];
                         $myDesc = $selectedRow['unique_name_id'];
                         $myQueryType = "Heatmap";
+                        break;
+
+                    case "IoT Device Model":
+                    case "Data Table Model":
+                    case "Mobile Device Model":
+                        $baseUrlKb = "https://servicemap.disit.org/WebAppGrafo/api/v1/";
+                        if (isset($_SESSION['orgKbUrl'])) {
+                            $baseUrlKb = $_SESSION['orgKbUrl'];
+                        }
+                        if (isset($_SESSION['orgGpsCentreLatLng'])) {
+                            $orgGpsCentreLatLng = $_SESSION['orgGpsCentreLatLng'];
+                            $orgGpsLat = trim(explode(",", $orgGpsCentreLatLng)[0]);
+                            $orgGpsLng = trim(explode(",", $orgGpsCentreLatLng)[1]);
+                        } else {
+                            // Se è di organizzazione "Other" o nessuna dà le coordinate del centro di Firenze di default
+                            $orgGpsLat = "43.769789";
+                            $orgGpsLng = "11.255694";
+                        }
+                        if (isset($_SESSION['orgZoomLevel'])) {
+                            $orgZoomLevel = $_SESSION['orgZoomLevel'];
+                        }
+                        //    $myQuery = $baseUrlKb . "?selection=41.47154438707647;6.459960937499999;45.182036837015886;15.595092773437498&categories=" . $selectedRow['sub_nature'] . "&maxResults=200&format=json";
+                        $myQuery = $baseUrlKb . "?selection=" . ($orgGpsLat-0.125) . ";" . ($orgGpsLng-0.25) . ";" . ($orgGpsLat+0.125) .";". ($orgGpsLng+0.25) . "&categories=" . $selectedRow['sub_nature'] . "&maxResults=200&format=json&model=" . $selectedRow['unique_name_id'];
+                        $myDesc = $selectedRow['unique_name_id'];
+                        $myQueryType = "Default";
                         break;
                     
                     default:

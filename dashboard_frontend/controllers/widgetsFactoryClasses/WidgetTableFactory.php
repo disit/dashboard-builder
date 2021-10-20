@@ -42,6 +42,9 @@ class WidgetTableFactory extends aGenericWidgetFactory
                     }
                     break;
 
+                case "IoT Device Variable":
+                case "Data Table Variable":
+                case "Mobile Device Variable":
                 case "Sensor":
                     $myMetricId = $selectedRow['get_instances'];
                     $myMetricName = $selectedRow['unique_name_id'];

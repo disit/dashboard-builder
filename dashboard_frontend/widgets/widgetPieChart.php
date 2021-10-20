@@ -285,7 +285,7 @@
 
             let aggregationFlag = false;
             if (rowParameters != null) {
-                if (rowParameters[0].metricHighLevelType == "Sensor" || rowParameters[0].metricHighLevelType == "MyKPI") {
+                if (rowParameters[0].metricHighLevelType == "Sensor" || rowParameters[0].metricHighLevelType == "MyKPI" || rowParameters[0].metricHighLevelType == "IoT Device Variable" || rowParameters[0].metricHighLevelType == "Data Table Variable" || rowParameters[0].metricHighLevelType == "Mobile Device Variable") {
                     aggregationFlag = true;
                 }
             }
@@ -375,6 +375,9 @@
                             });
                             break;
 
+                        case "IoT Device Variable":
+                        case "Data Table Variable":
+                        case "Mobile Device Variable":
                         case "Sensor":
                             var timeRange = null;
                             var urlToCall = "";

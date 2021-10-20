@@ -20,7 +20,7 @@ class WidgetPrevMeteoFactory extends aGenericWidgetFactory
                 {
                     $row = mysqli_fetch_assoc($r);
                     $this->startParams->municipality_w = $row['parameters'];
-                    $this->startParams->title_w = "Weather forecast - " . $row['last_value'];
+                    $this->startParams->title_w = "Weather forecast - " . ucfirst($row['parameters']);
                 }   
             }
             else

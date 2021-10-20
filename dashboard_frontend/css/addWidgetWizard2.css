@@ -1,13 +1,3 @@
-/*
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
-*/
-/* 
-    Created on : 23-nov-2018, 21.42.52
-    Author     : Bernardo
-*/
-
 .content {
     position: relative;
     background-color: #fff;
@@ -26,6 +16,7 @@ and open the template in the editor.
 {
     background-color: rgba(108, 135, 147, 1) !important;
     overflow-y: auto;
+    overflow-x: hidden;
   /*  height: 800px !important; */
     height: 100vh !important;
     padding-top: 0px !important;
@@ -35,14 +26,14 @@ and open the template in the editor.
 }
  
 /* nel caso si desideri mantenere la scrollbar per il body ed eliminarla per altri blocchi div  */
-#addWidgetWizardLabelBody::-webkit-scrollbar{
+/*#addWidgetWizardLabelBody::-webkit-scrollbar{
     width: 0px;
 }
 
 #widgetWizardTableContainer::-webkit-scrollbar{
     width: 0px;
 }
-
+*/
 
 /*::-webkit-scrollbar{
     width: 0px;
@@ -80,10 +71,11 @@ and open the template in the editor.
 
 #widgetWizardTableContainer
 {
-    padding-left: 0px !important;
+    padding-left: 15px !important;
     padding-right: 0px !important;
-    overflow-x:auto !important;
-    
+    /*overflow-x:hidden !important; */
+    overflow-y: hidden;
+    width: 99% !important;
 }
 
 #widgetWizardTableContainer2
@@ -186,8 +178,11 @@ table.addWidgetWizardTable tbody
 
 #widgetWizardSelectedRowsTableContainer.col-xs-12
 {
-    padding-left: 0px !important;
+    padding-left: 15px !important;
     padding-right: 0px !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden;
+    width: 99% !important;
 }
 
 #widgetWizardSelectedRowsTableContainer2.col-xs-12

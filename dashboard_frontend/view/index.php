@@ -1949,7 +1949,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                                     $externalApp = $row['externalApp'];
                                     $allowedOrgs = $row['organizations'];
 
-                                    if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                                    if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false) {
                                         if ($externalApp == 'yes') {
                                             if ($openMode == 'newTab') {
                                                 if ($linkUrl == 'submenu') {
@@ -2046,7 +2046,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                                         }
                                     }
 
-                                    if((strpos($privileges, "'". ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs=='*' || (strpos($allowedOrgs, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
+                                    if((strpos($privileges, "'". ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs=='*' || (strpos($allowedOrgs, "'".$organizationSql) !== false)))
                                     {
                                         echo $newItem;
                                     }

@@ -1779,6 +1779,9 @@
 
                         break;
 
+                    case "IoT Device Variable":
+                    case "Data Table Variable":
+                    case "Mobile Device Variable":
                     case "Sensor":
                         utcOption = false;
                         var smPayload = aggregationGetData[i].data;
@@ -2268,7 +2271,7 @@
                         {
                             if (data.index != null) {
                                 aggregationGetData[data.index] = data;
-                                if (data.metricHighLevelType == "Sensor") {
+                                if (data.metricHighLevelType == "Sensor" || data.metricHighLevelType == "IoT Device Variable" || data.metricHighLevelType == "Data Table Variable" || data.metricHighLevelType == "Mobile Device Variable") {
                                     if (data.data == null || JSON.parse(data.data).realtime == null || JSON.parse(data.data).realtime.results == null) {
                                         if (errorsLog != null) {
                                             errorsLog = errorsLog + "No Data Available in the Selected Time-Range for: " + data.label + "; ";
@@ -2537,7 +2540,7 @@
 
                 //   if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
                 for (let k = 0; k < rowParameters.length; k++) {
-                    if (rowParameters[k].metricHighLevelType == "Sensor") {
+                    if (rowParameters[k].metricHighLevelType == "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
                         let urlKBToBeCalled = "";
                         let field = "";
                         let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
@@ -2640,7 +2643,7 @@
                 }
 
                 for (let k = 0; k < rowParameters.length; k++) {
-                    if (rowParameters[k].metricHighLevelType == "Sensor") {
+                    if (rowParameters[k].metricHighLevelType == "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
                         let urlKBToBeCalled = "";
                         let field = "";
                         let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
@@ -2976,7 +2979,7 @@
                 if(timeNavCount == 0) {
                     if (rowParameters != null) {
                         for (let k = 0; k < rowParameters.length; k++) {
-                            if (rowParameters[k].metricHighLevelType == "Sensor") {
+                            if (rowParameters[k].metricHighLevelType == "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
                                 let urlKBToBeCalled = "";
                                 let field = "";
                                 let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";

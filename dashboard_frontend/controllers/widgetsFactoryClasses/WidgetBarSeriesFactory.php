@@ -14,7 +14,6 @@ class WidgetBarSeriesFactory extends aGenericWidgetFactory
         $rowParameters = [];
         $this->startParams->id_metric = "AggregationSeries";
         $this->startParams->name_w = str_replace("ToBeReplacedByFactory", "AggregationSeries", $this->startParams->name_w);
-        $myKPIFlag = 0;
 
         $count = 0;
         foreach($this->selectedRows as $selectedRowKey => $selectedRow) 
@@ -41,20 +40,24 @@ class WidgetBarSeriesFactory extends aGenericWidgetFactory
                     }
                     break;
 
+                case "IoT Device Variable":
+                case "Data Table Variable":
+                case "Mobile Device Variable":
                 case "Sensor":
                     $myMetricId = $selectedRow['get_instances'];
                     $myMetricName = $selectedRow['unique_name_id'];
+                    $myMetricType = $selectedRow['low_level_type'];
+                    break;
 
                 case "MyKPI":
-                    $myKPIFlag = 1;
                     if($selectedRow['parameters']) {
                         $myMetricId = $selectedRow['parameters'];
                     } else if($selectedRow['get_instances']) {
                         $myMetricId = $selectedRow['get_instances'];
                     }
-
                     $myMetricName = $selectedRow['unique_name_id'];
                     $myMetricType = $selectedRow['low_level_type'];
+                    break;
 
                 default:
                     //Per ora aggiungiamo solo i KPI, poi si specializzerà
@@ -63,16 +66,11 @@ class WidgetBarSeriesFactory extends aGenericWidgetFactory
             
             array_push($styleParameters->barsColors, $defaultColors1[$count%7]);
 
-            if ($myKPIFlag != 1) {
-                $newQueryObj = ["metricId" => $myMetricId,
-                    "metricHighLevelType" => $selectedRow['high_level_type'],
-                    "metricName" => $myMetricName];
-            } else {
-                $newQueryObj = ["metricId" => $myMetricId,
-                    "metricHighLevelType" => $selectedRow['high_level_type'],
-                    "metricName" => $myMetricName,
-                    "metricType" => $myMetricType];
-            }
+            $newQueryObj = ["metricId" => $myMetricId,
+                "metricHighLevelType" => $selectedRow['high_level_type'],
+                "metricName" => $myMetricName,
+                "metricType" => $myMetricType];
+
             array_push($rowParameters, $newQueryObj);
             $count++;
         }

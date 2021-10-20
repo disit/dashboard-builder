@@ -19,7 +19,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 <script src="../js/d3/d3.js"></script>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef) {
+    $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, isRestoringFromExternalContent) {
         <?php
         $link = mysqli_connect($host, $username, $password);
         if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
@@ -106,6 +106,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         $(document).off('restoreOriginalTimeTrendFromExternalContentGis_' + widgetName);
         $(document).on('restoreOriginalTimeTrendFromExternalContentGis_' + widgetName, function(event)
         {
+            isRestoringFromExternalContent = true;
             if(event.targetWidget === widgetName)
             {
                 clearInterval(countdownRef);
@@ -258,7 +259,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                 var dati = chartSeriesObject[tIndex].data.map(d => [new Date(d[0]), d[1]]);
 
-                if (rowParameters[0].metricHighLevelType === "Sensor"){
+                if (rowParameters[0].metricHighLevelType === "Sensor"  || rowParameters[0].metricHighLevelType == "IoT Device Variable" || rowParameters[0].metricHighLevelType == "Data Table Variable" || rowParameters[0].metricHighLevelType == "Mobile Device Variable"){
                     dati.reverse(); // se provengono da sensori li riordiniamo dal più vecchio al più recente
                 }
 
@@ -999,6 +1000,9 @@ ${rowParameters[0].smField}: ${d[1]}`);
 
                         break;
 
+                    case "IoT Device Variable":
+                    case "Data Table Variable":
+                    case "Mobile Device Variable":
                     case "Sensor":
                         utcOption = false;
                         var smPayload = aggregationGetData[i].data;
@@ -1381,8 +1385,9 @@ ${rowParameters[0].smField}: ${d[1]}`);
                                         if (fromIotApp) {
                                             let dynamicTitle = widgetTitle + " - " + rowParameters[0].metricName + " - " + rowParameters[0].smField;
                                             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(dynamicTitle);
-                                        } else {
-                                        //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
+                                        } else if (isRestoringFromExternalContent) {
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
+                                            isRestoringFromExternalContent = false;
                                         }
                                     }
                                 } else {
@@ -1501,7 +1506,7 @@ ${rowParameters[0].smField}: ${d[1]}`);
                 }
 
                 for (let k = 0; k < rowParameters.length; k++) {
-                    if (rowParameters[k].metricHighLevelType === "Sensor") {
+                    if (rowParameters[k].metricHighLevelType === "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
                         let urlKBToBeCalled = "";
                         let field = "";
                         let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
@@ -1589,7 +1594,7 @@ ${rowParameters[0].smField}: ${d[1]}`);
                 }
 
                 for (let k = 0; k < rowParameters.length; k++) {
-                    if (rowParameters[k].metricHighLevelType === "Sensor") {
+                    if (rowParameters[k].metricHighLevelType === "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
                         let urlKBToBeCalled = "";
                         let field = "";
                         let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
@@ -1831,7 +1836,7 @@ ${rowParameters[0].smField}: ${d[1]}`);
                 if(timeNavCount === 0) {
                     if (rowParameters != null) {
                         for (let k = 0; k < rowParameters.length; k++) {
-                            if (rowParameters[k].metricHighLevelType === "Sensor") {
+                            if (rowParameters[k].metricHighLevelType === "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
                                 let urlKBToBeCalled = "";
                                 let field = "";
                                 let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";

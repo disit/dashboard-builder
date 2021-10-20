@@ -1848,16 +1848,20 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
                                 convertedDate = convertedDate.replace("T", " ");
                                 var plusIndex = convertedDate.indexOf("+");
                                 convertedDate = convertedDate.substr(0, plusIndex);
-                                if (singleOriginalData[field].hasOwnProperty("valueDate")) {
+                                if (singleOriginalData[field] && singleOriginalData[field].hasOwnProperty("valueDate")) {
                                     futureDate = singleOriginalData[field].valueDate.replace("T", " ");
-                                    var plusIndexFuture = futureDate.indexOf("+");
-                                    futureDate = futureDate.substr(0, plusIndexFuture);
-                                    var momentDateTimeFuture = moment(futureDate);
-                                    var localDateTimeFuture = momentDateTimeFuture.tz(localTimeZone).format();
-                                    localDateTimeFuture = localDateTimeFuture.replace("T", " ");
-                                    var plusIndexLocalFuture = localDateTimeFuture.indexOf("+");
-                                    localDateTimeFuture = localDateTimeFuture.substr(0, plusIndexLocalFuture);
+                                } else if (singleOriginalData.hasOwnProperty("dateObserved")) {
+                                    futureDate = singleOriginalData["dateObserved"].value.replace("T", " ");
+                                } else if (singleOriginalData.hasOwnProperty("measuredTime")) {
+                                    futureDate = singleOriginalData["measuredTime"].value.replace("T", " ");
                                 }
+                                var plusIndexFuture = futureDate.indexOf("+");
+                                futureDate = futureDate.substr(0, plusIndexFuture);
+                                var momentDateTimeFuture = moment(futureDate);
+                                var localDateTimeFuture = momentDateTimeFuture.tz(localTimeZone).format();
+                                localDateTimeFuture = localDateTimeFuture.replace("T", " ");
+                                var plusIndexLocalFuture = localDateTimeFuture.indexOf("+");
+                                localDateTimeFuture = localDateTimeFuture.substr(0, plusIndexLocalFuture);
                                 if (localDateTime == "") {
                                     singleData.commit.author.computationDate = convertedDate;
                                     singleData.commit.author.futureDate = futureDate;
@@ -2294,8 +2298,10 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
                                         var newVal, newTime = null;
                                         for(var j = 0; j < resultsArray.length; j++)
                                         {
-                                            newVal = resultsArray[j][smField].value;
-                                            addSampleToTrend = true;
+                                            if(resultsArray[j].hasOwnProperty(smField)) {
+                                                newVal = resultsArray[j][smField].value;
+                                                addSampleToTrend = true;
+                                            }
 
                                             if(resultsArray[j].hasOwnProperty("updating"))
                                             {
@@ -2359,8 +2365,10 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
 
                         var device = aggregationSeries.metricName;
 
-                        var valueType = properties.realtimeAttributes[smField].value_type;
-                        var valueUnit = properties.realtimeAttributes[smField].value_unit;
+                        if (properties.realtimeAttributes[smField] != null) {
+                            var valueType = properties.realtimeAttributes[smField].value_type;
+                            var valueUnit = properties.realtimeAttributes[smField].value_unit;
+                        }
 
                         return {device: device, valueType: valueType, valueUnit: valueUnit, timeSeries: singleSeriesData};
         }
@@ -2502,8 +2510,11 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
                         break;
 
                     case "IoT Device Variable":
+                    case "IoT Device":
                     case "Data Table Variable":
+                    case "Data Table Device":
                     case "Mobile Device Variable":
+                    case "Mobile Device":
                     case "Sensor Device":
                     case "Sensor":
 
@@ -2867,11 +2878,11 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
 
                 //   if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
                 for (let k = 0; k < rowParameters.length; k++) {
-                    if (rowParameters[k].metricHighLevelType == "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
+                    if (rowParameters[k].metricHighLevelType == "Sensor" || rowParameters[k].metricHighLevelType == "Sensor Device" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Device" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
                         let urlKBToBeCalled = "";
                         let field = "";
                         let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
-                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + rowParameters[k].serviceUri;
+                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + encodeURI(rowParameters[k].serviceUri);
                         field = rowParameters[k].smField;
                         if (rowParameters != null) {
                         //    if (rowParameters.includes("https:")) {
@@ -2979,11 +2990,11 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
 
                 //    if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
                 for (let k = 0; k < rowParameters.length; k++) {
-                    if (rowParameters[k].metricHighLevelType == "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
+                    if (rowParameters[k].metricHighLevelType == "Sensor" || rowParameters[k].metricHighLevelType == "Sensor Device" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Device" ||  rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
                         let urlKBToBeCalled = "";
                         let field = "";
                         let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
-                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + rowParameters[k].serviceUri;
+                        urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + encodeURI(rowParameters[k].serviceUri);
                         field = rowParameters[k].smField;
                         if (rowParameters != null) {
                           //  if (rowParameters.includes("https:")) {
@@ -3236,11 +3247,11 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
                 if(timeNavCount == 0) {
                     if (rowParameters != null) {
                         for (let k = 0; k < rowParameters.length; k++) {
-                            if (rowParameters[k].metricHighLevelType == "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
+                            if (rowParameters[k].metricHighLevelType == "Sensor Device" || rowParameters[k].metricHighLevelType == "Sensor Device" || rowParameters[k].metricHighLevelType == "Sensor" || rowParameters[k].metricHighLevelType == "IoT Device" || rowParameters[k].metricHighLevelType == "IoT Device Variable" || rowParameters[k].metricHighLevelType == "Data Table Device" || rowParameters[k].metricHighLevelType == "Data Table Variable" || rowParameters[k].metricHighLevelType == "Mobile Device" || rowParameters[k].metricHighLevelType == "Mobile Device Variable") {
                                 let urlKBToBeCalled = "";
                                 let field = "";
                                 let dashboardOrgKbUrl = "<?= $superServiceMapUrlPrefix ?>api/v1/";
-                                urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + rowParameters[k].serviceUri;
+                                urlKBToBeCalled = "<?=$superServiceMapProxy?>" + "<?=$kbUrlSuperServiceMap?>" + "?serviceUri=" + encodeURI(rowParameters[k].serviceUri);
                                 field = rowParameters[k].smField;
 
                                 $.ajax({

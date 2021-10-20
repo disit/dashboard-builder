@@ -79,7 +79,7 @@
     $metricType = null;
     $dataOrigin = json_decode($_REQUEST['dataOrigin']);
     $index = $_REQUEST['index'];
-    if (strcmp($dataOrigin->metricHighLevelType, "Sensor" == 0) || strcmp($dataOrigin->metricHighLevelType, "MyKPI" == 0)) {
+    if (strcmp($dataOrigin->metricHighLevelType, "Sensor" == 0) || strcmp($dataOrigin->metricHighLevelType, "IoT Device Variable" == 0) || strcmp($dataOrigin->metricHighLevelType, "Data Table Variable" == 0) || strcmp($dataOrigin->metricHighLevelType, "Mobile Device Variable" == 0) || strcmp($dataOrigin->metricHighLevelType, "MyKPI" == 0)) {
         if(isset($_SESSION['refreshToken'])) {
             $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
         }
@@ -224,8 +224,13 @@
                 $response['result'] = "No Data Available for Metric: " . $metricName;
             }
             break;
-        
-        
+
+        case "IoT Device Variable":
+        case "IoT Device":
+        case "Data Table Variable":
+        case "Data Table Device":
+        case "Mobile Device Variable":
+        case "Sensor Device":
         case "Sensor":
 
         /*    if(isset($_SESSION['refreshToken'])) {

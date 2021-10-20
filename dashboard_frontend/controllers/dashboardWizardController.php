@@ -119,7 +119,7 @@ if (isset($_REQUEST["globalSqlFilter"])) {
     }
   
     $sql_distinct_field = $_REQUEST['distinctField'];
-    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership" && $sql_distinct_field != "value_unit") {
+    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership" && $sql_distinct_field != "value_unit" && $sql_distinct_field != "broker_name" && $sql_distinct_field != "value_name" && $sql_distinct_field != "value_type") {
     //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Force sql_distinct_field = 'high_level_type'");
         eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Exit from script.");
     //    $sql_distinct_field = "high_level_type";
@@ -139,7 +139,7 @@ if (isset($_REQUEST["globalSqlFilter"])) {
   //  $sql_where_escaped = escapeForSQL($sql_where_ok, $link);
     $sql_where_ok = $whereString;
 
-    $wizardColumns = array('high_level_type', 'nature', 'sub_nature', 'low_level_type', 'unit', 'healthiness', 'ownership', 'value_unit');
+    $wizardColumns = array('high_level_type', 'nature', 'sub_nature', 'low_level_type', 'broker_name', 'value_name', 'value_type', 'unit', 'healthiness', 'ownership', 'value_unit');
 
     $dashLoggedUsername = $_SESSION['loggedUsername'];
     if ($_SESSION['loggedRole'] !== "RootAdmin") {
@@ -153,9 +153,20 @@ if (isset($_REQUEST["globalSqlFilter"])) {
         }
     }
 	
-	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) ";
+	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'IoT Device Variable', 'Mobile Device Variable', 'Data Table Variable', 'Sensor-Actuator' ) ";
 
-    $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_where_ok . $whereAllHash . $synMode . " ORDER BY ".$sql_distinct_field." ASC;";
+    $geoQuery = "";
+    if(isset($_REQUEST['northEastPointLat']) && isset($_REQUEST['FreezeMap'])){
+        if ($_REQUEST['FreezeMap'] === "true") {
+            $northEastPointLat = escapeForSQL($_REQUEST['northEastPointLat'], $link);
+            $northEastPointLng = escapeForSQL($_REQUEST['northEastPointLng'], $link);
+            $southWestPointLat = escapeForSQL($_REQUEST['southWestPointLat'], $link);
+            $southWestPointLng = escapeForSQL($_REQUEST['southWestPointLng'], $link);
+            $geoQuery = " AND (latitude is not null and longitude is not null and latitude<>'' and longitude<>'' and latitude <='" . $northEastPointLat . "' and latitude >='" . $southWestPointLat . "' and longitude <='" . $northEastPointLng . "' and longitude >='" . $southWestPointLng . "') OR (high_level_type = 'POI' OR high_level_type = 'IoT Device Model' OR high_level_type = 'Mobile Device Model' OR high_level_type = 'Data Table Model') ";
+        }
+    }
+
+    $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE oldEntry IS NULL AND ".$sql_where_ok . $whereAllHash . $synMode . $geoQuery . " ORDER BY ".$sql_distinct_field." ASC;";
 
     if ($freezeMap == "true") {
         $wizardColId = array_search($sql_distinct_field, $wizardColumns);
@@ -176,7 +187,6 @@ if (isset($_REQUEST["globalSqlFilter"])) {
     //  $query = "SELECT * FROM Dashboard.DashboardWizard";
     
     //   echo ($query);
-
     
     $rs = mysqli_query($link, $query);
     
@@ -218,7 +228,7 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
     
     $stopFlag = 1;
     $sql_filter_field = $_REQUEST['filterField'];
-    if ($sql_filter_field != "high_level_type" && $sql_filter_field != "nature" && $sql_filter_field != "sub_nature" && $sql_filter_field != "low_level_type" && $sql_filter_field != "unit" && $sql_filter_field != "unique_name_id" && $sql_filter_field != "healthiness" && $sql_filter_field != "ownership" && $sql_filter_field != "value_unit") {
+    if ($sql_filter_field != "high_level_type" && $sql_filter_field != "nature" && $sql_filter_field != "sub_nature" && $sql_filter_field != "low_level_type" && $sql_filter_field != "unit" && $sql_filter_field != "unique_name_id" && $sql_filter_field != "healthiness" && $sql_filter_field != "ownership" && $sql_filter_field != "value_unit" && $sql_filter_field != "broker_name" && $sql_filter_field != "value_name" && $sql_filter_field != "value_type") {
       //  eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter_field '".$sql_filter_field."' is not an allowed value. Force sql_filter_field = 'high_level_type'");
         eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter_field '".$sql_filter_field."' is not an allowed value. Exit from script.");
       //  $sql_filter_field = "high_level_type";
@@ -226,7 +236,7 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
     }
     $sql_filter_value = escapeForSQL($_REQUEST['value'], $link);
     $sql_distinct_field = $_GET['filter'];
-    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership" && $sql_distinct_field != "value_unit") {
+    if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership" && $sql_distinct_field != "value_unit" && $sql_distinct_field != "broker_name" && $sql_distinct_field != "value_name" && $sql_distinct_field != "value_type") {
     //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Force sql_distinct_field = 'high_level_type'");
         eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_distinct_field '".$sql_distinct_field."' is not an allowed value. Exit from script.");
     //    $sql_distinct_field = "high_level_type";
@@ -237,7 +247,7 @@ if (!empty($_REQUEST["filterField"]) && !empty($_REQUEST["value"])) {
     //error_reporting(E_ERROR | E_NOTICE);
     error_reporting(E_ERROR);
     
-	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) ";
+	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'IoT Device Variable', 'Mobile Device Variable', 'Data Table Variable', 'Sensor-Actuator' ) ";
 	
     $query = "SELECT DISTINCT ".$sql_distinct_field." FROM Dashboard.DashboardWizard WHERE ".$sql_filter_field." LIKE '".$sql_filter_value."' " .$synMode. " ORDER BY ".$sql_distinct_field." ASC";
     //  $query = "SELECT * FROM Dashboard.DashboardWizard";
@@ -277,7 +287,7 @@ if (!empty($_REQUEST["filterDistinct"])) {
 
         $time_start2 = microtime(true);
         $sql_filter = $_GET['filter'];
-        if ($sql_filter != "high_level_type" && $sql_filter != "nature" && $sql_filter != "sub_nature" && $sql_filter != "low_level_type" && $sql_filter != "unit" && $sql_filter != "unique_name_id" && $sql_filter != "healthiness" && $sql_filter != "ownership" && $sql_filter != "value_unit") {
+        if ($sql_filter != "high_level_type" && $sql_filter != "nature" && $sql_filter != "sub_nature" && $sql_filter != "low_level_type" && $sql_filter != "unit" && $sql_filter != "unique_name_id" && $sql_filter != "healthiness" && $sql_filter != "ownership" && $sql_filter != "value_unit" && $sql_filter != "broker_name" && $sql_filter != "value_name" && $sql_filter != "value_type") {
         //    eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter '".$sql_filter."' is not an allowed value. Force sql_filter = 'high_level_type'");
             eventLog("Returned the following ERROR in dashboardWizardController.php fo: sql_filter '".$sql_filter."' is not an allowed value. Exit from script.");
         //    $sql_filter = "high_level_type";
@@ -516,7 +526,7 @@ if (!empty($_REQUEST["filterDistinct"])) {
             $whereAllHash = "oldEntry IS NULL";
         }
         $whereAll = $whereAllHash;
-		if(intval($_REQUEST["synMode"])) $whereAll .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) "; 
+		if(intval($_REQUEST["synMode"])) $whereAll .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'IoT Device Variable', 'Mobile Device Variable', 'Data Table Variable', 'Sensor-Actuator' ) ";
 
         $link = mysqli_connect($host, $username, $password);
         //error_reporting(E_ERROR | E_NOTICE);
@@ -572,7 +582,7 @@ if(isset($_REQUEST['getDashboardWizardData']))
     //error_reporting(E_ERROR | E_NOTICE);
     error_reporting(E_ERROR);
     
-	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " WHERE high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) ";
+	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " WHERE high_level_type IN ( 'MyKPI', 'Sensor', 'IoT Device Variable', 'Mobile Device Variable', 'Data Table Variable', 'Sensor-Actuator' ) ";
 	$query = "SELECT * FROM Dashboard.DashboardWizard".$synMode;
 	
     $rs = mysqli_query($link, $query);
@@ -653,7 +663,7 @@ if(isset($_REQUEST['updateWizardIcons']))
 
     $sql_value = escapeForSQL($_GET["filterValue"], $link);
     
-	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) ";
+	$synMode = ""; if(intval($_REQUEST["synMode"])) $synMode .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'IoT Device Variable', 'Mobile Device Variable', 'Data Table Variable', 'Sensor-Actuator' ) ";
     $query_out = "SELECT DISTINCT unit FROM Dashboard.DashboardWizard WHERE ".$sql_field ." LIKE '".$sql_value."'".$synMode.";";
 
     $rs_out = mysqli_query($link, $query_out);
@@ -730,11 +740,15 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
             array( 'db' => 'low_level_type',     'dt' => 3 ),
             array( 'db' => 'unique_name_id',     'dt' => 4 ),
             array( 'db' => 'instance_uri',     'dt' => 5 ),
-            array( 'db' => 'unit',     'dt' => 6 ),
-            array( 'db' => 'value_unit',     'dt' => 7 ),
+            array( 'db' => 'device_model_name',     'dt' => 6 ),
+            array( 'db' => 'broker_name',     'dt' => 7 ),
+            array( 'db' => 'value_name',     'dt' => 8 ),
+            array( 'db' => 'value_type',     'dt' => 9 ),
+            array( 'db' => 'unit',     'dt' => 10 ),                 // EX 6
+            array( 'db' => 'value_unit',     'dt' => 11 ),           // EX 7
             array(
                 'db'        => 'last_date',
-                'dt'        => 8,
+                'dt'        => 12,                                   // EX 8
                 'formatter' => function( $d, $row ) {
                     if ($d != null) {
                         return date( 'Y-m-d H:i:s', strtotime($d));
@@ -743,21 +757,21 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
                     }
                 }
             ),
-            array( 'db' => 'last_value',     'dt' => 9 ),
-            array( 'db' => 'healthiness',     'dt' => 10 ),
-            array( 'db' => 'instance_uri',     'dt' => 11 ),
-            array( 'db' => 'parameters',     'dt' => 12 ),
-            array( 'db' => 'id',     'dt' => 13 ),
-            array( 'db' => 'lastCheck',     'dt' => 14 ),
-            array( 'db' => 'get_instances',     'dt' => 15 ),
-            array( 'db' => 'ownership',     'dt' => 16 ),
-            array( 'db' => 'organizations',     'dt' => 17 ),
-            array( 'db' => 'latitude',     'dt' => 18 ),
-            array( 'db' => 'longitude',     'dt' => 19 ),
-            array( 'db' => 'sm_based',     'dt' => 20 ),
-            array( 'db' => 'ownerHash',     'dt' => 21 ),
-            array( 'db' => 'delegatedHash',     'dt' => 22 ),
-            array( 'db' => 'delegatedGroupHash',     'dt' => 23 )
+            array( 'db' => 'last_value',     'dt' => 13 ),           // EX 9
+            array( 'db' => 'healthiness',     'dt' => 14 ),         // EX 10
+            array( 'db' => 'instance_uri',     'dt' => 15 ),        // EX 11
+            array( 'db' => 'parameters',     'dt' => 16 ),          // EX 12
+            array( 'db' => 'id',     'dt' => 17 ),                  // EX 13
+            array( 'db' => 'lastCheck',     'dt' => 18 ),           // EX 14
+            array( 'db' => 'get_instances',     'dt' => 19 ),       // EX 15
+            array( 'db' => 'ownership',     'dt' => 20 ),           // EX 16
+            array( 'db' => 'organizations',     'dt' => 21 ),       // EX 17
+            array( 'db' => 'latitude',     'dt' => 22 ),            // EX 18
+            array( 'db' => 'longitude',     'dt' => 23 ),           // EX 19
+            array( 'db' => 'sm_based',     'dt' => 24 ),            // EX 20
+            array( 'db' => 'ownerHash',     'dt' => 25 ),           // EX 21
+            array( 'db' => 'delegatedHash',     'dt' => 26 ),       // EX 22
+            array( 'db' => 'oldEntry',     'dt' => 27 )             // EX 23
 
         );
 
@@ -828,7 +842,7 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
         // NEW QUERY FOR oldEntries
         $whereAllHash = "oldEntry IS NULL AND (organizations LIKE '%" . $organizationName . "%' AND ownership = 'public' OR (ownerHash LIKE '%" . $cryptedUsr . "%' OR delegatedHash LIKE '%" . $cryptedUsr . "%'))";
         $whereAll = $whereAllHash;
-		if(intval($_REQUEST["synMode"])) $whereAll .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'Sensor-Actuator' ) "; 
+		if(intval($_REQUEST["synMode"])) $whereAll .= " AND high_level_type IN ( 'MyKPI', 'Sensor', 'IoT Device Variable', 'Mobile Device Variable', 'Data Table Variable', 'Sensor-Actuator' ) ";
 		if($_REQUEST["initSynVarPresel"] == "true") $whereAll .= " AND id IN ( select sel from Dashboard.SynopticVarPresel where usr = '".encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod)."') "; 
 
         $pageBuffer = [];
@@ -881,13 +895,13 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
 
             } */
             $privateString = "private";
-            if ($out['data'][$n][16] == "private") {
-                if (strpos($out['data'][$n][21], $cryptedUsr) !== false) {
+            if ($out['data'][$n][20] == "private") {
+                if (strpos($out['data'][$n][25], $cryptedUsr) !== false) {
                     $privateString = "private (My Own)";
-                } else if (strpos($out['data'][$n][22], $cryptedUsr) !== false) {
+                } else if (strpos($out['data'][$n][26], $cryptedUsr) !== false) {
                     $privateString = "private (Delegated)";
                 }
-                $out['data'][$n][16] = $privateString;
+                $out['data'][$n][20] = $privateString;
             }
         }
         $time_end1 = microtime(true);

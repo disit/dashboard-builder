@@ -43,8 +43,11 @@ class WidgetDataCubeFactory extends aGenericWidgetFactory
                     break;
 
                 case "IoT Device Variable":
+                case "IoT Device":
                 case "Data Table Variable":
+                case "Data Table Device":
                 case "Mobile Device Variable":
+                case "Mobile Device":
                 case "Sensor Device":
                 case "Sensor":
                     $myMetricId = $selectedRow['parameters'];

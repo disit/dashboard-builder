@@ -3791,6 +3791,119 @@
 
             }
 
+            if ($type_widget_m == "widget3DMapDeck") {
+                if(isset($_POST['showOrthomapsM'])&&($_POST['showOrthomapsM']!="")) {
+
+                    $showOrthomapsM = mysqli_real_escape_string($link, sanitizePostString('showOrthomapsM'));
+                    if ($showOrthomapsM == "yes") {
+                        eventLog('[process-form]: processing without orthomap');
+                        $queryOrthomaps = "SELECT orthomapJson FROM Dashboard.Organizations Orgs INNER JOIN Dashboard.Config_dashboard Dash ON Dash.id = " . mysqli_real_escape_string($link, $id_dashboard2) . " AND Dash.organizations = Orgs.organizationName;";
+                        $resOrthomaps = mysqli_query($link, $queryOrthomaps);
+                        if($resOrthomaps)
+                        {
+                            $currRow = mysqli_fetch_assoc($resOrthomaps);
+                            if (sizeof($currRow) > 0) {
+                                $orthomapJsonM = $currRow['orthomapJson'];
+                            }
+                        }
+                        $infoJsonM = "yes";
+                        // $parametersM = json_encode($orthomapJsonM);
+                        //   $parametersM = $orthomapJsonM;
+                        $orthomapJsonArray = json_decode($orthomapJsonM, true);
+                        if(isset($_POST['parametersM']) && ($_POST['parametersM']!="")) {
+                            $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
+                            $parametersArray = json_decode($parametersM);
+                            $tempParametersArray = json_decode($parametersM);
+                            if ($parametersArray->dropdownMenu) {
+                                // if an orthomap json already exists, update only latLng and zoom
+                                $latLngCenterMap = $parametersArray->latLng;
+                                $zoomMap = (int)$parametersArray->zoom;
+                                $pitchMap = $tempParametersArray->pitch;
+                                $bearingMap = $tempParametersArray->bearing;
+                                $mapType = $tempParametersArray->mapType;
+
+                                $parametersArray->latLng = $latLngCenterMap;
+                                $parametersArray->zoom = $zoomMap;
+                                $parametersArray->pitch = $pitchMap;
+                                $parametersArray->bearing = $bearingMap;
+                                $parametersArray->mapType = $mapType;
+                                $parametersM = json_encode($parametersArray);
+                            } else {
+                                // if there isn't any orthomap json, create it using the organization template
+                                $tempParametersArray = $parametersArray;
+                                $latLngCenterMap = $tempParametersArray->latLng;
+                                $zoomMap = $tempParametersArray->zoom;
+                                $pitchMap = $tempParametersArray->pitch;
+                                $bearingMap = $tempParametersArray->bearing;
+                                $mapType = $tempParametersArray->mapType;
+
+                                $orthomapJsonArray['latLng'] = $latLngCenterMap;
+                                $orthomapJsonArray['zoom'] = $zoomMap;
+                                $orthomapJsonArray['pitch'] = $pitchMap;
+                                $orthomapJsonArray['bearing'] = $bearingMap;
+                                $orthomapJsonArray['type'] = $mapType;
+
+                                $parametersM = json_encode($orthomapJsonArray);
+                            }
+                        }
+
+                    } else if ($showOrthomapsM == "no") {
+                        eventLog('[process-form]: processing with orthomap');
+                        if(isset($_POST['parametersM']) && ($_POST['parametersM']!="")) {
+                            $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
+                            $tempParametersArray = json_decode($parametersM);
+                            $latLngCenterMap = $tempParametersArray->latLng;
+                            $zoomMap = $tempParametersArray->zoom;
+                            $pitchMap = $tempParametersArray->pitch;
+                            $bearingMap = $tempParametersArray->bearing;
+                            $mapType = $tempParametersArray->mapType;
+                            $parametersArray = array('latLng' => $latLngCenterMap, 'zoom' => $zoomMap, 'pitch' => $pitchMap, 'bearing' => $bearingMap, 'mapType' => $mapType);
+                            $parametersM = json_encode($parametersArray);
+                            $infoJsonM = "no";
+                        }
+                    }
+
+                    if(isset($_POST['defaultOrthomapM'])&&($_POST['defaultOrthomapM']!="")) {
+                        $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'), 'defaultOrthomap' => sanitizePostString('defaultOrthomapM'));
+                    } else {
+                        $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'));
+                    }
+
+                    // building section
+                    $buildingColor = $_POST['gisTargetBuildingColorM'];
+                    $buildingType = $_POST['buildingTypeM'];
+
+                    //$buildingArray = array('buildingColor' => sanitizePostString($buildingColor), 'buildingType' => sanitizePostString($buildingType));
+                    $styleParametersM['buildingColor'] = $buildingColor;
+                    $styleParametersM['buildingType'] = $buildingType;
+                    //array_push($styleParametersM, ...$buildingArray);
+
+                    // light section
+                    if(isset($_POST['useLigthingM']) && $_POST['useLigthingM'] == "yes") {
+                        $lightTimestamp = $_POST['lightTimestampM'];
+                        $lightColor = $_POST['lightColorM'];
+                        $lightIntensity = $_POST['intensityColorM'];
+
+                        $styleParametersM['useLighting'] = 'yes';
+                        $styleParametersM['lightTimestamp'] = $lightTimestamp;
+                        $styleParametersM['lightColor'] = $lightColor;
+                        $styleParametersM['lightIntensity'] = $lightIntensity;
+                        //array_push($styleParametersM, 'useLighting' => true, 'lightTimestamp' => sanitizePostString($lightTimestamp),
+                        //'lightColor' => sanitizePostString($lightColor), 'lightIntensity' => sanitizePostString($lightIntensity));
+                    } else {
+                        $styleParametersM['useLighting'] = 'no';
+                        //array_push($styleParametersM, 'useLighting' => false);
+                        //eventLog('light not set');
+                    }
+                /*    foreach($styleParametersM as $key => $value) {
+                        eventLog('[' . $key . '] => ' . $value);
+                    }   */
+
+                    $styleParametersM = json_encode($styleParametersM);
+                }
+
+            }
+
         }
 
         if(isset($_POST['inputFontSizeM']) && ($_POST['inputFontSizeM']!=""))
@@ -3939,6 +4052,8 @@
             if(isset($_POST['widgetEventsModeM'])) 
             {
                 $viewMode = mysqli_real_escape_string($link,sanitizePostString('widgetEventsModeM'));
+            } else {
+                $viewMode = mysqli_real_escape_string($link, 'additive');
             }
         }
 

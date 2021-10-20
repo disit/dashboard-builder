@@ -40,7 +40,10 @@ class WidgetCalendarFactory extends aGenericWidgetFactory
                         $myMetricName = $myMetricId;
                     }
                     break;
-                    
+
+                case "IoT Device Variable":
+                case "Data Table Variable":
+                case "Mobile Device Variable":
                 case "Sensor":
                     $myMetricId = $selectedRow['parameters'];
                     $myMetricName = $selectedRow['unique_name_id'];

@@ -113,26 +113,30 @@ if (!isset($_SESSION)) {
     <!-- Bring in the leaflet KML plugin -->
     <script src="../widgets/layers/KML.js"></script>
     
+    <!-- Adreani deckgl -->
+    <script src="../widgets/layers/deckgl.min.js"></script>
+    <script src="../widgets/layers/gif-frames.js"></script>
+    
     <!-- Cristiano: Dynamic Routing -->
     <link rel="stylesheet" href="../css/dynamic_routing/dynamic_routing.css"/>
     <!-- end Cristiano -->
 
-<script type="text/javascript" src="../js/heatmap/heatmap.js"></script>
-<script type="text/javascript" src="../js/heatmap/leaflet-heatmap.js"></script>
-<script src="../leaflet-bubble/dist/leaflet-bubble.js"></script>
+    <script type="text/javascript" src="../js/heatmap/heatmap.js"></script>
+    <script type="text/javascript" src="../js/heatmap/leaflet-heatmap.js"></script>
+    <script src="../leaflet-bubble/dist/leaflet-bubble.js"></script>
 
-<script src="../trafficRTDetails/js/leaflet.awesome-markers.min.js"></script>
-<script src="../trafficRTDetails/js/jquery.dialogextend.js"></script>
-<script src="../trafficRTDetails/js/leaflet-gps.js"></script>
-<script src="../trafficRTDetails/js/wicket.js"></script>
-<script src="../trafficRTDetails/js/wicket-leaflet.js"></script>
-<script src="../trafficRTDetails/js/date.format.js"></script>
-<script src="../trafficRTDetails/js/zoomHandler.js"></script>
-<script src="../trafficRTDetails/js/OpenLayers-2.13.1/OpenLayers.js"></script>
+    <script src="../trafficRTDetails/js/leaflet.awesome-markers.min.js"></script>
+    <script src="../trafficRTDetails/js/jquery.dialogextend.js"></script>
+    <script src="../trafficRTDetails/js/leaflet-gps.js"></script>
+    <script src="../trafficRTDetails/js/wicket.js"></script>
+    <script src="../trafficRTDetails/js/wicket-leaflet.js"></script>
+    <script src="../trafficRTDetails/js/date.format.js"></script>
+    <script src="../trafficRTDetails/js/zoomHandler.js"></script>
+    <script src="../trafficRTDetails/js/OpenLayers-2.13.1/OpenLayers.js"></script>
 
-<script type="text/javascript" src="../js/date_fns.min.js"></script>
-<script type="text/javascript" src="../js/moment-timezone-with-data.js"></script>
-<script type="text/javascript" src="../js/moment-with-locales.min.js"></script>
+    <script type="text/javascript" src="../js/date_fns.min.js"></script>
+    <script type="text/javascript" src="../js/moment-timezone-with-data.js"></script>
+    <script type="text/javascript" src="../js/moment-with-locales.min.js"></script>
 
 <!-- LEAFLET ANIMATOR PLUGIN -->
 <!-- <script type="text/javascript" src="../js/leaflet-wms-animator.js"></script> -->
@@ -253,9 +257,49 @@ if (!isset($_SESSION)) {
             var svgContainerArray = [];
             var oms = {}    // OverlappingMarkerSpiderfier for Leaflet
 
+            // Variabili deckgl
+            var is3dOn = true;
+            var lightsOn = false;
+            var map3d;
+            var map3dGL;
+            var gifWms = {
+                isAnimated: false,
+                frames: [],
+                currentFrame: 0,
+                type: "heatmap",
+                opacity: 0.25,
+            };
+            var gifWmsTraffic = {
+                isAnimated: false,
+                frames: [],
+                currentFrame: 0,
+                type: "traffic",
+                opacity: 1,
+            };
+            var lights = [];
+            var cursorType = 'grab';
+            var justClicked = false;
+            var manuallyControlled = false;
+            var buildingColor = [255, 102, 0, 255]; 
+            var currentViewState;
+            var lastHoveredObject;
+            var layers = {
+                terrain: null,
+                orthomaps: null,
+                wms: null,
+                trafficWms: null,
+                traffic: [],
+                cycling: [],
+                bus: null,
+                building: [],
+                pin: [],
+            };
+            var apiUrls3D = {};
+            var updateTimeout;
+
             //Definizioni di funzione
 
-            console.log("entrato in widgetMap. WidgetName = " + widgetName);
+            console.log("entrato in widget3DMapDeck. WidgetName = " + widgetName);
 
           /*  current_page = 0;
             records_per_page = 1;
@@ -404,6 +448,14 @@ if (!isset($_SESSION)) {
 							}
 						}
 					}										
+                    if (is3dOn) {
+                        feature.hover = false;
+                        feature.iconPath = mapPinImg;
+                        feature.iconWidth = 32;
+                        feature.iconHeight = 37;
+                        feature.iconAnchorY = 37;
+                        feature.iconAnchorX = 0;
+                    }
 					var markerIcon = markerIcon = L.icon({
 						iconUrl: mapPinImg,
 						iconAnchor: [16, 37]
@@ -496,6 +548,15 @@ if (!isset($_SESSION)) {
                     }*/
 
                  //   var mapPinImg = '../img/gisMapIconsNew/Accommodation.png';
+                    
+                    if (is3dOn) {
+                        feature.hover = false;
+                        feature.hoverIconPath = newIconPath;
+                        feature.iconWidth = 32;
+                        feature.iconHeight = 37;
+                        feature.iconAnchorY = 37;
+                        feature.iconAnchorX = 0;
+                    }
                     var markerIcon = L.icon({
                         iconUrl: newIconPath,
                         iconAnchor: [16, 37]
@@ -514,6 +575,76 @@ if (!isset($_SESSION)) {
                 latLngKey = latLngKey.replace(".", "");
                 latLngKey = latLngKey.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
                 markersCache["" + latLngKey + ""] = marker;
+                
+
+                // loading hovericon for deck gl
+                if (feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
+                    if (feature.properties.pinattr != "pin") {
+                        var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
+                        if("TransferServiceAndRenting_BusStop" == feature.properties.serviceType) { 
+                            if(feature.properties.hasOwnProperty("busStopCategory")) {
+                                hoverImg = '../img/gisMapIcons/over/' + feature.properties.busStopCategory + '_over.png';
+                            }
+                            else {
+                                if(feature.properties.agency.includes("ATAF") || feature.properties.agency.includes("GEST")) {
+                                    hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_Urban_over.png'
+                                }
+                                else {
+                                    hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_Suburban_over.png'
+                                }
+                            }
+                        }										
+                        feature.hoverIconPath = hoverImg;
+                        feature.hoverIconWidth = 32;
+                        feature.hoverIconHeight = 37;
+                        feature.hoverIconAnchorY = 37;
+                        feature.hoverIconAnchorX = 0;
+                    } else {
+                        var filePinPath = "../img/outputPngIcons/pin-generico.png";
+                        if (feature.properties.iconFilePath != null) {
+                            if (feature.properties.iconFilePath.includes("/nature/")) {
+                                filePinPath = feature.properties.iconFilePath.split("/nature/")[1].split(".svg")[0];
+                            } else if (feature.properties.iconFilePath.includes("/subnature/")) {
+                                filePinPath = feature.properties.iconFilePath.split("/subnature/")[1].split(".svg")[0];
+                            } else if (feature.properties.iconFilePath.includes("/hlt/")) {
+                                filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
+                            }
+                            var newIconOverPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '-over' + '.png';
+                            if (iconsFileBuffer[newIconOverPath] == null) {
+                                if (!UrlExists(newIconOverPath)) {
+                                    iconsFileBuffer[newIconOverPath] = false;
+                                    newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+                                    if (!UrlExists(newIconOverPath)) {
+                                        iconsFileBuffer[newIconOverPath] = false;
+                                        newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                    } else {
+                                        iconsFileBuffer[newIconOverPath] = true;
+                                    }
+                                } else {
+                                    iconsFileBuffer[newIconOverPath] = true;
+                                }
+                            } else {
+                                if (iconsFileBuffer[newIconOverPath] === false) {
+                                    if (iconsFileBuffer['../img/outputPngIcons/generic/generic-over' + '.png'] === false) {
+                                        newIconOverPath = '../img/outputPngIcons/pin-generico.png';
+                                    } else {
+                                        newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+                                    }
+                                } else {
+                                    newIconOverPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '-over' + '.png';
+                                }
+                            }
+                        } else {
+                            var newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+                        }
+
+                        feature.hoverIconPath = hoverImg;
+                        feature.hoverIconWidth = 32;
+                        feature.hoverIconHeight = 37;
+                        feature.hoverIconAnchorY = 37;
+                        feature.hoverIconAnchorX = 0;
+                    }
+                }
 
                 marker.on('mouseover', function (event) {
                     if (feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
@@ -532,6 +663,13 @@ if (!isset($_SESSION)) {
 									}
 								}
 							}										
+                            if (is3dOn) {
+                                feature.hoverIconPath = hoverImg;
+                                feature.hoverIconWidth = 32;
+                                feature.hoverIconHeight = 37;
+                                feature.hoverIconAnchorY = 37;
+                                feature.hoverIconAnchorX = 0;
+                            }
                             var hoverIcon = L.icon({
                                 iconUrl: hoverImg
                             });
@@ -591,6 +729,14 @@ if (!isset($_SESSION)) {
                                 }
                             } else {
                                 var newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '.png';
+                            }
+
+                            if (is3dOn) {
+                                feature.hoverIconPath = hoverImg;
+                                feature.hoverIconWidth = 32;
+                                feature.hoverIconHeight = 37;
+                                feature.hoverIconAnchorY = 37;
+                                feature.hoverIconAnchorX = 0;
                             }
 
                             var hoverIcon = L.icon({
@@ -2010,10 +2156,7 @@ if (!isset($_SESSION)) {
                                                 color2: $(this).attr("data-color2"),
                                                 widgetTitle: title,
                                                 field: $(this).attr("data-field"),
-                                                serviceUri: $(this).attr("data-serviceUri"),
-                                                marker: markersCache["" + $(this).attr("data-id") + ""],
-                                                mapRef: map.defaultMapRef,
-                                                fake: $(this).attr("data-fake"),
+                                                serviceUri: $(this).attr("data-serviceUri"), marker: markersCache["" + $(this).attr("data-id") + ""], mapRef: map.defaultMapRef, fake: $(this).attr("data-fake"),
                                                 fakeId: $(this).attr("data-fakeId")
                                             });
                                         }
@@ -2053,6 +2196,1426 @@ if (!isset($_SESSION)) {
                 });
 
                 return marker;
+            }
+
+            function onMarkerClick(event, info) {
+            //    map.defaultMapRef.off('moveend');
+
+                var feature = info.object;
+                newpopup = null;
+                var popupText, realTimeData, measuredTime, rtDataAgeSec, targetWidgets, color1, color2 = null;
+                var urlToCall, fake, fakeId = null;
+
+            //    alert("CLICK!");
+                
+                if (feature.properties.fake === 'true') {
+                    urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + feature.id;
+                    fake = true;
+                    fakeId = feature.id;
+                }
+                else {
+                    urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(feature.properties.serviceUri) + "&format=json&fullCount=false";
+                    fake = false;
+                }
+
+                //var latLngId = event.target.getLatLng().lat + "" + event.target.getLatLng().lng;
+                var latLngId = feature.geometry.coordinates[1] + "" + feature.geometry.coordinates[0];
+                latLngId = latLngId.replace(".", "");
+                latLngId = latLngId.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
+
+                // TBD if(this.feature.properties.kpidata != null) { // MAKE MyKPI / MyPOI API CALL AND VISUALIZATION }
+
+                $.ajax({
+                    url: urlToCall,
+                    type: "GET",
+                    data: {},
+                    async: false,
+                    dataType: 'json',
+                    success: function (geoJsonServiceData) {
+                        var fatherNode = null;
+                        if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+                            fatherNode = geoJsonServiceData.BusStop;
+                        }
+                        else {
+                            if (geoJsonServiceData.hasOwnProperty("Sensor")) {
+                                fatherNode = geoJsonServiceData.Sensor;
+                            }
+                            else {
+                                //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                fatherNode = geoJsonServiceData.Service;
+                            }
+                        }
+
+                        var serviceProperties = fatherNode.features[0].properties;
+                        var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                        var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                        var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                        serviceSubclass = serviceSubclass.replace(/_/g, " ");
+
+                        const popupName = serviceProperties.name.replaceAll(' ', '_');
+                        const existingPopup = $(`#${widgetName}_deck_popup_${popupName}`);
+                        if (existingPopup.length != 0) {
+                            console.log('Popup already existing');
+                            const mapEl = $('#map3d');
+                            const popupDiv = $(`#${widgetName}_deck_popup`);
+
+                            existingPopup.detach();
+                            popupDiv.append(existingPopup);
+
+                            if (info.y + existingPopup.height() < mapEl.height())
+                                existingPopup.css('top', info.y);
+                            else if (info.y - existingPopup.height() < 0)
+                                existingPopup.css('top', 0);
+                            else
+                                existingPopup.css('top', info.y - existingPopup.height());
+
+                            if (info.x + existingPopup.width() < mapEl.width())
+                                existingPopup.css('left', info.x);
+                            else if (info.x - existingPopup.width() < 0)
+                                existingPopup.css('left', 0);
+                            else
+                                existingPopup.css('left', info.x - existingPopup.width());
+                            return;
+                        }
+
+                        fatherNode.features[0].properties.targetWidgets = feature.properties.targetWidgets;
+                        fatherNode.features[0].properties.color1 = feature.properties.color1;
+                        fatherNode.features[0].properties.color2 = feature.properties.color2;
+                        targetWidgets = feature.properties.targetWidgets;
+                        color1 = feature.properties.color1;
+                        color2 = feature.properties.color2;
+
+                        //Popup nuovo stile uguali a quelli degli eventi ricreativi
+                        popupText = '<div class="draggable-popup"><h3 class="recreativeEventMapTitle" style="margin-top: 0px; background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                          //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                        }
+                        popupText += '</div>';
+                        popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button>'+(geoJsonServiceData.hasOwnProperty("BusStop")?'<button data-id="' + latLngId + '" class="recreativeEventMapTplTmtblBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">TIMETABLE</button><button data-id="' + latLngId + '" class="recreativeEventMapTplBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">BROWSE</button>':'')+'</div>';
+
+                        popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
+
+                        popupText += '<table id="' + latLngId + '" class="gisPopupGeneralDataTable">';
+                        //Intestazione
+                        popupText += '<thead>';
+                        popupText += '<th style="background: ' + color2 + '">Description</th>';
+                        popupText += '<th style="background: ' + color2 + '">Value</th>';
+                        popupText += '</thead>';
+
+                        //Corpo
+                        popupText += '<tbody>';
+
+                        for (var featureKey in serviceProperties) {
+                            if (serviceProperties.hasOwnProperty(featureKey)) {
+                                if (serviceProperties[featureKey] != null && serviceProperties[featureKey] !== '' && serviceProperties[featureKey] !== ' ' && featureKey !== 'targetWidgets' && featureKey !== 'color1' && featureKey !== 'color2' && featureKey !== 'realtimeAttributes') {
+                                    if (!Array.isArray(serviceProperties[featureKey]) || (Array.isArray(serviceProperties[featureKey] && serviceProperties[featureKey].length > 0))) {
+                                        popupText += '<tr><td>' + featureKey + '</td><td>' + serviceProperties[featureKey] + '</td></tr>';
+                                    }
+                                }
+                            }
+                        }
+                        if (metricName != 'Map' && nodeId != null && serviceProperties["serviceUri"] != null && serviceProperties["serviceUri"] != '') {
+                            let eventJson = new Object();
+                            eventJson.latitude = feature.geometry.coordinates[1];
+                            eventJson.longitude = feature.geometry.coordinates[0];
+                            eventJson.serviceUri = serviceProperties["serviceUri"];
+                            currentValue = JSON.stringify(eventJson);
+                            triggerEventOnIotApp(map.defaultMapRef, currentValue);
+                        }
+
+                        popupText += '</tbody>';
+                        popupText += '</table>';
+
+                        /*if (geoJsonServiceData.hasOwnProperty('busLines')) {
+                            if (geoJsonServiceData.busLines.results.bindings.length > 0) {
+                                popupText += '<b>Lines: </b>';
+                                for (var i = 0; i < geoJsonServiceData.busLines.results.bindings.length; i++) {
+                                    popupText += '<span style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + geoJsonServiceData.busLines.results.bindings[i].busLine.value + '</span> ';
+                                }
+                            }
+                        }*/
+                        
+                        if (geoJsonServiceData.hasOwnProperty("BusStop")) {	
+                            popupText+='<div class="tplProgressBar" style="display:none; width:100%; height:1em; margin-top:1em; background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');"></div>';
+                        }
+
+                        popupText += '</div>';
+
+                        popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
+
+                        if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                            popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                        }
+
+                        if((serviceProperties.serviceType !== '')&&(serviceProperties.serviceType !== undefined)&&(serviceProperties.serviceType !== 'undefined')&&(serviceProperties.serviceType !== null)&&(serviceProperties.serviceType !== 'null')) {
+                            popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
+                            popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                        }
+
+                        if (serviceProperties.hasOwnProperty('description')) {
+                            if ((serviceProperties.description !== '') && (serviceProperties.description !== undefined) && (serviceProperties.description !== 'undefined') && (serviceProperties.description !== null) && (serviceProperties.description !== 'null')) {
+                                popupText += serviceProperties.description + "<br>";
+                            }
+                            else {
+                                popupText += "No description available";
+                            }
+                        }
+                        else {
+                            popupText += 'No description available';
+                        }
+
+                        popupText += '</div>';
+
+                        popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapContactsContainer">';
+
+                        var hasRealTime = false;
+
+                        if (geoJsonServiceData.hasOwnProperty("realtime")) {
+                            if (!jQuery.isEmptyObject(geoJsonServiceData.realtime)) {
+                                realTimeData = geoJsonServiceData.realtime;
+                                popupText += '<div class="popupLastUpdateContainer centerWithFlex"><b>Last update:&nbsp;</b><span class="popupLastUpdate" data-id="' + latLngId + '"></span></div>';
+
+                                if ((serviceClass.includes("Emergency")) && (serviceSubclass.includes("First aid"))) {
+                                    //Tabella ad hoc per First Aid
+                                    popupText += '<table id="' + latLngId + '" class="psPopupTable">';
+                                    var series = {
+                                        "firstAxis": {
+                                            "desc": "Priority",
+                                            "labels": [
+                                                "Red code",
+                                                "Yellow code",
+                                                "Green code",
+                                                "Blue code",
+                                                "White code"
+                                            ]
+                                        },
+                                        "secondAxis": {
+                                            "desc": "Status",
+                                            "labels": [],
+                                            "series": []
+                                        }
+                                    };
+
+                                    var dataSlot = null;
+
+                                    measuredTime = realTimeData.results.bindings[0].measuredTime.value.replace("T", " ").replace("Z", "");
+
+                                    for (var i = 0; i < realTimeData.results.bindings.length; i++) {
+                                        if (realTimeData.results.bindings[i].state.value.indexOf("estinazione") > 0) {
+                                            series.secondAxis.labels.push("Addressed");
+                                        }
+
+                                        if (realTimeData.results.bindings[i].state.value.indexOf("ttesa") > 0) {
+                                            series.secondAxis.labels.push("Waiting");
+                                        }
+
+                                        if (realTimeData.results.bindings[i].state.value.indexOf("isita") > 0) {
+                                            series.secondAxis.labels.push("In visit");
+                                        }
+
+                                        if (realTimeData.results.bindings[i].state.value.indexOf("emporanea") > 0) {
+                                            series.secondAxis.labels.push("Observation");
+                                        }
+
+                                        if (realTimeData.results.bindings[i].state.value.indexOf("tali") > 0) {
+                                            series.secondAxis.labels.push("Totals");
+                                        }
+
+                                        dataSlot = [];
+                                        dataSlot.push(realTimeData.results.bindings[i].redCode.value);
+                                        dataSlot.push(realTimeData.results.bindings[i].yellowCode.value);
+                                        dataSlot.push(realTimeData.results.bindings[i].greenCode.value);
+                                        dataSlot.push(realTimeData.results.bindings[i].blueCode.value);
+                                        dataSlot.push(realTimeData.results.bindings[i].whiteCode.value);
+
+                                        series.secondAxis.series.push(dataSlot);
+                                    }
+
+                                    var colsQt = parseInt(parseInt(series.firstAxis.labels.length) + 1);
+                                    var rowsQt = parseInt(parseInt(series.secondAxis.labels.length) + 1);
+
+                                    for (var i = 0; i < rowsQt; i++) {
+                                        var newRow = $("<tr></tr>");
+                                        var z = parseInt(parseInt(i) - 1);
+
+                                        if (i === 0) {
+                                            //Riga di intestazione
+                                            for (var j = 0; j < colsQt; j++) {
+                                                if (j === 0) {
+                                                    //Cella (0,0)
+                                                    var newCell = $("<td></td>");
+
+                                                    newCell.css("background-color", "transparent");
+                                                }
+                                                else {
+                                                    //Celle labels
+                                                    var k = parseInt(parseInt(j) - 1);
+                                                    var colLabelBckColor = null;
+                                                    switch (k) {
+                                                        case 0:
+                                                            colLabelBckColor = "#ff0000";
+                                                            break;
+
+                                                        case 1:
+                                                            colLabelBckColor = "#ffff00";
+                                                            break;
+
+                                                        case 2:
+                                                            colLabelBckColor = "#66ff33";
+                                                            break;
+
+                                                        case 3:
+                                                            colLabelBckColor = "#66ccff";
+                                                            break;
+
+                                                        case 4:
+                                                            colLabelBckColor = "#ffffff";
+                                                            break;
+                                                    }
+
+                                                    newCell = $("<td><span>" + series.firstAxis.labels[k] + "</span></td>");
+                                                    newCell.css("font-weight", "bold");
+                                                    newCell.css("background-color", colLabelBckColor);
+                                                }
+                                                newRow.append(newCell);
+                                            }
+                                        }
+                                        else {
+                                            //Righe dati
+                                            for (var j = 0; j < colsQt; j++) {
+                                                k = parseInt(parseInt(j) - 1);
+                                                if (j === 0) {
+                                                    //Cella label
+                                                    newCell = $("<td>" + series.secondAxis.labels[z] + "</td>");
+                                                    newCell.css("font-weight", "bold");
+                                                }
+                                                else {
+                                                    //Celle dati
+                                                    newCell = $("<td>" + series.secondAxis.series[z][k] + "</td>");
+                                                    if (i === (rowsQt - 1)) {
+                                                        newCell.css('font-weight', 'bold');
+                                                        switch (j) {
+                                                            case 1:
+                                                                newCell.css('background-color', '#ffb3b3');
+                                                                break;
+
+                                                            case 2:
+                                                                newCell.css('background-color', '#ffff99');
+                                                                break;
+
+                                                            case 3:
+                                                                newCell.css('background-color', '#d9ffcc');
+                                                                break;
+
+                                                            case 4:
+                                                                newCell.css('background-color', '#cceeff');
+                                                                break;
+
+                                                            case 5:
+                                                                newCell.css('background-color', 'white');
+                                                                break;
+                                                        }
+                                                    }
+                                                }
+                                                newRow.append(newCell);
+                                            }
+                                        }
+                                        popupText += newRow.prop('outerHTML');
+                                    }
+
+                                    popupText += '</table>';
+                                }
+                                else {
+                                    //Tabella nuovo stile
+                                    popupText += '<table id="' + latLngId + '" class="gisPopupTable">';
+
+                                    //Intestazione
+                                    popupText += '<thead>';
+                                    popupText += '<th style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</th>';
+                                    popupText += '<th style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Value</th>';
+                                    popupText += '<th colspan="7" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Buttons</th>';
+                                    popupText += '</thead>';
+
+                                    //Corpo
+                                    popupText += '<tbody>';
+                                    var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn, data7DayBtn,
+                                        data30DayBtn, data6MonthsBtn, data1YearBtn = null;
+                                    for (var i = 0; i < realTimeData.head.vars.length; i++) {
+                                        if(realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== null && realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== undefined) {
+                                            if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]]) && (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined')) {
+                                                if ((realTimeData.head.vars[i] !== 'updating') && (realTimeData.head.vars[i] !== 'measuredTime') && (realTimeData.head.vars[i] !== 'instantTime')) {
+                                                    if (!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available')) {
+                                                        //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                     /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
+                                                            return str.toUpperCase();
+                                                        });*/
+                                                        dataDesc = realTimeData.head.vars[i];
+                                                        dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
+                                                        dataLastBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>value</button></td>';
+                                                        data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
+                                                        dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
+                                                        data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
+                                                        data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
+                                                        data6MonthsBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>6 months</button></td>';
+                                                        data1YearBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>1 year</button></td>';
+                                                        popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + '</tr>';
+                                                    }
+                                                } else {
+                                                    measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
+                                                    var now = new Date();
+                                                    var measuredTimeDate = new Date(measuredTime);
+                                                    rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    popupText += '</tbody>';
+                                    popupText += '</table>';
+                                    popupText += '<p><b>Keep data on target widget(s) after popup close: </b><input data-id="' + latLngId + '" type="checkbox" class="gisPopupKeepDataCheck" data-keepData="false"/></p>';
+                                }
+
+                                hasRealTime = true;
+                            }
+                        }
+
+                        popupText += '</div>';
+                        
+                        if (geoJsonServiceData.hasOwnProperty("BusStop")) {		 
+                            popupText += '<div id="linesof_'+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+'" class="recreativeEventMapDataContainer recreativeEventMapTplContainer">Please wait...</div>';
+                            popupText += '<div id="tmtblof_'+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+'" class="recreativeEventMapDataContainer recreativeEventMapTplTmtblContainer">Please wait...</div>';
+                        }
+                        
+                        newpopup = L.popup({
+                            closeOnClick: false,//Non lo levare, sennò autoclose:false non funziona
+                            autoClose: false,
+                            offset: [15, 0],
+                            //minWidth: 435,
+                            minWidth: 400, 
+                            maxWidth: 1200,
+                        //	className: geoJsonServiceData.hasOwnProperty("BusStop")?"draggableAndResizablePopup":"nonDraggableAndResizablePopup"
+                            className: "draggableAndResizablePopup"
+                        }).setContent(popupText);
+
+                        //$(`#${widgetName}_deck_popup`).html(popupText);
+                        const popupDiv = $(`#${widgetName}_deck_popup`);
+                        const newPopup = $(`<div id="${widgetName}_deck_popup_${popupName}" class="deck-popup"></div>`);
+                        popupDiv.append(newPopup);
+                        newPopup.html(popupText);
+                        const mapEl = $('#map3d');
+
+                        if (info.y + newPopup.height() < mapEl.height())
+                            newPopup.css('top', info.y);
+                        else if (info.y - newPopup.height() < 0)
+                            newPopup.css('top', 0);
+                        else
+                            newPopup.css('top', info.y - newPopup.height());
+
+                        if (info.x + newPopup.width() < mapEl.width())
+                            newPopup.css('left', info.x);
+                        else if (info.x - newPopup.width() < 0)
+                            newPopup.css('left', 0);
+                        else
+                            newPopup.css('left', info.x - newPopup.width());
+
+                        const resizableDivs = newPopup.find('.recreativeEventMapDataContainer');
+                        resizableDivs.css('resize', 'both');
+                        resizableDivs.css('max-width', '750px');
+                        resizableDivs.css('min-width', '400px');
+                        resizableDivs.css('min-height', '100px');
+                        resizableDivs.css('max-height', '320px');
+
+                        const btnClose = $('<button class="deck-close-btn">X</button>');
+                        newPopup.append(btnClose);
+                        btnClose.on('click', function() {
+                            newPopup.remove();
+                        });
+
+                        //const draggableBody = $('#<?= $_REQUEST['name_w'] ?>_deck_popup');
+                        //const draggableElement = $('#<?= $_REQUEST['name_w'] ?>_deck_popup .draggable-popup');
+                        //dragPopup(draggableBody, draggableElement);
+
+                        const draggableElement = newPopup.find('.draggable-popup');
+                        dragPopup(newPopup, draggableElement);
+
+                        // draggable 
+                        var makeDraggable = function(popup, excluding){							  
+                          var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
+                          L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
+                          var draggable = new L.Draggable(popup._container, popup._wrapper);
+                          draggable.enable(); $(".draggableAndResizablePopup").css("cursor","move");					  
+                          draggable.on('dragend', function() {
+                            var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
+                            popup.setLatLng(pos);
+                            $(popup._wrapper).siblings(".leaflet-popup-tip-container").hide();
+                          });
+                          excluding.forEach((excluded) => { 
+                            $(excluded).css("cursor","auto").on("mouseover",function(e){ draggable.disable(); } ).on("mouseout",function(e){ draggable.enable(); } ); 
+                          });
+                        };																
+                    //	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
+                        //if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup .recreativeEventMapDataContainer"]);
+                                                
+                        
+                        //
+                        
+                        // resizable 
+                        $(".draggableAndResizablePopup .leaflet-popup-content-wrapper").css({ 
+                            "resize": "both", 
+                            "overflow": "auto", 
+                            "min-width": "400px", 
+                            "max-width": "1200px",
+                            "min-height": "100px",
+                            "max-height": "400px"
+                        });		
+                        //
+
+                        // responsive			
+                        $(".draggableAndResizablePopup .recreativeEventMapDataContainer").css({ 
+                            "width": "100%",
+                            "height": "100%"
+                        });			
+                        //
+                        
+                        if (geoJsonServiceData.hasOwnProperty("BusStop")) {																
+                            
+                            $.getJSON( '<?=$whatifmdtendpt?>?stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=graphs",function(graphs){
+                                var pAgency = graphs.join();									
+                                var routesMarkup = "<p class=\"tplpoi_routesSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date().toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</p>";									
+                                var progress = { todo: -1, done: -1, bar:0};
+                                $.getJSON( '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&stop='+encodeURIComponent(serviceProperties['serviceUri'])+'&date='+encodeURIComponent(new Date().toISOString().slice(0, 10))+'&list=routes', function(routes) {
+                                    if(Object.keys(routes).length == 0) { $(".recreativeEventMapTplBtn").hide(); return; }
+                                    Object.keys(routes).forEach(function(key){
+                                        var route = routes[key];
+                                        var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&route='+encodeURIComponent(route["uri"])+"&stop="+encodeURIComponent(serviceProperties['serviceUri'])+"&date="+encodeURIComponent(new Date().toISOString().slice(0, 10))+"&list=trips";
+                                        routesMarkup+="<p class=\"tplpoi_wifstprte\"><button class=\"polyin_"+route["uri"].replace(/[^a-zA-Z0-9]/g, "")+"\" data-uri=\""+route["uri"]+"\" data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\">"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</button></p>";
+                                        route["geoms"].forEach(function(path){
+                                            var latlngs = [];
+                                            path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+                                                latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+                                            });
+                                            var polyline = new L.Polyline(latlngs,{className: "tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" polyin_"+route["uri"].replace(/[^a-zA-Z0-9]/g, ""), color:"#"+route["color"], weight:6}).bindTooltip(route["type"]+" " +route["short_name"]+" "+route["long_name"], { direction: 'right' });																						
+                                            polyline.on("mouseover",function(e) {													
+                                                e.target.openTooltip(e.latlng);													
+                                            });
+                                            if("undefined" == typeof tplPoiItems) { tplPoiItems = new L.FeatureGroup(); map.defaultMapRef.addLayer(tplPoiItems); }
+                                            polyline.addTo(tplPoiItems);
+                                        });
+                                        newpopup.on('remove', function() {
+                                            $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide(); // TODO Remove only those related to the specific stop!!
+                                        });
+                                        // qui andiamo a generare tutte le stop raggiungibili direttamente (senza cambi) da quella selezionata																						
+                                        $.getJSON(rteBtnUrl,function(trips){	
+                                            var tripGeoms = [];
+                                            Object.keys(trips).forEach(function(tripkey){													
+                                                if(!tripGeoms.includes(trips[tripkey]["path"])) {														
+                                                    tripGeoms.push(trips[tripkey]["path"]);													
+                                                    $.getJSON('<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(trips[tripkey]["uri"])+"&list=stops",function(stops) {
+                                                        var eventDesc = null;
+                                                        map["eventsOnMap"].forEach(function(mapevt){
+                                                            if(mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+                                                                eventDesc = mapevt["desc"];
+                                                            }																
+                                                        });	
+                                                        if(progress.todo == -1 && stops.length > 0) {
+                                                            progress.todo = stops.length;
+                                                        }
+                                                        else {
+                                                            progress.todo += stops.length;
+                                                        }			
+                                                        stops.forEach(function(stop){															
+                                                            Number.prototype.countDecimals = function () {
+                                                                if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
+                                                                return this.toString().split(".")[1].length || 0; 
+                                                            };
+                                                            for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
+                                                                var layer = gisLayersOnMap[eventDesc].getLayers()[l];																	
+                                                                if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == stop["stop_uri"] ) || 
+                                                                    ( (!layer["feature"]) && layer["_latlng"] && layer["_latlng"]["lat"] && parseFloat(layer["_latlng"]["lat"]) == parseFloat(stop["pos_lat"]).toFixed(parseFloat(layer["_latlng"]["lat"]).countDecimals()) && layer["_latlng"]["lng"] && parseFloat(layer["_latlng"]["lng"]) == parseFloat(stop["pos_lon"]).toFixed(parseFloat(layer["_latlng"]["lng"]).countDecimals())  )){
+                                                                    if(progress.done == -1) progress.done = 1; else progress.done += 1;
+                                                                    if(progress.done > -1 && progress.todo > -1 && progress.bar <= 100*progress.done/progress.todo ) {																			
+                                                                            progress.bar = 100*progress.done/progress.todo;
+                                                                            $(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
+                                                                            $(newpopup._container).find("div.tplProgressBar").show();																			
+                                                                        //console.log(progress);
+                                                                    }
+                                                                    else {
+                                                                        if(progress.bar < 99) {
+                                                                            progress.bar++;
+                                                                            $(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
+                                                                            $(newpopup._container).find("div.tplProgressBar").show();						
+                                                                        }
+                                                                    }
+                                                                    return;															
+                                                                }
+                                                            }
+                                                            $.getJSON("<?=$superServiceMapProxy?>/api/v1?realtime=false&graphUri="+encodeURIComponent(pAgency)+"&serviceUri="+encodeURIComponent(stop["stop_uri"]),function(stopdata){																													
+                                                                var newFeature = stopdata["BusStop"]["features"][0];
+                                                                newFeature["properties"]["color1"] = feature["properties"]["color1"]; 
+                                                                newFeature["properties"]["color2"] = feature["properties"]["color2"]; 
+                                                                newFeature["properties"]["pinattr"] = feature["properties"]["pinattr"]; 
+                                                                newFeature["properties"]["pincolor"] = feature["properties"]["pincolor"]; 
+                                                                newFeature["properties"]["symbolcolor"] = feature["properties"]["symbolcolor"]; 															
+                                                                var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );															
+                                                                newMarker.addTo(gisLayersOnMap[eventDesc]); 	
+                                                                if(progress.done == -1) progress.done = 1; else progress.done += 1;
+                                                                if(progress.done > -1 && progress.todo > -1 && progress.bar < 100*progress.done/progress.todo) {																		
+                                                                        progress.bar = 100*progress.done/progress.todo;
+                                                                        $(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
+                                                                        $(newpopup._container).find("div.tplProgressBar").show();																		
+                                                                }
+                                                                else {
+                                                                    if(progress.bar < 99) {
+                                                                        progress.bar++;
+                                                                        $(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
+                                                                        $(newpopup._container).find("div.tplProgressBar").show();	
+                                                                    }																			
+                                                                }
+                                                            });																				
+                                                        });
+                                                    });				
+                                                }														
+                                            });												
+                                        });
+                                        //
+                                    });	
+                                    if(Object.keys(routes).length === 0 && routes.constructor === Object) routesMarkup += "<p>No routes found for this date.</p>";								
+                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).empty().append($(routesMarkup));
+                                    $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).click(function(){
+                                        var classes = $(this).attr('class').split(/\s+/);
+                                        $.each(classes, function(i, c) {
+                                            if (c.startsWith('polyin_')) {
+                                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
+                                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().siblings('div.recreativeEventMapTplContainer').find("button."+c).click();													
+                                                map.defaultMapRef.panTo(new L.LatLng(event.target.getLatLng().lat, event.target.getLatLng().lng)); 
+                                            }
+                                        });
+                                    });
+                                    
+                                    
+                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_wifstprte button").click(function() {
+                                        var wifstprtebtn = $(this);
+                                        var wifstprtebtnhtml = $(this).html();
+                                        var rteUri = $(this).data("uri");
+                                        $(this).html("Please wait...");										
+                                        var hrRouteTxt=$(this).data("key");										
+                                        lastSelectedRoute = hrRouteTxt;
+                                        
+                                        var bg = $(this).css("background-color");
+                                        var fg = $(this).css("color");
+                                        $.getJSON($(this).data("url"),function(trips){
+                                            $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p").hide();
+                                            wifstprtebtn.html(wifstprtebtnhtml);											
+                                            var affectedTripsMarkup = "";
+                                            var tripsMarkup = "<p class=\"tplpoi_tripsSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date().toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"<br><strong>Route:</strong>&nbsp;"+hrRouteTxt+"</p><div style=\"height:100%; border: medium solid black; padding:0.5em;\" class=\"tplpoi_tripsDivInRoute\"><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0; display:none;\"><strong>Affected Trips:</strong></p><div id=\"tplpoi_affectedtrips\" style=\"display:none;\"></div><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0;\"><strong style=\"display:none;\">All Trips:</strong></p>";
+                                            $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide();
+                                            Object.keys(trips).sort(function(a,b){
+                                                if(trips[a]["start"] > trips[b]["start"]) return 1; else return -1;
+                                            }).forEach(function(tripkey){													
+                                                var trip = trips[tripkey];													
+                                                var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(trip["uri"])+"&list=stops";
+                                                tripsMarkup+="<p class=\"tplpoi_wifstptrp\"><button style=\"text-align:left; width:100%; background-color:"+bg+"; color:"+fg+";\" data-tripkey=\""+tripkey+"\" data-path=\""+trip["path"]+"\" data-url=\""+theTripUrl+"\" data-routeuri=\""+rteUri+"\" data-routebgcolor=\""+trip["route"]["bg_color"]+"\" data-routefgcolor=\""+trip["route"]["fg_color"]+"\" data-routeshortname=\""+trip["route"]["short_name"]+"\" data-routelongname=\""+trip["route"]["long_name"]+"\" data-routetype=\""+trip["route"]["type"]+"\" data-agencyname=\""+trip["route"]["agency"]+"\">"+trip["start"].substring(0,5)+"&nbsp;<span style=\"border:thin solid "+fg+"; padding:0.2em;\">"+(trip["direction"] == "0"?"&rharu;":"&lhard;")+"</span>&nbsp;"+trip["headsign"]+"</button></p>";																																			
+                                                var latlngs = [];
+                                                trip["path"].split("((")[1].split("))")[0].split(",").forEach(function(node){
+                                                    latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+                                                });
+                                                var polyline = new L.Polyline(latlngs,{weight:6, color: wifstprtebtn.css("background-color"),className:"tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" polyof_"+rteUri.replace(/[^a-zA-Z0-9]/g, "")});
+                                                polyline.addTo(tplPoiItems);														
+                                            });
+                                            tripsMarkup+="</div>";
+                                            tripsMarkup+="<p class=\"tplpoi_backToRoutes\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+                                            $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").remove();
+                                            $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").remove();																							
+                                            $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToRoutes").remove();
+                                            $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).append($(tripsMarkup));											
+                                            
+                                            $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToRoutes button").click(function(){
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p").hide();
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").hide();												
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_routesSubHead").show();
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_wifstprte").show();												
+                                                $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).show();
+                                            });											
+                                            
+                                            $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_wifstptrp button").click(function(){
+                                                var wifstptrpbtn = $(this);
+                                                var wifstptrpbtnhtml = $(this).html();												
+                                                var theaffectedstopsMarkup = "";
+                                                var theTripMarkup = "<p class=\"tplpoi_theTripSubhead\" style=\"background-color:black; color:white;  padding:0.5em;\"><strong>Agency:</strong>&nbsp;"+$(this).data("agencyname")+"<br><strong>Route:</strong>&nbsp;"+$(this).data("routetype")+" "+$(this).data("routeshortname")+" "+$(this).data("routelongname")+"<br><strong>Trip:</strong>&nbsp;"+$(this).html().replace("<strong>","").replace("</strong>","")+"</p><div class=\"tplpoi_fullTripData\" style=\"height:100%; border: medium solid black; padding:0.5em;\"><p style=\"margin:0px 0; display:none;\"><strong>Affected Stops:</strong></p><div id=\"tplpoi_affectedstops\" style=\"display:none;\"></div><p style=\"margin:0px 0;\"><strong style=\"display:none;\">All Stops:</strong></p>";
+                                                $(this).html("Please wait...");		
+                                                var bgcolor=$(this).data("routebgcolor");
+                                                var fgcolor=$(this).data("routefgcolor");
+                                                var routetype=$(this).data("routetype");
+                                                var path = $(this).data("path");
+                                                var tripkey = $(this).data("tripkey");	
+                                                var routeUri = $(this).data("routeuri");	 												
+                                                
+                                                $.getJSON($(this).data("url"),function(tripdata){																				
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").hide();
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_wifstptrp").hide();
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToRoutes").hide();
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").hide();
+                                                    wifstptrpbtn.html(wifstptrpbtnhtml);
+                                                    $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide();
+                                                    var latlngs = [];
+                                                    path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+                                                        latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+                                                    });
+                                                    var polyline = new L.Polyline(latlngs,{weight:6, color:"#"+bgcolor,className:"tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")});
+                                                    polyline.addTo(tplPoiItems);													
+                                                    tripdata.forEach(function(oneStop, stopNum){
+                                                        if(serviceProperties['serviceUri'] == oneStop["stop_uri"]) {
+                                                            theTripMarkup+="<button data-serviceuri=\""+oneStop["stop_uri"]+"\" data-lat=\""+oneStop["pos_lat"]+"\" data-lon=\""+oneStop["pos_lon"]+"\" class=\"tplpoi_stopbtn\" style=\"text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+"; font-size:larger; font-weight:bold; \">#"+parseInt(oneStop["sequence"])+" "+oneStop["code"]+" "+oneStop["name"]+"<br>ARR "+(stopNum > 0 ? oneStop["arrival"].substring(0,5) : "--:--")+" DEP "+(stopNum < tripdata.length-1 ? oneStop["departure"].substring(0,5) : "--:--")+"</button>";																												
+                                                        }
+                                                        else {
+                                                            theTripMarkup+="<button data-serviceuri=\""+oneStop["stop_uri"]+"\" data-lat=\""+oneStop["pos_lat"]+"\" data-lon=\""+oneStop["pos_lon"]+"\" class=\"tplpoi_stopbtn\" style=\"text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+";\">#"+parseInt(oneStop["sequence"])+" "+oneStop["code"]+" "+oneStop["name"]+"<br>ARR "+(stopNum > 0 ? oneStop["arrival"].substring(0,5) : "--:--")+" DEP "+(stopNum < tripdata.length-1 ? oneStop["departure"].substring(0,5) : "--:--")+"</button>";																												
+                                                        }
+                                                    });
+                                                    theTripMarkup+="</div>";
+                                                    theTripMarkup+="<p class=\"tplpoi_backToTrips\"><button style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_theTripSubhead").remove();
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_fullTripData").remove();
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToTrips").remove();
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).append($(theTripMarkup));
+                                                    if(theaffectedstopsMarkup == "") {
+                                                        theaffectedstopsMarkup="<p>No stops found.</p>";
+                                                    }													
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToTrips button").click(	
+                                                        function(){
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p").hide();
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_fullTripData").hide();																																								
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").show();
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").show();														
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_wifstptrp").show();
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToRoutes").show();	
+                                                        $(".polyof_"+routeUri.replace(/[^a-zA-Z0-9]/g, "")).show();
+                                                        }
+                                                    );
+                                                    Number.prototype.countDecimals = function () {
+                                                        if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
+                                                        return this.toString().split(".")[1].length || 0; 
+                                                    };
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" button.tplpoi_stopbtn").click(function(){														
+                                                        //console.log("stopbtn");
+                                                        var serviceuri = $(this).data("serviceuri");
+                                                        var lat = $(this).data("lat");
+                                                        var lon = $(this).data("lon");
+                                                        var eventDesc = null;
+                                                        map["eventsOnMap"].forEach(function(mapevt){
+                                                            if(mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+                                                                eventDesc = mapevt["desc"];
+                                                            }																
+                                                        });	
+                                                        /*var doCreate = true;
+                                                        gisLayersOnMap[eventDesc].getLayers().forEach(function(layer){																														
+                                                            if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) || 
+                                                                ( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
+                                                                try { layer.closePopup(); } catch(e) {}
+                                                                layer.fire('click');
+                                                                doCreate=false;																
+                                                            }
+                                                        });		
+                                                        if(!doCreate) return;												*/
+                                                        for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
+                                                            var layer = gisLayersOnMap[eventDesc].getLayers()[l];
+                                                            if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) || 
+                                                                ( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
+                                                                try { layer.closePopup(); } catch(e) {}
+                                                                layer.fire('click');
+                                                                console.log("click");
+                                                                return;															
+                                                            }
+                                                        }
+                                                        $.getJSON("<?=$superServiceMapProxy?>/api/v1?serviceUri="+encodeURIComponent(serviceuri),function(stopdata){																													
+                                                            var newFeature = stopdata["BusStop"]["features"][0];
+                                                            newFeature["properties"]["color1"] = feature["properties"]["color1"]; 
+                                                            newFeature["properties"]["color2"] = feature["properties"]["color2"]; 
+                                                            newFeature["properties"]["pinattr"] = feature["properties"]["pinattr"]; 
+                                                            newFeature["properties"]["pincolor"] = feature["properties"]["pincolor"]; 
+                                                            newFeature["properties"]["symbolcolor"] = feature["properties"]["symbolcolor"]; 															
+                                                            var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );															
+                                                            newMarker.addTo(gisLayersOnMap[eventDesc]); 															
+                                                            newMarker.fire('click');
+                                                        });														
+                                                    });
+                                                });
+                                                
+                                            });
+                                                                                        
+                                        });
+                                        
+                                    });
+                                    
+                                });
+                            });
+                        }
+                        
+                        if (hasRealTime) {
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').show();
+                            $('#<?= $_REQUEST['name_w'] ?>draggableAndResizablePopup_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' span.popupLastUpdate[data-id="' + latLngId + '"]').html(measuredTime);
+                        }
+                        else {
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').hide();
+                        }
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').click(function () {
+                            $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                            $(this).parent().siblings('div.recreativeEventMapDetailsContainer').show();
+                            $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                            $(this).addClass('recreativeEventMapBtnActive');
+                        });
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').click(function () {
+                            $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                            $(this).parent().siblings('div.recreativeEventMapDescContainer').show();
+                            $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                            $(this).addClass('recreativeEventMapBtnActive');
+                        });
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').click(function () {
+                            $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                            $(this).parent().siblings('div.recreativeEventMapContactsContainer').show();
+                            $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                            $(this).addClass('recreativeEventMapBtnActive');
+                        });
+                        
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click(function () {
+                            $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                            $(this).parent().siblings('div.recreativeEventMapTplContainer').show();
+                            $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                            $(this).addClass('recreativeEventMapBtnActive');
+                            if($("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToTrips button").is(":visible")) {
+                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToTrips button").click();
+                            }
+                            if($("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToRoutes button").is(":visible")) {
+                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToRoutes button").click();
+                            }
+                        });
+                        
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').click(function () {                                
+                            //console.log("clicked "+'#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]');
+                            $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                            $(this).parent().siblings('div.recreativeEventMapTplTmtblContainer').show();								
+                            $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                            $(this).addClass('recreativeEventMapBtnActive');
+                            var tmtblBtn = $(this);
+                            var tmtblMarkup = "";
+                            $.getJSON( '<?=$whatifmdtendpt?>?stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=graphs",function(graphs){
+                                var pAgency = graphs.join();
+                                $.getJSON('<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=timetable",function(timetable){			
+                                    //console.log(timetable);
+                                    timetable.forEach(function(entry,rownum){
+                                        //console.log(entry);
+                                        tmtblMarkup+="<p class=\"tplpoi_tmtblrow\"><button data-r=\""+entry["route"].replace(/[^a-zA-Z0-9]/g, "")+"\" data-t=\""+entry["trip"]+"\" data-n=\""+rownum+"\" style=\"width:100%; background-color:#"+entry["bgcolor"]+"; color:#"+entry["fgcolor"]+"\"><p style=\"font-size:larger; font-weight:bold; margin:0px; padding:0px; text-align:left;\">"+(entry["departure"]?entry["departure"]:entry["arrival"]).substring(0,5)+"&nbsp;<span style=\"font-size:larger; border:thin solid #"+entry["fgcolor"]+";\">"+entry["number"]+"</span>&nbsp;"+entry["headsign"]+"</p><p class=\"nextstops\" style=\"margin:0px; padding:0px; font-weight:normal; text-align:left;\"></p></button></p>";
+                                    });		
+                                    if(timetable.length == 0) {
+                                        tmtblMarkup+="<p class=\"tplpoi_tmtblrow\">The timetable is currently not available for this stop.</p>";
+                                    }
+                                    tmtblBtn.parent().siblings('div.recreativeEventMapTplTmtblContainer').empty();
+                                    tmtblBtn.parent().siblings('div.recreativeEventMapTplTmtblContainer').append($(tmtblMarkup));
+                                    timetable.forEach(function(entry,rownum) {
+                                        var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(entry["trip_uri"])+"&list=stops";
+                                        var n = rownum;
+                                        $.getJSON(theTripUrl,function(alltripstops){
+                                            //console.log(alltripstops);
+                                            var span = $("p.tplpoi_tmtblrow button[data-t=\""+entry["trip"]+"\"][data-n=\""+n+"\"] p.nextstops");
+                                            var spanMarkup = "";
+                                            var isNext = false;
+                                            alltripstops.forEach(function(stop){
+                                                if(isNext) {
+                                                    if(-1 == spanMarkup.indexOf(stop["arrival"].substring(0,5)+"&nbsp;"+stop["name"].replaceAll(" ","&nbsp;")+"&nbsp;&bull; ")) {
+                                                        spanMarkup+=stop["arrival"].substring(0,5)+"&nbsp;"+stop["name"].replaceAll(" ","&nbsp;")+"&nbsp;&bull; ";
+                                                    }
+                                                }
+                                                if(stop["stop_uri"] == serviceProperties['serviceUri']) {
+                                                    isNext = true;
+                                                }													
+                                            });
+                                            if(!spanMarkup) {
+                                                spanMarkup+="This is the terminus stop, the trip does not continue further.&nbsp;&bull; ";
+                                            }
+                                            // console.log("Appending "+spanMarkup.substring(0,spanMarkup.length-13));
+                                            span.append(spanMarkup.substring(0,spanMarkup.length-13));												
+                                        });
+                                    });
+                                    $(".tplpoi_tmtblrow button").click(function(){
+                                        //console.log($(this).data("r")); console.log($(this).data("t"));
+                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
+                                        var t = $(this).data("t");
+                                        var observer = new MutationObserver(function(mutations, observer) {											  
+                                          $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().parent().siblings('div.recreativeEventMapTplContainer').find('.tplpoi_tripsDivInRoute .tplpoi_wifstptrp button[data-tripkey="'+t+'"]').click();													
+                                          observer.disconnect();
+                                        });	
+                                        observer.observe($('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().parent().siblings('div.recreativeEventMapTplContainer')[0], {childList: true});
+                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().parent().siblings('div.recreativeEventMapTplContainer').find("button.polyin_"+$(this).data("r")).click();										
+                                    });
+                                });
+                            });								
+                        });
+
+                        if (hasRealTime) {
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
+                        }
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("background", color2);
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("border", "none");
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("color", "black");
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').focus(function () {
+                            $(this).css("outline", "0");
+                        });
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').click(function () {
+                            if ($(this).attr("data-keepData") === "false") {
+                                $(this).attr("data-keepData", "true");
+                            }
+                            else {
+                                $(this).attr("data-keepData", "false");
+                            }
+                        });
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').off('mouseenter');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').off('mouseleave');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn[data-id="' + latLngId + '"]').hover(function () {
+                                if ($(this).attr("data-lastDataClicked") === "false") {
+                                    $(this).css("background", color1);
+                                    $(this).css("background", "-webkit-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                    $(this).css("background", "background: -o-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                    $(this).css("background", "background: -moz-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                    $(this).css("background", "background: linear-gradient(to left, " + color1 + ", " + color2 + ")");
+                                    $(this).css("font-weight", "bold");
+                                }
+
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                var colIndex = $(this).parent().index();
+                                //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
+                                var title = $(this).parents("tr").find("td").eq(0).html();
+
+                                for (var i = 0; i < widgetTargetList.length; i++) {
+                                    $.event.trigger({
+                                        type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        value: $(this).attr("data-lastValue"),
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2"),
+                                        widgetTitle: title
+                                    });
+                                }
+                            },
+                            function () {
+                                if ($(this).attr("data-lastDataClicked") === "false") {
+                                    $(this).css("background", color2);
+                                    $(this).css("font-weight", "normal");
+                                }
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+
+                                for (var i = 0; i < widgetTargetList.length; i++) {
+                                    $.event.trigger({
+                                        type: "mouseOutLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        value: $(this).attr("data-lastValue"),
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2")
+                                    });
+                                }
+                            });
+
+                        //Disabilitiamo i 4Hours se last update più vecchio di 4 ore
+                        if (rtDataAgeSec > 14400) {
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "true");
+                            //Disabilitiamo i 24Hours se last update più vecchio di 24 ore
+                            if (rtDataAgeSec > 86400) {
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "true");
+                                //Disabilitiamo i 7 days se last update più vecchio di 7 days
+                                if (rtDataAgeSec > 604800) {
+                                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "true");
+                                    //Disabilitiamo i 30 days se last update più vecchio di 30 days
+                                    //if(rtDataAgeSec > 18144000)
+                                    if(rtDataAgeSec > 2592000)
+                                    {
+                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "true");
+                                        //Disabilitiamo i 6 months se last update più vecchio di 180 days
+                                        if(rtDataAgeSec > 15552000)
+                                        {
+                                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "true");
+                                            //Disabilitiamo i 1 year se last update più vecchio di 365 days
+                                            if(rtDataAgeSec > 31536000)
+                                            {
+                                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "true");
+                                            }
+                                            else
+                                            {
+                                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
+                                        }
+                                    }
+                                    else {
+                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                                    }
+                                }
+                                else {
+                                    $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpen button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                                }
+                            }
+                            else {
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                            }
+                        }
+                        else {
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
+                        }
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').off('mouseenter');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').off('mouseleave');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"]').hover(function () {
+                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                                else {
+                                    if ($(this).attr("data-timeTrendClicked") === "false") {
+                                        $(this).css("background", color1);
+                                        $(this).css("background", "-webkit-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                        $(this).css("background", "background: -o-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                        $(this).css("background", "background: -moz-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                        $(this).css("background", "background: linear-gradient(to left, " + color1 + ", " + color2 + ")");
+                                        $(this).css("font-weight", "bold");
+                                    }
+
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    //var colIndex = $(this).parent().index();
+                                    //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
+                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2"),
+                                            widgetTitle: title
+                                        });
+                                    }
+                                }
+                            },
+                            function () {
+                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                                else {
+                                    if ($(this).attr("data-timeTrendClicked") === "false") {
+                                        $(this).css("background", color2);
+                                        $(this).css("font-weight", "normal");
+                                    }
+
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2")
+                                        });
+                                    }
+                                }
+                            });
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn[data-id=' + latLngId + ']').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn[data-id=' + latLngId + ']').click(function (event) {
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').each(function (i) {
+                                $(this).css("background", $(this).attr("data-color2"));
+                            });
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').css("font-weight", "normal");
+                            $(this).css("background", $(this).attr("data-color1"));
+                            $(this).css("font-weight", "bold");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').attr("data-lastDataClicked", "false");
+                            $(this).attr("data-lastDataClicked", "true");
+                            var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                            var colIndex = $(this).parent().index();
+                            var title = $(this).parents("tr").find("td").eq(0).html();
+
+                            for (var i = 0; i < widgetTargetList.length; i++) {
+                                $.event.trigger({
+                                    type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                    eventGenerator: $(this),
+                                    targetWidget: widgetTargetList[i],
+                                    value: $(this).attr("data-lastValue"),
+                                    color1: $(this).attr("data-color1"),
+                                    color2: $(this).attr("data-color2"),
+                                    widgetTitle: title,
+                                    field: $(this).attr("data-field"),
+                                    serviceUri: $(this).attr("data-serviceUri"),
+                                    marker: markersCache["" + $(this).attr("data-id") + ""],
+                                    mapRef: map.defaultMapRef,
+                                    fake: $(this).attr("data-fake"),
+                                    fakeId: $(this).attr("data-fakeId")
+                                });
+                            }
+
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                            });
+
+                        });
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').click(function (event) {
+                            if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                $(this).css("background-color", "#e6e6e6");
+                                $(this).off("hover");
+                                $(this).off("click");
+                            }
+                            else {
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').css("background", $(this).attr("data-color2"));
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').css("font-weight", "normal");
+                                $(this).css("background", $(this).attr("data-color1"));
+                                $(this).css("font-weight", "bold");
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                $(this).attr("data-timeTrendClicked", "true");
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                var colIndex = $(this).parent().index();
+                                var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+                                var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
+
+                                var now = new Date();
+                                var lastUpdateDate = new Date(lastUpdateTime);
+                                var diff = parseFloat(Math.abs(now - lastUpdateDate) / 1000);
+                                var range = $(this).attr("data-range");
+
+                                for (var i = 0; i < widgetTargetList.length; i++) {
+                                    $.event.trigger({
+                                        type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        range: range,
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2"),
+                                        widgetTitle: title,
+                                        field: $(this).attr("data-field"),
+                                        serviceUri: $(this).attr("data-serviceUri"),
+                                        marker: markersCache["" + $(this).attr("data-id") + ""],
+                                        mapRef: map.defaultMapRef,
+                                        fake: false
+                                        //fake: $(this).attr("data-fake")
+                                    });
+                                }
+
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                                    if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                        $(this).css("background-color", "#e6e6e6");
+                                        $(this).off("hover");
+                                        $(this).off("click");
+                                    }
+                                });
+                            }
+                        });
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                            if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                $(this).css("background-color", "#e6e6e6");
+                                $(this).off("hover");
+                                $(this).off("click");
+                            }
+                        });
+
+                        map.defaultMapRef.off('popupclose');
+                        map.defaultMapRef.on('popupclose', function (closeEvt) {
+                            var popupContent = $('<div></div>');
+                            popupContent.html(closeEvt.popup._content);
+
+                            if (popupContent.find("button.lastValueBtn").length > 0) {
+                                var widgetTargetList = popupContent.find("button.lastValueBtn").eq(0).attr("data-targetWidgets").split(',');
+
+                                if (($('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn[data-lastDataClicked=true]').length > 0) && ($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false")) {
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "restoreOriginalLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2")
+                                        });
+                                    }
+                                }
+
+                                if (($('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-timeTrendClicked=true]').length > 0) && ($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false")) {
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "restoreOriginalTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i]
+                                        });
+                                    }
+                                }
+                            }
+                        });
+
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' div.leaflet-popup').off('click');
+                      /*  $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').on('click', function () {
+                            var compLatLngId = $(this).find('input[type=hidden]').val();
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').css("z-index", "-1");
+                            $(this).css("z-index", "999999");
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck[data-id="' + compLatLngId + '"]').click(function () {
+                                if ($(this).attr("data-keepData") === "false") {
+                                    $(this).attr("data-keepData", "true");
+                                }
+                                else {
+                                    $(this).attr("data-keepData", "false");
+                                }
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseenter');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseleave');
+                            $(this).find('button.lastValueBtn[data-id="' + compLatLngId + '"]').hover(function () {
+                                    if ($(this).attr("data-lastDataClicked") === "false") {
+                                        $(this).css("background", $(this).attr('data-color1'));
+                                        $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                        $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                        $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                        $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                        $(this).css("font-weight", "bold");
+                                    }
+
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    var colIndex = $(this).parent().index();
+                                    //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
+                                    var title = $(this).parents("tr").find("td").eq(0).html();
+
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2"),
+                                            widgetTitle: title
+                                        });
+                                    }
+                                },
+                                function () {
+                                    if ($(this).attr("data-lastDataClicked") === "false") {
+                                        $(this).css("background", $(this).attr('data-color2'));
+                                        $(this).css("font-weight", "normal");
+                                    }
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "mouseOutLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2")
+                                        });
+                                    }
+                                });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseenter');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseleave');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + compLatLngId + '"]').hover(function () {
+                                    if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                        $(this).css("background-color", "#e6e6e6");
+                                        $(this).off("hover");
+                                        $(this).off("click");
+                                    }
+                                    else {
+                                        if ($(this).attr("data-timeTrendClicked") === "false") {
+                                            $(this).css("background", $(this).attr('data-color1'));
+                                            $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                            $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                            $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                            $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
+                                            $(this).css("font-weight", "bold");
+                                        }
+
+                                        var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                        var colIndex = $(this).parent().index();
+                                        //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
+                                        var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+
+                                        for (var i = 0; i < widgetTargetList.length; i++) {
+                                            $.event.trigger({
+                                                type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                eventGenerator: $(this),
+                                                targetWidget: widgetTargetList[i],
+                                                value: $(this).attr("data-lastValue"),
+                                                color1: $(this).attr("data-color1"),
+                                                color2: $(this).attr("data-color2"),
+                                                widgetTitle: title
+                                            });
+                                        }
+                                    }
+                                },
+                                function () {
+                                    if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                        $(this).css("background-color", "#e6e6e6");
+                                        $(this).off("hover");
+                                        $(this).off("click");
+                                    }
+                                    else {
+                                        if ($(this).attr("data-timeTrendClicked") === "false") {
+                                            $(this).css("background", $(this).attr('data-color2'));
+                                            $(this).css("font-weight", "normal");
+                                        }
+
+                                        var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                        for (var i = 0; i < widgetTargetList.length; i++) {
+                                            $.event.trigger({
+                                                type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                eventGenerator: $(this),
+                                                targetWidget: widgetTargetList[i],
+                                                value: $(this).attr("data-lastValue"),
+                                                color1: $(this).attr("data-color1"),
+                                                color2: $(this).attr("data-color2")
+                                            });
+                                        }
+                                    }
+                                });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').click(function (event) {
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').each(function (i) {
+                                    $(this).css("background", $(this).attr("data-color2"));
+                                });
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').css("font-weight", "normal");
+                                $(this).css("background", $(this).attr("data-color1"));
+                                $(this).css("font-weight", "bold");
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').attr("data-lastDataClicked", "false");
+                                $(this).attr("data-lastDataClicked", "true");
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                var colIndex = $(this).parent().index();
+                                var title = $(this).parents("tr").find("td").eq(0).html();
+
+                                for (var i = 0; i < widgetTargetList.length; i++) {
+                                    $.event.trigger({
+                                        type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        value: $(this).attr("data-lastValue"),
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2"),
+                                        widgetTitle: title,
+                                        marker: markersCache["" + $(this).attr("data-id") + ""],
+                                        mapRef: map.defaultMapRef,
+                                        field: $(this).attr("data-field"),
+                                        serviceUri: $(this).attr("data-serviceUri"),
+                                        fake: $(this).attr("data-fake"),
+                                        fakeId: $(this).attr("data-fakeId")
+                                    });
+                                }
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').click(function (event) {
+                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                                else {
+                                //    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').each(function (i) {
+                                //        $(this).css("background", $(this).attr("data-color2"));
+                                //    });
+                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').css("font-weight", "normal");
+                                    $(this).css("background", $(this).attr("data-color1"));
+                                    $(this).css("font-weight", "bold");
+                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                    $(this).attr("data-timeTrendClicked", "true");
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    var colIndex = $(this).parent().index();
+                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+                                    var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
+
+                                    var now = new Date();
+                                    var lastUpdateDate = new Date(lastUpdateTime);
+                                    var diff = parseFloat(Math.abs(now - lastUpdateDate) / 1000);
+                                    var range = $(this).attr("data-range");
+
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            range: range,
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2"),
+                                            widgetTitle: title,
+                                            field: $(this).attr("data-field"),
+                                            serviceUri: $(this).attr("data-serviceUri"),
+                                            marker: markersCache["" + $(this).attr("data-id") + ""],
+                                            mapRef: map.defaultMapRef,
+                                            fake: $(this).attr("data-fake"),
+                                            fakeId: $(this).attr("data-fakeId")
+                                        });
+                                    }
+                                }
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                            });
+                        }); */
+                    },
+                    error: function (errorData) {
+                        console.log("Error in data retrieval");
+                        console.log(JSON.stringify(errorData));
+                        var serviceProperties = feature.properties;
+
+                        var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                        var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                        var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                        serviceSubclass = serviceSubclass.replace(/_/g, " ");
+
+                        popupText = '<h3 class="gisPopupTitle">' + serviceProperties.name + '</h3>' +
+                            '<p><b>Typology: </b>' + serviceClass + " - " + serviceSubclass + '</p>' +
+                            '<p><i>Data are limited due to an issue in their retrieval</i></p>';
+
+                        event.target.bindPopup(popupText, {
+                            offset: [15, 0],
+                            minWidth: 215,
+                            maxWidth: 600
+                        }).openPopup();
+                    }
+                });
             }
 
             function gisPrepareCustomMarkerFullScreen(feature, latlng) {
@@ -3296,15 +4859,405 @@ if (!isset($_SESSION)) {
                 map.mapDivLocal = mapDivLocal;
                 var latInit = 43.769789;
                 var lngInit = 11.255694;
+                var zoomInit = 14;
+                var pitchInit = 30;
+                var bearingInit = 0;
             //    console.log("Map ZOOM: " + widgetParameters.zoom);
             //    map.defaultMapRef = L.map(mapDivLocal).setView([43.769789, 11.255694], 11);
             //    map.defaultMapRef = L.map(mapDivLocal).setView([43.769789, 11.255694], widgetParameters.zoom);
                 if (widgetParameters.latLng[0] != null && widgetParameters.latLng[0] != '') {
-                        latInit = widgetParameters.latLng[0];
+                    latInit = widgetParameters.latLng[0];
                 }
                 if (widgetParameters.latLng[1] != null && widgetParameters.latLng[1] != '') {
                     lngInit = widgetParameters.latLng[1];
                 }
+                if (widgetParameters.zoom != null && widgetParameters.zoom != '') {
+                    zoomInit = parseFloat(widgetParameters.zoom); 
+                }
+                if (widgetParameters.pitch != null && widgetParameters.pitch != '') {
+                    pitchInit = widgetParameters.pitch; 
+                }
+                if (widgetParameters.bearing != null && widgetParameters.bearing != '') {
+                    bearingInit = widgetParameters.bearing; 
+                }
+                if (widgetParameters.mapType != null && widgetParameters.mapType != '') {
+                    is3dOn = widgetParameters.mapType == '2D' ? false : true;
+                }
+                if (styleParameters != null && styleParameters.buildingColor != null) {
+                    var input = styleParameters.buildingColor;
+                    console.log('input color');
+                    console.log(input);
+                    var rgba = input.replace(/[^\d,.]/g, '').split(',');
+                    for (var i = 0; i < rgba.length; i++)
+                        rgba[i] = parseFloat(rgba[i]);
+                    rgba[3] = parseInt(rgba[3] * 255);
+                    buildingColor = rgba;
+                    console.log('building color');
+                    console.log(buildingColor);
+                }
+                console.log('style parameters');
+                console.log(styleParameters);
+                var defaultTileUrl = 'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png';
+                if (styleParameters != null && styleParameters.defaultOrthomap != null) {
+                    console.log('params');
+                    console.log(widgetParameters);
+                    const menu = widgetParameters.dropdownMenu;
+                    for (var i = 0; i < menu.length; i++) {
+                        if (menu[i].id == styleParameters.defaultOrthomap) {
+                            defaultTileUrl = menu[i].linkUrl.replace('{s}', 'c');
+                            break;
+                        }
+                    }
+                }
+                console.log('tentative to display 3d map');
+                const defaultLayer = createTileLayer(defaultTileUrl);
+                //layers.push(defaultLayer);
+                layers.terrain = defaultLayer;
+
+                var buildingsLayer = [];
+                if (styleParameters != null && styleParameters.buildingType != null) {
+                    switch (styleParameters.buildingType) {
+                        case 'default':
+                            layers.building = [];
+                            const buildingLayer = createBuildingLayer('../widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
+                            layers.building.push(buildingLayer);
+                        break;
+                        case 'mesh':
+                            // change to riccardo building
+                            console.log('loading riccardo building')
+                            selectTickMenuBuilding('building-mesh');
+                            layers.building = [];
+
+                            // scene 1
+                            const data1 = {position: [11.258359909057617,43.779720306396484]};
+                            const scene1 = "../widgets/layers/edificato/edifici6.gltf";
+                            const mesh1 = createMeshLayer(data1, "scene1-layer", scene1);
+
+                            // scene 2
+                            const data2 = {position: [11.257705211639404,43.77654457092285]};
+                            const scene2 = "../widgets/layers/edificato/edifici4.gltf";
+                            const mesh2 = createMeshLayer(data2, "scene2-layer", scene2);
+
+                            // scene 3
+                            const data3 = {position: [11.262419700622559,43.77988052368164]};
+                            const scene3 = "../widgets/layers/edificato/edifici5.gltf";
+                            const mesh3 = createMeshLayer(data3, "scene3-layer", scene3);
+
+                            layers.building.push(mesh1);
+                            layers.building.push(mesh2);
+                            layers.building.push(mesh3);
+
+                        break;
+                        case 'mesh-notext':
+                            console.log('loading riccardo building no texture');
+                            selectTickMenuBuilding('building-mesh-notext');
+                            layers.building = [];
+
+                            const data = {position: [11.251975059509277,43.77428436279297]};
+                            const scene = "../widgets/layers/edificato/centre.glb";
+                            const mesh = createMeshLayer(data, "scene-layer", scene, buildingColor);
+
+                            layers.building.push(mesh);
+                        break;
+                    }
+                } else {
+                    layers.building = [];
+                    const buildingLayer = createBuildingLayer('../widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
+                    layers.building.push(buildingLayer);
+                }
+
+                buildingsLayer = layers.building;
+
+                const height = $("#map3d").height();
+                const width = $("#map3d").width();
+
+                const now = Date.now();
+                var effects = [];
+                if (styleParameters != null && styleParameters.useLighting != null && styleParameters.useLighting == 'yes') {
+                    lightsOn = true;
+                    var inputColor = styleParameters.lightColor;
+                    const rgb = inputColor.replace(/[^\d,.]/g, '').split(',');
+                    for (var i = 0; i < rgb.length; i++)
+                        rgb[i] = parseFloat(rgb[i]);
+
+                    const sunLight = new deck._SunLight({
+                        timestamp: Date.parse(styleParameters.lightTimestamp), 
+                        color: rgb,
+                        intensity: parseInt(styleParameters.lightIntensity),
+                    });
+
+                    const lightEffect = new deck.LightingEffect({sunLight});
+                    effects = [lightEffect];
+
+                    $('#lightTimestamp').css('visibility', 'visible');
+                    $('#lightTimestamp').val(styleParameters.lightTimestamp);
+                    $('.mapOptions').css('top', '67px');
+                } else {
+                    $('#lightTimestamp').val(formatDatetime(Date.now()));
+                    $('#lightTimestamp').css('visibility', 'hidden');
+                    $('.mapOptions').css('top', '36px');
+                }
+                currentViewState = {
+                        altitude: 1.5,
+                        latitude: latInit,
+                        longitude: lngInit,
+                        zoom: zoomInit,
+                        maxZoom: 18,
+                        minZoom: 1,
+                        pitch: pitchInit,
+                        maxPitch: 75,
+                        bearing: bearingInit,
+                        height: height,
+                        width: width,
+                };
+
+                map3d = new deck.DeckGL({
+                    mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
+                    viewState: currentViewState,
+                    controller: true,
+                    container: 'map3d',
+                    effects,
+                    //_animate: true,
+                    layers: [
+                        defaultLayer,
+                        //mapLayer,
+                        //heatmapLayer,
+                        //trafficLayer,
+                        ...buildingsLayer,
+                    ],
+                    onWebGLInitialized: (gl) => map3dGL = gl,
+                    onViewStateChange: ({ viewState }) => {
+                        clearTimeout(updateTimeout);
+                        updateTimeout = setTimeout(function (){
+                            // Put here all update event
+                            //updateTraffic(viewState);
+                            updateSensors(viewState);
+                            // updateCyclingPath(viewState);
+                            //updateLayers();
+                        }, 1000);
+                        map3d.setProps({
+                            viewState: viewState,
+                        });
+                        currentViewState = viewState;
+                        $('#deck-zoom-box').text(parseInt(viewState.zoom));
+                        return viewState;
+                    },
+                    onClick: (info, event) => {
+                        //console.log('deck click');
+                        //if (justClicked)
+                            //justClicked = false;
+                        //else
+                            //$('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'hidden');
+                    },
+                    getCursor: () => cursorType,
+                    getTooltip: ({ object }) => {
+                        if (object == null)
+                            return null;
+                        var displayedText;
+                        if (object.properties.address != null)
+                            displayedText = object.properties.address;
+                        else
+                            displayedText = object.properties.name;
+                        return object && {
+                            html: `<p class="hoverName">${displayedText}</p>`,
+                        };
+                    },
+                    //getTooltip: ({ object }) => object && {
+                        //html: `<p class="hoverName">${object.properties.name}</p>`,
+                    //},
+                    onDragEnd: ({ viewport }) => {
+                        cursorType = 'grab';
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'visible');
+                    },
+                    onDragStart: ({ viewport }) => {
+                        manuallyControlled = false;
+                        cursorType = 'grabbing';
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'hidden');
+                    },
+                });
+                //return;
+
+                //Hiding the 2d maps
+                //$(`#${mapDivLocal}`).css('visibility', 'hidden');
+                $('#map3d').css('z-index', 420);
+
+                $('#deck-pitch-up').on('click', function (event) {
+                    if (!manuallyControlled) {
+                        map3d.setProps({
+                            viewState: {...currentViewState},
+                        });
+                        manuallyControlled = true;
+                    }
+                    if (currentViewState.pitch + 5 >= 75)
+                        currentViewState.pitch = 75;
+                    else
+                        currentViewState.pitch += 5;
+                    map3d.setProps({
+                        viewState: {...currentViewState},
+                    });
+                });
+
+                $('#deck-pitch-down').on('click', function (event) {
+                    if (!manuallyControlled) {
+                        map3d.setProps({
+                            viewState: {...currentViewState},
+                        });
+                        manuallyControlled = true;
+                    }
+                    if (currentViewState.pitch - 5 <= 0)
+                        currentViewState.pitch = 0;
+                    else
+                        currentViewState.pitch -= 5;
+                    map3d.setProps({
+                        viewState: {...currentViewState},
+                    });
+                });
+
+                $('#deck-bear-up').on('click', function (event) {
+                    if (!manuallyControlled) {
+                        map3d.setProps({
+                            viewState: {...currentViewState},
+                        });
+                        manuallyControlled = true;
+                    }
+                    currentViewState.bearing += 5;
+                    map3d.setProps({
+                        viewState: {...currentViewState},
+                    });
+                });
+
+                $('#deck-bear-down').on('click', function (event) {
+                    if (!manuallyControlled) {
+                        map3d.setProps({
+                            viewState: {...currentViewState},
+                        });
+                        manuallyControlled = true;
+                    }
+                    currentViewState.bearing -= 5;
+                    map3d.setProps({
+                        viewState: {...currentViewState},
+                    });
+                });
+
+                $('#deck-zoom-up').on('click', function (event) {
+                    if (!manuallyControlled) {
+                        map3d.setProps({
+                            viewState: {...currentViewState},
+                        });
+                        manuallyControlled = true;
+                    }
+                    if (currentViewState.zoom + 1 >= 18)
+                        currentViewState.zoom = 18;
+                    else
+                        currentViewState.zoom += 1;
+                    map3d.setProps({
+                        viewState: {...currentViewState},
+                    });
+                    $('#deck-zoom-box').text(parseInt(currentViewState.zoom));
+                });
+
+                $('#deck-zoom-down').on('click', function (event) {
+                    if (!manuallyControlled) {
+                        map3d.setProps({
+                            viewState: {...currentViewState},
+                        });
+                        manuallyControlled = true;
+                    }
+                    if (currentViewState.zoom - 1 <= 1)
+                        currentViewState.zoom = 1;
+                    else
+                        currentViewState.zoom -= 1;
+                    map3d.setProps({
+                        viewState: {...currentViewState},
+                    });
+                    $('#deck-zoom-box').text(parseInt(currentViewState.zoom));
+                });
+                
+                $('#deck-light-btn').on('click', function() {
+                    lightsOn = !lightsOn;
+                    reloadLight();
+                    if (lightsOn) {
+                        $('#lightTimestamp').css('visibility', 'visible');
+                        $('.mapOptions').css('top', '67px');
+                    }
+                    else {
+                        $('#lightTimestamp').css('visibility', 'hidden');
+                        $('.mapOptions').css('top', '36px');
+                    }
+                });
+                $('#lightTimestamp').on('input', function() {
+                    reloadLight();
+                })
+
+                $('#2DButton').click(function(event) {
+                    is3dOn = false;
+                    $('#map3d').css('visibility', 'hidden');
+                });
+                
+                $('#3DButton').click(function(event) {
+                    is3dOn = true;
+                    $('#map3d').css('visibility', 'visible');
+                });
+
+                $('#no-building').click(function(event) {
+                    selectTickMenuBuilding('no-building');
+                    layers.building = [];
+                    updateLayers();
+                });
+
+                $('#building-light').click(function(event) {
+                    //change to corti building
+                    console.log('loading corti building')
+                    selectTickMenuBuilding('building-light');
+                    layers.building = [];
+                    const buildingLayer = createBuildingLayer('../widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
+                    layers.building.push(buildingLayer);
+                    updateLayers();
+                });
+                $('#building-mesh').click(function(event) {
+                    // change to riccardo building
+                    console.log('loading riccardo building')
+                    selectTickMenuBuilding('building-mesh');
+                    layers.building = [];
+
+                    // scene 1
+                    const data1 = {position: [11.258359909057617,43.779720306396484]};
+                    const scene1 = "../widgets/layers/edificato/edifici6.gltf";
+                    const mesh1 = createMeshLayer(data1, "scene1-layer", scene1);
+
+                    // scene 2
+                    const data2 = {position: [11.257705211639404,43.77654457092285]};
+                    const scene2 = "../widgets/layers/edificato/edifici4.gltf";
+                    const mesh2 = createMeshLayer(data2, "scene2-layer", scene2);
+
+                    // scene 3
+                    const data3 = {position: [11.262419700622559,43.77988052368164]};
+                    const scene3 = "../widgets/layers/edificato/edifici5.gltf";
+                    const mesh3 = createMeshLayer(data3, "scene3-layer", scene3);
+
+                    layers.building.push(mesh1);
+                    layers.building.push(mesh2);
+                    layers.building.push(mesh3);
+
+                    updateLayers();
+                });
+                $('#building-mesh-notext').click(function(event) {
+                    console.log('loading riccardo building no texture');
+                    selectTickMenuBuilding('building-mesh-notext');
+                    layers.building = [];
+
+                    const data = {position: [11.251975059509277,43.77428436279297]};
+                    const scene = "../widgets/layers/edificato/centre.glb";
+                    const mesh = createMeshLayer(data, "scene-layer", scene, buildingColor);
+
+                    layers.building.push(mesh);
+                    updateLayers();
+                });
+
+                if (!is3dOn) {
+                    $('#map3d').css('visibility', 'hidden');
+                }
+
                 map.defaultMapRef = L.map(mapDivLocal).setView([latInit, lngInit], widgetParameters.zoom);
                 map.eventsOnMap = eventsOnMap;
 
@@ -4619,6 +6572,7 @@ if (!isset($_SESSION)) {
                             var passedData = event.passedData;
 
                             var mapBounds = map.defaultMapRef.getBounds();
+                            var mapBounds3d = getMaxBoundingBox(currentViewState);
                             var query = passedData.query;
                             var targets = passedData.targets;
                             var eventGenerator = passedData.eventGenerator;
@@ -4718,10 +6672,16 @@ if (!isset($_SESSION)) {
                                 } else {
                                     if (pattern.test(passedData.query)) {
                                         //console.log("Service Map selection substitution");
-                                        query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                        if (is3dOn) 
+                                            query = passedData.query.replace(pattern, "selection=" + mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0]);
+                                        else
+                                            query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
                                     } else {
                                         //console.log("Service Map selection addition");
-                                        query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                        if (is3dOn)
+                                            query = passedData.query + "&selection=" + mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0];
+                                        else
+                                            query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                     }
                                     query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
                                 }
@@ -4776,10 +6736,6 @@ if (!isset($_SESSION)) {
                                 }
                             }
 
-                            if (passedData.query.includes("&model=")) {
-                                apiUrl = apiUrl + "&model=" + passedData.desc;
-                            } 
-
                             $.ajax({
                             //    url: query + "&geometry=true&fullCount=false",
                                 url: apiUrl,
@@ -4792,7 +6748,6 @@ if (!isset($_SESSION)) {
                                 dataType: 'json',
                                 success: function (geoJsonData) {
                                     var fatherGeoJsonNode = {};
-
                                 /*    if (queryType === "Default") {
                                         if (geoJsonData.hasOwnProperty("BusStops")) {
                                             fatherGeoJsonNode = geoJsonData.BusStops;
@@ -4918,6 +6873,29 @@ if (!isset($_SESSION)) {
                                         }
                                     }
 
+                                    if (is3dOn && (display == "undefined" || display.includes('pins')) && fatherGeoJsonNode.features.length != 0) {
+                                        for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
+                                            gisPrepareCustomMarker(fatherGeoJsonNode.features[i], []);
+                                        } 
+
+                                        const otherProps = {
+                                            apiUrl: this.url,
+                                            targets,
+                                            color1,
+                                            color2,
+                                            pinattr: passedData.pinattr,
+                                            pincolor: passedData.pincolor,
+                                            symbolcolor: passedData.symbolcolor,
+                                            iconFilePath: passedData.iconFilePath,
+                                        };
+                                        
+                                        apiUrls3D[`${passedData.desc}`] = otherProps;
+
+                                        const sensorLayer = createSensorLayer(fatherGeoJsonNode.features, passedData.desc, otherProps);
+
+                                        layers.pin.push(sensorLayer);
+                                        updateLayers();
+                                    }
 
                                     for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
 
@@ -4950,7 +6928,7 @@ if (!isset($_SESSION)) {
 
                                     map.eventsOnMap.push(dataObj);
 
-                                    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
+                                    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries') && !is3dOn) {
                                         gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
                                             pointToLayer: gisPrepareCustomMarker,
                                             onEachFeature: onEachFeatureSpiderify
@@ -5036,6 +7014,24 @@ if (!isset($_SESSION)) {
                                                                         geometry: wkt.toJson()
                                                                     }
                                                                 ];
+
+                                                                if (is3dOn) {
+                                                                    const cyclingData = [];
+                                                                    const index = getLayerIndexSet(passedData.desc, layers.cycling);
+                                                                    if (index != -1) 
+                                                                        cyclingData.push(...layers.cycling[index].props.data);
+                                                                    cyclingData.push(...ciclePathFeature);
+
+                                                                    const cyclingLayer = createPathLayer(cyclingData, passedData.desc);
+                                                                    if (index != -1) {
+                                                                        layers.cycling[index] = null;
+                                                                        updateLayers();
+                                                                        layers.cycling[index] = cyclingLayer;
+                                                                    } 
+                                                                    else
+                                                                        layers.cycling.push(cyclingLayer);
+                                                                    updateLayers();
+                                                                }
 
                                                                 if (!gisGeometryLayersOnMap.hasOwnProperty(desc)) {
                                                                     gisGeometryLayersOnMap[desc] = [];
@@ -7109,6 +9105,15 @@ if (!isset($_SESSION)) {
                         var ne = map.defaultMapRef.getBounds()._northEast;
                         var zm = map.defaultMapRef.getZoom();
 
+                        if (is3dOn) {
+                            const maxBB = getMaxBoundingBox(currentViewState);
+                            ne.lat = maxBB[1][1];
+                            so.lat = maxBB[0][1];
+                            ne.lng = maxBB[1][0];
+                            so.lng = maxBB[0][0];
+                            zm = parseInt(currentViewState.zoom);
+                        }
+
                         var roadsJson = event.passedData + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat + "&eLong=" + ne.lng + "&zoom=" + zm;
 
                         function addTrafficRTDetailsToMap() {
@@ -7119,7 +9124,6 @@ if (!isset($_SESSION)) {
                             event.maxLng = ne.lng;
                             event.minLng = so.lng;
                             event.zm = zm;
-
 
                             var myMarker = new L.LayerGroup();
 
@@ -7183,7 +9187,7 @@ if (!isset($_SESSION)) {
                                     success: function (_roads) {
                                         roads = JSON.parse(JSON.stringify(_roads));
 
-                                        loadDensity();
+                                        loadDensity(_roads);
                                     },
                                     error: function (err) {
                                         console.log(err);
@@ -7192,7 +9196,7 @@ if (!isset($_SESSION)) {
                                 });
                             }
 
-                            function loadDensity() {
+                            function loadDensity(roads) {
                                 $.ajax({
                                 //    url: "http://localhost/dashboardSmartCity/trafficRTDetails/density/read.php" + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat + "&eLong=" + ne.lng + "&zoom=" + zm,
                                     url: "https://firenzetraffic.km4city.org/trafficRTDetails/density/read.php" + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat + "&eLong=" + ne.lng + "&zoom=" + zm,
@@ -7201,6 +9205,31 @@ if (!isset($_SESSION)) {
                                     cache: false,
                                     dataType: 'json',
                                     success: function (_density) {
+
+                                        if (is3dOn) {
+                                            var result = _density;
+                                            // Removing first null object
+                                            if (roads[0].road == null)
+                                                roads = roads.slice(1);
+
+                                            // For all roads
+                                            for (var i = 0; i < roads.length; i++) {
+                                                var road = roads[i];
+                                                var density = result[road.road];
+                                                // for all segments
+                                                for (var j = 0; j < road.segments.length; j++) {
+                                                    var segment = road.segments[j];
+                                                    var segmentDensity = density.data[0][segment.id];
+                                                    segment.density = segmentDensity;
+                                                    segment.color = getOldDensityColor(segment);
+                                                }
+                                            }
+
+                                            const lineLayer = createLineLayer(roads, "traffic-line-layer");
+                                            layers.traffic.push(lineLayer);
+                                            updateLayers();
+                                        }
+
                                         density = JSON.parse(JSON.stringify(_density));
 
                                         for (var i = 0; i < roads.length; i++) {
@@ -7419,29 +9448,27 @@ if (!isset($_SESSION)) {
                                 }
                             });
 
-                            if (colorScale && colorScale.length > 0) {
-                                var minVal = colorScale[0].min;
-                                if (minVal === null || minVal === undefined) {
-                                    minVal = heatmapRangeObject[0].range1Inf;
-                                }
-
-                                var maxVal = colorScale[colorScale.length - 1].min;
-                                if (maxVal === null || maxVal === undefined) {
-                                    maxVal = heatmapRangeObject[0].range10Inf;
-                                }
-                                colorGradient[0] = 0;
-                                colorGradient[colorScale.length - 1] = 1;
-                                gradientString = '{ "' + colorGradient[0] + '": "#' + fullColorHex(colorScale[0].rgb.substring(1, colorScale[0].rgb.length - 1)) + '", ';
-                                for (let k1 = 1; k1 < colorScale.length - 1; k1++) {
-                                    colorGradient[k1] = (colorScale[k1].min - minVal) / (maxVal - minVal);
-                                    gradientString = gradientString + '"' + colorGradient[k1] + '": "#' + fullColorHex(colorScale[k1].rgb.substring(1, colorScale[k1].rgb.length - 1)) + '", ';
-                                }
-                                gradientString = gradientString + '"' + colorGradient[colorScale.length - 1] + '": "#' + fullColorHex(colorScale[colorScale.length - 1].rgb.substring(1, colorScale[colorScale.length - 1].rgb.length - 1)) + '"}';
-                                map.cfg.gradient = JSON.parse(gradientString);
-                                map.heatmapLayer = new HeatmapOverlay(map.cfg);
-                                //map.heatmapLayer.zIndex = 20;
-                                //  map.legendHeatmap = L.control({position: 'topright'});
+                            var minVal = colorScale[0].min;
+                            if (minVal === null || minVal === undefined) {
+                                minVal = heatmapRangeObject[0].range1Inf;
                             }
+
+                            var maxVal = colorScale[colorScale.length-1].min;
+                            if (maxVal === null || maxVal === undefined) {
+                                maxVal = heatmapRangeObject[0].range10Inf;
+                            }
+                            colorGradient[0] = 0;
+                            colorGradient[colorScale.length-1] = 1;
+                            gradientString = '{ "' + colorGradient[0] + '": "#' + fullColorHex(colorScale[0].rgb.substring(1, colorScale[0].rgb.length-1)) + '", ';
+                            for (let k1 = 1; k1 < colorScale.length-1; k1++) {
+                                colorGradient[k1] = (colorScale[k1].min - minVal) / (maxVal - minVal);
+                                gradientString = gradientString + '"' + colorGradient[k1] + '": "#' + fullColorHex(colorScale[k1].rgb.substring(1, colorScale[k1].rgb.length-1)) + '", ';
+                            }
+                            gradientString = gradientString + '"' + colorGradient[colorScale.length-1] + '": "#' + fullColorHex(colorScale[colorScale.length-1].rgb.substring(1, colorScale[colorScale.length-1].rgb.length-1)) + '"}';
+                            map.cfg.gradient = JSON.parse(gradientString);
+                            map.heatmapLayer = new HeatmapOverlay(map.cfg);
+                            //map.heatmapLayer.zIndex = 20;
+                            //  map.legendHeatmap = L.control({position: 'topright'});
                         }
 
                         if(!map.legendHeatmap) {
@@ -7484,6 +9511,9 @@ if (!isset($_SESSION)) {
 
 	                    	if (heatmapData[current_page].metadata != null) {
 	                        	heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
+                                if (is3dOn) {
+                                    
+                                }
 	                    	} else {
 	                                heatmapDescr.firstChild.wholeText = heatmapData[current_page].dateTime;
 	                    	}
@@ -7636,8 +9666,14 @@ if (!isset($_SESSION)) {
                                 if (resetPageFlag == true) {
                                     current_page = 0;
                                 }
-                                map.defaultMapRef.removeLayer(wmsLayer);
+                                if (wmsLayer != null)
+                                    map.defaultMapRef.removeLayer(wmsLayer);
                                 map.defaultMapRef.removeControl(map.legendHeatmap);
+
+                                if (is3dOn) {
+                                    layers.wms = null;
+                                    updateLayers();
+                                }
                             }
                         }
 
@@ -7669,7 +9705,12 @@ if (!isset($_SESSION)) {
                                     current_page = 0;
                                 }
                                 map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
-                                map.defaultMapRef.removeLayer(wmsLayer);
+                                if (wmsLayer != null)
+                                    map.defaultMapRef.removeLayer(wmsLayer);
+
+                                //if (is3dOn) {
+                                    //removeLayerSet(wmsDatasetName, layers.wms);
+                                //}
                             }
                         }
 
@@ -7804,7 +9845,29 @@ if (!isset($_SESSION)) {
                                 }
 
                                 //document.getElementById("<?= $_REQUEST['name_w'] ?>_downSlider_opacity").addEventListener("click", function(){ downSlider('maxOpacity', 0.1, 2, 0)}, false);
-                                document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").addEventListener("input", function(){ setOption('maxOpacity', this.value, 2)}, false);
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").addEventListener("input", function(){ 
+                                    setOption('maxOpacity', this.value, 2);
+                                    console.log("triggered opacity");
+                                    //deckgl
+                                    if (is3dOn) {
+                                        const opacity = parseFloat(this.value);
+                                        const oldProps = layers.wms.props;
+                                        if (gifWms.isAnimated == true) {
+                                            gifWms.opacity = opacity;
+                                            const id = oldProps.id;
+                                            const image = oldProps.image;
+                                            const bounds = oldProps.bounds;
+                                            layers.wms = createImageLayer(image, bounds, id, opacity);
+                                        } else {
+                                            const datasetName = oldProps.id;
+                                            const wmsUrl = oldProps.wmsUrl;
+                                            const tileSize = oldProps.tileSize;
+                                            const heatmapLayer = createHeatmapLayer(wmsUrl, datasetName, "heatmap", tileSize, opacity);
+                                            layers.wms = heatmapLayer;
+                                        }
+                                        updateLayers();
+                                    }
+                                }, false);
                                 //document.getElementById("<?= $_REQUEST['name_w'] ?>_rangemaxOpacity").addEventListener("click", function(){ upSlider('maxOpacity', 0.01, 2, 0.8)}, false);
 
                                 if (!baseQuery.includes("heatmap.php")) {
@@ -7897,7 +9960,27 @@ if (!isset($_SESSION)) {
                             '</div>';
 
                         function checkLegend() {
-                            document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxTrafficOpacity").addEventListener("input", function(){ setOption('maxTrafficOpacity', this.value, 2)}, false);
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxTrafficOpacity").addEventListener("input", function(){ 
+                                setOption('maxTrafficOpacity', this.value, 2);
+                                if (is3dOn) {
+                                    const opacity = parseFloat(this.value);
+                                    const oldProps = layers.trafficWms.props;
+                                    if (gifWmsTraffic.isAnimated == true) {
+                                        gifWmsTraffic.opacity = opacity;
+                                        const id = oldProps.id;
+                                        const image = oldProps.image;
+                                        const bounds = oldProps.bounds;
+                                        layers.trafficWms = createImageLayer(image, bounds, id, opacity);
+                                    } else {
+                                        const datasetName = oldProps.id;
+                                        const wmsUrl = oldProps.wmsUrl;
+                                        const tileSize = oldProps.tileSize;
+                                        const trafficLayer = createHeatmapLayer(wmsUrl, datasetName, "traffic", tileSize, opacity);
+                                        layers.trafficWms = trafficLayer;
+                                    }
+                                    updateLayers();
+                                }
+                            }, false);
                             document.getElementById("<?= $_REQUEST['name_w'] ?>_animation_traffic").addEventListener("click", function () { animateTrafficHeatmap()}, false);
                             document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt_traffic").addEventListener("click", function(){ prevTrafficHeatmapPage()}, false);
                             document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt_traffic").addEventListener("click", function(){ nextTrafficHeatmapPage()}, false);
@@ -7930,38 +10013,52 @@ if (!isset($_SESSION)) {
                     }
 
                     function nextTrafficHeatmapPage() {
-                        if (animationFlagTraffic) {
-                            return;
-                        }
+                        const wasAnimated = animationFlagTraffic;
                         animationFlagTraffic = false;
                         if (current_page_traffic > 0) {
                             current_page_traffic--;
                             changeTrafficHeatmapPage(current_page_traffic);
                             for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+                                if (wasAnimated == true && map.eventsOnMap[i].type == "addHeatmap") {
+                                    map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
+                                    map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
+                                    map.eventsOnMap.splice(i, 1);
+                                } else if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
                                     event = map.eventsOnMap[i + 1]; // aggiorna evento corretto in caso di più heatmap presenti sulla mappa
                                     removeTrafficHeatmap(i, false)
                                     break;
                                 }
+                            }
+                            if (is3dOn) {
+                                gifWmsTraffic.isAniamted = false;
+                                layers.trafficWms = null;
+                                updateLayers();
                             }
                             addHeatmapFromClient(false);
                         }
                     }
 
                     function prevTrafficHeatmapPage() {
-                        if (animationFlagTraffic) {
-                            return;
-                        }
+                        const wasAnimated = animationFlagTraffic;
                         animationFlagTraffic = false;
                         if (current_page_traffic < numTrafficHeatmapPages() - 1) {
                             current_page_traffic++;
                             changeTrafficHeatmapPage(current_page_traffic);
                             for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+                                if (wasAnimated == true && map.eventsOnMap[i].type == "addHeatmap") {
+                                    map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
+                                    map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
+                                    map.eventsOnMap.splice(i, 1);
+                                } else if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
                                     event = map.eventsOnMap[i + 1] // aggiorna evento corretto in caso di più heatmap presenti sulla mappa
                                     removeTrafficHeatmap(i, false)
                                     break;
                                 }
+                            }
+                            if (is3dOn) {
+                                gifWmsTraffic.isAniamted = false;
+                                layers.trafficWms = null;
+                                updateLayers();
                             }
                             addHeatmapFromClient(false);
                         }
@@ -8585,6 +10682,18 @@ if (!isset($_SESSION)) {
                                            pane: 'TrafficFlowManager:' + datasetName
                                        }).addTo(map.defaultMapRef);
 
+                                       if (is3dOn) {
+                                            var trafficWmsUrl = geoServerUrl + "geoserver/wms";
+                                            trafficWmsUrl += "?service=WMS&request=GetMap&layers=" + trafficData[0].layerName;
+                                            trafficWmsUrl += "&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A4326";
+
+                                            const trafficLayer = createHeatmapLayer(trafficWmsUrl, datasetName, "traffic", 256, 1);
+                                            layers.trafficWms = null;
+                                            updateLayers();
+                                            layers.trafficWms = trafficLayer;
+                                            updateLayers();
+                                       }
+
                                        // Add Legend
                                        map.trafficLegendHeatmap.addTo(map.defaultMapRef);
                                        map.eventsOnMap.push(heatmap);
@@ -8727,18 +10836,41 @@ if (!isset($_SESSION)) {
                                                     var timestamp = map.testMetadata.metadata.date;
                                                     var timestampISO = timestamp.replace(" ", "T") + ".000Z";
                                                 //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
-                                                    wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
-                                                        layers: 'Snap4City:' + wmsDatasetName,
-                                                        format: 'image/png',
-                                                        crs: L.CRS.EPSG4326,
-                                                        transparent: true,
-                                                        opacity: current_opacity,
-                                                        time: timestampISO,
-                                                        //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
-                                                        tiled: true,   // TESTARE COME ANTWERP ??
-                                                                //  attribution: "IGN ©"
-                                                        pane: 'Snap4City:' + wmsDatasetName	// CORTI
-                                                    }).addTo(map.defaultMapRef);
+                                                    if (is3dOn) {
+                                                        var wmsUrl = geoServerUrl + "geoserver/Snap4City/wms?"
+                                                        wmsUrl += "service=WMS&request=GetMap&layers=Snap4City%3A" + wmsDatasetName;
+                                                        wmsUrl += "&styles=&format=image%2Fpng&transparent=true&version=1.1.1";
+                                                        wmsUrl += "&time=" + timestampISO;
+                                                        wmsUrl += "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
+
+                                                        if (wmsDatasetName.includes("elevationTerrain=true")) {
+                                                            // aggiunta terrain layers
+                                                            const oldData = layers.terrain.props.data;
+                                                            const terrainLayer = createTerrainTileLayer(wmsUrl, oldData, "elevation-terrain-layer");
+                                                            layers.terrain = terrainLayer;
+                                                        } else {
+                                                            const heatmapLayer = createHeatmapLayer(wmsUrl, wmsDatasetName);
+                                                            //const heatmapLayer = createHeatmapLayer(wmsUrl, "heatmap-layer");
+                                                            layers.wms = null;
+                                                            updateLayers();
+                                                            layers.wms = heatmapLayer;
+                                                        }
+                                                        updateLayers();
+                                                        //$("#heatmapLegend").css("visibility", "visible");
+                                                    }
+                                                    else
+                                                        wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
+                                                            layers: 'Snap4City:' + wmsDatasetName,
+                                                            format: 'image/png',
+                                                            crs: L.CRS.EPSG4326,
+                                                            transparent: true,
+                                                            opacity: current_opacity,
+                                                            time: timestampISO,
+                                                            //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
+                                                            tiled: true,   // TESTARE COME ANTWERP ??
+                                                                    //  attribution: "IGN ©"
+                                                            pane: 'Snap4City:' + wmsDatasetName	// CORTI
+                                                        }).addTo(map.defaultMapRef);
                         
                                                     //    current_opacity = 0.5;
 
@@ -8916,10 +11048,18 @@ if (!isset($_SESSION)) {
                             var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
                             loadingText.css("margin-top", parMarginTop + "px");
 
-                            let latitude_min = map.defaultMapRef.getBounds()._southWest.lat;
-                            let latitude_max = map.defaultMapRef.getBounds()._northEast.lat;
-                            let longitude_min = map.defaultMapRef.getBounds()._southWest.lng;
-                            let longitude_max = map.defaultMapRef.getBounds()._northEast.lng;
+                            var latitude_min = map.defaultMapRef.getBounds()._southWest.lat;
+                            var latitude_max = map.defaultMapRef.getBounds()._northEast.lat;
+                            var longitude_min = map.defaultMapRef.getBounds()._southWest.lng;
+                            var longitude_max = map.defaultMapRef.getBounds()._northEast.lng;
+
+                            if (is3dOn) {
+                                const maxBB = getMaxBoundingBox(currentViewState);
+                                latitude_min = maxBB[0][1];
+                                latitude_max = maxBB[1][1];
+                                longitude_min = maxBB[0][0];
+                                longitude_max = maxBB[1][0];
+                            }
 			                // INIZIO TRAFFICFLOWMANAGER PAGINE/ANIMAZIONE
                             if (event.passedData.includes(geoServerUrl) && event.passedData.includes("trafficflowmanager=true")) {
 
@@ -8938,6 +11078,18 @@ if (!isset($_SESSION)) {
                                         trafficMapDate = timestamp.replace('T', ' ');
 
                                         // Add correct layer to the map
+                                        if (is3dOn) {
+                                            gifWmsTraffic.isAnimated = false;
+                                            var trafficWmsUrl = geoServerUrl + "geoserver/wms";
+                                            trafficWmsUrl += "?service=WMS&request=GetMap&layers=" + trafficData[current_page_traffic].layerName;
+                                            trafficWmsUrl += "&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A4326";
+
+                                            const trafficLayer = createHeatmapLayer(trafficWmsUrl, datasetName, "traffic", 256, 1);
+                                            layers.trafficWms = null;
+                                            updateLayers();
+                                            layers.trafficWms = trafficLayer;
+                                            updateLayers();
+                                        }
                                         trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
                                             layers: trafficData[current_page_traffic].layerName,
                                             format: 'image/png',
@@ -8947,9 +11099,10 @@ if (!isset($_SESSION)) {
                                             pane: 'TrafficFlowManager:' + datasetName
                                         }).addTo(map.defaultMapRef);
 
+                                        map.eventsOnMap.push(heatmap);
+
                                         // Add legend and heatmap
                                         map.trafficLegendHeatmap.addTo(map.defaultMapRef);
-                                        map.eventsOnMap.push(heatmap);
 
                                     } else {
 
@@ -9006,16 +11159,21 @@ if (!isset($_SESSION)) {
                                      //   const imageUrl = geoServerUrl + 'geoserver/wms/animate?layers=' + trafficData[current_page_traffic].layerName + '&aparam=layers&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true&bbox=' + bbox;
                                         const imageUrl = geoServerUrl + 'geoserver/wms/animate?layers=' + trafficData[current_page_traffic].layerName + '&aparam=layers&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:1000&transparent=true&bbox=' + bbox + '&width=' + animationWidth;
                                         const imageBounds = [[latitude_min, longitude_min], [latitude_max, longitude_max]];
+                                        if (is3dOn) {
+                                            const bounds = [longitude_min, latitude_min, longitude_max, latitude_max];
+                                            loadGif(imageUrl, bounds, "traffic");
+                                        }
+
                                         const animatedLayer = L.imageOverlay(imageUrl, imageBounds, {
                                             opacity: current_traffic_opacity,
                                             pane: 'TrafficFlowManager:' + datasetName
                                         }).addTo(map.defaultMapRef);
+                                        map.eventsOnMap.push(animatedLayer);
 
                                         // Add legend (w/ correct options) and animated layer to the maps
                                         map.trafficLegendHeatmap.addTo(map.defaultMapRef);
                                         document.getElementById("<?= $_REQUEST['name_w'] ?>_animation_traffic").checked = true;
                                         $("<?= $_REQUEST['name_w'] ?>_slidermaxTrafficOpacity").slider('disable');
-                                        map.eventsOnMap.push(animatedLayer);
                                     }
 
                                     // Setup Legend
@@ -9227,6 +11385,20 @@ if (!isset($_SESSION)) {
                                                                 //  attribution: "IGN ©"
                                                                 pane: 'Snap4City:' + wmsDatasetName	// CORTI
                                                             }).addTo(map.defaultMapRef);
+
+                                                            if (is3dOn) {
+                                                                var wmsUrl = geoServerUrl + "geoserver/Snap4City/wms?"
+                                                                wmsUrl += "service=WMS&request=GetMap&layers=Snap4City%3A" + wmsDatasetName;
+                                                                wmsUrl += "&styles=&format=image%2Fpng&transparent=true&version=1.1.1";
+                                                                wmsUrl += "&time=" + timestampISO;
+                                                                wmsUrl += "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
+                                                                const heatmapLayer = createHeatmapLayer(wmsUrl, wmsDatasetName);                                                                t
+                                                                layers.wms = null;
+                                                                updateLayers();
+                                                                layers.wms = heatmapLayer;
+                                                                updateLayers();
+                                                            }
+
                                                        //     current_opacity = 0.5;
 
                                                         }
@@ -9333,6 +11505,22 @@ if (!isset($_SESSION)) {
                                                         //  attribution: "IGN ©"
                                                         pane: 'Snap4City:' + wmsDatasetName	// CORTI
                                                     }).addTo(map.defaultMapRef);
+
+                                                    if (is3dOn) {
+                                                        gifWms.isAnimated = false;
+                                                        var wmsUrl = geoServerUrl + "geoserver/Snap4City/wms?"
+                                                        wmsUrl += "service=WMS&request=GetMap&layers=Snap4City%3A" + wmsDatasetName;
+                                                        wmsUrl += "&styles=&format=image%2Fpng&transparent=true&version=1.1.1";
+                                                        wmsUrl += "&time=" + timestampISO;
+                                                        wmsUrl += "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
+                                                        const heatmapLayer = createHeatmapLayer(wmsUrl, wmsDatasetName);
+                                                        heatmapLayer.type = "heatmap";
+                                                        heatmapLayer.wmsUrl = wmsUrl;
+                                                        layers.wms = null;
+                                                        updateLayers();
+                                                        layers.wms = heatmapLayer;
+                                                        updateLayers();
+                                                    }
 
                                                     // add legend to map
                                                     map.legendHeatmap.addTo(map.defaultMapRef);
@@ -9580,7 +11768,12 @@ if (!isset($_SESSION)) {
                                                     var overlayOpacity = current_opacity;
 
                                                     // ANIMATED GIF LAYER
+                                                    if (is3dOn) {
+                                                        const bounds = [bottomWestLon, bottomWestLat, upEastLon, upEastLat];
+                                                        loadGif(imageUrl, bounds, "heatmap");
+                                                    } 
                                                     var animatedLayer = L.imageOverlay(imageUrl, imageBounds, {opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName}).addTo(map.defaultMapRef);
+                                                    map.eventsOnMap.push(animatedLayer);
 
                                                     // add legend to map
                                                     map.legendHeatmap.addTo(map.defaultMapRef);
@@ -9590,7 +11783,6 @@ if (!isset($_SESSION)) {
                                                     $("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider('disable');
                                                //     document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
                                                //     document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
-                                                    map.eventsOnMap.push(animatedLayer);
                                                     var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
 
                                                     var heatmapLegendColors = L.control({position: 'bottomleft'});
@@ -9793,6 +11985,14 @@ if (!isset($_SESSION)) {
 
                         var desc = passedData.desc;
                         var display = passedData.display;
+
+                        if (is3dOn) {
+                            if (display == "undefined"  || display.includes('pins'))
+                                removeLayerSet(passedData.desc, layers.pin);
+                            if (display.includes('geometries'))
+                                removeLayerSet(passedData.desc, layers.cycling);
+                            updateLayers();
+                        }
 
                         if (desc == "") {
                             desc = passedData.query;
@@ -10011,6 +12211,10 @@ if (!isset($_SESSION)) {
                     }
                 });
                 $(document).on('removeTrafficRealTimeDetails', function (event) {
+                    if (is3dOn) {
+                        removeLayerSet('traffic-line-layer', layers.traffic);
+                        updateLayers();
+                    }
                     if (event.target === map.mapName) {
 
                         for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
@@ -10057,7 +12261,17 @@ if (!isset($_SESSION)) {
                             if (resetPageFlag == true) {
                                 current_page = 0;
                             }
-                            map.defaultMapRef.removeLayer(wmsLayer);
+                            if (wmsDatasetName.includes('elevationTerrain=true')) {
+                                const oldData = layers.terrain.props.data;
+                                const terrainLayer = createTileLayer(oldData);
+                                layers.terrain = terrainLayer;
+                            } else {
+                                gifWms.isAnimated = false;
+                                layers.wms = null;
+                            }
+                            updateLayers();
+                            if (wmsLayer != null)
+                                map.defaultMapRef.removeLayer(wmsLayer);
                             map.defaultMapRef.removeControl(map.legendHeatmap);
                         }
                     }
@@ -10089,8 +12303,14 @@ if (!isset($_SESSION)) {
                             if (resetPageFlag == true) {
                                 current_page = 0;
                             }
+                            // if (is3dOn) {
+                            //     gifWms.isAnimated = false;
+                            //     layers.wms = null;
+                            //     updateLayers();
+                            // }
                             map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
-                            map.defaultMapRef.removeLayer(wmsLayer);
+                            if (wmsLayer != null)
+                                map.defaultMapRef.removeLayer(wmsLayer);
                         }
                     }
 
@@ -10112,6 +12332,11 @@ if (!isset($_SESSION)) {
                                     break;
                                 }
 
+                                if (is3dOn) {
+                                    gifWmsTraffic.isAnimated = false;
+                                    layers.trafficWms = null;
+                                    updateLayers();
+                                }
                             } else if (i>0 && map.eventsOnMap[i-1].eventType === 'traffic_heatmap') {
                                 // logica per evitare di rimuovere layer di trafficflowmanager
                             } else if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
@@ -10152,202 +12377,1262 @@ if (!isset($_SESSION)) {
 
             //Fine definizioni di funzione
 
+            // inizio funzioni deckgl
+            function createTileLayer(data, id = 'map-layer') {
+                return new deck.TileLayer({
+                    id: id,
+                    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
+                    data: data,
+            
+                    minZoom: 0,
+                    maxZoom: 20,
+                    tileSize: 256,
+                    opacity: 1,
+                    pickable: true,
+                    parameters: {
+                        depthTest: false
+                    },
+            
+                    renderSubLayers: props => {
+                        const {
+                            bbox: { west, south, east, north }
+                        } = props.tile;
+            
+                        return new deck.BitmapLayer(props, {
+                            data: null,
+                            image: props.data,
+                            bounds: [west, south, east, north]
+                        });
+                    },
+                    //onClick: (info, event) => addMarker(info.coordinate),
+            
+                });
+            }
+
+            function createTerrainTileLayer(url, data, id = 'terrain-layer') {
+                return new deck.TileLayer({
+                    id: id,
+                    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
+                    data: data,
+
+                    minZoom: 0,
+                    maxZoom: 20,
+                    tileSize: 256,
+                    opacity: 1,
+
+                    renderSubLayers: props => {
+                        const {
+                            bbox: { west, south, east, north }
+                        } = props.tile;
+
+                        return new deck.TerrainLayer({
+                            id: props.id,
+                            elevationDecoder: {
+                                rScaler: 5,
+                                gScaler: 0,
+                                bScaler: 0,
+                                //offset: -10
+                                offset: -40
+                            },
+                            elevationData: url + `&bbox=${west},${south},${east},${north}`,
+                            //texture: data + `&bbox=${west},${south},${east},${north}`,
+                            texture: props.data,
+                            //texture: data,
+                            bounds: [west, south, east, north],
+                            //loaders: [loaders.TerrainLoader],
+                            
+                        });
+                    },
+                });
+
+            }
+
+            function createTerrainLayer(url, data, id = 'terrain-layer') {
+                return new deck.TerrainLayer(props, {
+                    id: id,
+                    
+                    elevationData: url + `&bbox=${west},${south},${east},${north}`,
+                    //texture: data + `&bbox=${west},${south},${east},${north}`,
+                    texture: props.data,
+                    bounds: [west, south, east, north]
+
+                });
+            }
+
+            function createBitmapLayer(image, bounds, id = 'bitmap-layer') {
+                return new deck.BitmapLayer({
+                    id,
+                    //image: image,
+                    image: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/sf-districts.png',
+                    bounds,
+                });
+            }
+
+            function createImageLayer(image, bounds, id = 'gif-layer', opacity = 1) {
+                return new deck.BitmapLayer({
+                    id,
+                    data: image,
+                    opacity: opacity,
+                    image: image,
+                    bounds: bounds,
+                    textureParameters: {
+                        // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.NEAREST,
+                        // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.LINEAR,
+                        // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.NEAREST,
+                        // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.NEAREST_MIPMAP_NEAREST,
+                        // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.LINEAR_MIPMAP_NEAREST,
+                        // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.NEAREST_MIPMAP_LINEAR,
+                        // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.LINEAR_MIPMAP_LINEAR,
+                        // [map3dGL.TEXTURE_MAG_FILTER]: map3dGL.NEAREST,
+                        [map3dGL.TEXTURE_WRAP_S]: map3dGL.REPEAT,
+                        [map3dGL.TEXTURE_WRAP_T]: map3dGL.REPEAT,
+                    },
+                    parameters: {
+                        depthTest: false
+                    },
+                });
+            }
+
+            function createBitmapLayer2(image, bounds, id = 'bitmap-layer') {
+                return new deck.BitmapLayer({
+                    id,
+                    image: image,
+                    //image: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/sf-districts.png',
+                    bounds: [-122.5190, 37.7045, -122.355, 37.829],
+                    //bounds,
+                });
+            }
+
+            function createHeatmapLayer(url, id = 'heatmap-layer', type = "heatmap", tileSize = 512, opacity = 0.2) {
+                if (type == "heatmap") {
+                    gifWms.isAnimated = false;
+                } else if (type = "traffic") {
+                    gifWmsTraffic.isAnimated = false;
+                }
+                return new deck.TileLayer({
+                    id: id,
+                    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
+
+                    minZoom: 0,
+                    maxZoom: 20,
+                    tileSize: tileSize,
+                    opacity: opacity,
+                    pickable: true,
+                    type: type,
+                    wmsUrl: url,
+                    parameters: {
+                        depthTest: false
+                    },
+
+                    renderSubLayers: props => {
+                        const {
+                            bbox: { west, south, east, north }
+                        } = props.tile;
+
+                        return new deck.BitmapLayer(props, {
+                            data: null,
+                            image: url + `&bbox=${west},${south},${east},${north}`,
+                            bounds: [west, south, east, north]
+                        });
+                    },
+                });
+
+            }
+
+            function createGeoJSONLayer(data, id = "geojson-layer") {
+                return new deck.GeoJsonLayer({
+                    id: id,
+                    data: data,
+                    extruded: true,
+                    // pickable: true,
+                    stroked: true,
+                    filled: true,
+                    lineWidthScale: 20,
+                    lineWidthMinPixels: 2,
+                    getFillColor: [255, 0, 0, 200],
+                    getLineColor: [0, 0, 255],
+                    getRadius: 100,
+                    getLineWidth: 1,
+                });
+            }
+
+            function createWktLayer(data, id = "wkt-layer") {
+                return new deck.GeoJsonLayer({
+                    id: id,
+                    data: data,
+                    loaders: [WKTLoader],
+                    stroked: true,
+                    filled: true,
+                    lineWidthScale: 20,
+                    lineWidthMinPixels: 2,
+                    getFillColor: [255, 0, 0, 200],
+                    getLineColor: [0, 0, 255],
+                    getRadius: 100,
+                    getLineWidth: 1,
+                });
+            }
+
+            function createBuildingLayer(data, id = 'building-layer') {
+                return new deck.GeoJsonLayer({
+                    id: id,
+                    data: data,
+                    extruded: true,
+                    // pickable: true,
+                    stroked: false,
+                    filled: true,
+                    lineWidthScale: 20,
+                    lineWidthMinPixels: 2,
+                    getFillColor: buildingColor,
+                    getLineColor: [255, 255, 255],
+                    getElevation: f => f.properties.height,
+                    getRadius: 100,
+                    getLineWidth: 1,
+                });
+            }
+
+            function createMeshLayer(data, id, scenegraph, color = [255,255,255,255], pickable = true){
+                return new deck.ScenegraphLayer({
+                    id: id,
+                    data: [
+                        //{position: [11.258359909057617,43.779720306396484]}
+                        data,
+                    ],
+                    pickable: false,
+                    //scenegraph: 'http://localhost:4242/deckgl-requirements/src/data/edifici/rinascente/edifici6.gltf',
+                    scenegraph: scenegraph,
+                    //_lighting: 'flat',
+                    _lighting: 'pbr',
+                    getOrientation: d => [0, 0, 90],
+                    getColor: color,
+                });
+            }
+
+            function createOsmBuildingLayer(id = "osm-building-layer") {
+                return new deck.TileLayer({
+                    id: id,
+                    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
+                    data: osmBuildingsData,
+
+                    minZoom: 0,
+                    maxZoom: 20,
+                    tileSize: 256,
+                    opacity: 1,
+                    // pickable: true,
+
+                    renderSubLayers: props => {
+                        const {
+                            bbox: { west, south, east, north }
+                        } = props.tile;
+
+                        return new deck.GeoJsonLayer({
+                            id: id,
+                            data: props.data,
+                            extruded: true,
+                            // pickable: true,
+                            stroked: false,
+                            filled: true,
+                            lineWidthScale: 20,
+                            lineWidthMinPixels: 2,
+                            getFillColor: [255, 102, 0, 200],
+                            getLineColor: [255, 255, 255],
+                            getElevation: f => f.properties.height || f.properties.levels || 10,
+                            getRadius: 100,
+                            getLineWidth: 1,
+                        });
+                    },
+                    onClick: (info, event) => addMarker(info.coordinate),
+
+                });
+            }
+
+
+            function createIconLayer(id = 'icon-layer') {
+                const ICON_MAPPING = {
+                    marker: { x: 0, y: 0, width: 128, height: 128, mask: true },
+                    warningMarker: { x: 128, y: 0, width: 128, height: 128, mask: true },
+                };
+
+                return new deck.IconLayer({
+                    id: id,
+                    data: markers,
+                    pickable: true,
+                    iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+                    iconMapping: ICON_MAPPING,
+                    getIcon: d => 'marker',
+
+                    sizeScale: 15,
+                    getPosition: d => d.coordinates,
+                    getSize: d => 5,
+                    getColor: d => d.color,
+                    parameters: {
+                        depthTest: false
+                    },
+                });
+            }
+
+            function createSensorLayer(data, id, otherProps) {
+                const ICON_MAPPING = {
+                    sensor: { x: 0, y: 0, width: 32, height: 37, anchorY: 37},
+                };
+
+                return new deck.IconLayer({
+                    id: id,
+                    data: data,
+                    pickable: true,
+                    //iconAtlas: d => d.iconPath,
+                    //iconMapping: ICON_MAPPING,
+                    //getIcon: d => 'sensor',
+                    getIcon: d => {
+                        if (d.hover == false) {
+                            return {
+                                url: d.iconPath,
+                                width: d.iconWidth,
+                                height: d.iconHeight,
+                                anchorY: d.iconAnchorY,
+                                anchorX: d.iconAnchorX,
+                            };
+                        }
+                        else {
+                            return {
+                                url: d.hoverIconPath,
+                                width: d.hoverIconWidth,
+                                height: d.hoverIconHeight,
+                                anchorY: d.hoverIconAnchorY,
+                                anchorX: d.hoverIconAnchorX,
+                            };
+                        }
+                    },
+                    //apiUrl: apiUrl,
+                    ...otherProps,
+
+                    sizeScale: 15,
+                    getPosition: d => d.geometry.coordinates,
+                    getSize: d => 5,
+                    parameters: {
+                        depthTest: false
+                    },
+
+                    updateTriggers: {
+                        getIcon: lastHoveredObject,
+                    },
+
+                    onHover: (info, event) => {
+                        var redraw = false;
+                        cursorType = 'grab';
+                        if (lastHoveredObject != null) {
+                            lastHoveredObject.hover = false;
+                            lastHoveredObject = null;
+                            redraw = true;
+                        }
+                        if (info.object != null) {
+                            lastHoveredObject = info.object;
+                            info.object.hover = true;
+                            redraw = true;
+                            cursorType = 'pointer';
+                        }
+                        if (redraw)
+                            redrawIconLayer(info.layer);
+                    },
+                    onClick: (info, event) => {
+                        onMarkerClick(event, info);
+                    },
+                });
+
+            }
+
+            function createLineLayer(data, id = 'line-layer') {
+                var segments = [];
+                for (var i = 1; i < data.length; i++)
+                    segments.push(...(data[i].segments));
+                return new deck.LineLayer({
+                    id: id,
+                    data: segments,
+                    // pickable: true,
+                    getWidth: 10,
+                    getSourcePosition: d => [parseFloat(d.start.long), parseFloat(d.start.lat)],
+                    getTargetPosition: d => [parseFloat(d.end.long), parseFloat(d.end.lat)],
+                    getColor: d => d.color || [0, 0, 255],
+                });
+            }
+
+            function createPathLayer(data, id = 'path-layer') {
+                return new deck.PathLayer({
+                    id: id,
+                    data: data,
+                    getPath: d => [...d.geometry.coordinates],
+                    getColor: d => [0, 0, 255],
+                    getWidth: d => 5,
+                    opacity: 0.7,
+                    pickable: true,
+                });
+            }
+
+            function loadGif(url, bounds, type) {
+                console.log('loading gif');
+                var usedGif;
+                switch (type) {
+                    case "heatmap":
+                        usedGif = gifWms;
+                        break;
+                    case "traffic":
+                        usedGif = gifWmsTraffic;
+                        break;
+                }
+                usedGif.frames = [];
+                usedGif.currentFrame = 0;
+                gifFrames({ url: url, outputType: 'png', frames: 'all'},function (err, frameData) {
+                    if (err) {
+                        console.error('Error occurred during download gif');
+                        console.error(err);
+                        throw new Error(err);
+                    } else {
+                        for (let k in frameData){
+                            var frame = frameData[k].getImage();
+                            console.log('getting gif frame');
+                            console.log(frame);
+                            var data = new Uint8Array(frame.data.length);
+                            for (var i = 0; i < frame.data.length / 4; i++) {
+                                var pixel = [];
+                                var oldPixel = [];
+                                var newPixel = [];
+                                var newIsNotEmpty = false;
+                                for (var j = 0; j < 4; j++) {
+                                    if (usedGif.frames.length != 0) {
+                                        oldPixel.push(usedGif.frames[usedGif.frames.length - 1].data[(i * 4) + j]);
+                                    }
+                                    const newColor = frame.data[(i * 4) + j];
+                                    newIsNotEmpty = newIsNotEmpty == true ? true : newColor != 0;
+                                    newPixel.push(newColor);
+                                }
+                                if (usedGif.frames.length != 0)
+                                    pixel = oldPixel;
+                                if (newIsNotEmpty || usedGif.frames.length == 0) {
+                                    pixel = newPixel;
+                                }
+                                for (var j = 0; j < pixel.length; j++)
+                                    data[(i * 4) + j] = pixel[j];
+                            }
+
+                            usedGif.frames.push({
+                                width: frame.width,
+                                height: frame.height,
+                                data: data,
+                            });
+                        }
+                        const gifLayer = createImageLayer(usedGif.frames[0], bounds, `gif-${type}-layer`, usedGif.opacity);
+                        switch (type) {
+                            case "heatmap":
+                                layers.wms = gifLayer;
+                                break;
+                            case "traffic":
+                                layers.trafficWms = gifLayer;
+                                break;
+                        }
+                        usedGif.isAnimated = true;
+                        updateLayers();
+                        animateLayer(usedGif, bounds);
+                    }
+                });
+            }
+
+            function animateLayer(gif, bounds, delay = 1) {
+                setTimeout(function () {
+                    if (gif.isAnimated) {
+                        gif.currentFrame += 1;
+                        if (gif.currentFrame >= gif.frames.length)
+                            gif.currentFrame = 0;
+                        const gifLayer = createImageLayer(gif.frames[gif.currentFrame], bounds, `gif-${gif.type}-layer`, gif.opacity);
+                        switch (gif.type) {
+                            case "heatmap":
+                                layers.wms = gifLayer;
+                                break;
+                            case "traffic":
+                                layers.trafficWms = gifLayer;
+                                break;
+                        }
+                        updateLayers();
+                        animateLayer(gif, bounds, delay);
+                    }
+                }, delay * 1000);
+            }
+
+            function addMarker(coordinate) {
+                const r = Math.floor(Math.random() * 255);
+                const g = Math.floor(Math.random() * 255);
+                const b = Math.floor(Math.random() * 255);
+
+                markers.push({
+                    name: `marker-${markers.length}`,
+                    coordinates: coordinate,
+                    color: [r, g, b],
+                });
+
+                const iconLayer = createIconLayer(`icon-layer-${markers.length}`);
+                layers.icon = iconLayer;
+
+                updateLayers();
+            }
+
+            function updateTraffic(viewState) {
+                const maxbb = getMaxBoundingBox(viewState);
+                urlRoads = `https://firenzetraffic.km4city.org/trafficRTDetails/roads/read.php?sLat=${maxbb[0][1]}&sLong=${maxbb[0][0]}&eLat=${maxbb[1][1]}&eLong=${maxbb[1][0]}&zoom=15`;
+                urlDensity = `https://firenzetraffic.km4city.org/trafficRTDetails/density/read.php?sLat=${maxbb[0][1]}&sLong=${maxbb[0][0]}&eLat=${maxbb[1][1]}&eLong=${maxbb[1][0]}&zoom=15`;
+                if (ajaxCall != null) {
+                    ajaxCall.abort();
+                    ajaxCall = null;
+                }
+                ajaxCall = $.ajax({
+                    url: urlRoads,
+                    success: function (result) {
+                        ajaxCall = null;
+                        addDensity(urlDensity, result);
+                    },
+                });
+            }
+
+            function addDensity(urlDensity, roads) {
+                $.ajax({
+                    url: urlDensity,
+                    success: function (result) {
+                        console.log('ajax density success result:');
+                        console.log(result);
+
+                        // Removing first null object
+                        if (roads[0].road == null)
+                            roads = roads.slice(1);
+
+                        // For all roads
+                        for (var i = 0; i < roads.length; i++) {
+                            var road = roads[i];
+                            var density = result[road.road];
+                            // for all segments
+                            for (var j = 0; j < road.segments.length; j++) {
+                                var segment = road.segments[j];
+                                var segmentDensity = density.data[0][segment.id];
+                                segment.density = segmentDensity;
+                                segment.color = getOldDensityColor(segment);
+                            }
+                        }
+
+                        const lineLayer = createLineLayer(roads, `line-layer-${Date.now()}`);
+                        layers.line = lineLayer;
+                    },
+                });
+            }
+
+            function updateCyclingPath(viewState) {
+                const queryId = '10916300fca38e05e03096daa0418a13';
+                const cyclingPath = getWebAppGrafoPath(queryId, viewState);
+
+                const cyclingLayer = createWktLayer(cyclingPath);
+                layers.cycling = cyclingLayer;
+            }
+
+            function updateSensors(viewState) {
+                for (var i = 0; i < layers.pin.length; i++) {
+                    updateSensorSite(viewState, layers.pin[i]);
+                }
+            }
+
+            function updateSensorSite(viewState, layer) {
+                const selectionString = getSelectionString(viewState);
+                const oldApiUrl = apiUrls3D[`${layer.id}`].apiUrl;
+                const newApiUrl = oldApiUrl.replace(/(selection[^&]*)/g, selectionString);
+                console.log("new apiUrl");
+                console.log(newApiUrl);
+
+                $.ajax({
+                    url: newApiUrl,
+                    async: false,
+                    success: function (geoJsonData) {
+                        if(geoJsonData.hasOwnProperty("BusStop"))
+                        {
+                            fatherGeoJsonNode = geoJsonData.BusStop;
+                        }
+                        else
+                        {
+                            if(geoJsonData.hasOwnProperty("Sensor"))
+                            {
+                                fatherGeoJsonNode = geoJsonData.Sensor;
+                            }
+                            else
+                            {
+                                if(geoJsonData.hasOwnProperty("Service"))
+                                {
+                                    fatherGeoJsonNode = geoJsonData.Service;
+                                }
+                                else
+                                {
+                                    fatherGeoJsonNode = geoJsonData.Services;
+                                }
+                            }
+                        }
+
+                        const id = layer.props.id;
+                        const oldProps = apiUrls3D[`${id}`];
+                        for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
+                            gisPrepareCustomMarker(fatherGeoJsonNode.features[i], []);
+
+                            fatherGeoJsonNode.features[i].properties.targetWidgets = oldProps.targets;
+                            fatherGeoJsonNode.features[i].properties.color1 = oldProps.color1;
+                            fatherGeoJsonNode.features[i].properties.color2 = oldProps.color2;
+                            fatherGeoJsonNode.features[i].properties.pinattr = oldProps.pinattr;
+                            fatherGeoJsonNode.features[i].properties.pincolor = oldProps.pincolor;
+                            fatherGeoJsonNode.features[i].properties.symbolcolor = oldProps.symbolcolor;
+                            fatherGeoJsonNode.features[i].properties.iconFilePath = oldProps.iconFilePath;
+                        } 
+                        const otherProps = {
+                            apiUrl: this.url,
+                            targets: oldProps.targets,
+                            color1: oldProps.color1,
+                            color2: oldProps.color2,
+                            pinattr: oldProps.pinattr,
+                            pincolor: oldProps.pincolor,
+                            symbolcolor: oldProps.symbolcolor,
+                            iconFilePath: oldProps.iconFilePath,
+                        };
+                        apiUrls3D[`${id}`] = otherProps;
+                        const sensorLayer = createSensorLayer(fatherGeoJsonNode.features, id, otherProps);
+                        
+
+                        //removeLayerSet(id, layers.pin);
+                        //layers.pin.push(sensorLayer);
+                        const index = getLayerIndexSet(id, layers.pin);
+
+                        layers.pin[index] = null;
+                        updateLayers();
+
+                        layers.pin[index] = sensorLayer;
+                        updateLayers();
+                    },
+                    error: function (error) {
+                        console.err("errore durante l'aggiornamento dei sensor site");
+                        console.err(error);
+                    },
+                });
+            }
+
+            function redrawIconLayer(layer) {
+                const id = layer.props.id;
+                const data = layer.props.data;
+                const props = apiUrls3D[`${id}`];
+                const sensorLayer = createSensorLayer(data, id, props);
+
+                removeLayerSet(id, layers.pin);
+                layers.pin.push(sensorLayer);
+                updateLayers();
+            }
+
+            function updateLayers() {
+                map3d.setProps({
+                    layers: [
+                        layers.terrain,
+                        layers.orthomaps,
+                        layers.wms,
+                        layers.trafficWms,
+                        ...layers.traffic,
+                        ...layers.cycling,
+                        layers.bus,
+                        ...layers.building,
+                        ...layers.pin,
+                    ]
+                })
+            }
+
+            function formatDatetime(timestamp) {
+                const datetime = new Date(timestamp);
+                const year = datetime.getFullYear();
+                const month = formatNumberDate(datetime.getMonth());
+                const day = formatNumberDate(datetime.getDate());
+                const hour = formatNumberDate(datetime.getHours());
+                const minute = formatNumberDate(datetime.getMinutes());
+                const ris = `${year}-${month}-${day}T${hour}:${minute}`;
+                console.log('dateformat: ' + ris);
+                return ris;
+            }
+            function formatNumberDate(number) {
+                if (number == 0) {
+                    return '00';
+                } else if (number < 10) {
+                    return `0${number}`;
+                } else {
+                    return `${number}`;
+                }
+            }
+
+            function getLayerIndexSet(id, set) {
+                for (var i = 0; i < set.length; i++) {
+                    if (set[i].id == id) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+
+            function removeLayerSet(id, set) {
+                for (var i = 0; i < set.length; i++) {
+                    if (set[i].id == id) {
+                        set.splice(i, 1);
+                        return;
+                    }
+                }
+            }
+
+            function getWebAppGrafoPath(queryId, viewState) {
+                const bb = getBoundingBox(viewState);
+                var testCyclingPath = `https://servicemap.disit.org/WebAppGrafo/api/v1/?queryId=${queryId}&format=json`;
+                testCyclingPath += "&selection=wkt:POLYGON((";
+                testCyclingPath += `${bb[0][0]}%20${bb[0][1]}`;
+                for (var i = 1; i < bb.length; i++) {
+                    testCyclingPath += `,%20${bb[i][0]}%20${bb[i][1]}`;
+                }
+                testCyclingPath += "))&maxResults=0&geometry=true&fullCount=false";
+                return testCyclingPath;
+            }
+
+            function getMaxBoundingBox(viewState) {
+                viewState.pitch = viewState.pitch > 70 ? 70 : viewState.pitch;
+                const bb = getBoundingBox(viewState);
+                var minLat = bb[0][0];
+                var maxLat = bb[0][0];
+                var minLng = bb[0][1];
+                var maxLng = bb[0][1];
+                for (var i = 1; i < bb.length; i++) {
+                    if (minLat > bb[i][0])
+                        minLat = bb[i][0];
+                    if (maxLat < bb[i][0])
+                        maxLat = bb[i][0];
+                    if (minLng > bb[i][1])
+                        minLng = bb[i][1];
+                    if (maxLng < bb[i][1])
+                        maxLng = bb[i][1];
+                }
+                return [[minLat, minLng], [maxLat, maxLng]];
+            }
+
+            function getBoundingBox(viewState) {
+                const viewport = new deck.WebMercatorViewport(viewState);
+                const nw = viewport.unproject([0, 0]);
+                const ne = viewport.unproject([viewport.width, 0]);
+                const se = viewport.unproject([viewport.width, viewport.height]);
+                const sw = viewport.unproject([0, viewport.height]);
+                return [nw, ne, se, sw];
+            }
+
+            function reloadLight() {
+                if (lightsOn) {
+                    const input = $('#lightTimestamp').val();
+
+                    var now;
+                    if (input == '')
+                        now = Date.now();
+                    else 
+                        now = Date.parse(input);
+
+                    const sunLight = new deck._SunLight({
+                        timestamp: now, 
+                        color: [255, 255, 255],
+                        intensity: 1,
+                    });
+
+                    const lightEffect = new deck.LightingEffect({sunLight});
+                    map3d.setProps({
+                        effects: [lightEffect],
+                    });
+                } else {
+                    map3d.setProps({
+                        effects: [],
+                    });
+                }
+            }
+
+            function getSelectionString(viewState) {
+                const maxbb = getMaxBoundingBox(viewState);
+                return `selection=${maxbb[0][1]};${maxbb[0][0]};${maxbb[1][1]};${maxbb[1][0]}`;
+            }
+
+            function getOldDensityColor(segment) {
+                var green = 0.3;
+                var yellow = 0.6;
+                var orange = 0.9;
+                if (segment.Lanes == 2) {
+                    green = 0.6;
+                    yellow = 1.2;
+                    orange = 1.8;
+                }
+                if (segment.FIPILI == 1) {
+                    green = 0.25;
+                    yellow = 0.5;
+                    orange = 0.75;
+                }
+                if (segment.Lanes == 3) {
+                    green = 0.9;
+                    yellow = 1.5;
+                    orange = 2;
+                }
+                if (segment.Lanes == 4) {
+                    green = 1.2;
+                    yellow = 1.6;
+                    orange = 2;
+                }
+                if (segment.Lanes == 5) {
+                    green = 1.6;
+                    yellow = 2;
+                    orange = 2.4;
+                }
+                if (segment.Lanes == 6) {
+                    green = 2;
+                    yellow = 2.4;
+                    orange = 2.8;
+                }
+                if (segment.density <= green)
+                    return [0, 255, 0];
+                else if (segment.density <= yellow)
+                    return [255, 255, 0];
+                else if (segment.density <= orange)
+                    return [255, 140, 0];
+                else
+                    return [255, 0, 0];
+            }
+
+            function changeMapTiles() {
+                darkmode = !darkmode;
+                const mapLayer = darkmode ? createTileLayer(darkTileData) : createTileLayer(lightTileData);
+                layers.map = mapLayer;
+
+                updateLayers();
+                updateTheme();
+            }
+
+            function changeBuildingLayer() {
+                buildingOsm = !buildingOsm;
+                var buildingLayer;
+                if (buildingOsm)
+                    buildingLayer = createOsmBuildingLayer();
+                else
+                    buildingLayer = createBuildingLayer(cortiBuidlingData);
+                layers.building = buildingLayer;
+                updateLayers();
+            }
+
+            function dragPopup(elmnt, elementaDraggable = null) {
+              var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+              if (elementaDraggable != null) {
+                // if present, the header is where you move the DIV from:
+                elementaDraggable.mousedown(dragMouseDown);
+              } else {
+                // otherwise, move the DIV from anywhere inside the DIV:
+                elmnt.onmousedown(dragMouseDown);
+              }
+
+              function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // get the mouse cursor position at startup:
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                const popupDiv = $(`#${widgetName}_deck_popup`);
+                elmnt.detach();
+                popupDiv.append(elmnt);
+                document.onmouseup = closeDragElement;
+                // call a function whenever the cursor moves:
+                document.onmousemove = elementDrag;
+              }
+
+              function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                // calculate the new cursor position:
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                // set the element's new position:
+                elmnt.css("top", (elmnt[0].offsetTop - pos2) + "px");
+                elmnt.css("left", (elmnt[0].offsetLeft - pos1) + "px");
+              }
+
+              function closeDragElement() {
+                // stop moving when mouse button is released:
+                document.onmouseup = null;
+                document.onmousemove = null;
+              }
+            } 
+
+            function selectTickMenuBuilding(idSelected) {
+                $('#building-light i').addClass('hidden');
+                $('#no-building i').addClass('hidden');
+                $('#building-mesh-notext i').addClass('hidden');
+                $('#building-mesh i').addClass('hidden');
+                $(`#${idSelected} i`).removeClass('hidden');
+            }
+
+            // fine funzioni deckgl
+            
             //Inizio del main script
 
             /*IMPORTANTE - Chiamata al modulo server che reperisce i parametri di costruzione del widget dal database (tipicamente
             * da tabella Config_widget_dashboard, la quale memorizza un record per ogni istanza di widget. Tale record viene scritto
             * quando il widget viene creato
             */
-            $.ajax({
-            //    url: "../controllers/getWidgetParams.php",
-                url: "../widgets/getParametersWidgets.php",
-                type: "GET",
-                data: {
-                 //   widgetName: "<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"
-                    nomeWidget: ["<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"]
-                },
-                async: true,
-                dataType: 'json',
-                success: function (widgetData) {
-                    widgetData.params = widgetData.param;
-                    //Parametri di costruzione del widget (struttura e aspetto)
-                    showTitle = widgetData.params.showTitle;
-                    widgetContentColor = widgetData.params.color_w;
-                    fontSize = widgetData.params.fontSize;
-                    fontColor = widgetData.params.fontColor;
-                    hasTimer = widgetData.params.hasTimer;
-                    chartColor = widgetData.params.chartColor;
-                    dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
-                    dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
-                    chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
-                    chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
-                    appId = widgetData.params.appId;
-                    flowId = widgetData.params.flowId;
-                    nodeId = widgetData.params.nodeId;
-                    nrMetricType = widgetData.params.nrMetricType;
-                    sm_based = widgetData.params.sm_based;
-                    rowParameters = widgetData.params.rowParameters;
-                    sm_field = widgetData.params.sm_field;
-                    addMode = widgetData.params.viewMode;
-                    enableFullscreenModal = widgetData.params.enableFullscreenModal;
-                    enableFullscreenTab = widgetData.params.enableFullscreenTab;
-                    geoServerUrl = widgetData.geoServerUrl;
-                    heatmapUrl = widgetData.heatmapUrl;
-                    nodeRedInputName = widgetData.params.name;
-                    nrInputId = widgetData.params.nrInputId;
 
-                    if (widgetData.params.infoJson != "yes") {
-                        $('#'+mapOptionsDivName).hide();
-                    }
+            function reloadOldWidgetParams() {
+                $.ajax({
+                    url: "../controllers/getWidgetParams.php",
+                    type: "GET",
+                    data: {
+                        widgetName: "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>"
+                    },
+                    async: true,
+                    dataType: 'json',
+                    success: function (widgetData) {
+                        console.log('widgetdata ricevuto');
+                        console.log(widgetData);
+                        //Parametri di costruzione del widget (struttura e aspetto)
+                        showTitle = widgetData.params.showTitle;
+                        widgetContentColor = widgetData.params.color_w;
+                        fontSize = widgetData.params.fontSize;
+                        fontColor = widgetData.params.fontColor;
+                        hasTimer = widgetData.params.hasTimer;
+                        chartColor = widgetData.params.chartColor;
+                        dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
+                        dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
+                        chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
+                        chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                        appId = widgetData.params.appId;
+                        flowId = widgetData.params.flowId;
+                        nrMetricType = widgetData.params.nrMetricType;
+                        sm_based = widgetData.params.sm_based;
+                        rowParameters = widgetData.params.rowParameters;
+                        sm_field = widgetData.params.sm_field;
+                        addMode = widgetData.params.viewMode;
+                        enableFullscreenModal = widgetData.params.enableFullscreenModal;
+                        enableFullscreenTab = widgetData.params.enableFullscreenTab;
+                        geoServerUrl = widgetData.geoServerUrl;
+                        heatmapUrl = widgetData.heatmapUrl;
 
-                    if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget === true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((embedWidget === false) && (showTitle === "no"))) {
-                        showHeader = false;
-                    }
-                    else {
-                        showHeader = true;
-                    }
-
-                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
-                    widgetTitle = widgetData.params.title_w;
-                    widgetHeaderColor = widgetData.params.frame_color_w;
-                    widgetHeaderFontColor = widgetData.params.headerFontColor;
-                    sizeRowsWidget = parseInt(widgetData.params.size_rows);
-                    styleParameters = JSON.parse(widgetData.params.styleParameters);
-                    widgetParameters = JSON.parse(widgetData.params.parameters);
-                    wsConnect = widgetParameters.wsConnect;
-
-                    if (metricName != 'Map' && nodeId != null) {
-                        openWs(widgetName);
-                    }
-                    if (socket == null && wsConnect == "yes") {
-                        newWSConnect();
-                    }
-
-                    setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
-
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
-
-                    $("#" + widgetName + "_buttonsDiv").css("height", "100%");
-                    $("#" + widgetName + "_buttonsDiv").css("float", "left");
-
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).css("font-size", "20px");
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hover(function () {
-                        $(this).find("span").css("color", "red");
-                    }, function () {
-                        $(this).find("span").css("color", widgetHeaderFontColor);
-                    });
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).css("font-size", "20px");
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hover(function () {
-                        $(this).find("span").css("color", "red");
-                    }, function () {
-                        $(this).find("span").css("color", widgetHeaderFontColor);
-                    });
-
-                    if (hostFile === "config") {
-                        if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'yes')) {
-                            $("#" + widgetName + "_buttonsDiv").css("width", "50px");
-                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 25 - 2));
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                        if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget === true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((embedWidget === false) && (showTitle === "no"))) {
+                            showHeader = false;
+                        } else {
+                            showHeader = true;
                         }
-                        else {
-                            if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'no')) {
-                                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 25 - 2));
+
+                        metricName = "<?= $_REQUEST['id_metric'] ?>";
+                        widgetTitle = widgetData.params.title_w;
+                        widgetHeaderColor = widgetData.params.frame_color_w;
+                        widgetHeaderFontColor = widgetData.params.headerFontColor;
+                        sizeRowsWidget = parseInt(widgetData.params.size_rows);
+                        styleParameters = JSON.parse(widgetData.params.styleParameters);
+                        widgetParameters = JSON.parse(widgetData.params.parameters);
+
+                        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+                        $("#" + widgetName + "_buttonsDiv").css("height", "100%");
+                        $("#" + widgetName + "_buttonsDiv").css("float", "left");
+
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).css("font-size", "20px");
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hover(function () {
+                            $(this).find("span").css("color", "red");
+                        }, function () {
+                            $(this).find("span").css("color", widgetHeaderFontColor);
+                        });
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).css("font-size", "20px");
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hover(function () {
+                            $(this).find("span").css("color", "red");
+                        }, function () {
+                            $(this).find("span").css("color", widgetHeaderFontColor);
+                        });
+
+                        if (hostFile === "config") {
+                            if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'yes')) {
+                                $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 25 - 2));
                                 $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
-                            }
-                            else {
-                                if ((enableFullscreenModal === 'no') && (enableFullscreenTab === 'yes')) {
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                            } else {
+                                if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'no')) {
                                     $("#" + widgetName + "_buttonsDiv").css("width", "25px");
                                     titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 25 - 2));
+                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
+                                } else {
+                                    if ((enableFullscreenModal === 'no') && (enableFullscreenTab === 'yes')) {
+                                        $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 25 - 2));
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                                    } else {
+                                        $("#" + widgetName + "_buttonsDiv").css("width", "0px");
+                                        $("#" + widgetName + "_buttonsDiv").hide();
+                                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 0 - 25 - 2));
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                                    }
+                                }
+                            }
+                        } else {
+                            if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'yes')) {
+                                $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 2));
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                            } else {
+                                if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'no')) {
+                                    $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
                                     $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
                                     $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
-                                }
-                                else {
-                                    $("#" + widgetName + "_buttonsDiv").css("width", "0px");
-                                    $("#" + widgetName + "_buttonsDiv").hide();
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 0 - 25 - 2));
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                                } else {
+                                    if ((enableFullscreenTab === 'no') && (enableFullscreenModal === 'yes')) {
+                                        $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
+                                    } else {
+                                        $("#" + widgetName + "_buttonsDiv").hide();
+                                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 2));
+                                    }
                                 }
                             }
                         }
-                    }
-                    else {
-                        if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'yes')) {
-                            $("#" + widgetName + "_buttonsDiv").css("width", "50px");
-                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 2));
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+
+                        $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
+
+                        if (firstLoad === false) {
+                            showWidgetContent(widgetName);
+                        } else {
+                            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                        }
+                        populateWidget();
+                        //   globalMapView = true;
+                        
+                        // parte mappa 3D - CORTI
+                        setTimeout(function () {
+                            map.default3DMapRef = initMapsAndListeners(map);
+                                setTimeout(function () {
+                                    if (defaultOrthomapMenuItem != null) {
+                                        if (defaultOrthomapMenuItem.id != null) {
+                                            if (defaultOrthomapMenuItem.external == true) {
+                                                $('#defaultMap').addClass('hidden');
+                                            }
+                                            $('#' + defaultOrthomapMenuItem.id).removeClass('hidden');
+                                        }
+                                    }
+                                }, 500);
+                        }, 3000);
+
+                        // hide fullscreen
+                        $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv').addClass('hidden');
+
+                    },
+                    error: function (errorData) {
+                        console.error('Errore durante il ricevimento del vecchio widget params');
+
+                    },
+                });
+
+            }
+            function reloadWidgetParams() {
+                $.ajax({
+                    //url: "../controllers/getWidgetParams.php",
+                    url: "../widgets/getParametersWidgets.php",
+                    type: "GET",
+                    data: {
+                        //widgetName: "<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"
+                        nomeWidget: ["<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"]
+                    },
+                    async: true,
+                    dataType: 'json',
+                    success: function (widgetData) {
+                        console.log('widgetdata ricevuto');
+                        console.log(widgetData);
+                        widgetData.params = widgetData.param;
+                        //Parametri di costruzione del widget (struttura e aspetto)
+                        showTitle = widgetData.params.showTitle;
+                        widgetContentColor = widgetData.params.color_w;
+                        fontSize = widgetData.params.fontSize;
+                        fontColor = widgetData.params.fontColor;
+                        hasTimer = widgetData.params.hasTimer;
+                        chartColor = widgetData.params.chartColor;
+                        dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
+                        dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
+                        chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
+                        chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                        appId = widgetData.params.appId;
+                        flowId = widgetData.params.flowId;
+                        nodeId = widgetData.params.nodeId;
+                        nrMetricType = widgetData.params.nrMetricType;
+                        sm_based = widgetData.params.sm_based;
+                        rowParameters = widgetData.params.rowParameters;
+                        sm_field = widgetData.params.sm_field;
+                        addMode = widgetData.params.viewMode;
+                        enableFullscreenModal = widgetData.params.enableFullscreenModal;
+                        enableFullscreenTab = widgetData.params.enableFullscreenTab;
+                        geoServerUrl = widgetData.geoServerUrl;
+                        heatmapUrl = widgetData.heatmapUrl;
+                        nodeRedInputName = widgetData.params.name;
+                        nrInputId = widgetData.params.nrInputId;
+
+                        if (widgetData.params.infoJson != "yes") {
+                            $('#'+mapOptionsDivName).hide();
+                        }
+
+                        if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget === true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((embedWidget === false) && (showTitle === "no"))) {
+                            showHeader = false;
                         }
                         else {
-                            if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'no')) {
-                                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                            showHeader = true;
+                        }
+
+                        metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
+                        widgetTitle = widgetData.params.title_w;
+                        widgetHeaderColor = widgetData.params.frame_color_w;
+                        widgetHeaderFontColor = widgetData.params.headerFontColor;
+                        sizeRowsWidget = parseInt(widgetData.params.size_rows);
+                        styleParameters = JSON.parse(widgetData.params.styleParameters);
+                        widgetParameters = JSON.parse(widgetData.params.parameters);
+                        wsConnect = widgetParameters.wsConnect;
+
+                        if (metricName != 'Map' && nodeId != null) {
+                            openWs(widgetName);
+                        }
+                        if (socket == null && wsConnect == "yes") {
+                            newWSConnect();
+                        }
+
+                        setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+                        $("#" + widgetName + "_buttonsDiv").css("height", "100%");
+                        $("#" + widgetName + "_buttonsDiv").css("float", "left");
+
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).css("font-size", "20px");
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hover(function () {
+                            $(this).find("span").css("color", "red");
+                        }, function () {
+                            $(this).find("span").css("color", widgetHeaderFontColor);
+                        });
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).css("font-size", "20px");
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hover(function () {
+                            $(this).find("span").css("color", "red");
+                        }, function () {
+                            $(this).find("span").css("color", widgetHeaderFontColor);
+                        });
+
+                        if (hostFile === "config") {
+                            if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'yes')) {
+                                $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 25 - 2));
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
                                 $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
                             }
                             else {
-                                if ((enableFullscreenTab === 'no') && (enableFullscreenModal === 'yes')) {
+                                if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'no')) {
                                     $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 25 - 2));
                                     $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
                                     $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
                                 }
                                 else {
-                                    $("#" + widgetName + "_buttonsDiv").hide();
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 2));
+                                    if ((enableFullscreenModal === 'no') && (enableFullscreenTab === 'yes')) {
+                                        $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 25 - 2));
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                                    }
+                                    else {
+                                        $("#" + widgetName + "_buttonsDiv").css("width", "0px");
+                                        $("#" + widgetName + "_buttonsDiv").hide();
+                                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 0 - 25 - 2));
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                                    }
                                 }
                             }
                         }
-                    }
-
-                    $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
-
-                    if (firstLoad === false) {
-                        showWidgetContent(widgetName);
-                    }
-                    else {
-                        setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-                    }
-                    populateWidget();
-                    //   globalMapView = true;
-
-                    if (metricName != 'Map' && nodeId != null) {
-                        map.defaultMapRef.on('click', function(e) {
-                            //    alert('Map Clicked!');
-                            let eventJson = new Object();
-                            eventJson.latitude = e.latlng.lat;
-                            eventJson.longitude = e.latlng.lng;
-                            currentValue = JSON.stringify(eventJson);
-                            triggerEventOnIotApp(map.defaultMapRef, currentValue);
-                        })
-                    }
-
-                    // parte mappa 3D - CORTI
-                    setTimeout(function () {
-                        map.default3DMapRef = initMapsAndListeners(map);
-                            setTimeout(function () {
-                                if (defaultOrthomapMenuItem != null) {
-                                    if (defaultOrthomapMenuItem.id != null) {
-                                        if (defaultOrthomapMenuItem.external == true) {
-                                            $('#defaultMap').addClass('hidden');
-                                        }
-                                        $('#' + defaultOrthomapMenuItem.id).removeClass('hidden');
+                        else {
+                            if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'yes')) {
+                                $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 2));
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                            }
+                            else {
+                                if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'no')) {
+                                    $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                                }
+                                else {
+                                    if ((enableFullscreenTab === 'no') && (enableFullscreenModal === 'yes')) {
+                                        $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+                                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
+                                    }
+                                    else {
+                                        $("#" + widgetName + "_buttonsDiv").hide();
+                                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 2));
                                     }
                                 }
-                            }, 500);
-                    }, 3000);
-                    // hide fullscreen
-                    $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv').addClass('hidden');
+                            }
+                        }
 
-                },
-                error: function (errorData) {
+                        $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
 
-                }
-            });
+                        if (firstLoad === false) {
+                            showWidgetContent(widgetName);
+                        }
+                        else {
+                            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                        }
+                        populateWidget();
+                        //   globalMapView = true;
+
+                        if (metricName != 'Map' && nodeId != null) {
+                            map.defaultMapRef.on('click', function(e) {
+                                //    alert('Map Clicked!');
+                                let eventJson = new Object();
+                                eventJson.latitude = e.latlng.lat;
+                                eventJson.longitude = e.latlng.lng;
+                                currentValue = JSON.stringify(eventJson);
+                                triggerEventOnIotApp(map.defaultMapRef, currentValue);
+                            })
+                        }
+
+                        // parte mappa 3D - CORTI
+                        setTimeout(function () {
+                            map.default3DMapRef = initMapsAndListeners(map);
+                                setTimeout(function () {
+                                    if (defaultOrthomapMenuItem != null) {
+                                        if (defaultOrthomapMenuItem.id != null) {
+                                            if (defaultOrthomapMenuItem.external == true) {
+                                                $('#defaultMap').addClass('hidden');
+                                            }
+                                            $('#' + defaultOrthomapMenuItem.id).removeClass('hidden');
+                                        }
+                                    }
+                                }, 500);
+                        }, 3000);
+                        // hide fullscreen
+                        $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv').addClass('hidden');
+
+                    },
+                    error: function (errorData) {
+                        console.error('Errore durante il ricevimento dei parametri widgets');
+
+                    }
+                });
+            }
+
+            //reloadWidgetParams();
+            reloadOldWidgetParams();
 
             //Risponditore ad evento resize
             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>").on('customResizeEvent', function (event) {
@@ -13563,6 +16848,12 @@ if (!isset($_SESSION)) {
                     }).addTo(map.defaultMapRef);
                 }
                 layersAddedToMap.push({"id": menu.id, "layer": layer});
+                if (is3dOn) {
+                    const tileUrl = menu.linkUrl.replace("{s}", "c");
+                    const terrainLayer = createTileLayer(tileUrl, menu.id);
+                    layers.terrain = terrainLayer;
+                    updateLayers();
+                }
                 
                 // example of TMS for GeoServer
 //                let layer = L.tileLayer('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/ambiti_amministrativi_toscana:firenze_sat_here_z17@EPSG%3A900913@jpeg/{z}/{x}/{y}.png', {
@@ -13629,28 +16920,139 @@ if (!isset($_SESSION)) {
         });//Fine document ready
     </script>
 
-    <style>	<!-- CORTI -->
-    #3DMapContainer{
+    <style>
+    #map3d {
+        position: absolute;
+        top: 25px;
+        left: 0;
         width: 100%;
-        display: none;
-    }
-    #3DMap{
-        width: 100%;
+        height: calc(100% - 25px);
+        z-index: 999;
+        background-color: white;
     }
     .mapOptions{
         position: absolute;
         top: 36px;
         left: 70px;
-        z-index: 400;
+        z-index: 430;
     }
     .dropdown-menu .dropdown-header{
         padding-left: 10px;
         color: #c3c3c3;
+        z-index: 430;
     }
     .dropdown-menu .dropdown-item{
         padding-left: 10px;
     }
-</style>	<!-- FINE CORTI STYLE -->
+    .hoverName {
+        font-size: 16px;
+        color: white;
+    }
+    #deck-controls {
+        position: absolute;
+        top: 30px;
+        left: 5px;
+        z-index: 425;
+    }
+
+    #deck-controls-bottom {
+        position: absolute;
+        bottom: 0px;
+        left: 5px;
+        z-index: 425;
+    }
+
+    #deck-controls input {
+        background-color: #337ab7;
+        color: #fff;
+        border-color: #2e6da4;
+        font-size: 13px;
+        display: block;
+        float: right;
+    }
+
+    .deck-btn-set {
+        margin: 5px;
+    }
+    #dropdownMenu1 {
+        margin-left: 5px;
+    }
+
+    .deck-btn-set > button, #deck-zoom-box {
+        background-color: #337ab7;
+        color: #fff;
+        border-color: #2e6da4;
+        width: 25px;
+        height: 25px;
+        margin-right: 5px;
+        font-size: 16px;
+    }
+
+    #deck-controls-bottom button {
+        display: block;
+        float: left;
+        margin-right: 5px;
+    }
+
+    .deck-sunlight-div {
+        background-color: #337ab7;
+        color: #fff;
+    }
+
+    .deck-sunlight-div > button {
+        display: block;
+        background-color: #337ab7;
+        color: #fff;
+    }
+
+    .deck-sunlight-div > input {
+        background-color: #337ab7;
+        color: #fff;
+    }
+
+    #deck-zoom-box {
+        text-align: center;
+        line-height: 25px;
+    }
+
+    .deck-popup {
+        position: absolute;
+        background-color: white;
+        z-index: 450;
+        min-width: 400px;
+        max-width: 1200px;
+    }
+
+    .deck-close-btn {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+
+        background-color: transparent;
+        color: #000;
+        border: 0px;
+        width: 25px;
+        height: 25px;
+        font-size: 16px;
+    }
+
+    .deck-close-btn:hover {
+        color: red;
+    }
+
+    .icon-margin-right {
+        margin-right: 5px;
+    }
+
+    .draggable-popup {
+        cursor: move;
+        padding-top: 20px;
+    }
+
+    .leaflet-left {
+        z-index: 1;
+    }
+</style>
 
 <div class="widget" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div">
     <div class='ui-widget-content'>
@@ -13699,22 +17101,28 @@ if (!isset($_SESSION)) {
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map"
                      style="height: 100%; width: 100%;"></div>
 
-                <!-- Layers & 3D CORTI -->
+                <!-- deckgl layer -->
                 <div class="dropdown mapOptions" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptions">
                     <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                         <i class="fa fa-spinner fa-spin hidden" id="loadingMenu"></i> Maps
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" id="dropdown-menu-id" aria-labelledby="dropdownMenu1">
-                        <li class="dropdown-header hidden">2D / 3D</li>
-                        <li><a class="dropdown-item hidden" href="#" id="2DButton">2D Map</a></li>
-                        <li><a class="dropdown-item hidden" href="#" id="3DButton">3D Map</a></li>
+                        <li class="dropdown-header">2D / 3D</li>
+                        <li><a class="dropdown-item" href="#" id="2DButton">2D Map</a></li>
+                        <li><a class="dropdown-item" href="#" id="3DButton">3D Map</a></li>
                         <li role="separator" class="divider hidden"></li>
                      <!--   <li class="dropdown-header" id="layersHeader">World OrthMaps</li>   -->
                         <li class="dropdown-header" id="layersHeader">External Providers Open Orthomaps</li>
                         <li role="separator" class="divider"></li>
                      <!--   <li class="dropdown-header" id="checkablesHeader">Checkable Layers/Maps</li>    -->
                         <li class="dropdown-header" id="checkablesHeader">WMS & GeoJSON Orthomaps</li>
+                        <li role="separator" class="divider"></li>
+                        <li class="dropdown-header" id="checkablesHeader">Building sources</li>
+                        <li><a class="dropdown-item" href="#" id="no-building"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;No Building</a></li>
+                        <li><a class="dropdown-item" href="#" id="building-mesh"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed</a></li>
+                        <li><a class="dropdown-item" href="#" id="building-mesh-notext"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed No Texture</a></li>
+                        <li><a class="dropdown-item" href="#" id="building-light"><i class="fa appendable-icon fa-map-pin"></i>&nbsp;Building Light</a></li>
                     </ul>
                     <template id="dropdownMenuTemplate">
                         <li class="appendable">
@@ -13724,12 +17132,33 @@ if (!isset($_SESSION)) {
                         </li>
                     </template>
                 </div>
-
-
-                <div id="3DMapContainer" style="height: 500px">
-                    <div id="3DMap" style="height: 500px"></div>
-                </div>	<!-- FINE Layers & 3D CORTI -->
-
+                <div id="map3d"></div>
+                <div id="deck-controls">
+                    <div class="deck-btn-set">
+                        <button id="deck-light-btn">L</button>
+                        <input  type="datetime-local" id="lightTimestamp" />
+                    </div>
+                    <div class="deck-btn-set">
+                        <button id="deck-pitch-up">↙</button>
+                        <button id="deck-pitch-down">↗</button>
+                    </div>
+                    <div class="deck-btn-set">
+                        <button id="deck-bear-down">↶</button>
+                        <button id="deck-bear-up">↷</button>
+                    </div>
+                    <div class="deck-btn-set">
+                        <button id="deck-zoom-down">-</button>
+                        <button id="deck-zoom-up">+</button>
+                    </div>
+                    <div class="deck-btn-set">
+                        <div id="deck-zoom-box">
+                           14 
+                        </div>
+                    </div>
+                </div>
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_deck_popup" >
+                    
+                </div>
             </div>
         </div>
     </div>

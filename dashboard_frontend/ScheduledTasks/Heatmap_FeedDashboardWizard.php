@@ -2,17 +2,16 @@
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 function udate($format = 'u', $microT) {
 
@@ -57,6 +56,9 @@ $low_level_type = "";
 $unique_name_to_split = "";
 $unique_name_id = "";
 $instance_uri = "WMS";
+
+$value_name = "";
+$value_type = "";
 
 $get_instances = "";
 $metric = "no";
@@ -105,13 +107,18 @@ foreach ($heatmapResultsArray as $heatmapName) {
     $healthiness = "true";
     $lastCheck = $lastCheck;
     $unique_name_id = $metadata['metadata']['mapName'];
+    $value_name = $unique_name_id;
     $low_level_type = $metadata['metadata']['metricName'];
+    $value_type = $low_level_type;
     $last_date = $metadata['metadata']['date'];
     $get_instances = $geoServerUrl . "geoserver/Snap4City/wms?service=WMS&layers=" . $unique_name_id;
     $parameters = $get_instances;
     $ownership = "public";
 
-    if (strpos($low_level_type, 'NO') !== false || strpos($low_level_type, 'NO2') !== false || strpos($low_level_type, 'SO') !== false || strpos($low_level_type, 'CO') !== false || stripos($low_level_type, 'airquality') !== false || stripos($low_level_type, 'aqi') !== false || stripos($low_level_type, 'pm10') !== false || stripos($low_level_type, 'pm2_5') !== false || stripos($low_level_type, 'benzene') !== false || stripos($low_level_type, 'nox') !== false) {
+/*    if (stripos($low_level_type, '15min') !== false || stripos($low_level_type, 'abperarea') || stripos($low_level_type, 'geotiff') || stripos($low_level_type, 'ogvi')) {
+        $nature = "GovernmentOffice";
+        $sub_nature = "Civil_registry";
+    } else */ if (strpos($low_level_type, 'NO') !== false || strpos($low_level_type, 'NO2') !== false || strpos($low_level_type, 'SO') !== false || strpos($low_level_type, 'CO') !== false || stripos($low_level_type, 'airquality') !== false || stripos($low_level_type, 'aqi') !== false || stripos($low_level_type, 'pm10') !== false || stripos($low_level_type, 'pm2_5') !== false || stripos($low_level_type, 'benzene') !== false || stripos($low_level_type, 'nox') !== false) {
         $nature = "Environment";
         $sub_nature = "Air_quality_monitoring_station";
     } else if (strpos($low_level_type, 'LAeq') !== false) {
@@ -134,7 +141,7 @@ foreach ($heatmapResultsArray as $heatmapName) {
     if (!is_null($low_level_type)) {
     //    if ($nature != '') {
             echo($count . " - HEATMAP: " . $unique_name_id . ", METRIC NAME: " . $low_level_type . "\n");
-            $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership', '$organizations', '$latitude', '$longitude') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "';";
+            $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership, organizations, latitude, longitude, value_name, value_type) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership', '$organizations', '$latitude', '$longitude', '$value_name', '$value_type') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "';";
             try {
                 //   mysqli_query($link, "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, last_date, last_value, healthiness, lastCheck, ownership) VALUES ('$nature','$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$last_date', '$last_value', '$healthiness', '$lastCheck', '$ownership') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = healthiness, lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "';");
                 mysqli_query($link, $insertQuery);
@@ -142,9 +149,9 @@ foreach ($heatmapResultsArray as $heatmapName) {
                 //   echo ("\nINSERT QUERY ON DUPLICATE KEY: ".$insertQuery."\n");
             } catch (Exception $e) {
                 echo $e->getMessage();
-                $updtQuery = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+            /*    $updtQuery = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = '" . $last_date . "', last_value = '" . $last_value . "', parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
                 mysqli_query($link, $updtQuery);
-                echo("\nUPDATE QUERY per KPI-ID: " . $kpiId . ": " . $updtQuery . "\n");
+                echo("\nUPDATE QUERY per KPI-ID: " . $kpiId . ": " . $updtQuery . "\n");    */
             }
    //     }
     }
