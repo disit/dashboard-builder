@@ -59,6 +59,7 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                         $myQueryType = "MyPOI";
                         break;
 
+                    case "Tools":
                     case "Traffic Flow":
                     case "Heatmap":
                         $myQuery = $selectedRow['parameters'];

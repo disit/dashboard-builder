@@ -2,17 +2,16 @@
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
 
@@ -48,13 +47,13 @@ mysqli_select_db($link, $dbname);
 if (defined('STDIN')) {
     if ($argv[1]) {
         $id_arg = $argv[1];
-        $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) AND id > ".$id_arg ." GROUP BY unique_name_id ORDER BY id DESC;";
+        $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'IoT Device' OR DashboardWizard.high_level_type = 'IoT Device Variable' OR DashboardWizard.high_level_type = 'Mobile Device' OR DashboardWizard.high_level_type = 'Mobile Device Variable' OR DashboardWizard.high_level_type = 'Data Table Device' OR DashboardWizard.high_level_type = 'Data Table Variable' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) AND id > ".$id_arg ." GROUP BY unique_name_id ORDER BY id DESC;";
     } else {
       //  $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) GROUP BY unique_name_id ORDER BY id DESC;";
-        $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) GROUP BY unique_name_id ORDER BY id DESC;";
+        $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'IoT Device' OR DashboardWizard.high_level_type = 'IoT Device Variable' OR DashboardWizard.high_level_type = 'Mobile Device' OR DashboardWizard.high_level_type = 'Mobile Device Variable' OR DashboardWizard.high_level_type = 'Data Table Device' OR DashboardWizard.high_level_type = 'Data Table Variable' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) GROUP BY unique_name_id ORDER BY id DESC;";
     }
 } else {
-    $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) GROUP BY unique_name_id ORDER BY id DESC;";
+    $query = "SELECT * FROM Dashboard.DashboardWizard WHERE (DashboardWizard.high_level_type = 'Sensor' OR DashboardWizard.high_level_type = 'IoT Device' OR DashboardWizard.high_level_type = 'IoT Device Variable' OR DashboardWizard.high_level_type = 'Mobile Device' OR DashboardWizard.high_level_type = 'Mobile Device Variable' OR DashboardWizard.high_level_type = 'Data Table Device' OR DashboardWizard.high_level_type = 'Data Table Variable' OR DashboardWizard.high_level_type = 'Sensor-Actuator' OR (DashboardWizard.high_level_type = 'Special Widget' AND sub_nature = 'First Aid Data')) GROUP BY unique_name_id ORDER BY id DESC;";
 }
 
 $rs = mysqli_query($link, $query);

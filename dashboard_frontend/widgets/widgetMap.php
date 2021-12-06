@@ -183,7 +183,7 @@ if (!isset($_SESSION)) {
                 sm_field, sizeRowsWidget, sm_based, rowParameters, fontSize, countdownRef, widgetTitle, widgetHeaderColor,
                 widgetHeaderFontColor, showHeader, widgetParameters, chartColor, dataLabelsFontSize, dataLabelsFontColor,
                 chartLabelsFontSize, chartLabelsFontColor, titleWidth, enableFullscreenModal,
-                enableFullscreenTab, shownPolyGroup, geoServerUrl, heatmapUrl = null;
+                enableFullscreenTab, shownPolyGroup, geoServerUrl, heatmapUrl, odOnMap, sourcePolygon, geojson_layer = null;
             var eventsOnMap = [];
             var addMode = null;
             heatmapMetricName = "";
@@ -219,7 +219,7 @@ if (!isset($_SESSION)) {
             passedParams = null;    */
 
             var current_radius = null;
-            var current_opacity = null;
+            var current_opacity, current_opacity_od = null;
 	        var current_traffic_opacity = null;
             var changeRadiusOnZoom = false;
             var estimatedRadius = null;
@@ -4776,9 +4776,9 @@ if (!isset($_SESSION)) {
                                 }
                             }
 
-                            if (passedData.query.includes("&model=")) {
+                       /*     if (passedData.query.includes("&model=")) {
                                 apiUrl = apiUrl + "&model=" + passedData.desc;
-                            } 
+                            }   */
 
                             $.ajax({
                             //    url: query + "&geometry=true&fullCount=false",
@@ -7382,6 +7382,7 @@ if (!isset($_SESSION)) {
 
                 $(document).on('addHeatmap', function (event) {
                     if (event.target === map.mapName) {
+                        odOnMap = false;
                      //   map.defaultMapRef.off('click', heatmapClick);
                      //   window.addHeatmapToMap = function() {
 
@@ -8429,11 +8430,12 @@ if (!isset($_SESSION)) {
                         function addHeatmapToMap() {
                            animationFlag = false;
 			               animationFlagTraffic = false;
+                           odOnMap = false;
                        //    current_page = 0;
                            try {
 			                    const isAddingTrafficHeatmap = (event.passedData.includes(geoServerUrl) && event.passedData.includes("trafficflowmanager=true"));
                                 if (map.eventsOnMap.length > 0) {
-			                       const normalHeatmapPresent = map.eventsOnMap.some(event => (event.eventType === 'heatmap' || (event._url && event._url.includes("animate") && !event.options.pane.includes("TrafficFlowManager"))))
+			                       const normalHeatmapPresent = map.eventsOnMap.some(event => (event.eventType === 'heatmap' || event.eventType === 'od' || (event._url && event._url.includes("animate") && !event.options.pane.includes("TrafficFlowManager"))))
                                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
 				                        // logica additività trafficflowmanager
                                        // non rimuovere layer dalla mappa se:
@@ -8490,6 +8492,15 @@ if (!isset($_SESSION)) {
                                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                                                    map.eventsOnMap.splice(i, 1);
                                                }
+                                           } else if (map.eventsOnMap[i].eventType === 'od'){
+                                               map.defaultMapRef.removeLayer(geojson_layer);
+                                               map.defaultMapRef.removeLayer(sourcePolygon);
+                                               map.defaultMapRef.removeControl(map.legendOd);
+                                               map.defaultMapRef.removeControl(map.flowInfo);
+                                               map.eventsOnMap.splice(i, 1);
+                                           } else if (map.eventsOnMap[i].type === 'addOD'){
+                                               map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
+                                               map.eventsOnMap.splice(i, 1);
                                            }
                                        }
                                    }
@@ -9744,6 +9755,1234 @@ if (!isset($_SESSION)) {
                     }
                 });
 
+                $(document).on('addOD', function(event) {
+                    if(event.target === map.mapName) {
+                        map.defaultMapRef.off('click');
+                        odOnMap = true;
+                        let passedData = event.passedData.split("get?");
+                        let odUrl = passedData[0];
+                        let parameters = passedData[1].split("&");
+
+                        let latitude = "";
+                        let longitude = "";
+                        let precision = "";
+                        let organization = "";
+                        let inflow = "";
+                        for (n=0; n < parameters.length; n++) {
+                            if (parameters[n].split("=")[0] == "latitude") {
+                                latitude = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "longitude") {
+                                longitude = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "precision") {
+                                precision = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "organization") {
+                                organization = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "inflow") {
+                                inflow = parameters[n].split("=")[1];
+                            }
+                        }
+
+                        let dates = [];
+                        let colors = [];
+                        let animationPeriod = "week";
+                        let animationCounter = 0;
+                        let shapeTypes = [];
+                        mapName = "Origin-Destination Map";
+
+                        //Crea un layer per la OD (i dati gli verranno passati nell'evento)
+                        //OD configuration
+                        function getOdColorLegend() {
+
+                            var colorScale = {};
+
+                            $.ajax({
+                                url: odUrl + "color?metric_name=ODcolormap1",
+                                type: "GET",
+                                async: false,
+                                dataType: 'json',
+                                success: function (dataColorScale) {
+                                    colorScale = dataColorScale;
+                                },
+                                error: function (err) {
+                                    alert("Error in retrieving color map scale: ");
+                                    console.log(err);
+                                }
+                            });
+
+                            return colorScale;
+                        }
+
+                        if (!map.legendOd) {
+                            map.legendOd = L.control({position: 'topright'});
+                        }
+
+                        if (!map.flowInfo) {
+                            map.flowInfo = L.control({position: 'topright'});
+                        }
+
+                        function changeOdPage(page) {
+                            var btn_next = document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt");
+                            var btn_prev = document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt");
+
+                            // Validate page
+                            if (dates.length > 0) {
+                                if (page < 0) page = 0;
+                                if (page > (dates.length - 1)) page = (dates.length - 1);
+
+                                if (current_page == 0) {
+                                    btn_prev.style.visibility = "hidden";
+                                } else {
+                                    btn_prev.style.visibility = "visible";
+                                }
+
+                                if (current_page == dates.length - 1) {
+                                    btn_next.style.visibility = "hidden";
+                                } else {
+                                    btn_next.style.visibility = "visible";
+                                }
+                            }
+                        }
+
+                        function setOption(option, value, decimals) {
+                            if (option == "maxOpacity") {
+                                if (geojson_layer) {
+                                    current_opacity_od = value;
+                                    if (decimals) {
+                                        $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity_od).toFixed(parseInt(decimals)));
+                                        $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity_od).toFixed(parseInt(decimals)));
+                                        geojson_layer.setStyle({fillOpacity: current_opacity_od});
+                                    }
+                                }
+                            }
+                        }
+
+                        function removeOd(resetPageFlag) {
+                            if (resetPageFlag == true) {
+                                current_page = 0;
+                            }
+                            if (geojson_layer !== null) {
+                                map.defaultMapRef.removeLayer(geojson_layer);
+                            }
+                            if (sourcePolygon !== null) {
+                                map.defaultMapRef.removeLayer(sourcePolygon);
+                            }
+                            map.defaultMapRef.removeControl(map.legendOd);
+                            map.defaultMapRef.removeControl(map.flowInfo);
+                        }
+
+                        function removeOdColorLegend(index, resetPageFlag) {
+                            if (resetPageFlag == true) {
+                                current_page = 0;
+                            }
+                            map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
+                        }
+
+                        map.legendOd.onAdd = function () {
+                            map.legendOdDiv = L.DomUtil.create('div');
+                            map.legendOdDiv.id = "odLegend";
+                            // disable interaction of this div with map
+                            if (L.Browser.touch) {
+                                L.DomEvent.disableClickPropagation(map.legendOdDiv);
+                                L.DomEvent.on(map.legendOdDiv, 'mousewheel', L.DomEvent.stopPropagation);
+                            } else {
+                                L.DomEvent.on(map.legendOdDiv, 'click', L.DomEvent.stopPropagation);
+                            }
+                            map.legendOdDiv.style.width = "340px";
+                            map.legendOdDiv.style.fontWeight = "bold";
+                            map.legendOdDiv.style.background = "#cccccc";
+                            map.legendOdDiv.style.padding = "10px";
+
+                            map.legendOdDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
+                            map.legendOdDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">OD Controls:</div>';
+
+                            if (animationFlag === false) {
+                                if (animationPeriod === "week") {
+                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Start</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
+                                        '<div id="odAnimationControl">' +
+                                        '<label for="Animation">Animation for:&nbsp;</label><select name="animation" id="animationPeriod" >' +
+                                        '<option value="week">week</option>' +
+                                        '<option value="month">month</option>' + '</select></div>';
+                                } else {
+                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Start</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
+                                        '<div id="odAnimationControl">' +
+                                        '<label for="Animation">Animation for:&nbsp;</label><select name="animation" id="animationPeriod" >' +
+                                        '<option value="month">month</option>' +
+                                        '<option value="week">week</option>' + '</select></div>';
+                                }
+                            } else {
+                                if (animationPeriod === "week") {
+                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation" checked disabled><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Stop</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
+                                        '<div id="odAnimationControl">' +
+                                        '<label for="Animation">Animation for:&nbsp;</label><select name="animation" id="animationPeriod" disabled>' +
+                                        '<option value="week">week</option>' +
+                                        '<option value="month">month</option>' + '</select></div>';
+                                } else {
+                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation" checked disabled><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Stop</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
+                                        '<div id="odAnimationControl">' +
+                                        '<label for="Animation">Animation for:&nbsp;</label><select name="animation" id="animationPeriod" disabled>' +
+                                        '<option value="month">month</option>' +
+                                        '<option value="week">week</option>' + '</select></div>';
+                                }
+                                setTimeout(function (){
+                                    if(odOnMap){
+                                        $("#<?= $_REQUEST['name_w'] ?>_animation").prop('disabled', false);
+                                    }
+                                }, 1500);
+                            }
+
+                            //precision
+                            let options = '';
+                            for(let i=0;i<shapeTypes.length;i++){
+                                if(shapeTypes[i] !== precision){
+                                    options += '<option value=' + shapeTypes[i] + '>' + shapeTypes[i] + '</option>';
+                                }
+                            }
+                            map.legendOdDiv.innerHTML += '<div id="odPrecisionControl">' +
+                                '<label for="Precision">Precision:&nbsp;</label><select name="precision" id="precision" ' + disabledAnimation() + '>' +
+                                '<option value=' + precision + '>' + precision +
+                                options +
+                                '</select></div>';
+
+                            //flow
+                            if (inflow === "True") {
+                                map.legendOdDiv.innerHTML += '<div id="odFlowControl">' +
+                                    '<label for="Flow">Flow:&nbsp;</label>' +
+                                    '<select name="flow" id="flow" ' + disabledAnimation() + '>' +
+                                    '<option value="inflow">inflow</option>' +
+                                    '<option value="outflow">outflow</option>' +
+                                    '</select></div>';
+                            } else {
+                                map.legendOdDiv.innerHTML += '<div id="odFlowControl">' +
+                                    '<label for="Flow">Flow:&nbsp;</label>' +
+                                    '<select name="flow" id="flow" ' + disabledAnimation() + '>' +
+                                    '<option value="outflow">outflow</option>' +
+                                    '<option value="inflow">inflow</option>' +
+                                    '</select></div>';
+                            }
+
+                            // max opacity
+                            map.legendOdDiv.innerHTML +=
+                                '<div id="odOpacityControl">' +
+                                '<div style="display:inline-block; vertical-align:super;">Max Opacity: &nbsp;&nbsp;&nbsp;&nbsp;</div>' +
+                                '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_opacity" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
+                                '<input id="<?= $_REQUEST['name_w'] ?>_slidermaxOpacity" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="0" max="1" value="' + current_opacity_od + '" step="0.01" ' + disabledAnimation() + '>' +
+                                '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="upSlider_opacity" style="display:inline-block;vertical-align:super; color: #0078A8">&#10095;</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
+                                '<span id="<?= $_REQUEST['name_w'] ?>_rangemaxOpacity" style="display:inline-block;vertical-align:super;">' + current_opacity_od + '</span>' +
+                                '</div>';
+
+                            // Od Navigation Buttons (prev & next)
+                            map.legendOdDiv.innerHTML +=
+                                '<div id="odNavigationCnt">' +
+                                '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButt" value="< Prev" style="float: left" ' + disabledAnimation() + '/>' +
+                                '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButt" value="Next >" style="float: right" ' + disabledAnimation() + '/>' +
+                                '<div id="<?= $_REQUEST['name_w'] ?>_odDescr" style="text-align: center">' + mapDate + '</div>' +
+                                '</div>';
+
+                            function checkLegend() {
+
+                                document.getElementById("animationPeriod").addEventListener("change", function () {
+                                    changeAnimationPeriod()
+                                }, false);
+                                document.getElementById("precision").addEventListener("change", function () {
+                                    changePrecision()
+                                }, false);
+                                document.getElementById("flow").addEventListener("change", function () {
+                                    changeFlow()
+                                }, false);
+
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").addEventListener("input", function () {
+                                    setOption('maxOpacity', this.value, 2)
+                                }, false);
+
+                                //if(precision === "communes"){
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").addEventListener("click", function () {
+                                    animateOdMap()
+                                }, false);
+                                //}
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").addEventListener("click", function () {
+                                    prevOdPage()
+                                }, false);
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").addEventListener("click", function () {
+                                    nextOdPage()
+                                }, false);
+
+
+                                if (current_page == 0) {
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "hidden";
+                                } else {
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "visible";
+                                }
+
+                                if (current_page == dates.length - 1) {
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "hidden";
+                                } else {
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "visible";
+                                }
+                            }
+
+                            setTimeout(checkLegend, 500);
+                            return map.legendOdDiv;
+                        };
+
+                        map.flowInfo.onAdd = function () {
+                            map.flowInfoDiv = L.DomUtil.create('div', 'info');
+                            // disable interaction of this div with map
+                            if (L.Browser.touch) {
+                                L.DomEvent.disableClickPropagation(map.flowInfoDiv);
+                                L.DomEvent.on(map.flowInfoDiv, 'mousewheel', L.DomEvent.stopPropagation);
+                            } else {
+                                L.DomEvent.on(map.flowInfoDiv, 'click', L.DomEvent.stopPropagation);
+                            }
+                            map.flowInfoDiv.style.width = "170px";
+                            map.flowInfoDiv.style.fontWeight = "bold";
+                            map.flowInfoDiv.style.background = "#cccccc";
+                            map.flowInfoDiv.style.padding = "10px";
+                            this.update();
+                            return map.flowInfoDiv;
+                        };
+
+                        map.flowInfo.update = function (props) {
+                            map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + (props ?
+                                '<b>Area id: ' + props.name + '</b><br />Rate: ' + 100 * Math.round(props.density * 1000) / 1000 + '%'
+                                : 'Hover over a zone') + '</div>';
+                        };
+
+                        function disabledAnimation() {
+                            if (animationFlag) {
+                                return "disabled";
+                            } else {
+                                return "";
+                            }
+                        }
+
+                        function dateDiffInDays(a, b) {
+                            const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+                            const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+                            return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
+                        }
+
+
+                        function animateOdMap() {
+                            if (!animationFlag) {	// && current_page < dates.length - 1
+                                animationFlag = true;
+                                if (animationPeriod === "week") {
+                                    let actual_date = new Date((dates[current_page].split(" "))[0]);
+                                    let week_day = actual_date.getDay();
+                                    let checkWeek = false;
+                                    let i = 0;
+                                    if (week_day === 1){
+                                        let max_difference = 6;
+                                        let temp_page = current_page;
+                                        current_page--;
+                                        while (!checkWeek){
+                                            temp_page++;
+                                            if(temp_page < dates.length){
+                                                let temp_date = new Date((dates[temp_page].split(" "))[0]);
+                                                let difference = dateDiffInDays(actual_date, temp_date);
+                                                if(difference > max_difference){
+                                                    checkWeek = true;
+                                                }
+                                            }else{
+                                                checkWeek =true;
+                                            }
+                                            i++;
+                                        }
+                                    }else if(week_day === 0){
+                                        let max_difference = 6;
+                                        while (!checkWeek){
+                                            current_page--;
+                                            if(current_page >= 0){
+                                                let temp_date = new Date((dates[current_page].split(" "))[0]);
+                                                let difference = dateDiffInDays(temp_date, actual_date);
+                                                if(difference > max_difference){
+                                                    checkWeek = true;
+                                                }
+                                            }else{
+                                                checkWeek = true;
+                                            }
+                                            i++;
+                                        }
+                                    }else{
+                                        let down_difference = week_day - 1;
+                                        let up_difference = 7 - week_day;
+                                        let temp_page = current_page;
+                                        while (!checkWeek){
+                                            current_page--;
+                                            if(current_page >= 0){
+                                                let temp_date = new Date((dates[current_page].split(" "))[0]);
+                                                let difference = dateDiffInDays(temp_date, actual_date);
+                                                if(difference > down_difference){
+                                                    checkWeek = true;
+                                                }
+                                            }else{
+                                                checkWeek = true;
+                                            }
+                                            i++;
+                                        }
+                                        checkWeek = false;
+                                        while (!checkWeek){
+                                            temp_page++;
+                                            if(temp_page < dates.length){
+                                                let temp_date = new Date((dates[temp_page].split(" "))[0]);
+                                                let difference = dateDiffInDays(actual_date, temp_date);
+                                                if(difference > up_difference){
+                                                    checkWeek = true;
+                                                }
+                                            }else{
+                                                checkWeek =true;
+                                            }
+                                            i++;
+                                        }
+                                        i--;
+                                    }
+                                    animationCounter = i;
+                                    nextOdPage();
+                                } else if (animationPeriod === "month") {
+                                    let checkMonth = false;
+                                    let date = dates[current_page].split("-");
+                                    let year = date[0];
+                                    let month = date[1];
+                                    let i = 0;
+                                    let temp_page = current_page;
+                                    while (!checkMonth) {
+                                        current_page--;
+                                        if (current_page >= 0) {
+                                            let temp_date = dates[current_page].split("-");
+                                            let temp_year = temp_date[0];
+                                            let temp_month = temp_date[1];
+                                            if (month !== temp_month || year !== temp_year) {
+                                                checkMonth = true;
+                                            }
+                                        } else {
+                                            checkMonth = true;
+                                        }
+                                        i++;
+                                    }
+                                    checkMonth = false;
+                                    while (!checkMonth) {
+                                        temp_page++;
+                                        if (temp_page < dates.length) {
+                                            let temp_date = dates[temp_page].split("-");
+                                            let temp_year = temp_date[0];
+                                            let temp_month = temp_date[1];
+                                            if (month !== temp_month || year !== temp_year) {
+                                                checkMonth = true;
+                                            }
+                                        } else {
+                                            checkMonth = true;
+                                        }
+                                        i++;
+                                    }
+                                    i--;
+                                    animationCounter = i;
+                                    nextOdPage()
+                                }
+                            } else {
+                                animationFlag = false;
+                                $("#<?= $_REQUEST['name_w'] ?>_animation").prop('checked', false);
+                                $("#animationText").text("Wait");
+                                $("#<?= $_REQUEST['name_w'] ?>_animation").prop('disabled', true);
+                                setTimeout(function () {
+                                    if (odOnMap) {
+                                        $("#<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").prop('disabled', false);
+                                        $("#animationPeriod").prop('disabled', false);
+                                        $("#precision").prop('disabled', false);
+                                        $("#flow").prop('disabled', false);
+                                        $("#<?= $_REQUEST['name_w'] ?>_prevButt").prop('disabled', false);
+                                        $("#<?= $_REQUEST['name_w'] ?>_nextButt").prop('disabled', false);
+                                        $("#<?= $_REQUEST['name_w'] ?>_animation").prop('disabled', false);
+                                        $("#animationText").text("Start");
+                                    }
+                                }, 3000);
+                            }
+                        }
+
+                        function changeAnimationPeriod() {
+                            if (animationPeriod !== $("#animationPeriod").val()) {
+                                animationPeriod = $("#animationPeriod").val();
+                            }
+                        }
+
+                        function changePrecision() {
+                            if (precision !== $("#precision").val()) {
+                                precision = $("#precision").val();
+                                $.ajax({
+                                    url: '../widgets/get_od_metadata.php',
+                                    data: {
+                                        precision: precision,
+                                        action: "dates",
+                                        organization: organization
+                                    },
+                                    async: false,
+                                    cache: false,
+                                    dataType: 'json',
+                                    type: "POST",
+                                    success: function (data) {
+                                        dates = data;
+                                    },
+                                    error: function (errorData) {
+                                        console.log("Ko OD");
+                                        console.log(JSON.stringify(errorData));
+                                    }
+                                });
+                                current_page = (dates.length)-1;
+                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                    if (map.eventsOnMap[i].eventType === 'od') {
+                                        removeOd(false);
+                                        map.eventsOnMap.splice(i, 1);
+                                    } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                        if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                            map.eventsOnMap.splice(i, 1);
+                                        }
+                                    }
+                                }
+
+                                if (addMode === 'additive') {
+                                    addOdFromClient();
+                                }
+                                if (addMode === 'exclusive') {
+                                    map.defaultMapRef.eachLayer(function (layer) {
+                                        map.defaultMapRef.removeLayer(layer);
+                                    });
+                                    map.eventsOnMap.length = 0;
+
+                                    //Remove WidgetAlarm active pins
+                                    $.event.trigger({
+                                        type: "removeAlarmPin",
+                                    });
+                                    //Remove WidgetEvacuationPlans active pins
+                                    $.event.trigger({
+                                        type: "removeEvacuationPlanPin",
+                                    });
+                                    //Remove WidgetEvents active pins
+                                    $.event.trigger({
+                                        type: "removeEventFIPin",
+                                    });
+                                    //Remove WidgetResources active pins
+                                    $.event.trigger({
+                                        type: "removeResourcePin",
+                                    });
+                                    //Remove WidgetOperatorEvents active pins
+                                    $.event.trigger({
+                                        type: "removeOperatorEventPin",
+                                    });
+                                    //Remove WidgetTrafficEvents active pins
+                                    $.event.trigger({
+                                        type: "removeTrafficEventPin",
+                                    });
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                        maxZoom: 18
+                                    }).addTo(map.defaultMapRef);
+
+                                    addOdFromClient();
+                                }
+                            }
+                        }
+
+                        function changeFlow() {
+                            if ($("#flow").val() === "inflow") {
+                                if (inflow !== "True") {
+                                    inflow = "True";
+                                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                        if (map.eventsOnMap[i].eventType === 'od') {
+                                            removeOd(false);
+                                            map.eventsOnMap.splice(i, 1);
+                                        } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                            if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                                map.eventsOnMap.splice(i, 1);
+                                            }
+                                        }
+                                    }
+
+                                    if (addMode === 'additive') {
+                                        addOdFromClient();
+                                    }
+                                    if (addMode === 'exclusive') {
+                                        map.defaultMapRef.eachLayer(function (layer) {
+                                            map.defaultMapRef.removeLayer(layer);
+                                        });
+                                        map.eventsOnMap.length = 0;
+
+                                        //Remove WidgetAlarm active pins
+                                        $.event.trigger({
+                                            type: "removeAlarmPin",
+                                        });
+                                        //Remove WidgetEvacuationPlans active pins
+                                        $.event.trigger({
+                                            type: "removeEvacuationPlanPin",
+                                        });
+                                        //Remove WidgetEvents active pins
+                                        $.event.trigger({
+                                            type: "removeEventFIPin",
+                                        });
+                                        //Remove WidgetResources active pins
+                                        $.event.trigger({
+                                            type: "removeResourcePin",
+                                        });
+                                        //Remove WidgetOperatorEvents active pins
+                                        $.event.trigger({
+                                            type: "removeOperatorEventPin",
+                                        });
+                                        //Remove WidgetTrafficEvents active pins
+                                        $.event.trigger({
+                                            type: "removeTrafficEventPin",
+                                        });
+                                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                            maxZoom: 18
+                                        }).addTo(map.defaultMapRef);
+
+                                        addOdFromClient();
+                                    }
+                                }
+                            } else {
+                                if (inflow === "True") {
+                                    inflow = "False";
+                                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                        if (map.eventsOnMap[i].eventType === 'od') {
+                                            removeOd(false);
+                                            map.eventsOnMap.splice(i, 1);
+                                        } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                            if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                                map.eventsOnMap.splice(i, 1);
+                                            }
+                                        }
+                                    }
+
+                                    if (addMode === 'additive') {
+                                        addOdFromClient();
+                                    }
+                                    if (addMode === 'exclusive') {
+                                        map.defaultMapRef.eachLayer(function (layer) {
+                                            map.defaultMapRef.removeLayer(layer);
+                                        });
+                                        map.eventsOnMap.length = 0;
+
+                                        //Remove WidgetAlarm active pins
+                                        $.event.trigger({
+                                            type: "removeAlarmPin",
+                                        });
+                                        //Remove WidgetEvacuationPlans active pins
+                                        $.event.trigger({
+                                            type: "removeEvacuationPlanPin",
+                                        });
+                                        //Remove WidgetEvents active pins
+                                        $.event.trigger({
+                                            type: "removeEventFIPin",
+                                        });
+                                        //Remove WidgetResources active pins
+                                        $.event.trigger({
+                                            type: "removeResourcePin",
+                                        });
+                                        //Remove WidgetOperatorEvents active pins
+                                        $.event.trigger({
+                                            type: "removeOperatorEventPin",
+                                        });
+                                        //Remove WidgetTrafficEvents active pins
+                                        $.event.trigger({
+                                            type: "removeTrafficEventPin",
+                                        });
+                                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                            maxZoom: 18
+                                        }).addTo(map.defaultMapRef);
+
+                                        addOdFromClient();
+                                    }
+                                }
+                            }
+                        }
+
+                        function prevOdPage() {
+                            if (current_page > 0) {
+                                current_page--;
+                                changeOdPage(current_page);
+
+                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                    if (map.eventsOnMap[i].eventType === 'od') {
+                                        removeOd(false);
+                                        map.eventsOnMap.splice(i, 1);
+                                    } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                        if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                            map.eventsOnMap.splice(i, 1);
+                                        }
+                                    }
+                                }
+
+                                if (addMode === 'additive') {
+                                    addOdFromClient();
+                                }
+                                if (addMode === 'exclusive') {
+                                    map.defaultMapRef.eachLayer(function (layer) {
+                                        map.defaultMapRef.removeLayer(layer);
+                                    });
+                                    map.eventsOnMap.length = 0;
+
+                                    //Remove WidgetAlarm active pins
+                                    $.event.trigger({
+                                        type: "removeAlarmPin",
+                                    });
+                                    //Remove WidgetEvacuationPlans active pins
+                                    $.event.trigger({
+                                        type: "removeEvacuationPlanPin",
+                                    });
+                                    //Remove WidgetEvents active pins
+                                    $.event.trigger({
+                                        type: "removeEventFIPin",
+                                    });
+                                    //Remove WidgetResources active pins
+                                    $.event.trigger({
+                                        type: "removeResourcePin",
+                                    });
+                                    //Remove WidgetOperatorEvents active pins
+                                    $.event.trigger({
+                                        type: "removeOperatorEventPin",
+                                    });
+                                    //Remove WidgetTrafficEvents active pins
+                                    $.event.trigger({
+                                        type: "removeTrafficEventPin",
+                                    });
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                        maxZoom: 18
+                                    }).addTo(map.defaultMapRef);
+
+                                    addOdFromClient();
+                                }
+                            }
+                        }
+
+                        function nextOdPage() {
+                            if (current_page < dates.length - 1) {
+                                current_page++;
+                                changeOdPage(current_page);
+
+                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                    if (map.eventsOnMap[i].eventType === 'od') {
+                                        removeOd(false);
+                                        map.eventsOnMap.splice(i, 1);
+                                    } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                        if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                            map.eventsOnMap.splice(i, 1);
+                                        }
+                                    }
+                                }
+
+                                if (addMode === 'additive') {
+                                    addOdFromClient();
+                                }
+                                if (addMode === 'exclusive') {
+                                    map.defaultMapRef.eachLayer(function (layer) {
+                                        map.defaultMapRef.removeLayer(layer);
+                                    });
+                                    map.eventsOnMap.length = 0;
+
+                                    //Remove WidgetAlarm active pins
+                                    $.event.trigger({
+                                        type: "removeAlarmPin",
+                                    });
+                                    //Remove WidgetEvacuationPlans active pins
+                                    $.event.trigger({
+                                        type: "removeEvacuationPlanPin",
+                                    });
+                                    //Remove WidgetEvents active pins
+                                    $.event.trigger({
+                                        type: "removeEventFIPin",
+                                    });
+                                    //Remove WidgetResources active pins
+                                    $.event.trigger({
+                                        type: "removeResourcePin",
+                                    });
+                                    //Remove WidgetOperatorEvents active pins
+                                    $.event.trigger({
+                                        type: "removeOperatorEventPin",
+                                    });
+                                    //Remove WidgetTrafficEvents active pins
+                                    $.event.trigger({
+                                        type: "removeTrafficEventPin",
+                                    });
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                        maxZoom: 18
+                                    }).addTo(map.defaultMapRef);
+
+                                    addOdFromClient();
+                                }
+                            }
+                        }
+
+                        function load(setView, async) {
+                            // get OD data
+                            let dataQuery = "";
+                            let polygonQuery = "";
+                            if (precision == 'communes') {
+                                dataQuery = "get";
+                                polygonQuery = "polygon";
+                            } else {
+                                dataQuery = "get_mgrs";
+                                polygonQuery = "mgrs_polygon";
+                            }
+                            $.ajax({
+                                url: odUrl + dataQuery,
+                                async: async == 'False' ? false : true,
+                                type: "get",
+                                data: {
+                                    latitude: latitude,
+                                    longitude: longitude,
+                                    precision: precision,
+                                    from_date: mapDate,
+                                    organization: organization,
+                                    inflow: inflow
+                                },
+                                success: function(response) {
+                                    // remove old layer
+                                    if (geojson_layer) {
+                                        map.defaultMapRef.removeLayer(geojson_layer);
+                                    }
+                                    geojson_layer = L.geoJson(response, {
+                                        style: style,
+                                        onEachFeature: onEachFeature
+                                    });
+                                    geojson_layer.addTo(map.defaultMapRef);
+                                }
+                            });
+
+                            // get clicked polygon and add it to map
+                            $.ajax({
+                                url: odUrl + polygonQuery,
+                                type: "get",
+                                data: {
+                                    precision: precision,
+                                    latitude: latitude,
+                                    longitude: longitude
+                                },
+                                success: function(response) {
+                                    // remove old layer
+                                    if (sourcePolygon) {
+                                        map.defaultMapRef.removeLayer(sourcePolygon);
+                                    }
+
+                                    var src = L.polygon(response)
+                                    sourcePolygon = src;
+                                    src.setStyle({fillColor: '#0000FF'});
+                                    src.addTo(map.defaultMapRef);
+                                }
+                            });
+                        }
+
+                        function style(feature) {
+                            return {
+                                weight: 2,
+                                opacity: 1,
+                                color: 'white',
+                                dashArray: '3',
+                                fillOpacity: current_opacity_od,
+                                fillColor: getColor(feature.properties.density)
+                            };
+                        }
+
+                        function getColor(d) {
+                            for (i = 0; i < colors.length; i++) {
+                                min_value = colors[i][0] == '' ? Number.NEGATIVE_INFINITY : colors[i][0];
+                                max_value = colors[i][1] == '' ? Number.POSITIVE_INFINITY : colors[i][1];
+                                hex = colors[i][2];
+                                if (d > min_value && d <= max_value) {
+                                    return hex;
+                                }
+                            }
+                        }
+
+                        function onEachFeature(feature, layer) {
+                            layer.on({
+                                mouseover: highlightFeature,
+                                mouseout: resetHighlight
+                            });
+                        }
+
+                        function highlightFeature(e) {
+                            var layer = e.target;
+
+                            layer.setStyle({
+                                weight: 5,
+                                color: '#666',
+                                dashArray: '',
+                                fillOpacity: current_opacity_od
+                            });
+
+                            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                                layer.bringToFront();
+                            }
+
+                            map.flowInfo.update(layer.feature.properties);
+                        }
+
+                        function resetHighlight(e) {
+                            geojson_layer.resetStyle(e.target);
+                            map.flowInfo.update();
+                        }
+
+                        map.defaultMapRef.on('click', function(e) {
+                            if(animationFlag === false){
+                                var pointAndClickCoord = e.latlng;
+                                latitude = pointAndClickCoord.lat.toFixed(5);
+                                longitude = pointAndClickCoord.lng.toFixed(5);
+                                load();
+                            }
+                        });
+
+                        function addOdToMap() {
+                            animationFlag = false;
+                            try {
+                                if (map.eventsOnMap.length > 0) {
+                                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                        if (map.eventsOnMap[i].eventType === 'od') {
+                                            removeOd(true);
+                                            map.eventsOnMap.splice(i, 1);
+                                        } else if (map.eventsOnMap[i].type === 'addOD') {
+                                            removeOdColorLegend(i, true);
+                                            map.eventsOnMap.splice(i, 1);
+                                        } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                            if (map.eventsOnMap[i].type === 'trafficRealTimeDetails') {
+                                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                                map.eventsOnMap.splice(i, 1);
+                                            } else if (map.eventsOnMap[i]._url) {
+                                                if (map.eventsOnMap[i]._url.includes("animate")) {
+                                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                                    map.eventsOnMap.splice(i, 1);
+                                                }
+                                            } else if (map.eventsOnMap[i].eventType === 'heatmap') {
+                                                map.defaultMapRef.removeLayer(wmsLayer);
+                                                map.defaultMapRef.removeControl(map.legendHeatmap);
+                                                map.eventsOnMap.splice(i, 1);
+                                            } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                                                map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
+                                                map.eventsOnMap.splice(i, 1);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                passedParams = event.passedParams;
+                                var color1 = passedParams.color1;
+                                var color2 = passedParams.color2;
+                                var desc = passedParams.desc;
+                                var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+
+                                if ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0) {
+                                    loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
+                                } else {
+                                    loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_map'));
+                                }
+
+                                loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
+                                loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
+
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+
+                                loadingDiv.css("background", color1);
+                                loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
+                                loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                                loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                                loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
+
+                                loadingDiv.show();
+
+                                loadingDiv.append(loadingText);
+                                loadingDiv.css("opacity", 1);
+
+                                var parHeight = loadingText.height();
+                                var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                loadingText.css("margin-top", parMarginTop + "px");
+
+                                let od = {};
+                                od.eventType = "od";
+                                $.ajax({
+                                    url: '../widgets/get_od_metadata.php',
+                                    data: {
+                                        precision: precision,
+                                        action: "dates",
+                                        organization: organization
+                                    },
+                                    async: false,
+                                    cache: false,
+                                    dataType: 'json',
+                                    type: "POST",
+                                    success: function (data) {
+                                        dates = data;
+                                    },
+                                    error: function (errorData) {
+                                        console.log("Ko OD");
+                                        console.log(JSON.stringify(errorData));
+                                    }
+                                });
+
+                                colors = getOdColorLegend();
+                                if (current_opacity_od == null) {
+                                    current_opacity_od = 0.60;
+                                }
+
+                                current_page = (dates.length)-1;
+
+
+                                map.defaultMapRef.createPane('Snap4City: OD Flows');
+                                map.defaultMapRef.getPane('Snap4City: OD Flows').style.zIndex = 420;
+
+                                mapDate = dates[current_page];
+                                load();
+
+                                $.ajax({
+                                    url: '../widgets/get_od_metadata.php',
+                                    data: {
+                                        precision: precision,
+                                        action: "shape_type",
+                                        organization: organization
+                                    },
+                                    async: false,
+                                    cache: false,
+                                    dataType: 'json',
+                                    type: "POST",
+                                    success: function (data) {
+                                        for(let i=0; i<data.length; i++){
+                                            data[i] = (data[i].split("_"))[2];
+                                        }
+                                        shapeTypes = data;
+                                    },
+                                    error: function (errorData) {
+                                        console.log("No Data!!!");
+                                        console.log(JSON.stringify(errorData));
+                                    }
+                                });
+
+                                // add legend to map
+                                map.legendOd.addTo(map.defaultMapRef);
+                                map.flowInfo.addTo(map.defaultMapRef);
+                                map.eventsOnMap.push(od);
+
+                                var legendColors = L.control({position: 'bottomleft'});
+
+                                legendColors.onAdd = function () {
+                                    var div = L.DomUtil.create('div', 'info_legend'),
+                                        labels = [],
+                                        from, to;
+
+                                    div.style.backgroundColor = "#cccccc";
+                                    div.style.textAlign = "left";
+                                    div.style.lineHeigth = "18px";
+                                    div.style.fontWeight = "bold";
+                                    labels.push('<div id="container" style="margin:8px">Flow');
+                                    for (i = 0; i < colors.length; i++) {
+                                        if ((colors[i])[0] != null) {
+                                            from = ((colors[i])[0]) * 100;
+                                        } else {
+                                            from = 0;
+                                        }
+                                        if ((colors[i])[1] != null) {
+                                            to = ((colors[i])[1]) * 100;
+                                        } else {
+                                            to = 100
+                                        }
+                                        hex = (colors[i])[2];
+                                        labels.push(
+                                            '<i style="background:' + hex + ';width:18px;height:18px;float:left;margin-right:8px;opacity:0.7;"></i> ' +
+                                            from + (to ? '&ndash;' + to : '+') + '%');
+                                    }
+                                    labels.push('</div>');
+                                    div.innerHTML = labels.join('<br>');
+
+                                    L.DomEvent.disableClickPropagation(div);
+
+                                    return div;
+                                };
+
+                                legendColors.addTo(map.defaultMapRef);
+
+                                event.legendColors = legendColors;
+                                map.eventsOnMap.push(event);
+
+                                loadingDiv.empty();
+                                loadingDiv.append(loadOkText);
+
+                                parHeight = loadOkText.height();
+                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                loadOkText.css("margin-top", parMarginTop + "px");
+
+                                setTimeout(function () {
+                                    loadingDiv.css("opacity", 0);
+                                    setTimeout(function () {
+                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                        });
+                                        loadingDiv.remove();
+                                    }, 350);
+                                }, 1000);
+                            } catch(err) {
+                                loadingDiv.empty();
+                                loadingDiv.append(loadKoText);
+
+                                parHeight = loadKoText.height();
+                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                loadKoText.css("margin-top", parMarginTop + "px");
+                                console.log("Error: " + err);
+                                setTimeout(function () {
+                                    loadingDiv.css("opacity", 0);
+                                    setTimeout(function () {
+                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                        });
+                                        loadingDiv.remove();
+                                    }, 350);
+                                }, 1000);
+                            }
+                        }
+
+                        function addOdFromClient() {
+                            let od = {};
+                            od.eventType = "od";
+
+                            passedParams = event.passedParams;
+
+                            var color1 = passedParams.color1;
+                            var color2 = passedParams.color2;
+                            var desc = passedParams.desc;
+
+                            var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+
+                            if ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0) {
+                                loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
+                            } else {
+                                loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_map'));
+                            }
+
+                            loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
+                            loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
+
+                            var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                            var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                            var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+
+                            loadingDiv.css("background", color1);
+                            loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
+                            loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                            loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                            loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
+
+                            loadingDiv.show();
+                            loadingDiv.append(loadingText);
+                            loadingDiv.css("opacity", 1);
+
+                            var parHeight = loadingText.height();
+                            var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                            loadingText.css("margin-top", parMarginTop + "px");
+
+                            if (current_page < 0 || current_page >= dates.length) {
+                                current_page = (dates.length) - 1;
+                            }
+
+                            mapDate = dates[current_page];
+
+                            map.defaultMapRef.createPane('Snap4City: OD Flows');
+                            map.defaultMapRef.getPane('Snap4City: OD Flows').style.zIndex = 420;
+                            //if(mapDate !== null){
+                            load();
+                            //}
+
+                            // add legend to map
+                            map.legendOd.addTo(map.defaultMapRef);
+                            map.flowInfo.addTo(map.defaultMapRef);
+                            map.eventsOnMap.push(od);
+
+                            loadingDiv.empty();
+                            loadingDiv.append(loadOkText);
+
+                            parHeight = loadOkText.height();
+                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                            loadOkText.css("margin-top", parMarginTop + "px");
+
+                            if (!animationFlag) {
+                                setTimeout(function () {
+                                    loadingDiv.css("opacity", 0);
+                                    setTimeout(function () {
+                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                        });
+                                        loadingDiv.remove();
+                                    }, 350);
+                                }, 1000);
+                            } else {
+                                setTimeout(function () {
+                                    loadingDiv.css("opacity", 0);
+                                    setTimeout(function () {
+                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                        });
+                                        loadingDiv.remove();
+                                    }, 350);
+                                    setTimeout(function () {
+                                        if (animationFlag && odOnMap) {
+                                            animationCounter--;
+                                            if (animationCounter > 0) {
+                                                nextOdPage()
+                                            } else {
+                                                animateOdMap();
+                                            }
+                                        }
+                                    }, 3000);
+                                }, 1000);
+                            }
+                        }
+
+                        if (addMode === 'additive') {
+                            addOdToMap();
+                        }
+                        if (addMode === 'exclusive') {
+                            map.defaultMapRef.eachLayer(function (layer) {
+                                map.defaultMapRef.removeLayer(layer);
+                            });
+                            map.eventsOnMap.length = 0;
+
+                            //Remove WidgetAlarm active pins
+                            $.event.trigger({
+                                type: "removeAlarmPin",
+                            });
+                            //Remove WidgetEvacuationPlans active pins
+                            $.event.trigger({
+                                type: "removeEvacuationPlanPin",
+                            });
+                            //Remove WidgetEvents active pins
+                            $.event.trigger({
+                                type: "removeEventFIPin",
+                            });
+                            //Remove WidgetResources active pins
+                            $.event.trigger({
+                                type: "removeResourcePin",
+                            });
+                            //Remove WidgetOperatorEvents active pins
+                            $.event.trigger({
+                                type: "removeOperatorEventPin",
+                            });
+                            //Remove WidgetTrafficEvents active pins
+                            $.event.trigger({
+                                type: "removeTrafficEventPin",
+                            });
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                maxZoom: 18
+                            }).addTo(map.defaultMapRef);
+
+                            addOdToMap();
+                        }
+                    }
+                });
+
                 $(document).on('removeAlarm', function (event) {
                     if (event.target === map.mapName) {
                         let passedData = event.passedData;
@@ -10136,6 +11375,51 @@ if (!isset($_SESSION)) {
                         }
                     }
                     map.defaultMapRef.off('click', heatmapClick);
+                });
+
+                $(document).on('removeOD', function (event) {
+
+                    function removeOd(resetPageFlag) {
+                        if (resetPageFlag == true) {
+                            current_page = 0;
+                        }
+                        if (geojson_layer !== null){
+                            map.defaultMapRef.removeLayer(geojson_layer);
+                        }
+                        if (sourcePolygon !== null){
+                            map.defaultMapRef.removeLayer(sourcePolygon);
+                        }
+                        map.defaultMapRef.removeControl(map.legendOd);
+                        map.defaultMapRef.removeControl(map.flowInfo);
+                    }
+
+                    function removeOdColorLegend(index, resetPageFlag) {
+                        if (resetPageFlag == true) {
+                            current_page = 0;
+                        }
+                        map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
+                    }
+
+                    if (event.target === map.mapName) {
+                        odOnMap = false;
+                        animationFlag = false;
+                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                            if (map.eventsOnMap[i].eventType === 'od') {
+                                removeOd(true);
+                                map.eventsOnMap.splice(i, 1);
+                            } else if (map.eventsOnMap[i].type === 'addOD') {
+                                removeOdColorLegend(i, true);
+                                map.eventsOnMap.splice(i, 1);
+                            } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
+                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                    map.eventsOnMap.splice(i, 1);
+                                    removeOd(true);
+                                }
+                            }
+                        }
+                    }
+                    map.defaultMapRef.off('click');
                 });
 
                 $(document).on('toggleAddMode', function (event) {
@@ -12991,6 +14275,12 @@ if (!isset($_SESSION)) {
                     }
                 }
                 if(msgObj.msgType=="DataToEmitterAck") {
+                /*    $.event.trigger({
+                        type: "addSelectorPin",
+                        //    type: "addBubbleChart",
+                        target: widgetName,
+                        passedData: JSON.parse('{"desc":"Traffic Sensors","query":"https:\/\/servicemap.disit.org\/WebAppGrafo\/api\/v1\/?queryId=76e0be36369db8598c6573716e84ae6c&format=json","color1":"rgba(201,24,0,1)","color2":"rgba(201,24,0,0.36)","targets":"w_METRO588_1755_widgetTimeTrend22614","display":"undefined","queryType":"Default","iconTextMode":"icon","pinattr":"square","pincolor":"Default","symbolcolor":"undefined","iconFilePath":"..\/img\/widgetSelectorIconsPool\/subnature\/TransferServiceAndRenting_SensorSite.svg","altViewMode":"","bubbleSelectedMetric":""}')
+                    }); */
                     if (lastValueOk) {
                         //   currentValue = lastValueOk;
                         lastValueOk = null;
@@ -13082,8 +14372,8 @@ if (!isset($_SESSION)) {
              try {
                  if (socket == null) {
                      subscribedWsDevices = [];
-                 //    socket = io.connect("https://www.snap4city.org/", {"path": "/synoptics/socket.io"});
-                     socket = io.connect("https://www.snap4city.org/", {"path": "/synopticsdev/socket.io"});
+                     socket = io.connect("https://www.snap4city.org/", {"path": "/synoptics/socket.io"});
+                     //socket = io.connect("https://www.snap4city.org/", {"path": "/synopticsdev/socket.io"});
                      //    socket = io.connect('https://www.snap4city.org/synoptics/socket.io/socket.io.js');
 
                      socket.on('connect', () => {
@@ -13183,6 +14473,9 @@ if (!isset($_SESSION)) {
                                                 //   let tplPath = feature.properties.iconFilePath;
                                                 svgContainerUpdt = $('<div id="' + widgetName + '_svgCtn' + countCustomPin + '">');
                                                 $("#" + widgetName).append(svgContainerUpdt);
+                                                if (updateObj.lastValue == null) {
+                                                    updateObj.lastValue = 0;
+                                                }
                                                 buildSvgIcon(marker.feature.properties.iconFilePath, updateObj.lastValue, 'error', null, svgContainerUpdt, widgetName, "map", countCustomPin, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, true, serviceUri);
                                             }
                                         } catch (errlayer) {

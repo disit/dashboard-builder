@@ -294,6 +294,7 @@ if (!isset($_SESSION)) {
                 building: [],
                 pin: [],
             };
+            var deltaTimestamp = 0;
             var apiUrls3D = {};
             var updateTimeout;
 
@@ -4872,7 +4873,8 @@ if (!isset($_SESSION)) {
                     lngInit = widgetParameters.latLng[1];
                 }
                 if (widgetParameters.zoom != null && widgetParameters.zoom != '') {
-                    zoomInit = parseFloat(widgetParameters.zoom); 
+                    zoomInit = parseInt(widgetParameters.zoom);
+                    $('#deck-zoom-box').text(zoomInit);
                 }
                 if (widgetParameters.pitch != null && widgetParameters.pitch != '') {
                     pitchInit = widgetParameters.pitch; 
@@ -4929,23 +4931,14 @@ if (!isset($_SESSION)) {
                             layers.building = [];
 
                             // scene 1
-                            const data1 = {position: [11.258359909057617,43.779720306396484]};
-                            const scene1 = "../widgets/layers/edificato/edifici6.gltf";
+                            // const data1 = {position: [11.258359909057617,43.779720306396484]};
+                            const data1 = {position: [11.2501685710125,43.7720562843695]};
+                            const scene1 = "../widgets/layers/edificato/model_textured.gltf";
                             const mesh1 = createMeshLayer(data1, "scene1-layer", scene1);
 
-                            // scene 2
-                            const data2 = {position: [11.257705211639404,43.77654457092285]};
-                            const scene2 = "../widgets/layers/edificato/edifici4.gltf";
-                            const mesh2 = createMeshLayer(data2, "scene2-layer", scene2);
-
-                            // scene 3
-                            const data3 = {position: [11.262419700622559,43.77988052368164]};
-                            const scene3 = "../widgets/layers/edificato/edifici5.gltf";
-                            const mesh3 = createMeshLayer(data3, "scene3-layer", scene3);
+                            deltaTimestamp = 43200000;
 
                             layers.building.push(mesh1);
-                            layers.building.push(mesh2);
-                            layers.building.push(mesh3);
 
                         break;
                         case 'mesh-notext':
@@ -4953,9 +4946,11 @@ if (!isset($_SESSION)) {
                             selectTickMenuBuilding('building-mesh-notext');
                             layers.building = [];
 
-                            const data = {position: [11.251975059509277,43.77428436279297]};
+                            const data = {position: [11.250168571012498,43.77205808012555]};
                             const scene = "../widgets/layers/edificato/centre.glb";
                             const mesh = createMeshLayer(data, "scene-layer", scene, buildingColor);
+
+                            deltaTimestamp = 43200000;
 
                             layers.building.push(mesh);
                         break;
@@ -4981,7 +4976,7 @@ if (!isset($_SESSION)) {
                         rgb[i] = parseFloat(rgb[i]);
 
                     const sunLight = new deck._SunLight({
-                        timestamp: Date.parse(styleParameters.lightTimestamp), 
+                        timestamp: Date.parse(styleParameters.lightTimestamp) + deltaTimestamp, 
                         color: rgb,
                         intensity: parseInt(styleParameters.lightIntensity),
                     });
@@ -5212,7 +5207,9 @@ if (!isset($_SESSION)) {
                     layers.building = [];
                     const buildingLayer = createBuildingLayer('../widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
                     layers.building.push(buildingLayer);
+                    deltaTimestamp = 0;
                     updateLayers();
+                    reloadLight();
                 });
                 $('#building-mesh').click(function(event) {
                     // change to riccardo building
@@ -5221,37 +5218,29 @@ if (!isset($_SESSION)) {
                     layers.building = [];
 
                     // scene 1
-                    const data1 = {position: [11.258359909057617,43.779720306396484]};
-                    const scene1 = "../widgets/layers/edificato/edifici6.gltf";
+                    const data1 = {position: [11.2501685710125,43.7720562843695]};
+                    const scene1 = "../widgets/layers/edificato/model_textured.gltf";
                     const mesh1 = createMeshLayer(data1, "scene1-layer", scene1);
-
-                    // scene 2
-                    const data2 = {position: [11.257705211639404,43.77654457092285]};
-                    const scene2 = "../widgets/layers/edificato/edifici4.gltf";
-                    const mesh2 = createMeshLayer(data2, "scene2-layer", scene2);
-
-                    // scene 3
-                    const data3 = {position: [11.262419700622559,43.77988052368164]};
-                    const scene3 = "../widgets/layers/edificato/edifici5.gltf";
-                    const mesh3 = createMeshLayer(data3, "scene3-layer", scene3);
+                    deltaTimestamp = 43200000;
 
                     layers.building.push(mesh1);
-                    layers.building.push(mesh2);
-                    layers.building.push(mesh3);
 
                     updateLayers();
+                    reloadLight();
                 });
                 $('#building-mesh-notext').click(function(event) {
                     console.log('loading riccardo building no texture');
                     selectTickMenuBuilding('building-mesh-notext');
                     layers.building = [];
 
-                    const data = {position: [11.251975059509277,43.77428436279297]};
+                    const data = {position: [11.2501685710125,43.772056284]};
                     const scene = "../widgets/layers/edificato/centre.glb";
                     const mesh = createMeshLayer(data, "scene-layer", scene, buildingColor);
+                    deltaTimestamp = 43200000;
 
                     layers.building.push(mesh);
                     updateLayers();
+                    reloadLight();
                 });
 
                 if (!is3dOn) {
@@ -12594,16 +12583,17 @@ if (!isset($_SESSION)) {
                 return new deck.ScenegraphLayer({
                     id: id,
                     data: [
-                        //{position: [11.258359909057617,43.779720306396484]}
                         data,
                     ],
                     pickable: false,
-                    //scenegraph: 'http://localhost:4242/deckgl-requirements/src/data/edifici/rinascente/edifici6.gltf',
                     scenegraph: scenegraph,
+                    parameters: {
+                        //depthTest: false
+                    },
                     //_lighting: 'flat',
                     _lighting: 'pbr',
                     getOrientation: d => [0, 0, 90],
-                    getColor: color,
+                    //getColor: color,
                 });
             }
 
@@ -13130,7 +13120,7 @@ if (!isset($_SESSION)) {
                         now = Date.parse(input);
 
                     const sunLight = new deck._SunLight({
-                        timestamp: now, 
+                        timestamp: now - deltaTimestamp, 
                         color: [255, 255, 255],
                         intensity: 1,
                     });

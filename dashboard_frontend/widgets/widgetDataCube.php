@@ -2223,7 +2223,7 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
                             chartSeriesObject.valueUnit = aggregationSeries.metricValueUnit;
                         }*/
             //return seriesSingleObj;
-            return {device: aggregationSeries.metricName, valueType: smField, valueUnit: aggregationSeries.metricValueUnit, timeSeries: singleSeriesData};
+            return {device: aggregationSeries.metricName, valueType: smField, valueUnit: aggregationSeries.metricValueUnit, timeSeries: singleSeriesData, smField};
 
         }
 
@@ -2370,28 +2370,45 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
                             var valueUnit = properties.realtimeAttributes[smField].value_unit;
                         }
 
-                        return {device: device, valueType: valueType, valueUnit: valueUnit, timeSeries: singleSeriesData};
+                        return {device: device, valueType: valueType, valueUnit: valueUnit, timeSeries: singleSeriesData, smField};
         }
 
-        function searchDeviceInRowParameters(device){
+        function searchDeviceInRowParameters(point){
         //    console.log(rowParameters);
-            for (var metricParam of rowParameters){
-                if (metricParam.metricName==device){
-                    if (metricParam.label!=undefined)
-                        return metricParam.label;
+            for (var metricParam of rowParameters) {
+                if (metricParam.smField == null || metricParam.smField == '') {
+                    if (metricParam.metricName == point.device) {
+                        if (metricParam.label != undefined)
+                            return metricParam.label;
+                    }
+                } else {
+                    if (metricParam.metricName == point.device && (metricParam.smField == point.smField)) {
+                        if (metricParam.label != undefined)
+                            return metricParam.label;
+                    }
                 }
             }
-            return device;
+            return point.device;
         }
-        function searchColorDeviceInStyleParameters(device){
+
+        function searchColorDeviceInStyleParameters(point){
          //   console.log(styleParameters);
             for (var i in rowParameters){
                 var metricParam = rowParameters[i];
-                if (metricParam.metricName==device){
-                    return styleParameters['barsColors'][i];
+                if (metricParam.smField == null || metricParam.smField == '')  {
+                    if (metricParam.metricName==point.device){
+                        return styleParameters['barsColors'][i];
+                    }
+                } else {
+                    if (metricParam.metricName == point.device && (metricParam.smField == point.smField)) {
+                        return styleParameters['barsColors'][i];
+                    }
                 }
+           /*     if (metricParam.metricName==point.device && metricParam.smField==point.smField){
+                    return styleParameters['barsColors'][i];
+                }   */
             }
-            return device;
+            return point.device;
         }
 
         function loadHyperCube(){
@@ -2406,7 +2423,8 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
         //    console.log(styleParameters);
             for (var point of <?= $_REQUEST['name_w'] ?>_hyperCube){
 
-                objName = searchDeviceInRowParameters(point.device) + " - " + point.valueType + ' - ' + point.valueUnit;
+            //    objName = searchDeviceInRowParameters(point.device) + " - " + point.valueType + ' - ' + point.valueUnit;
+                objName = searchDeviceInRowParameters(point) + " - " + point.valueType + ' - ' + point.valueUnit;
                 seriesSingleObj = {
                     showInLegend: true,
                 //    name: aggregationSeries.metricName,
@@ -2436,9 +2454,9 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
                 };
 
                 if (point.valueUnit==<?= $_REQUEST['name_w'] ?>_select && point.timeSeries.length!=0){ // qui avviene il taglio
-                    if (!colored.includes(point.device)){
-                        seriesSingleObj.color = searchColorDeviceInStyleParameters(point.device);
-                        colored.push(point.device);
+                    if (!colored.includes(point.device+point.smField)){
+                        seriesSingleObj.color = searchColorDeviceInStyleParameters(point);
+                        colored.push(point.device+point.smField);
                     }
                     chartSeriesObject.push(seriesSingleObj);
                     virtualCut = [];
@@ -2921,14 +2939,14 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
                                                 }
                                             } else {
                                                 showWidgetContent(widgetName);
-                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                            //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                                 console.log("Dati non disponibili da Service Map");
                                             }
                                         } else {
                                             showWidgetContent(widgetName);
-                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                             console.log("Dati non disponibili da Service Map");
                                         }
                                     },
@@ -3033,14 +3051,14 @@ if (<?= $_REQUEST['name_w'] ?>_model=='3d'){
                                                 }
                                             } else {
                                                 showWidgetContent(widgetName);
-                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                            //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                                 console.log("Dati non disponibili da Service Map");
                                             }
                                         } else {
                                             showWidgetContent(widgetName);
-                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
-                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                             console.log("Dati non disponibili da Service Map");
                                         }
                                     },

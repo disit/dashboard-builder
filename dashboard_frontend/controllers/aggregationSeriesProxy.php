@@ -533,7 +533,7 @@
             if(isset($_SESSION['refreshToken'])) {
                 $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKPIId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&" . $timeRange;
             } else {
-                $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKPIId . "/values?sourceRequest=dashboardmanager" . $timeRange;
+                $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKPIId . "/values?sourceRequest=dashboardmanager&" . $timeRange;
             }
 
             $options = array(

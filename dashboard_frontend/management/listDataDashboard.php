@@ -2,7 +2,7 @@
 include '../config.php';
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
-
+error_reporting(0);
 session_start();
 checkSession('Public');
 $link = mysqli_connect($host, $username, $password);

@@ -38,7 +38,7 @@
         var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";
         var widgetHeight = "<?= escapeForJS($_REQUEST['size_rows']) ?>";
         var fontSize, fontColor, chartColor, timeToReload, showHeader, hasTimer, showTitle, widgetHeaderColor, widgetContentColor, widgetHeaderFontColor,
-            styleParameters, metricType, metricData, pattern, udm, seriesObj, widgetParameters, minGauge, maxGauge, shownValue, plotBands, 
+            styleParameters, metricType, metricData, pattern, udm, seriesObj, widgetParameters, minGauge, maxGauge, shownValue, plotBands,
             plotBandObj, paneObj, yObj, solidGaugeObj, chart, alarmSet, labelsObj, labelObj, sizeRows, sizeCols, hasNegativeValues, metricName, widgetTitle, countdownRef, appId, flowId, nrMetricType, idMetric,
             urlToCall, webSocket, openWs, manageIncomingWsMsg, sm_based, rowParameters, sm_field, originalMetricType, openWsConn, wsClosed, dataLabelsFontSize, dataLabelsFontColor, chartLabelsFontSize, chartLabelsFontColor, dateTime = null;
         var metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
@@ -53,6 +53,7 @@
         var scaleFactor = null;
         var udmFromUserOptions = null;
         var rowParametersUrl = null;
+        var decPlaces = 1;
 
         console.log("Entrato in widgetGaugeChart --> " + widgetName);
         
@@ -122,6 +123,17 @@
         //Definizioni di funzione specifiche del widget
         function populateWidget()
         {
+            if (styleParameters) {
+                if (styleParameters['setDecimalPlaces'] != null) {
+                    if (styleParameters['setDecimalPlaces'] != "") {
+                        decPlaces = parseInt(styleParameters['setDecimalPlaces']);
+                    }
+                } else {
+                    decPlaces = 1;
+                }
+            } else {
+                decPlaces = 1;
+            }
             if(metricData !== null)
             {
                 if(metricData.data[0] !== 'undefined')
@@ -138,7 +150,7 @@
                             maxGauge = parseInt(metricType.substring(12));
                             if(metricData.data[0].commit.author.quant_perc1 !== null)
                             {
-                                shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.quant_perc1).toFixed(1));
+                                shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.quant_perc1).toFixed(decPlaces));
                             }
                         }
                         else
@@ -190,7 +202,7 @@
                                 case "Float":
                                     if(metricData.data[0].commit.author.value_num !== null)
                                     {
-                                        shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_num).toFixed(1));
+                                        shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_num).toFixed(decPlaces));
                                     }
                                     
                                     if(fromGisExternalContent)
@@ -235,7 +247,7 @@
                                     udm = "%";
                                     if(metricData.data[0].commit.author.value_perc1 !== null)
                                     {
-                                        shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1).toFixed(1));
+                                        shownValue = parseFloat(parseFloat(metricData.data[0].commit.author.value_perc1).toFixed(decPlaces));
                                         if(shownValue > 100)
                                         {
                                             shownValue = 100;
@@ -1587,11 +1599,15 @@
 
         wsClosed = function(e)
         {
-            webSocket.removeEventListener('close', wsClosed);
-            webSocket.removeEventListener('open', openWsConn);
-            webSocket.removeEventListener('message', manageIncomingWsMsg);
-            webSocket = null;
-            setTimeout(openWs, 2000);
+            if (webSocket != null) {
+                webSocket.removeEventListener('close', wsClosed);
+                webSocket.removeEventListener('open', openWsConn);
+                webSocket.removeEventListener('message', manageIncomingWsMsg);
+                webSocket = null;
+                if (wsRetryActive === 'yes') {
+                    setTimeout(openWs(widgetName), parseInt(wsRetryTime * 1000));
+                }
+            }
         };
 
         //Per ora non usata

@@ -29546,6 +29546,19 @@
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
 
+                                        //Set precision (# of decimal places)
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="setDecimalPlacesM" class="col-md-2 control-label">Set # of Decimal Places</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="setDecimalPlacesM" name="setDecimalPlacesM">');
+                                        if (styleParameters != null) {
+                                            newInput.val(styleParameters.setDecimalPlaces);
+                                        }
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+
                                         //Rimozione eventuali campi del subform general per widget process
                                         removeWidgetProcessGeneralFields("editWidget");
                                         
@@ -32046,9 +32059,9 @@
                                             newLabel = $('<label class="col-md-2 control-label">Building Type</label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newSelect = $('<select class="form-control" id="buildingTypeM" name="buildingTypeM"></select>');
-                                            newSelect.append('<option value="default">Default</option>');
-                                            newSelect.append('<option value="mesh">Meshed</option>');
-                                            newSelect.append('<option value="mesh-notext">Meshed without texture</option>');
+                                            newSelect.append('<option value="default">Building Light</option>');
+                                            newSelect.append('<option value="mesh">Building Meshed</option>');
+                                            newSelect.append('<option value="mesh-notext">Building Meshed No Texture</option>');
                                             newInnerDiv.append(newSelect);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2021-07-07 11:26+0200\n"
-"PO-Revision-Date: 2021-07-07 11:26+0200\n"
+"PO-Revision-Date: 2021-09-21 15:25+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: de_DE\n"
@@ -21,41 +21,43 @@ msgstr ""
 
 #: management/addWidgetWizardInclusionCode.php:13
 msgid "Dashboard features"
-msgstr ""
+msgstr "Dashboard-Funktionen"
 
 #: management/addWidgetWizardInclusionCode.php:14
 msgid "Data and widgets"
-msgstr ""
+msgstr "Daten und Widgets"
 
 #: management/addWidgetWizardInclusionCode.php:15
 msgid "Check and summary"
-msgstr ""
+msgstr "Prüfung und Zusammenfassung"
 
 #: management/addWidgetWizardInclusionCode.php:23
 #: management/addWidgetWizardInclusionCode2.php:23
 msgid "Dashboard title"
-msgstr ""
+msgstr "Dashboard Titel"
 
 #: management/addWidgetWizardInclusionCode.php:32
 #: management/addWidgetWizardInclusionCode2.php:32
 msgid "Dashboard title can't be empty"
-msgstr ""
+msgstr "Dashboard-Titel darf nicht leer sein"
 
 #: management/addWidgetWizardInclusionCode.php:39
 #: management/addWidgetWizardInclusionCode2.php:39
 msgid "Dashboard template"
-msgstr ""
+msgstr "Dashboard template"
 
 #: management/addWidgetWizardInclusionCode.php:40
 #: management/addWidgetWizardInclusionCode2.php:40
 msgid "Click on a template to choose it, click on it again to unselect it"
 msgstr ""
+"Klicken Sie auf eine Vorlage, um sie auszuwählen, klicken Sie erneut darauf, "
+"um die Auswahl aufzuheben"
 
 #: management/addWidgetWizardInclusionCode.php:123
 #: management/addWidgetWizardInclusionCode.php:6594
 #: management/addWidgetWizardInclusionCode2.php:124
 msgid "You must choose one template"
-msgstr ""
+msgstr "Sie müssen eine Vorlage auswählen"
 
 #: management/addWidgetWizardInclusionCode.php:134
 #: management/addWidgetWizardInclusionCode2.php:135
@@ -64,71 +66,71 @@ msgstr ""
 #: management/dashboard_configdash.php:31615
 #: management/dashboard_configdash.php:32064
 msgid "Map"
-msgstr ""
+msgstr "Karte"
 
 #: management/addWidgetWizardInclusionCode.php:143
 #: management/addWidgetWizardInclusionCode2.php:144
 msgid "Single data widgets"
-msgstr ""
+msgstr "Einzelne Daten-Widgets"
 
 #: management/addWidgetWizardInclusionCode.php:148
 #: management/addWidgetWizardInclusionCode2.php:149
 msgid "Multi data widgets"
-msgstr ""
+msgstr "Multi-Daten-Widgets"
 
 #: management/addWidgetWizardInclusionCode.php:153
 msgid "Map Controls:"
-msgstr ""
+msgstr "Kartensteuerelemente:"
 
 #: management/addWidgetWizardInclusionCode.php:157
 #: management/addWidgetWizardInclusionCode2.php:158
 msgid "FilterMap"
-msgstr ""
+msgstr "FilterKarte"
 
 #: management/addWidgetWizardInclusionCode.php:159
 #: management/addWidgetWizardInclusionCode2.php:160
 msgid "GPSUser"
-msgstr ""
+msgstr "GPSUser"
 
 #: management/addWidgetWizardInclusionCode.php:160
 #: management/addWidgetWizardInclusionCode2.php:161
 msgid "GPSOrg"
-msgstr ""
+msgstr "GPSOrg"
 
 #: management/addWidgetWizardInclusionCode.php:170
 #: management/addWidgetWizardInclusionCode2.php:184
 msgid "Actuator options"
-msgstr ""
+msgstr "Aktor Optionen"
 
 #: management/addWidgetWizardInclusionCode.php:175
 #: management/addWidgetWizardInclusionCode2.php:189
 msgid "Existent or new target"
-msgstr ""
+msgstr "Vorhandenes oder neues Ziel"
 
 #: management/addWidgetWizardInclusionCode.php:179
 #: management/addWidgetWizardInclusionCode2.php:193
 msgid "Existent"
-msgstr ""
+msgstr "Existiert"
 
 #: management/addWidgetWizardInclusionCode.php:180
 #: management/addWidgetWizardInclusionCode2.php:194
 msgid "New"
-msgstr ""
+msgstr "Neu"
 
 #: management/addWidgetWizardInclusionCode.php:187
 #: management/addWidgetWizardInclusionCode2.php:201
 msgid "New actuator target type"
-msgstr ""
+msgstr "Neuer Aktor-Zieltyp"
 
 #: management/addWidgetWizardInclusionCode.php:191
 #: management/addWidgetWizardInclusionCode2.php:205
 msgid "IOT device on broker"
-msgstr ""
+msgstr "IOT-Gerät auf Broker"
 
 #: management/addWidgetWizardInclusionCode.php:201
 #: management/addWidgetWizardInclusionCode2.php:215
 msgid "Device name"
-msgstr ""
+msgstr "Gerätename"
 
 #: management/addWidgetWizardInclusionCode.php:210
 #: management/addWidgetWizardInclusionCode.php:331
@@ -138,27 +140,29 @@ msgstr ""
 #: management/dashboard_configdash.php:1185
 #: management/dashboard_configdash.php:1895
 msgid "Value type"
-msgstr ""
+msgstr "Werttyp"
 
 #: management/addWidgetWizardInclusionCode.php:221
 #: management/addWidgetWizardInclusionCode2.php:235
 msgid "Min/Base value"
-msgstr ""
+msgstr "Min./Basiswert"
 
 #: management/addWidgetWizardInclusionCode.php:230
 #: management/addWidgetWizardInclusionCode2.php:244
 msgid "Max/Impulse value"
-msgstr ""
+msgstr "Max./Impulswert"
 
 #: management/addWidgetWizardInclusionCode.php:241
 #: management/addWidgetWizardInclusionCode2.php:255
 msgid "Data sources"
-msgstr ""
+msgstr "Datenquellen"
 
 #: management/addWidgetWizardInclusionCode.php:244
 #: management/addWidgetWizardInclusionCode2.php:258
 msgid "No rows selected: please select some rows and try again."
 msgstr ""
+"Keine Zeilen ausgewählt: Bitte wählen Sie einige Zeilen aus und versuchen "
+"Sie es erneut."
 
 #: management/addWidgetWizardInclusionCode.php:262
 #: management/addWidgetWizardInclusionCode.php:287
@@ -167,20 +171,20 @@ msgstr ""
 #: management/dashboard_configdash.php:2460 management/inspector.php:375
 #: management/inspector.php:380
 msgid "Instance URI"
-msgstr ""
+msgstr "Instanz-URI"
 
 #: management/addWidgetWizardInclusionCode.php:263
 #: management/addWidgetWizardInclusionCode.php:294
 #: management/dashboard_configdash.php:2461 management/inspector.php:381
 msgid "Parameters"
-msgstr ""
+msgstr "Parameter"
 
 #: management/addWidgetWizardInclusionCode.php:264
 #: management/addWidgetWizardInclusionCode.php:295
 #: management/dashboard_configdash.php:2462 management/inspector.php:382
 #: management/iotApplications.php:196
 msgid "Id"
-msgstr ""
+msgstr "ID"
 
 #: management/addWidgetWizardInclusionCode.php:282
 #: management/addWidgetWizardInclusionCode.php:368
@@ -188,8 +192,13 @@ msgstr ""
 #: management/addWidgetWizardInclusionCode.php:2000
 #: management/dashboard_configdash.php:2450 management/inspector.php:370
 msgid "High-Level Type"
-msgstr ""
+msgstr "High-Level-Typ"
 
+# What do you mean by "Nature"?
+# - natural environment
+# - origin
+# - quality
+# idem "subnature"
 #: management/addWidgetWizardInclusionCode.php:283
 #: management/addWidgetWizardInclusionCode.php:329
 #: management/addWidgetWizardInclusionCode.php:369
@@ -197,7 +206,7 @@ msgstr ""
 #: management/dashboard_configdash.php:2451 management/inspector.php:371
 #: management/synopticTemplatesForm.php:132
 msgid "Nature"
-msgstr ""
+msgstr "Nature"
 
 #: management/addWidgetWizardInclusionCode.php:284
 #: management/addWidgetWizardInclusionCode.php:330
@@ -206,7 +215,7 @@ msgstr ""
 #: management/dashboard_configdash.php:2452 management/inspector.php:372
 #: management/synopticTemplatesForm.php:142
 msgid "Subnature"
-msgstr ""
+msgstr "Subnature"
 
 #: management/addWidgetWizardInclusionCode.php:285
 #: management/addWidgetWizardInclusionCode.php:371
@@ -214,7 +223,7 @@ msgstr ""
 #: management/dashboard_configdash.php:2475 management/inspector.php:373
 #: management/inspector.php:395
 msgid "Value Type"
-msgstr ""
+msgstr "Werttyp"
 
 #: management/addWidgetWizardInclusionCode.php:286
 #: management/addWidgetWizardInclusionCode.php:372
@@ -222,25 +231,25 @@ msgstr ""
 #: management/dashboard_configdash.php:2476 management/inspector.php:374
 #: management/inspector.php:396
 msgid "Value Name"
-msgstr ""
+msgstr "Wert-Name"
 
 #: management/addWidgetWizardInclusionCode.php:288
 #: management/addWidgetWizardInclusionCode.php:374
 #: management/dashboard_configdash.php:2456 management/inspector.php:376
 msgid "Data Type"
-msgstr ""
+msgstr "Datentyp"
 
 #: management/addWidgetWizardInclusionCode.php:289
 #: management/addWidgetWizardInclusionCode.php:339
 #: management/addWidgetWizardInclusionCode.php:383
 msgid "Value Unit"
-msgstr ""
+msgstr "Werteinheit"
 
 #: management/addWidgetWizardInclusionCode.php:290
 #: management/addWidgetWizardInclusionCode.php:375
 #: management/dashboard_configdash.php:2457 management/inspector.php:377
 msgid "Last Date"
-msgstr ""
+msgstr "Letztes Datum"
 
 #: management/addWidgetWizardInclusionCode.php:291
 #: management/addWidgetWizardInclusionCode.php:376
@@ -248,20 +257,20 @@ msgstr ""
 #: management/dashboard_configdash.php:2477 management/inspector.php:378
 #: management/inspector.php:397
 msgid "Last Value"
-msgstr ""
+msgstr "Letzter Wert"
 
 #: management/addWidgetWizardInclusionCode.php:292
 #: management/addWidgetWizardInclusionCode.php:336
 #: management/addWidgetWizardInclusionCode.php:377
 #: management/dashboard_configdash.php:2459 management/inspector.php:379
 msgid "Healthiness"
-msgstr ""
+msgstr "Gesundheit"
 
 #: management/addWidgetWizardInclusionCode.php:296
 #: management/addWidgetWizardInclusionCode.php:380
 #: management/dashboard_configdash.php:2463 management/inspector.php:383
 msgid "Last Check"
-msgstr ""
+msgstr "Letzte Prüfung"
 
 #: management/addWidgetWizardInclusionCode.php:298
 #: management/addWidgetWizardInclusionCode.php:338
@@ -270,84 +279,84 @@ msgstr ""
 #: management/inspector.php:385 management/iotApplications.php:272
 #: management/synopticTemplates.php:254 management/synoptics.php:271
 msgid "Ownership"
-msgstr ""
+msgstr "Verantwortlich"
 
 #: management/addWidgetWizardInclusionCode.php:303
 #: management/dashboards.php:410
 msgid "Organizations"
-msgstr ""
+msgstr "Organisationen"
 
 #: management/addWidgetWizardInclusionCode.php:304
 msgid "Latitude"
-msgstr ""
+msgstr "Breitengrad"
 
 #: management/addWidgetWizardInclusionCode.php:305
 msgid "Longitude"
-msgstr ""
+msgstr "Längengrad"
 
 #: management/addWidgetWizardInclusionCode.php:306
 msgid "sm_based"
-msgstr ""
+msgstr "sm_based"
 
 #: management/addWidgetWizardInclusionCode.php:307
 msgid "ownerHash"
-msgstr ""
+msgstr "InhaberHash"
 
 #: management/addWidgetWizardInclusionCode.php:308
 msgid "delegatedHash"
-msgstr ""
+msgstr "delegiertHash"
 
 #: management/addWidgetWizardInclusionCode.php:309
 msgid "delegatedGroupHash"
-msgstr ""
+msgstr "delegierteGroupHash"
 
 #: management/addWidgetWizardInclusionCode.php:322
 #: management/addWidgetWizardInclusionCode2.php:330
 msgid "Hide columns"
-msgstr ""
+msgstr "Spalten ausblenden"
 
 #: management/addWidgetWizardInclusionCode.php:328
 msgid "High level type"
-msgstr ""
+msgstr "High-Level-Typ"
 
 #: management/addWidgetWizardInclusionCode.php:332
 #: management/addWidgetWizardInclusionCode.php:1853
 #: management/addWidgetWizardInclusionCode.php:2000
 msgid "Value name"
-msgstr ""
+msgstr "Wertname"
 
 #: management/addWidgetWizardInclusionCode.php:333
 #: management/addWidgetWizardInclusionCode.php:1853
 #: management/addWidgetWizardInclusionCode.php:2000
 msgid "Data type"
-msgstr ""
+msgstr "Datentyp"
 
 #: management/addWidgetWizardInclusionCode.php:334
 msgid "Last date"
-msgstr ""
+msgstr "Letztes Datum"
 
 #: management/addWidgetWizardInclusionCode.php:335
 msgid "Last value"
-msgstr ""
+msgstr "Letzter Wert"
 
 #: management/addWidgetWizardInclusionCode.php:337
 msgid "Last check"
-msgstr ""
+msgstr "Letzte Überprüfung"
 
 #: management/addWidgetWizardInclusionCode.php:347
 #: management/addWidgetWizardInclusionCode2.php:355
 msgid "Reset filters"
-msgstr ""
+msgstr "Filter zurücksetzen"
 
 #: management/addWidgetWizardInclusionCode.php:351
 #: management/addWidgetWizardInclusionCode2.php:359
 msgid "Selected rows: 0"
-msgstr ""
+msgstr "Ausgewählte Zeilen: 0"
 
 #: management/addWidgetWizardInclusionCode.php:359
 #: management/addWidgetWizardInclusionCode2.php:368
 msgid "Choosen data sources"
-msgstr ""
+msgstr "Ausgewählte Datenquellen"
 
 #: management/addWidgetWizardInclusionCode.php:362
 #: management/addWidgetWizardInclusionCode2.php:371
@@ -355,6 +364,8 @@ msgid ""
 "Red rows are not compatible with choosen widget type and will not be "
 "instantiated"
 msgstr ""
+"Rote Zeilen sind nicht mit dem ausgewählten Widget-Typ kompatibel und werden "
+"nicht instanziiert"
 
 #: management/addWidgetWizardInclusionCode.php:384
 #: management/dashboard_configdash.php:2478 management/dashboards.php:637
@@ -362,62 +373,68 @@ msgstr ""
 #: management/synopticTemplates.php:350 management/synopticTemplates.php:400
 #: management/synoptics.php:394 management/synoptics.php:444
 msgid "Remove"
-msgstr ""
+msgstr "Entfernen"
 
 #: management/addWidgetWizardInclusionCode.php:409
 msgid "Summary"
-msgstr ""
+msgstr "Zusammenfassung"
 
+# is the English correct - I guess it should be:
+# A synthesis of choices is going to be created.
 #: management/addWidgetWizardInclusionCode.php:410
 msgid "A synthesis of your choices and what is going to be created"
-msgstr ""
+msgstr "Eine Synthese Ihrer Entscheidungen wird erstellt"
 
 #: management/addWidgetWizardInclusionCode.php:416
 msgid "Check"
-msgstr ""
+msgstr "Prüfen"
 
 #: management/addWidgetWizardInclusionCode.php:417
 msgid "Alerts about possible missing or wrong input that deny instantiation"
 msgstr ""
+"Warnungen über mögliche fehlende oder falsche Eingaben, die die "
+"Instanziierung verweigern"
 
 #: management/addWidgetWizardInclusionCode.php:423
 msgid "Instantiation"
-msgstr ""
+msgstr "Instanziierung"
 
 #: management/addWidgetWizardInclusionCode.php:424
 msgid "Button to proceed with items creation"
-msgstr ""
+msgstr "Schaltfläche, um mit der Elementerstellung fortzufahren"
 
 #: management/addWidgetWizardInclusionCode.php:429
 msgid "Create dashboard/widgets"
-msgstr ""
+msgstr "Dashboard/Widgets erstellen"
 
 #: management/addWidgetWizardInclusionCode.php:432
 msgid ""
 "You can't proceed with items creation before fixing wrong or missing inputs"
 msgstr ""
+"Sie können nicht mit der Elementerstellung fortfahren, bevor Sie falsche "
+"oder fehlende Eingaben behoben haben"
 
 #: management/addWidgetWizardInclusionCode.php:1393
 #: management/addWidgetWizardInclusionCode.php:1409
 msgid "Selection is OK"
-msgstr ""
+msgstr "Auswahl ist OK"
 
 #: management/addWidgetWizardInclusionCode.php:1400
 msgid "Some of the new actuator fields are not filled correctly"
-msgstr ""
+msgstr "Einige der neuen Aktorenfelder sind nicht korrekt ausgefüllt"
 
 #: management/addWidgetWizardInclusionCode.php:1417
 msgid "You must select actuator target type"
-msgstr ""
+msgstr "Sie müssen den Aktorenzieltyp auswählen"
 
 #: management/addWidgetWizardInclusionCode.php:1428
 msgid "You must select one widget type"
-msgstr ""
+msgstr "Sie müssen einen Widget-Typ auswählen"
 
 #: management/addWidgetWizardInclusionCode.php:1537
 #: management/addWidgetWizardInclusionCode.php:1683
 msgid "No dashboard template selected"
-msgstr ""
+msgstr "Keine Dashboard-Vorlage ausgewählt"
 
 #: management/addWidgetWizardInclusionCode.php:1549
 #: management/addWidgetWizardInclusionCode.php:1592
@@ -426,7 +443,7 @@ msgstr ""
 #: management/addWidgetWizardInclusionCode2.php:7389
 #: management/dashboards.php:3032
 msgid "Dashboard title can\\'t be empty"
-msgstr ""
+msgstr "Dashboard-Titel darf nicht leer sein"
 
 #: management/addWidgetWizardInclusionCode.php:1554
 #: management/addWidgetWizardInclusionCode.php:1597
@@ -435,7 +452,7 @@ msgstr ""
 #: management/addWidgetWizardInclusionCode2.php:7394
 #: management/dashboards.php:3059
 msgid "Dashboard title already in use"
-msgstr ""
+msgstr "Dashboard-Titel wird bereits verwendet"
 
 #: management/addWidgetWizardInclusionCode.php:1559
 #: management/addWidgetWizardInclusionCode.php:1602
@@ -443,24 +460,24 @@ msgstr ""
 #: management/addWidgetWizardInclusionCode.php:6615
 #: management/addWidgetWizardInclusionCode2.php:7399
 msgid "Dashboard title longer than 300 chars"
-msgstr ""
+msgstr "Dashboard-Titel länger als 300 Zeichen"
 
 #: management/addWidgetWizardInclusionCode.php:1581
 #: management/addWidgetWizardInclusionCode.php:1691
 msgid "No widget type selected"
-msgstr ""
+msgstr "Kein Widget-Typ ausgewählt"
 
 #: management/addWidgetWizardInclusionCode.php:1612
 #: management/addWidgetWizardInclusionCode.php:1721
 msgid "You have to select at least one row from data sources table"
-msgstr ""
+msgstr "Sie müssen mindestens eine Zeile aus der Datenquellentabelle auswählen"
 
 #: management/addWidgetWizardInclusionCode.php:1620
 #: management/addWidgetWizardInclusionCode.php:1658
 #: management/addWidgetWizardInclusionCode.php:1729
 #: management/addWidgetWizardInclusionCode.php:1767
 msgid "You can\\'t select rows from both IOT Apps and broker"
-msgstr ""
+msgstr "Sie können keine Zeilen gleichzeitig aus IOT-Apps und Broker auswählen"
 
 #: management/addWidgetWizardInclusionCode.php:1627
 #: management/addWidgetWizardInclusionCode.php:1665
@@ -469,59 +486,65 @@ msgstr ""
 msgid ""
 "Some fields for new device creation on broker are empty or wrongly filled"
 msgstr ""
+"Einige Felder für die Erstellung neuer Geräte auf dem Broker sind leer oder "
+"falsch ausgefüllt"
 
 #: management/addWidgetWizardInclusionCode.php:1650
 #: management/addWidgetWizardInclusionCode.php:1759
 msgid "You have to select at least one row"
-msgstr ""
+msgstr "Sie müssen mindestens eine Zeile auswählen"
 
 #: management/addWidgetWizardInclusionCode.php:1813
 msgid "Dashboard template and title"
-msgstr ""
+msgstr "Dashboard-Vorlage und Titel"
 
 #: management/addWidgetWizardInclusionCode.php:1829
 #: management/addWidgetWizardInclusionCode.php:3249
 msgid "Details"
-msgstr ""
+msgstr "Details"
 
 #: management/addWidgetWizardInclusionCode.php:1830
 msgid ""
 "A fully custom dashboard is created empty, so no widget details are available"
 msgstr ""
+"Ein vollständig benutzerdefiniertes Dashboard wird leer erstellt, sodass "
+"keine Widget-Details verfügbar sind"
 
 #: management/addWidgetWizardInclusionCode.php:1843
 #: management/addWidgetWizardInclusionCode.php:1906
 #: management/addWidgetWizardInclusionCode.php:1981
 msgid "Widget type details"
-msgstr ""
+msgstr "Details zum Widget-Typ"
 
 #: management/addWidgetWizardInclusionCode.php:1851
 #: management/addWidgetWizardInclusionCode.php:1919
 #: management/addWidgetWizardInclusionCode.php:2018
 msgid "Instances details"
-msgstr ""
+msgstr "Details zu Instanzen"
 
 #: management/addWidgetWizardInclusionCode.php:1853
 msgid "Widget"
-msgstr ""
+msgstr "Widget"
 
 #: management/addWidgetWizardInclusionCode.php:1894
 msgid "Main widget(s) and relative data"
-msgstr ""
+msgstr "Haupt-Widget(s) und relative Daten"
 
 #: management/addWidgetWizardInclusionCode.php:1920
 msgid ""
 "One new device entity will be created on context broker and linked to new "
 "actuator on dashboard"
 msgstr ""
+"Eine neue Geräteentität wird auf dem Kontextbroker erstellt und mit dem "
+"neuen Aktor auf dem Dashboard verknüpft"
 
 #: management/addWidgetWizardInclusionCode.php:1925
 msgid "Device details"
-msgstr ""
+msgstr "Gerätedetails"
 
 #: management/addWidgetWizardInclusionCode.php:1968
 msgid "Instantiation instructions"
-msgstr ""
+msgstr "Instanziierungsanweisungen"
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid ""
@@ -530,45 +553,57 @@ msgid ""
 "task, please follow this flow: 1) Open NodeRED flow designer of a personal "
 "app of your choice"
 msgstr ""
+"Im Moment ist es nicht möglich, einen neuen Aktor und seinen entsprechenden "
+"Block in einer persönlichen IOT-Anwendung zu instanziieren. Um diese Aufgabe "
+"abzuschließen, folgen Sie bitte diesem Ablauf: 1) Öffnen Sie den NodeRED-"
+"Flow-Designer einer persönlichen App Ihrer Wahl"
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid ""
 " 2) Add a new actuator block (geolocator, dimer, impulsive button, switch, "
 "keyboard)"
 msgstr ""
+" 2) Fügen Sie einen neuen Aktorblock hinzu (Geolocator, Dimer, Impulstaste, "
+"Schalter, Tastatur)"
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid ""
 "3) Choose the dashboard where you want it to be (or create a new one) via "
 "block edit menu"
 msgstr ""
+"3) Wählen Sie das Dashboard, in dem es sich befinden soll (oder erstellen "
+"Sie ein neues über das Blockbearbeitungsmenü"
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid "4) Deploy your application"
-msgstr ""
+msgstr "4) Bereitstellen der Anwendung"
 
 #: management/addWidgetWizardInclusionCode.php:1969
 msgid ""
 "5) Open (or refresh) your dashboard of choice: actuator widget will be "
 "automatically be instantiated"
 msgstr ""
+"5) Öffnen (oder aktualisieren) Sie Ihr Dashboard Ihrer Wahl: Das Aktor-"
+"Widget wird automatisch instanziiert"
 
 #: management/addWidgetWizardInclusionCode.php:1998
 msgid "Main widget and relative data"
-msgstr ""
+msgstr "Haupt-Widget und relative Daten"
 
 #: management/addWidgetWizardInclusionCode.php:2046
 msgid "Can proceed"
-msgstr ""
+msgstr "Kann fortfahren"
 
 #: management/addWidgetWizardInclusionCode.php:2050
 msgid "Summary is not available until you fix missing or wrong inputs"
 msgstr ""
+"Zusammenfassung ist erst verfügbar, wenn Sie fehlende oder falsche Eingaben "
+"behoben haben"
 
 #: management/addWidgetWizardInclusionCode.php:3249
 #: management/addWidgetWizardInclusionCode2.php:3208
 msgid "RT data"
-msgstr ""
+msgstr "RT-Daten"
 
 #: management/addWidgetWizardInclusionCode.php:3256
 #: management/addWidgetWizardInclusionCode2.php:3208
@@ -583,116 +618,121 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Description"
-msgstr ""
+msgstr "Beschreibung"
 
 #: management/addWidgetWizardInclusionCode.php:3257
 #: management/addWidgetWizardInclusionCode2.php:3216
 #: management/synopticsForm.php:245 management/synopticsMappingForm.php:245
 msgid "Value"
-msgstr ""
+msgstr "Wert"
 
 #: management/addWidgetWizardInclusionCode.php:3327
 msgid "Last update"
-msgstr ""
+msgstr "Letzte Aktualisierung"
 
 #: management/addWidgetWizardInclusionCode.php:6432
 msgid "Template choosen OK"
-msgstr ""
+msgstr "Vorlage ausgewählt OK"
 
 #: management/addWidgetWizardInclusionCode.php:6710
 #: management/addWidgetWizardInclusionCode.php:6715
 #: management/addWidgetWizardInclusionCode.php:6721
 msgid "Error during dashboard creation, please try again"
-msgstr ""
+msgstr "Fehler bei der Dashboard-Erstellung, bitte versuchen Sie es erneut"
 
 #: management/addWidgetWizardInclusionCode2.php:154
 msgid "Map Controls"
-msgstr ""
+msgstr "Kartensteuerelemente"
 
 #: management/addWidgetWizardInclusionCode2.php:165
 msgid "Now displaying in Standard Mode"
-msgstr ""
+msgstr "Jetzt im Standardmodus anzeigen"
 
 #: management/addWidgetWizardInclusionCode2.php:166
 msgid ""
 "Switch to the Synoptic Mode to select MyKPIs and sensors that you need for "
 "your synoptics."
 msgstr ""
+"Wechseln Sie in den Synoptikmodus, um MyKPIs und Sensoren auszuwählen, die "
+"Sie für Ihre Synoptik benötigen."
 
 #: management/addWidgetWizardInclusionCode2.php:167
 msgid "Switch now to the Synoptic Mode"
-msgstr ""
+msgstr "Wechseln Sie jetzt in den Synoptischen Modus"
 
 #: management/addWidgetWizardInclusionCode2.php:171
 msgid "Now displaying in Synoptic Mode"
-msgstr ""
+msgstr "Jetzt im synoptischen Modus anzeigen"
 
+# is the English correct?
 #: management/addWidgetWizardInclusionCode2.php:172
 msgid ""
 "Switch back to the Standard Mode to return making the traditional use of the "
 "Data Inspector."
 msgstr ""
+"Wechseln Sie zurück in den Standardmodus, um wieder in die traditionelle "
+"Verwendung des Dateninspektors zurückzukehren."
 
 #: management/addWidgetWizardInclusionCode2.php:173
 msgid "Switch now to the Standard Mode"
-msgstr ""
+msgstr "Wechseln Sie jetzt in den Standardmodus"
 
 #: management/addWidgetWizardInclusionCode2.php:414
 #: management/dashboard_configdash.php:411
 #: management/synopticTemplatesForm.php:168 management/synopticsForm.php:173
 #: management/synopticsMappingForm.php:174
 msgid "Save"
-msgstr ""
+msgstr "Speichern"
 
 #: management/dashboard_configdash.php:375 management/iotApplications.php:270
 msgid "Properties"
-msgstr ""
+msgstr "Eigenschaften"
 
 #: management/dashboard_configdash.php:381
 #: management/dashboard_configdash.php:1105
 msgid "Wizard"
-msgstr ""
+msgstr "Assistent"
 
 #: management/dashboard_configdash.php:387
 msgid "Add widget"
-msgstr ""
+msgstr "Widget hinzufügen"
 
 #: management/dashboard_configdash.php:393
 msgid "Separator"
-msgstr ""
+msgstr "Separator"
 
 #: management/dashboard_configdash.php:399
 msgid "Embedding"
-msgstr ""
+msgstr "Einbetten"
 
 #: management/dashboard_configdash.php:405
 msgid "Screenshot"
-msgstr ""
+msgstr "Screenshot"
 
 #: management/dashboard_configdash.php:417
 msgid "Preview"
-msgstr ""
+msgstr "Vorschau"
 
 #: management/dashboard_configdash.php:433
 #: management/dashboard_configdash.php:2127 widgets/widgetCtxMenu.php:58
 msgid "Header color"
-msgstr ""
+msgstr "Kopfzeilen Farbe"
 
 #: management/dashboard_configdash.php:437 widgets/widgetCtxMenu.php:111
 msgid "Title color"
-msgstr ""
+msgstr "Titelfarbe"
 
 #: management/dashboard_configdash.php:441
 msgid "Widgets area color"
-msgstr ""
+msgstr "Farbe des Widgets-Bereichs"
 
 #: management/dashboard_configdash.php:445
 msgid "External area color"
-msgstr ""
+msgstr "Farbe des Außenbereichs"
 
 #: management/dashboard_configdash.php:449
 msgid "Background darkness"
-msgstr ""
+msgstr "Hintergrund Dunkelheit"
 
 #: management/dashboard_configdash.php:807
 #: management/dashboard_configdash.php:850
@@ -705,7 +745,7 @@ msgstr ""
 #: widgets/widgetCtxMenu.php:485 widgets/widgetCtxMenu.php:514
 #: widgets/widgetCtxMenu.php:553
 msgid "Quit"
-msgstr ""
+msgstr "Verlassen"
 
 #: management/dashboard_configdash.php:817
 #: management/dashboard_configdash.php:866
@@ -714,7 +754,7 @@ msgstr ""
 #: widgets/widgetCtxMenu.php:115 widgets/widgetCtxMenu.php:168
 #: widgets/widgetCtxMenu.php:221
 msgid "Palette"
-msgstr ""
+msgstr "Palette"
 
 #: management/dashboard_configdash.php:840
 #: management/dashboard_configdash.php:889
@@ -725,7 +765,7 @@ msgstr ""
 #: widgets/widgetCtxMenu.php:350 widgets/widgetCtxMenu.php:403
 #: widgets/widgetCtxMenu.php:475
 msgid "Last used"
-msgstr ""
+msgstr "Zuletzt verwendet"
 
 #: management/dashboard_configdash.php:853
 #: management/dashboard_configdash.php:902
@@ -736,7 +776,7 @@ msgstr ""
 #: widgets/widgetCtxMenu.php:363 widgets/widgetCtxMenu.php:416
 #: widgets/widgetCtxMenu.php:488 widgets/widgetCtxMenu.php:517
 msgid "Undo"
-msgstr ""
+msgstr "Rückgängig"
 
 #: management/dashboard_configdash.php:856
 #: management/dashboard_configdash.php:905
@@ -749,20 +789,20 @@ msgstr ""
 #: widgets/widgetCtxMenu.php:419 widgets/widgetCtxMenu.php:452
 #: widgets/widgetCtxMenu.php:491 widgets/widgetCtxMenu.php:520
 msgid "Apply"
-msgstr ""
+msgstr "Übernehmen"
 
 #: management/dashboard_configdash.php:1011
 msgid "Darkness"
-msgstr ""
+msgstr "Dunkelheit"
 
 #: management/dashboard_configdash.php:1115 management/dashboards.php:447
 msgid "Prev"
-msgstr ""
+msgstr "Zurück"
 
 #: management/dashboard_configdash.php:1116 management/dashboards.php:448
 #: management/dashboards.php:719 management/dashboards.php:736
 msgid "Next"
-msgstr ""
+msgstr "Weiter"
 
 #: management/dashboard_configdash.php:1119 management/dashboards.php:451
 #: management/dashboards.php:773 management/dashboards.php:834
@@ -770,68 +810,68 @@ msgstr ""
 #: management/iotApplications.php:349 management/synopticTemplates.php:416
 #: management/synoptics.php:478
 msgid "Close"
-msgstr ""
+msgstr "Schließen"
 
 #: management/dashboard_configdash.php:1133
 msgid "Add new widget to dashboard"
-msgstr ""
+msgstr "Neues Widget zum Dashboard hinzufügen"
 
 #: management/dashboard_configdash.php:1138
 #: management/dashboard_configdash.php:1869
 msgid "Metric and widget choice"
-msgstr ""
+msgstr "Metrik- und Widget-Auswahl"
 
 #: management/dashboard_configdash.php:1141
 #: management/dashboard_configdash.php:1872
 msgid "Widget category"
-msgstr ""
+msgstr "Widget-Kategorie"
 
 #: management/dashboard_configdash.php:1146
 msgid "Actuator"
-msgstr ""
+msgstr "Aktor"
 
 #: management/dashboard_configdash.php:1147
 msgid "Data viewer"
-msgstr ""
+msgstr "Datenanzeige"
 
 #: management/dashboard_configdash.php:1154
 msgid "Metrics category"
-msgstr ""
+msgstr "Kategorie Metriken"
 
 #: management/dashboard_configdash.php:1159
 msgid "Personal metrics"
-msgstr ""
+msgstr "Persönliche Metriken"
 
 #: management/dashboard_configdash.php:1160
 msgid "Shared metrics"
-msgstr ""
+msgstr "Freigegebene Metriken"
 
 #: management/dashboard_configdash.php:1167
 #: management/dashboard_configdash.php:1880
 msgid "Actuator target"
-msgstr ""
+msgstr "Aktorenziel"
 
 #: management/dashboard_configdash.php:1170
 msgid "Personal apps"
-msgstr ""
+msgstr "Persönliche Apps"
 
 #: management/dashboard_configdash.php:1171
 msgid "Context broker"
-msgstr ""
+msgstr "Context broker"
 
 #: management/dashboard_configdash.php:1178
 msgid "Inputs from personal apps"
-msgstr ""
+msgstr "Eingaben aus persönlichen Apps"
 
 #: management/dashboard_configdash.php:1192
 #: management/dashboard_configdash.php:1901
 msgid "Start value"
-msgstr ""
+msgstr "Startwert"
 
 #: management/dashboard_configdash.php:1200
 #: management/dashboard_configdash.php:1907
 msgid "Domain type"
-msgstr ""
+msgstr "Domain-Typ"
 
 #: management/dashboard_configdash.php:1207
 #: management/dashboard_configdash.php:1914
@@ -839,7 +879,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18758
 #: management/dashboard_configdash.php:19737
 msgid "Min value"
-msgstr ""
+msgstr "Minimalwert"
 
 #: management/dashboard_configdash.php:1214
 #: management/dashboard_configdash.php:1921
@@ -847,21 +887,21 @@ msgstr ""
 #: management/dashboard_configdash.php:18766
 #: management/dashboard_configdash.php:19745
 msgid "Max value"
-msgstr ""
+msgstr "Maximum Wert"
 
 #: management/dashboard_configdash.php:1221
 #: management/dashboard_configdash.php:1928
 #: management/dashboard_configdash.php:7122
 #: management/dashboard_configdash.php:19408
 msgid "Off value"
-msgstr ""
+msgstr "Off-Wert"
 
 #: management/dashboard_configdash.php:1228
 #: management/dashboard_configdash.php:1935
 #: management/dashboard_configdash.php:7129
 #: management/dashboard_configdash.php:19415
 msgid "On value"
-msgstr ""
+msgstr "An-Wert"
 
 #: management/dashboard_configdash.php:1235
 #: management/dashboard_configdash.php:1305
@@ -871,17 +911,17 @@ msgstr ""
 #: management/dashboard_configdash.php:1995
 #: management/dashboard_configdash.php:2017
 msgid "Widget type"
-msgstr ""
+msgstr "Widget Typ"
 
 #: management/dashboard_configdash.php:1246
 #: management/dashboard_configdash.php:1960
 msgid "Entity type"
-msgstr ""
+msgstr "Typ Entität"
 
 #: management/dashboard_configdash.php:1255
 #: management/dashboard_configdash.php:1967
 msgid "Entity description"
-msgstr ""
+msgstr "Beschreibung der Entität"
 
 #: management/dashboard_configdash.php:1264
 #: management/dashboard_configdash.php:1974
@@ -889,86 +929,86 @@ msgstr ""
 #: management/dashboard_configdash.php:8412
 #: management/dashboard_configdash.php:20227
 msgid "Attribute name"
-msgstr ""
+msgstr "Attributname"
 
 #: management/dashboard_configdash.php:1273
 #: management/dashboard_configdash.php:1981
 msgid "Attribute description"
-msgstr ""
+msgstr "Attributbeschreibung"
 
 #: management/dashboard_configdash.php:1282
 #: management/dashboard_configdash.php:1988
 msgid "Attribute type"
-msgstr ""
+msgstr "Attributtyp"
 
 #: management/dashboard_configdash.php:1287
 msgid "Integer"
-msgstr ""
+msgstr "Ganzzahl"
 
 #: management/dashboard_configdash.php:1288
 msgid "Float"
-msgstr ""
+msgstr "Fließend"
 
 #: management/dashboard_configdash.php:1289
 msgid "String"
-msgstr ""
+msgstr "Zeichenkette"
 
 #: management/dashboard_configdash.php:1290
 msgid "Boolean"
-msgstr ""
+msgstr "Boolescher Wert"
 
 #: management/dashboard_configdash.php:1296
 msgid "Attribute initial value"
-msgstr ""
+msgstr "Attribut-Anfangswert"
 
 #: management/dashboard_configdash.php:1316
 #: management/dashboard_configdash.php:1360
 #: management/dashboard_configdash.php:2005
 msgid "Metric"
-msgstr ""
+msgstr "Metrisch"
 
 #: management/dashboard_configdash.php:1324
 #: management/dashboard_configdash.php:1368
 #: management/dashboard_configdash.php:2046
 msgid "Metric description"
-msgstr ""
+msgstr "Beschreibung der Metrik"
 
 #: management/dashboard_configdash.php:1331
 #: management/dashboard_configdash.php:1375
 #: management/dashboard_configdash.php:2026
 msgid "Context"
-msgstr ""
+msgstr "Kontext"
 
 #: management/dashboard_configdash.php:1352
 #: management/dashboard_configdash.php:1396
 #: management/dashboard_configdash.php:2040
 msgid "Widget link"
-msgstr ""
+msgstr "Widget-Link"
 
 #: management/dashboard_configdash.php:1403
 #: management/dashboard_configdash.php:2052
 msgid "Scheduler"
-msgstr ""
+msgstr "Planer"
 
 #: management/dashboard_configdash.php:1411
 #: management/dashboard_configdash.php:2060
 msgid "Jobs areas"
-msgstr ""
+msgstr "Jobbereiche"
 
 #: management/dashboard_configdash.php:1420
 #: management/dashboard_configdash.php:2068
 msgid "Jobs groups"
-msgstr ""
+msgstr "Jobgruppen"
 
 #: management/dashboard_configdash.php:1429
 #: management/dashboard_configdash.php:2076
 msgid "Jobs names"
-msgstr ""
+msgstr "Namen von Jobs"
 
 #: management/dashboard_configdash.php:1451
 #: management/dashboard_configdash.php:2098
 msgid "Generic widget properties"
-msgstr ""
+msgstr "Generische Widget-Eigenschaften"
 
 #: management/dashboard_configdash.php:1454
 #: management/dashboard_configdash.php:2101
@@ -977,35 +1017,35 @@ msgstr ""
 #: management/microApplications.php:212 management/synopticTemplates.php:219
 #: management/synoptics.php:236
 msgid "Title"
-msgstr ""
+msgstr "Titel"
 
 #: management/dashboard_configdash.php:1459
 #: management/dashboard_configdash.php:32024 widgets/widgetCtxMenu.php:164
 msgid "Background color"
-msgstr ""
+msgstr "Hintergrundfarbe"
 
 #: management/dashboard_configdash.php:1468
 msgid "Content"
-msgstr ""
+msgstr "Inhalt"
 
 #: management/dashboard_configdash.php:1468
 msgid "font size"
-msgstr ""
+msgstr "Schriftgröße"
 
 #: management/dashboard_configdash.php:1473
 #: management/dashboard_configdash.php:2118
 msgid "Content font color"
-msgstr ""
+msgstr "Schriftfarbe"
 
 #: management/dashboard_configdash.php:1489
 #: management/dashboard_configdash.php:2134
 msgid "Header text color"
-msgstr ""
+msgstr "Header Textfarbe"
 
 #: management/dashboard_configdash.php:1498
 #: management/dashboard_configdash.php:2143
 msgid "Period"
-msgstr ""
+msgstr "Zeitraum"
 
 #: management/dashboard_configdash.php:1501
 #: management/dashboard_configdash.php:1550
@@ -1062,94 +1102,95 @@ msgstr ""
 #: management/dashboard_configdash.php:32121
 #: management/dashboard_configdash.php:32131
 msgid "No"
-msgstr ""
+msgstr "Nein"
 
 #: management/dashboard_configdash.php:1502
 #: management/dashboard_configdash.php:2147
 msgid "4 Hours"
-msgstr ""
+msgstr "4 Stunden"
 
 #: management/dashboard_configdash.php:1503
 #: management/dashboard_configdash.php:2148
 msgid "12 Hours"
-msgstr ""
+msgstr "12 Stunden"
 
 #: management/dashboard_configdash.php:1504
 #: management/dashboard_configdash.php:2149
 msgid "Day"
-msgstr ""
+msgstr "Tag"
 
 #: management/dashboard_configdash.php:1505
 #: management/dashboard_configdash.php:2150
 msgid "Week"
-msgstr ""
+msgstr "Woche"
 
 #: management/dashboard_configdash.php:1506
 #: management/dashboard_configdash.php:2151
 msgid "Month"
-msgstr ""
+msgstr "Monat"
 
 #: management/dashboard_configdash.php:1507
 #: management/dashboard_configdash.php:2152
 msgid "6 Months"
-msgstr ""
+msgstr "6 Monate"
 
 #: management/dashboard_configdash.php:1508
 #: management/dashboard_configdash.php:2153
 msgid "Year"
-msgstr ""
+msgstr "Jahr"
 
 #: management/dashboard_configdash.php:1509
 #: management/dashboard_configdash.php:2154
 msgid "2 Years"
-msgstr ""
+msgstr "zwei Jahre"
 
 #: management/dashboard_configdash.php:1510
 #: management/dashboard_configdash.php:2155
 msgid "10 Years"
-msgstr ""
+msgstr "10 Jahre"
 
 #: management/dashboard_configdash.php:1513
 #: management/dashboard_configdash.php:2158
 msgid "Refresh rate (s)"
-msgstr ""
+msgstr "Aktualisierungsrate"
 
 #: management/dashboard_configdash.php:1520
 #: management/dashboard_configdash.php:2164
 msgid "Height"
-msgstr ""
+msgstr "Höhe"
 
 #: management/dashboard_configdash.php:1525
 #: management/dashboard_configdash.php:2169
 msgid "Width"
-msgstr ""
+msgstr "Breite"
 
 #: management/dashboard_configdash.php:1532
 #: management/dashboard_configdash.php:2176
 msgid "U/M"
-msgstr ""
+msgstr "U/M"
 
 #: management/dashboard_configdash.php:1537
 #: management/dashboard_configdash.php:2181
 msgid "U/M position"
-msgstr ""
+msgstr "U/M-Position"
 
+# what does it mean? "Closest to value"?
 #: management/dashboard_configdash.php:1540
 #: management/dashboard_configdash.php:2184
 msgid "Next to value"
-msgstr ""
+msgstr "Neben dem Wert"
 
 #: management/dashboard_configdash.php:1541
 #: management/dashboard_configdash.php:2185
 msgid "Below value"
-msgstr ""
+msgstr "Unter Wert"
 
 #: management/dashboard_configdash.php:1546
 #: management/dashboard_configdash.php:1655
 #: management/dashboard_configdash.php:2190
 #: management/dashboard_configdash.php:2267
 msgid "Show header"
-msgstr ""
+msgstr "Header anzeigen"
 
 #: management/dashboard_configdash.php:1549
 #: management/dashboard_configdash.php:2193
@@ -1202,17 +1243,17 @@ msgstr ""
 #: management/dashboard_configdash.php:32120
 #: management/dashboard_configdash.php:32130
 msgid "Yes"
-msgstr ""
+msgstr "Ja"
 
 #: management/dashboard_configdash.php:1553
 #: management/dashboard_configdash.php:2198
 msgid "Font type (autosuggestion)"
-msgstr ""
+msgstr "Schriftart (automatischer Vorschlag)"
 
 #: management/dashboard_configdash.php:1562
 #: management/dashboard_configdash.php:2207
 msgid "Specific widget properties"
-msgstr ""
+msgstr "Spezifische Widget-Eigenschaften"
 
 #: management/dashboard_configdash.php:1578
 #: management/dashboard_configdash.php:1713
@@ -1235,7 +1276,7 @@ msgstr ""
 #: management/synopticsMappingForm.php:226
 #: management/synopticsMappingForm.php:262 view/index.php:2398
 msgid "Confirm"
-msgstr ""
+msgstr "Bestätigen"
 
 #: management/dashboard_configdash.php:1579
 #: management/dashboard_configdash.php:1712
@@ -1249,277 +1290,288 @@ msgstr ""
 #: management/synopticsMappingForm.php:225
 #: management/synopticsMappingForm.php:261 view/index.php:2397
 msgid "Cancel"
-msgstr ""
+msgstr "Annullieren"
 
 #: management/dashboard_configdash.php:1594
 msgid "Dashboard properties"
-msgstr ""
+msgstr "Dashboard Eigenschaften"
 
 #: management/dashboard_configdash.php:1598
 msgid "Measures"
-msgstr ""
+msgstr "Maßnahmen"
 
 #: management/dashboard_configdash.php:1599
 msgid "Header"
-msgstr ""
+msgstr "Header"
 
 #: management/dashboard_configdash.php:1600
 msgid "Background"
-msgstr ""
+msgstr "Hintergrund"
 
 #: management/dashboard_configdash.php:1609
 msgid "Responsive"
-msgstr ""
+msgstr "Responsive"
 
 #: management/dashboard_configdash.php:1618
 msgid "Dashboard width (cells)"
-msgstr ""
+msgstr "Breite des Dashboards (Zellen)"
 
 #: management/dashboard_configdash.php:1664
 msgid "Header logo"
-msgstr ""
+msgstr "Header Logo"
 
 #: management/dashboard_configdash.php:1674
 msgid "Header logo link"
-msgstr ""
+msgstr "Link zum Header-Logo"
 
 #: management/dashboard_configdash.php:1687
 msgid "Use image"
-msgstr ""
+msgstr "Bild verwenden"
 
 #: management/dashboard_configdash.php:1695
 msgid "Upload new image"
-msgstr ""
+msgstr "Neues Bild hochladen"
 
 #: management/dashboard_configdash.php:1728
 msgid "Dashboard screenshot"
-msgstr ""
+msgstr "Dashboard-Screenshot"
 
 #: management/dashboard_configdash.php:1734
 msgid "1) Open the dashboard in view mode"
-msgstr ""
+msgstr "1) Öffnen Sie das Dashboard im Ansichtsmodus"
 
 #: management/dashboard_configdash.php:1735
 msgid "2) Take a snapshot (e.g. with STAMP or with specific tools)"
 msgstr ""
+"2) Schnappschuss machen (z.B. mit STAMP oder mit spezifischen Werkzeugen)"
 
 #: management/dashboard_configdash.php:1736
 msgid "3) Save it in your mass memory"
-msgstr ""
+msgstr "3) Speichern Sie es in Ihrem Massenspeicher"
 
 #: management/dashboard_configdash.php:1737
 msgid "4) Upload it from the following input"
-msgstr ""
+msgstr "4) Laden Sie es aus der folgenden Eingabe hoch"
 
 #: management/dashboard_configdash.php:1765 view/index.php:2409
 msgid "External content"
-msgstr ""
+msgstr "Externe Inhalte"
 
+# what is the meaning of this:
+# Management of Evacuation Plan status - or
+# Status management of evacuation plan?
 #: management/dashboard_configdash.php:1782 view/index.php:2426
 msgid "evacuation plan status management"
-msgstr ""
+msgstr "Management des Evakuierungsplanstatus"
 
 #: management/dashboard_configdash.php:1787 view/index.php:2431
 msgid "plan identifier"
-msgstr ""
+msgstr "Plan-ID"
 
 #: management/dashboard_configdash.php:1790 view/index.php:2434
 msgid "current approval status"
-msgstr ""
+msgstr "aktueller Zulassungsstatus"
 
 #: management/dashboard_configdash.php:1800 view/index.php:2444
 msgid "new approval status"
-msgstr ""
+msgstr "neuer Genehmigungsstatus"
 
 #: management/dashboard_configdash.php:1812 view/index.php:2456
 msgid "updating status, please wait"
-msgstr ""
+msgstr "Statusaktualisierung, bitte warten"
 
 #: management/dashboard_configdash.php:1824 view/index.php:2468
 msgid "status successfully updated"
-msgstr ""
+msgstr "Status erfolgreich aktualisiert"
 
 #: management/dashboard_configdash.php:1836 view/index.php:2480
 msgid "error while trying to send new status to server, please try again"
 msgstr ""
+"Fehler beim Versuch, einen neuen Status an den Server zu senden, versuchen "
+"Sie es erneut"
 
 #: management/dashboard_configdash.php:1850 view/index.php:2494
 msgid "cancel"
-msgstr ""
+msgstr "annullieren"
 
 #: management/dashboard_configdash.php:1851 view/index.php:2495
 msgid "confirm"
-msgstr ""
+msgstr "bestätigen"
 
 #: management/dashboard_configdash.php:1863
 msgid "Modify widget"
-msgstr ""
+msgstr "Widget \"Ändern\""
 
 #: management/dashboard_configdash.php:1889
 msgid "Input from personal apps"
-msgstr ""
+msgstr "Eingaben von persönlichen Apps"
 
 #: management/dashboard_configdash.php:1953
 msgid "Entity id"
-msgstr ""
+msgstr "Entitäts-ID"
 
 #: management/dashboard_configdash.php:2011
 msgid "Widget name"
-msgstr ""
+msgstr "Widget-Bezeichnung"
 
 #: management/dashboard_configdash.php:2105
 msgid "Backgound color"
-msgstr ""
+msgstr "Backgound Farbe"
 
 #: management/dashboard_configdash.php:2243
 msgid "Embed this dashboard"
-msgstr ""
+msgstr "Dieses Dashboard einbetten"
 
 #: management/dashboard_configdash.php:2250
 msgid "Iframe markup generation"
-msgstr ""
+msgstr "Iframe-Markup-Generierung"
 
 #: management/dashboard_configdash.php:2254
 #: management/dashboard_configdash.php:29561
 msgid "Automatic"
-msgstr ""
+msgstr "Automatisch"
 
 #: management/dashboard_configdash.php:2255
 #: management/dashboard_configdash.php:29562
 msgid "Manual"
-msgstr ""
+msgstr "Manuell"
 
 #: management/dashboard_configdash.php:2258
 msgid "Embed mode"
-msgstr ""
+msgstr "Einbettungsmodus"
 
 #: management/dashboard_configdash.php:2276
 msgid "Autofit"
-msgstr ""
+msgstr "Autofit"
 
 #: management/dashboard_configdash.php:2282
 msgid "Iframe width (px)"
-msgstr ""
+msgstr "Iframe-Breite (px)"
 
 #: management/dashboard_configdash.php:2288
 msgid "Iframe height (px)"
-msgstr ""
+msgstr "Iframe-Höhe (px)"
 
 #: management/dashboard_configdash.php:2292
 msgid "Code to embed this dashboard"
-msgstr ""
+msgstr "Code zum Einbetten dieses Dashboards"
 
 #: management/dashboard_configdash.php:2296
 msgid "Save in txt file"
-msgstr ""
+msgstr "In txt-Datei speichern"
 
 #: management/dashboard_configdash.php:2299
 msgid "Save in html file"
-msgstr ""
+msgstr "In HTML-Datei speichern"
 
 #: management/dashboard_configdash.php:2302
 msgid "Embedding authorized pages"
-msgstr ""
+msgstr "Einbetten autorisierter Seiten"
 
 #: management/dashboard_configdash.php:2306
 msgid "Authorized pages"
-msgstr ""
+msgstr "Autorisierte Seiten"
 
 #: management/dashboard_configdash.php:2313
 msgid "Update list"
-msgstr ""
+msgstr "Liste aktualisieren"
 
 #: management/dashboard_configdash.php:2316
 msgid "List updated correctly"
-msgstr ""
+msgstr "Liste korrekt aktualisiert"
 
 #: management/dashboard_configdash.php:2319
 msgid "List update error, try again"
-msgstr ""
+msgstr "Fehler bei der Listenaktualisierung, versuchen Sie es erneut"
 
 #: management/dashboard_configdash.php:2327
 msgid "Iframe preview"
-msgstr ""
+msgstr "Iframe-Vorschau"
 
 #: management/dashboard_configdash.php:2349
 msgid "Save dashboard"
-msgstr ""
+msgstr "Dashboard speichern"
 
 #: management/dashboard_configdash.php:2352
 msgid "Saving dashboard, please wait"
-msgstr ""
+msgstr "Dashboard speichern, bitte warten"
 
 #: management/dashboard_configdash.php:2368
 msgid "Widget deletion"
-msgstr ""
+msgstr "Löschen von Widgets"
 
 #: management/dashboard_configdash.php:2375
 msgid "Do you want to confirm cancellation of the following widget?"
-msgstr ""
+msgstr "Möchten Sie die Löschung des folgenden Widgets bestätigen?"
 
 #: management/dashboard_configdash.php:2382
 msgid "Deleting widget, please wait"
-msgstr ""
+msgstr "Löschen des Widgets, bitte warten"
 
 #: management/dashboard_configdash.php:2388
 msgid "Widget deleted successfully"
-msgstr ""
+msgstr "Widget erfolgreich gelöscht"
 
 #: management/dashboard_configdash.php:2394
 msgid "Error deleting widget, please try again"
-msgstr ""
+msgstr "Fehler beim Löschen des Widgets, bitte versuchen Sie es erneut"
 
 #: management/dashboard_configdash.php:2419
 msgid ""
 "Here you can insert detailed info of your choice about this widget: you can "
 "use the GUI editor or custom HTML code."
 msgstr ""
+"Hier können Sie detaillierte Informationen Ihrer Wahl zu diesem Widget "
+"einfügen: Sie können den GUI-Editor oder benutzerdefinierten HTML-Code "
+"verwenden."
 
 #: management/dashboard_configdash.php:2420
 msgid ""
 "If you leave the editor empty, the info button won't be shown in the view."
 msgstr ""
+"Wenn Sie den Editor leer lassen, wird die Infoschaltfläche nicht in der "
+"Ansicht angezeigt."
 
 #: management/dashboard_configdash.php:2487
 msgid "Change Metric"
-msgstr ""
+msgstr "Metrik ändern"
 
 #: management/dashboard_configdash.php:2839
 msgid "Please allow popups for this website"
-msgstr ""
+msgstr "Bitte erlauben Sie Popups für diese Website"
 
 #: management/dashboard_configdash.php:3002
 #: management/dashboard_configdash.php:3026
 msgid "Error while adding new separator"
-msgstr ""
+msgstr "Fehler beim Hinzufügen eines neuen Trennzeichens"
 
 #: management/dashboard_configdash.php:3787
 #: management/dashboard_configdash.php:3830
 #: management/dashboard_configdash.php:3926
 #: management/dashboard_configdash.php:3976
 msgid "Click to edit"
-msgstr ""
+msgstr "Klicke zur Bearbeitung"
 
 #: management/dashboard_configdash.php:4627
 msgid "Choose page title"
-msgstr ""
+msgstr "Seitentitel auswählen"
 
 #: management/dashboard_configdash.php:4731
 msgid "Loading new screenshot, please wait"
-msgstr ""
+msgstr "Neuer Screenshot wird geladen, bitte warten"
 
 #: management/dashboard_configdash.php:4745
 msgid "New screenshot loaded correctly"
-msgstr ""
+msgstr "Neuer Screenshot korrekt geladen"
 
 #: management/dashboard_configdash.php:4761
 #: management/dashboard_configdash.php:4775
 msgid "Error loading new screenshot"
-msgstr ""
+msgstr "Fehler beim Laden des neuen Screenshots"
 
 #: management/dashboard_configdash.php:4910
 msgid "Content font size"
-msgstr ""
+msgstr "Content Schriftgröße"
 
 #: management/dashboard_configdash.php:5119
 #: management/dashboard_configdash.php:6027
@@ -1529,22 +1581,22 @@ msgstr ""
 #: management/dashboard_configdash.php:18748
 #: management/dashboard_configdash.php:19704
 msgid "Display color"
-msgstr ""
+msgstr "Anzeigefarbe"
 
 #: management/dashboard_configdash.php:5127
 #: management/dashboard_configdash.php:6370
 msgid "Display font color"
-msgstr ""
+msgstr "Schriftfarbe anzeigen"
 
 #: management/dashboard_configdash.php:5138
 #: management/dashboard_configdash.php:6381
 msgid "Buttons color"
-msgstr ""
+msgstr "Button-Farbe"
 
 #: management/dashboard_configdash.php:5146
 #: management/dashboard_configdash.php:6389
 msgid "Buttons font color"
-msgstr ""
+msgstr "Schriftfarbe der Schaltflächen"
 
 #: management/dashboard_configdash.php:5199
 #: management/dashboard_configdash.php:5465
@@ -1558,7 +1610,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19086
 #: management/dashboard_configdash.php:19376
 msgid "View mode"
-msgstr ""
+msgstr "Ansichtsmodus"
 
 #: management/dashboard_configdash.php:5202
 #: management/dashboard_configdash.php:5468
@@ -1572,7 +1624,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19089
 #: management/dashboard_configdash.php:19379
 msgid "Empty button"
-msgstr ""
+msgstr "Schaltfläche \"Leeren\""
 
 #: management/dashboard_configdash.php:5203
 #: management/dashboard_configdash.php:5469
@@ -1586,7 +1638,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19090
 #: management/dashboard_configdash.php:19380
 msgid "Icon only"
-msgstr ""
+msgstr "Nur Icons"
 
 #: management/dashboard_configdash.php:5204
 #: management/dashboard_configdash.php:5470
@@ -1600,7 +1652,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19091
 #: management/dashboard_configdash.php:19381
 msgid "Text only"
-msgstr ""
+msgstr "Nur Text"
 
 #: management/dashboard_configdash.php:5205
 #: management/dashboard_configdash.php:5471
@@ -1614,7 +1666,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19092
 #: management/dashboard_configdash.php:19382
 msgid "Value display only"
-msgstr ""
+msgstr "Nur Wertanzeige"
 
 #: management/dashboard_configdash.php:5206
 #: management/dashboard_configdash.php:5472
@@ -1628,7 +1680,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19093
 #: management/dashboard_configdash.php:19383
 msgid "Icon and text"
-msgstr ""
+msgstr "Icon und Text"
 
 #: management/dashboard_configdash.php:5207
 #: management/dashboard_configdash.php:5473
@@ -1642,7 +1694,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19094
 #: management/dashboard_configdash.php:19384
 msgid "Icon and value display"
-msgstr ""
+msgstr "Symbol- und Werteanzeige"
 
 #: management/dashboard_configdash.php:5208
 #: management/dashboard_configdash.php:5474
@@ -1656,7 +1708,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19095
 #: management/dashboard_configdash.php:19385
 msgid "Display and text"
-msgstr ""
+msgstr "Anzeige und Text"
 
 #: management/dashboard_configdash.php:5209
 #: management/dashboard_configdash.php:5475
@@ -1670,7 +1722,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19096
 #: management/dashboard_configdash.php:19386
 msgid "Icon, text and value display"
-msgstr ""
+msgstr "Symbol-, Text- und Werteanzeige"
 
 #: management/dashboard_configdash.php:5214
 #: management/dashboard_configdash.php:5480
@@ -1684,27 +1736,27 @@ msgstr ""
 #: management/dashboard_configdash.php:19102
 #: management/dashboard_configdash.php:19392
 msgid "Button radius (%)"
-msgstr ""
+msgstr "Schaltflächenradius (%)"
 
 #: management/dashboard_configdash.php:5231
 #: management/dashboard_configdash.php:6474
 msgid "Geolocation mode"
-msgstr ""
+msgstr "Geolokalisierungsmodus"
 
 #: management/dashboard_configdash.php:5234
 #: management/dashboard_configdash.php:6477
 msgid "On press only"
-msgstr ""
+msgstr "Nur auf Drücken"
 
 #: management/dashboard_configdash.php:5235
 #: management/dashboard_configdash.php:6478
 msgid "Periodically"
-msgstr ""
+msgstr "Regelmäßig"
 
 #: management/dashboard_configdash.php:5236
 #: management/dashboard_configdash.php:6479
 msgid "Periodically and on press"
-msgstr ""
+msgstr "Periodisch und bei Drücken"
 
 #: management/dashboard_configdash.php:5244
 #: management/dashboard_configdash.php:5509
@@ -1714,7 +1766,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18248
 #: management/dashboard_configdash.php:19149
 msgid "Button color"
-msgstr ""
+msgstr "Button Farbe"
 
 #: management/dashboard_configdash.php:5252
 #: management/dashboard_configdash.php:5517
@@ -1724,7 +1776,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18256
 #: management/dashboard_configdash.php:19157
 msgid "Button color on click"
-msgstr ""
+msgstr "Schaltflächenfarbe beim Klicken"
 
 #: management/dashboard_configdash.php:5262
 #: management/dashboard_configdash.php:5527
@@ -1734,7 +1786,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18266
 #: management/dashboard_configdash.php:19167
 msgid "Symbol color"
-msgstr ""
+msgstr "Symbolfarbe"
 
 #: management/dashboard_configdash.php:5270
 #: management/dashboard_configdash.php:5535
@@ -1744,7 +1796,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18274
 #: management/dashboard_configdash.php:19175
 msgid "Symbol color on click"
-msgstr ""
+msgstr "Symbolfarbe beim Klick"
 
 #: management/dashboard_configdash.php:5282
 #: management/dashboard_configdash.php:5547
@@ -1754,7 +1806,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18286
 #: management/dashboard_configdash.php:19187
 msgid "Text color"
-msgstr ""
+msgstr "Textfarbe"
 
 #: management/dashboard_configdash.php:5290
 #: management/dashboard_configdash.php:5555
@@ -1764,7 +1816,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18294
 #: management/dashboard_configdash.php:19195
 msgid "Text color on click"
-msgstr ""
+msgstr "Textfarbe beim Klicken"
 
 #: management/dashboard_configdash.php:5302
 #: management/dashboard_configdash.php:5567
@@ -1778,7 +1830,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19206
 #: management/dashboard_configdash.php:19485
 msgid "Text font size"
-msgstr ""
+msgstr "Schriftgröße des Textes"
 
 #: management/dashboard_configdash.php:5309
 #: management/dashboard_configdash.php:5574
@@ -1792,7 +1844,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19213
 #: management/dashboard_configdash.php:19492
 msgid "Display font size"
-msgstr ""
+msgstr "Schriftgröße anzeigen"
 
 #: management/dashboard_configdash.php:5320
 #: management/dashboard_configdash.php:5585
@@ -1802,7 +1854,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18323
 #: management/dashboard_configdash.php:19224
 msgid "Display text color"
-msgstr ""
+msgstr "Textfarbe anzeigen"
 
 #: management/dashboard_configdash.php:5328
 #: management/dashboard_configdash.php:5593
@@ -1813,7 +1865,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18572
 #: management/dashboard_configdash.php:19511
 msgid "On display text color"
-msgstr ""
+msgstr "Textfarbe auf dem Display"
 
 #: management/dashboard_configdash.php:5341
 #: management/dashboard_configdash.php:5606
@@ -1827,7 +1879,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19245
 #: management/dashboard_configdash.php:19524
 msgid "Display background color"
-msgstr ""
+msgstr "Hintergrundfarbe anzeigen"
 
 #: management/dashboard_configdash.php:5349
 #: management/dashboard_configdash.php:5614
@@ -1841,7 +1893,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19253
 #: management/dashboard_configdash.php:19532
 msgid "Display radius (%)"
-msgstr ""
+msgstr "Anzeigeradius (%)"
 
 #: management/dashboard_configdash.php:5366
 #: management/dashboard_configdash.php:5631
@@ -1855,7 +1907,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19270
 #: management/dashboard_configdash.php:19549
 msgid "Display width (%)"
-msgstr ""
+msgstr "Anzeigebreite (%)"
 
 #: management/dashboard_configdash.php:5380
 #: management/dashboard_configdash.php:5645
@@ -1869,7 +1921,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19284
 #: management/dashboard_configdash.php:19563
 msgid "Display height (%)"
-msgstr ""
+msgstr "Anzeigehöhe (%)"
 
 #: management/dashboard_configdash.php:5397
 #: management/dashboard_configdash.php:5662
@@ -1883,7 +1935,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19300
 #: management/dashboard_configdash.php:19580
 msgid "Neon effect"
-msgstr ""
+msgstr "Neon-Effekt"
 
 #: management/dashboard_configdash.php:5400
 #: management/dashboard_configdash.php:5665
@@ -1897,7 +1949,7 @@ msgstr ""
 #: management/dashboard_configdash.php:19303
 #: management/dashboard_configdash.php:19583
 msgid "Never"
-msgstr ""
+msgstr "Niemals"
 
 #: management/dashboard_configdash.php:5401
 #: management/dashboard_configdash.php:5666
@@ -1907,7 +1959,7 @@ msgstr ""
 #: management/dashboard_configdash.php:18403
 #: management/dashboard_configdash.php:19304
 msgid "When pressed"
-msgstr ""
+msgstr "Bei Gedrückt"
 
 #: management/dashboard_configdash.php:5402
 #: management/dashboard_configdash.php:5667
@@ -1921,143 +1973,143 @@ msgstr ""
 #: management/dashboard_configdash.php:19305
 #: management/dashboard_configdash.php:19586
 msgid "Always"
-msgstr ""
+msgstr "Immer"
 
 #: management/dashboard_configdash.php:5497
 #: management/dashboard_configdash.php:6811
 msgid "Impulse mode"
-msgstr ""
+msgstr "Impulsmodus"
 
 #: management/dashboard_configdash.php:5500
 #: management/dashboard_configdash.php:6814
 msgid "Send impulse on release"
-msgstr ""
+msgstr "Impuls bei Freigabe senden"
 
 #: management/dashboard_configdash.php:5761
 #: management/dashboard_configdash.php:7163
 #: management/dashboard_configdash.php:18487
 #: management/dashboard_configdash.php:19426
 msgid "Off button color"
-msgstr ""
+msgstr "Farbe der Schaltfläche \"Aus\""
 
 #: management/dashboard_configdash.php:5769
 #: management/dashboard_configdash.php:7171
 #: management/dashboard_configdash.php:18495
 #: management/dashboard_configdash.php:19434
 msgid "On button color"
-msgstr ""
+msgstr "Farbe der Schaltfläche \"An\""
 
 #: management/dashboard_configdash.php:5781
 #: management/dashboard_configdash.php:7183
 #: management/dashboard_configdash.php:18507
 #: management/dashboard_configdash.php:19446
 msgid "Off symbol color"
-msgstr ""
+msgstr "Symbolfarbe \"Aus\""
 
 #: management/dashboard_configdash.php:5789
 #: management/dashboard_configdash.php:7191
 #: management/dashboard_configdash.php:18515
 #: management/dashboard_configdash.php:19454
 msgid "On symbol color"
-msgstr ""
+msgstr "Symbolfarbe \"An\""
 
 #: management/dashboard_configdash.php:5801
 msgid "Off text color"
-msgstr ""
+msgstr "Textfarbe \"Aus\""
 
 #: management/dashboard_configdash.php:5809
 msgid "On text color"
-msgstr ""
+msgstr "Textfarbe \"An\""
 
 #: management/dashboard_configdash.php:5839
 #: management/dashboard_configdash.php:7241
 #: management/dashboard_configdash.php:18564
 #: management/dashboard_configdash.php:19503
 msgid "Off display text color"
-msgstr ""
+msgstr "Textfarbe \"Anzeige AUS\""
 
 #: management/dashboard_configdash.php:5920
 #: management/dashboard_configdash.php:7322
 #: management/dashboard_configdash.php:18645
 #: management/dashboard_configdash.php:19584
 msgid "When on"
-msgstr ""
+msgstr "Wenn eingeschaltet"
 
 #: management/dashboard_configdash.php:5921
 #: management/dashboard_configdash.php:7323
 #: management/dashboard_configdash.php:18646
 #: management/dashboard_configdash.php:19585
 msgid "When off"
-msgstr ""
+msgstr "Wenn ausgeschaltet"
 
 #: management/dashboard_configdash.php:5978
 #: management/dashboard_configdash.php:7420
 #: management/dashboard_configdash.php:18699
 #: management/dashboard_configdash.php:19646
 msgid "Indicator radius (%)"
-msgstr ""
+msgstr "Indikatorradius (%)"
 
 #: management/dashboard_configdash.php:5985
 #: management/dashboard_configdash.php:7427
 #: management/dashboard_configdash.php:18706
 #: management/dashboard_configdash.php:19653
 msgid "Value display radius (%)"
-msgstr ""
+msgstr "Radius des Anzeigewerts (%)"
 
 #: management/dashboard_configdash.php:6009
 #: management/dashboard_configdash.php:7451
 #: management/dashboard_configdash.php:18730
 #: management/dashboard_configdash.php:19677
 msgid "Start angle"
-msgstr ""
+msgstr "Startwinkel"
 
 #: management/dashboard_configdash.php:6016
 #: management/dashboard_configdash.php:7458
 #: management/dashboard_configdash.php:18737
 #: management/dashboard_configdash.php:19684
 msgid "End angle"
-msgstr ""
+msgstr "Endwinkel"
 
 #: management/dashboard_configdash.php:6053
 #: management/dashboard_configdash.php:7558
 #: management/dashboard_configdash.php:18777
 #: management/dashboard_configdash.php:19756
 msgid "Labels font size"
-msgstr ""
+msgstr "Schriftgröße Labels"
 
 #: management/dashboard_configdash.php:6060
 #: management/dashboard_configdash.php:7565
 #: management/dashboard_configdash.php:18784
 #: management/dashboard_configdash.php:19763
 msgid "Labels font color"
-msgstr ""
+msgstr "Schriftfarbe für Label"
 
 #: management/dashboard_configdash.php:6071
 #: management/dashboard_configdash.php:7576
 #: management/dashboard_configdash.php:18795
 #: management/dashboard_configdash.php:19774
 msgid "Increase value"
-msgstr ""
+msgstr "Wert erhöhen"
 
 #: management/dashboard_configdash.php:6708
 msgid "Target entity"
-msgstr ""
+msgstr "Zielentität"
 
 #: management/dashboard_configdash.php:6715
 msgid "Target entity attribute"
-msgstr ""
+msgstr "Attribut der Zielentität"
 
 #: management/dashboard_configdash.php:6756
 msgid "Base value"
-msgstr ""
+msgstr "Basiswert"
 
 #: management/dashboard_configdash.php:6782
 msgid "Impulse value"
-msgstr ""
+msgstr "Impulswert"
 
 #: management/dashboard_configdash.php:6815
 msgid "Send impulses until pressed"
-msgstr ""
+msgstr "Impulse senden, bis gedrückt"
 
 #: management/dashboard_configdash.php:8263
 #: management/dashboard_configdash.php:8349
@@ -2066,14 +2118,14 @@ msgstr ""
 #: management/dashboard_configdash.php:20166
 #: management/dashboard_configdash.php:20219
 msgid "Entity ID"
-msgstr ""
+msgstr "Entitäts-ID"
 
 #: management/dashboard_configdash.php:8280
 #: management/dashboard_configdash.php:8421
 #: management/dashboard_configdash.php:20101
 #: management/dashboard_configdash.php:20238
 msgid "Update time(s)"
-msgstr ""
+msgstr "Aktualisierungszeit(en)"
 
 #: management/dashboard_configdash.php:8546
 #: management/dashboard_configdash.php:8717
@@ -2084,7 +2136,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21157
 #: management/dashboard_configdash.php:21977
 msgid "Map widgets"
-msgstr ""
+msgstr "Karten-Widgets"
 
 #: management/dashboard_configdash.php:8627
 #: management/dashboard_configdash.php:8767
@@ -2095,7 +2147,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21221
 #: management/dashboard_configdash.php:22027
 msgid "Active rows font color"
-msgstr ""
+msgstr "Schriftfarbe für aktive Zeilen"
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2107,7 +2159,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Default"
-msgstr ""
+msgstr "Standard"
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2119,7 +2171,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Symbol mode"
-msgstr ""
+msgstr "Symbolmodus"
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2131,7 +2183,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Symbol choice"
-msgstr ""
+msgstr "Symbolauswahl"
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2143,12 +2195,12 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Symbol preview"
-msgstr ""
+msgstr "Symbolvorschau"
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:20483
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2160,7 +2212,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Color1"
-msgstr ""
+msgstr "Farbe1"
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2172,7 +2224,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Color2"
-msgstr ""
+msgstr "Farbe2"
 
 #: management/dashboard_configdash.php:8656
 #: management/dashboard_configdash.php:8796
@@ -2184,7 +2236,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Order"
-msgstr ""
+msgstr "Bestellung"
 
 #: management/dashboard_configdash.php:8796
 #: management/dashboard_configdash.php:8935
@@ -2194,7 +2246,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Query"
-msgstr ""
+msgstr "Abfrage"
 
 #: management/dashboard_configdash.php:8796
 #: management/dashboard_configdash.php:8935
@@ -2204,7 +2256,7 @@ msgstr ""
 #: management/dashboard_configdash.php:21317
 #: management/dashboard_configdash.php:22062
 msgid "Data widgets"
-msgstr ""
+msgstr "Daten-Widgets"
 
 #: management/dashboard_configdash.php:8796
 #: management/dashboard_configdash.php:8935
@@ -2213,52 +2265,52 @@ msgstr ""
 #: management/dashboard_configdash.php:21316
 #: management/dashboard_configdash.php:22062
 msgid "Display"
-msgstr ""
+msgstr "Anzeige"
 
 #: management/dashboard_configdash.php:8919
 #: management/dashboard_configdash.php:21240
 msgid "Icon/Text Mode"
-msgstr ""
+msgstr "Symbol-/Textmodus"
 
 #: management/dashboard_configdash.php:8922
 #: management/dashboard_configdash.php:21243
 msgid "Icon Only"
-msgstr ""
+msgstr "Nur Icon"
 
 #: management/dashboard_configdash.php:8923
 #: management/dashboard_configdash.php:21244
 msgid "Text Description"
-msgstr ""
+msgstr "Textbeschreibung"
 
 #: management/dashboard_configdash.php:9113
 #: management/dashboard_configdash.php:22554
 msgid "Shown data"
-msgstr ""
+msgstr "Angezeigte Daten"
 
 #: management/dashboard_configdash.php:9116
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
 #: management/dashboard_configdash.php:9117
 msgid "Time"
-msgstr ""
+msgstr "Zeit"
 
 #: management/dashboard_configdash.php:9118
 msgid "Date and time"
-msgstr ""
+msgstr "Datum und Uhrzeit"
 
 #: management/dashboard_configdash.php:9124
 #: management/dashboard_configdash.php:22565
 msgid "Font type"
-msgstr ""
+msgstr "Schrifttyp"
 
 #: management/dashboard_configdash.php:9127
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #: management/dashboard_configdash.php:9128
 msgid "LCD like"
-msgstr ""
+msgstr "LCD wie"
 
 #: management/dashboard_configdash.php:9182
 #: management/dashboard_configdash.php:9276
@@ -2287,7 +2339,7 @@ msgstr ""
 #: management/dashboard_configdash.php:30495
 #: management/dashboard_configdash.php:30645
 msgid "Available geolocation widgets"
-msgstr ""
+msgstr "Verfügbare Geolocation-Widgets"
 
 #: management/dashboard_configdash.php:9505
 #: management/dashboard_configdash.php:9630
@@ -2306,53 +2358,53 @@ msgstr ""
 #: management/dashboard_configdash.php:30535
 #: management/dashboard_configdash.php:30683
 msgid "Events to show on selected map"
-msgstr ""
+msgstr "Ereignisse, die auf der ausgewählten Karte angezeigt werden sollen"
 
 #: management/dashboard_configdash.php:9509
 #: management/dashboard_configdash.php:9634
 #: management/dashboard_configdash.php:22968
 #: management/dashboard_configdash.php:23092
 msgid "Approved"
-msgstr ""
+msgstr "Genehmigt"
 
 #: management/dashboard_configdash.php:9510
 #: management/dashboard_configdash.php:9635
 #: management/dashboard_configdash.php:22969
 #: management/dashboard_configdash.php:23093
 msgid "Closed"
-msgstr ""
+msgstr "Abgeschlossen"
 
 #: management/dashboard_configdash.php:9511
 #: management/dashboard_configdash.php:9636
 #: management/dashboard_configdash.php:22970
 #: management/dashboard_configdash.php:23094
 msgid "In progress"
-msgstr ""
+msgstr "In Bearbeitung"
 
 #: management/dashboard_configdash.php:9512
 #: management/dashboard_configdash.php:9637
 #: management/dashboard_configdash.php:22971
 #: management/dashboard_configdash.php:23095
 msgid "Proposed"
-msgstr ""
+msgstr "Vorgeschlagen"
 
 #: management/dashboard_configdash.php:9513
 #: management/dashboard_configdash.php:9638
 #: management/dashboard_configdash.php:22972
 #: management/dashboard_configdash.php:23096
 msgid "Rejected"
-msgstr ""
+msgstr "Abgelehnt"
 
 #: management/dashboard_configdash.php:9727
 #: management/dashboard_configdash.php:9862
 #: management/dashboard_configdash.php:23180
 #: management/dashboard_configdash.php:23335
 msgid "Available autopan widgets"
-msgstr ""
+msgstr "Verfügbare Autopan-Widgets"
 
 #: management/dashboard_configdash.php:10234
 msgid "Default category"
-msgstr ""
+msgstr "Standardkategorie"
 
 #: management/dashboard_configdash.php:10237
 #: management/dashboard_configdash.php:10377
@@ -2365,93 +2417,93 @@ msgstr ""
 #: management/dashboard_configdash.php:31618
 #: management/dashboard_configdash.php:32067
 msgid "None"
-msgstr ""
+msgstr "Nichts"
 
 #: management/dashboard_configdash.php:10238
 #: management/dashboard_configdash.php:10378
 #: management/dashboard_configdash.php:23796
 #: management/dashboard_configdash.php:23945
 msgid "Incidents"
-msgstr ""
+msgstr "Ereignisse "
 
 #: management/dashboard_configdash.php:10239
 #: management/dashboard_configdash.php:10379
 #: management/dashboard_configdash.php:23797
 #: management/dashboard_configdash.php:23946
 msgid "Road works"
-msgstr ""
+msgstr "Baustelle"
 
 #: management/dashboard_configdash.php:10240
 #: management/dashboard_configdash.php:10380
 #: management/dashboard_configdash.php:23798
 #: management/dashboard_configdash.php:23947
 msgid "Snow"
-msgstr ""
+msgstr "Schnee"
 
 #: management/dashboard_configdash.php:10241
 #: management/dashboard_configdash.php:10381
 #: management/dashboard_configdash.php:23799
 #: management/dashboard_configdash.php:23948
 msgid "Weather data"
-msgstr ""
+msgstr "Wetterdaten"
 
 #: management/dashboard_configdash.php:10242
 #: management/dashboard_configdash.php:10382
 #: management/dashboard_configdash.php:23800
 #: management/dashboard_configdash.php:23949
 msgid "Wind"
-msgstr ""
+msgstr "Wind"
 
 #: management/dashboard_configdash.php:10519
 #: management/dashboard_configdash.php:24096
 #: management/dashboard_configdash.php:24110
 msgid "Visualization mode"
-msgstr ""
+msgstr "Visualisierungsmodus"
 
 #: management/dashboard_configdash.php:10522
 #: management/dashboard_configdash.php:24099
 msgid "Single hospital - Totals only"
-msgstr ""
+msgstr "Einzelnes Krankenhaus - nur Summen"
 
 #: management/dashboard_configdash.php:10523
 #: management/dashboard_configdash.php:24100
 msgid "Single hospital - Details"
-msgstr ""
+msgstr "Einzelnes Krankenhaus - Details"
 
 #: management/dashboard_configdash.php:10524
 #: management/dashboard_configdash.php:24101
 msgid "Multiple hospitals overview"
-msgstr ""
+msgstr "Übersicht über mehrere Krankenhäuser"
 
 #: management/dashboard_configdash.php:10533
 msgid "First aid"
-msgstr ""
+msgstr "Erste Hilfe"
 
 #: management/dashboard_configdash.php:10541
 #: management/dashboard_configdash.php:24118
 msgid "First aids"
-msgstr ""
+msgstr "Erste Hilfen"
 
 #: management/dashboard_configdash.php:10858
 #: management/dashboard_configdash.php:12945
 #: management/dashboard_configdash.php:24592
 #: management/dashboard_configdash.php:27660
 msgid "Show first cell"
-msgstr ""
+msgstr "Erste Zelle anzeigen"
 
 #: management/dashboard_configdash.php:10878
 #: management/dashboard_configdash.php:12962
 #: management/dashboard_configdash.php:24614
 #: management/dashboard_configdash.php:27676
 msgid "First cell font size"
-msgstr ""
+msgstr "Schriftgröße der ersten Zelle"
 
 #: management/dashboard_configdash.php:10892
 #: management/dashboard_configdash.php:12973
 #: management/dashboard_configdash.php:24631
 #: management/dashboard_configdash.php:27687
 msgid "First cell font color"
-msgstr ""
+msgstr "Schriftfarbe der ersten Zelle"
 
 #: management/dashboard_configdash.php:10916
 #: management/dashboard_configdash.php:12593
@@ -2460,7 +2512,7 @@ msgstr ""
 #: management/dashboard_configdash.php:27123
 #: management/dashboard_configdash.php:27704
 msgid "Rows labels font size"
-msgstr ""
+msgstr "Schriftgröße für Zeilenbeschriftungen"
 
 #: management/dashboard_configdash.php:10930
 #: management/dashboard_configdash.php:12604
@@ -2469,7 +2521,7 @@ msgstr ""
 #: management/dashboard_configdash.php:27134
 #: management/dashboard_configdash.php:27715
 msgid "Rows labels font color"
-msgstr ""
+msgstr "Schriftfarbe für Zeilenbeschriftungen"
 
 #: management/dashboard_configdash.php:10954
 #: management/dashboard_configdash.php:12624
@@ -2478,7 +2530,7 @@ msgstr ""
 #: management/dashboard_configdash.php:27151
 #: management/dashboard_configdash.php:27732
 msgid "Cols labels font size"
-msgstr ""
+msgstr "Schriftgröße für Cols-Labels"
 
 #: management/dashboard_configdash.php:10965
 #: management/dashboard_configdash.php:12635
@@ -2487,21 +2539,21 @@ msgstr ""
 #: management/dashboard_configdash.php:27162
 #: management/dashboard_configdash.php:27743
 msgid "Cols labels font color"
-msgstr ""
+msgstr "Schriftfarbe für Cols-Etiketten"
 
 #: management/dashboard_configdash.php:11010
 #: management/dashboard_configdash.php:13078
 #: management/dashboard_configdash.php:24749
 #: management/dashboard_configdash.php:27792
 msgid "Table borders"
-msgstr ""
+msgstr "Tabellenränder"
 
 #: management/dashboard_configdash.php:11024
 #: management/dashboard_configdash.php:13092
 #: management/dashboard_configdash.php:24763
 #: management/dashboard_configdash.php:27806
 msgid "Table borders color"
-msgstr ""
+msgstr "Farbe der Tabellenränder"
 
 #: management/dashboard_configdash.php:11044
 #: management/dashboard_configdash.php:11415
@@ -2521,7 +2573,7 @@ msgstr ""
 #: management/dashboard_configdash.php:29884
 #: management/dashboard_configdash.php:30010
 msgid "Set thresholds"
-msgstr ""
+msgstr "Festlegen von Schwellenwerten"
 
 #: management/dashboard_configdash.php:11061
 #: management/dashboard_configdash.php:12263
@@ -2536,7 +2588,7 @@ msgstr ""
 #: management/dashboard_configdash.php:29897
 #: management/dashboard_configdash.php:30023
 msgid "Thresholds target set"
-msgstr ""
+msgstr "Ziel Schwellenwerte festgelegt"
 
 #: management/dashboard_configdash.php:11078
 #: management/dashboard_configdash.php:11868
@@ -2554,12 +2606,12 @@ msgstr ""
 #: management/dashboard_configdash.php:29913
 #: management/dashboard_configdash.php:30039
 msgid "Thresholds target field"
-msgstr ""
+msgstr "Zielfeld \"Schwellenwerte\""
 
 #: management/dashboard_configdash.php:11123
 #: management/dashboard_configdash.php:25007
 msgid "limit"
-msgstr ""
+msgstr "Limit"
 
 #: management/dashboard_configdash.php:11187
 #: management/dashboard_configdash.php:11577
@@ -2567,7 +2619,7 @@ msgstr ""
 #: management/dashboard_configdash.php:25100
 #: management/dashboard_configdash.php:25602
 msgid "X-Axis labels font size"
-msgstr ""
+msgstr "Schriftgröße für X-Achsenbeschriftungen"
 
 #: management/dashboard_configdash.php:11198
 #: management/dashboard_configdash.php:11588
@@ -2575,7 +2627,7 @@ msgstr ""
 #: management/dashboard_configdash.php:25111
 #: management/dashboard_configdash.php:25613
 msgid "X-Axis labels font color"
-msgstr ""
+msgstr "Schriftfarbe für X-Achsenbeschriftungen"
 
 #: management/dashboard_configdash.php:11218
 #: management/dashboard_configdash.php:11608
@@ -2583,7 +2635,7 @@ msgstr ""
 #: management/dashboard_configdash.php:25128
 #: management/dashboard_configdash.php:25630
 msgid "Y-Axis labels font size"
-msgstr ""
+msgstr "Schriftgröße für Y-Achsenbeschriftungen"
 
 #: management/dashboard_configdash.php:11229
 #: management/dashboard_configdash.php:11619
@@ -2591,7 +2643,7 @@ msgstr ""
 #: management/dashboard_configdash.php:25139
 #: management/dashboard_configdash.php:25641
 msgid "Y-Axis labels font color"
-msgstr ""
+msgstr "Schriftfarbe für Y-Achsenbeschriftungen"
 
 #: management/dashboard_configdash.php:11249
 #: management/dashboard_configdash.php:11639
@@ -2603,7 +2655,7 @@ msgstr ""
 #: management/dashboard_configdash.php:27179
 #: management/dashboard_configdash.php:29268
 msgid "Data labels font size"
-msgstr ""
+msgstr "Schriftgröße für Datenbeschriftungen"
 
 #: management/dashboard_configdash.php:11260
 #: management/dashboard_configdash.php:11650
@@ -2615,7 +2667,7 @@ msgstr ""
 #: management/dashboard_configdash.php:27190
 #: management/dashboard_configdash.php:29326
 msgid "Data labels font color"
-msgstr ""
+msgstr "Schriftfarbe für Datenbeschriftungen"
 
 #: management/dashboard_configdash.php:11280
 #: management/dashboard_configdash.php:11670
@@ -2627,7 +2679,7 @@ msgstr ""
 #: management/dashboard_configdash.php:27207
 #: management/dashboard_configdash.php:29213
 msgid "Legend font size"
-msgstr ""
+msgstr "Schriftgröße der Legende"
 
 #: management/dashboard_configdash.php:13268
 #: management/dashboard_configdash.php:13380
@@ -2638,94 +2690,95 @@ msgstr ""
 #: management/dashboard_configdash.php:30772
 #: management/dashboard_configdash.php:31098
 msgid "Default tab"
-msgstr ""
+msgstr "Standard Tab"
 
 #: management/dashboard_configdash.php:13282
 #: management/dashboard_configdash.php:13394
 #: management/dashboard_configdash.php:28191
 #: management/dashboard_configdash.php:28305
 msgid "Meteo tab font size"
-msgstr ""
+msgstr "Schriftgröße der Meteo-Registerkarte"
 
 #: management/dashboard_configdash.php:13297
 #: management/dashboard_configdash.php:13409
 #: management/dashboard_configdash.php:28206
 #: management/dashboard_configdash.php:28320
 msgid "General tab font size"
-msgstr ""
+msgstr "Schriftgröße der Registerkarte Allgemein"
 
 #: management/dashboard_configdash.php:13309
 #: management/dashboard_configdash.php:13421
 #: management/dashboard_configdash.php:28218
 #: management/dashboard_configdash.php:28332
 msgid "General tab font color"
-msgstr ""
+msgstr "Schriftfarbe der Registerkarte Allgemein"
 
 #: management/dashboard_configdash.php:13484
 #: management/dashboard_configdash.php:28401
 msgid "Border radius"
-msgstr ""
+msgstr "Randradius"
 
 #: management/dashboard_configdash.php:13496
 #: management/dashboard_configdash.php:28414
 msgid "Button image"
-msgstr ""
+msgstr "Schaltflächenbild"
 
 #: management/dashboard_configdash.php:13511
 #: management/dashboard_configdash.php:28435
 msgid "Image file"
-msgstr ""
+msgstr "Bilddatei"
 
 #: management/dashboard_configdash.php:13532
 #: management/dashboard_configdash.php:28461
 msgid "Image width"
-msgstr ""
+msgstr "Bildbreite"
 
 #: management/dashboard_configdash.php:13545
 #: management/dashboard_configdash.php:28485
 msgid "Image height"
-msgstr ""
+msgstr "Bildhöhe"
 
 #: management/dashboard_configdash.php:13613
 msgid "Available metrics for selected widget"
-msgstr ""
+msgstr "Verfügbare Metriken für ausgewählte Widgets"
 
 #: management/dashboard_configdash.php:13653
 msgid "No metric change"
-msgstr ""
+msgstr "Keine Metrikänderung"
 
 #: management/dashboard_configdash.php:13695
 msgid "Show button text"
-msgstr ""
+msgstr "Schaltflächentext anzeigen"
 
 #: management/dashboard_configdash.php:13704
 msgid "Available widgets to show link content"
-msgstr ""
+msgstr "Verfügbare Widgets zum Anzeigen von Linkinhalten"
 
 #: management/dashboard_configdash.php:14122
 #: management/dashboard_configdash.php:29341
 msgid "Inner radius (%)"
-msgstr ""
+msgstr "Innenradius (%)"
 
 #: management/dashboard_configdash.php:14163
 #: management/dashboard_configdash.php:29411
 msgid "Start angle (°)"
-msgstr ""
+msgstr "Startwinkel (°)"
 
 #: management/dashboard_configdash.php:14171
 #: management/dashboard_configdash.php:29420
 msgid "End angle (°)"
-msgstr ""
+msgstr "Endwinkel (°)"
 
 #: management/dashboard_configdash.php:14182
 #: management/dashboard_configdash.php:29432
 msgid "Diagram center Y(%)"
-msgstr ""
+msgstr "Diagramm Mitte Y(%)"
 
+# what is exactly meant by "slices" - ?
 #: management/dashboard_configdash.php:14192
 #: management/dashboard_configdash.php:29443
 msgid "Slices colors"
-msgstr ""
+msgstr "Farben der Scheiben"
 
 #: management/dashboard_configdash.php:14750
 #: management/dashboard_configdash.php:14904
@@ -2738,28 +2791,28 @@ msgstr ""
 #: management/dashboard_configdash.php:31611
 #: management/dashboard_configdash.php:32060
 msgid "Widget mode"
-msgstr ""
+msgstr "Widget-Modus"
 
 #: management/dashboard_configdash.php:15389
 #: management/dashboard_configdash.php:15707
 #: management/dashboard_configdash.php:31614
 #: management/dashboard_configdash.php:32063
 msgid "Web link"
-msgstr ""
+msgstr "Web Link"
 
 #: management/dashboard_configdash.php:15391
 #: management/dashboard_configdash.php:15709
 #: management/dashboard_configdash.php:31616
 #: management/dashboard_configdash.php:32065
 msgid "Selector target"
-msgstr ""
+msgstr "Zielselektor"
 
 #: management/dashboard_configdash.php:15392
 #: management/dashboard_configdash.php:15710
 #: management/dashboard_configdash.php:31617
 #: management/dashboard_configdash.php:32066
 msgid "Selector Web target"
-msgstr ""
+msgstr "Selektor Webziel"
 
 #: management/dashboard_configdash.php:15402
 #: management/dashboard_configdash.php:15722
@@ -2768,7 +2821,7 @@ msgstr ""
 #: management/dashboard_configdash.php:31626
 #: management/dashboard_configdash.php:32076
 msgid "Start lat"
-msgstr ""
+msgstr "lat starten"
 
 #: management/dashboard_configdash.php:15410
 #: management/dashboard_configdash.php:15731
@@ -2777,7 +2830,7 @@ msgstr ""
 #: management/dashboard_configdash.php:31634
 #: management/dashboard_configdash.php:32085
 msgid "Start lng"
-msgstr ""
+msgstr "lng starten"
 
 #: management/dashboard_configdash.php:15418
 #: management/dashboard_configdash.php:15740
@@ -2786,14 +2839,14 @@ msgstr ""
 #: management/dashboard_configdash.php:31642
 #: management/dashboard_configdash.php:32094
 msgid "Start zoom"
-msgstr ""
+msgstr "Zoom starten"
 
 #: management/dashboard_configdash.php:15438
 #: management/dashboard_configdash.php:15762
 #: management/dashboard_configdash.php:31663
 #: management/dashboard_configdash.php:32117
 msgid "Enable fullscreen in new tab"
-msgstr ""
+msgstr "Vollbild auf neuer Registerkarte aktivieren"
 
 #: management/dashboard_configdash.php:15446
 #: management/dashboard_configdash.php:15771
@@ -2802,403 +2855,406 @@ msgstr ""
 #: management/dashboard_configdash.php:31672
 #: management/dashboard_configdash.php:32127
 msgid "Enable fullscreen in a popup"
-msgstr ""
+msgstr "Vollbildmodus in einem Popup aktivieren"
 
 #: management/dashboard_configdash.php:15457
 #: management/dashboard_configdash.php:15783
 #: management/dashboard_configdash.php:31682
 #: management/dashboard_configdash.php:32138
 msgid "Coords collection URI"
-msgstr ""
+msgstr "Coords-Auflistungs-URI"
 
 #: management/dashboard_configdash.php:15468
 #: management/dashboard_configdash.php:15795
 #: management/dashboard_configdash.php:31693
 #: management/dashboard_configdash.php:32150
 msgid "Zoom controls visibility"
-msgstr ""
+msgstr "Zoom steuert Sichtbarkeit"
 
 #: management/dashboard_configdash.php:15478
 #: management/dashboard_configdash.php:15806
 #: management/dashboard_configdash.php:31706
 #: management/dashboard_configdash.php:32164
 msgid "Zoom factor (%)"
-msgstr ""
+msgstr "Zoomfaktor (%)"
 
 #: management/dashboard_configdash.php:15490
 #: management/dashboard_configdash.php:15819
 #: management/dashboard_configdash.php:31721
 #: management/dashboard_configdash.php:32180
 msgid "Zoom controls position"
-msgstr ""
+msgstr "Position der Zoomkontrolle"
 
 #: management/dashboard_configdash.php:15493
 #: management/dashboard_configdash.php:15822
 #: management/dashboard_configdash.php:31724
 #: management/dashboard_configdash.php:32183
 msgid "Top left"
-msgstr ""
+msgstr "Oben links"
 
 #: management/dashboard_configdash.php:15494
 #: management/dashboard_configdash.php:15823
 #: management/dashboard_configdash.php:31725
 #: management/dashboard_configdash.php:32184
 msgid "Top center"
-msgstr ""
+msgstr "Oben Mitte"
 
 #: management/dashboard_configdash.php:15495
 #: management/dashboard_configdash.php:15824
 #: management/dashboard_configdash.php:31726
 #: management/dashboard_configdash.php:32185
 msgid "Top right"
-msgstr ""
+msgstr "Oben rechts"
 
 #: management/dashboard_configdash.php:15496
 #: management/dashboard_configdash.php:15825
 #: management/dashboard_configdash.php:31727
 #: management/dashboard_configdash.php:32186
 msgid "Middle right"
-msgstr ""
+msgstr "Mitte rechts"
 
 #: management/dashboard_configdash.php:15497
 #: management/dashboard_configdash.php:15826
 #: management/dashboard_configdash.php:31728
 #: management/dashboard_configdash.php:32187
 msgid "Bottom right"
-msgstr ""
+msgstr "Unten rechts"
 
 #: management/dashboard_configdash.php:15498
 #: management/dashboard_configdash.php:15827
 #: management/dashboard_configdash.php:31729
 #: management/dashboard_configdash.php:32188
 msgid "Bottom middle"
-msgstr ""
+msgstr "Untere Mitte"
 
 #: management/dashboard_configdash.php:15499
 #: management/dashboard_configdash.php:15828
 #: management/dashboard_configdash.php:31730
 #: management/dashboard_configdash.php:32189
 msgid "Bottom left"
-msgstr ""
+msgstr "Unten links"
 
 #: management/dashboard_configdash.php:15500
 #: management/dashboard_configdash.php:15829
 #: management/dashboard_configdash.php:31731
 #: management/dashboard_configdash.php:32190
 msgid "Middle left"
-msgstr ""
+msgstr "Mitte links"
 
 #: management/dashboard_configdash.php:17072
 #: management/dashboard_configdash.php:17079
 msgid "Error while updating dashboard scaleFactor"
-msgstr ""
+msgstr "Fehler beim Aktualisieren des Dashboards scaleFactor"
 
 #: management/dashboard_configdash.php:18078
 #: management/dashboard_configdash.php:18331
 #: management/dashboard_configdash.php:19232
 msgid "Display text color on click"
-msgstr ""
+msgstr "Textfarbe beim Klicken anzeigen"
 
 #: management/dashboard_configdash.php:21053
 #: management/dashboard_configdash.php:21752
 #: management/dashboard_configdash.php:22429
 msgid "Pins"
-msgstr ""
+msgstr "Pins"
 
 #: management/dashboard_configdash.php:21054
 #: management/dashboard_configdash.php:21753
 #: management/dashboard_configdash.php:22430
 msgid "Geometries"
-msgstr ""
+msgstr "Geometrien"
 
 #: management/dashboard_configdash.php:21055
 #: management/dashboard_configdash.php:21754
 #: management/dashboard_configdash.php:22431
 msgid "Pins and geometries"
-msgstr ""
+msgstr "Pins und Geometrien"
 
 #: management/dashboard_configdash.php:21286
 msgid "Map Pin Icon"
-msgstr ""
+msgstr "Symbol \"Karten-Pin\""
 
 #: management/dashboard_configdash.php:21289
 msgid "Square Icon"
-msgstr ""
+msgstr "Quadratisches Symbol"
 
 #: management/dashboard_configdash.php:21290
 msgid "Pin Icon"
-msgstr ""
+msgstr "Pin-Symbol"
 
 #: management/dashboard_configdash.php:25763
 msgid ""
 "Please note that the Stacked Areas option correctly works only for equally-"
 "sampled data series"
 msgstr ""
+"Bitte beachten Sie, dass die Option Stack-Bereiche nur für Datenreihen mit "
+"gleicher Stichprobe korrekt funktioniert."
 
 #: management/dashboard_configdash.php:27760
 msgid "Rows labels backgr. color"
-msgstr ""
+msgstr "Zeilenbeschriftungen Hintergrundfarbe"
 
 #: management/dashboard_configdash.php:27775
 msgid "Cols labels backgr. color"
-msgstr ""
+msgstr "Cols-Labels Hintergrundfarbe"
 
 #: management/dashboard_configdash.php:28698
 #: management/dashboard_configdash.php:28866
 #: management/dashboard_configdash.php:30259
 #: management/dashboard_configdash.php:30364
 msgid "Open Web Link in a New Tab"
-msgstr ""
+msgstr "Öffnen eines Weblinks auf einer neuen Registerkarte"
 
 #: management/dashboard_configdash.php:30380
 msgid "Compare Period"
-msgstr ""
+msgstr "Zeitraum vergleichen"
 
 #: management/dashboard_configdash.php:30388
 #: management/dashboard_configdash.php:33624
 msgid "4 previous hours"
-msgstr ""
+msgstr "4 vorherige Stunden"
 
 #: management/dashboard_configdash.php:30389
 #: management/dashboard_configdash.php:33625
 msgid "4 hours day before"
-msgstr ""
+msgstr "4 Stunden am Vortag"
 
 #: management/dashboard_configdash.php:30392
 #: management/dashboard_configdash.php:33629
 msgid "12 previous hours"
-msgstr ""
+msgstr "12 vorherige Stunden"
 
 #: management/dashboard_configdash.php:30393
 #: management/dashboard_configdash.php:33630
 msgid "12 hours day before"
-msgstr ""
+msgstr "12 Stunden am Vortag"
 
 #: management/dashboard_configdash.php:30396
 #: management/dashboard_configdash.php:33634
 msgid "previous day"
-msgstr ""
+msgstr "Vortag"
 
 #: management/dashboard_configdash.php:30397
 #: management/dashboard_configdash.php:33635
 msgid "same day previous week"
-msgstr ""
+msgstr "am selben Tag der Vorwoche"
 
 #: management/dashboard_configdash.php:30398
 #: management/dashboard_configdash.php:33636
 msgid "same day previous month"
-msgstr ""
+msgstr "am selben Tag des Vormonats"
 
 #: management/dashboard_configdash.php:30401
 #: management/dashboard_configdash.php:33640
 msgid "previous week"
-msgstr ""
+msgstr "Vorwoche"
 
 #: management/dashboard_configdash.php:30402
 #: management/dashboard_configdash.php:33641
 msgid "previous week starting Monday"
-msgstr ""
+msgstr "Vorwoche ab Montag"
 
 #: management/dashboard_configdash.php:30405
 #: management/dashboard_configdash.php:33645
 msgid "previous month"
-msgstr ""
+msgstr "vorheriger Monat"
 
 #: management/dashboard_configdash.php:30406
 #: management/dashboard_configdash.php:33646
 msgid "previous month - day 1"
-msgstr ""
+msgstr "Vormonat - Tag 1"
 
 #: management/dashboard_configdash.php:30407
 #: management/dashboard_configdash.php:33647
 msgid "same month prev year - day 1"
-msgstr ""
+msgstr "gleicher Monat vor einem Jahr - Tag 1"
 
 #: management/dashboard_configdash.php:30410
 #: management/dashboard_configdash.php:33651
 msgid "previous 6 months"
-msgstr ""
+msgstr "vorherige 6 Monate"
 
 #: management/dashboard_configdash.php:30411
 #: management/dashboard_configdash.php:33652
 msgid "previous 6 months - day 1 of prev 6 months"
-msgstr ""
+msgstr "vorherige 6 Monate - Tag 1 der vorherigen 6 Monate"
 
 #: management/dashboard_configdash.php:30412
 #: management/dashboard_configdash.php:33653
 msgid "same 6 months of prev year - day 1"
-msgstr ""
+msgstr "gleiche 6 Monate des Vorjahres - Tag 1"
 
 #: management/dashboard_configdash.php:30413
 #: management/dashboard_configdash.php:33654
 msgid "same 6 months of prev year - day 1 month 1 or 7"
-msgstr ""
+msgstr "gleiche 6 Monate des Vorjahres - Tag 1 Monat 1 oder 7"
 
 #: management/dashboard_configdash.php:30416
 #: management/dashboard_configdash.php:33658
 msgid "previous year"
-msgstr ""
+msgstr "Vorjahr"
 
 #: management/dashboard_configdash.php:30417
 #: management/dashboard_configdash.php:33659
 msgid "previous year - day 1 of prev year"
-msgstr ""
+msgstr "Vorjahr - Tag 1 des Vorjahres"
 
 #: management/dashboard_configdash.php:30418
 #: management/dashboard_configdash.php:33660
 msgid "previous year - month 1"
-msgstr ""
+msgstr "Vorjahr - Monat 1"
 
 #: management/dashboard_configdash.php:30421
 #: management/dashboard_configdash.php:33664
 msgid "previous 2 years"
-msgstr ""
+msgstr "vorherige 2 Jahre"
 
 #: management/dashboard_configdash.php:30424
 #: management/dashboard_configdash.php:33668
 msgid "previous 10 years"
-msgstr ""
+msgstr "vorherige 10 Jahre"
 
 #: management/dashboard_configdash.php:30633
 msgid "Search filter, results on list"
-msgstr ""
+msgstr "Suchfilter, Ergebnisse auf der Liste"
 
 #: management/dashboard_configdash.php:30634
 msgid "Search filter, results on map"
-msgstr ""
+msgstr "Suchfilter, Ergebnisse auf der Karte"
 
 #: management/dashboard_configdash.php:30635
 msgid "Search filter, results on list and map"
-msgstr ""
+msgstr "Suchfilter, Ergebnisse auf Liste und Karte"
 
 #: management/dashboard_configdash.php:30853
 msgid "Horizontal"
-msgstr ""
+msgstr "Horizontal"
 
 #: management/dashboard_configdash.php:30854
 msgid "Vertical"
-msgstr ""
+msgstr "Vertikal"
 
 #: management/dashboard_configdash.php:30855
 msgid "VerticalCompact"
-msgstr ""
+msgstr "VertikalKompakt"
 
 #: management/dashboard_configdash.php:30856
 msgid "Today only"
-msgstr ""
+msgstr "Nur heute"
 
 #: management/dashboard_configdash.php:30867
 msgid "Language"
-msgstr ""
+msgstr "Sprache"
 
 #: management/dashboard_configdash.php:30885
 msgid "Today box dimension"
-msgstr ""
+msgstr "Heute Box Dimension"
 
 #: management/dashboard_configdash.php:30899
 msgid "Background mode"
-msgstr ""
+msgstr "Hintergrundmodus"
 
 #: management/dashboard_configdash.php:30902
 msgid "Color"
-msgstr ""
+msgstr "Farbe"
 
 #: management/dashboard_configdash.php:30903
 msgid "Automatic picture"
-msgstr ""
+msgstr "Automatisches Bild"
 
 #: management/dashboard_configdash.php:30913
 msgid "Weather symbols"
-msgstr ""
+msgstr "Wettersymbole"
 
 #: management/dashboard_configdash.php:30916
 msgid "Images"
-msgstr ""
+msgstr "Bilder"
 
 #: management/dashboard_configdash.php:30917
 msgid "Icons"
-msgstr ""
+msgstr "Icons"
 
 #: management/dashboard_configdash.php:31024
 msgid "Set Min Value"
-msgstr ""
+msgstr "Min. Wert festlegen"
 
 #: management/dashboard_configdash.php:31034
 msgid "Set Max Value"
-msgstr ""
+msgstr "Max. Wert festlegen"
 
 #: management/dashboard_configdash.php:31203
 msgid "Show Orthomaps Controls"
-msgstr ""
+msgstr "Orthomaps-Steuerelemente anzeigen"
 
 #: management/dashboard_configdash.php:31220
 msgid "Default Orthomap"
-msgstr ""
+msgstr "Standard-Orthomap"
 
 #: management/dashboard_configdash.php:31282
 msgid "Connect to WS"
-msgstr ""
+msgstr "Verbinde mit WS"
 
 #: management/dashboard_configdash.php:32153
 msgid "Always visible"
-msgstr ""
+msgstr "Immer sichtbar"
 
 #: management/dashboard_configdash.php:33229
 msgid "You can select only one metric for this type of widget"
-msgstr ""
+msgstr "Sie können nur eine Metrik für diesen Widget-Typ auswählen"
 
 #: management/dashboard_configdash.php:33468
 #: management/dashboard_configdash.php:33475
 #: management/dashboard_configdash.php:33481
 msgid "Error during widget update, please try again"
 msgstr ""
+"Fehler während der Widget-Aktualisierung, bitte versuchen Sie es erneut"
 
 #: management/dashboard_configdash.php:33487
 msgid "Error during widget update, cannot change metric"
-msgstr ""
+msgstr "Fehler beim Widget-Update, Metrik kann nicht geändert werden"
 
 #: management/dashboards.php:389
 msgid "New dashboard"
-msgstr ""
+msgstr "Neues Dashboard"
 
 #: management/dashboards.php:402 management/externalServices.php:209
 #: management/iotApplications.php:193 management/microApplications.php:213
 #: management/synopticTemplates.php:220 management/synoptics.php:237
 msgid "Creator"
-msgstr ""
+msgstr "Ersteller"
 
 #: management/dashboards.php:403 management/externalServices.php:210
 #: management/iotApplications.php:194 management/microApplications.php:214
 #: management/synopticTemplates.php:221 management/synoptics.php:238
 msgid "Creation date"
-msgstr ""
+msgstr "Erstellungsdatum"
 
 #: management/dashboards.php:404 management/externalServices.php:211
 #: management/microApplications.php:215 management/synopticTemplates.php:222
 #: management/synoptics.php:239
 msgid "Last edit date"
-msgstr ""
+msgstr "Letztes Bearbeitungsdatum"
 
 #: management/dashboards.php:405
 msgid "# Access Today"
-msgstr ""
+msgstr "# Zugriff heute"
 
 #: management/dashboards.php:406
 msgid "Minutes Opened Today"
-msgstr ""
+msgstr "Heute geöffnete Protokolle"
 
 #: management/dashboards.php:407 management/externalServices.php:212
 #: management/iotApplications.php:190 management/microApplications.php:216
 #: management/synopticTemplates.php:223 management/synoptics.php:240
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: management/dashboards.php:408 management/dashboards.php:1059
 #: management/dashboards.php:1167 management/externalServices.php:213
 #: management/synopticTemplates.php:642 management/synoptics.php:241
 #: management/synoptics.php:716
 msgid "Edit"
-msgstr ""
+msgstr "Bearbeiten"
 
 #: management/dashboards.php:409 management/dashboards.php:1059
 #: management/dashboards.php:1125 management/externalServices.php:214
@@ -3206,921 +3262,944 @@ msgstr ""
 #: management/synopticTemplates.php:638 management/synoptics.php:242
 #: management/synoptics.php:711
 msgid "View"
-msgstr ""
+msgstr "Anzeigen"
 
 #: management/dashboards.php:464
 msgid "Add new Dashboard"
-msgstr ""
+msgstr "Neues Dashboard hinzufügen"
 
 #: management/dashboards.php:469
 msgid "Exceeded limits for Dashboard Creation for user"
 msgstr ""
+"Überschreitung der Grenzwerte für die Dashboard-Erstellung für Benutzer"
 
 #: management/dashboards.php:485
 msgid "Dashboard deletion"
-msgstr ""
+msgstr "Dashboard-Löschung"
 
 #: management/dashboards.php:492
 msgid "Do you want to delete the following dashboard?"
-msgstr ""
+msgstr "Möchten Sie das folgende Dashboard löschen?"
 
 #: management/dashboards.php:500
 msgid "Deleting dashboard, please wait"
-msgstr ""
+msgstr "Löschen des Dashboards, bitte warten"
 
 #: management/dashboards.php:506
 msgid "Dashboard deleted successfully"
-msgstr ""
+msgstr "Dashboard erfolgreich gelöscht"
 
 #: management/dashboards.php:512
 msgid "Error deleting dashboard, please try again"
-msgstr ""
+msgstr "Fehler beim Löschen des Dashboards, bitte versuchen Sie es erneut"
 
 #: management/dashboards.php:531 management/dashboards.php:1173
 #: management/iotApplications.php:198 management/iotApplications.php:582
 #: management/iotApplications.php:643 management/synopticTemplates.php:248
 #: management/synopticTemplates.php:643 management/synoptics.php:717
 msgid "Management"
-msgstr ""
+msgstr "Verwaltung"
 
 #: management/dashboards.php:539 management/synopticTemplates.php:255
 #: management/synoptics.php:275 management/synoptics.php:463
 msgid "Visibility"
-msgstr ""
+msgstr "Sichtbarkeit"
 
 #: management/dashboards.php:540 management/synopticTemplates.php:256
 #: management/synoptics.php:276
 msgid "Delegations"
-msgstr ""
+msgstr "Delegationen"
 
 #: management/dashboards.php:541 management/synopticTemplates.php:258
 #: management/synoptics.php:278
 msgid "Group Delegations"
-msgstr ""
+msgstr "Gruppendelegationen"
 
 #: management/dashboards.php:543
 msgid "Accesses Trends"
-msgstr ""
+msgstr "Zugriff auf Trends"
 
 #: management/dashboards.php:545
 msgid "Structure"
-msgstr ""
+msgstr "Struktur"
 
 #: management/dashboards.php:564 management/iotApplications.php:280
 #: management/synopticTemplates.php:277 management/synoptics.php:298
 msgid "Change ownership"
-msgstr ""
+msgstr "Verantwortlichen wechseln"
 
 #: management/dashboards.php:574 management/iotApplications.php:290
 #: management/synopticTemplates.php:287 management/synoptics.php:308
 msgid "New owner username can't be empty"
-msgstr ""
+msgstr "Der Benutzername des neuen Users darf nicht leer sein"
 
 #: management/dashboards.php:589 management/synopticTemplates.php:302
 #: management/synoptics.php:346
 msgid "Change visibility"
-msgstr ""
+msgstr "Sichtbarkeit ändern"
 
 #: management/dashboards.php:594 management/synopticTemplates.php:307
 #: management/synoptics.php:351
 msgid "Public"
-msgstr ""
+msgstr "Öffentlich"
 
 #: management/dashboards.php:595 management/synopticTemplates.php:308
 #: management/synoptics.php:352
 msgid "Private"
-msgstr ""
+msgstr "Privat"
 
 #: management/dashboards.php:612 management/dashboards.php:650
 msgid "Delegations are not possibile on a public dashboard"
-msgstr ""
+msgstr "Delegationen sind auf einem öffentlichen Dashboard nicht möglich"
 
 #: management/dashboards.php:616 management/synopticTemplates.php:329
 #: management/synoptics.php:373
 msgid "Add new delegation"
-msgstr ""
+msgstr "Neue Delegierung hinzufügen"
 
 #: management/dashboards.php:626 management/synopticTemplates.php:339
 #: management/synoptics.php:383
 msgid "Delegated username can't be empty"
-msgstr ""
+msgstr "Delegierter Benutzername darf nicht leer sein"
 
 #: management/dashboards.php:631 management/synopticTemplates.php:344
 #: management/synoptics.php:388
 msgid "Current user delegations"
-msgstr ""
+msgstr "Aktuelle Benutzerdelegierungen"
 
 #: management/dashboards.php:636 management/synopticTemplates.php:349
 #: management/synoptics.php:393
 msgid "Delegated user"
-msgstr ""
+msgstr "Delegierter Benutzer"
 
 #: management/dashboards.php:654 management/synopticTemplates.php:367
 #: management/synoptics.php:411
 msgid "Add new group delegation"
-msgstr ""
+msgstr "Neue Gruppendelegierung hinzufügen"
 
 #: management/dashboards.php:681 management/synopticTemplates.php:394
 #: management/synoptics.php:438
 msgid "Current group delegations"
-msgstr ""
+msgstr "Aktuelle Gruppendelegationen"
 
 #: management/dashboards.php:686 management/synopticTemplates.php:399
 #: management/synoptics.php:443
 msgid "Delegated group"
-msgstr ""
+msgstr "Delegierte Gruppe"
 
 #: management/dashboards.php:711 management/dashboards.php:728
 msgid "Previous"
-msgstr ""
+msgstr "Vorherig"
 
 #: management/dashboards.php:713 management/dashboards.php:730
 msgid "Last Day"
-msgstr ""
+msgstr "Letzter Tag"
 
 #: management/dashboards.php:714 management/dashboards.php:731
 msgid "Last Week"
-msgstr ""
+msgstr "Letzte Woche"
 
 #: management/dashboards.php:715 management/dashboards.php:732
 msgid "Last Month"
-msgstr ""
+msgstr "Letzter Monat"
 
 #: management/dashboards.php:716 management/dashboards.php:733
 msgid "Last Semester"
-msgstr ""
+msgstr "Letztes Semester"
 
 #: management/dashboards.php:717 management/dashboards.php:734
 msgid "Last Year"
-msgstr ""
+msgstr "Letztes Jahr"
 
 #: management/dashboards.php:721 management/dashboards.php:738
 msgid "From"
-msgstr ""
+msgstr "Von"
 
 #: management/dashboards.php:721 management/dashboards.php:738
 msgid "To"
-msgstr ""
+msgstr "Bis"
 
 #: management/dashboards.php:786
 msgid "Dashboard duplication"
-msgstr ""
+msgstr "Dashboard-Duplizierung"
 
 #: management/dashboards.php:798
 msgid "Cloned dashboard title"
-msgstr ""
+msgstr "Duplizierter Dashboard-Titel"
 
 #: management/dashboards.php:804 management/dashboards.php:1557
 msgid "New title OK"
-msgstr ""
+msgstr "Neuer Titel OK"
 
 #: management/dashboards.php:809
 msgid "Retrieving current dashboards titles, please wait"
-msgstr ""
+msgstr "Abrufen aktueller Dashboard-Titel, bitte warten"
 
 #: management/dashboards.php:813
 msgid "Error retrieving current dashboards titles, please try again"
 msgstr ""
+"Fehler beim Abrufen aktueller Dashboard-Titel, bitte versuchen Sie es erneut"
 
 #: management/dashboards.php:817
 msgid "Cloning dashboard, please wait"
-msgstr ""
+msgstr "das Dashboard wird dupliziert, bitte warten"
 
 #: management/dashboards.php:821
 msgid "Dashboard cloned successfully"
-msgstr ""
+msgstr "Dashboard erfolgreich dupliziert"
 
 #: management/dashboards.php:829
 msgid "Error while cloning dashboard, please try again"
-msgstr ""
+msgstr "Fehler beim Duplizieren des Dashboards, bitte versuchen Sie es erneut"
 
 #: management/dashboards.php:848
 msgid "Dashboard IOT apps"
-msgstr ""
+msgstr "Dashboard-IOT-Apps"
 
 #: management/dashboards.php:858
 msgid "IOT applications list"
-msgstr ""
+msgstr "Liste der IOT-Anwendungen"
 
 #: management/dashboards.php:860
 msgid ""
 "You have no access rights for Apps connected to this dashboard or these Apps "
 "may have been deleted"
 msgstr ""
+"Sie haben keine Zugriffsrechte für Apps, die mit diesem Dashboard verbunden "
+"sind, oder diese Apps wurden möglicherweise gelöscht"
 
 #: management/dashboards.php:865
 msgid "App"
-msgstr ""
+msgstr "Start"
 
 #: management/dashboards.php:876
 msgid "Flow designer"
-msgstr ""
+msgstr "Flow-Designer"
 
 #: management/dashboards.php:1102
 msgid "IOT apps & broker"
-msgstr ""
+msgstr "IOT-Apps & Broker"
 
 #: management/dashboards.php:1107
 msgid "IOT apps"
-msgstr ""
+msgstr "IOT-Apps"
 
 #: management/dashboards.php:1112
 msgid "Broker"
-msgstr ""
+msgstr "Broker"
 
 #: management/dashboards.php:1117
 msgid "Passive"
-msgstr ""
+msgstr "Passiv"
 
 #: management/dashboards.php:1182
 msgid "Clone"
-msgstr ""
+msgstr "Duplizieren"
 
 #: management/dashboards.php:1187 management/synopticTemplates.php:648
 #: management/synoptics.php:720
 msgid "Delete"
-msgstr ""
+msgstr "Löschen"
 
 #: management/dashboards.php:1227
 msgid "All Groups"
-msgstr ""
+msgstr "Alle Gruppen"
 
 #: management/dashboards.php:1240 management/dashboards.php:2965
 #: management/synoptics.php:2086 management/synoptics.php:2120
 msgid "Error calling internal API"
-msgstr ""
+msgstr "Fehler beim Aufrufen der internen API"
 
 #: management/dashboards.php:1447 management/dashboards.php:2771
 msgid "Filter by dashboard title, author..."
-msgstr ""
+msgstr "Filtern nach Dashboard-Titel, Autor..."
 
 #: management/dashboards.php:1537 management/dashboards.php:1552
 msgid "Title already in use"
-msgstr ""
+msgstr "Titel wird bereits verwendet"
 
 #: management/dashboards.php:1546
 msgid "Title can\\'t be less than 4 characters long"
-msgstr ""
+msgstr "Titel darf nicht weniger als 4 Zeichen lang sein"
 
 #: management/dashboards.php:1699 management/synoptics.php:1563
 msgid "New ownership set correctly"
-msgstr ""
+msgstr "Neue Berechtigung korrekt festgelegt"
 
 #: management/dashboards.php:1711 management/synoptics.php:1576
 msgid "Error: New owner does not exists or it is not a valid LDAP user"
 msgstr ""
+"Fehler: Neue Berechtigung ist nicht vorhanden oder es ist kein gültiger LDAP-"
+"Benutzer"
 
 #: management/dashboards.php:1725
 msgid "Error: New owner has exceeded his limits for dashboard ownership"
 msgstr ""
+"Fehler: Neue Berechtigung hat Grenzen für die Dashboard-Berechtigung "
+"überschritten"
 
 #: management/dashboards.php:1739 management/dashboards.php:1754
 #: management/synoptics.php:1606 management/synoptics.php:1621
 msgid "Error setting new ownership: please try again"
 msgstr ""
+"Fehler beim Festlegen der neuen Berechtigung: Bitte versuchen Sie es erneut"
 
 #: management/dashboards.php:1785
 msgid "New visibility set correctly"
-msgstr ""
+msgstr "Neue Sichtbarkeit richtig eingestellt"
 
 #: management/dashboards.php:1795 management/dashboards.php:1809
 msgid "Error setting new visibility"
-msgstr ""
+msgstr "Fehler beim Festlegen neuer Sichtbarkeit"
 
 #: management/dashboards.php:1873 management/dashboards.php:2017
 #: management/synoptics.php:1757 management/synoptics.php:1903
 msgid "New delegation added correctly"
-msgstr ""
+msgstr "Neue Delegierung korrekt hinzugefügt"
 
 #: management/dashboards.php:1880 management/dashboards.php:1935
 #: management/dashboards.php:2149 management/synoptics.php:1423
 #: management/synoptics.php:1764 management/synoptics.php:1803
 #: management/synoptics.php:1820
 msgid "Delegated username can\\'t be empty"
-msgstr ""
+msgstr "Delegierter Benutzername darf nicht leer sein"
 
 #: management/dashboards.php:1918
 msgid "Error: Delegated username can\\'t be empty"
-msgstr ""
+msgstr "Fehler: Delegierter Benutzername kann nicht leer sein"
 
 #: management/dashboards.php:1948 management/synoptics.php:1833
 msgid "Group already delegated"
-msgstr ""
+msgstr "Gruppe bereits delegiert"
 
 #: management/dashboards.php:2030
 msgid "You can\\'t delegate a root admin"
-msgstr ""
+msgstr "Sie können einen Root-Administrator nicht delegieren"
 
 #: management/dashboards.php:2034
 msgid "Error calling Snap4City API"
-msgstr ""
+msgstr "Fehler beim Aufrufen der Snap4City-API"
 
 #: management/dashboards.php:2038
 msgid "Database error"
-msgstr ""
+msgstr "Datenbankfehler"
 
 #: management/dashboards.php:2042
 msgid "LDAP error"
-msgstr ""
+msgstr "LDAP-Fehler"
 
 #: management/dashboards.php:2124 management/synoptics.php:1396
 msgid "New owner username can\\'t be empty"
-msgstr ""
+msgstr "Der Benutzername des neuen Users darf nicht leer sein"
 
 #: management/dashboards.php:2131 management/synoptics.php:1404
 msgid "New owner can\\'t be you"
-msgstr ""
+msgstr "Neuer Berechtigter kann nicht Sie sein"
 
 #: management/dashboards.php:2136 management/synoptics.php:1410
 msgid "User can be new owner"
-msgstr ""
+msgstr "Benutzer kann neuer Besitzer sein"
 
 #: management/dashboards.php:2154
 msgid "User can be delegated"
-msgstr ""
+msgstr "Benutzer kann delegiert werden"
 
 #: management/dashboards.php:2162 management/synoptics.php:1437
 msgid "User already delegated"
-msgstr ""
+msgstr "Benutzer bereits delegiert"
 
 #: management/dashboards.php:2808
 msgid "Error updating dashboard status"
-msgstr ""
+msgstr "Fehler beim Aktualisieren des Dashboardstatus"
 
 #: management/dashboards.php:3036
 msgid "Single or double quotes are not allowed in dashboard title."
 msgstr ""
+"Einfache oder doppelte Anführungszeichen sind im Dashboard-Titel nicht "
+"zulässig."
 
 #: management/dashboards.php:3041
 msgid "Dashboard title can\\'t be longer than 300 chars"
-msgstr ""
+msgstr "Dashboard-Titel darf nicht länger als 300 Zeichen sein"
 
 #: management/dashboards.php:3063
 msgid "Dashboard title OK"
-msgstr ""
+msgstr "Dashboard-Titel OK"
 
 #: management/dashboards.php:3097 management/dashboards.php:3132
 msgid "Link to Graph"
-msgstr ""
+msgstr "Link zum Diagramm"
 
 #: management/externalServices.php:376 management/microApplications.php:378
 msgid "edit"
-msgstr ""
+msgstr "bearbeiten"
 
 #: management/externalServices.php:376 management/microApplications.php:378
 #: management/synoptics.php:681
 msgid "view"
-msgstr ""
+msgstr "ansehen"
 
 #: management/externalServices.php:392 management/microApplications.php:394
 #: management/synoptics.php:707
 msgid "New Tab"
-msgstr ""
+msgstr "Neuer Tab"
 
 #: management/inspector.php:609 management/inspector.php:631
 msgid "Edit Parameter"
-msgstr ""
+msgstr "Parameter bearbeiten"
 
 #: management/inspector.php:612
 msgid "Are you sure do you want edit parameters from this tab?"
 msgstr ""
+"Sind Sie sicher, dass Sie Parameter von dieser Registerkarte bearbeiten "
+"möchten?"
 
+# english?
 #: management/inspector.php:648
 msgid "Are you sure do you want confirm?"
-msgstr ""
+msgstr "Sind Sie sicher, dass Sie bestätigen möchten?"
 
 #: management/inspector.php:723
 msgid "Edit parameters"
-msgstr ""
+msgstr "Parameter bearbeiten"
 
 #: management/inspector.php:747
 msgid "Hourly"
-msgstr ""
+msgstr "Stündlich"
 
 #: management/inspector.php:754
 msgid "Define Report"
-msgstr ""
+msgstr "Bericht definieren"
 
 #: management/inspector.php:754
 msgid "Activation:"
-msgstr ""
+msgstr "Aktivierung:"
 
 #: management/inspector.php:754
 msgid "Periodicity:"
-msgstr ""
+msgstr "Periodizität:"
 
 #: management/inspector.php:754
 msgid "Monthly"
-msgstr ""
+msgstr "Monatlich"
 
 #: management/inspector.php:754
 msgid "Quarterly"
-msgstr ""
+msgstr "Vierteljährlich"
 
 #: management/inspector.php:783
 msgid "Download Report"
-msgstr ""
+msgstr "Bericht herunterladen"
 
 #: management/inspector.php:872
 msgid "Link to External Service"
-msgstr ""
+msgstr "Link zum externen Service"
 
 #: management/inspector.php:891
 msgid "Healthiness Criteria 2:"
-msgstr ""
+msgstr "Gesundheitskriterien 2:"
 
 #: management/inspector.php:915 management/inspector.php:986
 #: management/inspector.php:1106 management/inspector.php:1118
 #: management/inspector.php:1156
 msgid "Link to Service Map"
-msgstr ""
+msgstr "Link zur Servicekarte"
 
 #: management/inspector.php:1012
 msgid "Link to IoT Directory"
-msgstr ""
+msgstr "Link zum IoT-Verzeichnis"
 
 #: management/inspector.php:1013 management/inspector.php:1043
 msgid "Link to IoT Broker"
-msgstr ""
+msgstr "Link zum IoT Broker"
 
 #: management/inspector.php:1071
 msgid "Link to MicroApplication"
-msgstr ""
+msgstr "Link zu MicroApplication"
 
 #: management/inspector.php:1280
 msgid "List of Devices"
-msgstr ""
+msgstr "Liste der Geräte"
 
 #: management/inspector.php:1518
 msgid "Upload"
-msgstr ""
+msgstr "Hochladen"
 
 #: management/inspector.php:1518
 msgid "Upload Image"
-msgstr ""
+msgstr "Bild hochladen"
 
+# is Disces a name?
 #: management/inspector.php:1530 management/inspector.php:1533
 msgid "Link to Disces"
-msgstr ""
+msgstr "Link zu Disces"
 
 #: management/inspector.php:1536
 msgid "Link to Knowledge Base"
-msgstr ""
+msgstr "Link zur Wissensdatenbank"
 
 #: management/inspector.php:1546
 msgid "Link to ArcGIS"
-msgstr ""
+msgstr "Link zu ArcGIS"
 
 #: management/inspector.php:1551
 msgid "Link to Heatmap"
-msgstr ""
+msgstr "Link zur Heatmap"
 
 #: management/inspector.php:1903
 msgid "Not Valid parameters"
-msgstr ""
+msgstr "Ungültige Parameter"
 
 #: management/inspector.php:1944 management/inspector.php:2034
 msgid "Licence:"
-msgstr ""
+msgstr "Lizenz:"
 
 #: management/inspector.php:2200
 msgid "Link to Iot App"
-msgstr ""
+msgstr "Link zur Iot App"
 
 #: management/inspector.php:2262
 msgid "Link to IotApp"
-msgstr ""
+msgstr "Link zu IotApp"
 
+# English?
 #: management/inspector.php:2266 management/inspector.php:2281
 #: management/inspector.php:2344
 msgid "Link to IotApp Not founded"
-msgstr ""
+msgstr "Link zu IotApp nicht gefunden"
 
 #: management/inspector.php:2272 management/inspector.php:2350
 #: management/inspector.php:2409
 msgid "No dashboards connected"
-msgstr ""
+msgstr "Keine Dashboards verbunden"
 
 #: management/inspector.php:2274 management/inspector.php:2282
 msgid "List of IotApp"
-msgstr ""
+msgstr "Liste der Iot App"
 
 #: management/inspector.php:2340
 msgid "Link to Iot Apps"
-msgstr ""
+msgstr "Link zu Iot Apps"
 
 #: management/inspector.php:2352
 msgid "List of Iot Apps"
-msgstr ""
+msgstr "Liste der Iot Apps"
 
 #: management/inspector.php:2414
 msgid "List of Dashboard"
-msgstr ""
+msgstr "Liste der Dashboards"
 
 #: management/iotApplications.php:113
 msgid "IOT Applications"
-msgstr ""
+msgstr "IOT-Anwendungen"
 
 #: management/iotApplications.php:181
 msgid "Create new"
-msgstr ""
+msgstr "Neu erstellen"
 
 #: management/iotApplications.php:191 management/synoptics.php:463
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 #: management/iotApplications.php:195
 msgid "Modification date"
-msgstr ""
+msgstr "Änderungsdatum"
 
 #: management/iotApplications.php:197
 msgid "Dashboards"
-msgstr ""
+msgstr "Dashboards"
 
 #: management/iotApplications.php:220
 msgid "Create IoT Application"
-msgstr ""
+msgstr "IoT-Anwendung erstellen"
 
 #: management/iotApplications.php:226
 msgid "Application name"
-msgstr ""
+msgstr "Applikationsname"
 
 #: management/iotApplications.php:235
 msgid "Application type"
-msgstr ""
+msgstr "Anwendungstyp"
 
 #: management/iotApplications.php:239 management/iotApplications.php:317
 msgid "Basic"
-msgstr ""
+msgstr "Basic"
 
 #: management/iotApplications.php:240 management/iotApplications.php:318
 msgid "Advanced"
-msgstr ""
+msgstr "Erweitert"
 
 #: management/iotApplications.php:241 management/iotApplications.php:320
 msgid "Web scraper (portia)"
-msgstr ""
+msgstr "Web Scraper (portia)"
 
 #: management/iotApplications.php:264
 msgid "IoT Application Management"
-msgstr ""
+msgstr "IoT-Anwendungsmanagement"
 
 #: management/iotApplications.php:271
 msgid "Control"
-msgstr ""
+msgstr "Steuerung"
 
 #: management/iotApplications.php:304
 msgid "Application name:"
-msgstr ""
+msgstr "Anwendungsname:"
 
 #: management/iotApplications.php:313
 msgid "Application type:"
-msgstr ""
+msgstr "Anwendungstyp:"
 
 #: management/iotApplications.php:319
 msgid "Data analytic"
-msgstr ""
+msgstr "Datenanalyse"
 
 #: management/iotApplications.php:327
 msgid "Created:"
-msgstr ""
+msgstr "Erstellt:"
 
 #: management/iotApplications.php:335
 msgid "Update"
-msgstr ""
+msgstr "Aktualisieren"
 
 #: management/iotApplications.php:342
 msgid "Delete application..."
-msgstr ""
+msgstr "Anwendung löschen..."
 
 #: management/iotApplications.php:343
 msgid "Restart application..."
-msgstr ""
+msgstr "Anwendung neu starten..."
 
 #: management/iotApplications.php:671
 msgid "View as table"
-msgstr ""
+msgstr "Als Tabelle anzeigen"
 
 #: management/iotApplications.php:672
 msgid "View as cards"
-msgstr ""
+msgstr "Als Karten anzeigen"
 
 #: management/synopticTemplates.php:210
 msgid "New template"
-msgstr ""
+msgstr "Neue Vorlage"
 
 #: management/synopticTemplates.php:325 management/synopticTemplates.php:363
 msgid "Delegations are not possibile on a public template"
-msgstr ""
+msgstr "Delegierungen sind in einer öffentlichen Vorlage nicht möglich"
 
 #: management/synopticTemplates.php:429
 msgid "Template deletion"
-msgstr ""
+msgstr "Löschen Vorlage"
 
 #: management/synopticTemplates.php:436
 msgid "Do you want to delete the following template?"
-msgstr ""
+msgstr "Möchten Sie die folgende Vorlage löschen?"
 
 #: management/synopticTemplates.php:444
 msgid "Deleting template, please wait"
-msgstr ""
+msgstr "Vorlage löschen, bitte warten"
 
 #: management/synopticTemplates.php:450
 msgid "Template deleted successfully"
-msgstr ""
+msgstr "Vorlage erfolgreich gelöscht"
 
 #: management/synopticTemplates.php:456
 msgid "Error deleting template, please try again"
-msgstr ""
+msgstr "Fehler beim Löschen der Vorlage, bitte versuchen Sie es erneut"
 
 #: management/synopticTemplates.php:644
 msgid "Instantiate"
-msgstr ""
+msgstr "Instanziieren"
 
 #: management/synopticTemplates.php:645 management/synoptics.php:718
 msgid "Delegate"
-msgstr ""
+msgstr "Delegieren"
 
 #: management/synopticTemplates.php:646 management/synoptics.php:719
 #: management/synoptics.php:721
 msgid "Chg Owner"
-msgstr ""
+msgstr "Chg Berechtigter"
 
 #: management/synopticTemplates.php:647
 msgid "Make Public"
-msgstr ""
+msgstr "Veröffentlichen"
 
 #: management/synopticTemplates.php:649 management/synoptics.php:722
 msgid "Make Private"
-msgstr ""
+msgstr "in Privat ändern"
 
 #: management/synopticTemplatesForm.php:106
 msgid "Synoptic Template"
-msgstr ""
+msgstr "Synoptische Vorlage"
 
 #: management/synopticTemplatesForm.php:117 management/synopticsForm.php:135
 #: management/synopticsMappingForm.php:133
 msgid "Name"
-msgstr ""
+msgstr "Name"
 
 #: management/synopticTemplatesForm.php:152
 msgid "SVG Template File"
-msgstr ""
+msgstr "SVG-Vorlagendatei"
 
 #: management/synopticTemplatesForm.php:160
 msgid "Icon"
-msgstr ""
+msgstr "Icon"
 
 #: management/synopticTemplatesForm.php:167 management/synopticsForm.php:172
 #: management/synopticsMappingForm.php:173
 msgid "Reset"
-msgstr ""
+msgstr "Zurücksetzen"
 
 #: management/synopticTemplatesForm.php:169 management/synopticsForm.php:174
 #: management/synopticsMappingForm.php:175
 msgid "Back"
-msgstr ""
+msgstr "Zurück"
 
 #: management/synopticTemplatesForm.php:174
 msgid "Open template"
-msgstr ""
+msgstr "Vorlage öffnen"
 
 #: management/synopticTemplatesForm.php:176 management/synopticsForm.php:185
 #: management/synopticsMappingForm.php:185
 msgid "No further action"
-msgstr ""
+msgstr "Keine weiteren Maßnahmen"
 
 #: management/synoptics.php:227
 msgid "New synoptic"
-msgstr ""
+msgstr "Neue Synoptik"
 
 #: management/synoptics.php:273
 msgid "Organization"
-msgstr ""
+msgstr "Organisation"
 
 #: management/synoptics.php:279
 msgid "Variables"
-msgstr ""
+msgstr "Variablen"
 
 #: management/synoptics.php:323
 msgid "Change organization"
-msgstr ""
+msgstr "Organisation ändern"
 
 #: management/synoptics.php:369 management/synoptics.php:407
 msgid "Delegations are not possibile on a public synoptic"
-msgstr ""
+msgstr "Delegationen sind nicht möglich auf einer öffentlichen Synoptik"
 
 #: management/synoptics.php:457
 msgid "List of the variables read and written by this synoptic"
 msgstr ""
+"Liste der Variablen, die von dieser Synoptik gelesen und geschrieben werden"
 
 #: management/synoptics.php:462 management/synopticsMappingForm.php:124
 msgid "Template"
-msgstr ""
+msgstr "Vorlage"
 
 #: management/synoptics.php:462 management/synopticsForm.php:116
 #: management/synopticsMappingForm.php:119
 msgid "Synoptic"
-msgstr ""
+msgstr "Synoptisch"
 
 #: management/synoptics.php:463
 msgid "Variable"
-msgstr ""
+msgstr "Variable"
 
 #: management/synoptics.php:491
 msgid "Synoptic deletion"
-msgstr ""
+msgstr "Löschen Synoptik"
 
 #: management/synoptics.php:498
 msgid "Do you want to delete the following synoptic?"
-msgstr ""
+msgstr "Möchten Sie die folgende Synoptik löschen?"
 
 #: management/synoptics.php:506
 msgid "Deleting synoptic, please wait"
-msgstr ""
+msgstr "Löschen von Synoptik, bitte warten"
 
 #: management/synoptics.php:512
 msgid "Synoptic deleted successfully"
-msgstr ""
+msgstr "Synoptic erfolgreich gelöscht"
 
 #: management/synoptics.php:518
 msgid "Error deleting synoptic, please try again"
-msgstr ""
+msgstr "Fehler beim Löschen von Synoptik, bitte versuchen Sie es erneut"
 
 #: management/synoptics.php:1199
 msgid "show"
-msgstr ""
+msgstr "anzeigen"
 
 #: management/synoptics.php:1329
 msgid "Organization saved successfully"
-msgstr ""
+msgstr "Organisation erfolgreich gespeichert"
 
 #: management/synoptics.php:1334
 msgid "Error: the new organization could not be saved"
-msgstr ""
+msgstr "Fehler: Die neue Organisation konnte nicht gespeichert werden"
 
+# what does it mean? Does owner receive a limited credit for synoptic views?
 #: management/synoptics.php:1591
 msgid "Error: New owner has exceeded his limits for synoptics ownership"
 msgstr ""
+"Fehler: Neuer Berechtigter hat seine Grenzen für Synoptik-Berechtigung "
+"überschritten"
 
 #: management/synopticsForm.php:106
 msgid "New Synoptic"
-msgstr ""
+msgstr "Neue Synoptik"
 
 #: management/synopticsForm.php:158 management/synopticsMappingForm.php:153
 msgid "Read variables"
-msgstr ""
+msgstr "Variable lesen"
 
 #: management/synopticsForm.php:158 management/synopticsForm.php:164
 #: management/synopticsMappingForm.php:153
 #: management/synopticsMappingForm.php:159
 msgid "Select the variables from the lists"
-msgstr ""
+msgstr "Wählen Sie die Variablen aus den Listen aus"
 
 #: management/synopticsForm.php:164 management/synopticsMappingForm.php:159
 msgid "Write variables"
-msgstr ""
+msgstr "Variable schreiben"
 
 #: management/synopticsForm.php:183 management/synopticsMappingForm.php:183
 msgid "Open Synoptic"
-msgstr ""
+msgstr "Synoptic öffnen"
 
 #: management/synopticsForm.php:202 management/synopticsMappingForm.php:202
 msgid "New Shared Variable"
-msgstr ""
+msgstr "Neue freigegebene Variable"
 
 #: management/synopticsForm.php:209
 msgid "Variable name:"
-msgstr ""
+msgstr "Variablenname:"
 
 #: management/synopticsForm.php:238 management/synopticsMappingForm.php:238
 msgid "Set to a fixed value"
-msgstr ""
+msgstr "Auf einen festen Wert festlegen"
 
 #: management/synopticsMappingForm.php:106
 msgid "Edit Synoptic"
-msgstr ""
+msgstr "Synoptic bearbeiten"
 
 #: management/synopticsMappingForm.php:209
 msgid "Variable name"
-msgstr ""
+msgstr "Variablenname"
 
 #: management/synopticsMappingForm.php:712
 msgid "The variable name cannot be empty"
-msgstr ""
+msgstr "Der Variablenname darf nicht leer sein"
 
 #: management/synopticsMappingForm.php:717
 msgid "Please only use letters, digits, underscores, dashes, and dots."
 msgstr ""
+"Bitte verwenden Sie nur Buchstaben, Ziffern, Unterstriche, Bindestriche und "
+"Punkte."
 
 #: management/synopticsMappingForm.php:722
 msgid "A shared variable already exists with that name"
-msgstr ""
+msgstr "Eine freigegebene Variable mit diesem Namen ist bereits vorhanden"
 
 #: management/synopticsMappingForm.php:727
 msgid "The name is good. Hit CONFIRM to proceed."
-msgstr ""
+msgstr "Der Name ist gut. Klicken Sie auf BESTÄTIGEN, um fortzufahren."
 
 #: view/index.php:2226
 msgid "Privacy Policy"
-msgstr ""
+msgstr "Datenschutzerklärung"
 
 #: view/index.php:2227
 msgid "Cookies Policy"
-msgstr ""
+msgstr "Cookies Policy"
 
 #: view/index.php:2228
 msgid "Terms and Conditions"
-msgstr ""
+msgstr "Allgemeine Geschäftsbedingungen"
 
 #: view/index.php:2229
 msgid "Contact us"
-msgstr ""
+msgstr "Kontaktieren Sie uns"
 
 #: view/index.php:2268
 msgid "Dashboard Management System"
-msgstr ""
+msgstr "Dashboard-Management-System"
 
 #: view/index.php:2274
 msgid "Restricted access dashboard"
-msgstr ""
+msgstr "Dashboard mit eingeschränktem Zugriff"
 
 #: view/index.php:2382
 msgid "Do you want to confirm logout from this dashboard?"
-msgstr ""
+msgstr "Möchten Sie die Abmeldung von diesem Dashboard bestätigen?"
 
 #: view/index.php:2388
 msgid "Logout correctly executed"
-msgstr ""
+msgstr "Korrekt ausgeführte Abmeldung"
 
 #: view/index.php:2392
 msgid "Logout not possibile, please try again"
-msgstr ""
+msgstr "Abmelden nicht möglich, bitte versuchen Sie es erneut"
 
 #: view/index.php:2506
 msgid "Toggle navigation"
-msgstr ""
+msgstr "Navigation umschalten"
 
 #: view/index.php:2511
 msgid "Dashboard management system"
-msgstr ""
+msgstr "Dashboard-Management-System"
 
 #: view/index.php:2516
 msgid "Error"
-msgstr ""
+msgstr "Fehler"
 
 #: view/index.php:2517
 msgid "Error while trying to get dashboard visibility: please try again"
 msgstr ""
+"Fehler beim Versuch, das Dashboard zu machen: Bitte versuchen Sie es erneut"
 
 #: view/index.php:2523
 msgid "Auto refit in progress, please wait"
-msgstr ""
+msgstr "Auto refit in Bearbeitung, bitte warten"
 
 #: widgets/widgetCtxMenu.php:40
 msgid "Hide header"
-msgstr ""
+msgstr "Kopfzeile ausblenden"
 
 #: widgets/widgetCtxMenu.php:45
 msgid "Hide content"
-msgstr ""
+msgstr "Inhalt ausblenden"
 
 #: widgets/widgetCtxMenu.php:49
 msgid "Hide dim ctrl"
-msgstr ""
+msgstr "Dimm-Strg ausblenden"
 
 #: widgets/widgetCtxMenu.php:53
 msgid "Allow collapse"
-msgstr ""
+msgstr "Ausblenden zulassen"
 
 #: widgets/widgetCtxMenu.php:217
 msgid "Chart color"
-msgstr ""
+msgstr "Diagramm"
 
 #: widgets/widgetCtxMenu.php:270
 msgid "Axes color"
-msgstr ""
+msgstr "Achsen Farbe"
 
 #: widgets/widgetCtxMenu.php:448
 msgid "Border color"
-msgstr ""
+msgstr "Rahmenfarbe"
 
 #: widgets/widgetCtxMenu.php:501
 msgid "Time range"
-msgstr ""
+msgstr "Zeitbereich"
 
 #: widgets/widgetCtxMenu.php:530
 msgid "Change metric"
-msgstr ""
+msgstr "Metrik ändern"
 
 #: widgets/widgetCtxMenu.php:539
 msgid "Additive mode"
-msgstr ""
+msgstr "Additiver Modus"
 
 #: widgets/widgetCtxMenu.php:545
 msgid "More options"
-msgstr ""
+msgstr "Mehr Optionen"
 
 #: widgets/widgetCtxMenu.php:549
 msgid "Delete widget"
-msgstr ""
+msgstr "Widget löschen"

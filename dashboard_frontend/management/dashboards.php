@@ -543,6 +543,8 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                     <li id="trendTab" class="nav-item"><a data-toggle="tab" href="#groupTrendCnt" class="nav-link dashboardWizardTabTxt"><?= _("Accesses Trends")?></a></li>
                                     <!-- GP COMMENT TEMPORARY -->
                                     <li id="graphTab" class="nav-item"><a data-toggle="tab" href="#groupGraphCnt" class="nav-link dashboardWizardTabTxt"><?= _("Structure")?></a></li>
+                                    <!-- ORGANIZATIONS -->
+                                    <li id="orgTab" class="nav-item"><a data-toggle="tab" href="#groupOrgCnt" class="nav-link dashboardWizardTabTxt"><?= _("Organization")?></a></li>
                                 </ul> 
                                 <!-- Fine tabs -->
 
@@ -768,8 +770,31 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                     </div>
                                     <!-- Fine Group Trend cnt -->
                                 </div>
-                                <!-- -->
-                            </div>
+                                <!--ORGANITAZIONS -->
+                                    <div id="orgmodal" hidden>
+                                        <div id="groupOrgCnt" class="tab-pane fade in">
+                                            <div class="row" id="groupOrgFormRow" >
+
+                                                <!-- Aggiungere dei valori di Trend della Dashboard
+                                                <iframe id ="graph_iframe" src="" allowtransparency="true"></iframe>
+                                                -->
+                                                <div class="input-group">
+                                                    <select id="org_list" class="form-control">
+                                                    </select>
+                                                    <span class="input-group-btn">
+                                                        <button type="button" id="neworgConfirmBtn" class="btn confirmBtn"><?= _("Confirm") ?></button>
+                                                    </span>
+                                                    <input type="text" id="idDash_org" hidden></input>
+                                                    <input type="text" id="idcurr_Dash" hidden></input>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- -->
+                                    </div>
+                                    <!-- Fine Group Trend cnt -->
+                                            <!-- -->
+                                        </div>
+
                             <div id="delegationsModalFooter" class="modal-footer">
                                 <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px"><?= _("Close")?></button>
                             </div>
@@ -2092,6 +2117,12 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                 $('#idDash_graph').val(dashboardId);
                                 $('#delegationsDashboardTitle').html(dashboardTitle);
                                 //
+                                var org_current = $(this).parents('div.dashboardsListCardDiv').attr('data-org');
+                                var id_current = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
+                                $('#idDash_org').val(org_current);
+                                $('#idcurr_Dash').val(id_current);
+                                console.log('org_current'+org_current);
+                                //
                                 timetrend();
                                 //
                                 if ($(this).parents('div.dashboardsListCardDiv').find('div.dashboardsListCardVisibilityDiv').html().includes('Public'))
@@ -3127,13 +3158,18 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                     var list = "";
                     
                     for (var i =0; i<cpunt; i++){
-                        var name = obj['widget-data'][i]['data'][0]['name'];
+                        var name = "";
+                        if (obj['widget-data'][i]['data'][0]['name']){
+                             name = obj['widget-data'][i]['data'][0]['name'];
+                        }
+                       
                         var valueName = "";
                         //valueName = name.split('/');
                         var c = valueName.length;
                         var vn = "";
                         var root_link = "";
                         var vn_link = "";
+                        var class1 = "";
                         //
                         console.log(desc[i]['unique_name_id']);
                         vn = desc[i]['unique_name_id']; 
@@ -3143,12 +3179,15 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                              
                               vn_link = "?valuename="+desc[i]['unique_name_id'];
                               
+                              if (obj['widget-data'][i]['data'][0]['class']){
+                                  class1 = obj['widget-data'][i]['data'][0]['class'];
                               if (obj['widget-data'][i]['data'][0]['class'].indexOf("kpi") >= 0){
                                 vn_link = "?valuename="+desc[i]['unique_name_id']+"&type="+obj['widget-data'][i]['data'][0]['class'];
                             }
+                        }
                          }
                          //if my-kpi o poi
-                         var class1 = obj['widget-data'][i]['data'][0]['class'];
+                         
                          if ((class1=='my-kpi')||(class1=='sensor')||(typeof vn === "undefined")){
                             //name
                             console.log('class1: '+class1);
@@ -3164,7 +3203,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                            // }
                          }
                          //
-                         var text_link = obj['widget-data'][i]['data'][0]['name'];
+                             var text_link = name;
                          var text_link_count = text_link.length;
                          if (text_link_count > 70){
                              text_link = text_link.substring(0,67);
@@ -3176,9 +3215,9 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                          }
                         //var log_link = 'https://www.snap4city.org/ldgraph/?sparql=http://virtuoso-kb:8890/sparql&uri='+data['data']['name']+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)';
                         var LOGPath1 = LOGPath.replaceAll("http://model.snap4city.org/Dashboard_", "");
-                        var log_link = LOGPath1+obj['widget-data'][i]['data'][0]['name']+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)';
+                        var log_link = LOGPath1+name+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)';
                         console.log(log_link);
-                        list = list +'<li><b><?= _("Widget") ?>: </b>'+desc[i]['title_w']+' - <i>('+desc[i]['type_w']+')</i></li><li><b><?= _("Use Data") ?>: </b><ul><li><b>'+obj['widget-data'][i]['data'][0]['class']+':</b> '+vn+'</li><li><b><?= _("Query") ?>: </b><a href="'+obj['widget-data'][i]['data'][0]['name']+'" target="_blank" rel="tooltip" title="'+obj['widget-data'][i]['data'][0]['name']+'">'+text_link+'</a></li></li><li><a href="inspector.php'+vn_link+'" target="_blank" ><?= _("Link to Data Inspector") ?></a>  '+root_link+'</li><li><a href="'+log_link+'" Target= "_blank" ><?= _("Link to Graph log") ?></a></li></ul></li></br />';
+                        list = list +'<li><b><?= _("Widget") ?>: </b>'+desc[i]['title_w']+' - <i>('+desc[i]['type_w']+')</i></li><li><b><?= _("Use Data") ?>: </b><ul><li><b>'+obj['widget-data'][i]['data'][0]['class']+':</b> '+vn+'</li><li><b><?= _("Query") ?>: </b><a href="'+name+'" target="_blank" rel="tooltip" title="'+name+'">'+text_link+'</a></li></li><li><a href="inspector.php'+vn_link+'" target="_blank" ><?= _("Link to Data Inspector") ?></a>  '+root_link+'</li><li><a href="'+log_link+'" Target= "_blank" ><?= _("Link to Graph log") ?></a></li></ul></li></br />';
                     }
                     $('#hierarchy').html('<span><b><?= _("Dashboard") ?>:   </b>'+myStr+'<br /><ul>'+list+'</ul></span>');
                 }
@@ -3188,6 +3227,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#delegationsModalRightCnt').hide();
             $('#delegationsModalLeftCnt').hide();
             $('#graphmodal').show();
+            $('#orgmodal').hide();
  });
         //$('#delegateDashBtnCard').click(function() {
         $('#trendTab').click(function () {
@@ -3285,6 +3325,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#delegationsModalRightCnt').hide();
             $('#delegationsModalLeftCnt').hide();
             $('#graphmodal').hide();
+            $('#orgmodal').hide();
             $('#list_metrics').empty();
             $('#hierarchy').empty();
             $('#graphTab').removeClass('active');
@@ -3302,13 +3343,76 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             timetrendminutes();
 
         });
+        
+        //
+        $('#orgTab').click(function () {
+            //////***********//////
+            $.ajax({
+                    url: "editDashobardOrganization.php",
+                    data: {
+                        action:'get_orgs'
+                    },
+                    type: "GET",
+                async: true,
+                success: function (data) {
+                    $('#org_list').empty();
+                    var obj = JSON.parse(data);
+                    var l = obj.length;
+                    for (var i=0; i<l; i++){
+                        console.log(obj[i]);
+                        $('#org_list').append('<option value="'+obj[i]+'">'+obj[i]+'</option>');
+                    }
+                    //
+                   //$('#idDash_org').val('Sardegna');
+                    var curr = $('#idDash_org').val();
+                    $('#org_list').val(curr).change();
+                }
+                
+            });
+            //SELECTION CURRENT ORG///
+            
+            //////*********////////
+             $('#trendmodal').hide();
+            $('#delegationsModalRightCnt').hide();
+            //$('#delegationsModalLeftCnt').hide();
+            $('#graphmodal').hide();
+            $('#orgmodal').show();
+            $('#list_metrics').empty();
+            $('#hierarchy').empty();
+            $('#graphTab').removeClass('active');
+        });
+        //
+        //neworgConfirmBtn
+        $('#neworgConfirmBtn').click(function () {
+            var current_org = $('#org_list').val();
+            var delegationsDashboardTitle = $('#idcurr_Dash').val();
+             $.ajax({
+                    url: "editDashobardOrganization.php",
+                    data: {
+                        action:'edit_orgs',
+                        title: delegationsDashboardTitle,
+                        org: current_org
+                    },
+                    type: "GET",
+                async: true,
+                success: function (data) {
+                    //
+                    console.log('OK');
+                    location.reload();
+                    //
+                }
+            });
+        });
         //Manage other tabs
         $('.dashboardWizardTabTxt').click(function () {
             $('#trendmodal').hide();
             $('#graphmodal').hide();
+            $('#orgmodal').hide();
             $('#list_metrics').empty();
             $('#hierarchy').empty();
             $('#graphTab').removeClass('active');
+            $('#orgTab').removeClass('active');
+            $('#org_list').empty();
             $('#delegationsModalRightCnt').show();
             $('#delegationsModalLeftCnt').show();
             $('#delegationsCancelBtn').css('margin-top','50px');
@@ -3321,6 +3425,8 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#container_minutes').empty();
             $('#trendmodal').hide();
             $('#graphmodal').hide();
+            $('#orgmodal').hide();
+            $('#org_list').empty();
             $('#hierarchy').empty();
             $('#list_metrics').empty();
             $('#delegationsModalRightCnt').show();
@@ -3332,6 +3438,8 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#trendTab').removeClass('active');
             $('#ownershipTab').addClass('active');
             $('#graphTab').removeClass('active');
+            $('#orgTab').removeClass('active');
+            $('#org_list').empty();
             $('#delegationsCancelBtn').css('margin-top','50px');
             //
         });
@@ -3340,9 +3448,12 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#container_minutes').empty();
             $('#trendmodal').hide();
             $('#graphmodal').hide();
+            $('#orgmodal').hide();
+            $('#org_list').empty();
             $('#list_metrics').empty();
             $('#hierarchy').empty();
             $('#graphTab').removeClass('active');
+            $('#orgTab').removeClass('active');
             $('#delegationsModalRightCnt').show();
             $('#delegationsModalLeftCnt').show();
              //togliere actiive
@@ -3358,6 +3469,8 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#container_minutes').empty();
             $('#trendmodal').hide();
             $('#graphmodal').hide();
+            $('#orgmodal').hide();
+            $('#org_list').empty();
             $('#list_metrics').empty();
             $('#delegationsModalRightCnt').show();
             $('#delegationsModalLeftCnt').show();

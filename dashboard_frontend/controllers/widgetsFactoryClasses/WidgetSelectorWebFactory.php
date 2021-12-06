@@ -35,6 +35,8 @@ class WidgetSelectorWebFactory extends aGenericWidgetFactory
                     $row = mysqli_fetch_assoc($r);
                     switch($row['high_level_type'])
                     {
+                        case "BIM Device":
+                        case "BIM View":
                         case "External Service":
                             $rowQuery = $row['parameters'];
                             break;
@@ -66,11 +68,17 @@ class WidgetSelectorWebFactory extends aGenericWidgetFactory
                         //    $rowQuery = "https://servicemap.disit.org/WebAppGrafo/api/v1/?selection=" . $this->selection . "&categories=" . $categories . "&maxResults=200&format=html";
                             break;
                     }
-                    
+
+                    if ($row['high_level_type'] == 'BIM Device' || $row['high_level_type'] == 'BIM View') {
+                        $desc = $row['unique_name_id'];
+                    } else {
+                        $desc = $selectedRow['sub_nature'];
+                    }
                     $newQueryObj = ["color1" => $defaultColors1[$count%7], 
                             "color2" => $defaultColors2[$count%7], 
                             "defaultOption" => false, 
-                            "desc" => $selectedRow['sub_nature'], 
+                         //   "desc" => $selectedRow['sub_nature'],
+                            "desc" => $desc,
                             "display" => "pins",
                         //    "iconText" => $myIconText,
                             "query" => $rowQuery, 

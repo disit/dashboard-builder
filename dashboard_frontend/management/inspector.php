@@ -325,6 +325,13 @@ $lastUsedColors = null;
         overflow:scroll;
         height: 200px;
     }
+    
+    .ellipsis {
+    max-width: 40px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
 </style>
 
 <body style="overflow-y: hidden !important">
@@ -444,6 +451,9 @@ $lastUsedColors = null;
                                                             <div class="input-group"><span class="input-group-addon">Nature: </span><input id="name_Nature" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Subnature: </span><input id="name_Subnature" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Value Name: </span><input id="data-unique_name_id" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Value Type: </span><input id="data-low_level_type" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Data Type: </span><input id="data_unit" type="text" class="form-control" readonly/></div><br />
+                                                            <div class="input-group"><span class="input-group-addon">Value Unit: </span><input id="value_unit" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Device ServiceURI or Data ID: </span><input id="data-get_instances" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Sensor ServiceURI or Data ID: </span><input id="data-get_sensor_instances" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Datasource: </span><input id="data_source" type="text" class="form-control" readonly/></div><br />
@@ -465,10 +475,10 @@ $lastUsedColors = null;
                                           </div>
                                           <div role="tabpanel" class="tab-pane" id="HealthinessTab">
                                                     <div class="modal-body">
-                                                            <div class="input-group"><span class="input-group-addon">Value Type: </span><input id="data-low_level_type" type="text" class="form-control" readonly/></div><br />
+                                                            
                                                             <div class="input-group"><span class="input-group-addon">Healthiness Criteria: </span><input id="healthiness_c" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Delay: </span><input id="delay" type="text" class="form-control" readonly/></div><br />
-                                                            <div class="input-group"><span class="input-group-addon">Data Type: </span><input id="data_unit" type="text" class="form-control" readonly/></div><br />
+                                                            
                                                             <div class="input-group"><span class="input-group-addon">Period: </span><input id="period" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Last Update: </span><input id="last_check_health" type="text" class="form-control" readonly/></div><br />
                                                             <div class="input-group"><span class="input-group-addon">Healthiness Criteria 1:</span><span class="input-group-addon"><span id="s1_date"></span><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_1"></i></span><input id="Status_h" type="text" class="form-control" value="" readonly/></div><br />
@@ -494,14 +504,15 @@ $lastUsedColors = null;
                                                                 <table id="healthiness_table" class="addWidgetWizardTable table table-striped dt-responsive nowrap" style="display:none;">
                                                                     <thead class="widgetWizardColTitle">
                                                                         <tr>
-                                                                            <th class="widgetWizardTitleCell">Value Type</th>
+                                                                            <th class="widgetWizardTitleCell">Value Name</th>
                                                                             <th class="widgetWizardTitleCell">Healthy</th>
                                                                             <th class="widgetWizardTitleCell">Delay (s)</th>
                                                                             <th class="widgetWizardTitleCell">Reason</th>
                                                                             <th class="widgetWizardTitleCell">Healthiness Criteria</th>
                                                                             <th class="widgetWizardTitleCell">Refresh Rate (s)</th>
                                                                             <th class="widgetWizardTitleCell">Data type</th>
-                                                                            <th class="widgetWizardTitleCell">Unit</th>
+                                                                            <th class="widgetWizardTitleCell">Value type</th>
+                                                                            <th class="widgetWizardTitleCell">Value Unit</th>
                                                                             <th class="widgetWizardTitleCell">Value</th>');
     }
     if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin")) {
@@ -697,6 +708,8 @@ $lastUsedColors = null;
             var name_Nature = $(this).parent().parent().attr('data-nature');
             var name_Subnature = $(this).parent().parent().attr('data-sub_nature');
             var data_unique_name_id = $(this).parent().parent().attr('data-unique_name_id');
+            //var data_unique_name_id = $(this).parent().parent().attr('data-low_level_type');
+            //
             var data_unit = $(this).parent().parent().attr('data-unit');
             var data_last_value = $(this).parent().parent().attr('data-last_value');
             var data_latitude = $(this).parent().parent().attr('data-latitude');
@@ -714,6 +727,12 @@ $lastUsedColors = null;
             var id_row = $(this).parent().parent().attr('data-unique_name_id');
             var last_check = $(this).parent().parent().get(0).children[9].innerText;
             var data_valueunit = $(this).parent().parent().attr('data-valueunit');
+            //var data_value_name = $(this).parent().parent().attr('ValueName');
+            var data_value_name = $(this).parent().parent().get(0).children[5].innerText;
+            var data_value_type = $(this).parent().parent().get(0).children[6].innerText;
+            var var_broker = $(this).parent().parent().get(0).children[4].innerText;
+            var model_device = $(this).parent().parent().get(0).children[3].innerText;
+            console.log('var_broker: '+var_broker);
             var data_source = "";
             //https://iot-app.snap4city.org/nodered/nrxe49k
 //
@@ -734,8 +753,14 @@ $lastUsedColors = null;
             $('#data_source').val(data_source);
             $('#name_Nature').val(name_Nature);
             $('#name_Subnature').val(name_Subnature);
-            $('#data-unique_name_id').val(data_unique_name_id);
+            //$('#data-unique_name_id').val(data_unique_name_id);
             $('#id_row_hlt').val(name_Subnature);
+            $('#iotDevice').val(model_device);
+            $('#iotBroker').val(var_broker);
+            //
+             $('#data-unique_name_id').val(data_value_name);
+             $('#data-low_level_type').val(data_value_type);
+              $('#value_unit').val(data_valueunit);
             //users
             // $('#public').val();
             //$('#creator').val();
@@ -756,57 +781,12 @@ $lastUsedColors = null;
                  $('#admin_report_config').empty();
              }
             ////////////////
-            $.ajax({
-                    async: true,
-                    type: 'GET',
-                    url: 'report_scheduler.php',
-                    data: {
-                        action: 'list',
-                        type: 'Devices',
-                        service: data_unique_name_id 
-                    },
-                    success: function (data) {
-                        console.log('SUCCESS');
-                        console.log('Status data:   '+data);
-                        var value = JSON.parse(data);
-                        console.log(value.status);
-                        console.log(value.period);
-                        console.log(value.folder);
-                        console.log(value.link);
-                        console.log(value.job);
-                        //
-                        var link = value.link;
-                        //
-                        if (value.status === "Yes"){
-						//$('#report_link').html('<button type="button" id="button_link" class="btn btn-primary">Download Report</button>');
-                                                if (link !==""){
-                                                     $('#report_link').html('<a class="btn btn-primary" href="'+link+'" role="button" target="_blank"><?=_("Download Report")?></a>');
-                                                }
-                                                if (role_session_active === 'RootAdmin') {
-                                                    $('#activation').prop('checked', true);
-                                                    $('#job').val(value.job);
-                                                }
-                                            }else{
-                                               $('#report_link').empty();
-                                                 if (role_session_active === 'RootAdmin') {
-                                                    $('#activation').prop('checked', false);
-                                                }
-                                            }
-			if ((value.period === 'monthly')||(value.period === 'quarterly')){
-                            $('#periods').val(value.period);
-                        }
-                        //
-                        if (role_session_active === 'RootAdmin') {
-                         if (value.period === 'hourly'){
-                             $('#periods').val(value.period);
-                         }       
-                        }
-                    }
-                });
+            
             //
              
             //
-            if (high_level == 'Sensor' || high_level == 'Sensor-Actuator') {
+            //if (high_level == 'Sensor' || high_level == 'Sensor-Actuator') {
+             if ((high_level === 'Sensor')||(high_level == 'Sensor-Actuator')||(high_level === 'Data Table Device')||(high_level === 'Data Table Model')||(high_level === 'Data Table Variable')||(high_level === 'IoT Device')||(high_level === 'IoT Device Model')||(high_level === 'IoT Device Variable')||(high_level === 'Mobile Device')||(high_level === 'Mobile Device Model')||(high_level === 'Mobile Device Variable')||(high_level === 'Sensor Device')) {
                 $('#data-get_instances').val(data_get_instances);
                 if (data_get_sensor_instances !== null) {
                     if (data_low_level_type !== '') {
@@ -844,7 +824,8 @@ $lastUsedColors = null;
                 $('#gps').val(data_latitude + ', ' + data_longitude);
             }
             $('#last_value').val(data_last_value);
-            $('#data-low_level_type').val(data_low_level_type);
+            //$('#data-low_level_type').val(data_low_level_type);
+            $('#data-low_level_type').val(data_value_type);
             $('#organization').val(data_organizations);
 
             //CONTROLLI SUL TIPO
@@ -981,11 +962,23 @@ $lastUsedColors = null;
                     }
                     break;
                 case 'Sensor':
+                case 'Data Table Device':
+                case 'Data Table Model':
+                case 'Data Table Variable':
+                case 'IoT Device':
+                case 'IoT Device Model':
+                case 'IoT Device Variable':
+                case 'IoT Device':
+                case 'Mobile Device':
+                case 'Mobile Device Model':
+                case 'Mobile Device Variable':
+                case 'Sensor Device':
                     $('#tab3').show();
                     $("#healthiness_table").show();
                     $('#sm_link').html('<a href="' + sm + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Service Map")?></a>');
 
-                    if ((parameters.includes("iot/")) || (name_Subnature.includes("IoT/")) || (name_Nature.includes("IOT/"))) {
+                    //if ((parameters.includes("iot/")) || (name_Subnature.includes("IoT/")) || (name_Nature.includes("IOT/"))) {
+                    if ((parameters.includes("iot/")) || (name_Subnature.includes("IoT/")) || (name_Nature.includes("IOT/"))||(var_broker !=='')) {
                         $('#data_source').val("IoT");
                         $(".iot_sensor").show();
                         $(".etl_sensor").hide();
@@ -1263,6 +1256,10 @@ $lastUsedColors = null;
                     var creator = data.creator;
                     var ref_pers = data.reference_person;
                     var p_name = data.process_name;
+                    //
+                    var value_name=data.value_name;
+                    var value_type=data.value_type;
+                    var value_unit=data.value_unit;
 
                     //++++++++++++++//
                     if (data.total_ETL) {
@@ -1345,8 +1342,9 @@ $lastUsedColors = null;
                     //$('#period').val(period);
                     // $('#healthinessCriteria').val(healthiness);
                     //if((ownership_content !== "")&&(ownership_content !== null)){
-                    $('#iotDevice').val(device_id);
-                    $('#iotBroker').val(broker);
+                    //$('#iotDevice').val(device_id);
+                    //$('#iotDevice').val(model_device);
+                    //$('#iotBroker').val(var_broker);
                     //$('#owner').val(ownership_content.username);
                     //}
                     if (organization !== "") {
@@ -1375,6 +1373,7 @@ $lastUsedColors = null;
                         var value_refresh_rate = "";
                         var dealy = "";
                         var healt_value = "";
+                        var value_type_td = "";
 
                         if (key5[name]) {
                             value_unit_td = key5[name]['value_unit'];
@@ -1382,12 +1381,14 @@ $lastUsedColors = null;
                             healthiness_criteria = key5[name]['healthiness_criteria'];
                             value_refresh_rate = key5[name]['value_refresh_rate'];
                             healt_value = String(obj2[y]['healthy']);
+                            value_type_td = key5[name]['value_type'];
                         } else {
                             value_unit_td = "";
                             data_type_td = "";
                             healthiness_criteria = "";
                             value_refresh_rate = "";
                             healt_value = "";
+                            value_type_td = "";
                         }
                         /************/
                         if ((data.realtime !== null)) {
@@ -1463,9 +1464,9 @@ $lastUsedColors = null;
                         }
                         if (("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") || ("<?= $_SESSION['loggedRole'] ?>" == "ToolAdmin"))
                         {
-                            $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td><td>' + time_trend_link + '</td></tr>');
+                            $('#healthiness_table tbody').append('<tr><td title="'+name+'">' + name + '</td><td class="ellipsis">' + icn_h + '</td><td class="ellipsis" title="'+obj2[y]['delay']+'">' + obj2[y]['delay'] + '</td><td class="ellipsis" title="'+obj2[y]['reason']+'">' + obj2[y]['reason'] + '</td><td class="ellipsis" title="'+healthiness_criteria+'">' + healthiness_criteria + '</td><td class="ellipsis" title="'+value_refresh_rate+'">' + value_refresh_rate + '</td><td class="ellipsis" title="' + data_type_td + '">' + data_type_td + '</td><td class="ellipsis" title="' + value_type_td + '">'+value_type_td+'</td><td class="ellipsis" title="' + value_unit_td + '">' + value_unit_td + '</td><td class="ellipsis" title="' + value_td + '">' + value_td + '</td><td class="ellipsis">' + time_trend_link + '</td></tr>');
                         } else {
-                            $('#healthiness_table tbody').append('<tr><td>' + name + '</td><td>' + icn_h + '</td><td>' + obj2[y]['delay'] + '</td><td>' + obj2[y]['reason'] + '</td><td>' + healthiness_criteria + '</td><td>' + value_refresh_rate + '</td><td>' + data_type_td + '</td><td>' + value_unit_td + '</td><td>' + value_td + '</td></tr>');
+                            $('#healthiness_table tbody').append('<tr><td title="'+name+'">' + name + '</td><td class="ellipsis">' + icn_h + '</td><td class="ellipsis" title="'+obj2[y]['delay']+'">' + obj2[y]['delay'] + '</td><td class="ellipsis" title="'+obj2[y]['reason']+'">' + obj2[y]['reason'] + '</td><td class="ellipsis" title="'+healthiness_criteria+'">' + healthiness_criteria + '</td><td class="ellipsis" title="'+value_refresh_rate+'">' + value_refresh_rate + '</td><td class="ellipsis" title="' + data_type_td + '">' + data_type_td + '</td><td class="ellipsis" title="' + value_type_td + '">'+value_type_td+'</td><td class="ellipsis" title="' + value_unit_td + '">' + value_unit_td + '</td><td class="ellipsis" title="' + value_td + '">' + value_td + '</td></tr>');
                         }
                         if (name == data_low_level_type) {
                             color_selected = healt_value;
@@ -1479,7 +1480,7 @@ $lastUsedColors = null;
                     $('#period').val(value_refresh_rate);
                     $('#delay').val(dealy);
                     ////
-                    if (high_level === 'Sensor') {
+                    if ((high_level === 'Sensor')||(high_level === 'Data Table Device')||(high_level === 'Data Table Model')||(high_level === 'Data Table Variable')||(high_level === 'IoT Device')||(high_level === 'IoT Device Model')||(high_level === 'IoT Device Variable')||(high_level === 'Mobile Device')||(high_level === 'Mobile Device Model')||(high_level === 'Mobile Device Variable')||(high_level === 'Sensor Device')) {
                         if (data_unit !== 'sensor_map') {
                             var ch2_content = '<span class="input-group-addon">Healthiness Criteria 2:</span><span class="input-group-addon"><span id="s2_date"></span><i class="fa fa-circle" aria-hidden="true" style="pointer-events:none;" id="status_health"></i></span><input id="Status_2" type="text" class="form-control" value="" readonly/>';
                             $('#input_ch2').html(ch2_content);
@@ -1532,8 +1533,10 @@ $lastUsedColors = null;
                     if (etl === 'IoT') {
                         $('#disces_link').html('<a href="' + link + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Disces")?></a>');
                     }
+                    if ((parameters !== null) && (typeof parameters !== 'undefined') && (parameters !== undefined)) {
                     if (parameters.includes('http')) {
                         $('#kb_link').html('<a href="' + parameters + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;"><?=_("Link to Knowledge Base")?></a>');
+                    }
                     }
                     //$('#kb_link').html('<a href="' + data_get_instances + '" Target= "_blank" class="btn btn-primary" role="button" style="margin-right: 10px;">Link to Knowledge Base</a>');
                     //
@@ -1570,7 +1573,55 @@ $lastUsedColors = null;
                 $('#mail').show();
                 $('#mailLabel').show();
             }
-
+//////
+$.ajax({
+                    async: true,
+                    type: 'GET',
+                    url: 'report_scheduler.php',
+                    data: {
+                        action: 'list',
+                        type: 'Devices',
+                        service: data_unique_name_id 
+                    },
+                    success: function (data) {
+                        console.log('SUCCESS');
+                        console.log('Status data:   '+data);
+                        var value = JSON.parse(data);
+                        console.log(value.status);
+                        console.log(value.period);
+                        console.log(value.folder);
+                        console.log(value.link);
+                        console.log(value.job);
+                        //
+                        var link = value.link;
+                        //
+                        if (value.status === "Yes"){
+						//$('#report_link').html('<button type="button" id="button_link" class="btn btn-primary">Download Report</button>');
+                                                if (link !==""){
+                                                     $('#report_link').html('<a class="btn btn-primary" href="'+link+'" role="button" target="_blank"><?=_("Download Report")?></a>');
+                                                }
+                                                if (role_session_active === 'RootAdmin') {
+                                                    $('#activation').prop('checked', true);
+                                                    $('#job').val(value.job);
+                                                }
+                                            }else{
+                                               $('#report_link').empty();
+                                                 if (role_session_active === 'RootAdmin') {
+                                                    $('#activation').prop('checked', false);
+                                                }
+                                            }
+			if ((value.period === 'monthly')||(value.period === 'quarterly')){
+                            $('#periods').val(value.period);
+                        }
+                        //
+                        if (role_session_active === 'RootAdmin') {
+                         if (value.period === 'hourly'){
+                             $('#periods').val(value.period);
+                         }       
+                        }
+                    }
+                });
+//////
             $('#healthiness-modal').modal('show');
 
         });
@@ -1839,6 +1890,8 @@ $(document).on('click', '#modify_report', function () {
                     $('#person').empty();
                     $('#web').empty();
                      $('#admin_report_config').empty();
+                     $('#data-unique_name_id').val('');
+                     $('#value_unit').val('');
                     //
                     alert('Image uploaded');
                 }, 1000);
@@ -2011,6 +2064,8 @@ $(document).on('click', '#modify_report', function () {
             //licence
             $('#person').val('');
             $('#web').val('');
+            $('#value_unit').val('');
+            $('#data-unique_name_id').val('');
              $('#admin_report_config').empty();
         });
 
@@ -2102,6 +2157,8 @@ $(document).on('click', '#modify_report', function () {
             $('#person').val('');
             $('#web').val('');
              $('#admin_report_config').empty();
+            $('#data-unique_name_id').val('');
+            $('#value_unit').val('');
             console.log('dismiss');
         });
         // do something...

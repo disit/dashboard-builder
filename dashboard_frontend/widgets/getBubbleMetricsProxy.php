@@ -2,17 +2,16 @@
 /* Dashboard Builder.
 Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
 require '../sso/autoload.php';
@@ -74,7 +73,7 @@ if (strcmp($dataOrigin->metricHighLevelType, "Sensor" == 0) || strcmp($dataOrigi
 }
 session_write_close();
 
-if (strpos($dataQuery, 'selection=') !== false && strpos($dataQuery, 'categories=') !== false) {
+if (strpos($dataQuery, 'selection=') !== false && (strpos($dataQuery, 'categories=') !== false || strpos($dataQuery, 'model=') !== false)) {
     $dataOrigin = "POI";
 } else if (strpos($dataQuery, 'serviceUri=') !== false) {
     $dataOrigin = "Sensor";
@@ -89,7 +88,7 @@ switch($dataOrigin)
             $serviceUri = get_string_between($dataQuery, "serviceUri=", "&");
         }
 
-        $urlToCall = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . $serviceUri . "&format=json";
+        $urlToCall = $superServiceMapUrlPrefix . "api/v1?serviceUri=" . $serviceUri . "&format=json";
       //  $urlToCall = $dataQuery;
 
         if(isset($urlToCall)) {
@@ -142,12 +141,27 @@ switch($dataOrigin)
 
     case "POI":
 
-        $geoBb = get_string_between($dataQuery, "selection=", "&categories=");
-        $serviceType = get_string_between($dataQuery, "categories=", "&");
+        $geoBb = get_string_between($dataQuery, "selection=", "&");
+        $urlToCall = $superServiceMapUrlPrefix . "api/v1?selection=" . $geoBb;
+        if (strpos($dataQuery, 'categories=') !== false) {
+            $serviceType = get_string_between($dataQuery, "categories=", "&");
+            if ($serviceType === false) {
+                $serviceType = explode('&categories=', $dataQuery)[1];
+            }
+            $urlToCall = $urlToCall . "&categories=" . $serviceType;
+        }
+        if (strpos($dataQuery, 'model=') !== false) {
+            $model = get_string_between($dataQuery, "model=", "&");
+            if ($model === false) {
+                $model = explode('&model=', $dataQuery)[1];
+            }
+            $urlToCall = $urlToCall . "&model=" . $model;
+        } /* else {
 
-    //    $urlToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" . $geoBb . "&categories=" . $serviceType . "&maxResults=1";
-        $urlToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" . $geoBb . "&categories=" . $serviceType;
-        //  $urlToCall = $dataQuery;
+            //    $urlToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" . $geoBb . "&categories=" . $serviceType . "&maxResults=1";
+            $urlToCall = $superServiceMapUrlPrefix . "api/v1?selection=" . $geoBb . "&categories=" . $serviceType;
+            //  $urlToCall = $dataQuery;
+        }   */
 
         if(isset($urlToCall)) {
             $options = array(
@@ -171,9 +185,9 @@ switch($dataOrigin)
             //    if ($result)
         {
             $geoJsonData = json_decode($result);
-            $key = array_keys(get_object_vars($geoJsonData))[0];
-            $fatherGeoJsonNode = $geoJsonData->$key;
-        /*    if ($geoJsonData->BusStop) {
+        //    $key = array_keys(get_object_vars($geoJsonData))[0];
+        //    $fatherGeoJsonNode = $geoJsonData->$key;
+            if ($geoJsonData->BusStop) {
                 $fatherGeoJsonNode = $geoJsonData->BusStop;
             } else if ($geoJsonData->Sensor) {
                 $fatherGeoJsonNode = $geoJsonData->Sensor;
@@ -181,13 +195,15 @@ switch($dataOrigin)
                 $fatherGeoJsonNode = $geoJsonData->Service;
             } else if ($geoJsonData->Services) {
                 $fatherGeoJsonNode = $geoJsonData->Services;
-            }*/
+            } else if ($geoJsonData->SensorSites) {
+                $fatherGeoJsonNode = $geoJsonData->SensorSites;
+            }
 
             $response['metrics'] = array();
             for ($count = 0; $count < sizeof($fatherGeoJsonNode->features); $count++) {
                 $singleServieUri = $fatherGeoJsonNode->features[$count]->properties->serviceUri;
 
-                $urlToCallSingleDevice = "https://www.disit.org/superservicemap/api/v1/?serviceUri=" . rawurlencode($singleServieUri) . "&format=json";
+                $urlToCallSingleDevice = $superServiceMapUrlPrefix . "api/v1?serviceUri=" . rawurlencode($singleServieUri) . "&format=json";
                 //  $urlToCall = $dataQuery;
 
                 if (isset($urlToCallSingleDevice)) {

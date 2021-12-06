@@ -2921,6 +2921,11 @@
                 $setMinValueM = mysqli_real_escape_string($link, sanitizePostInt('setMinValueM'));
             }
             $styleParametersArrayM['setMinValue'] = $setMinValueM;
+            if(isset($_POST['setDecimalPlacesM'])&&($_POST['setDecimalPlacesM']!=""))
+            {
+                $setDecimalPlacesM = mysqli_real_escape_string($link, sanitizePostInt('setDecimalPlacesM'));
+            }
+            $styleParametersArrayM['setDecimalPlaces'] = $setDecimalPlacesM;
             $styleParametersM = json_encode($styleParametersArrayM);
         }
 
