@@ -26,12 +26,34 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			fmt.Println("Recovered panic:\n", string(debug.Stack()))
 			rsp["result"] = "Ko"
 			rsp["error"] = "panic"
+			ws.panicCount++
 			reply, _ := json.Marshal(rsp)
 			user.send <- reply
 		}
 	}(response, user)
+	user.MsgCount++
 
 	switch dat["msgType"] {
+	case "Debug":
+		if ws.debugKey == dat["debugKey"] {
+			response["result"] = "Ok"
+			response["activeWidgets"] = ws.clientWidgets
+			response["clients"] = manager.clients
+			response["panicCount"] = ws.panicCount
+		} else {
+			response["result"] = "Ko"
+		}
+		break
+	case "Stats":
+		if ws.debugKey == dat["debugKey"] {
+			response["result"] = "Ok"
+			response["activeWidgetsCount"] = len(ws.clientWidgets)
+			response["clientCount"] = len(manager.clients)
+			response["panicCount"] = ws.panicCount
+		} else {
+			response["result"] = "Ko"
+		}
+		break
 	case "AddEmitter":
 		//sender: nodered
 		//receiver: wsServer
@@ -62,6 +84,9 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		/* aggiunge un emitter alla tabella degli emitter */
 		var err error
 		var username, role, organization string
+
+		user.AppID = fmt.Sprintf("%v", dat["appId"])
+
 		if dat["accessToken"] != nil {
 			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
 		} else {
@@ -128,20 +153,20 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 									response["result"] = "Ko"
 									response["error"] = error //"cannot find a map widget on dashboard"
 								} else {
-									user.userType = "actuator"
-									user.widgetUniqueName = widgetName
-									publish([]byte("subscribe"+user.widgetUniqueName.(string)), "default") //check???
+									user.UserType = "actuator"
+									user.WidgetUniqueName = widgetName
+									publish([]byte("subscribe"+user.WidgetUniqueName.(string)), "default") //check???
 									mu.Lock()
-									widgetUniqueName := user.widgetUniqueName.(string)
+									widgetUniqueName := user.WidgetUniqueName.(string)
 									ws.clientWidgets[widgetUniqueName] = append(ws.clientWidgets[widgetUniqueName], user)
 									//log.Print("AddEmitter - added user for widget: ", widgetUniqueName, " count: ", ws.clientWidgets[widgetUniqueName])
 									mu.Unlock()
-									response["widgetUniqueName"] = user.widgetUniqueName
+									response["widgetUniqueName"] = user.WidgetUniqueName
 									response["result"] = "Ok"
 									response["dashboardId"] = dashboardID
 								}
 							} else {
-								log.Print("AddEmitter on dashboard \"", dat["dashboardId"], "\" - ", dashboardID)
+								//log.Print("AddEmitter on dashboard \"", dat["dashboardId"], "\" - ", dashboardID)
 								/* aggiunge widget alla dashboard */
 								addWidget, w := addWidget(db, dashboardID, dat["user"], dat["widgetType"], dat["name"],
 									dat["metricType"], dat["appId"], dat["flowId"], dat["nodeId"], dat["widgetTitle"])
@@ -161,28 +186,28 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 									} else {
 										/* aggiunge la connessione tra quelle associate all'emitter */
 										//user.metricName = dat["metricName"].(string) //check
-										user.userType = "actuator"
-										user.widgetUniqueName = w["widgetUniqueName"]
-										if user.widgetUniqueName != "" && user.widgetUniqueName != nil {
-											publish([]byte("subscribe"+user.widgetUniqueName.(string)), "default") //check???
+										user.UserType = "actuator"
+										user.WidgetUniqueName = w["widgetUniqueName"]
+										if user.WidgetUniqueName != "" && user.WidgetUniqueName != nil {
+											publish([]byte("subscribe"+user.WidgetUniqueName.(string)), "default") //check???
 											mu.Lock()
-											widgetUniqueName := user.widgetUniqueName.(string)
+											widgetUniqueName := user.WidgetUniqueName.(string)
 											ws.clientWidgets[widgetUniqueName] = append(ws.clientWidgets[widgetUniqueName], user)
 											//log.Print("AddEmitter - added user for widget: ", widgetUniqueName, " count: ", ws.clientWidgets[widgetUniqueName])
 											mu.Unlock()
 											//find the last value of emitter
 											value := ""
 											err = db.QueryRow("SELECT value FROM "+dashboard+".ActuatorsAppsValues where widgetName=? order by id desc limit 1",
-												user.widgetUniqueName).Scan(&value)
+												user.WidgetUniqueName).Scan(&value)
 											if err != nil {
-												log.Print("WARNING ", user.widgetUniqueName, " error on get last value ", err)
+												log.Print("WARNING ", user.WidgetUniqueName, " error on get last value ", err)
 											}
-											response["widgetUniqueName"] = user.widgetUniqueName
+											response["widgetUniqueName"] = user.WidgetUniqueName
 											response["result"] = "Ok"
 											response["lastValue"] = value
 											response["dashboardId"] = dashboardID
 										} else {
-											log.Print(dat["msgType"], " ERROR invalid widget unique id:", user.widgetUniqueName)
+											log.Print(dat["msgType"], " ERROR invalid widget unique id:", user.WidgetUniqueName)
 											response["result"] = "Ko"
 											response["error"] = "invalid widgetUniqueName"
 										}
@@ -219,7 +244,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		//check widgetUniqueName
 		widgetUniqueName := dat["widgetUniqueName"]
 
-		if !user.validOrigin {
+		if !user.ValidOrigin {
 			log.Print(dat["msgType"], " ERROR SendEmitter ", widgetUniqueName, " invalid origin")
 			response["result"] = "Ko"
 			break
@@ -256,7 +281,9 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 				response["error"] = "invalid token"
 				break
 			}
-			log.Print("SendToEmitter user: ", username, " role: ", role)
+			if ws.debug {
+				log.Print("SendToEmitter user: ", username, " role: ", role)
+			}
 		}
 
 		//dashboard pubblica?
@@ -265,7 +292,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 
 		/* salva il dato ricevuto in tabella ActuatorsAppsValues*/
 
-		ipAddress := user.clientIp
+		ipAddress := user.ClientIp
 		actionTime := time.Now().Format("2006-01-02 15:04:05")
 		//log.Print(ipAddress, " ", actionTime)
 		res, err := db.Exec("INSERT INTO "+dashboard+".ActuatorsAppsValues(widgetName, actionTime, value, username, ipAddress, nrInputId) "+
@@ -276,7 +303,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			response["error"] = "failed db access"
 		} else {
 			/* invia il dato ricevuto sulla connessione associata all'emitter */
-			user.widgetUniqueName = dat["widgetUniqueName"]
+			user.WidgetUniqueName = dat["widgetUniqueName"]
 			lastID, _ := res.LastInsertId()
 			newMessage := &EmitterMessage{
 				MsgType:          "DataToEmitter",
@@ -317,7 +344,9 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			}
 			if !found {
 				ws.clientWidgets[widgetUniqueName] = append(ws.clientWidgets[widgetUniqueName], user)
-				log.Print("SendToEmitter - added user for widget: ", widgetUniqueName, " count: ", ws.clientWidgets[widgetUniqueName])
+				if ws.debug {
+					log.Print("SendToEmitter - added user for widget: ", widgetUniqueName, " count: ", ws.clientWidgets[widgetUniqueName])
+				}
 			}
 			mu.Unlock()
 		}
@@ -327,9 +356,15 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		//receiver: wsServer
 		//nodered acknowledges the receipt of a DataToEmitter message
 
+		if dat["msgId"] == nil || dat["widgetUniqueName"] == nil {
+			log.Print(dat["msgType"], " ERROR missing msgId or widgetUniqueName")
+			response["result"] = "Ko"
+			break
+		}
+
 		msgID := (int64)(dat["msgId"].(float64))
 		if msgID != user.msgIdAck {
-			log.Print("ack of invalid msg: waiting ", user.msgIdAck, " arrived ", msgID)
+			log.Print("WARNING ack of invalid msg: waiting ", user.msgIdAck, " arrived ", msgID)
 		}
 		actionResultTime := time.Now().Format("2006-01-02 15:04:05")
 		res, err := db.Exec("UPDATE "+dashboard+".ActuatorsAppsValues SET actuationResult = 'Ok', actuationResultTime = ? WHERE id = ?", actionResultTime, msgID)
@@ -375,6 +410,8 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		var role string
 		var organization string
 		var err error
+		user.AppID = fmt.Sprintf("%v", dat["appId"])
+
 		if dat["accessToken"] != nil {
 			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
 		} else {
@@ -387,12 +424,16 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		} else {
 			if role != "RootAdmin" {
 				organization, _ = getOrganization(username)
-				//log.Print("AddEditMetric: force user ", username, "@", organization, "/", dat["user"])
+				if ws.debug {
+					log.Print("AddEditMetric: force user ", username, "@", organization, "/", dat["user"])
+				}
 				dat["user"] = username
 				dat["organization"] = organization
 			} else {
 				organization, _ = getOrganization(dat["user"].(string))
-				//log.Print("AddEditMetric: RootAdmin using user ", dat["user"], "@", organization)
+				if ws.debug {
+					log.Print("AddEditMetric: RootAdmin using user ", dat["user"], "@", organization)
+				}
 				dat["organization"] = organization
 			}
 			//check appId is of the user
@@ -458,7 +499,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 						_, err := db.Exec("INSERT INTO "+dashboard+".Data(IdMetric_data,computationDate,"+dataField+", appId, flowId, nrMetricType, nrUsername)"+
 							" VALUES(?,?,?,?,?,?,?);", dat["metricName"], computationDate, metricStartValue, dat["appId"], dat["flowId"], dat["metricType"], dat["user"])
 						if err != nil {
-							log.Print(err)
+							log.Print("ERROR ", err)
 						}
 
 					}
@@ -497,10 +538,12 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			NewValue:   dat["newValue"]}
 		var err error
 		var username, role string
+
+		user.AppID = fmt.Sprintf("%v", dat["appId"])
+
 		if dat["accessToken"] != nil {
 			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
 		} else {
-			//log.Print("MISSING ACCESSTOKEN ",dat)
 			err = fmt.Errorf("missing accessToken")
 		}
 		if err != nil {
@@ -537,6 +580,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			// inoltra i nuovi dati ai vari user connessi. Con l'implementazione
 			// redis viene chiamata la funzione publish altrimenti, si inserisce
 			// direttamente il nuovo messaggio nel canale replyAll del manager.
+			user.MetricName = dat["metricName"].(string)
 
 			newMsg, err := json.Marshal(newMessage)
 
@@ -620,12 +664,12 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 	case "ClientWidgetRegistration":
 		//sender: dashboard
 		//receiver: wsServer
-		user.userType = dat["userType"].(string)
+		user.UserType = dat["userType"].(string)
 		if dat["metricName"] != nil {
-			user.metricName = dat["metricName"].(string)
+			user.MetricName = dat["metricName"].(string)
 		}
-		user.widgetUniqueName = dat["widgetUniqueName"]
-		if !user.validOrigin {
+		user.WidgetUniqueName = dat["widgetUniqueName"]
+		if !user.ValidOrigin {
 			log.Print(dat["msgType"], " ERROR ClientWidgetRegistration invalid origin")
 			response["result"] = "Ko"
 			break
@@ -633,9 +677,9 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		if dat["widgetUniqueName"] != "" && dat["widgetUniqueName"] != nil {
 			var name string
 			if dat["metricName"] != nil {
-				name = user.metricName
+				name = user.MetricName
 			} else {
-				name = user.widgetUniqueName.(string)
+				name = user.WidgetUniqueName.(string)
 			}
 
 			publish([]byte("subscribe"+name), "default")
@@ -712,7 +756,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			response["result"] = "Ko"
 			break
 		}
-		log.Print(dat["msgType"], " INFO count ", dat["nodeId"], " ", count)
+		//log.Print(dat["msgType"], " INFO count ", dat["nodeId"], " ", count)
 
 		//se esistono piu` wiget che insistono sulla stessa metrica in esame, viene rimosso il widget istanziato
 		//in precedenza dal blocchetto lasciando gli altri e la metrica personale
@@ -724,8 +768,10 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 				log.Print(dat["msgType"], " ERROR ", err)
 				response["result"] = "Ko"
 			} else {
-				nr, _ := r.RowsAffected()
-				log.Print(dat["msgType"], " INFO deleted ", dat["nodeId"], " ", nr)
+				if ws.debug {
+					nr, _ := r.RowsAffected()
+					log.Print(dat["msgType"], " INFO deleted ", dat["nodeId"], " ", nr)
+				}
 				response["result"] = "Ok"
 			}
 		} else {
@@ -757,8 +803,10 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 				response["result"] = "Ko"
 				break
 			} else {
-				nr, _ := rr.RowsAffected()
-				log.Print(dat["msgType"], " INFO deleted NodeRedMetrics ", dat["metricName"], dat["metricType"], dat["user"], dat["appId"], dat["flowId"], " ", nr)
+				if ws.debug {
+					nr, _ := rr.RowsAffected()
+					log.Print(dat["msgType"], " INFO deleted NodeRedMetrics ", dat["metricName"], dat["metricType"], dat["user"], dat["appId"], dat["flowId"], " ", nr)
+				}
 
 				stmt2, err := tx.Prepare("DELETE FROM " + dashboard + ".Data WHERE Data.IdMetric_data = ? AND appId = ?" +
 					" AND flowId = ? AND nrMetricType = ? AND nrUsername = ?;")
@@ -776,8 +824,10 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 					response["result"] = "Ko"
 					break
 				} else {
-					nr, _ := rr.RowsAffected()
-					log.Print(dat["msgType"], " INFO deleted Data ", dat["metricName"], dat["metricType"], dat["user"], dat["appId"], dat["flowId"], " ", nr)
+					if ws.debug {
+						nr, _ := rr.RowsAffected()
+						log.Print(dat["msgType"], " INFO deleted Data ", dat["metricName"], dat["metricType"], dat["user"], dat["appId"], dat["flowId"], " ", nr)
+					}
 					stmt3, err := tx.Prepare("DELETE FROM " + dashboard + ".Config_widget_dashboard WHERE nodeId = ?;")
 					if err != nil {
 						log.Print(dat["msgType"], " ERROR ", err)
@@ -792,8 +842,10 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 						tx.Rollback()
 						response["return"] = "Ko"
 					} else {
-						nr, _ := rr.RowsAffected()
-						log.Print(dat["msgType"], " INFO deleted Config_widget_dashboard ", dat["nodeId"], " ", nr)
+						if ws.debug {
+							nr, _ := rr.RowsAffected()
+							log.Print(dat["msgType"], " INFO deleted Config_widget_dashboard ", dat["nodeId"], " ", nr)
+						}
 						tx.Commit()
 						response["result"] = "Ok"
 					}
@@ -803,12 +855,14 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		break
 
 	default:
-		log.Print("messaggio ignorato ", dat["msgType"])
+		log.Print("WARNING invalid message type ", dat["msgType"])
 		break
 	}
 
 	reply, _ := json.Marshal(response)
-	//log.Print(string(reply))
+	if ws.debug {
+		log.Print("INFO reply:", string(reply))
+	}
 	user.send <- reply
 }
 
@@ -1076,7 +1130,9 @@ func addWidget(db *sql.DB, dashboardID int64, username interface{}, widgetType i
 						}
 						return false, m
 					}
-					log.Print("deleted widget ", currentWidgetUniqueId)
+					if ws.debug {
+						log.Print("INFO deleted widget ", currentWidgetUniqueId)
+					}
 					/*type_w := widgetType
 					name_w := strings.Replace(id_metric.(string), "+", "", -1) + "_" + fmt.Sprint(dashboardID) + type_w.(string) + string(nextId)
 					name_w = strings.Replace(name_w, "%20", "NBSP", -1)*/
@@ -1225,7 +1281,7 @@ func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType int
 
 				// costruzione size_rows e size_columns
 				var scale = 1.0
-				log.Print("SCALEFACTOR ", scaleFactor)
+				//log.Print("SCALEFACTOR ", scaleFactor)
 				if scaleFactor.Valid && scaleFactor.String == "yes" {
 					scale = 3.0
 				}
@@ -1272,7 +1328,7 @@ func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType int
 					log.Print(err2)
 					return false, ""
 				}
-				log.Print("added widget ", nameW)
+				//log.Print("added widget ", nameW)
 				// se si esce dal ciclo e si arriva qui, si e` sicuramente scritto correttamente su db
 				return true, nameW
 			} else {

@@ -79,6 +79,9 @@ type WebSocketServer struct {
 	validOrigins  string
 	requireToken  string
 	clientWidgets map[string][]*WebsocketUser
+	panicCount    int32
+	debug         bool
+	debugKey      string
 	oidcProvider  *oidc.Provider
 }
 
@@ -110,10 +113,12 @@ func ownershipRegisterDash(newDashID int64, title interface{}, dat map[string]in
 		return "Ko"
 	}
 	defer resp.Body.Close()
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+	if ws.debug {
+		fmt.Println("response Status:", resp.Status)
+		fmt.Println("response Headers:", resp.Header)
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("response Body:", string(body))
+	}
 	return "Ok"
 }
 
@@ -126,11 +131,15 @@ func ownershipLimitsDash(dat map[string]interface{}) (int, int, error) {
 		return 0, 0, err
 	}
 	defer resp.Body.Close()
-	fmt.Println("response Status:", resp.Status)
-	//fmt.Println("response Headers:", resp.Header)
+	if ws.debug {
+		fmt.Println("response Status:", resp.Status)
+		//fmt.Println("response Headers:", resp.Header)
+	}
 	if resp.Status == "200 OK" {
 		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("response Body:", string(body))
+		if ws.debug {
+			fmt.Println("response Body:", string(body))
+		}
 		var result map[string]interface{}
 		json.Unmarshal(body, &result)
 		limits := result["limits"].([]interface{})[0].(map[string]interface{})
@@ -150,11 +159,15 @@ func ownershipCheckAppID(dat map[string]interface{}) (bool, error) {
 		return false, err
 	}
 	defer resp.Body.Close()
-	fmt.Println("response Status:", resp.Status)
-	//fmt.Println("response Headers:", resp.Header)
+	if ws.debug {
+		fmt.Println("response Status:", resp.Status)
+		//fmt.Println("response Headers:", resp.Header)
+	}
 	if resp.Status == "200 OK" {
 		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("response Body:", string(body))
+		if ws.debug {
+			fmt.Println("response Body:", string(body))
+		}
 		var result []interface{}
 		json.Unmarshal(body, &result)
 		if len(result) > 0 {
@@ -253,7 +266,7 @@ func checkToken(accessToken string, clientIDs string) (string, string, error) {
 			}
 		}
 	} else {
-		log.Print("cannot convert roles")
+		log.Print("ERROR cannot convert roles of claims ", claims)
 	}
 	return username, role, nil
 }

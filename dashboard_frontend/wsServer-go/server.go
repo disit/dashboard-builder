@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
-	"runtime/debug"
 
 	oidc "github.com/coreos/go-oidc"
 	"github.com/go-ini/ini"
@@ -64,7 +64,7 @@ func main() {
 	initDB()
 
 	defer db.Close()
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
 
 	go manager.start()
 	http.HandleFunc("/", handleConnections)
@@ -146,9 +146,14 @@ func buildAndInit() *WebSocketServer {
 
 	a = wsServerContent.Sections()
 	wss.serverAddress = a[0].Key("wsServerAddress[" + wss.activeEnv + "]").String()
-	wss.serverPort = a[0].Key("wsServerPort[" + wss.activeEnv + "]").String()
+	wss.serverPort = a[0].Key("wsServerInternalPort[" + wss.activeEnv + "]").String()
+	if wss.serverPort == "" {
+		wss.serverPort = a[0].Key("wsServerPort[" + wss.activeEnv + "]").String()
+	}
 	wss.validOrigins = a[0].Key("validOrigins[" + wss.activeEnv + "]").String()
 	wss.requireToken = a[0].Key("requireToken[" + wss.activeEnv + "]").String()
+	wss.debug = a[0].Key("debug["+wss.activeEnv+"]").String() == "true"
+	wss.debugKey = a[0].Key("debugKey[" + wss.activeEnv + "]").String()
 
 	a = ssoFileContent.Sections()
 	wss.clientSecret = a[0].Key("ssoClientSecret[" + wss.activeEnv + "]").String()
@@ -178,7 +183,7 @@ func buildAndInit() *WebSocketServer {
 	ctx := context.Background()
 	wss.oidcProvider, err = oidc.NewProvider(ctx, wss.ssoIssuer)
 	if err != nil {
-		log.Print("init OIDC Provider: ERROR ", err)
+		log.Fatal("FATAL init OIDC Provider: ", err)
 	}
 
 	return wss
@@ -192,7 +197,9 @@ func (manager *ClientManager) start() {
 		select {
 		case conn := <-manager.register:
 			manager.clients[conn.id] = conn
-			log.Println("A new socket has connected: ", len(manager.clients), " from: ", conn.socket.RemoteAddr().String(), " ", conn.widgetUniqueName, " ", conn.metricName)
+			if ws.debug {
+				log.Println("INFO A new socket has connected: ", len(manager.clients), " from: ", conn.ClientIp, " ", conn.WidgetUniqueName, " ", conn.MetricName)
+			}
 
 		case conn := <-manager.unregister:
 			if _, ok := manager.clients[conn.id]; ok {
@@ -200,7 +207,9 @@ func (manager *ClientManager) start() {
 				delete(manager.clients, conn.id)
 
 				closed(conn)
-				log.Println("A socket has disconnected: ", len(manager.clients))
+				if ws.debug {
+					log.Println("INFO A socket has disconnected: ", len(manager.clients), " from: ", conn.ClientIp, " ", conn.WidgetUniqueName, " ", conn.MetricName)
+				}
 			}
 		case message := <-manager.replyAll:
 			dat := processingMsg2(message)
@@ -211,7 +220,9 @@ func (manager *ClientManager) start() {
 			} else {
 				conn = dat["metricName"].(string)
 			}
-			log.Print("sending msg for ", conn, " to ", len(ws.clientWidgets[conn]), " clients")
+			if ws.debug {
+				log.Print("INFO sending msg for ", conn, " to ", len(ws.clientWidgets[conn]), " clients")
+			}
 			mu.Lock()
 			for key := range ws.clientWidgets[conn] {
 				//log.Print(conn, " clients: ", ws.clientWidgets[conn])
@@ -221,10 +232,10 @@ func (manager *ClientManager) start() {
 					sendOnChannelNoPanic(ws.clientWidgets[conn][key].send, message)
 					//select {
 					//case ws.clientWidgets[conn][key].send <- message:
-						/*default:
-						close(ws.clientWidgets[conn][key].send)
-							closed(ws.clientWidgets[conn][key])
-							delete(ws.clientWidgets, ws.clientWidgets[conn][key].id)*/
+					/*default:
+					close(ws.clientWidgets[conn][key].send)
+						closed(ws.clientWidgets[conn][key])
+						delete(ws.clientWidgets, ws.clientWidgets[conn][key].id)*/
 					//}
 				}
 			}
@@ -234,33 +245,33 @@ func (manager *ClientManager) start() {
 }
 
 // send message on a channel, recover panic if it is closed
-func sendOnChannelNoPanic(c chan []byte,m []byte) {
-        defer func() {
-                if r := recover(); r != nil {
-                        fmt.Println("Recovered write channel panic:\n", string(debug.Stack()))
-                }
-        }()
+func sendOnChannelNoPanic(c chan []byte, m []byte) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered write channel panic:\n", string(debug.Stack()))
+		}
+	}()
 	select {
-		case c <- m:
+	case c <- m:
 	}
 }
- 
-// handler che fà l'upgrade a websocket, reindirizza i client alla registrazione e lancia le routine di read e write.
+
+// handler che fa l'upgrade a websocket, reindirizza i client alla registrazione e lancia le routine di read e write.
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	clientIP, origin := FromRequest(r)
 	validOrigin := origin != "" && strings.Contains(ws.validOrigins, origin)
 	if !validOrigin {
-		log.Print("invalid origin \"", origin, "\"")
+		log.Print("WARNING invalid origin \"", origin, "\" from ", clientIP)
 	}
 	conn, err := (&upgrader).Upgrade(w, r, nil)
 	if err != nil {
 
-		log.Print("upgrade:", err)
+		log.Print("ERROR upgrade:", err)
 		return
 
 	}
-	client := &WebsocketUser{id: uuid.Must(uuid.NewV4()).String(), socket: conn, send: make(chan []byte), clientIp: clientIP, validOrigin: validOrigin}
+	client := &WebsocketUser{id: uuid.Must(uuid.NewV4()).String(), socket: conn, send: make(chan []byte), ClientIp: clientIP, ValidOrigin: validOrigin, Origin: origin}
 	//log.Print(client.clientIp)
 	manager.register <- client
 
@@ -274,22 +285,22 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 func closed(u *WebsocketUser) {
 	var unsetKey int
 	op := false
-	if u.userType == "widgetInstance" {
+	if u.UserType == "widgetInstance" {
 		//log.Print(len(ws.clientWidgets[u.metricName]))
 		mu.Lock()
-		if len(ws.clientWidgets[u.metricName]) == 1 {
-			publish([]byte("unsubscribe"+u.metricName), "default")
+		if len(ws.clientWidgets[u.MetricName]) == 1 {
+			publish([]byte("unsubscribe"+u.MetricName), "default")
 		}
 		mu.Unlock()
 	}
 
-	if u.widgetUniqueName != nil && u.widgetUniqueName != "" {
+	if u.WidgetUniqueName != nil && u.WidgetUniqueName != "" {
 		mu.Lock()
 
 		widgets := ws.clientWidgets
-		name := u.metricName
+		name := u.MetricName
 		if name == "" {
-			name = u.widgetUniqueName.(string)
+			name = u.WidgetUniqueName.(string)
 		}
 		for value := range widgets[name] {
 			if widgets[name][value] == u {
@@ -304,10 +315,10 @@ func closed(u *WebsocketUser) {
 			widgets[name] = widgets[name][:len(widgets[name])-1]
 			ws.clientWidgets = widgets
 		}
-		log.Print("closed: removed user for ", name, " count: ", len(widgets[name]))
+		//log.Print("closed: removed user for ", name, " count: ", len(widgets[name]))
 		mu.Unlock()
 	} else {
-		log.Print("closed: user with no widgetUniqueName")
+		log.Print("WARNING closed: user with no widgetUniqueName")
 	}
 
 }
@@ -325,11 +336,14 @@ func (c *WebsocketUser) reader() {
 	for {
 		_, message, err := c.socket.ReadMessage()
 		if err != nil {
-			log.Println("read:", err)
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("ERROR read: %v", err)
+			}
 			break
 		}
-		log.Printf("recv: %s", message)
-
+		if ws.debug {
+			log.Printf("INFO recv: %s", message)
+		}
 		dbCommunication(message, c)
 	}
 
@@ -395,7 +409,7 @@ func processingMsg2(jsonMsg []byte) map[string]interface{} {
 	var dat map[string]interface{}
 	err := json.Unmarshal(jsonMsg, &dat)
 	if err != nil {
-		log.Println("Decoding error:", err)
+		log.Println("ERROR Decoding error:", err)
 	}
 	return dat
 }
@@ -404,7 +418,7 @@ func processingMsg(jsonMsg []byte) (map[string]interface{}, map[string]interface
 	var dat map[string]interface{}
 	err := json.Unmarshal(jsonMsg, &dat)
 	if err != nil {
-		log.Println("Decoding error:", err)
+		log.Println("ERROR Decoding error:", err)
 	}
 	parse, err := json.Marshal(dat["newValue"])
 
@@ -453,18 +467,19 @@ func startRedis(ctx context.Context, redisServerAddr string) {
 				return nil
 			},
 			func(channel string, message []byte) error {
-				fmt.Printf("channel: %s, message: %s\n", channel, message)
-
+				if ws.debug {
+					log.Printf("INFO REDIS channel: %s, received message: %s\n", channel, message)
+				}
 				manager.replyAll <- message
 				return nil
 			}, "newData")
 
 		if err != nil {
-			log.Print(err)
+			log.Print("ERROR REDIS ", err)
 		}
 
 		time.Sleep(3 * time.Second)
-		log.Print("Recovering...")
+		log.Print("REDIS Recovering...")
 	}
 }
 
@@ -500,7 +515,7 @@ func listenPubSubChannels(ctx context.Context, redisServerAddr string,
 
 	mu.Lock()
 	if len(ws.clientWidgets) > 0 {
-		log.Print("ok")
+		//log.Print("ok")
 		for conn := range ws.clientWidgets {
 			publish([]byte("subscribe"+conn), "default")
 		}
@@ -520,12 +535,12 @@ func listenPubSubChannels(ctx context.Context, redisServerAddr string,
 				data := string(n.Data)
 				if len(data) >= 9 {
 					if data[0:9] == "subscribe" {
-						psc.Subscribe(data[9:len(data)])
+						psc.Subscribe(data[9:])
 						break
 					}
 
 					if data[0:11] == "unsubscribe" {
-						psc.Unsubscribe(data[11:len(data)])
+						psc.Unsubscribe(data[11:])
 						break
 					}
 				}
