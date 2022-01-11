@@ -26352,11 +26352,13 @@
                                                     dataType: 'json',
                                                     success: function (data1)
                                                     {
-                                                        $arrayttt = JSON.parse(data1.data);
-                                                        if ($arrayttt != null)  {
-                                                            for (var m = 0; m < $arrayttt.length; m++) {
-                                                                $selectString = '<option value="&from='+$arrayttt[m].from+'&to='+$arrayttt[m].to+'|&computationType='+$arrayttt[m].computationType+'">' + $arrayttt[m].from + ' --> ' + $arrayttt[m].to +'('+$arrayttt[m].computationType+')' + '</option>';
-                                                                newSelect.append($selectString);
+                                                        if (IsJsonString(data1.data)) {
+                                                            $arrayttt = JSON.parse(data1.data);
+                                                            if ($arrayttt != null) {
+                                                                for (var m = 0; m < $arrayttt.length; m++) {
+                                                                    $selectString = '<option value="&from=' + $arrayttt[m].from + '&to=' + $arrayttt[m].to + '|&computationType=' + $arrayttt[m].computationType + '">' + $arrayttt[m].from + ' --> ' + $arrayttt[m].to + '(' + $arrayttt[m].computationType + ')' + '</option>';
+                                                                    newSelect.append($selectString);
+                                                                }
                                                             }
                                                         }
                                                     },error: function (errorData)
@@ -26816,10 +26818,12 @@
                                                         dataType: 'json',
                                                         success: function (data1)
                                                         {
-                                                            $arrayttt = JSON.parse(data1.data);
-                                                            if ($arrayttt != null)  {
-                                                                for (var m = 0; m < $arrayttt.length; m++) {
-                                                                    $('#TTTDate').append( '<option value="&from='+$arrayttt[m].from+'&to='+$arrayttt[m].to+'|&computationType=' + $arrayttt[m].computationType + '">' + $arrayttt[m].from + ' --> ' + $arrayttt[m].to + '('+$arrayttt[m].computationType +')'+ '</option>');
+                                                            if (IsJsonString(data1.data)) {
+                                                                $arrayttt = JSON.parse(data1.data);
+                                                                if ($arrayttt != null) {
+                                                                    for (var m = 0; m < $arrayttt.length; m++) {
+                                                                        $('#TTTDate').append('<option value="&from=' + $arrayttt[m].from + '&to=' + $arrayttt[m].to + '|&computationType=' + $arrayttt[m].computationType + '">' + $arrayttt[m].from + ' --> ' + $arrayttt[m].to + '(' + $arrayttt[m].computationType + ')' + '</option>');
+                                                                    }
                                                                 }
                                                             }
                                                         },error: function (errorData)
