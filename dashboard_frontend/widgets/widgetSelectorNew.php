@@ -19,7 +19,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
 <!-- dom-to-image -->
 <script type="text/javascript" src="../js/dom-to-image.min.js"></script>
-<script src="../js/jsonpath-0.8.0.js"></script> <!-- SVG CustomPin Icon MOD -->
+<!-- <script src="../js/jsonpath-0.8.0.js"></script> --> <!-- SVG CustomPin Icon MOD -->
 
 <script type='text/javascript'>
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange) {

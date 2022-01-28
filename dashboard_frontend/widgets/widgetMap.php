@@ -134,6 +134,8 @@ if (!isset($_SESSION)) {
 <script type="text/javascript" src="../js/moment-timezone-with-data.js"></script>
 <script type="text/javascript" src="../js/moment-with-locales.min.js"></script>
 
+<script src="../js/jsonpath-0.8.0.js"></script>
+
 <!-- LEAFLET ANIMATOR PLUGIN -->
 <!-- <script type="text/javascript" src="../js/leaflet-wms-animator.js"></script> -->
 
@@ -279,13 +281,13 @@ if (!isset($_SESSION)) {
             var iconTextMod = "null";
             var keycloak, socket = null;
             var subscribeFlag, tryingAuth, srvFailure = false;
-            var refreshToken = "<?= $_SESSION['refreshToken'] ?>";
             var payload = [];
             var subscribedWsDevices = [];
             var wsConnect = null;
 			var heatmapData = null;
 			var agencyIcons = {};
-			var spiderMarkers = {}
+			var spiderMarkers = {};
+            var altViewMode = null;
 
 
             function triggerEventOnIotApp(map, message) {
@@ -3858,7 +3860,7 @@ if (!isset($_SESSION)) {
                             var symbolcolor = passedData.symbolcolor;
                             var iconFilePath = passedData.iconFilePath;
                             bubbleSelectedMetric[desc] = passedData.bubbleSelectedMetric;
-                            var altViewMode = passedData.altViewMode;
+                            altViewMode = passedData.altViewMode;
 
                             var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
 
@@ -3986,7 +3988,7 @@ if (!isset($_SESSION)) {
                                 query = passedData.query;
                             }
 
-                            if(passedData.targets !== "")
+                            if(passedData.targets && passedData.targets !== "")
                             {
                                 targets = passedData.targets.split(",");
                             }
@@ -4317,20 +4319,22 @@ if (!isset($_SESSION)) {
                                                 }, 350);
                                             }, 1000);
 
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                            eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
-                                            eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
-                                            if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
-                                            } else {
-                                                //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
-                                            }
+                                            if (eventGenerator) {
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
+                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
+                                                if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
+                                                } else {
+                                                    //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                                }
 
-                                            eventGenerator.show();
+                                                eventGenerator.show();
+                                            }
 
                                             var wkt = null;
 
@@ -4439,20 +4443,22 @@ if (!isset($_SESSION)) {
                                                     }, 350);
                                                 }, 1000);
 
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
-                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
-                                                if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
-                                                } else {
-                                                    //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
-                                                }
+                                                if (eventGenerator) {
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                                    eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
+                                                    eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
+                                                    if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
+                                                    } else {
+                                                        //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                                    }
 
-                                                eventGenerator.show();
+                                                    eventGenerator.show();
+                                                }
                                             } else {
                                                 var loadNoBubbleMetricsText = $('<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                                                 loadingDiv.empty();
@@ -4471,14 +4477,16 @@ if (!isset($_SESSION)) {
                                                     }, 350);
                                                 }, 1000);
 
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
+                                                if (eventGenerator) {
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
 
-                                                setTimeout(function () {
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
-                                                }, 1500);
+                                                    setTimeout(function () {
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
+                                                    }, 1500);
+                                                }
 
                                             }
 
@@ -4751,7 +4759,7 @@ if (!isset($_SESSION)) {
                                 query = passedData.query;
                             }
 
-                            if(passedData.targets !== "")
+                            if(passedData.targets && passedData.targets !== "")
                             {
                                 targets = passedData.targets.split(",");
                             }
@@ -4982,21 +4990,22 @@ if (!isset($_SESSION)) {
                                         }, 350);
                                     }, 1000);
 
-                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                    eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
-                                    eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
-                                    if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
-                                    }
-                                    else {
-                                        //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
-                                    }
+                                    if (eventGenerator) {
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                        eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
+                                        eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
+                                        if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
+                                        } else {
+                                            //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                        }
 
-                                    eventGenerator.show();
+                                        eventGenerator.show();
+                                    }
 
                                     var wkt = null;
 
@@ -5079,14 +5088,16 @@ if (!isset($_SESSION)) {
                                         }, 350);
                                     }, 1000);
 
-                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
+                                    if (eventGenerator) {
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
 
-                                    setTimeout(function () {
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
-                                    }, 1500);
+                                        setTimeout(function () {
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
+                                        }, 1500);
+                                    }
 
                                     console.log("Error in getting GeoJSON from ServiceMap");
                                     console.log(JSON.stringify(errorData));
@@ -5580,6 +5591,87 @@ if (!isset($_SESSION)) {
                        // resizeMapView(map.defaultMapRef);
                     }
                 });
+
+                $(document).on('addGeoInfoPin', function (event) {
+                    if (event.target === map.mapName) {
+                        function addGeoInfoPinToMap() {
+                            let passedData = event.passedData;
+
+                            for (let j = 0; j < passedData.length; j++) {
+
+                                let eventType = passedData[j].eventType;
+                                let id = passedData[j].id;
+                                let lat = passedData[j].lat;
+                                let lng = passedData[j].lng;
+                                let textHtml = passedData[j].textHtml;
+
+                                let markerLocation = new L.LatLng(lat, lng);
+                                let marker = new L.Marker(markerLocation);
+                                passedData[j].marker = marker;
+
+                                //Creazione del popup per il pin appena creato
+                                popupText = "<span class='mapPopupLine'>" + textHtml + "</span>";
+
+                                map.defaultMapRef.addLayer(marker);
+                                lastPopup = marker.bindPopup(popupText, {offset: [0, 0]}).openPopup();
+
+                                map.eventsOnMap.push(passedData[j]);
+
+                            }
+                        }
+
+                        if (addMode === 'additive') {
+                            addGeoInfoPinToMap();
+                        }
+
+                        if (addMode === 'exclusive') {
+                            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                if (map.eventsOnMap[i].eventType !== 'GeoInfoPin') {
+                                    map.defaultMapRef.eachLayer(function (layer) {
+                                        map.defaultMapRef.removeLayer(layer);
+                                    });
+                                    map.eventsOnMap.length = 0;
+                                    break;
+                                }
+                            }
+                            //Remove WidgetAlarm active pins
+                            $.event.trigger({
+                                type: "removeAlarmPin",
+                            });
+                            //Remove WidgetEvacuationPlans active pins
+                            $.event.trigger({
+                                type: "removeEvacuationPlanPin",
+                            });
+                            //Remove WidgetSelector active pins
+                            $.event.trigger({
+                                type: "removeSelectorEventPin",
+                            });
+                            //Remove WidgetEvents active pins
+                            $.event.trigger({
+                                type: "removeEventFIPin",
+                            });
+                            //Remove WidgetResources active pins
+                            $.event.trigger({
+                                type: "removeResourcePin",
+                            });
+                            //Remove WidgetTrafficEvents active pins
+                            $.event.trigger({
+                                type: "removeTrafficEventPin",
+                            });
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                maxZoom: 18
+                            }).addTo(map.defaultMapRef);
+
+                            addOperatorEventToMap();
+                        }
+
+                        //console.log(map.eventsOnMap.length);
+
+                        // resizeMapView(map.defaultMapRef);
+                    }
+                });
+                
                 $(document).on('addTrafficEvent', function (event) {
                     if (event.target === map.mapName) {
                         function addTrafficEventToMap() {
@@ -11221,6 +11313,35 @@ if (!isset($_SESSION)) {
                       //  resizeMapView(map.defaultMapRef);
                     }
                 });
+
+                $(document).on('removeGeoInfoPin', function (event) {
+                    if (event.target === map.mapName) {
+                        let passedData = event.passedData;
+
+                        for (let j = 0; j < passedData.length; j++) {
+
+                            let lng = passedData[j].lng;
+                            let lat = passedData[j].lat;
+                            let id = passedData[j].id;
+                            let eventType = passedData[j].eventType;
+
+                            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                if ((map.eventsOnMap[i].lng === lng) && (map.eventsOnMap[i].lat === lat) && (map.eventsOnMap[i].eventType === eventType) && (map.eventsOnMap[i].id === id)) {
+                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i].marker);
+                                    map.eventsOnMap.splice(i, 1);
+                                }
+                            }
+                        }
+
+                        if (lastPopup !== null) {
+                            lastPopup.closePopup();
+                        }
+                        //console.log(map.eventsOnMap.length);
+
+                        //  resizeMapView(map.defaultMapRef);
+                    }
+                });
+                
                 $(document).on('removeTrafficEvent', function (event) {
                     if (event.target === map.mapName) {
                         let passedData = event.passedData;
@@ -11479,6 +11600,11 @@ if (!isset($_SESSION)) {
                     heatmapUrl = widgetData.heatmapUrl;
                     nodeRedInputName = widgetData.params.name;
                     nrInputId = widgetData.params.nrInputId;
+
+                //    if (rowParameters && !JSON.parse(rowParameters).type.includes("remove")) {
+                    if (rowParameters) {    
+                        checkAndViewFromNR(rowParameters);
+                    }
 
                     if (widgetData.params.infoJson != "yes") {
                         $('#'+mapOptionsDivName).hide();
@@ -14297,16 +14423,14 @@ if (!isset($_SESSION)) {
                             webSocket.onAck({result: "Ok", widgetName: msgObj.widgetUniqueName});
                         }
                     }
+
+                //    if (rowParameters) {
+                //        checkAndViewFromNR(rowParameters);
+               //     }
                 }
-            /*    if(msgObj.msgType=="newNRMetricData") {
-                    if(encodeURIComponent(msgObj.metricName) === encodeURIComponent(metricName))
-                    {
-                        //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
-
-                        currentValue = msgObj.newValue;
-
-                    }
-                }*/
+                if(msgObj.msgType=="newNRMetricData") {
+                    checkAndViewFromNR(msgObj.newValue);
+                }
             };
 
             var openWsConn = function(widget) {
@@ -14368,6 +14492,67 @@ if (!isset($_SESSION)) {
                 return;
             };
 
+            function checkAndViewFromNR(rowParams) {
+                if (rowParams) {
+                    var rowParamsObject = rowParams;
+                    if (IsJsonString(rowParams)) {
+                        rowParamsObject = JSON.parse(rowParams);
+                    }
+                    if (rowParamsObject.length) {
+                        for (const rowParamsObj of rowParamsObject) {
+                            viewFromNRSingleObj(rowParamsObj);
+                        }
+                    } else {
+                        viewFromNRSingleObj(rowParamsObject);
+                    }
+                }
+            }
+
+            function viewFromNRSingleObj(rowParamsObj) {
+                var type = rowParamsObj['type'];
+                var target = rowParamsObj['target'];
+                var passedData = rowParamsObj['passedData'];
+                var passedParams = null;
+                if (rowParamsObj['passedParams']) passedParams = rowParamsObj['passedParams'];
+                if (passedData && (passedData.altViewMode == "DynamicCustomPin" && socket == null)) {
+                    wsConnect = "yes";
+                    altViewMode = passedData.altViewMode;
+                    newWSConnect();
+                    setTimeout(function () {
+                        $.event.trigger({
+                            type: type,
+                            target: target,
+                            passedData: passedData,
+                            passedParams: passedParams
+                        });
+                    }, 2000);
+                } else {
+                    if (!rowParamsObj.isTrafficHeatmap && type != null) {
+                        setTimeout(function () {
+                            $.event.trigger({
+                                type: type,
+                                target: target,
+                                passedData: passedData,
+                                passedParams: passedParams
+                            });
+                        }, 1000);
+                    } else {
+                        if (type != null)
+                        {
+                            setTimeout(function () {
+                                $.event.trigger({
+                                    type: type,
+                                    target: target,
+                                    passedData: passedData,
+                                    passedParams: passedParams,
+                                    isTrafficHeatmap: rowParamsObj.isTrafficHeatmap
+                                });
+                            }, 1000);
+                        }
+                    }
+                }
+            }
+            
             function newWSConnect() {
              try {
                  if (socket == null) {
@@ -14380,12 +14565,12 @@ if (!isset($_SESSION)) {
                          try {
                              console.log("New WS Connected. Socket ID: " + socket.id);
 
-                             if (refreshToken != null && refreshToken != "") {
+                             if ("<?= $_SESSION['refreshToken'] ?>" != null && "<?= $_SESSION['refreshToken'] ?>" != "") {
                                  tryingAuth = true;
                                  $.ajax({
                                      url: "../controllers/getAccessToken.php",
                                      data: {
-                                         refresh_token: refreshToken
+                                         refresh_token: "<?= $_SESSION['refreshToken'] ?>"
                                      },
                                      type: "GET",
                                      async: true,
@@ -14407,7 +14592,7 @@ if (!isset($_SESSION)) {
 
                              socket.on("authenticate", function (data) {
                                  try {
-                                     console.log(JSON.parse(data))
+                                     // console.log(JSON.parse(data))
                                      // aggiorna var provando a fare authenticate
                                      tryingAuth = false;
                                  } catch (errAuth) {
