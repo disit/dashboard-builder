@@ -9991,13 +9991,13 @@ if (!isset($_SESSION)) {
                                 if (animationPeriod === "week") {
                                     map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Start</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
                                         '<div id="odAnimationControl">' +
-                                        '<label for="Animation">Animation for:&nbsp;</label><select name="animation" id="animationPeriod" >' +
+                                        '<label for="Animation">Time period:&nbsp;</label><select name="animation" id="animationPeriod" >' +
                                         '<option value="week">week</option>' +
                                         '<option value="month">month</option>' + '</select></div>';
                                 } else {
                                     map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Start</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
                                         '<div id="odAnimationControl">' +
-                                        '<label for="Animation">Animation for:&nbsp;</label><select name="animation" id="animationPeriod" >' +
+                                        '<label for="Animation">Time period:&nbsp;</label><select name="animation" id="animationPeriod" >' +
                                         '<option value="month">month</option>' +
                                         '<option value="week">week</option>' + '</select></div>';
                                 }
@@ -10005,13 +10005,13 @@ if (!isset($_SESSION)) {
                                 if (animationPeriod === "week") {
                                     map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation" checked disabled><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Stop</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
                                         '<div id="odAnimationControl">' +
-                                        '<label for="Animation">Animation for:&nbsp;</label><select name="animation" id="animationPeriod" disabled>' +
+                                        '<label for="Animation">Time period:&nbsp;</label><select name="animation" id="animationPeriod" disabled>' +
                                         '<option value="week">week</option>' +
                                         '<option value="month">month</option>' + '</select></div>';
                                 } else {
                                     map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation" checked disabled><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Stop</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
                                         '<div id="odAnimationControl">' +
-                                        '<label for="Animation">Animation for:&nbsp;</label><select name="animation" id="animationPeriod" disabled>' +
+                                        '<label for="Animation">Time period:&nbsp;</label><select name="animation" id="animationPeriod" disabled>' +
                                         '<option value="month">month</option>' +
                                         '<option value="week">week</option>' + '</select></div>';
                                 }
@@ -10064,10 +10064,18 @@ if (!isset($_SESSION)) {
 
                             // Od Navigation Buttons (prev & next)
                             map.legendOdDiv.innerHTML +=
-                                '<div id="odNavigationCnt">' +
+                                '<div id="odNavigationCnt" style="margin-bottom:0.2cm;margin-top:0.2cm">' +
                                 '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButt" value="< Prev" style="float: left" ' + disabledAnimation() + '/>' +
                                 '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButt" value="Next >" style="float: right" ' + disabledAnimation() + '/>' +
                                 '<div id="<?= $_REQUEST['name_w'] ?>_odDescr" style="text-align: center">' + mapDate + '</div>' +
+                                '</div>';
+
+                            //Od Navigation Buttons (for more days)
+                            map.legendOdDiv.innerHTML +=
+                                '<div id="odNavigationPeriodCnt">' +
+                                '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevPeriod" value="<<" style="float: left" ' + disabledAnimation() + '/>' +
+                                '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextPeriod" value=">>" style="float: right" ' + disabledAnimation() + '/>' +
+                                '<div id="<?= $_REQUEST['name_w'] ?>_odPeriod" style="text-align: center">' + animationPeriod + '</div>' +
                                 '</div>';
 
                             function checkLegend() {
@@ -10098,17 +10106,27 @@ if (!isset($_SESSION)) {
                                     nextOdPage()
                                 }, false);
 
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_prevPeriod").addEventListener("click", function () {
+                                    prevOdPeriod();
+                                }, false);
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_nextPeriod").addEventListener("click", function () {
+                                    nextOdPeriod();
+                                }, false);
 
                                 if (current_page == 0) {
                                     document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "hidden";
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_prevPeriod").style.visibility = "hidden";
                                 } else {
                                     document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "visible";
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_prevPeriod").style.visibility = "visible";
                                 }
 
                                 if (current_page == dates.length - 1) {
                                     document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "hidden";
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_nextPeriod").style.visibility = "hidden";
                                 } else {
                                     document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "visible";
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_nextPeriod").style.visibility = "visible";
                                 }
                             }
 
@@ -10283,6 +10301,8 @@ if (!isset($_SESSION)) {
                                         $("#flow").prop('disabled', false);
                                         $("#<?= $_REQUEST['name_w'] ?>_prevButt").prop('disabled', false);
                                         $("#<?= $_REQUEST['name_w'] ?>_nextButt").prop('disabled', false);
+                                        $("#<?= $_REQUEST['name_w'] ?>_prevPeriod").prop('disabled', false);
+                                        $("#<?= $_REQUEST['name_w'] ?>_nextPeriod").prop('disabled', false);
                                         $("#<?= $_REQUEST['name_w'] ?>_animation").prop('disabled', false);
                                         $("#animationText").text("Start");
                                     }
@@ -10293,6 +10313,7 @@ if (!isset($_SESSION)) {
                         function changeAnimationPeriod() {
                             if (animationPeriod !== $("#animationPeriod").val()) {
                                 animationPeriod = $("#animationPeriod").val();
+                                $("#<?= $_REQUEST['name_w'] ?>_odPeriod").text(animationPeriod);
                             }
                         }
 
@@ -10607,6 +10628,148 @@ if (!isset($_SESSION)) {
 
                                     addOdFromClient();
                                 }
+                            }
+                        }
+
+                        function prevOdPeriod(){
+                            let actual_date = new Date((dates[current_page].split(" "))[0]);
+                            let max_difference;
+                            if (animationPeriod === "week"){
+                                let week_day = actual_date.getDay();
+                                let checkPrevWeek = false;
+                                let temp_page = current_page;
+                                temp_page--;
+                                //il valore assegnato a max_difference serve per andare indietro fra le date fino al lunedì della settimana precedente
+                                if(week_day === 0){
+                                    max_difference = 13;
+                                }else{
+                                    max_difference = week_day + 6;
+                                }
+                                while (!checkPrevWeek) {
+                                    current_page--;
+                                    if (current_page >= 0) {
+                                        let temp_date = new Date((dates[current_page].split(" "))[0]);
+                                        let difference = dateDiffInDays(temp_date, actual_date);
+                                        if (difference > max_difference) {
+                                            checkPrevWeek = true;
+                                        }
+                                    } else {
+                                        checkPrevWeek = true;
+                                    }
+                                }
+                                if(current_page>=0 && current_page===temp_page) {
+                                    current_page--;
+                                }
+                                nextOdPage();
+                            }else{
+                                let checkMonth = false;
+                                let date = dates[current_page].split("-");
+                                let year = date[0];
+                                let month = date[1];
+                                let temp_page = current_page;
+                                temp_page--;
+                                //ciclo per arrivare all'inizio del mese della data attuale
+                                while (!checkMonth) {
+                                    current_page--;
+                                    if (current_page >= 0) {
+                                        let temp_date = dates[current_page].split("-");
+                                        let temp_year = temp_date[0];
+                                        let temp_month = temp_date[1];
+                                        if (month !== temp_month || year !== temp_year) {
+                                            checkMonth = true;
+                                        }
+                                    } else {
+                                        checkMonth = true;
+                                    }
+                                }
+                                checkMonth = false;
+                                month = parseInt(month);
+                                if (month !== 1) {
+                                    month--;
+                                    if(month < 10){
+                                        month = "0" + month.toString();
+                                    }else{
+                                        month = month.toString();
+                                    }
+                                }else{
+                                    month = 12;
+                                    year = parseInt(year);
+                                    year--;
+                                    month = month.toString();
+                                    year = year.toString();
+                                }
+                                //ciclo per arrivare all'inizio del mese precedente
+                                while (!checkMonth) {
+                                    current_page--;
+                                    if (current_page >= 0) {
+                                        let temp_date = dates[current_page].split("-");
+                                        let temp_year = temp_date[0];
+                                        let temp_month = temp_date[1];
+                                        if (month !== temp_month || year !== temp_year) {
+                                            checkMonth = true;
+                                        }
+                                    } else {
+                                        checkMonth = true;
+                                    }
+                                }
+                                if(current_page>=0 && current_page===temp_page) {
+                                    current_page--;
+                                }
+                                nextOdPage();
+                            }
+                        }
+
+                        function nextOdPeriod(){
+                            let actual_date = new Date((dates[current_page].split(" "))[0]);
+                            let max_difference;
+                            if (animationPeriod === "week"){
+                                let week_day = actual_date.getDay();
+                                let checkNextWeek = false;
+                                let temp_page = current_page;
+                                temp_page++;
+                                if(week_day === 0){
+                                    max_difference = 1;
+                                }else{
+                                    max_difference = 8 - week_day;
+                                }
+                                while (!checkNextWeek) {
+                                    current_page++;
+                                    if (current_page < dates.length) {
+                                        let temp_date = new Date((dates[current_page].split(" "))[0]);
+                                        let difference = dateDiffInDays(actual_date, temp_date);
+                                        if (difference > max_difference) {
+                                            checkNextWeek = true;
+                                        }
+                                    } else {
+                                        checkNextWeek = true;
+                                    }
+                                }
+                                if(current_page<dates.length && current_page===temp_page) {
+                                    current_page++;
+                                }
+                                prevOdPage();
+                            }else{
+                                let checkMonth = false;
+                                let date = dates[current_page].split("-");
+                                let year = date[0];
+                                let month = date[1];
+                                while (!checkMonth) {
+                                    current_page++;
+                                    if (current_page < dates.length) {
+                                        let temp_date = dates[current_page].split("-");
+                                        let temp_year = temp_date[0];
+                                        let temp_month = temp_date[1];
+                                        if (month !== temp_month || year !== temp_year) {
+                                            checkMonth = true;
+                                        }
+                                    } else {
+                                        checkMonth = true;
+                                    }
+                                }
+                                if(current_page < dates.length) {
+                                    current_page++;
+                                }
+                                prevOdPage();
                             }
                         }
 
@@ -10940,7 +11103,7 @@ if (!isset($_SESSION)) {
                             let od = {};
                             od.eventType = "od";
 
-                            passedParams = event.passedParams;
+                            /*passedParams = event.passedParams;
 
                             var color1 = passedParams.color1;
                             var color2 = passedParams.color2;
@@ -10973,7 +11136,7 @@ if (!isset($_SESSION)) {
 
                             var parHeight = loadingText.height();
                             var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                            loadingText.css("margin-top", parMarginTop + "px");
+                            loadingText.css("margin-top", parMarginTop + "px");*/
 
                             if (current_page < 0 || current_page >= dates.length) {
                                 current_page = (dates.length) - 1;
@@ -10992,14 +11155,14 @@ if (!isset($_SESSION)) {
                             map.flowInfo.addTo(map.defaultMapRef);
                             map.eventsOnMap.push(od);
 
-                            loadingDiv.empty();
+                            /*loadingDiv.empty();
                             loadingDiv.append(loadOkText);
 
                             parHeight = loadOkText.height();
                             parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                            loadOkText.css("margin-top", parMarginTop + "px");
+                            loadOkText.css("margin-top", parMarginTop + "px");  */
 
-                            if (!animationFlag) {
+                            /*if (!animationFlag) {
                                 setTimeout(function () {
                                     loadingDiv.css("opacity", 0);
                                     setTimeout(function () {
@@ -11009,15 +11172,16 @@ if (!isset($_SESSION)) {
                                         loadingDiv.remove();
                                     }, 350);
                                 }, 1000);
-                            } else {
-                                setTimeout(function () {
-                                    loadingDiv.css("opacity", 0);
+                            } else {    */
+                            if(animationFlag){
+                                //setTimeout(function () {
+                                    /*loadingDiv.css("opacity", 0);
                                     setTimeout(function () {
                                         loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
                                             $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
                                         });
                                         loadingDiv.remove();
-                                    }, 350);
+                                    }, 350);    */
                                     setTimeout(function () {
                                         if (animationFlag && odOnMap) {
                                             animationCounter--;
@@ -11028,7 +11192,7 @@ if (!isset($_SESSION)) {
                                             }
                                         }
                                     }, 3000);
-                                }, 1000);
+                            //    }, 1000);
                             }
                         }
 
