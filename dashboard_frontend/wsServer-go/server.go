@@ -64,11 +64,11 @@ func main() {
 	initDB()
 
 	defer db.Close()
-	ctx := context.Background()
 
 	go manager.start()
 	http.HandleFunc("/", handleConnections)
 	if ws.redisEnabled == "yes" {
+		ctx := context.Background()
 		go startRedis(ctx, ws.redisAddress)
 	}
 	// go countGo()
@@ -83,6 +83,13 @@ func home(w http.ResponseWriter, r *http.Request) {
 	tpl.Execute(w, "ws://"+r.Host+"/server")
 }
 */
+
+func readEnvOrIni(section *ini.Section, envPrefix string, key string, activeEnv string) string {
+	if value := os.Getenv("WSS_" + strings.ToUpper(envPrefix+key)); value != "" {
+		return value
+	}
+	return section.Key(key + "[" + activeEnv + "]").String()
+}
 
 // funzione di inizializ. con parsing dei file ini e creazione della mappa dei widgets.
 
@@ -137,53 +144,59 @@ func buildAndInit() *WebSocketServer {
 	log.Print("active env: ", wss.activeEnv)
 
 	a = genFileContent.Sections()
-	wss.dbhost = a[0].Key("host[" + wss.activeEnv + "]").String()
+	wss.dbhost = readEnvOrIni(a[0], "DB", "host", wss.activeEnv)
 	log.Print(wss.dbhost)
 	a = dbFileContent.Sections()
-	wss.username = a[0].Key("username[" + wss.activeEnv + "]").String()
-	wss.password = a[0].Key("password[" + wss.activeEnv + "]").String()
-	wss.dbname = a[0].Key("dbname[" + wss.activeEnv + "]").String()
+	wss.username = readEnvOrIni(a[0], "DB", "username", wss.activeEnv)
+	wss.password = readEnvOrIni(a[0], "DB", "password", wss.activeEnv)
+	wss.dbname = readEnvOrIni(a[0], "", "dbname", wss.activeEnv)
 
 	a = wsServerContent.Sections()
-	wss.serverAddress = a[0].Key("wsServerAddress[" + wss.activeEnv + "]").String()
-	wss.serverPort = a[0].Key("wsServerInternalPort[" + wss.activeEnv + "]").String()
+	wss.serverAddress = readEnvOrIni(a[0], "", "wsServerAddress", wss.activeEnv)
+	wss.serverPort = readEnvOrIni(a[0], "", "wsServerInternalPort", wss.activeEnv)
 	if wss.serverPort == "" {
-		wss.serverPort = a[0].Key("wsServerPort[" + wss.activeEnv + "]").String()
+		wss.serverPort = readEnvOrIni(a[0], "", "wsServerPort", wss.activeEnv)
 	}
-	wss.validOrigins = a[0].Key("validOrigins[" + wss.activeEnv + "]").String()
-	wss.requireToken = a[0].Key("requireToken[" + wss.activeEnv + "]").String()
-	wss.debug = a[0].Key("debug["+wss.activeEnv+"]").String() == "true"
-	wss.debugKey = a[0].Key("debugKey[" + wss.activeEnv + "]").String()
+	wss.validOrigins = readEnvOrIni(a[0], "", "validOrigins", wss.activeEnv)
+	wss.requireToken = readEnvOrIni(a[0], "", "requireToken", wss.activeEnv)
+	wss.debug = readEnvOrIni(a[0], "", "debug", wss.activeEnv) == "true"
+	wss.debugKey = readEnvOrIni(a[0], "", "debugKey", wss.activeEnv)
 
 	a = ssoFileContent.Sections()
-	wss.clientSecret = a[0].Key("ssoClientSecret[" + wss.activeEnv + "]").String()
-	wss.clientID = a[0].Key("ssoClientId[" + wss.activeEnv + "]").String()
-	wss.ssoHost = a[0].Key("ssoHost[" + wss.activeEnv + "]").String()
-	wss.ssoIssuer = a[0].Key("ssoIssuer[" + wss.activeEnv + "]").String()
+	wss.clientSecret = readEnvOrIni(a[0], "", "ssoClientSecret", wss.activeEnv)
+	wss.clientID = readEnvOrIni(a[0], "", "ssoClientId", wss.activeEnv)
+	wss.ssoHost = readEnvOrIni(a[0], "", "ssoHost", wss.activeEnv)
+	wss.ssoIssuer = readEnvOrIni(a[0], "", "ssoIssuer", wss.activeEnv)
 	log.Print("sso: issuer ", wss.ssoIssuer)
 
 	a = redisServerContent.Sections()
-	wss.redisEnabled = a[0].Key("redisEnabled[" + wss.activeEnv + "]").String()
-	wss.redisAddress = a[0].Key("redisHost[" + wss.activeEnv + "]").String()
-	wss.redisPassword = a[0].Key("redisPwd[" + wss.activeEnv + "]").String()
+	wss.redisEnabled = readEnvOrIni(a[0], "", "redisEnabled", wss.activeEnv)
+	wss.redisAddress = readEnvOrIni(a[0], "", "redisHost", wss.activeEnv)
+	wss.redisPassword = readEnvOrIni(a[0], "", "redisPwd", wss.activeEnv)
 	log.Print("redis enabled ", wss.redisEnabled, " ", wss.redisAddress, " ", wss.redisPassword)
 
 	a = ownershipContent.Sections()
-	wss.ownershipURL = a[0].Key("ownershipApiBaseUrl[" + wss.activeEnv + "]").String()
+	wss.ownershipURL = readEnvOrIni(a[0], "", "ownershipApiBaseUrl", wss.activeEnv)
 	log.Print("ownership: ", wss.ownershipURL)
 
 	a = ldapContent.Sections()
-	wss.ldapServer = a[0].Key("ldapServer[" + wss.activeEnv + "]").String()
-	wss.ldapPort = a[0].Key("ldapPort[" + wss.activeEnv + "]").String()
-	wss.ldapBaseDN = a[0].Key("ldapBaseDN[" + wss.activeEnv + "]").String()
+	wss.ldapServer = readEnvOrIni(a[0], "", "ldapServer", wss.activeEnv)
+	wss.ldapPort = readEnvOrIni(a[0], "", "ldapPort", wss.activeEnv)
+	wss.ldapBaseDN = readEnvOrIni(a[0], "", "ldapBaseDN", wss.activeEnv)
 	log.Print("ldap: ", wss.ldapServer, ":", wss.ldapPort, " ", wss.ldapBaseDN)
 
 	wss.clientWidgets = make(map[string][]*WebsocketUser)
 
 	ctx := context.Background()
-	wss.oidcProvider, err = oidc.NewProvider(ctx, wss.ssoIssuer)
-	if err != nil {
-		log.Fatal("FATAL init OIDC Provider: ", err)
+	for {
+		wss.oidcProvider, err = oidc.NewProvider(ctx, wss.ssoIssuer)
+		if err != nil {
+			log.Print("ERROR init OIDC Provider: ", err, " waiting 30s...")
+			time.Sleep(30 * time.Second)
+		} else {
+			log.Print("OIDC Provider ", wss.ssoIssuer, " initalized")
+			break
+		}
 	}
 
 	return wss
@@ -409,7 +422,7 @@ func processingMsg2(jsonMsg []byte) map[string]interface{} {
 	var dat map[string]interface{}
 	err := json.Unmarshal(jsonMsg, &dat)
 	if err != nil {
-		log.Println("ERROR Decoding error:", err)
+		log.Println("ERROR JSON Decoding error:", err)
 	}
 	return dat
 }

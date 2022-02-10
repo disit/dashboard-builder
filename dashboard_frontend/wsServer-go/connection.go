@@ -43,9 +43,10 @@ func init() {
 
 // Message for metrics
 type Message struct {
-	MsgType    string      `json:"msgType"`
-	MetricName string      `json:"metricName"`
-	NewValue   interface{} `json:"newValue"`
+	MsgType          string      `json:"msgType"`
+	MetricName       interface{} `json:"metricName"`
+	WidgetUniqueName interface{} `json:"widgetUniqueName"`
+	NewValue         interface{} `json:"newValue"`
 }
 
 // EmitterMessage for emitters

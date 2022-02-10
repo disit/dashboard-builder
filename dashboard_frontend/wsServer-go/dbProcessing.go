@@ -88,7 +88,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		user.AppID = fmt.Sprintf("%v", dat["appId"])
 
 		if dat["accessToken"] != nil {
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;account;")
 		} else {
 			err = fmt.Errorf("missing accessToken")
 		}
@@ -274,7 +274,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 				response["error"] = "missing token"
 				break
 			}
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;account;")
 			if err != nil {
 				log.Print(dat["msgType"], " ERROR invalid token ", err, " atk:", dat["accessToken"])
 				response["result"] = "Ko"
@@ -403,6 +403,8 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 	case "DelEmitter":
 		break
 	case "AddEditMetric":
+		//sender: nodered
+		//receiver: wsServer
 		/* inserisce un nuovo record nella tabella NodeRedMetrics del databse dashboard manager se il blocchetto e' nuovo ,altrimenti
 		aggiorna i dati precedenti facendo una delete e un insert
 		*/
@@ -413,7 +415,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		user.AppID = fmt.Sprintf("%v", dat["appId"])
 
 		if dat["accessToken"] != nil {
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;account;")
 		} else {
 			err = fmt.Errorf("missing accessToken")
 		}
@@ -534,15 +536,20 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		//sender: nodered
 		newMessage := &Message{
 			MsgType:    "newNRMetricData",
-			MetricName: dat["metricName"].(string),
+			MetricName: dat["metricName"],
 			NewValue:   dat["newValue"]}
 		var err error
 		var username, role string
 
+		if dat["widgetUniqueName"] != nil {
+			newMessage.WidgetUniqueName = dat["widgetUniqueName"].(string)
+			newMessage.MetricName = nil
+			dat["metricName"] = nil
+		}
 		user.AppID = fmt.Sprintf("%v", dat["appId"])
 
 		if dat["accessToken"] != nil {
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;account;")
 		} else {
 			err = fmt.Errorf("missing accessToken")
 		}
@@ -565,101 +572,132 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			}
 		}
 
-		//check if the user is the owner of the nodered metric
-		var count int
-		err2 := db.QueryRow("SELECT COUNT(*) FROM "+dashboard+".NodeRedMetrics WHERE name=? AND user=? AND appId=? AND flowId=?;", dat["metricName"], dat["user"], dat["appId"], dat["flowId"]).Scan(&count)
+		var metricOrWidget string
+		if newMessage.MetricName != nil {
+			//check if the user is the owner of the nodered metric
+			var count int
+			err2 := db.QueryRow("SELECT COUNT(*) FROM "+dashboard+".NodeRedMetrics WHERE name=? AND user=? AND appId=? AND flowId=?;", dat["metricName"], dat["user"], dat["appId"], dat["flowId"]).Scan(&count)
 
-		if err2 != nil {
-			log.Print(dat["msgType"], " ERROR ", err2)
-			response["result"] = "Ko"
-		}
-		if count == 0 {
-			log.Print("AddMetricData: metric not found INVALID REQUEST ", dat)
+			if err2 != nil {
+				log.Print(dat["msgType"], " ERROR ", err2)
+				response["result"] = "Ko"
+				break
+			}
+			if count == 0 {
+				log.Print("AddMetricData: metric not found INVALID REQUEST ", dat)
+				response["error"] = "metric not found"
+				response["result"] = "Ko"
+				break
+			}
+			metricOrWidget = dat["metricName"].(string)
 		} else {
-
-			// inoltra i nuovi dati ai vari user connessi. Con l'implementazione
-			// redis viene chiamata la funzione publish altrimenti, si inserisce
-			// direttamente il nuovo messaggio nel canale replyAll del manager.
-			user.MetricName = dat["metricName"].(string)
-
-			newMsg, err := json.Marshal(newMessage)
-
+			//check if the widget is of a dashboard of the user
+			var count int
+			err = db.QueryRow("SELECT count(*) FROM "+dashboard+".Config_widget_dashboard wd join "+
+				dashboard+".Config_dashboard d ON wd.id_dashboard=d.Id where name_w= ? and deleted='no' and creator=?;",
+				dat["widgetUniqueName"], dat["user"]).Scan(&count)
 			if err != nil {
-				log.Print(err)
+				log.Print("AddMetricData failed widget search ", dat["widgetUniqueName"], " error: ", err)
+				response["result"] = "Ko"
+				response["error"] = "failed widget search"
+				break
 			}
-			if ws.redisEnabled == "yes" {
-				publish(newMsg, dat["metricName"].(string))
+			//log.Print("widget ", widgetUniqueName, " -> dashboard:", idDashboard, " creator:", creator)
+			if count == 0 {
+				log.Print("ERROR widget not found INVALID REQUEST ", dat)
+				response["result"] = "Ko"
+				response["error"] = "widget not found or deleted"
+				break
+			}
+			metricOrWidget = dat["widgetUniqueName"].(string)
+		}
+
+		// inoltra i nuovi dati ai vari user connessi. Con l'implementazione
+		// redis viene chiamata la funzione publish altrimenti, si inserisce
+		// direttamente il nuovo messaggio nel canale replyAll del manager.
+		user.MetricName = metricOrWidget
+
+		newMsg, err := json.Marshal(newMessage)
+
+		if err != nil {
+			log.Print(err)
+		}
+		if ws.redisEnabled == "yes" {
+			publish(newMsg, metricOrWidget)
+		} else {
+			manager.replyAll <- newMsg
+		}
+
+		computationDate := time.Now().String()
+		computationDate = computationDate[0:19]
+
+		//aggiunge i nuovi valori alla tabella Data
+
+		switch dat["metricType"] {
+		case "Intero", "Float":
+			val := "value_num"
+			res := caseQuery(db, computationDate, dat, val)
+			response["result"] = res
+			break
+
+		case "Percentuale":
+
+			val := "value_perc1"
+			res := caseQuery(db, computationDate, dat, val)
+			response["result"] = res
+			break
+
+		case "Series":
+
+			newValueJson, _ := json.Marshal(dat["newValue"])
+			var err2 error
+			if dat["widgetUniqueName"] != nil {
+				_, err2 = db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET rowParameters=? WHERE name_w=?", newValueJson, dat["widgetUniqueName"].(string))
+			} else if dat["metricName"] != nil {
+				_, err2 = db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET rowParameters=? WHERE id_metric=? AND appId=? AND flowId=?", newValueJson, dat["metricName"].(string), dat["appId"].(string), dat["flowId"].(string))
+			}
+
+			if err2 != nil {
+				log.Print("ERROR UPDATE Series ", err2, " msg ", dat)
+				response["result"] = "Ko"
 			} else {
-				manager.replyAll <- newMsg
-			}
-
-			computationDate := time.Now().String()
-			computationDate = computationDate[0:19]
-
-			//aggiunge i nuovi valori alla tabella Data
-
-			switch dat["metricType"] {
-			case "Intero", "Float":
-				val := "value_num"
-				res := caseQuery(db, computationDate, dat, val)
-				response["result"] = res
-				break
-
-			case "Percentuale":
-
-				val := "value_perc1"
-				res := caseQuery(db, computationDate, dat, val)
-				response["result"] = res
-				break
-
-			case "Series":
-
-				//val := "series"
-				//res := caseQuery(db, computationDate, dat, val)
-				newValueJson, _ := json.Marshal(dat["newValue"])
-				_, err2 := db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET rowParameters=? WHERE id_metric=? AND appId=? AND flowId=?", newValueJson, dat["metricName"].(string), dat["appId"].(string), dat["flowId"].(string))
-				if err2 != nil {
-					log.Print(err2)
-					response["result"] = "Ko"
-				} else {
-					response["result"] = "Ok"
-				}
-				break
-
-			case "Testuale", "webContent":
-
-				if strings.Index(fmt.Sprint(dat["newValue"]), "OperatorEvent") > -1 {
-
-					_, err2 := db.Exec("INSERT INTO "+dashboard+".OperatorEvents(time, personNumber, lat, lng, codeColor, user) VALUES(?, ?, ?, ?, ?, ?)"+
-						";", computationDate, jsonParsed["personNumber"], jsonParsed["lat"], jsonParsed["lng"], jsonParsed["codeColor"], jsonParsed["user"])
-
-					if err2 != nil {
-						log.Print(dat["msgType"], " ERROR ", err2)
-						response["result"] = "Ko"
-
-					} else {
-						response["result"] = "Ok"
-					}
-
-				} else {
-
-					val := "value_text"
-
-					res := caseQuery(db, computationDate, dat, val)
-
-					response["result"] = res
-					break
-
-				}
-
-			case "geoJson":
 				response["result"] = "Ok"
-				break
 			}
 
 			break
 
+		case "Testuale", "webContent":
+
+			if strings.Index(fmt.Sprint(dat["newValue"]), "OperatorEvent") > -1 {
+
+				_, err2 := db.Exec("INSERT INTO "+dashboard+".OperatorEvents(time, personNumber, lat, lng, codeColor, user) VALUES(?, ?, ?, ?, ?, ?)"+
+					";", computationDate, jsonParsed["personNumber"], jsonParsed["lat"], jsonParsed["lng"], jsonParsed["codeColor"], jsonParsed["user"])
+
+				if err2 != nil {
+					log.Print(dat["msgType"], " ERROR ", err2)
+					response["result"] = "Ko"
+
+				} else {
+					response["result"] = "Ok"
+				}
+
+			} else {
+
+				val := "value_text"
+
+				res := caseQuery(db, computationDate, dat, val)
+
+				response["result"] = res
+				break
+
+			}
+
+		case "geoJson":
+			response["result"] = "Ok"
+			break
 		}
+
+		break
 
 	case "ClientWidgetRegistration":
 		//sender: dashboard
@@ -723,7 +761,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		var err error
 
 		if dat["accessToken"] != nil {
-			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;")
+			username, role, err = checkToken(dat["accessToken"].(string), "nodered;nodered-iotedge;account;")
 		} else {
 			//log.Print("MISSING ACCESSTOKEN ",dat)
 			err = fmt.Errorf("missing accessToken")
