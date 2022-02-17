@@ -250,7 +250,9 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			break
 		}
 
-		err = db.QueryRow("SELECT id_dashboard, creator, nri.id FROM "+dashboard+".Config_widget_dashboard wd join "+dashboard+".Config_dashboard d ON wd.id_dashboard=d.Id join "+dashboard+".NodeRedInputs nri on nri.nodeId=wd.nodeId and nri.user=d.user where name_w= ? and deleted='no';",
+		err = db.QueryRow("SELECT id_dashboard, creator, nri.id FROM "+dashboard+".Config_widget_dashboard wd join "+
+			dashboard+".Config_dashboard d ON wd.id_dashboard=d.Id join "+
+			dashboard+".NodeRedInputs nri on nri.nodeId=wd.nodeId and nri.user=d.user where name_w= ? and deleted='no';",
 			widgetUniqueName).Scan(&idDashboard, &creator, &nrInputID)
 		if err != nil {
 			log.Print("SendToEmitter failed widget ", widgetUniqueName, " error: ", err)
@@ -594,7 +596,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			//check if the widget is of a dashboard of the user
 			var count int
 			err = db.QueryRow("SELECT count(*) FROM "+dashboard+".Config_widget_dashboard wd join "+
-				dashboard+".Config_dashboard d ON wd.id_dashboard=d.Id where name_w= ? and deleted='no' and creator=?;",
+				dashboard+".Config_dashboard d ON wd.id_dashboard=d.Id where name_w= ? and deleted='no' and user=?;",
 				dat["widgetUniqueName"], dat["user"]).Scan(&count)
 			if err != nil {
 				log.Print("AddMetricData failed widget search ", dat["widgetUniqueName"], " error: ", err)
@@ -652,7 +654,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			newValueJson, _ := json.Marshal(dat["newValue"])
 			var err2 error
 			if dat["widgetUniqueName"] != nil {
-				_, err2 = db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET rowParameters=? WHERE name_w=?", newValueJson, dat["widgetUniqueName"].(string))
+				_, err2 = db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET rowParameters=?,nodeId=? WHERE name_w=?", newValueJson, dat["nodeId"], dat["widgetUniqueName"].(string))
 			} else if dat["metricName"] != nil {
 				_, err2 = db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET rowParameters=? WHERE id_metric=? AND appId=? AND flowId=?", newValueJson, dat["metricName"].(string), dat["appId"].(string), dat["flowId"].(string))
 			}

@@ -31638,7 +31638,7 @@
 
                                             var gisTargetCenterParametersM = null;
                                             $('#urlWidgetM').attr('disabled', false);
-                                            $('#urlWidgetM').prop('required', true);
+                                            // $('#urlWidgetM').prop('required', true);
                                             $("#titleLabelM").html("Title");
                                             $("#bckColorLabelM").html("Background color");
                                             $('#inputColorWidgetM').val("");

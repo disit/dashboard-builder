@@ -3120,6 +3120,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
      //var url = 'https://www.snap4city.org/ldgraph/?sparql=http://virtuoso-kb:8890/sparql&uri=http://model.snap4city.org/Dashboard_2748_Bubble-Chart_Map_Test&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)"';
      var LOGPath = '<?php echo($LOGPath) ?>';
      var ldgraphPath = '<?php echo($ldgraphPath) ?>';
+     var graphURI = '<?php echo($graphURI) ?>';
      //var url = LOGPath+'2748_Bubble-Chart_Map_Test&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)"';
      var myStr = $('#delegationsDashboardTitle').text();
      var newStr = myStr.replaceAll(" ", "_");
@@ -3154,41 +3155,61 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                     //console.log(obj.data);
                     var obj = data['data'];
                     var desc = data['desc'];
-                    var cpunt = obj['widget-data'].length;
+                    var cpunt = obj['widget-data'].length;                       
                     var list = "";
                     
                     for (var i =0; i<cpunt; i++){
-                        var name = "";
-                        if (obj['widget-data'][i]['data'][0]['name']){
-                             name = obj['widget-data'][i]['data'][0]['name'];
-                        }
-                       
+                        var name = new Array();
+                        var class1 =new Array();
+                         var vn_link = new Array();
+                        if (obj['widget-data'][i]['data']){
+                            var data_0 = obj['widget-data'][i]['data'];
+                            var data_length = data_0.length;
+                            if (data_length > 0){
+                                //
+                                for(var y=0; y <data_length; y++){
+                                name[y] = obj['widget-data'][i]['data'][y]['name'];
+                                class1[y] = obj['widget-data'][i]['data'][y]['class'];
+                                     if (obj['widget-data'][i]['data'][y]['class'].indexOf("kpi") >= 0){
+                                        vn_link[y] = "?valuename="+desc[i]['unique_name_id']+"&type="+obj['widget-data'][i]['data'][y]['class'];
+                                            }else{
+                                                vn_link[y] = "";
+                                            }
+                                    }
+                            }else{
+                                name[0] = "";
+                                class1[0] = "";
+                            }
+                             
+                             }
+                                  
                         var valueName = "";
                         //valueName = name.split('/');
                         var c = valueName.length;
                         var vn = "";
                         var root_link = "";
-                        var vn_link = "";
-                        var class1 = "";
+                        //var vn_link = "";
+                        
                         //
                         console.log(desc[i]['unique_name_id']);
                         vn = desc[i]['unique_name_id']; 
+                        
                         if (vn === ""){
-                              vn_link = "";
+                              vn_link[y] = "";
                          }else{
                              
-                              vn_link = "?valuename="+desc[i]['unique_name_id'];
-                              
+                              vn_link[y] = "?valuename="+desc[i]['unique_name_id'];
+                              /*
                               if (obj['widget-data'][i]['data'][0]['class']){
                                   class1 = obj['widget-data'][i]['data'][0]['class'];
                               if (obj['widget-data'][i]['data'][0]['class'].indexOf("kpi") >= 0){
                                 vn_link = "?valuename="+desc[i]['unique_name_id']+"&type="+obj['widget-data'][i]['data'][0]['class'];
-                            }
-                        }
+                                                      }
+                                                  }*/
                          }
                          //if my-kpi o poi
                          
-                         if ((class1=='my-kpi')||(class1=='sensor')||(typeof vn === "undefined")){
+                         /*if ((class1=='my-kpi')||(class1=='sensor')||(typeof vn === "undefined")){
                             //name
                             console.log('class1: '+class1);
                             console.log('name: '+name);
@@ -3201,24 +3222,118 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                             //if (class1.indexOf("kpi") >= 0){
                                 vn_link = "?valuename="+n2+"&high-level-type="+class1;
                            // }
+                         }*/
+                         //
+                             
+                         
+                         if (vn_link == ""){
+                             root_link = "(root)";
+                         }
+                         var content_ul = "";
+                         for(var y=0; y <data_length; y++){
+                        //var log_link = 'https://www.snap4city.org/ldgraph/?sparql=http://virtuoso-kb:8890/sparql&uri='+data['data']['name']+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)';
+                        var LOGPath1 = LOGPath.replaceAll("http://model.snap4city.org/Dashboard_", "");
+                        var log_link = LOGPath1+name[y]+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)';
+                        console.log(log_link);
+                        
+                        
+                            //
+                                 if (vn === ""){
+                              vn_link[y] = "";
+                         }else{
+                             
+                              vn_link[y] = "?valuename="+desc[i]['unique_name_id'];
+                              /*
+                              if (obj['widget-data'][i]['data'][0]['class']){
+                                  class1 = obj['widget-data'][i]['data'][0]['class'];
+                              if (obj['widget-data'][i]['data'][0]['class'].indexOf("kpi") >= 0){
+                                vn_link = "?valuename="+desc[i]['unique_name_id']+"&type="+obj['widget-data'][i]['data'][0]['class'];
+                                                      }
+                                                  }*/
+                         }
+                         //if my-kpi o poi
+                         
+                         if ((class1[y]=='my-kpi')||(class1[y]=='sensor')||(typeof vn === "undefined")){
+                            //name
+                            console.log('class1: '+class1[y]);
+                            console.log('name: '+name[y]);
+                            //
+                            var n1 = name[y].split("/");
+                            var l = n1.length;
+                            var n2 = n1[l-1];
+                            vn = n2;
+                            vn_link[y] = "?valuename="+n2;
+                            //if (class1.indexOf("kpi") >= 0){
+                                vn_link[y] = "?valuename="+n2+"&high-level-type="+class1[y];
+                           // }
                          }
                          //
-                             var text_link = name;
+                             
+                         
+                         if (vn_link[y] == ""){
+                             root_link = "(root)";
+                         }
+                            //
+                            var text_link = name[y];
                          var text_link_count = text_link.length;
                          if (text_link_count > 70){
                              text_link = text_link.substring(0,67);
                              text_link = text_link + '...';
                          }
-                         
-                         if (vn_link == ""){
-                             root_link = "(root)";
-                         }
-                        //var log_link = 'https://www.snap4city.org/ldgraph/?sparql=http://virtuoso-kb:8890/sparql&uri='+data['data']['name']+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)';
-                        var LOGPath1 = LOGPath.replaceAll("http://model.snap4city.org/Dashboard_", "");
-                        var log_link = LOGPath1+name+'&embed&multiple_search=true&controls=false&description=false&info=false&translate=[0,0]&scale=(0.7)';
-                        console.log(log_link);
-                        list = list +'<li><b><?= _("Widget") ?>: </b>'+desc[i]['title_w']+' - <i>('+desc[i]['type_w']+')</i></li><li><b><?= _("Use Data") ?>: </b><ul><li><b>'+obj['widget-data'][i]['data'][0]['class']+':</b> '+vn+'</li><li><b><?= _("Query") ?>: </b><a href="'+name+'" target="_blank" rel="tooltip" title="'+name+'">'+text_link+'</a></li></li><li><a href="inspector.php'+vn_link+'" target="_blank" ><?= _("Link to Data Inspector") ?></a>  '+root_link+'</li><li><a href="'+log_link+'" Target= "_blank" ><?= _("Link to Graph log") ?></a></li></ul></li></br />';
-                    }
+                            //
+                            var type_metric = "";
+                            if (vn != ""){
+                               type_metric = '<li><b>'+class1[y]+':</b> '+vn+'</li>';
+                            }else{
+                                type_metric = "";
+                            }
+                            //
+                            var name_current = name[y];
+                            if (name_current.includes('format=json')){
+                                name_current = name_current.replace('format=json','');
+                                
+                            }
+                            if ((name_current.includes('format=html'))){
+                                    
+                                }else{
+                                    name_current = name_current+'&format=html';
+                                }
+                                if ((desc[i]['type_w'] == 'widgetSingleContent')||(desc[i]['type_w'] == 'widgetTimeTrend')){
+                                       if((name_current.includes('servicemap'))){
+                                             name_current = '';
+                                         }else{
+                                             //name_current = 'https://servicemap.disit.org/WebAppGrafo/api/v1/?serviceUri='+name_current;
+                                                          //"https://servicemap.disit.org/WebAppGrafo/"
+                                             name_current = graphURI + 'api/v1/?serviceUri='+name_current;
+                                         }
+                                     }
+                                if (desc[i]['type_w'] == 'widgetExternalContent'){
+                                    if((!name_current.includes('servicemap'))){
+                                        name_current = '';
+                                    }
+                                }  
+
+                            var link_servicemap = '';
+                            if(name_current != ''){             
+                                 link_servicemap = '<li><a href="'+name_current+'" target="_blank" ><?= _("Link to Servicemap") ?></a></li>';
+                             }
+                            //
+                                                            //
+                                if (class1[y] == "IotApp"){
+                                    name_current = 'iotApplications.php?pageTitle=IOT+Applications&linkId=iotAppsLink&fromSubmenu=false&sorts[name]=1&queries[search]='+vn;
+                                    link_servicemap = '<li><a href="'+name_current+'" target="_blank" ><?= _("Link to IotApp") ?></a></li>';
+                                }
+                                //
+                            //
+                            if ((desc[i]['type_w'] =='widgetButton')||(class1[y].includes("KPI"))||(name_current.includes("model.snap4city.org/"))){
+                                        link_servicemap = '';
+                             }
+                            
+                            content_ul = content_ul +type_metric+ '<li><b><?= _("Query") ?>: </b><a href="'+name[y]+'" target="_blank" rel="tooltip" title="'+name[y]+'">'+text_link+'</a></li></li><li><a href="inspector.php'+vn_link[y]+'" target="_blank" ><?= _("Link to Data Inspector") ?></a>  '+root_link+'</li><li><a href="'+log_link+'" Target= "_blank" ><?= _("Link to Graph log") ?></a></li>'+link_servicemap+'<br />';
+                        }
+                        //
+                        list = list +'<li><b><?= _("Widget") ?>: </b>'+desc[i]['title_w']+' - <i>('+desc[i]['type_w']+')</i></li><li><b><?= _("Use Data") ?>: </b><ul>'+content_ul+'</ul></li><br />';
+                        }
                     $('#hierarchy').html('<span><b><?= _("Dashboard") ?>:   </b>'+myStr+'<br /><ul>'+list+'</ul></span>');
                 }
                 }

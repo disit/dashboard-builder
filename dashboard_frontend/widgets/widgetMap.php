@@ -790,7 +790,7 @@ if (!isset($_SESSION)) {
                                     }
                                 }
                             }
-                            if (metricName != 'Map' && nodeId != null && serviceProperties["serviceUri"] != null && serviceProperties["serviceUri"] != '') {
+                            if (nodeId != null && serviceProperties["serviceUri"] != null && serviceProperties["serviceUri"] != '') {
                                 let eventJson = new Object();
                                 eventJson.latitude = feature.geometry.coordinates[1];
                                 eventJson.longitude = feature.geometry.coordinates[0];
@@ -11790,7 +11790,8 @@ if (!isset($_SESSION)) {
                     widgetParameters = JSON.parse(widgetData.params.parameters);
                     wsConnect = widgetParameters.wsConnect;
 
-                    if (metricName != 'Map' && nodeId != null) {
+                    // if (metricName != 'Map' && nodeId != null) {
+                    if (nodeId != null) {    
                         openWs(widgetName);
                     }
                     if (socket == null && wsConnect == "yes") {
@@ -11889,7 +11890,8 @@ if (!isset($_SESSION)) {
                     populateWidget();
                     //   globalMapView = true;
 
-                    if (metricName != 'Map' && nodeId != null) {
+                    //if (metricName != 'Map' && nodeId != null) {
+                    if (nodeId != null) {
                         map.defaultMapRef.on('click', function(e) {
                             //    alert('Map Clicked!');
                             let eventJson = new Object();

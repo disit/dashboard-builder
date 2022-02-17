@@ -431,7 +431,7 @@ func processingMsg(jsonMsg []byte) (map[string]interface{}, map[string]interface
 	var dat map[string]interface{}
 	err := json.Unmarshal(jsonMsg, &dat)
 	if err != nil {
-		log.Println("ERROR Decoding error:", err)
+		log.Println("ERROR Decoding error:", err, " msg:", jsonMsg)
 	}
 	parse, err := json.Marshal(dat["newValue"])
 
