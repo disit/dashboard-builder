@@ -53,6 +53,7 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                         $myQueryType = "Sensor";
                         break;
 
+                    case "MyKPI":
                     case "MyPOI":
                         $myQuery = $selectedRow['parameters'];
                         $myDesc = $selectedRow['unique_name_id'];
