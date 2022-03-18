@@ -8015,7 +8015,7 @@
 		
 		$('#save').on('click',function(){
 			var sel = []; 
-			widgetWizardSelectedRowsTable.rows().every( function ( rowIdx, tableLoop, rowLoop ) { console.log(this.data()[13]); sel.push(this.data()[13]); } ); 
+			widgetWizardSelectedRowsTable.rows().every( function ( rowIdx, tableLoop, rowLoop ) { console.log(this.data()[15]); sel.push(this.data()[15]); } );
 			$.ajax({
 				url: "../controllers/dashboardWizardController.php",
 				data: { doSynVarPresel: true, sel: sel.join(",") },

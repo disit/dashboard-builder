@@ -269,6 +269,7 @@ if (!isset($_SESSION)) {
                 type: "heatmap",
                 opacity: 0.25,
             };
+            popupCoord = [];
             var gifWmsTraffic = {
                 isAnimated: false,
                 frames: [],
@@ -1172,13 +1173,13 @@ if (!isset($_SESSION)) {
                                                             });*/
                                                             dataDesc = realTimeData.head.vars[i];
                                                             dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
-                                                            dataLastBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>value</button></td>';
-                                                            data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
-                                                            dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
-                                                            data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
-                                                            data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
-                                                            data6MonthsBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>6 months</button></td>';
-                                                            data1YearBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>1 year</button></td>';
+                                                            dataLastBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn " data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>value</button></td>';
+                                                            data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn " data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
+                                                            dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
+                                                            data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
+                                                            data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
+                                                            data6MonthsBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>6 months</button></td>';
+                                                            data1YearBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>1 year</button></td>';
                                                             popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + '</tr>';
                                                         }
                                                     } else {
@@ -2253,31 +2254,8 @@ if (!isset($_SESSION)) {
                         var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
                         serviceSubclass = serviceSubclass.replace(/_/g, " ");
 
-                        const popupName = serviceProperties.name.replaceAll(' ', '_');
-                        const existingPopup = $(`#${widgetName}_deck_popup_${popupName}`);
-                        if (existingPopup.length != 0) {
-                            console.log('Popup already existing');
-                            const mapEl = $('#map3d');
-                            const popupDiv = $(`#${widgetName}_deck_popup`);
-
-                            existingPopup.detach();
-                            popupDiv.append(existingPopup);
-
-                            if (info.y + existingPopup.height() < mapEl.height())
-                                existingPopup.css('top', info.y);
-                            else if (info.y - existingPopup.height() < 0)
-                                existingPopup.css('top', 0);
-                            else
-                                existingPopup.css('top', info.y - existingPopup.height());
-
-                            if (info.x + existingPopup.width() < mapEl.width())
-                                existingPopup.css('left', info.x);
-                            else if (info.x - existingPopup.width() < 0)
-                                existingPopup.css('left', 0);
-                            else
-                                existingPopup.css('left', info.x - existingPopup.width());
-                            return;
-                        }
+                        const mapEl = $(`#${widgetName}_map3d`);
+                        const popupDiv = $(`#${widgetName}_deck_popup`);
 
                         fatherNode.features[0].properties.targetWidgets = feature.properties.targetWidgets;
                         fatherNode.features[0].properties.color1 = feature.properties.color1;
@@ -2553,14 +2531,14 @@ if (!isset($_SESSION)) {
                                                         });*/
                                                         dataDesc = realTimeData.head.vars[i];
                                                         dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
-                                                        dataLastBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>value</button></td>';
-                                                        data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
-                                                        dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
-                                                        data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
-                                                        data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
-                                                        data6MonthsBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>6 months</button></td>';
-                                                        data1YearBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>1 year</button></td>';
-                                                        popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + '</tr>';
+                                                        dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm " data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last</button></td>';
+                                                        data4HBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">4h</button></td>';
+                                                        dataDayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">24h</button></td>';
+                                                        data7DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">7d</button></td>';
+                                                        data30DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">30d</button></td>';
+                                                        data6MonthsBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">6m</button></td>';
+                                                        data1YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">1y</button></td>';
+                                                        popupText += '<tr><td>' + dataDesc + '</td><td>' + floatToString(dataVal, 6) + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + '</tr>';
                                                     }
                                                 } else {
                                                     measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
@@ -2599,27 +2577,26 @@ if (!isset($_SESSION)) {
                         }).setContent(popupText);
 
                         //$(`#${widgetName}_deck_popup`).html(popupText);
-                        const popupDiv = $(`#${widgetName}_deck_popup`);
-                        const newPopup = $(`<div id="${widgetName}_deck_popup_${popupName}" class="deck-popup"></div>`);
-                        popupDiv.append(newPopup);
-                        newPopup.html(popupText);
-                        const mapEl = $('#map3d');
+                        popupDiv.html(popupText);
+                        
+                        // popup-section 2
+                        popupCoord = info.coordinate;
+                        reloadPopupDiv();
+                        // if (info.y + popupDiv.height() < mapEl.height())
+                        //     popupDiv.css('top', info.y);
+                        // else if (info.y - popupDiv.height() < 0)
+                        //     popupDiv.css('top', 0);
+                        // else
+                        //     popupDiv.css('top', info.y - popupDiv.height());
 
-                        if (info.y + newPopup.height() < mapEl.height())
-                            newPopup.css('top', info.y);
-                        else if (info.y - newPopup.height() < 0)
-                            newPopup.css('top', 0);
-                        else
-                            newPopup.css('top', info.y - newPopup.height());
+                        // if (info.x + popupDiv.width() < mapEl.width())
+                        //     popupDiv.css('left', info.x);
+                        // else if (info.x - popupDiv.width() < 0)
+                        //     popupDiv.css('left', 0);
+                        // else
+                        //     popupDiv.css('left', info.x - popupDiv.width());
 
-                        if (info.x + newPopup.width() < mapEl.width())
-                            newPopup.css('left', info.x);
-                        else if (info.x - newPopup.width() < 0)
-                            newPopup.css('left', 0);
-                        else
-                            newPopup.css('left', info.x - newPopup.width());
-
-                        const resizableDivs = newPopup.find('.recreativeEventMapDataContainer');
+                        const resizableDivs = popupDiv.find('.recreativeEventMapDataContainer');
                         resizableDivs.css('resize', 'both');
                         resizableDivs.css('max-width', '750px');
                         resizableDivs.css('min-width', '400px');
@@ -2627,17 +2604,18 @@ if (!isset($_SESSION)) {
                         resizableDivs.css('max-height', '320px');
 
                         const btnClose = $('<button class="deck-close-btn">X</button>');
-                        newPopup.append(btnClose);
+                        popupDiv.append(btnClose);
                         btnClose.on('click', function() {
-                            newPopup.remove();
+                            popupDiv.hide();
                         });
+                        popupDiv.show();
 
                         //const draggableBody = $('#<?= $_REQUEST['name_w'] ?>_deck_popup');
                         //const draggableElement = $('#<?= $_REQUEST['name_w'] ?>_deck_popup .draggable-popup');
                         //dragPopup(draggableBody, draggableElement);
 
-                        const draggableElement = newPopup.find('.draggable-popup');
-                        dragPopup(newPopup, draggableElement);
+                        const draggableElement = popupDiv.find('.draggable-popup');
+                        dragPopup(popupDiv, draggableElement);
 
                         // draggable 
                         var makeDraggable = function(popup, excluding){							  
@@ -2952,40 +2930,40 @@ if (!isset($_SESSION)) {
                         }
                         
                         if (hasRealTime) {
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').show();
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').show();
                             $('#<?= $_REQUEST['name_w'] ?>draggableAndResizablePopup_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' span.popupLastUpdate[data-id="' + latLngId + '"]').html(measuredTime);
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup span.popupLastUpdate[data-id="' + latLngId + '"]').html(measuredTime);
                         }
                         else {
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').hide();
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').hide();
                         }
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').click(function () {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').click(function () {
                             $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                             $(this).parent().siblings('div.recreativeEventMapDetailsContainer').show();
                             $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                             $(this).addClass('recreativeEventMapBtnActive');
                         });
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').click(function () {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').click(function () {
                             $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                             $(this).parent().siblings('div.recreativeEventMapDescContainer').show();
                             $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                             $(this).addClass('recreativeEventMapBtnActive');
                         });
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').click(function () {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').click(function () {
                             $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                             $(this).parent().siblings('div.recreativeEventMapContactsContainer').show();
                             $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
                             $(this).addClass('recreativeEventMapBtnActive');
                         });
                         
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click(function () {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click(function () {
                             $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                             $(this).parent().siblings('div.recreativeEventMapTplContainer').show();
                             $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
@@ -2998,8 +2976,8 @@ if (!isset($_SESSION)) {
                             }
                         });
                         
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').click(function () {                                
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').click(function () {                                
                             //console.log("clicked "+'#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]');
                             $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                             $(this).parent().siblings('div.recreativeEventMapTplTmtblContainer').show();								
@@ -3047,33 +3025,33 @@ if (!isset($_SESSION)) {
                                     });
                                     $(".tplpoi_tmtblrow button").click(function(){
                                         //console.log($(this).data("r")); console.log($(this).data("t"));
-                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
+                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
                                         var t = $(this).data("t");
                                         var observer = new MutationObserver(function(mutations, observer) {											  
-                                          $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().parent().siblings('div.recreativeEventMapTplContainer').find('.tplpoi_tripsDivInRoute .tplpoi_wifstptrp button[data-tripkey="'+t+'"]').click();													
+                                          $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().parent().siblings('div.recreativeEventMapTplContainer').find('.tplpoi_tripsDivInRoute .tplpoi_wifstptrp button[data-tripkey="'+t+'"]').click();													
                                           observer.disconnect();
                                         });	
-                                        observer.observe($('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().parent().siblings('div.recreativeEventMapTplContainer')[0], {childList: true});
-                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().parent().siblings('div.recreativeEventMapTplContainer').find("button.polyin_"+$(this).data("r")).click();										
+                                        observer.observe($('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().parent().siblings('div.recreativeEventMapTplContainer')[0], {childList: true});
+                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().parent().siblings('div.recreativeEventMapTplContainer').find("button.polyin_"+$(this).data("r")).click();										
                                     });
                                 });
                             });								
                         });
 
                         if (hasRealTime) {
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
                         }
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("background", color2);
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("border", "none");
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("color", "black");
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("background", color2);
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("border", "none");
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("color", "black");
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').focus(function () {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').focus(function () {
                             $(this).css("outline", "0");
                         });
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').click(function () {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').click(function () {
                             if ($(this).attr("data-keepData") === "false") {
                                 $(this).attr("data-keepData", "true");
                             }
@@ -3082,9 +3060,9 @@ if (!isset($_SESSION)) {
                             }
                         });
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').off('mouseenter');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').off('mouseleave');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn[data-id="' + latLngId + '"]').hover(function () {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').off('mouseenter');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').off('mouseleave');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn[data-id="' + latLngId + '"]').hover(function () {
                                 if ($(this).attr("data-lastDataClicked") === "false") {
                                     $(this).css("background", color1);
                                     $(this).css("background", "-webkit-linear-gradient(left, " + color1 + ", " + color2 + ")");
@@ -3132,39 +3110,39 @@ if (!isset($_SESSION)) {
 
                         //Disabilitiamo i 4Hours se last update più vecchio di 4 ore
                         if (rtDataAgeSec > 14400) {
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "true");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "true");
                             //Disabilitiamo i 24Hours se last update più vecchio di 24 ore
                             if (rtDataAgeSec > 86400) {
-                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "true");
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "true");
                                 //Disabilitiamo i 7 days se last update più vecchio di 7 days
                                 if (rtDataAgeSec > 604800) {
-                                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "true");
+                                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "true");
                                     //Disabilitiamo i 30 days se last update più vecchio di 30 days
                                     //if(rtDataAgeSec > 18144000)
                                     if(rtDataAgeSec > 2592000)
                                     {
-                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "true");
+                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "true");
                                         //Disabilitiamo i 6 months se last update più vecchio di 180 days
                                         if(rtDataAgeSec > 15552000)
                                         {
-                                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "true");
+                                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "true");
                                             //Disabilitiamo i 1 year se last update più vecchio di 365 days
                                             if(rtDataAgeSec > 31536000)
                                             {
-                                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "true");
+                                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "true");
                                             }
                                             else
                                             {
-                                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
+                                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
                                             }
                                         }
                                         else
                                         {
-                                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
+                                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
                                         }
                                     }
                                     else {
-                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
                                     }
                                 }
                                 else {
@@ -3172,21 +3150,21 @@ if (!isset($_SESSION)) {
                                 }
                             }
                             else {
-                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
                             }
                         }
                         else {
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
                         }
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').off('mouseenter');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').off('mouseleave');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"]').hover(function () {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').off('mouseenter');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').off('mouseleave');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"]').hover(function () {
                                 if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
                                     $(this).css("background-color", "#e6e6e6");
                                     $(this).off("hover");
@@ -3246,15 +3224,15 @@ if (!isset($_SESSION)) {
                                 }
                             });
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn[data-id=' + latLngId + ']').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn[data-id=' + latLngId + ']').click(function (event) {
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').each(function (i) {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn[data-id=' + latLngId + ']').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn[data-id=' + latLngId + ']').click(function (event) {
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').each(function (i) {
                                 $(this).css("background", $(this).attr("data-color2"));
                             });
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').css("font-weight", "normal");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').css("font-weight", "normal");
                             $(this).css("background", $(this).attr("data-color1"));
                             $(this).css("font-weight", "bold");
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn').attr("data-lastDataClicked", "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').attr("data-lastDataClicked", "false");
                             $(this).attr("data-lastDataClicked", "true");
                             var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
                             var colIndex = $(this).parent().index();
@@ -3278,7 +3256,7 @@ if (!isset($_SESSION)) {
                                 });
                             }
 
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
                                 if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
                                     $(this).css("background-color", "#e6e6e6");
                                     $(this).off("hover");
@@ -3288,19 +3266,19 @@ if (!isset($_SESSION)) {
 
                         });
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').click(function (event) {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').click(function (event) {
                             if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
                                 $(this).css("background-color", "#e6e6e6");
                                 $(this).off("hover");
                                 $(this).off("click");
                             }
                             else {
-                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').css("background", $(this).attr("data-color2"));
-                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').css("font-weight", "normal");
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').css("background", $(this).attr("data-color2"));
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').css("font-weight", "normal");
                                 $(this).css("background", $(this).attr("data-color1"));
                                 $(this).css("font-weight", "bold");
-                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').attr("data-timeTrendClicked", "false");
                                 $(this).attr("data-timeTrendClicked", "true");
                                 var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
                                 var colIndex = $(this).parent().index();
@@ -3330,7 +3308,7 @@ if (!isset($_SESSION)) {
                                     });
                                 }
 
-                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
                                     if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
                                         $(this).css("background-color", "#e6e6e6");
                                         $(this).off("hover");
@@ -3340,7 +3318,7 @@ if (!isset($_SESSION)) {
                             }
                         });
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
                             if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
                                 $(this).css("background-color", "#e6e6e6");
                                 $(this).off("hover");
@@ -3356,7 +3334,7 @@ if (!isset($_SESSION)) {
                             if (popupContent.find("button.lastValueBtn").length > 0) {
                                 var widgetTargetList = popupContent.find("button.lastValueBtn").eq(0).attr("data-targetWidgets").split(',');
 
-                                if (($('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.lastValueBtn[data-lastDataClicked=true]').length > 0) && ($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false")) {
+                                if (($('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn[data-lastDataClicked=true]').length > 0) && ($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false")) {
                                     for (var i = 0; i < widgetTargetList.length; i++) {
                                         $.event.trigger({
                                             type: "restoreOriginalLastDataFromExternalContentGis_" + widgetTargetList[i],
@@ -3369,7 +3347,7 @@ if (!isset($_SESSION)) {
                                     }
                                 }
 
-                                if (($('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' button.timeTrendBtn[data-timeTrendClicked=true]').length > 0) && ($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false")) {
+                                if (($('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-timeTrendClicked=true]').length > 0) && ($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false")) {
                                     for (var i = 0; i < widgetTargetList.length; i++) {
                                         $.event.trigger({
                                             type: "restoreOriginalTimeTrendFromExternalContentGis_" + widgetTargetList[i],
@@ -3381,7 +3359,7 @@ if (!isset($_SESSION)) {
                             }
                         });
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup_' + popupName + ' div.leaflet-popup').off('click');
+                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup div.leaflet-popup').off('click');
                       /*  $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').on('click', function () {
                             var compLatLngId = $(this).find('input[type=hidden]').val();
 
@@ -4931,10 +4909,9 @@ if (!isset($_SESSION)) {
                             layers.building = [];
 
                             // scene 1
-                            // const data1 = {position: [11.258359909057617,43.779720306396484]};
-                            const data1 = {position: [11.2501685710125,43.7720562843695]};
+                            const data = {position: [11.2501685710125,43.7720562843695]};
                             const scene1 = "../widgets/layers/edificato/model_textured.gltf";
-                            const mesh1 = createMeshLayer(data1, "scene1-layer", scene1);
+                            const mesh1 = createMeshLayer(data, "scene1-layer", scene1);
 
                             deltaTimestamp = 43200000;
 
@@ -4946,9 +4923,9 @@ if (!isset($_SESSION)) {
                             selectTickMenuBuilding('building-mesh-notext');
                             layers.building = [];
 
-                            const data = {position: [11.250168571012498,43.77205808012555]};
-                            const scene = "../widgets/layers/edificato/centre.glb";
-                            const mesh = createMeshLayer(data, "scene-layer", scene, buildingColor);
+                            const data1 = {position: [11.2501685710125,43.7720562843695]};
+                            const scene = "../widgets/layers/edificato/centre.gltf";
+                            const mesh = createMeshLayer(data1, "scene-layer", scene, buildingColor);
 
                             deltaTimestamp = 43200000;
 
@@ -4963,8 +4940,8 @@ if (!isset($_SESSION)) {
 
                 buildingsLayer = layers.building;
 
-                const height = $("#map3d").height();
-                const width = $("#map3d").width();
+                const height = $(`#${widgetName}_map3d`).height();
+                const width = $(`#${widgetName}_map3d`).width();
 
                 const now = Date.now();
                 var effects = [];
@@ -5010,7 +4987,7 @@ if (!isset($_SESSION)) {
                     mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
                     viewState: currentViewState,
                     controller: true,
-                    container: 'map3d',
+                    container: `${widgetName}_map3d`,
                     effects,
                     //_animate: true,
                     layers: [
@@ -5024,17 +5001,14 @@ if (!isset($_SESSION)) {
                     onViewStateChange: ({ viewState }) => {
                         clearTimeout(updateTimeout);
                         updateTimeout = setTimeout(function (){
-                            // Put here all update event
-                            //updateTraffic(viewState);
                             updateSensors(viewState);
-                            // updateCyclingPath(viewState);
-                            //updateLayers();
                         }, 1000);
                         map3d.setProps({
                             viewState: viewState,
                         });
                         currentViewState = viewState;
                         $('#deck-zoom-box').text(parseInt(viewState.zoom));
+                        reloadPopupDiv();
                         return viewState;
                     },
                     onClick: (info, event) => {
@@ -5049,32 +5023,54 @@ if (!isset($_SESSION)) {
                         if (object == null)
                             return null;
                         var displayedText;
-                        if (object.properties.address != null)
-                            displayedText = object.properties.address;
-                        else
-                            displayedText = object.properties.name;
+                        if (object.properties != null) {
+                            if (object.properties.address != null)
+                                displayedText = object.properties.address;
+                            else
+                                displayedText = object.properties.name;
+                        } else {
+                            displayedText = object.toString();
+                        }
                         return object && {
                             html: `<p class="hoverName">${displayedText}</p>`,
                         };
                     },
-                    //getTooltip: ({ object }) => object && {
-                        //html: `<p class="hoverName">${object.properties.name}</p>`,
-                    //},
                     onDragEnd: ({ viewport }) => {
                         cursorType = 'grab';
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'visible');
+                        // $('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'visible');
+                    },
+                    onDrag: ({ viewport }) => {
+                        if (popupCoord.length != 0) {
+                            reloadPopupDiv()
+                        }
                     },
                     onDragStart: ({ viewport }) => {
                         manuallyControlled = false;
                         cursorType = 'grabbing';
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'hidden');
                     },
+                //     onDrag: (info, event) => {
+                //         curX = lastCurX - info.x;
+                //         curY = lastCurY - info.y;
+                //         lastCurX = info.x;
+                //         lastCurY = info.y;
+                //         lastTop = parseInt($(`#${widgetName}_deck_popup`).css('top'));
+                //         $(`#${widgetName}_deck_popup`).css('top', `${lastTop - curY}px`);
+                //         lastLeft = parseInt($(`#${widgetName}_deck_popup`).css('left'));
+                //         $(`#${widgetName}_deck_popup`).css('left', `${lastLeft - curX}px`);
+                //     },
+                //     onDragStart: (info, event) => {
+                //         manuallyControlled = false;
+                //         cursorType = 'grabbing';
+                //         lastCurX = info.x;
+                //         lastCurY = info.y;
+                //         // $(`#${widgetName}_deck_popup`).css('visibility', 'hidden');
+                //     },
                 });
-                //return;
+                // return;
 
                 //Hiding the 2d maps
                 //$(`#${mapDivLocal}`).css('visibility', 'hidden');
-                $('#map3d').css('z-index', 420);
+                $(`#${widgetName}_map3d`).css('z-index', 420);
 
                 $('#deck-pitch-up').on('click', function (event) {
                     if (!manuallyControlled) {
@@ -5186,12 +5182,12 @@ if (!isset($_SESSION)) {
 
                 $('#2DButton').click(function(event) {
                     is3dOn = false;
-                    $('#map3d').css('visibility', 'hidden');
+                    $(`#${widgetName}_map3d`).css('visibility', 'hidden');
                 });
                 
                 $('#3DButton').click(function(event) {
                     is3dOn = true;
-                    $('#map3d').css('visibility', 'visible');
+                    $(`#${widgetName}_map3d`).css('visibility', 'visible');
                 });
 
                 $('#no-building').click(function(event) {
@@ -5217,10 +5213,12 @@ if (!isset($_SESSION)) {
                     selectTickMenuBuilding('building-mesh');
                     layers.building = [];
 
+
                     // scene 1
-                    const data1 = {position: [11.2501685710125,43.7720562843695]};
+
+                    const data = {position: [11.2501685710125,43.7720562843695]};
                     const scene1 = "../widgets/layers/edificato/model_textured.gltf";
-                    const mesh1 = createMeshLayer(data1, "scene1-layer", scene1);
+                    const mesh1 = createMeshLayer(data, "scene1-layer", scene1);
                     deltaTimestamp = 43200000;
 
                     layers.building.push(mesh1);
@@ -5232,10 +5230,9 @@ if (!isset($_SESSION)) {
                     console.log('loading riccardo building no texture');
                     selectTickMenuBuilding('building-mesh-notext');
                     layers.building = [];
-
-                    const data = {position: [11.2501685710125,43.772056284]};
-                    const scene = "../widgets/layers/edificato/centre.glb";
-                    const mesh = createMeshLayer(data, "scene-layer", scene, buildingColor);
+                    const data1 = {position: [11.2501685710125,43.7720562843695]};
+                    const scene = "../widgets/layers/edificato/centre.gltf";
+                    const mesh = createMeshLayer(data1, "scene-layer", scene, buildingColor);
                     deltaTimestamp = 43200000;
 
                     layers.building.push(mesh);
@@ -5244,7 +5241,7 @@ if (!isset($_SESSION)) {
                 });
 
                 if (!is3dOn) {
-                    $('#map3d').css('visibility', 'hidden');
+                    $(`#${widgetName}_map3d`).css('visibility', 'hidden');
                 }
 
                 map.defaultMapRef = L.map(mapDivLocal).setView([latInit, lngInit], widgetParameters.zoom);
@@ -10303,7 +10300,7 @@ if (!isset($_SESSION)) {
                             }*/
                             popupText += '<div class="recreativeEventMapBtnContainer"><span data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Heatmap Details</span></div>';
 
-                            popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer" style="height:100px; width:270px;">';
+                            popupText += '';
 
                             popupText += '<table id="' + latLngId + '" class="gisPopupGeneralDataTable" style="width:90%">';
                             //Intestazione
@@ -12566,7 +12563,7 @@ if (!isset($_SESSION)) {
                     id: id,
                     data: data,
                     extruded: true,
-                    // pickable: true,
+                    pickable: true,
                     stroked: false,
                     filled: true,
                     lineWidthScale: 20,
@@ -12576,6 +12573,13 @@ if (!isset($_SESSION)) {
                     getElevation: f => f.properties.height,
                     getRadius: 100,
                     getLineWidth: 1,
+                    onClick: (event) => { 
+                        const t0 = performance.now();
+                        console.log(event);
+                        const t1 = performance.now();
+                        console.log(`Caricare gli edifici senza mesh ha impiegato ${t1 - t0} millisecondi.`);
+                        return true; 
+                    },
                 });
             }
 
@@ -12587,13 +12591,17 @@ if (!isset($_SESSION)) {
                     ],
                     pickable: false,
                     scenegraph: scenegraph,
-                    parameters: {
-                        //depthTest: false
-                    },
-                    //_lighting: 'flat',
                     _lighting: 'pbr',
                     getOrientation: d => [0, 0, 90],
-                    //getColor: color,
+                    getScale: d => [0.722, 1, 0.722],
+                    getPosition: d => d.position,
+                    onClick: (event) => { 
+                        const t0 = performance.now();
+                        console.log(event);
+                        const t1 = performance.now();
+                        console.log(`Caricare gli edifici con mesh ha impiegato ${t1 - t0} millisecondi.`);
+                        return true; 
+                    },
                 });
             }
 
@@ -12728,6 +12736,27 @@ if (!isset($_SESSION)) {
                     },
                 });
 
+            }
+
+            function reloadPopupDiv() {
+                if (popupCoord.length == 0)
+                    return;
+                const state = map3d.props.viewState;
+                const viewport = new deck.WebMercatorViewport(state);
+                const popupXY = viewport.project(popupCoord);
+                const viewportXY = viewport.project([viewport.longitude, viewport.latitude]);
+
+                const mapEl = $(`#${widgetName}_map3d`);
+                const popupDiv = $(`#${widgetName}_deck_popup`);
+                popupDiv.css('top', `${popupXY[1]}px`);
+                popupDiv.css('left', `${popupXY[0] - (popupDiv.width() / 2)}px`);
+
+                var deltaY = viewportXY[1] - popupXY[1];
+                const factor = (1 + (state.pitch * 0.01)) / 150;
+                var scaleFactor = deltaY < 0 ? 1 : 1 / (deltaY * factor);
+                scaleFactor = scaleFactor > 1 ? 1 : scaleFactor;
+                scaleFactor = scaleFactor < 0.2 ? 0.2 : scaleFactor;
+                popupDiv.css('transform', `scale(${scaleFactor})`);
             }
 
             function createLineLayer(data, id = 'line-layer') {
@@ -13218,32 +13247,30 @@ if (!isset($_SESSION)) {
               function dragMouseDown(e) {
                 e = e || window.event;
                 e.preventDefault();
-                // get the mouse cursor position at startup:
                 pos3 = e.clientX;
                 pos4 = e.clientY;
-                const popupDiv = $(`#${widgetName}_deck_popup`);
-                elmnt.detach();
-                popupDiv.append(elmnt);
                 document.onmouseup = closeDragElement;
-                // call a function whenever the cursor moves:
                 document.onmousemove = elementDrag;
               }
 
               function elementDrag(e) {
                 e = e || window.event;
                 e.preventDefault();
-                // calculate the new cursor position:
                 pos1 = pos3 - e.clientX;
                 pos2 = pos4 - e.clientY;
                 pos3 = e.clientX;
                 pos4 = e.clientY;
-                // set the element's new position:
-                elmnt.css("top", (elmnt[0].offsetTop - pos2) + "px");
-                elmnt.css("left", (elmnt[0].offsetLeft - pos1) + "px");
+
+                const state = map3d.props.viewState;
+                const viewport = new deck.WebMercatorViewport(state);
+
+                const y = elmnt[0].offsetTop - pos2;
+                const x = elmnt[0].offsetLeft + (elmnt[0].offsetWidth / 2) - pos1;
+                popupCoord = viewport.unproject([x, y]);
+                reloadPopupDiv();
               }
 
               function closeDragElement() {
-                // stop moving when mouse button is released:
                 document.onmouseup = null;
                 document.onmousemove = null;
               }
@@ -13255,6 +13282,39 @@ if (!isset($_SESSION)) {
                 $('#building-mesh-notext i').addClass('hidden');
                 $('#building-mesh i').addClass('hidden');
                 $(`#${idSelected} i`).removeClass('hidden');
+            }
+
+            function getMeterDistanceFromCoords(coord1, coord2, rotation = 0) {
+                return getMeterDistance(coord1[1], coord1[0], coord2[1], coord2[0]);
+            }
+
+            function getMeterDistance(lat1, lon1, lat2, lon2, rotation = null) {
+                const R = 6371e3; // metres
+                const φ1 = lat1 * Math.PI/180; // φ, λ in radians
+                const φ2 = lat2 * Math.PI/180;
+                const Δφ = (lat2-lat1) * Math.PI/180;
+                const Δλ = (lon2-lon1) * Math.PI/180;
+
+                if (rotation != null) {
+                    const Δφ = (lat2-lat1) * Math.sin(rotation) * Math.PI/180;
+                    const Δλ = (lon2-lon1) * Math.cos(rotation) * Math.PI/180;
+                }
+
+                const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                        Math.cos(φ1) * Math.cos(φ2) *
+                        Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+                return R * c; // in metres
+            }
+
+            function floatToString(value, truncate = 2) {
+                var str = `${value}`
+                str = str.split('.');
+                if (str[1] == null)
+                    return value; 
+                const result = Array.from(str[1]).slice(0, truncate);
+                return str[0] + '.' + result.join('');
             }
 
             // fine funzioni deckgl
@@ -15938,7 +15998,7 @@ if (!isset($_SESSION)) {
                                         '<input id="<?= $_REQUEST['name_w'] ?>_modalLinkOpen_sliderradius" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="1" max="' + estimatedRadius * 30 + '" value="' + current_radius + '" step="2">' +
                                         '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="upSlider_radius" style="display:inline-block; vertical-align:super; color: #0078A8">&#10095;</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
                                         '<span id="<?= $_REQUEST['name_w'] ?>_modalLinkOpen_rangeradius" style="display:inline-block; vertical-align:super;">' + current_radius + '</span>' +
-                                        '</div>';
+                                        '';
                                     }
                                     // max opacity
                                     legendHeatmapDiv.innerHTML +=
@@ -16911,12 +16971,13 @@ if (!isset($_SESSION)) {
     </script>
 
     <style>
-    #map3d {
+    #<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d {
         position: absolute;
         top: 25px;
         left: 0;
         width: 100%;
         height: calc(100% - 25px);
+        overflow: hidden;
         z-index: 999;
         background-color: white;
     }
@@ -16940,7 +17001,7 @@ if (!isset($_SESSION)) {
     }
     #deck-controls {
         position: absolute;
-        top: 30px;
+        top: 0px;
         left: 5px;
         z-index: 425;
     }
@@ -17008,9 +17069,10 @@ if (!isset($_SESSION)) {
     .deck-popup {
         position: absolute;
         background-color: white;
-        z-index: 450;
+        z-index: 424;
         min-width: 400px;
         max-width: 1200px;
+        transform-origin: top center;
     }
 
     .deck-close-btn {
@@ -17122,7 +17184,9 @@ if (!isset($_SESSION)) {
                         </li>
                     </template>
                 </div>
-                <div id="map3d"></div>
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d">
+                    <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_deck_popup" class="deck-popup">
+                </div>
                 <div id="deck-controls">
                     <div class="deck-btn-set">
                         <button id="deck-light-btn">L</button>
@@ -17146,7 +17210,6 @@ if (!isset($_SESSION)) {
                         </div>
                     </div>
                 </div>
-                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_deck_popup" >
                     
                 </div>
             </div>
