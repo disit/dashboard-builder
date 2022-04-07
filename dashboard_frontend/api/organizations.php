@@ -25,15 +25,34 @@
      exit();
   }
   $cond = '1';
+  $users = '';
   if(isset($_GET['org']))
     $cond = 'organizationName=\''.mysqli_real_escape_string($link, filter_input(INPUT_GET, 'org',FILTER_SANITIZE_STRING)).'\'';
-  
-  $query = "SELECT organizationName,kbUrl, gpsCentreLatLng, zoomLevel FROM Organizations WHERE ".$cond;
+  if (isset($_GET['includeUsers'])){
+        $includeUsers = strtolower($_GET['includeUsers']);
+      if ($includeUsers=='true'){
+          $users = ' ,users';
+      }
+  }
+  $query = "SELECT organizationName,kbUrl, gpsCentreLatLng, zoomLevel".$users." FROM Organizations WHERE ".$cond;
   $result = mysqli_query($link, $query);
   $response = [];
   if($result) {
+      $i = 0;
     while($row=mysqli_fetch_assoc($result)) {
-      $response[]=$row;
+      //$response[]=$row;
+        $response[$i]['organizationName']=$row['organizationName'];
+        $response[$i]['kbUrl']=$row['kbUrl'];
+        $response[$i]['gpsCentreLatLng']=$row['gpsCentreLatLng'];
+        $response[$i]['zoomLevel']=$row['zoomLevel'];
+        if (isset($_GET['includeUsers'])){
+            $array_users=[];
+            if (isset($row['users'])){
+                $array_users=explode(",", $row['users']);
+            }
+           $response[$i]['users']=$array_users;
+        }
+        $i++;
     }
   }
    
