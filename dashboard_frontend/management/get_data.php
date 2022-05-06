@@ -1922,6 +1922,49 @@ else
             mysqli_close($link);
             echo json_encode($retArray);
         }
+        else if($action == 'getThemeList'){
+            $dir    = '../css/themes/';
+                $files1 = scandir($dir); 
+                $files2['list'] = $files1;
+                $themeArray = array();
+                //
+                $dashboardIdUnderEdit = $_GET['dashboardIdUnderEdit'];
+                $queryCurrentTheme = "SELECT theme FROM Dashboard.Config_dashboard where id='".$dashboardIdUnderEdit."';";
+                $resultCurrentTheme = mysqli_query($link, $queryCurrentTheme) or die(mysqli_error($link));
+                ///////////
+                if ($resultCurrentTheme->num_rows > 0) {
+                        while ($rowTheme = mysqli_fetch_array($resultCurrentTheme))
+                        {
+                            $rowTheme = array(
+                                "theme" => $rowTheme['theme'],
+                            );
+                            array_push($themeArray, $rowTheme);
+                        }
+                        
+                    }
+                    $files2['current']=$themeArray;
+                ///////////
+                //
+                echo json_encode($files2);
+                //
+                
+                //
+        }else if ($action == 'modifyThemeList'){
+            $dashboardIdUnderEdit = $_GET['dashboardIdUnderEdit'];
+            $selectedTheme = $_GET['selectedTheme'];
+            //
+            if ($selectedTheme =='Legacy'){
+                 $queryCurrentTheme = "UPDATE Dashboard.Config_dashboard  SET theme = NULL WHERE id='".$dashboardIdUnderEdit."';";
+            }else{
+                  $queryCurrentTheme = "UPDATE Dashboard.Config_dashboard  SET theme ='".$selectedTheme."' WHERE id='".$dashboardIdUnderEdit."';";
+            }
+           $resultCurrentTheme = mysqli_query($link, $queryCurrentTheme) or die(mysqli_error($link));
+           echo json_encode($resultCurrentTheme);
+            
+             //$queryCurrentTheme = "SELECT theme FROM Dashboard.config_dashboard where id='".$dashboardIdUnderEdit."';";
+              //  $resultCurrentTheme = mysqli_query($link, $queryCurrentTheme) or die(mysqli_error($link));
+            //
+        }
         else 
         {
             $action = escapeForHTML($action);

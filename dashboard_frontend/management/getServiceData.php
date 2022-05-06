@@ -117,11 +117,17 @@ error_reporting(E_ERROR);
             if ($role_session_active == "RootAdmin"){
                 //row_db
                 //$query_own ="SELECT DISTINCT unique_name_id, ownerHash FROM DashboardWizard WHERE unique_name_id = '".$value_name."';";
-                $query_own ="SELECT DISTINCT unique_name_id, ownerHash FROM DashboardWizard WHERE id = '".$row_db."';";
+                $query_own ="SELECT DISTINCT unique_name_id, ownerHash, value_name,value_type, value_unit FROM DashboardWizard WHERE id = '".$row_db."';";
                 $result_own = mysqli_query($link, $query_own) or die(mysqli_error($link));
                // print_r($result_own);
+                $value_name = "";
+                $value_type="";
+                $value_unit="";
                 while ($row_own = mysqli_fetch_assoc($result_own)) {
                     $OwnerHarsh_01 = $row_own['ownerHash'];
+                    $value_name = $row_own['value_name'];
+                    $value_type = $row_own['value_type'];
+                    $value_unit = $row_own['$value_unit'];
                     if (($OwnerHarsh_01 != null)&&($OwnerHarsh_01 !=="")){
                           $decryptedOwn = decryptOSSL($OwnerHarsh_01, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
                           $OwnerHarsh = $decryptedOwn;
@@ -162,6 +168,9 @@ error_reporting(E_ERROR);
             $list['process_name']='';
             $list['address'] =             '';
             $list['reference_person'] =    '';
+            $list['value_name'] =$value_name;
+            $list['value_type'] =$value_type;
+            $list['value_unit']=$value_unit;
             
             $currentDir      = getcwd();
             $newDir          = explode('management', $currentDir);
@@ -232,6 +241,17 @@ error_reporting(E_ERROR);
             switch ($type) {
                 case "Sensor":
                 case "Sensor-Actuator":
+                case 'Data Table Device':
+                case 'Data Table Model':
+                case 'Data Table Variable':
+                case 'IoT Device':
+                case 'IoT Device Model':
+                case 'IoT Device Variable':
+                case 'IoT Device':
+                case 'Mobile Device':
+                case 'Mobile Device Model':
+                case 'Mobile Device Variable':
+                case 'Sensor Device':
                     //
                     $currentDir      = getcwd();
                     $newDir          = explode('management', $currentDir);

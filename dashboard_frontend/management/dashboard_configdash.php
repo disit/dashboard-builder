@@ -378,6 +378,31 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+
+        .theme_content{
+            margin: 5%;
+            padding-top: 2%;
+            padding-bottom: 2%;
+        }
+
+        #scrSelectThemeImageContent{
+            background-image: url('../css/themes/Legacy/preview.png');
+            width: 300px;
+            height: 200px;
+            background-size: contain;
+            background-repeat:   no-repeat;
+            background-position: center center;
+        }
+        
+        #button_dropdown{
+           border: none;
+           background: rgba(0, 162, 211, 1);
+        }
+
+        #button_dropdown:hover:enabled{
+             color: #000000;
+             background: rgba(0, 162, 211, 1);
+        }
     </style>
 
 <body> 
@@ -423,10 +448,11 @@
                     <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Embedding")?></div>
                 </div>
             </a>
-            <a id="link_screenshot" href="#" data-toggle="modal">
+            <!-- Select Theme -->
+            <a id="link_select_theme" href="#" data-toggle="modal">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
-                    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-camera" style="color: #ffccee"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Screenshot")?></div>
+                <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-paint-brush" style="color: #25CF3A"></i></div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Theme")?></div>
                 </div>
             </a>
             <a id="link_save_configuration" class="internalLink" href="#">
@@ -1148,7 +1174,57 @@
         </div> <!-- Fine modal dialog -->
     </div><!-- Fine modale -->
     <!-- Fine modale wizard -->
-    
+    <!--Select theme-->
+    <div class="modal fade" id="modal-select-theme" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog" role="document">
+           <!-- <div class="modal-content modalContentWizardForm"> -->
+            <form id="scrSelectThemeForm" class="form-horizontal" name="scrSelectThemeForm" role="form" method="POST" action="#" data-toggle="validator">  
+            <div class="modal-content">
+                  <div class="modalHeader centerWithFlex">
+                       <?= _("Select Theme")?> 
+                  </div>
+                  <div id="scrSelectThemeBody" class="modal-body modalBody">
+                      <div class="row" style="margin: 2%">
+                          
+                      <span>
+                            <?= _("Please note that the edit works only on Legacy Theme for the size of the widgets. Different themes your select are visible only on Preview and production")?>
+                       </span>
+                          
+                      </div>
+                    <div class="row" >
+                        <div class="col-xs-12 centerWithFlex" id="scrSelectThemeMsg">
+                            
+                        <div id="scrSelectThemeLeftContent" class="theme_content" style="float: left;">
+                        <div class="col-xs-12" id="scrSelectThemeContent">
+                            <b><?= _("Current theme")?> : </b><span id="curr_theme">Legacy</span><br /><br />
+                                <div class="dropdown">
+                                    
+                                 <button id="button_dropdown" class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><?= _("Select a Theme")?> <span class="caret"></span></button>
+                                        <ul class="dropdown-menu" id="ul_select_list">
+                                        </ul>
+                                   </div> 
+                        </div>
+                        </div>
+                        <!-- -->
+                        <div id="scrSelectThemeRightContent" class="theme_content">
+                            <div id="scrSelectThemeImageContent">
+                        </div>
+                        
+                            
+                        </div>    
+                    </div>   
+                     
+                  <div id="scrSelectThemeFooter" class="modal-footer">
+                    <button type="button" id="cancelSelectThemeBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                    <button type="button" id="scrSelectThemeBtn" name="scrSelectThemeBtn" class="btn confirmBtn"><?= _("Confirm")?></button>
+                  </div>
+            </div>
+          </form>  
+          </div>
+        </div>
+       <!-- </div>-->
+    </div>
+    </div>
     <!-- Modale aggiunta widget -->
     <div class="modal fade" id="modal-add-widget" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modalDialogWidget" role="document" id="adding01">
@@ -2687,6 +2763,15 @@
                     var iconPoolDatasetJSONCustom = null;
                     var svgArray = null;
                     var customSvgFlag = false;
+                    
+                    function checkJson(str) {
+                        try {
+                            JSON.parse(str);
+                        } catch (e) {
+                            return false;
+                        }
+                        return true;
+                    }
                     
                     function buildIconsBox(suggestedIconsList, i, allIcons, newTableRow, newTableCell, widgetId) {
                         var iconPoolDataset = '{"SUGGESTED Icons": ["';
@@ -4450,7 +4535,38 @@
                     
                     var dashboardId = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
                     var dashboardIdEncoded = window.btoa(dashboardId);
-                    $("#dashboardViewLink").attr("href", "../view/index.php?iddasboard=" + dashboardIdEncoded);
+                    $.ajax({
+                        url: "../controllers/getDashboardTheme.php",
+                        data: {
+                            dashboardId: dashboardId
+                        },
+                        type: "GET",
+                        async: true,
+                        success: function (data)
+                        {
+                            if (checkJson(data)) {
+                                var dataArr = JSON.parse(data);
+                                if (dataArr['result'] !== "Ok" || dataArr['details']['theme'] === null) {
+                                    console.log("Error getting Dashboard Theme. Loading default Theme.");
+                                    console.log(data);
+                                    $("#dashboardViewLink").attr("href", "../view/index.php?iddasboard=" + dashboardIdEncoded);
+                                } else {
+                                    $("#dashboardViewLink").attr("href", "../view/" + dataArr['details']['theme'] + ".php?iddasboard=" + dashboardIdEncoded);
+                                }
+                            } else {
+                                console.log("Error getting Dashboard Theme. Loading default Theme.");
+                                console.log(data);
+                                $("#dashboardViewLink").attr("href", "../view/index.php?iddasboard=" + dashboardIdEncoded);
+                            }
+                        },
+                        error: function (errorData)
+                        {
+                            console.log("Error getting Dashboard Theme. Loading default Theme.");
+                            console.log(errorData);
+                            $("#dashboardViewLink").attr("href", "../view/index.php?iddasboard=" + dashboardIdEncoded);
+                        }
+                    });
+                    // $("#dashboardViewLink").attr("href", "../view/index.php?iddasboard=" + dashboardIdEncoded);
                     
                     var iconH = $("div.mainMenuItemContainer").height();
                     $("div.mainMenuIconContainer").css("height", iconH + "px");
@@ -4743,6 +4859,11 @@
                     {
                         $('#dashboardIdUnderEdit').val()
                         $("#scrDashboardModal").modal("show");
+                    });
+                    $("#link_select_theme").click(function()
+                    {
+                       $("#modal-select-theme").modal("show");
+                       getThemeList();
                     });
                     
                     $('#scrDashboardForm').on("submit", function(event)
@@ -34720,6 +34841,50 @@
 
         }
 
+        function getThemeList(){
+            $('#ul_select_list').empty();
+            var dashboardIdUnderEdit = $('#dashboardIdUnderEdit').val();
+            //alert(dashboardIdUnderEdit);
+            //
+            $.ajax({
+                        url: "get_data.php",
+                        data: {
+                            action: "getThemeList",
+                            dashboardIdUnderEdit: dashboardIdUnderEdit
+                        },
+                        type: "GET",
+                        async: true,
+                        dataType: 'json',
+                        success: function(data){
+                            var list = data.list;
+                            var current = data.current[0].theme;
+                            var l = list.length;
+                            //var legacy = 'Legacy';
+                            ///$('#ul_select_list').append('<li><a href="#" onclick="selectTheme(\''+legacy+'\')">Legacy</a></li>');
+                            for(var i=0; i<l; i++){
+                                //console.log(data[i]);
+                                if ((list[i] !=='.')&&(list[i] !=='..')&&(list[i] !=='placeholder.jpg')){
+                                    $('#ul_select_list').append('<li><a href="#" onclick="selectTheme(\''+list[i]+'\')">'+list[i]+'</a></li>');
+                                }
+                            }
+                            //
+                            if (current == null){
+                                selectTheme('Legacy');
+                                //
+                                //
+                            }else{
+                                selectTheme(current);
+                            }
+                            //
+                            //
+                        },
+                        error: function(errorData){
+                            console.log("Error retrieving personal inputs");
+                            console.log(JSON.stringify(errorData));
+                        }
+                    });
+        }
+        
         function deleteWidget(name_w){
 
             // var widgetName = $('#widgetToDelNameHidden').val();
@@ -34892,6 +35057,45 @@
                     $('#editWidgetComparePeriod').append('<option value="previous 10 years"><?php echo _("previous 10 years"); ?></option>');
                     break;
             }
+        });
+        
+        function selectTheme(theme){
+            console.log('theme',theme);
+            if ((theme !=='legacy')||(theme !=='Legacy')){
+            var themeimage = '../css/themes/'+theme+'/preview.png';
+            $('#scrSelectThemeImageContent').css("background-image", "url('" + themeimage + "')");
+            $('#curr_theme').text(theme);
+        }else{
+            var themeimage = '../css/themes/placeholder.jpg';
+            $('#scrSelectThemeImageContent').css("background-image", "url('" + themeimage + "')");
+            $('#curr_theme').text('Legacy');
+        }
+        }
+        
+        $('#scrSelectThemeBtn').click(function () {
+            var dashboardIdUnderEdit = $('#dashboardIdUnderEdit').val();
+            var selectedTheme = $('#curr_theme').text();
+            
+            $.ajax({
+                        url: "get_data.php",
+                        data: {
+                            action: "modifyThemeList",
+                            dashboardIdUnderEdit: dashboardIdUnderEdit,
+                            selectedTheme: selectedTheme
+                        },
+                        type: "GET",
+                        async: true,
+                        dataType: 'json',
+                        success: function(data){
+                            //alert('Theme successfully modified');
+                            location.reload();
+                        },
+                        error: function(errorData){
+                            console.log("Error retrieving personal inputs");
+                            console.log(JSON.stringify(errorData));
+                        }
+                    });
+            
         });
         </script>	
     </body>

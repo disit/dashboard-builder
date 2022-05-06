@@ -3159,6 +3159,18 @@
             }
         });
 
+        function doesFileExist(urlToFile) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('HEAD', urlToFile, false);
+            xhr.send();
+
+            if (xhr.status == "404") {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
         //Funzione che prepara icone custom su mappa in base a quelle di ServiceMap
         function addWidgetWizardCreateCustomMarker(feature, latlng) {
 
@@ -3171,6 +3183,11 @@
                     var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                 }
             }
+
+            if (!doesFileExist(mapPinImg)) {
+                mapPinImg = '../img/gisMapIcons/generic.png';
+            }
+
             var markerIcon = L.icon({
                 iconUrl: mapPinImg,
                 iconAnchor: [16, 37]
@@ -3196,6 +3213,11 @@
                         var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
                     }
                 }
+
+                if (!doesFileExist(hoverImg)) {
+                    hoverImg = '../img/gisMapIcons/over/generic_over.png';
+                }
+
                 var hoverIcon = L.icon({
                     iconUrl: hoverImg
                 });
@@ -3212,6 +3234,11 @@
                         var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                     }
                 }
+
+                if (!doesFileExist(outImg)) {
+                    outImg = '../img/gisMapIcons/generic.png';
+                }
+
                 var outIcon = L.icon({
                     iconUrl: outImg
                 });

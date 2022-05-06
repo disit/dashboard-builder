@@ -3072,6 +3072,19 @@
 
             }
         });
+
+        function doesFileExist(urlToFile) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('HEAD', urlToFile, false);
+            xhr.send();
+
+            if (xhr.status == "404") {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
         function addWidgetWizardUserMarker (feature, latlng) {
         if (feature.properties.serviceType === 'IoTDevice_IoTSensor') {
                 var mapPinImg = '../img/gisMapIcons/generic.png';
@@ -3131,7 +3144,11 @@
                     var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                 }
             }
-            
+
+            if (!doesFileExist(mapPinImg)) {
+                mapPinImg = '../img/gisMapIcons/generic.png';
+            }
+
             var markerIcon = L.icon({
                 iconUrl: mapPinImg,
                 iconAnchor: [16, 37]
@@ -3157,6 +3174,11 @@
                         var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
                     }
                 }
+
+                if (!doesFileExist(hoverImg)) {
+                    hoverImg = '../img/gisMapIcons/over/generic_over.png';
+                }
+
                 var hoverIcon = L.icon({
                     iconUrl: hoverImg
                 });
@@ -3172,6 +3194,10 @@
                     } else {
                         var outImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
                     }
+                }
+
+                if (!doesFileExist(outImg)) {
+                    outImg = '../img/gisMapIcons/generic.png';
                 }
 
                 var outIcon = L.icon({

@@ -369,6 +369,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         .attr("y", -5)
                         .attr("font-weight", "bold")
                         .attr("text-anchor", "end")
+                        .style('fill', fontColor)
                         .text(([key]) => formatMonth(key));
 
                     month.append("g")
@@ -379,6 +380,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         .attr("x", -5)
                         .attr("y", i => (countDay(i) + 0.5) * calendarCellSize)
                         .attr("dy", "0.31em")
+                        .style('fill', fontColor)
                         .text(formatDay);
 
                     month.append("g")
@@ -405,6 +407,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     daysInMonth.append("text")
                         .attr("x", d => d3.timeDay.count(d3.timeMonth(d), d3.timeDay.ceil(d)) * calendarCellSize + 2)
                         .attr("y", -5)
+                        .style('fill', fontColor)
                         .text(dayFormat);
 
                 } else if (currentViewMode === "yearly") {
@@ -434,6 +437,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         .attr("y", -5)
                         .attr("font-weight", "bold")
                         .attr("text-anchor", "end")
+                        .style('fill', fontColor)
                         .text(([key]) => key);
 
                     year.append("g")
@@ -444,6 +448,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         .attr("x", -5)
                         .attr("y", i => (countDay(i) + 0.5) * calendarCellSize)
                         .attr("dy", "0.31em")
+                        .style('fill', fontColor)
                         .text(formatDay);
 
                     year.append("g")
@@ -473,6 +478,7 @@ ${rowParameters[0].smField}: ${d[1]}`);
                     const month = year.append("g")
                         .selectAll("g")
                         .data(([, values]) => d3.timeMonths(d3.timeMonth(values[0][0]), values[values.length - 1][0]))
+                        .style('fill', fontColor)
                         .join("g");
 
                     month.filter((d, i) => i).append("path")
@@ -484,6 +490,7 @@ ${rowParameters[0].smField}: ${d[1]}`);
                     month.append("text")
                         .attr("x", d => d3.timeMonday.count(d3.timeYear(d), d3.timeMonday.ceil(d)) * calendarCellSize + 2)
                         .attr("y", -5)
+                        .style('fill', fontColor)
                         .text(d => {
                             return monthArray[monthFormat(d) - 1];
                         });

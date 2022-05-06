@@ -116,6 +116,8 @@ if (!isset($_SESSION)) {
     <!-- Adreani deckgl -->
     <script src="../widgets/layers/deckgl.min.js"></script>
     <script src="../widgets/layers/gif-frames.js"></script>
+    <script src="../widgets/layers/webgl-utils.js"></script>
+    <script src="../widgets/layers/m4.js"></script>
     
     <!-- Cristiano: Dynamic Routing -->
     <link rel="stylesheet" href="../css/dynamic_routing/dynamic_routing.css"/>
@@ -269,7 +271,11 @@ if (!isset($_SESSION)) {
                 type: "heatmap",
                 opacity: 0.25,
             };
-            popupCoord = [];
+            var autoreloadFeatures = false;
+            var terrainOn = false;
+            var elevationUrl;
+            var sky;
+            var popupCoord = [];
             var gifWmsTraffic = {
                 isAnimated: false,
                 frames: [],
@@ -277,7 +283,7 @@ if (!isset($_SESSION)) {
                 type: "traffic",
                 opacity: 1,
             };
-            var lights = [];
+            var wmsBlurred = false;
             var cursorType = 'grab';
             var justClicked = false;
             var manuallyControlled = false;
@@ -285,6 +291,7 @@ if (!isset($_SESSION)) {
             var currentViewState;
             var lastHoveredObject;
             var layers = {
+                background: null,
                 terrain: null,
                 orthomaps: null,
                 wms: null,
@@ -293,6 +300,7 @@ if (!isset($_SESSION)) {
                 cycling: [],
                 bus: null,
                 building: [],
+                selection: null,
                 pin: [],
             };
             var deltaTimestamp = 0;
@@ -843,7 +851,6 @@ if (!isset($_SESSION)) {
                             //    $(event.target.getElement()).children(0).children(0)[1].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';
 
                         }
-                        //    console.log("Mouse OUT");
                     }
                 });
 
@@ -1319,7 +1326,6 @@ if (!isset($_SESSION)) {
 																				progress.bar = 100*progress.done/progress.todo;
 																				$(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
 																				$(newpopup._container).find("div.tplProgressBar").show();																			
-																			//console.log(progress);
 																		}
 																		else {
 																			if(progress.bar < 99) {
@@ -1478,7 +1484,6 @@ if (!isset($_SESSION)) {
 															return this.toString().split(".")[1].length || 0; 
 														};
 														$("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" button.tplpoi_stopbtn").click(function(){														
-															//console.log("stopbtn");
 															var serviceuri = $(this).data("serviceuri");
 															var lat = $(this).data("lat");
 															var lon = $(this).data("lon");
@@ -1504,7 +1509,6 @@ if (!isset($_SESSION)) {
 																	( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
 																	try { layer.closePopup(); } catch(e) {}
 																	layer.fire('click');
-																	console.log("click");
 																	return;															
 																}
 															}
@@ -1581,7 +1585,6 @@ if (!isset($_SESSION)) {
 							
 							$('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').off('click');
                             $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').click(function () {                                
-								//console.log("clicked "+'#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]');
 								$(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                                 $(this).parent().siblings('div.recreativeEventMapTplTmtblContainer').show();								
                                 $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
@@ -1591,9 +1594,7 @@ if (!isset($_SESSION)) {
 								$.getJSON( '<?=$whatifmdtendpt?>?stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=graphs",function(graphs){
 									var pAgency = graphs.join();
 									$.getJSON('<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=timetable",function(timetable){			
-										//console.log(timetable);
 										timetable.forEach(function(entry,rownum){
-											//console.log(entry);
 											tmtblMarkup+="<p class=\"tplpoi_tmtblrow\"><button data-r=\""+entry["route"].replace(/[^a-zA-Z0-9]/g, "")+"\" data-t=\""+entry["trip"]+"\" data-n=\""+rownum+"\" style=\"width:100%; background-color:#"+entry["bgcolor"]+"; color:#"+entry["fgcolor"]+"\"><p style=\"font-size:larger; font-weight:bold; margin:0px; padding:0px; text-align:left;\">"+(entry["departure"]?entry["departure"]:entry["arrival"]).substring(0,5)+"&nbsp;<span style=\"font-size:larger; border:thin solid #"+entry["fgcolor"]+";\">"+entry["number"]+"</span>&nbsp;"+entry["headsign"]+"</p><p class=\"nextstops\" style=\"margin:0px; padding:0px; font-weight:normal; text-align:left;\"></p></button></p>";
 										});		
 										if(timetable.length == 0) {
@@ -1605,7 +1606,6 @@ if (!isset($_SESSION)) {
 											var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(entry["trip_uri"])+"&list=stops";
 											var n = rownum;
 											$.getJSON(theTripUrl,function(alltripstops){
-												//console.log(alltripstops);
 												var span = $("p.tplpoi_tmtblrow button[data-t=\""+entry["trip"]+"\"][data-n=\""+n+"\"] p.nextstops");
 												var spanMarkup = "";
 												var isNext = false;
@@ -1622,12 +1622,10 @@ if (!isset($_SESSION)) {
 												if(!spanMarkup) {
 													spanMarkup+="This is the terminus stop, the trip does not continue further.&nbsp;&bull; ";
 												}
-												// console.log("Appending "+spanMarkup.substring(0,spanMarkup.length-13));
 												span.append(spanMarkup.substring(0,spanMarkup.length-13));												
 											});
 										});
 										$(".tplpoi_tmtblrow button").click(function(){
-											//console.log($(this).data("r")); console.log($(this).data("t"));
 											$('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
 											var t = $(this).data("t");
 											var observer = new MutationObserver(function(mutations, observer) {											  
@@ -2716,7 +2714,6 @@ if (!isset($_SESSION)) {
                                                                             progress.bar = 100*progress.done/progress.todo;
                                                                             $(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
                                                                             $(newpopup._container).find("div.tplProgressBar").show();																			
-                                                                        //console.log(progress);
                                                                     }
                                                                     else {
                                                                         if(progress.bar < 99) {
@@ -2875,7 +2872,6 @@ if (!isset($_SESSION)) {
                                                         return this.toString().split(".")[1].length || 0; 
                                                     };
                                                     $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" button.tplpoi_stopbtn").click(function(){														
-                                                        //console.log("stopbtn");
                                                         var serviceuri = $(this).data("serviceuri");
                                                         var lat = $(this).data("lat");
                                                         var lon = $(this).data("lon");
@@ -2901,7 +2897,6 @@ if (!isset($_SESSION)) {
                                                                 ( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
                                                                 try { layer.closePopup(); } catch(e) {}
                                                                 layer.fire('click');
-                                                                console.log("click");
                                                                 return;															
                                                             }
                                                         }
@@ -2978,7 +2973,6 @@ if (!isset($_SESSION)) {
                         
                         $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').off('click');
                         $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').click(function () {                                
-                            //console.log("clicked "+'#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]');
                             $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                             $(this).parent().siblings('div.recreativeEventMapTplTmtblContainer').show();								
                             $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
@@ -2988,9 +2982,7 @@ if (!isset($_SESSION)) {
                             $.getJSON( '<?=$whatifmdtendpt?>?stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=graphs",function(graphs){
                                 var pAgency = graphs.join();
                                 $.getJSON('<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=timetable",function(timetable){			
-                                    //console.log(timetable);
                                     timetable.forEach(function(entry,rownum){
-                                        //console.log(entry);
                                         tmtblMarkup+="<p class=\"tplpoi_tmtblrow\"><button data-r=\""+entry["route"].replace(/[^a-zA-Z0-9]/g, "")+"\" data-t=\""+entry["trip"]+"\" data-n=\""+rownum+"\" style=\"width:100%; background-color:#"+entry["bgcolor"]+"; color:#"+entry["fgcolor"]+"\"><p style=\"font-size:larger; font-weight:bold; margin:0px; padding:0px; text-align:left;\">"+(entry["departure"]?entry["departure"]:entry["arrival"]).substring(0,5)+"&nbsp;<span style=\"font-size:larger; border:thin solid #"+entry["fgcolor"]+";\">"+entry["number"]+"</span>&nbsp;"+entry["headsign"]+"</p><p class=\"nextstops\" style=\"margin:0px; padding:0px; font-weight:normal; text-align:left;\"></p></button></p>";
                                     });		
                                     if(timetable.length == 0) {
@@ -3002,7 +2994,6 @@ if (!isset($_SESSION)) {
                                         var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(entry["trip_uri"])+"&list=stops";
                                         var n = rownum;
                                         $.getJSON(theTripUrl,function(alltripstops){
-                                            //console.log(alltripstops);
                                             var span = $("p.tplpoi_tmtblrow button[data-t=\""+entry["trip"]+"\"][data-n=\""+n+"\"] p.nextstops");
                                             var spanMarkup = "";
                                             var isNext = false;
@@ -3019,12 +3010,10 @@ if (!isset($_SESSION)) {
                                             if(!spanMarkup) {
                                                 spanMarkup+="This is the terminus stop, the trip does not continue further.&nbsp;&bull; ";
                                             }
-                                            // console.log("Appending "+spanMarkup.substring(0,spanMarkup.length-13));
                                             span.append(spanMarkup.substring(0,spanMarkup.length-13));												
                                         });
                                     });
                                     $(".tplpoi_tmtblrow button").click(function(){
-                                        //console.log($(this).data("r")); console.log($(this).data("t"));
                                         $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
                                         var t = $(this).data("t");
                                         var observer = new MutationObserver(function(mutations, observer) {											  
@@ -4841,7 +4830,6 @@ if (!isset($_SESSION)) {
                 var zoomInit = 14;
                 var pitchInit = 30;
                 var bearingInit = 0;
-            //    console.log("Map ZOOM: " + widgetParameters.zoom);
             //    map.defaultMapRef = L.map(mapDivLocal).setView([43.769789, 11.255694], 11);
             //    map.defaultMapRef = L.map(mapDivLocal).setView([43.769789, 11.255694], widgetParameters.zoom);
                 if (widgetParameters.latLng[0] != null && widgetParameters.latLng[0] != '') {
@@ -4865,22 +4853,14 @@ if (!isset($_SESSION)) {
                 }
                 if (styleParameters != null && styleParameters.buildingColor != null) {
                     var input = styleParameters.buildingColor;
-                    console.log('input color');
-                    console.log(input);
                     var rgba = input.replace(/[^\d,.]/g, '').split(',');
                     for (var i = 0; i < rgba.length; i++)
                         rgba[i] = parseFloat(rgba[i]);
                     rgba[3] = parseInt(rgba[3] * 255);
                     buildingColor = rgba;
-                    console.log('building color');
-                    console.log(buildingColor);
                 }
-                console.log('style parameters');
-                console.log(styleParameters);
                 var defaultTileUrl = 'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png';
                 if (styleParameters != null && styleParameters.defaultOrthomap != null) {
-                    console.log('params');
-                    console.log(widgetParameters);
                     const menu = widgetParameters.dropdownMenu;
                     for (var i = 0; i < menu.length; i++) {
                         if (menu[i].id == styleParameters.defaultOrthomap) {
@@ -4899,42 +4879,59 @@ if (!isset($_SESSION)) {
                     switch (styleParameters.buildingType) {
                         case 'default':
                             layers.building = [];
-                            const buildingLayer = createBuildingLayer('../widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
+                            var buildingLayer = createBuildingLayer({
+                                data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
+                                getFillColor: buildingColor,
+                                getLineColor: [255, 255, 255],
+                            });
                             layers.building.push(buildingLayer);
                         break;
                         case 'mesh':
                             // change to riccardo building
-                            console.log('loading riccardo building')
                             selectTickMenuBuilding('building-mesh');
                             layers.building = [];
 
                             // scene 1
                             const data = {position: [11.2501685710125,43.7720562843695]};
-                            const scene1 = "../widgets/layers/edificato/model_textured.gltf";
+                            const scene1 = "../widgets/layers/edificato/model_textured.glb";
+                            // const scene1 = "../widgets/layers/edificato/test_building.glb";
                             const mesh1 = createMeshLayer(data, "scene1-layer", scene1);
-
-                            deltaTimestamp = 43200000;
-
                             layers.building.push(mesh1);
+
+                            // hover buildings
+                            var buildingLayer = createBuildingLayer({
+                                data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
+                                getLineColor: [255, 255, 255],
+                                opacity: 0,
+                            });
+                            layers.building.push(buildingLayer);
 
                         break;
                         case 'mesh-notext':
-                            console.log('loading riccardo building no texture');
                             selectTickMenuBuilding('building-mesh-notext');
                             layers.building = [];
 
                             const data1 = {position: [11.2501685710125,43.7720562843695]};
                             const scene = "../widgets/layers/edificato/centre.gltf";
                             const mesh = createMeshLayer(data1, "scene-layer", scene, buildingColor);
-
-                            deltaTimestamp = 43200000;
-
                             layers.building.push(mesh);
+
+                            // hover buildings
+                            var buildingLayer = createBuildingLayer({
+                                data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
+                                getFillColor: [255, 255, 255, 0],
+                                getLineColor: [255, 255, 255],
+                            });
+                            layers.building.push(buildingLayer);
                         break;
                     }
                 } else {
                     layers.building = [];
-                    const buildingLayer = createBuildingLayer('../widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
+                    var buildingLayer = createBuildingLayer({
+                        data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
+                        getFillColor: buildingColor,
+                        getLineColor: [255, 255, 255],
+                    });
                     layers.building.push(buildingLayer);
                 }
 
@@ -4943,45 +4940,35 @@ if (!isset($_SESSION)) {
                 const height = $(`#${widgetName}_map3d`).height();
                 const width = $(`#${widgetName}_map3d`).width();
 
-                const now = Date.now();
                 var effects = [];
                 if (styleParameters != null && styleParameters.useLighting != null && styleParameters.useLighting == 'yes') {
                     lightsOn = true;
-                    var inputColor = styleParameters.lightColor;
-                    const rgb = inputColor.replace(/[^\d,.]/g, '').split(',');
-                    for (var i = 0; i < rgb.length; i++)
-                        rgb[i] = parseFloat(rgb[i]);
-
-                    const sunLight = new deck._SunLight({
-                        timestamp: Date.parse(styleParameters.lightTimestamp) + deltaTimestamp, 
-                        color: rgb,
-                        intensity: parseInt(styleParameters.lightIntensity),
-                    });
-
-                    const lightEffect = new deck.LightingEffect({sunLight});
-                    effects = [lightEffect];
-
                     $('#lightTimestamp').css('visibility', 'visible');
                     $('#lightTimestamp').val(styleParameters.lightTimestamp);
                     $('.mapOptions').css('top', '67px');
+                    effects = [createLights()];
                 } else {
                     $('#lightTimestamp').val(formatDatetime(Date.now()));
                     $('#lightTimestamp').css('visibility', 'hidden');
                     $('.mapOptions').css('top', '36px');
                 }
                 currentViewState = {
-                        altitude: 1.5,
+                        // altitude: 1,
                         latitude: latInit,
                         longitude: lngInit,
                         zoom: zoomInit,
                         maxZoom: 18,
                         minZoom: 1,
                         pitch: pitchInit,
+                        // farZMultiplier: 1.5,
                         maxPitch: 75,
                         bearing: bearingInit,
                         height: height,
                         width: width,
                 };
+
+                const backgroundLayer = createTileLayer('../img/Sky/background_tile.png', 'background-layer');
+                layers.background = backgroundLayer;
 
                 map3d = new deck.DeckGL({
                     mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
@@ -4990,23 +4977,70 @@ if (!isset($_SESSION)) {
                     container: `${widgetName}_map3d`,
                     effects,
                     //_animate: true,
+                    views: new deck.MapView({
+                        farZMultiplier: 1.5,
+                        altitude: 1,
+                    }),
                     layers: [
+                        backgroundLayer,
                         defaultLayer,
                         //mapLayer,
                         //heatmapLayer,
                         //trafficLayer,
                         ...buildingsLayer,
                     ],
-                    onWebGLInitialized: (gl) => map3dGL = gl,
+                    _customRender: (redrawReason) => {
+                        if (sky != undefined && map3d != undefined) {
+                            const {bearing, pitch, maxPitch} = currentViewState;
+                            sky.draw(bearing, pitch, maxPitch);
+                        }
+                        map3d._drawLayers(redrawReason, {
+                            clearCanvas: false
+                        });
+                    },
+                    onWebGLInitialized: (gl) => {
+                        map3dGL = gl;
+                        sky = new Sky(gl);
+                        const {bearing, pitch, maxPitch} = currentViewState;
+                        sky.draw(bearing, pitch, maxPitch);
+                    },
                     onViewStateChange: ({ viewState }) => {
                         clearTimeout(updateTimeout);
-                        updateTimeout = setTimeout(function (){
-                            updateSensors(viewState);
-                        }, 1000);
+                        if (autoreloadFeatures)
+                            updateTimeout = setTimeout(function (){
+                                for (let key in apiUrls3D) {
+                                    const event = apiUrls3D[key];
+                                    switch (key){
+                                        case "traffic":
+                                            layers.traffic = [];
+                                            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                                if (map.eventsOnMap[i] == undefined)
+                                                    map.eventsOnMap.splice(i, 1);
+                                                else if (map.eventsOnMap[i].eventType && map.eventsOnMap[i].eventType === "trafficRealTimeDetails") {
+                                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i].marker);
+                                                    map.defaultMapRef.removeControl(map.eventsOnMap[i].legend);
+                                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i].trafficLayer);
+                                                    map.eventsOnMap.splice(i, 1);
+                                                }
+                                            }
+                                            break;
+                                        default:
+                                            const display = event.passedData.display;
+                                            if (display == "undefined"  || display.includes('pins'))
+                                                removeLayerSet(key, layers.pin);
+                                            if (display.includes('geometries'))
+                                                removeLayerSet(key, layers.cycling);
+                                            break;
+                                    }
+
+                                $.event.trigger(event);
+                            }
+
+                        }, 2000);
+                        currentViewState = viewState;
                         map3d.setProps({
                             viewState: viewState,
                         });
-                        currentViewState = viewState;
                         $('#deck-zoom-box').text(parseInt(viewState.zoom));
                         reloadPopupDiv();
                         return viewState;
@@ -5022,12 +5056,14 @@ if (!isset($_SESSION)) {
                     getTooltip: ({ object }) => {
                         if (object == null)
                             return null;
-                        var displayedText;
+                        var displayedText = "";
                         if (object.properties != null) {
+                            if (object.properties.OBJECTID != null)
+                                displayedText += `ID: ${object.properties.OBJECTID}</br>`;
+                            if (object.properties.name != null)
+                                displayedText += `Name: ${object.properties.name}</br>`;
                             if (object.properties.address != null)
-                                displayedText = object.properties.address;
-                            else
-                                displayedText = object.properties.name;
+                                displayedText += `Address: ${object.properties.address}</br>`;
                         } else {
                             displayedText = object.toString();
                         }
@@ -5198,10 +5234,13 @@ if (!isset($_SESSION)) {
 
                 $('#building-light').click(function(event) {
                     //change to corti building
-                    console.log('loading corti building')
                     selectTickMenuBuilding('building-light');
                     layers.building = [];
-                    const buildingLayer = createBuildingLayer('../widgets/layers/edificato/AltezzeEdificiFirenze.geojson');
+                    var buildingLayer = createBuildingLayer({
+                        data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
+                        getFillColor: buildingColor,
+                        getLineColor: [255, 255, 255],
+                    });
                     layers.building.push(buildingLayer);
                     deltaTimestamp = 0;
                     updateLayers();
@@ -5209,7 +5248,6 @@ if (!isset($_SESSION)) {
                 });
                 $('#building-mesh').click(function(event) {
                     // change to riccardo building
-                    console.log('loading riccardo building')
                     selectTickMenuBuilding('building-mesh');
                     layers.building = [];
 
@@ -5217,19 +5255,33 @@ if (!isset($_SESSION)) {
                     // scene 1
 
                     const data = {position: [11.2501685710125,43.7720562843695]};
-                    const scene1 = "../widgets/layers/edificato/model_textured.gltf";
+                    const scene1 = "../widgets/layers/edificato/model_textured.glb";
                     const mesh1 = createMeshLayer(data, "scene1-layer", scene1);
                     deltaTimestamp = 43200000;
 
                     layers.building.push(mesh1);
 
+                    // hover buildings
+                    var buildingLayer = createBuildingLayer({
+                        data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
+                        getFillColor: [0,0,0,0],
+                        opacity: 0,
+                        getLineColor: [255, 255, 255],
+                    });
+                    layers.building.push(buildingLayer);
                     updateLayers();
                     reloadLight();
                 });
                 $('#building-mesh-notext').click(function(event) {
-                    console.log('loading riccardo building no texture');
                     selectTickMenuBuilding('building-mesh-notext');
                     layers.building = [];
+                    // hover buildings
+                    var buildingLayer = createBuildingLayer({
+                        data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
+                        getFillColor: [0,0,0,0],
+                        getLineColor: [255, 255, 255],
+                    });
+                    layers.building.push(buildingLayer);
                     const data1 = {position: [11.2501685710125,43.7720562843695]};
                     const scene = "../widgets/layers/edificato/centre.gltf";
                     const mesh = createMeshLayer(data1, "scene-layer", scene, buildingColor);
@@ -5369,7 +5421,6 @@ if (!isset($_SESSION)) {
                 //Risponditore ad eventi innescati dagli widget pilota (aggiungi evento, togli evento)
 
                 $(document).on('updateCustomLeafletMarkers', function (event) {
-                //    console.log("Entrato in trigger listener");
                     let cnt = 0;
                     let iconSize = [];
                     let htmlString = "";
@@ -5460,7 +5511,6 @@ if (!isset($_SESSION)) {
                 });
 
                 $(document).on('updateCustomSingleMarker', function (event) {
-                    //    console.log("Entrato in trigger listener");
                     let cnt = 0;
                     let iconSize = [];
                     let htmlString = "";
@@ -5616,7 +5666,6 @@ if (!isset($_SESSION)) {
                             addAlarmsToMap();
                         }
 
-                        //console.log(map.eventsOnMap.length);
 
                      //   resizeMapView(map.defaultMapRef);
                     }
@@ -5881,10 +5930,8 @@ if (!isset($_SESSION)) {
                                     query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData.query + "&format=json";
                                 } else {
                                     if (pattern.test(passedData.query)) {
-                                        //console.log("Service Map selection substitution");
                                         query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
                                     } else {
-                                        //console.log("Service Map selection addition");
                                         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                     }
                                     if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode == "DynamicCustomPin") {
@@ -6656,19 +6703,26 @@ if (!isset($_SESSION)) {
                                 } else if (passedData.query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {
                                     query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData.query + "&format=json";
                                 } else {
-                                    if (pattern.test(passedData.query)) {
-                                        //console.log("Service Map selection substitution");
-                                        if (is3dOn) 
-                                            query = passedData.query.replace(pattern, "selection=" + mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0]);
-                                        else
-                                            query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
-                                    } else {
-                                        //console.log("Service Map selection addition");
-                                        if (is3dOn)
-                                            query = passedData.query + "&selection=" + mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0];
-                                        else
-                                            query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
-                                    }
+                                    var selQuery;
+                                    if (is3dOn)
+                                        selQuery = `&selection=${mapBounds3d[0][1]};${mapBounds3d[0][0]};${mapBounds3d[1][1]};${mapBounds3d[1][0]}`;
+                                    else
+                                        selQuery = "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                    if (pattern.test(passedData.query)) 
+                                        query = passedData.query.replace(pattern, selQuery);
+                                    else
+                                        query = passedData.query + selQuery;
+                                    // if (pattern.test(passedData.query)) {
+                                    //     if (is3dOn) 
+                                    //         query = passedData.query.replace(pattern, `selection=wkt:POLYGON((mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0]`);
+                                    //     else
+                                    //         query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                    // } else {
+                                    //     if (is3dOn)
+                                    //         query = passedData.query + "&selection=wkt:POLYGON((" + mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0];
+                                    //     else
+                                    //         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                    // }
                                     query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
                                 }
                                 if (!query.includes("&maxResults")) {
@@ -6875,9 +6929,11 @@ if (!isset($_SESSION)) {
                                             iconFilePath: passedData.iconFilePath,
                                         };
                                         
-                                        apiUrls3D[`${passedData.desc}`] = otherProps;
+                                        apiUrls3D[`${passedData.desc}`] = event;
 
-                                        const sensorLayer = createSensorLayer(fatherGeoJsonNode.features, passedData.desc, otherProps);
+                                        const sensorLayer = createSensorLayer({
+                                            data: fatherGeoJsonNode.features, 
+                                            id: passedData.desc});
 
                                         layers.pin.push(sensorLayer);
                                         updateLayers();
@@ -7007,6 +7063,7 @@ if (!isset($_SESSION)) {
                                                                     if (index != -1) 
                                                                         cyclingData.push(...layers.cycling[index].props.data);
                                                                     cyclingData.push(...ciclePathFeature);
+                                                                    apiUrls3D[`${passedData.desc}`] = event;
 
                                                                     const cyclingLayer = createPathLayer(cyclingData, passedData.desc);
                                                                     if (index != -1) {
@@ -7379,7 +7436,6 @@ if (!isset($_SESSION)) {
                             addEventFIToMap();
                         }
 
-                        //console.log(map.eventsOnMap.length);
 
                       //  resizeMapView(map.defaultMapRef);
                     }
@@ -7469,7 +7525,6 @@ if (!isset($_SESSION)) {
                             addResourceToMap();
                         }
 
-                        //console.log(map.eventsOnMap.length);
 
                      //   resizeMapView(map.defaultMapRef);
                     }
@@ -7557,7 +7612,6 @@ if (!isset($_SESSION)) {
                             addOperatorEventToMap();
                         }
 
-                        //console.log(map.eventsOnMap.length);
 
                        // resizeMapView(map.defaultMapRef);
                     }
@@ -7668,7 +7722,6 @@ if (!isset($_SESSION)) {
                             addTrafficEventToMap();
                         }
 
-                        //console.log(map.eventsOnMap.length);
 
                       //  resizeMapView(map.defaultMapRef);
                     }
@@ -8078,12 +8131,10 @@ if (!isset($_SESSION)) {
 											var pwlat = map.defaultMapRef.getBounds()["_northEast"]["lat"];
 											L.popup({offset: L.point(0, 210)}).setLatLng(new L.LatLng(pwlat, pwlng)).setContent("<p><strong>Impact on Public Transport</strong></p><p>Computation in progress.</p><p>It may take some time.</p><p>Please wait...</p>").openOn(map.defaultMapRef);
 											var polygons = [];
-											// console.log(selectedScenarioData);
 											for(var f = 0; f < selectedScenarioData["features"].length; f++) {
 												if(selectedScenarioData["features"][f]["geometry"]["type"] != "Polygon") {													
 													// a radius of 7684.888648492369 corresponds to a delta of 0.192811 in lat lon coordinates so one unit of radius corresponds to a displacement of 0.192811/7684.888648492369 ~ 0.000025 in lat lon 													
 													//polygons.push("(("+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+"))");													
-													//console.log("(("+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+", "+selectedScenarioData["features"][f]["geometry"]["coordinates"][0]-0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+ " "+selectedScenarioData["features"][f]["geometry"]["coordinates"][1]+0.000025*selectedScenarioData["features"][f]["properties"]["radius"]+"))");
 													var r = 0.0001;													
 													if(selectedScenarioData["features"][f]["properties"]["radius"]) r = 0.00001*selectedScenarioData["features"][f]["properties"]["radius"];
 													var x = selectedScenarioData["features"][f]["geometry"]["coordinates"][0];
@@ -9090,6 +9141,7 @@ if (!isset($_SESSION)) {
                         var so = map.defaultMapRef.getBounds()._southWest;
                         var ne = map.defaultMapRef.getBounds()._northEast;
                         var zm = map.defaultMapRef.getZoom();
+                        apiUrls3D['traffic'] = event;
 
                         if (is3dOn) {
                             const maxBB = getMaxBoundingBox(currentViewState);
@@ -9136,7 +9188,6 @@ if (!isset($_SESSION)) {
 
                             map.defaultMapRef.on('click', function (e) {
                                 var bnds = map.defaultMapRef.getBounds()
-                                console.log(bnds.getSouth() + ";" + bnds.getWest() + ";" + bnds.getNorth() + ";" + bnds.getEast());
                                 if (roads == null)
                                     loadRoads();
                                 else {
@@ -9211,9 +9262,22 @@ if (!isset($_SESSION)) {
                                                 }
                                             }
 
-                                            const lineLayer = createLineLayer(roads, "traffic-line-layer");
-                                            layers.traffic.push(lineLayer);
+                                            layers.traffic = [];
                                             updateLayers();
+                                            // apiUrls3D[`traffic`] = event;
+                                            for (let road of roads) {
+                                                for (let segment of road.segments) {
+                                                    segment.startPos = [parseFloat(segment.start.long), parseFloat(segment.start.lat)];
+                                                    segment.endPos = [parseFloat(segment.end.long), parseFloat(segment.end.lat)];
+                                                    segment.path = [segment.startPos, segment.endPos];
+                                                }
+                                                const lineLayer = createTrafficLayer({
+                                                    data: road.segments,
+                                                    id: road.road
+                                                });
+                                                layers.traffic.push(lineLayer);                                           }
+                                            updateLayers();
+                                            return;
                                         }
 
                                         density = JSON.parse(JSON.stringify(_density));
@@ -9252,7 +9316,6 @@ if (!isset($_SESSION)) {
                                             try {
                                                 if (!jQuery.isEmptyObject(roads[i].data[0])) {
                                                     var value = Number(roads[i].data[t][seg.id].replace(",", "."));
-                                                    //console.log(value);
                                                     var green = 0.3;
                                                     var yellow = 0.6;
                                                     var orange = 0.9;
@@ -9833,7 +9896,6 @@ if (!isset($_SESSION)) {
                                 //document.getElementById("<?= $_REQUEST['name_w'] ?>_downSlider_opacity").addEventListener("click", function(){ downSlider('maxOpacity', 0.1, 2, 0)}, false);
                                 document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").addEventListener("input", function(){ 
                                     setOption('maxOpacity', this.value, 2);
-                                    console.log("triggered opacity");
                                     //deckgl
                                     if (is3dOn) {
                                         const opacity = parseFloat(this.value);
@@ -9848,7 +9910,13 @@ if (!isset($_SESSION)) {
                                             const datasetName = oldProps.id;
                                             const wmsUrl = oldProps.wmsUrl;
                                             const tileSize = oldProps.tileSize;
-                                            const heatmapLayer = createHeatmapLayer(wmsUrl, datasetName, "heatmap", tileSize, opacity);
+                                            const heatmapLayer = createHeatmapLayer({
+                                                url: wmsUrl,
+                                                id: datasetName,
+                                                type: "heatmap",
+                                                tileSize,
+                                                opacity
+                                            });
                                             layers.wms = heatmapLayer;
                                         }
                                         updateLayers();
@@ -9961,7 +10029,13 @@ if (!isset($_SESSION)) {
                                         const datasetName = oldProps.id;
                                         const wmsUrl = oldProps.wmsUrl;
                                         const tileSize = oldProps.tileSize;
-                                        const trafficLayer = createHeatmapLayer(wmsUrl, datasetName, "traffic", tileSize, opacity);
+                                        const trafficLayer = createHeatmapLayer({
+                                            url: wmsUrl,
+                                            id: datasetName,
+                                            type: "traffic",
+                                            tileSize,
+                                            opacity
+                                        });
                                         layers.trafficWms = trafficLayer;
                                     }
                                     updateLayers();
@@ -10673,7 +10747,13 @@ if (!isset($_SESSION)) {
                                             trafficWmsUrl += "?service=WMS&request=GetMap&layers=" + trafficData[0].layerName;
                                             trafficWmsUrl += "&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A4326";
 
-                                            const trafficLayer = createHeatmapLayer(trafficWmsUrl, datasetName, "traffic", 256, 1);
+                                            const trafficLayer = createHeatmapLayer({
+                                                url: trafficWmsUrl,
+                                                id: datasetName,
+                                                type: "traffic",
+                                                tileSize: 256,
+                                                opacity: 1
+                                            });
                                             layers.trafficWms = null;
                                             updateLayers();
                                             layers.trafficWms = trafficLayer;
@@ -10793,7 +10873,7 @@ if (!isset($_SESSION)) {
                                            if (data['detail'] == "Ok") {
 
                                                //  if (data['heatmapRange'].length > 1) {
-                                               if (data['heatmapRange'][0]) {
+                                               if (data['heatmapRange'][0] && !wmsDatasetName.includes("elevationTerrain=true")) {
                                                    heatmapRange = data['heatmapRange'];
                                                    initHeatmapLayer(heatmapRange);   // OLD-API
                                                    // Set current_radius come variabile globale per essere sincronizzata attraverso le varie azioni (zoom ecc...)
@@ -10831,12 +10911,20 @@ if (!isset($_SESSION)) {
 
                                                         if (wmsDatasetName.includes("elevationTerrain=true")) {
                                                             // aggiunta terrain layers
+                                                            elevationUrl = wmsUrl;
                                                             const oldData = layers.terrain.props.data;
-                                                            const terrainLayer = createTerrainTileLayer(wmsUrl, oldData, "elevation-terrain-layer");
+                                                            const terrainLayer = createTerrainTileLayer({
+                                                                elevationUrl,
+                                                                data: oldData, 
+                                                                id: "elevation-terrain-layer"
+                                                            });
+                                                            terrainOn = true;
                                                             layers.terrain = terrainLayer;
                                                         } else {
-                                                            const heatmapLayer = createHeatmapLayer(wmsUrl, wmsDatasetName);
-                                                            //const heatmapLayer = createHeatmapLayer(wmsUrl, "heatmap-layer");
+                                                            const heatmapLayer = createHeatmapLayer({
+                                                                url: wmsUrl, 
+                                                                id: wmsDatasetName
+                                                            });
                                                             layers.wms = null;
                                                             updateLayers();
                                                             layers.wms = heatmapLayer;
@@ -11070,7 +11158,13 @@ if (!isset($_SESSION)) {
                                             trafficWmsUrl += "?service=WMS&request=GetMap&layers=" + trafficData[current_page_traffic].layerName;
                                             trafficWmsUrl += "&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A4326";
 
-                                            const trafficLayer = createHeatmapLayer(trafficWmsUrl, datasetName, "traffic", 256, 1);
+                                            const trafficLayer = createHeatmapLayer({
+                                                url: trafficWmsUrl,
+                                                id: datasetName,
+                                                type: "traffic",
+                                                tileSize: 256,
+                                                opacity: 1
+                                            });
                                             layers.trafficWms = null;
                                             updateLayers();
                                             layers.trafficWms = trafficLayer;
@@ -11378,7 +11472,10 @@ if (!isset($_SESSION)) {
                                                                 wmsUrl += "&styles=&format=image%2Fpng&transparent=true&version=1.1.1";
                                                                 wmsUrl += "&time=" + timestampISO;
                                                                 wmsUrl += "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
-                                                                const heatmapLayer = createHeatmapLayer(wmsUrl, wmsDatasetName);                                                                t
+                                                                const heatmapLayer = createHeatmapLayer({
+                                                                    url: wmsUrl,
+                                                                    id: wmsDatasetName
+                                                                });                                                                t
                                                                 layers.wms = null;
                                                                 updateLayers();
                                                                 layers.wms = heatmapLayer;
@@ -11499,7 +11596,10 @@ if (!isset($_SESSION)) {
                                                         wmsUrl += "&styles=&format=image%2Fpng&transparent=true&version=1.1.1";
                                                         wmsUrl += "&time=" + timestampISO;
                                                         wmsUrl += "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
-                                                        const heatmapLayer = createHeatmapLayer(wmsUrl, wmsDatasetName);
+                                                        const heatmapLayer = createHeatmapLayer({
+                                                            url: wmsUrl,
+                                                            id: wmsDatasetName
+                                                        });
                                                         heatmapLayer.type = "heatmap";
                                                         heatmapLayer.wmsUrl = wmsUrl;
                                                         layers.wms = null;
@@ -11973,6 +12073,7 @@ if (!isset($_SESSION)) {
                         var display = passedData.display;
 
                         if (is3dOn) {
+                            delete apiUrls3D[`${passedData.desc}`];
                             if (display == "undefined"  || display.includes('pins'))
                                 removeLayerSet(passedData.desc, layers.pin);
                             if (display.includes('geometries'))
@@ -12197,12 +12298,13 @@ if (!isset($_SESSION)) {
                     }
                 });
                 $(document).on('removeTrafficRealTimeDetails', function (event) {
-                    if (is3dOn) {
-                        removeLayerSet('traffic-line-layer', layers.traffic);
-                        updateLayers();
-                    }
                     if (event.target === map.mapName) {
-
+                        if (is3dOn) {
+                            // removeLayerSet('traffic-line-layer', layers.traffic);
+                            delete apiUrls3D['traffic']
+                            layers.traffic = [];
+                            updateLayers();
+                        }
                         for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
                             if (map.eventsOnMap[i].eventType === "trafficRealTimeDetails") {
                                 map.defaultMapRef.removeLayer(map.eventsOnMap[i].marker);
@@ -12250,6 +12352,7 @@ if (!isset($_SESSION)) {
                             if (wmsDatasetName.includes('elevationTerrain=true')) {
                                 const oldData = layers.terrain.props.data;
                                 const terrainLayer = createTileLayer(oldData);
+                                terrainOn = false;
                                 layers.terrain = terrainLayer;
                             } else {
                                 gifWms.isAnimated = false;
@@ -12364,6 +12467,7 @@ if (!isset($_SESSION)) {
             //Fine definizioni di funzione
 
             // inizio funzioni deckgl
+            // ********** LAYERS **********
             function createTileLayer(data, id = 'map-layer') {
                 return new deck.TileLayer({
                     id: id,
@@ -12374,7 +12478,7 @@ if (!isset($_SESSION)) {
                     maxZoom: 20,
                     tileSize: 256,
                     opacity: 1,
-                    pickable: true,
+                    pickable: false,
                     parameters: {
                         depthTest: false
                     },
@@ -12395,11 +12499,10 @@ if (!isset($_SESSION)) {
                 });
             }
 
-            function createTerrainTileLayer(url, data, id = 'terrain-layer') {
+            function createTerrainTileLayer(props) {
+                const { elevationUrl } = props;
                 return new deck.TileLayer({
-                    id: id,
-                    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
-                    data: data,
+                    id: 'terrain-layer',
 
                     minZoom: 0,
                     maxZoom: 20,
@@ -12414,35 +12517,21 @@ if (!isset($_SESSION)) {
                         return new deck.TerrainLayer({
                             id: props.id,
                             elevationDecoder: {
-                                rScaler: 5,
-                                gScaler: 0,
-                                bScaler: 0,
-                                //offset: -10
-                                offset: -40
+                                rScaler: 7.97/3,
+                                gScaler: 7.97/3,
+                                bScaler: 7.97/3,
+                                offset: -50.97
+                                // offset: -3.18
                             },
-                            elevationData: url + `&bbox=${west},${south},${east},${north}`,
-                            //texture: data + `&bbox=${west},${south},${east},${north}`,
+                            color: [255,255,255],
+                            elevationData: elevationUrl + `&bbox=${west},${south},${east},${north}`,
                             texture: props.data,
-                            //texture: data,
                             bounds: [west, south, east, north],
-                            //loaders: [loaders.TerrainLoader],
-                            
                         });
                     },
+                    ...props,
                 });
 
-            }
-
-            function createTerrainLayer(url, data, id = 'terrain-layer') {
-                return new deck.TerrainLayer(props, {
-                    id: id,
-                    
-                    elevationData: url + `&bbox=${west},${south},${east},${north}`,
-                    //texture: data + `&bbox=${west},${south},${east},${north}`,
-                    texture: props.data,
-                    bounds: [west, south, east, north]
-
-                });
             }
 
             function createBitmapLayer(image, bounds, id = 'bitmap-layer') {
@@ -12489,27 +12578,35 @@ if (!isset($_SESSION)) {
                 });
             }
 
-            function createHeatmapLayer(url, id = 'heatmap-layer', type = "heatmap", tileSize = 512, opacity = 0.2) {
+            function createHeatmapLayer(props) {
+                var { type = "heatmap", url } = props;
                 if (type == "heatmap") {
                     gifWms.isAnimated = false;
                 } else if (type = "traffic") {
                     gifWmsTraffic.isAnimated = false;
                 }
+                const blurredParams = {
+                    [map3dGL.TEXTURE_WRAP_S]: map3dGL.CLAMP_TO_EDGE,
+                    [map3dGL.TEXTURE_WRAP_T]: map3dGL.CLAMP_TO_EDGE,
+                    [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.LINEAR_MIPMAP_LINEAR,
+                    [map3dGL.TEXTURE_MAG_FILTER]: map3dGL.LINEAR,
+                };
+                const pixelParams = {
+                    [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.NEAREST,
+                    [map3dGL.TEXTURE_MAG_FILTER]: map3dGL.NEAREST,
+                };
                 return new deck.TileLayer({
-                    id: id,
-                    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
-
+                    id: 'heatmap-layer',
+                    type: "heatmap",
+                    tileSize: 512, 
+                    opacity: 0.2,
                     minZoom: 0,
                     maxZoom: 20,
-                    tileSize: tileSize,
-                    opacity: opacity,
-                    pickable: true,
-                    type: type,
+                    pickable: false,
                     wmsUrl: url,
                     parameters: {
                         depthTest: false
                     },
-
                     renderSubLayers: props => {
                         const {
                             bbox: { west, south, east, north }
@@ -12518,9 +12615,17 @@ if (!isset($_SESSION)) {
                         return new deck.BitmapLayer(props, {
                             data: null,
                             image: url + `&bbox=${west},${south},${east},${north}`,
-                            bounds: [west, south, east, north]
+                            textureParameters: pixelParams,
+                            bounds: [west, south, east, north],
+                            parameters: {
+                                depthTest: false
+                            }
                         });
                     },
+                    updateTriggers: {
+                        renderSubLayers: wmsBlurred
+                    },
+                    ...props
                 });
 
             }
@@ -12558,28 +12663,44 @@ if (!isset($_SESSION)) {
                 });
             }
 
-            function createBuildingLayer(data, id = 'building-layer') {
+            function createBuildingLayer(props) {
                 return new deck.GeoJsonLayer({
-                    id: id,
-                    data: data,
+                    id: 'building-layer',
                     extruded: true,
                     pickable: true,
                     stroked: false,
                     filled: true,
                     lineWidthScale: 20,
                     lineWidthMinPixels: 2,
-                    getFillColor: buildingColor,
-                    getLineColor: [255, 255, 255],
                     getElevation: f => f.properties.height,
+                    autoHighlight: true,
+                    highlightColor: [0, 0, 128, 128],
                     getRadius: 100,
                     getLineWidth: 1,
                     onClick: (event) => { 
-                        const t0 = performance.now();
-                        console.log(event);
-                        const t1 = performance.now();
-                        console.log(`Caricare gli edifici senza mesh ha impiegato ${t1 - t0} millisecondi.`);
+                        // TODO: add better timer
+                        const feature = event.object;
+                        layers.selection = new deck.GeoJsonLayer({
+                            id: 'selection-layer',
+                            data: feature,
+                            extruded: true,
+                            pickable: true,
+                            stroked: false,
+                            filled: true,
+                            lineWidthScale: 20,
+                            lineWidthMinPixels: 2,
+                            getElevation: f => f.properties.height,
+                            getRadius: 100,
+                            getFillColor: [235, 231, 0, 180],
+                            getLineWidth: 1,
+                            parameters: {
+                                depthTest: false
+                            },
+                        });
+                        updateLayers();
                         return true; 
                     },
+                    ...props,
                 });
             }
 
@@ -12592,25 +12713,20 @@ if (!isset($_SESSION)) {
                     pickable: false,
                     scenegraph: scenegraph,
                     _lighting: 'pbr',
+                    color: [200, 200, 200, 255],
                     getOrientation: d => [0, 0, 90],
                     getScale: d => [0.722, 1, 0.722],
                     getPosition: d => d.position,
                     onClick: (event) => { 
-                        const t0 = performance.now();
-                        console.log(event);
-                        const t1 = performance.now();
-                        console.log(`Caricare gli edifici con mesh ha impiegato ${t1 - t0} millisecondi.`);
+                        // TODO: Add better timer
                         return true; 
                     },
                 });
             }
 
-            function createOsmBuildingLayer(id = "osm-building-layer") {
+            function createBuildingTileLayer(props) {
                 return new deck.TileLayer({
-                    id: id,
-                    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
-                    data: osmBuildingsData,
-
+                    id: "osm-building-layer",
                     minZoom: 0,
                     maxZoom: 20,
                     tileSize: 256,
@@ -12626,7 +12742,7 @@ if (!isset($_SESSION)) {
                             id: id,
                             data: props.data,
                             extruded: true,
-                            // pickable: true,
+                            pickable: true,
                             stroked: false,
                             filled: true,
                             lineWidthScale: 20,
@@ -12639,6 +12755,7 @@ if (!isset($_SESSION)) {
                         });
                     },
                     onClick: (info, event) => addMarker(info.coordinate),
+                    ...props
 
                 });
             }
@@ -12668,14 +12785,13 @@ if (!isset($_SESSION)) {
                 });
             }
 
-            function createSensorLayer(data, id, otherProps) {
+            function createSensorLayer(props) {
                 const ICON_MAPPING = {
                     sensor: { x: 0, y: 0, width: 32, height: 37, anchorY: 37},
                 };
 
                 return new deck.IconLayer({
-                    id: id,
-                    data: data,
+                    id: 'sensor-layer',
                     pickable: true,
                     //iconAtlas: d => d.iconPath,
                     //iconMapping: ICON_MAPPING,
@@ -12700,10 +12816,8 @@ if (!isset($_SESSION)) {
                             };
                         }
                     },
-                    //apiUrl: apiUrl,
-                    ...otherProps,
 
-                    sizeScale: 15,
+                    sizeScale: 7,
                     getPosition: d => d.geometry.coordinates,
                     getSize: d => 5,
                     parameters: {
@@ -12728,12 +12842,13 @@ if (!isset($_SESSION)) {
                             redraw = true;
                             cursorType = 'pointer';
                         }
-                        if (redraw)
-                            redrawIconLayer(info.layer);
+                        // if (redraw)
+                            // redrawIconLayer(info.layer);
                     },
                     onClick: (info, event) => {
                         onMarkerClick(event, info);
                     },
+                    ...props,
                 });
 
             }
@@ -12745,32 +12860,54 @@ if (!isset($_SESSION)) {
                 const viewport = new deck.WebMercatorViewport(state);
                 const popupXY = viewport.project(popupCoord);
                 const viewportXY = viewport.project([viewport.longitude, viewport.latitude]);
+                const refCoord = viewport.unproject([viewportXY[0], popupXY[1]]);
 
                 const mapEl = $(`#${widgetName}_map3d`);
                 const popupDiv = $(`#${widgetName}_deck_popup`);
                 popupDiv.css('top', `${popupXY[1]}px`);
                 popupDiv.css('left', `${popupXY[0] - (popupDiv.width() / 2)}px`);
-
-                var deltaY = viewportXY[1] - popupXY[1];
-                const factor = (1 + (state.pitch * 0.01)) / 150;
-                var scaleFactor = deltaY < 0 ? 1 : 1 / (deltaY * factor);
+                
+                const distance = getMeterDistanceFromCoords([viewport.longitude, viewport.latitude], refCoord);
+                const factor = 1 / 40;
+                var scaleFactor = popupXY[1] > viewportXY[1] ? 1 : 1 / (Math.sqrt(distance) * factor);
                 scaleFactor = scaleFactor > 1 ? 1 : scaleFactor;
                 scaleFactor = scaleFactor < 0.2 ? 0.2 : scaleFactor;
                 popupDiv.css('transform', `scale(${scaleFactor})`);
             }
 
-            function createLineLayer(data, id = 'line-layer') {
-                var segments = [];
-                for (var i = 1; i < data.length; i++)
-                    segments.push(...(data[i].segments));
+            function createLineLayer(props) {
                 return new deck.LineLayer({
-                    id: id,
-                    data: segments,
-                    // pickable: true,
-                    getWidth: 10,
-                    getSourcePosition: d => [parseFloat(d.start.long), parseFloat(d.start.lat)],
-                    getTargetPosition: d => [parseFloat(d.end.long), parseFloat(d.end.lat)],
+                    id: 'line-layer',
+                    pickable: true,
+                    // parameters: {
+                    //     depthTest: true
+                    // },
+                    getWidth: 500,
+                    getSourcePosition: d => d.endPos,
+                    getTargetPosition: d => d.startPos,
                     getColor: d => d.color || [0, 0, 255],
+                    ...props
+                });
+            }
+
+            function createTrafficLayer(props) {
+                return new deck.TripsLayer({
+                    id: 'trips-layer',
+                    getPath: d => d.path,
+                    getTimestamps: d => [0, 100],
+                    getColor: d => d.color || [253, 128, 93],
+                    // getColor: [253, 128, 93],
+                    parameters: {
+                        depthTest: false
+                    },
+                    opacity: 1,
+                    // picking: true,
+                    widthMinPixels: 5,
+                    rounded: true,
+                    fadeTrail: false,
+                    trailLength: 200,
+                    currentTime: 100,
+                    ...props
                 });
             }
 
@@ -12787,7 +12924,6 @@ if (!isset($_SESSION)) {
             }
 
             function loadGif(url, bounds, type) {
-                console.log('loading gif');
                 var usedGif;
                 switch (type) {
                     case "heatmap":
@@ -12807,8 +12943,6 @@ if (!isset($_SESSION)) {
                     } else {
                         for (let k in frameData){
                             var frame = frameData[k].getImage();
-                            console.log('getting gif frame');
-                            console.log(frame);
                             var data = new Uint8Array(frame.data.length);
                             for (var i = 0; i < frame.data.length / 4; i++) {
                                 var pixel = [];
@@ -12957,8 +13091,6 @@ if (!isset($_SESSION)) {
                 const selectionString = getSelectionString(viewState);
                 const oldApiUrl = apiUrls3D[`${layer.id}`].apiUrl;
                 const newApiUrl = oldApiUrl.replace(/(selection[^&]*)/g, selectionString);
-                console.log("new apiUrl");
-                console.log(newApiUrl);
 
                 $.ajax({
                     url: newApiUrl,
@@ -13011,7 +13143,9 @@ if (!isset($_SESSION)) {
                             iconFilePath: oldProps.iconFilePath,
                         };
                         apiUrls3D[`${id}`] = otherProps;
-                        const sensorLayer = createSensorLayer(fatherGeoJsonNode.features, id, otherProps);
+                        const sensorLayer = createSensorLayer({
+                            data: fatherGeoJsonNode.features,
+                            id});
                         
 
                         //removeLayerSet(id, layers.pin);
@@ -13034,8 +13168,8 @@ if (!isset($_SESSION)) {
             function redrawIconLayer(layer) {
                 const id = layer.props.id;
                 const data = layer.props.data;
-                const props = apiUrls3D[`${id}`];
-                const sensorLayer = createSensorLayer(data, id, props);
+                // const props = apiUrls3D[`${id}`];
+                const sensorLayer = createSensorLayer({data, id});
 
                 removeLayerSet(id, layers.pin);
                 layers.pin.push(sensorLayer);
@@ -13045,6 +13179,7 @@ if (!isset($_SESSION)) {
             function updateLayers() {
                 map3d.setProps({
                     layers: [
+                        layers.background,
                         layers.terrain,
                         layers.orthomaps,
                         layers.wms,
@@ -13053,6 +13188,7 @@ if (!isset($_SESSION)) {
                         ...layers.cycling,
                         layers.bus,
                         ...layers.building,
+                        layers.selection,
                         ...layers.pin,
                     ]
                 })
@@ -13066,7 +13202,6 @@ if (!isset($_SESSION)) {
                 const hour = formatNumberDate(datetime.getHours());
                 const minute = formatNumberDate(datetime.getMinutes());
                 const ris = `${year}-${month}-${day}T${hour}:${minute}`;
-                console.log('dateformat: ' + ris);
                 return ris;
             }
             function formatNumberDate(number) {
@@ -13110,53 +13245,108 @@ if (!isset($_SESSION)) {
             }
 
             function getMaxBoundingBox(viewState) {
-                viewState.pitch = viewState.pitch > 70 ? 70 : viewState.pitch;
                 const bb = getBoundingBox(viewState);
-                var minLat = bb[0][0];
-                var maxLat = bb[0][0];
-                var minLng = bb[0][1];
-                var maxLng = bb[0][1];
+                var minLng = bb[0][0];
+                var maxLng = bb[0][0];
+                var minLat = bb[0][1];
+                var maxLat = bb[0][1];
                 for (var i = 1; i < bb.length; i++) {
-                    if (minLat > bb[i][0])
-                        minLat = bb[i][0];
-                    if (maxLat < bb[i][0])
-                        maxLat = bb[i][0];
-                    if (minLng > bb[i][1])
-                        minLng = bb[i][1];
-                    if (maxLng < bb[i][1])
-                        maxLng = bb[i][1];
+                    if (minLat > bb[i][1])
+                        minLat = bb[i][1];
+                    if (maxLat < bb[i][1])
+                        maxLat = bb[i][1];
+                    if (minLng > bb[i][0])
+                        minLng = bb[i][0];
+                    if (maxLng < bb[i][0])
+                        maxLng = bb[i][0];
                 }
-                return [[minLat, minLng], [maxLat, maxLng]];
+                return [[minLng, minLat], [maxLng, maxLat]];
             }
 
             function getBoundingBox(viewState) {
-                const viewport = new deck.WebMercatorViewport(viewState);
-                const nw = viewport.unproject([0, 0]);
-                const ne = viewport.unproject([viewport.width, 0]);
+                const selectionState = {
+                    ...viewState,
+                    // pitch: viewState.pitch > 63 ? 63 : viewState.pitch,
+                    farZMultiplier: 1.5,
+                    altitude: 1,
+                }
+                var viewport = new deck.WebMercatorViewport(selectionState);
                 const se = viewport.unproject([viewport.width, viewport.height]);
                 const sw = viewport.unproject([0, viewport.height]);
+
+                selectionState.pitch = viewState.pitch > 63 ? 63 : viewState.pitch,
+                viewport = new deck.WebMercatorViewport(selectionState);
+                const nw = viewport.unproject([0, 0]);
+                const ne = viewport.unproject([viewport.width, 0]);
+                // layers.selection = new deck.PolygonLayer({
+                //     id: 'polygon-layer',
+                //     data: [{
+                //         path: [nw, ne, se, sw],
+                //     },],
+                //     stroked: true,
+                //     filled: true,
+                //     wireframe: true,
+                //     lineWidthMinPixels: 1,
+                //     getPolygon: d => d.path,
+                //     getElevation: d => 10,
+                //     parameters: {
+                //         depthTest: false
+                //     },
+                //     opacity: 0.8,
+                //     getFillColor: d => [0, 0, 255],
+                //     getLineColor: [80, 80, 80],
+                //     getLineWidth: 1
+                // });
+                // updateLayers();
                 return [nw, ne, se, sw];
+            }
+
+            function createLights() {
+                const input = $('#lightTimestamp').val();
+                const h24toSeconds = 86400;
+
+                var now;
+                if (input == '')
+                    now = Date.now();
+                else 
+                    now = Date.parse(input);
+                
+                const deltatime = (now / 1000 + 7200) % h24toSeconds / 3600;
+                const daySpan = 16; // day hours
+                const sunrise = 5;
+                var intensityFactor = 0;
+                if (deltatime > sunrise && deltatime < sunrise + daySpan) {
+                    const deltaDay = deltatime - sunrise;
+                    intensityFactor = Math.sin(deltaDay / daySpan * Math.PI);
+                }
+                const sunAngle = (deltatime - 6) / 24 * Math.PI * 2;
+                const xDirection = Math.cos(sunAngle);
+                const zDirection = -Math.sin(sunAngle)
+                
+
+                const sunLight = new deck._SunLight({
+                    timestamp: now,
+                    color: [255, 255, 255],
+                    intensity: 1,
+                });
+                const ambientLight = new deck.AmbientLight({
+                    color: [255, 255, 255],
+                    intensity: intensityFactor * 0.3 + 0.8,
+                });
+                const directionalLight = new deck.DirectionalLight({
+                    color: [255, 255, 255],
+                    intensity: intensityFactor,
+                    direction: [xDirection, -0.5, zDirection],
+                });
+
+                return new deck.LightingEffect({ambientLight, directionalLight});
             }
 
             function reloadLight() {
                 if (lightsOn) {
-                    const input = $('#lightTimestamp').val();
-
-                    var now;
-                    if (input == '')
-                        now = Date.now();
-                    else 
-                        now = Date.parse(input);
-
-                    const sunLight = new deck._SunLight({
-                        timestamp: now - deltaTimestamp, 
-                        color: [255, 255, 255],
-                        intensity: 1,
-                    });
-
-                    const lightEffect = new deck.LightingEffect({sunLight});
+                    const lights = createLights();
                     map3d.setProps({
-                        effects: [lightEffect],
+                        effects: [lights],
                     });
                 } else {
                     map3d.setProps({
@@ -13284,21 +13474,16 @@ if (!isset($_SESSION)) {
                 $(`#${idSelected} i`).removeClass('hidden');
             }
 
-            function getMeterDistanceFromCoords(coord1, coord2, rotation = 0) {
+            function getMeterDistanceFromCoords(coord1, coord2) {
                 return getMeterDistance(coord1[1], coord1[0], coord2[1], coord2[0]);
             }
 
-            function getMeterDistance(lat1, lon1, lat2, lon2, rotation = null) {
+            function getMeterDistance(lat1, lon1, lat2, lon2) {
                 const R = 6371e3; // metres
                 const φ1 = lat1 * Math.PI/180; // φ, λ in radians
                 const φ2 = lat2 * Math.PI/180;
                 const Δφ = (lat2-lat1) * Math.PI/180;
                 const Δλ = (lon2-lon1) * Math.PI/180;
-
-                if (rotation != null) {
-                    const Δφ = (lat2-lat1) * Math.sin(rotation) * Math.PI/180;
-                    const Δλ = (lon2-lon1) * Math.cos(rotation) * Math.PI/180;
-                }
 
                 const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
                         Math.cos(φ1) * Math.cos(φ2) *
@@ -13317,7 +13502,543 @@ if (!isset($_SESSION)) {
                 return str[0] + '.' + result.join('');
             }
 
-            // fine funzioni deckgl
+            const TILE_SIZE = 512;
+            const EARTH_CIRCUMFERENCE = 40.03e6;
+            const DEGREES_TO_RADIANS = Math.PI / 180;
+
+            function unitsPerMeter(latitude) {
+                const latCosine = Math.cos(latitude * DEGREES_TO_RADIANS);
+                return TILE_SIZE / EARTH_CIRCUMFERENCE / latCosine;
+            }
+
+
+            // ********** CLASSES **********
+            class Sky {
+                gl;
+                vertCode = `
+                attribute vec4 a_position;
+                varying vec4 v_position;
+                void main() {
+                v_position = a_position;
+                gl_Position = a_position;
+                gl_Position.z = 1.0;
+                }
+                `;
+                fragCode = `
+                precision mediump float;
+                uniform samplerCube u_skybox;
+                uniform mat4 u_viewDirectionProjectionInverse;
+                varying vec4 v_position;
+                void main() {
+                vec4 t = u_viewDirectionProjectionInverse * v_position;
+                gl_FragColor = textureCube(u_skybox, normalize(t.xyz / t.w));
+                }
+                `;
+                program;
+                positionLocation;
+                positionBuffer;
+                fieldOfViewRadians;
+                viewDirectionProjectionInverseLocation;
+                skyboxLocation;
+                constructor(gl) {
+                    this.init(gl);
+                }
+                init(gl) {
+                    this.gl = gl;
+
+                    var vertShader = gl.createShader(gl.VERTEX_SHADER);
+                    gl.shaderSource(vertShader, this.vertCode);
+                    gl.compileShader(vertShader);
+
+                    var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+                    gl.shaderSource(fragShader, this.fragCode);
+                    gl.compileShader(fragShader);
+
+                    this.program = gl.createProgram();
+                    gl.attachShader(this.program, vertShader);
+                    gl.attachShader(this.program, fragShader);
+                    gl.linkProgram(this.program);
+
+                    // look up where the vertex data needs to go.
+                    this.positionLocation = gl.getAttribLocation(this.program, "a_position");
+
+                    // lookup uniforms
+                    this.skyboxLocation = gl.getUniformLocation(this.program, "u_skybox");
+                    this.viewDirectionProjectionInverseLocation =
+                        gl.getUniformLocation(this.program, "u_viewDirectionProjectionInverse");
+
+                    // Create a buffer for positions
+                    this.positionBuffer = gl.createBuffer();
+                    // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+                    // Put the positions in the buffer
+                    var positions = new Float32Array(
+                        [
+                            -1, -1,
+                            1, -1,
+                            -1, 1,
+                            -1, 1,
+                            1, -1,
+                            1, 1,
+                        ]);
+                    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+                    // Create a texture.
+                    var texture = gl.createTexture();
+                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                    const wheater = 'daylight';
+
+                    const faceInfos = [
+                        {
+                            target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+                            // url: '/images/image_right.png'
+                            url: `../img/Sky/${wheater}/right.png`
+                        },
+                        {
+                            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+                            // url: '/images/image_left.png'
+                            // url: '../img/Sky/image_left.png'
+                            url: `../img/Sky/${wheater}/left.png`
+                        },
+                        {
+                            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+                            // url: '/images/image_top.png'
+                            // url: '../img/Sky/image_up.png'
+                            url: `../img/Sky/${wheater}/top.png`
+                        },
+                        {
+                            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+                            // url: '/images/image_bottom.png'
+                            // url: '../img/Sky/image_bottom.png'
+                            url: `../img/Sky/${wheater}/bottom.png`
+                        },
+                        {
+                            target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+                            // url: '../img/Sky/image_front.png'
+                            url: `../img/Sky/${wheater}/front.png`
+                        },
+                        {
+                            target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+                            // url: '/images/image_behind.png'
+                            // url: '../img/Sky/image_behind.png'
+                            url: `../img/Sky/${wheater}/behind.png`
+                        },
+                    ];
+                    faceInfos.forEach((faceInfo) => {
+                        const { target, url } = faceInfo;
+
+                        // Upload the canvas to the cubemap face.
+                        const level = 0;
+                        const internalFormat = gl.RGBA;
+                        const width = 512;
+                        const height = 512;
+                        const format = gl.RGBA;
+                        const type = gl.UNSIGNED_BYTE;
+
+                        // setup each face so it's immediately renderable
+                        // gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null);
+
+                        // Asynchronously load an image
+                        const image = new Image();
+                        image.src = url;
+                        image.addEventListener('load', function () {
+                            // Now that the image has loaded make copy it to the texture.
+                            gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                            gl.texImage2D(target, level, internalFormat, format, type, image);
+                            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                        });
+                    });
+                    gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+                    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+
+                    function radToDeg(r) {
+                        return r * 180 / Math.PI;
+                    }
+
+                    function degToRad(d) {
+                        return d * Math.PI / 180;
+                    }
+
+                    this.fieldOfViewRadians = degToRad(60);
+                    this.cameraYRotationRadians = degToRad(0);
+
+                    var spinCamera = true;
+                    // Get the starting time.
+                    var then = 0;
+
+                    // requestAnimationFrame(drawScene);
+                    this.draw();
+
+                    // Draw the scene.
+                }
+
+                draw(bearing = 0, pitch = 0, maxPitch = 75) {
+                    var gl = this.gl;
+
+                    webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+                    // Tell WebGL how to convert from clip space to pixels
+                    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+                    gl.enable(gl.CULL_FACE);
+                    gl.enable(gl.DEPTH_TEST);
+
+                    // Clear the canvas AND the depth buffer.
+                    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+                    // Tell it to use our program (pair of shaders)
+                    gl.useProgram(this.program);
+
+                    // Turn on the position attribute
+                    gl.enableVertexAttribArray(this.positionLocation);
+
+                    // Bind the position buffer.
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
+
+                    // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+                    var size = 2;          // 2 components per iteration
+                    var type = gl.FLOAT;   // the data is 32bit floats
+                    var normalize = false; // don't normalize the data
+                    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+                    var offset = 0;        // start at the beginning of the buffer
+                    gl.vertexAttribPointer(
+                        this.positionLocation, size, type, normalize, stride, offset);
+
+                    // Compute the projection matrix
+                    var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+                    var projectionMatrix =
+                        m4.perspective(this.fieldOfViewRadians, aspect, 1, 2000);
+
+                    // var cameraPosition = [0, 0, 0];
+                    // var target = [0.5, 0, 0];
+                    bearing *= Math.PI / 180;
+                    pitch *= Math.PI / 180;
+                    // var cameraPosition = [0, 0, 0];
+                    // var target = [-Math.sin(bearing), - (1 / (pitch - maxPitch)), Math.cos(bearing)];
+                    var cameraPosition = [Math.cos(bearing), Math.cos(pitch), Math.sin(bearing)];
+                    var target = [0, 0, 0];
+                    var up = [0, 1, 0];
+
+                    // Compute the camera's matrix using look at.
+                    var cameraMatrix = m4.lookAt(cameraPosition, target, up);
+
+                    // Make a view matrix from the camera matrix.
+                    var viewMatrix = m4.inverse(cameraMatrix);
+
+                    // We only care about direciton so remove the translation
+                    viewMatrix[12] = 0;
+                    viewMatrix[13] = 0;
+                    viewMatrix[14] = 0;
+
+                    var viewDirectionProjectionMatrix =
+                        m4.multiply(projectionMatrix, viewMatrix);
+                    var viewDirectionProjectionInverseMatrix =
+                        m4.inverse(viewDirectionProjectionMatrix);
+
+                    // Set the uniforms
+                    gl.uniformMatrix4fv(
+                        this.viewDirectionProjectionInverseLocation, false,
+                        viewDirectionProjectionInverseMatrix);
+
+                    // Tell the shader to use texture unit 0 for u_skybox
+                    gl.uniform1i(this.skyboxLocation, 0);
+
+                    // let our quad pass the depth test at 1.0
+                    gl.depthFunc(gl.LEQUAL);
+
+                    // Draw the geometry.
+                    gl.drawArrays(gl.TRIANGLES, 0, 1 * 6);
+
+                    // requestAnimationFrame(drawScene);
+                }
+            }
+
+            class ElevationManager {
+                elevationData;
+                zoom;
+
+                constructor(props) {
+                    const {
+                        elevationData,
+                        zoom = 16,
+                    } = props;
+                    
+                    this.elevationData = elevationData;
+                    this.zoom = zoom;
+                }
+
+                getElevation(xyz) {
+
+                }
+
+                getTileFromPosition(position, zoom) {
+                    const lng = position[0];
+                    const lat = position[1];
+                    const n = 2 ^ zoom;
+                    const x = n * ((lng + 180) / 360);
+                    const y = (n * (1 - log2(tan(lat) + sec(lat)) / pi)) / 2;
+                    return [parseInt(x), parseInt(y)];
+                }
+            }
+
+            class TerrainViewport extends deck.Viewport {
+                static displayName = "TerrainViewport";
+
+                longitude;
+                latitude;
+                pitch;
+                bearing;
+                altitude;
+                fovy;
+                orthographic;
+                constructor(opts = {}) {
+                    console.log("Creating TerrainViewport");
+                    console.log(opts);
+                    const {
+                        latitude = 0,
+                        longitude = 0,
+                        zoom = 0,
+                        pitch = 0,
+                        bearing = 0,
+                        nearZMultiplier = 0.1,
+                        farZMultiplier = 1.01,
+                        orthographic = false,
+                        projectionMatrix,
+                        elevationData = null,
+
+                        repeat = false,
+                        worldOffset = 0,
+
+                        // backward compatibility
+                        // TODO: remove in v9
+                        legacyMeterSizes = false,
+                    } = opts;
+
+                    let { width, height, altitude = 1.5 } = opts;
+                    const scale = Math.pow(2, zoom);
+
+                    // Silently allow apps to send in 0,0 to facilitate isomorphic render etc
+                    width = width || 1;
+                    height = height || 1;
+
+                    let fovy;
+                    let projectionParameters = null;
+                    if (projectionMatrix) {
+                        altitude = projectionMatrix[5] / 2;
+                        fovy = altitudeToFovy(altitude);
+                    } else {
+                        if (opts.fovy) {
+                            fovy = opts.fovy;
+                            altitude = fovyToAltitude(fovy);
+                        } else {
+                            fovy = altitudeToFovy(altitude);
+                        }
+                        projectionParameters = getProjectionParameters({
+                            width,
+                            height,
+                            pitch,
+                            fovy,
+                            nearZMultiplier,
+                            farZMultiplier,
+                        });
+                    }
+
+                    // The uncentered matrix allows us two move the center addition to the
+                    // shader (cheap) which gives a coordinate system that has its center in
+                    // the layer's center position. This makes rotations and other modelMatrx
+                    // transforms much more useful.
+                    let viewMatrixUncentered = getViewMatrix({
+                        height,
+                        pitch,
+                        bearing,
+                        scale,
+                        altitude,
+                    });
+
+                    if (worldOffset) {
+                        const viewOffset = new Matrix4().translate([
+                            512 * worldOffset,
+                            0,
+                            0,
+                        ]);
+                        viewMatrixUncentered =
+                            viewOffset.multiplyLeft(viewMatrixUncentered);
+                    }
+
+                    super({
+                        ...opts,
+                        // x, y,
+                        width,
+                        height,
+
+                        // view matrix
+                        viewMatrix: viewMatrixUncentered,
+                        longitude,
+                        latitude,
+                        zoom,
+
+                        // projection matrix parameters
+                        ...projectionParameters,
+                        fovy,
+                        focalDistance: altitude,
+                    });
+
+                    // Save parameters
+                    this.latitude = latitude;
+                    this.longitude = longitude;
+                    this.zoom = zoom;
+                    this.pitch = pitch;
+                    this.bearing = bearing;
+                    this.altitude = altitude;
+                    this.fovy = fovy;
+
+                    this.orthographic = orthographic;
+
+                    this._subViewports = repeat ? [] : null;
+                    this._pseudoMeters = legacyMeterSizes;
+
+                    Object.freeze(this);
+                }
+
+                projectPosition(xyz) {
+                    if (this._pseudoMeters) return super.projectPosition(xyz);
+                    // TODO: Modify here altitude for terrain elevation
+                    const [X, Y] = super.projectFlat(xyz);
+                    const Z = (xyz[2] || 0) * unitsPerMeter(xyz[1]);
+                    console.log("projecting position");
+                    console.log(xyz);
+                    console.log(`projected in x: ${X} y: ${Y} z: ${Z}`);
+                    return [X, Y, Z];
+                }
+
+                getElevation(xyz) {
+                    tile = this.getTileFromPosition(xyz, this.zoom);
+                }
+
+                addMetersToLngLat(lngLatZ, xyz) {
+                    return addMetersToLngLat(lngLatZ, xyz);
+                }
+
+                getTileFromPosition(position, zoom) {
+                    const lng = position[0];
+                    const lat = position[1];
+                    const n = 2 ^ zoom;
+                    const x = n * ((lng + 180) / 360);
+                    const y = (n * (1 - log2(tan(lat) + sec(lat)) / pi)) / 2;
+                    return [parseInt(x), parseInt(y)];
+                }
+
+                unprojectPosition(xyz) {
+                    // TODO: Sarà tosto!
+                    if (this._pseudoMeters) {
+                        // Backward compatibility
+                        return super.unprojectPosition(xyz);
+                    }
+                    const [X, Y] = this.unprojectFlat(xyz);
+                    const Z = (xyz[2] || 0) / unitsPerMeter(Y);
+                    console.log('unprojecting');
+                    console.log(xyz);
+                    console.log(`projected in x: ${X} y: ${Y} z: ${Z}`);
+                    return [X, Y, Z];
+                }
+
+                panByPosition(coords, pixel) {
+                    console.log('panning by position');
+                    const fromLocation = pixelsToWorld(pixel, this.pixelUnprojectionMatrix);
+                    const toLocation = this.projectFlat(coords);
+
+                    const translate = vec2.add(
+                        [],
+                        toLocation,
+                        vec2.negate([], fromLocation)
+                    );
+                    const newCenter = vec2.add([], this.center, translate);
+
+                    const [longitude, latitude] = this.unprojectFlat(newCenter);
+                    return { longitude, latitude };
+                }
+
+                getBounds(options = {}) {
+                    console.log('getting bounds');
+                    // @ts-ignore
+                    const corners = getBounds(this, options.z || 0);
+
+                    return [
+                        Math.min(
+                            corners[0][0],
+                            corners[1][0],
+                            corners[2][0],
+                            corners[3][0]
+                        ),
+                        Math.min(
+                            corners[0][1],
+                            corners[1][1],
+                            corners[2][1],
+                            corners[3][1]
+                        ),
+                        Math.max(
+                            corners[0][0],
+                            corners[1][0],
+                            corners[2][0],
+                            corners[3][0]
+                        ),
+                        Math.max(
+                            corners[0][1],
+                            corners[1][1],
+                            corners[2][1],
+                            corners[3][1]
+                        ),
+                    ];
+                }
+
+                fitBounds(bounds, options = {}) {
+                    console.log('fitting bounds');
+                    const { width, height } = this;
+                    const { longitude, latitude, zoom } = fitBounds({
+                        width,
+                        height,
+                        bounds,
+                        ...options,
+                    });
+                    return new WebMercatorViewport({
+                        width,
+                        height,
+                        longitude,
+                        latitude,
+                        zoom,
+                    });
+                }
+            }
+
+            class TerrainView extends deck.View {
+                constructor(props) {
+                    console.log("Creating TerrinView");
+                    super({
+                        ...props,
+                        type: TerrainViewport
+                    });
+                }
+
+                // makeViewport(opts) {
+                // 	var { width, height, viewState } = opts;
+                // 	console.log("Making Viewport");
+                // 	console.log(opts);
+                // 	viewState = this.filterViewState(viewState);
+                // 	const viewportDimensions = this.getDimensions({ width, height });
+                // 	return new TerrainViewport({
+                // 		...viewState,
+                // 		...this.props,
+                // 		...viewportDimensions,
+                // 	});
+                // }
+
+                get controller() {
+                    return this._getControllerProps({
+                        type: MapController,
+                    });
+                }
+            }
+            // fine definizioni deckgl
             
             //Inizio del main script
 
@@ -13336,8 +14057,6 @@ if (!isset($_SESSION)) {
                     async: true,
                     dataType: 'json',
                     success: function (widgetData) {
-                        console.log('widgetdata ricevuto');
-                        console.log(widgetData);
                         //Parametri di costruzione del widget (struttura e aspetto)
                         showTitle = widgetData.params.showTitle;
                         widgetContentColor = widgetData.params.color_w;
@@ -13497,8 +14216,6 @@ if (!isset($_SESSION)) {
                     async: true,
                     dataType: 'json',
                     success: function (widgetData) {
-                        console.log('widgetdata ricevuto');
-                        console.log(widgetData);
                         widgetData.params = widgetData.param;
                         //Parametri di costruzione del widget (struttura e aspetto)
                         showTitle = widgetData.params.showTitle;
@@ -14391,7 +15108,6 @@ if (!isset($_SESSION)) {
 
                                 map.defaultMapRef.on('click', function (e) {
                                     var bnds = map.defaultMapRef.getBounds()
-                                    console.log(bnds.getSouth() + ";" + bnds.getWest() + ";" + bnds.getNorth() + ";" + bnds.getEast());
                                     if (roads == null)
                                         loadRoads();
                                     else {
@@ -14476,7 +15192,6 @@ if (!isset($_SESSION)) {
                                                 try {
                                                     if (!jQuery.isEmptyObject(roads[i].data[0])) {
                                                         var value = Number(roads[i].data[t][seg.id].replace(",", "."));
-                                                        //console.log(value);
                                                         var green = 0.3;
                                                         var yellow = 0.6;
                                                         var orange = 0.9;
@@ -16900,8 +17615,13 @@ if (!isset($_SESSION)) {
                 layersAddedToMap.push({"id": menu.id, "layer": layer});
                 if (is3dOn) {
                     const tileUrl = menu.linkUrl.replace("{s}", "c");
-                    const terrainLayer = createTileLayer(tileUrl, menu.id);
-                    layers.terrain = terrainLayer;
+                    if (terrainOn) 
+                        layers.terrain = createTerrainTileLayer({
+                            elevationUrl,
+                            data: tileUrl,
+                        });
+                    else
+                        layers.terrain = createTileLayer(tileUrl, menu.id);
                     updateLayers();
                 }
                 
@@ -17151,7 +17871,7 @@ if (!isset($_SESSION)) {
 
                 <!-- Correzione 1 -->
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map"
-                     style="height: 100%; width: 100%;"></div>
+                     style="height: 100%; width: 100%;" class="mapContainer"></div>
 
                 <!-- deckgl layer -->
                 <div class="dropdown mapOptions" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptions">
@@ -17159,7 +17879,7 @@ if (!isset($_SESSION)) {
                         <i class="fa fa-spinner fa-spin hidden" id="loadingMenu"></i> Maps
                         <span class="caret"></span>
                     </button>
-                    <ul class="dropdown-menu" id="dropdown-menu-id" aria-labelledby="dropdownMenu1">
+                    <ul class="dropdown-menu map-menu" id="dropdown-menu-id" aria-labelledby="dropdownMenu1">
                         <li class="dropdown-header">2D / 3D</li>
                         <li><a class="dropdown-item" href="#" id="2DButton">2D Map</a></li>
                         <li><a class="dropdown-item" href="#" id="3DButton">3D Map</a></li>
@@ -17184,7 +17904,7 @@ if (!isset($_SESSION)) {
                         </li>
                     </template>
                 </div>
-                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d">
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d" class="map3d">
                     <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_deck_popup" class="deck-popup">
                 </div>
                 <div id="deck-controls">

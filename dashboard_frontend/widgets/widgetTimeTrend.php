@@ -1642,6 +1642,24 @@
 
                         break;
 
+                    case "730/DAY":
+                        serviceMapTimeRange = "fromTime=730-day";
+                        //    var deltaT = 30 + parseInt(timeCount) * 30;
+                        //    serviceMapTimeRange = "fromTime=" + deltaT + "-day";
+
+                        upperTimeLimitISOTrimmed = getUpperTimeLimit(730*24*timeCount);
+
+                        break;
+
+                    case "3650/DAY":
+                        serviceMapTimeRange = "fromTime=3650-day";
+                        //    var deltaT = 30 + parseInt(timeCount) * 30;
+                        //    serviceMapTimeRange = "fromTime=" + deltaT + "-day";
+
+                        upperTimeLimitISOTrimmed = getUpperTimeLimit(3650*24*timeCount);
+
+                        break;
+
                     default:
                         serviceMapTimeRange = "fromTime=1-day";
 

@@ -261,6 +261,29 @@ else
                 text-overflow: ellipsis
             }
         }
+        
+        
+        .dashboardWizardTabTxt{
+            padding: 5px;
+        }
+        
+    /*    .modal-content{
+            width: 1000px;
+        }   */
+        
+        #scrDashboardConfirmBtn{
+            float: right;
+            margin-left: 10px;
+        }
+        
+        #dashboardScrInput{
+           margin: 10px; 
+        }
+        
+        #editing_modal_content{
+        /*    width: 1000px;    */
+            width: 60vw;
+        } 
     </style>
 
     <body class="guiPageBody">
@@ -526,7 +549,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
             <!-- Modale gestione deleghe dashboard -->
             <div class="modal fade" id="delegationsModal" tabindex="-1" role="dialog" aria-labelledby="modalAddWidgetTypeLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
-                    <div class="modal-content">
+                    <div class="modal-content" id="editing_modal_content">
                         <div class="modalHeader centerWithFlex">
                             <?= _("Management")?>
                         </div>
@@ -545,6 +568,8 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                     <li id="graphTab" class="nav-item"><a data-toggle="tab" href="#groupGraphCnt" class="nav-link dashboardWizardTabTxt"><?= _("Structure")?></a></li>
                                     <!-- ORGANIZATIONS -->
                                     <li id="orgTab" class="nav-item"><a data-toggle="tab" href="#groupOrgCnt" class="nav-link dashboardWizardTabTxt"><?= _("Organization")?></a></li>
+                                    <!-- THUMBNAIL -->
+                                    <li id="orgThumbnail" class="nav-item"><a data-toggle="tab" href="#groupthumbnailCnt" class="nav-link dashboardWizardTabTxt"><?= _("Thumbnail") ?></a></li>
                                 </ul> 
                                 <!-- Fine tabs -->
 
@@ -607,7 +632,44 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                             </div>    
                                         </div>
                                         <!-- Fine visibility cnt -->
+<!-- Thumbanil cnt-->
+                                        <!--  ---->
+                                        <div id="groupthumbnailCnt" class="tab-pane fade in">
+                                            <div class="row" id="ThumbmailFormRow">
+                                                <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="groupthumbnailCntLbl">
+                                                    <?= _("Thumbnail") ?>
+                                                </div>
+                                                <div class="col-xs-12" id="newgroupthumbnailCnt">
+                                                    <div class="input-group">
+                                                     <!-- <form id="scrDashboardForm" enctype="multipart/form-data" class="form-horizontal" name="scrDashboardForm" role="form" method="POST" action="" data-toggle="validator" action="../controllers/genDashScr.php">-->
+                                                            <div class="col-xs-12" id="scrDashboardModalContent">
+                                                                <div class="col-xs-12 centerWithFlex scrDashboardDecalog">
+                                                                    <?= _("1) Open the dashboard in view mode") ?><br>
+                                                                    <?= _("2) Take a snapshot (e.g. with STAMP or with specific tools)") ?><br>
+                                                                    <?= _("3) Save it in your mass memory") ?><br>
+                                                                    <?= _("4) Upload it from the following input") ?><br>   
+                                                                </div>
+                                                                <div class="col-xs-12 centerWithFlex">
+                                                                    <input id="dashboardScrInput" name="dashboardScrInput" type="file" class="filestyle form-control" data-badge="false" data-input ="true" data-size="nr" data-buttonName="btn-primary" data-buttonText="File">
+                                                                    <input type="button" id="scrDashboardConfirmBtn" name="scrDashboardConfirmBtn" class="btn confirmBtn" value="<?= _("Confirm") ?>"></input>
+                                                                </div>
+                                                                
+                                                            </div>
+                                                            <div class="col-xs-12 centerWithFlex" id="scrDashboardModalMsg">
+                                                            </div>    
+                                                          <input type="text" id="dashboardIdUnderEdit" name="dashboardIdUnderEdit" style="display:none"></input>
+                         
+                                                            
+                                                        <!--</form>-->
+                                                    </div>
+                                                </div>
+                                               
+                                                <div class="col-xs-12 centerWithFlex" id="newgroupthumbnailCntMsg">
 
+                                                </div>  
+                                            </div>    
+                                        </div>
+                                        <!--  ---->
                                         <!-- Delegations cnt -->
                                         <div id="delegationsCnt" class="tab-pane fade in">
                                             <div class="row centerWithFlex modalFirstLbl" id="delegationsNotAvailableRow">
@@ -925,6 +987,15 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 <script type='text/javascript'>
     $(document).ready(function ()
     {
+        function checkJson(str) {
+            try {
+                JSON.parse(str);
+            } catch (e) {
+                return false;
+            }
+            return true;
+        }
+
         $('#mainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
         //   if (location.href.includes("[search]=My+own")) {
         if (location.href.includes("My+orgMy%3FlinkId") || location.href.includes("My+orgMy?linkId") || location.href.includes("My+orgMy")) {
@@ -2121,6 +2192,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                 var id_current = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
                                 $('#idDash_org').val(org_current);
                                 $('#idcurr_Dash').val(id_current);
+                                $('#dashboardIdUnderEdit').val(id_current);
                                 console.log('org_current'+org_current);
                                 //
                                 timetrend();
@@ -2446,7 +2518,44 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                         $(this).find('.dashboardsListCardOverlayTxt').click(function ()
                         {
                             var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
-                            window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                            $.ajax({
+                                url: "../controllers/getDashboardTheme.php",
+                                data: {
+                                    dashboardId: dashboardId
+                                },
+                                type: "GET",
+                                async: true,
+                                success: function (data)
+                                {
+                                    if (checkJson(data)) {
+                                        var dataArr = JSON.parse(data);
+                                        if (dataArr['result'] !== "Ok" || dataArr['details']['theme'] === null) {
+                                            console.log("Error getting Dashboard Theme. Loading default Theme.");
+                                            console.log(data);
+                                            // alert('<?= _("Error getting Dashboard Theme") ?>');
+                                            // location.reload();
+                                            window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                                        } else {
+                                            window.open("../view/" + dataArr['details']['theme'] + ".php?iddasboard=" + btoa(dashboardId));
+                                        }
+                                    } else {
+                                        console.log("Error getting Dashboard Theme. Loading default Theme.");
+                                        console.log(data);
+                                        // alert('<?= _("Error getting Dashboard Theme") ?>');
+                                        // location.reload();
+                                        window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                                    }
+                                },
+                                error: function (errorData)
+                                {
+                                    console.log("Error getting Dashboard Theme. Loading default Theme.");
+                                    console.log(errorData);
+                                    // alert("Error updating dashboard status");
+                                    // location.reload();
+                                    window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                                }
+                            });
+                            // window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
                         });
                     });
 
@@ -2877,7 +2986,44 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                         $('#list_dashboard button.viewDashBtn').click(function ()
                         {
                             var dashboardId = $(this).parents('tr').attr("data-uniqueid");
-                            window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                            $.ajax({
+                                url: "../controllers/getDashboardTheme.php",
+                                data: {
+                                    dashboardId: dashboardId
+                                },
+                                type: "GET",
+                                async: true,
+                                success: function (data)
+                                {
+                                    if (checkJson(data)) {
+                                        var dataArr = JSON.parse(data);
+                                        if (dataArr['result'] !== "Ok" || dataArr['details']['theme'] === null) {
+                                            console.log("Error getting Dashboard Theme. Loading default Theme.");
+                                            console.log(data);
+                                            // alert('<?= _("Error getting Dashboard Theme") ?>');
+                                            // location.reload();
+                                            window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                                        } else {
+                                            window.open("../view/" + dataArr['details']['theme'] + ".php?iddasboard=" + btoa(dashboardId));
+                                        }
+                                    } else {
+                                        console.log("Error getting Dashboard Theme. Loading default Theme.");
+                                        console.log(data);
+                                        // alert('<?= _("Error getting Dashboard Theme") ?>');
+                                        // location.reload();
+                                        window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                                    }
+                                },
+                                error: function (errorData)
+                                {
+                                    console.log("Error getting Dashboard Theme. Loading default Theme.");
+                                    console.log(errorData);
+                                    // alert("Error updating dashboard status");
+                                    // location.reload();
+                                    window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
+                                }
+                            });
+                            // window.open("../view/index.php?iddasboard=" + btoa(dashboardId));
                         });
                     });
                     $('#list_dashboard').dynatable({
@@ -3527,13 +3673,14 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#hierarchy').empty();
             $('#graphTab').removeClass('active');
             $('#orgTab').removeClass('active');
+            $('#orgThumbnail').removeClass('active');
             $('#org_list').empty();
             $('#delegationsModalRightCnt').show();
             $('#delegationsModalLeftCnt').show();
             $('#delegationsCancelBtn').css('margin-top','50px');
         });
-
-
+        
+        
         //
         $('#delegationsCancelBtn').click(function () {
             $('#container_accesses').empty();
@@ -3554,6 +3701,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#ownershipTab').addClass('active');
             $('#graphTab').removeClass('active');
             $('#orgTab').removeClass('active');
+            $('#orgThumbnail').removeClass('active');
             $('#org_list').empty();
             $('#delegationsCancelBtn').css('margin-top','50px');
             //
@@ -3569,6 +3717,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#hierarchy').empty();
             $('#graphTab').removeClass('active');
             $('#orgTab').removeClass('active');
+            $('#orgThumbnail').removeClass('active');
             $('#delegationsModalRightCnt').show();
             $('#delegationsModalLeftCnt').show();
              //togliere actiive
@@ -3596,10 +3745,39 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
              $('#graphTab').removeClass('active');
             $('#trendTab').removeClass('active');
             $('#ownershipTab').addClass('active');
+            $('#orgThumbnail').removeClass('active');
             $('#delegationsCancelBtn').css('margin-top','50px');
             //
         });
 
+//Thumbmail action
+//
+$('#scrDashboardConfirmBtn').click(function () {
+    //
+    var dashboardIdUnderEdit = $('#dashboardIdUnderEdit').val();
+    var dashboardScrInput = $('#dashboardScrInput').val();
+    //
+       var formData = new FormData();
+       formData.append('dashboardIdUnderEdit', dashboardIdUnderEdit);
+        formData.append('dashboardScrInput', $('#dashboardScrInput')[0].files[0]);
+        console.log('scrDashboardConfirmBtn Click: '+dashboardIdUnderEdit);
+    //
+    $.ajax({
+                    url: "../controllers/genDashScr.php",
+                    data: formData,
+                    type: "POST",
+                    processData: false,  // tell jQuery not to process the data
+                    contentType: false,  // tell jQuery not to set contentType
+                async: true,
+                success: function (data) {
+                    //
+                    console.log('OK');
+                    location.reload();
+                    //
+                }
+            });
+});
+///
     });
 
 

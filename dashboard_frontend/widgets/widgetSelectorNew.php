@@ -1791,7 +1791,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     <i class="fa fa-times"></i>
                 </div>
             </div>
-            <div id="<?= $_REQUEST['name_w'] ?>_mainContainer" class="chartContainer">
+            <div id="<?= $_REQUEST['name_w'] ?>_mainContainer" class="chartContainer selectorNew">
                 <div id="<?= $_REQUEST['name_w'] ?>_rollerContainer" class="gisRollerContainer"></div>
             </div>
         </div>

@@ -1009,13 +1009,13 @@ if (!isset($_SESSION)) {
                                         popupText += '<thead>';
                                         popupText += '<th style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</th>';
                                         popupText += '<th style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Value</th>';
-                                        popupText += '<th colspan="7" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Buttons</th>';
+                                        popupText += '<th colspan="9" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Buttons</th>';
                                         popupText += '</thead>';
 
                                         //Corpo
                                         popupText += '<tbody>';
                                         var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn, data7DayBtn,
-                                            data30DayBtn, data6MonthsBtn, data1YearBtn, value_unit = null;
+                                            data30DayBtn, data6MonthsBtn, data1YearBtn, data2YearBtn, data10YearBtn, value_unit = null;
                                         for (var i = 0; i < realTimeData.head.vars.length; i++) {
                                             if(realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== null && realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== undefined) {
                                                 if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]]) && (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined')) {
@@ -1033,14 +1033,16 @@ if (!isset($_SESSION)) {
                                                             if (value_unit == "SURI") {
                                                                 dataVal = '<div class="tooltipSuri">[SURI id]<span class="tooltipSuriText">' + dataVal + '</span></div>';
                                                             }
-                                                            dataLastBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last<br>value</button></td>';
-                                                            data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
-                                                            dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
-                                                            data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
-                                                            data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
-                                                            data6MonthsBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>6 months</button></td>';
-                                                            data1YearBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>1 year</button></td>';
-                                                            popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + '</tr>';
+                                                            dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
+                                                            data4HBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">4h</button></td>';
+                                                            dataDayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">24h</button></td>';
+                                                            data7DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">7d</button></td>';
+                                                            data30DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">30d</button></td>';
+                                                            data6MonthsBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">6m</button></td>';
+                                                            data1YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">1y</button></td>';
+                                                            data2YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="2 year" data-range="730/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">2y</button></td>';
+                                                            data10YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="10 year" data-range="3650/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">10y</button></td>';
+                                                            popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
                                                         }
                                                     } else {
                                                         measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
@@ -1593,6 +1595,20 @@ if (!isset($_SESSION)) {
                                                 if(rtDataAgeSec > 31536000)
                                                 {
                                                     $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "true");
+                                                    //Disabilitiamo i 2 year se last update più vecchio di 730 days
+                                                    if(rtDataAgeSec > 31536000*2) {
+                                                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="730/DAY"]').attr("data-disabled", "true");
+                                                        //Disabilitiamo i 10 year se last update più vecchio di 730 days
+                                                        if(rtDataAgeSec > 315360000) {
+                                                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="3650/DAY"]').attr("data-disabled", "true");
+
+                                                        } else {
+                                                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="3650/DAY"]').attr("data-disabled", "false");
+                                                        }
+
+                                                    } else {
+                                                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="730/DAY"]').attr("data-disabled", "false");
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -10946,6 +10962,7 @@ if (!isset($_SESSION)) {
                                             map.eventsOnMap.splice(i, 1);
                                         } else if (map.eventsOnMap[i].type === 'addOD') {
                                             removeOdColorLegend(i, true);
+                                            // map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
                                             map.eventsOnMap.splice(i, 1);
                                         } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
                                             if (map.eventsOnMap[i].type === 'trafficRealTimeDetails') {
@@ -15359,7 +15376,7 @@ if (!isset($_SESSION)) {
         </div>
 
         <!-- Contenitore esterno del contenuto del widget -->
-        <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content" class="content">
+        <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content" class="content mapContainer">
 
             <!-- Modulo comune per la gestione dei dimensionatori del widget in edit dashboard -->
             <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
@@ -15378,8 +15395,8 @@ if (!isset($_SESSION)) {
             </div>
 
             <!-- Dentro questo DIV ci va il contenuto vero e proprio (e specifico) del widget (si chiama _chartContainer solo per legacy, non contiene necessariamente un grafico) -->
-            <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer"
-                 class="chartContainer">
+        <!--    <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer" class="chartContainer">   -->
+            <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer" class="map2dContainer">
                 <!-- Originale 1-->
                 <!--<div id="map" style="height: 180px"></div>-->
 
@@ -15393,7 +15410,7 @@ if (!isset($_SESSION)) {
                         <i class="fa fa-spinner fa-spin hidden" id="loadingMenu"></i> Maps
                         <span class="caret"></span>
                     </button>
-                    <ul class="dropdown-menu" id="dropdown-menu-id" aria-labelledby="dropdownMenu1">
+                    <ul class="dropdown-menu map-menu" id="dropdown-menu-id" aria-labelledby="dropdownMenu1">
                         <li class="dropdown-header hidden">2D / 3D</li>
                         <li><a class="dropdown-item hidden" href="#" id="2DButton">2D Map</a></li>
                         <li><a class="dropdown-item hidden" href="#" id="3DButton">3D Map</a></li>
@@ -15414,9 +15431,9 @@ if (!isset($_SESSION)) {
                 </div>
 
 
-                <div id="3DMapContainer" style="height: 500px">
+            <!--    <div id="3DMapContainer" style="height: 500px">
                     <div id="3DMap" style="height: 500px"></div>
-                </div>	<!-- FINE Layers & 3D CORTI -->
+                </div>	--> <!-- FINE Layers & 3D CORTI -->
 
             </div>
         </div>
