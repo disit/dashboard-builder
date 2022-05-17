@@ -1898,7 +1898,7 @@ else
         }
         else if ($action == "filterChangeMetricTable")
         {
-            $widgetType = $_REQUEST['widgetType'];
+            $widgetType = mysqli_real_escape_string($link, $_REQUEST['widgetType']);
             $getUnitQuery = "SELECT * FROM Dashboard.WidgetsIconsMap WHERE mainWidget='$widgetType'";
             $resultUnit = mysqli_query($link, $getUnitQuery) or die(mysqli_error($link));
             $retArray = array();
@@ -1928,7 +1928,7 @@ else
                 $files2['list'] = $files1;
                 $themeArray = array();
                 //
-                $dashboardIdUnderEdit = $_GET['dashboardIdUnderEdit'];
+                $dashboardIdUnderEdit = mysqli_real_escape_string($link, $_GET['dashboardIdUnderEdit']);
                 $queryCurrentTheme = "SELECT theme FROM Dashboard.Config_dashboard where id='".$dashboardIdUnderEdit."';";
                 $resultCurrentTheme = mysqli_query($link, $queryCurrentTheme) or die(mysqli_error($link));
                 ///////////
@@ -1950,8 +1950,8 @@ else
                 
                 //
         }else if ($action == 'modifyThemeList'){
-            $dashboardIdUnderEdit = $_GET['dashboardIdUnderEdit'];
-            $selectedTheme = $_GET['selectedTheme'];
+            $dashboardIdUnderEdit = mysqli_real_escape_string($link, $_GET['dashboardIdUnderEdit']);
+            $selectedTheme = mysqli_real_escape_string($link, $_GET['selectedTheme']);
             //
             if ($selectedTheme =='Legacy'){
                  $queryCurrentTheme = "UPDATE Dashboard.Config_dashboard  SET theme = NULL WHERE id='".$dashboardIdUnderEdit."';";

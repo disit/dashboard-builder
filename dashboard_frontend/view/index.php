@@ -23,7 +23,8 @@
    $dashId = escapeForJS(base64_decode($_REQUEST['iddasboard']));
    if (checkVarType($dashId, "integer") === false) {
    //     eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. USER = " . $_SESSION['loggedUsername'] . ". Exit from script.");
-        eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
+   //     eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
+        eventLog("Returned the following ERROR in index.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script. HTTP REFERER: ".$_SERVER['HTTP_REFERER'] . "; Request URI: " . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . ". Request Method: " . $_SERVER['REQUEST_METHOD']);
         exit();
    };
 
@@ -2505,7 +2506,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 </div>
             </div>
         </div>
-    
+    <!--
     <div id="getVisibilityError">
         <div id="wrapper">
             <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -2523,7 +2524,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
         <br/><br/><br/><br/>
         <h1>Error!</h1>
         <p>Error while trying to get dashboard visibility: please try again</p>
-    </div>
+    </div> -->
      
     <div id="autofitAlert">
         <div class="row">

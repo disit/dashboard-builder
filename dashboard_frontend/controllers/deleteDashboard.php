@@ -50,7 +50,8 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
       $q = "UPDATE Dashboard.Config_dashboard SET deleted = 'yes' WHERE Id = '$dashboardId' AND user='$username'";
     $r = mysqli_query($link, $q);
 
-    if($r && mysqli_affected_rows($link)==1)
+    // if($r && mysqli_affected_rows($link)==1)
+    if($r)
     {
         $response = "Ok";
 
@@ -82,6 +83,7 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
     }
     else
     {
+        eventLog("Delete DAshboard KO");
         $response = "Ko";
     }
     
