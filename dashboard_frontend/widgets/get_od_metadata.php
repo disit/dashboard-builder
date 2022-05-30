@@ -19,14 +19,22 @@ include '../config.php';
 $link = new PDO("pgsql:host=" . $od_ip . ";dbname=" . $od_pgsql_dbname, $od_pgsql_user, $od_pgsql_passw) or die("failed to connect to server !!");
 $precision = $_REQUEST['precision'];
 $organization = $_REQUEST['organization'];
+$od_id = $_REQUEST['od_id'];
 $action = $_REQUEST['action'];
 if($action === "dates"){
     $query_date = "";
-    if ($precision == 'communes'){
-        $query_date = "SELECT DISTINCT from_date FROM od_data FULL OUTER JOIN od_metadata ON od_data.od_id=od_metadata.od_id WHERE organization = '".$organization."' AND from_date IS NOT NULL ORDER BY from_date";
+    if ($precision == 'communes' or 
+        $precision == 'poi' or 
+        $precision == 'region' or
+        $precision == 'province' or 
+        $precision == 'municipality' or 
+        $precision == 'ace' or 
+        $precision == 'section'){
+            
+        $query_date = "SELECT DISTINCT from_date FROM od_data FULL OUTER JOIN od_metadata ON od_data.od_id=od_metadata.od_id WHERE organization = '".$organization."' AND od_data.od_id = '". $od_id ."' AND from_date IS NOT NULL ORDER BY from_date";
     }
     else{
-        $od_id = "od_".$organization."_".$precision;
+        // $od_id = "od_".$organization."_".$precision;
         $query_date = "SELECT DISTINCT from_date FROM od_data_mgrs FULL OUTER JOIN od_metadata ON od_data_mgrs.od_id=od_metadata.od_id WHERE od_data_mgrs.od_id='".$od_id."' AND organization='".$organization."' AND from_date IS NOT NULL ORDER BY from_date";
     }
     if($query_date != ""){

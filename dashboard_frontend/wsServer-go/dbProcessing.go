@@ -260,6 +260,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			response["error"] = "widget not found"
 			break
 		}
+
 		//log.Print("widget ", widgetUniqueName, " -> dashboard:", idDashboard, " creator:", creator)
 		if idDashboard == "" || creator == "" {
 			log.Print(dat["msgType"], " ERROR SendToEmitter invalid widget ", widgetUniqueName)
@@ -304,6 +305,16 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 			response["result"] = "Ko"
 			response["error"] = "failed db access"
 		} else {
+                        /*save last value on Config_widget_dashboard rowParameters if the SendToEmitted is coming from nodered*/
+                        if dat["username"] == nil && dat["inputName"] == nil {
+                                newValueJson, _ := json.Marshal(dat["value"])
+                                var err2 error
+                                _, err2 = db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET rowParameters=? WHERE name_w=?", newValueJson, dat["widgetUniqueName"].(string))
+                                if err2!= nil {
+                                    log.Print(dat["msgType"], " WARNING ", dat["widgetUniqueName"], " failed update of Config_widget_dashboard.rowParameters ", err2)
+                                }
+                        }
+
 			/* invia il dato ricevuto sulla connessione associata all'emitter */
 			user.WidgetUniqueName = dat["widgetUniqueName"]
 			lastID, _ := res.LastInsertId()
@@ -1280,7 +1291,7 @@ func insertW(db *sql.DB, username interface{}, dashboardID int64, widgetType int
 			_ = processingMsg2([]byte(defaultTarget.String))
 		}
 
-		if mono_multi.String == "Mono" || strings.Contains("widgetBarSeries;widgetCurvedLineSeries;widgetRadarSeries;widgetPieChart;widgetTable", fmt.Sprintf("%v", newWidgetType)) {
+		if mono_multi.String == "Mono" || strings.Contains("widgetEvent;widgetBarSeries;widgetCurvedLineSeries;widgetRadarSeries;widgetPieChart;widgetTable", fmt.Sprintf("%v", newWidgetType)) {
 
 			// caso widget selezionato di tipo "Mono"
 

@@ -185,7 +185,7 @@ if (!isset($_SESSION)) {
                 sm_field, sizeRowsWidget, sm_based, rowParameters, fontSize, countdownRef, widgetTitle, widgetHeaderColor,
                 widgetHeaderFontColor, showHeader, widgetParameters, chartColor, dataLabelsFontSize, dataLabelsFontColor,
                 chartLabelsFontSize, chartLabelsFontColor, titleWidth, enableFullscreenModal,
-                enableFullscreenTab, shownPolyGroup, geoServerUrl, heatmapUrl, odOnMap, sourcePolygon, geojson_layer = null;
+                enableFullscreenTab, shownPolyGroup, geoServerUrl, heatmapUrl, odOnMap, sourcePolygon, geojson_layer, geojson_layer_all = null;
             var eventsOnMap = [];
             var addMode = null;
             heatmapMetricName = "";
@@ -221,7 +221,7 @@ if (!isset($_SESSION)) {
             passedParams = null;    */
 
             var current_radius = null;
-            var current_opacity, current_opacity_od = null;
+            var current_opacity, current_opacity_od, current_opacity_PS = null;
 	        var current_traffic_opacity = null;
             var changeRadiusOnZoom = false;
             var estimatedRadius = null;
@@ -239,6 +239,7 @@ if (!isset($_SESSION)) {
             var wmsDatasetName = null;
             var passedParams = null;
             var animationFlag = false;
+            var showAllPolygonFlag = false;
 	        var animationFlagTraffic = false;
 	        var trafficData = null;
 
@@ -278,6 +279,12 @@ if (!isset($_SESSION)) {
                 Window.webSockets = {};
             var nodeRedInputName, nrInputId, currentValue, lastValueOk = null;
             var heatmapClick = null;
+            var odmapClick = null;
+            var nodeRedClick = null;
+            var newOdTargetData = null;
+            var newOdSourceData = null;
+            var showAllPolyOdMapZoomend = null;
+            var showAllPolyOdMapMoveend = null;
             var iconTextMod = "null";
             var keycloak, socket = null;
             var subscribeFlag, tryingAuth, srvFailure = false;
@@ -7635,13 +7642,13 @@ if (!isset($_SESSION)) {
 	                            //heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
 	                            // heatmapData[current_page].metadata[0].date
 
-	                    	if (heatmapData[current_page].metadata != null) {
-	                        	heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
-	                    	} else {
-	                                heatmapDescr.firstChild.wholeText = heatmapData[current_page].dateTime;
-	                    	}
+                                if (heatmapData[current_page].metadata != null) {
+                                    heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
+                                } else {
+                                        heatmapDescr.firstChild.wholeText = heatmapData[current_page].dateTime;
+                                }
+                            }
 	                    }
-	                }
 
 	                    function changeTrafficHeatmapPage(page) {
 	                        var btn_next = document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt_traffic");
@@ -7726,7 +7733,7 @@ if (!isset($_SESSION)) {
                                             $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity).toFixed(parseInt(decimals)));
                                             $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity).toFixed(parseInt(decimals)));
                                         }
-				    }
+				                    }       
                             	} else if (option == "maxTrafficOpacity") {
                                     if (trafficWmsLayer) {
                                     	trafficWmsLayer.setOpacity(value);
@@ -7735,9 +7742,9 @@ if (!isset($_SESSION)) {
                                     	$("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_traffic_opacity).toFixed(parseInt(decimals)));
                                     }
                                 }
-				if (map.heatmapLayer != null) {
+				                if (map.heatmapLayer != null) {
                                 	map.heatmapLayer.configure(map.cfg);
-				}	
+				                }	
                             }
                         }
 
@@ -8646,6 +8653,7 @@ if (!isset($_SESSION)) {
                                                }
                                            } else if (map.eventsOnMap[i].eventType === 'od'){
                                                map.defaultMapRef.removeLayer(geojson_layer);
+                                               map.defaultMapRef.removeLayer(geojson_layer_all);
                                                map.defaultMapRef.removeLayer(sourcePolygon);
                                                map.defaultMapRef.removeControl(map.legendOd);
                                                map.defaultMapRef.removeControl(map.flowInfo);
@@ -8653,7 +8661,7 @@ if (!isset($_SESSION)) {
                                            } else if (map.eventsOnMap[i].type === 'addOD'){
                                                map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
                                                map.eventsOnMap.splice(i, 1);
-                                           }
+                                           } 
                                        }
                                    }
                                }
@@ -9909,7 +9917,24 @@ if (!isset($_SESSION)) {
 
                 $(document).on('addOD', function(event) {
                     if(event.target === map.mapName) {
-                        map.defaultMapRef.off('click');
+
+                        if(newOdTargetData != null){
+                            $(document).off('newOdTargetData', newOdTargetData);
+                        }
+                        if(newOdSourceData != null){
+                            $(document).off('newOdSourceData', newOdSourceData);
+                        }
+                        if(odmapClick != null){
+                            map.defaultMapRef.off('click', odmapClick);
+                        }
+                        if(showAllPolyOdMapZoomend != null){
+                            map.defaultMapRef.off('zoomend', showAllPolyOdMapZoomend );
+                        }
+                        if(showAllPolyOdMapMoveend != null){
+                            map.defaultMapRef.off('moveend', showAllPolyOdMapMoveend );
+                        }
+                        
+
                         odOnMap = true;
                         let passedData = event.passedData.split("get?");
                         let odUrl = passedData[0];
@@ -9920,6 +9945,9 @@ if (!isset($_SESSION)) {
                         let precision = "";
                         let organization = "";
                         let inflow = "";
+                        let odID = "";
+                        let getPerc = "";
+                        let statID = "";
                         for (n=0; n < parameters.length; n++) {
                             if (parameters[n].split("=")[0] == "latitude") {
                                 latitude = parameters[n].split("=")[1];
@@ -9931,14 +9959,26 @@ if (!isset($_SESSION)) {
                                 organization = parameters[n].split("=")[1];
                             } else if (parameters[n].split("=")[0] == "inflow") {
                                 inflow = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "od_id") {
+                                odID = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "perc") {
+                                getPerc = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "stat_id") {
+                                statID = parameters[n].split("=")[1];
                             }
                         }
+
+                        let sourcePolyID = [];
+                        let targetPolyID = [];
+                        let sourcePolyName = [];
 
                         let dates = [];
                         let colors = [];
                         let animationPeriod = "week";
                         let animationCounter = 0;
                         let shapeTypes = [];
+                        let showAllPolygonFlag = false;
+                        let legendColorObserver = null;
                         mapName = "Origin-Destination Map";
 
                         //Crea un layer per la OD (i dati gli verranno passati nell'evento)
@@ -10015,6 +10055,9 @@ if (!isset($_SESSION)) {
                             if (geojson_layer !== null) {
                                 map.defaultMapRef.removeLayer(geojson_layer);
                             }
+                            // if (geojson_layer_all !== null) {
+                            //     map.defaultMapRef.removeLayer(geojson_layer_all);
+                            // }
                             if (sourcePolygon !== null) {
                                 map.defaultMapRef.removeLayer(sourcePolygon);
                             }
@@ -10047,6 +10090,39 @@ if (!isset($_SESSION)) {
                             map.legendOdDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
                             map.legendOdDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">OD Controls:</div>';
 
+                            // SHOW ALL POLYGONS (NOT YET IMPLEMENTED FOR COMMUNES AND MSGR!!!)
+                            if(precision == 'poi' || precision == 'section' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region'){
+                                if (showAllPolygonFlag === false){
+                                    map.legendOdDiv.innerHTML += '' + 
+                                        '<div class="text" style="width:50%; float:right">' + 
+                                            '<label class="switch">' + 
+                                                '<input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_show_all">' + 
+                                                '<div class="slider round">' + 
+                                                    //'<div class="show_allOn"></div>' + 
+                                                    '<div class="show_allOff" id="show_allText" style="color: black; text-align: center">ON</div>' + 
+                                                '</div>' + 
+                                            '</label>' + 
+                                        '</div>' + //</div>' +
+                                        '<div id="odShowAllControl">' +
+                                            '<label for="ShowAll">Show all polygons:&nbsp;</label>' + 
+                                        '</div>';
+                                } else {
+                                    map.legendOdDiv.innerHTML += '' + 
+                                        '<div class="text" style="width:50%; float:right">' + 
+                                            '<label class="switch">' + 
+                                                '<input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_show_all" checked>' + 
+                                                '<div class="slider round">' + 
+                                                    //'<div class="show_allOff"></div>' + 
+                                                    '<div class="show_allOn" id="show_allText" style="color: black; text-align: center">OFF</div>' + 
+                                                '</div>' + 
+                                            '</label>' + 
+                                        '</div>' + //</div>' +
+                                        '<div id="odShowAllControl">' +
+                                            '<label for="ShowAll">Show all polygons:&nbsp;</label>' + 
+                                        '</div>';
+                                }
+                            }
+                            
                             if (animationFlag === false) {
                                 if (animationPeriod === "week") {
                                     map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Start</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
@@ -10083,17 +10159,23 @@ if (!isset($_SESSION)) {
                             }
 
                             //precision
-                            let options = '';
-                            for(let i=0;i<shapeTypes.length;i++){
-                                if(shapeTypes[i] !== precision){
-                                    options += '<option value=' + shapeTypes[i] + '>' + shapeTypes[i] + '</option>';
+                            if(precision != 'poi' && precision != 'section' && precision !='ace' && precision != 'municipality' && precision != 'province' && precision != 'region'){
+                                let options = '';
+                                for(let i=0;i<shapeTypes.length;i++){
+                                    if(shapeTypes[i] !== precision){
+                                        options += '<option value=' + shapeTypes[i] + '>' + shapeTypes[i] + '</option>';
+                                    }
                                 }
+                                map.legendOdDiv.innerHTML += '<div id="odPrecisionControl">' +
+                                    '<label for="Precision">Precision:&nbsp;</label><select name="precision" id="precision" ' + disabledAnimation() + '>' +
+                                    '<option value=' + precision + '>' + precision +
+                                    options +
+                                    '</select></div>';
+                            }else{
+                                map.legendOdDiv.innerHTML += '<div id="odPrecisionControl">' +
+                                    '<label for="Precision">Precision:&nbsp;</label><span name="precision" id="precision" ' + disabledAnimation() + '>' +
+                                    precision + '</span></div>';
                             }
-                            map.legendOdDiv.innerHTML += '<div id="odPrecisionControl">' +
-                                '<label for="Precision">Precision:&nbsp;</label><select name="precision" id="precision" ' + disabledAnimation() + '>' +
-                                '<option value=' + precision + '>' + precision +
-                                options +
-                                '</select></div>';
 
                             //flow
                             if (inflow === "True") {
@@ -10153,6 +10235,12 @@ if (!isset($_SESSION)) {
                                 document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").addEventListener("input", function () {
                                     setOption('maxOpacity', this.value, 2)
                                 }, false);
+                                
+                                if(precision == 'poi' || precision == 'section' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region'){
+                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_show_all").addEventListener("click", function () {
+                                        showAllPolyOdMap()
+                                    }, false);
+                                }
 
                                 //if(precision === "communes"){
                                 document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").addEventListener("click", function () {
@@ -10203,7 +10291,7 @@ if (!isset($_SESSION)) {
                             } else {
                                 L.DomEvent.on(map.flowInfoDiv, 'click', L.DomEvent.stopPropagation);
                             }
-                            map.flowInfoDiv.style.width = "170px";
+                            map.flowInfoDiv.style.width = "240px" //"170px";
                             map.flowInfoDiv.style.fontWeight = "bold";
                             map.flowInfoDiv.style.background = "#cccccc";
                             map.flowInfoDiv.style.padding = "10px";
@@ -10212,9 +10300,55 @@ if (!isset($_SESSION)) {
                         };
 
                         map.flowInfo.update = function (props) {
-                            map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + (props ?
-                                '<b>Area id: ' + props.name + '</b><br />Rate: ' + 100 * Math.round(props.density * 1000) / 1000 + '%'
-                                : 'Hover over a zone') + '</div>';
+                            // map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + (props ?
+                            //     '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />Rate: ' + 100 * Math.round(props.density * 1000) / 1000 + '%'
+                            //     : 'Hover over a zone') + '</div>';
+                            if(props){
+                                var keyNames = Object.keys(props.density);
+                                if(keyNames.length<=1){
+                                    if(getPerc === 'True'){
+                                        map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + 
+                                        '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
+                                        'Rate: ' + 100 * Math.round(props.density * Math.pow(10, 5)) / Math.pow(10, 5) + '%'  + 
+                                        '</div>';
+                                    }else{
+                                        map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + 
+                                        '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
+                                        'Value: ' + props.density  + 
+                                        '</div>';
+                                    }
+                                }else{
+                                    if(getPerc === 'True'){
+                                        rates = '<br /><ul>';
+                                        for(let i=0; i<keyNames.length; i++){
+                                            rates = rates + '<li>' + keyNames[i].replace(/_/g,' ') + ': ' + 
+                                                100 * Math.round(props.density[keyNames[i]] * Math.pow(10, 5)) / Math.pow(10, 5) + '%</li>';
+                                        }
+                                        rates = rates + '</ul>'
+                                        map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + 
+                                        '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
+                                        'Rates: ' + rates  + 
+                                        '</div>';
+                                    }else{
+                                        rates = '<br /><ul>';
+                                        for(let i=0; i<keyNames.length; i++){
+                                            rates = rates + '<li>' + keyNames[i].replace(/_/g,' ') + ': ' + 
+                                                props.density[keyNames[i]] + '</li>';
+                                        }
+                                        rates = rates + '</ul>'
+                                        map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + 
+                                        '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
+                                        'Values: ' + rates  + 
+                                        '</div>';
+                                    }
+                                }
+                            }else{
+                                map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' +
+                                'Hover over a zone' + '</div>';
+                            }
+                            // map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + (props ?
+                            //     '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />Rate: ' + 100 * Math.round(props.density * Math.pow(10, 5)) / Math.pow(10, 5) + '%'
+                            //     : 'Hover over a zone') + '</div>';
                         };
 
                         function disabledAnimation() {
@@ -10232,6 +10366,75 @@ if (!isset($_SESSION)) {
                             return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
                         }
 
+                        function getAllPolyOdMap(async){
+                            bbox = map.defaultMapRef.getBounds();
+                            console.log(bbox);
+
+                            let type =  "";                             
+                            if (precision == 'communes') {
+                                type = "communes";
+                            } else if(precision == 'poi' || precision == 'section' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region') {
+                                type = precision;
+                            } else {
+                                type = "mgrs";
+                            }
+                            $.ajax({
+                                url: odUrl + 'get_all_polygons',
+                                async: async == 'False' ? false : true,
+                                type: "get",
+                                data: {
+                                    latitude_ne: bbox['_northEast']['lat'],
+                                    longitude_ne: bbox['_northEast']['lng'],
+                                    latitude_sw: bbox['_southWest']['lat'],
+                                    longitude_sw: bbox['_southWest']['lng'],
+                                    type: type,
+                                    organization: organization
+                                },
+                                success: function(response) {
+                                    // remove old layer
+                                    if (geojson_layer_all) {
+                                        map.defaultMapRef.removeLayer(geojson_layer_all);
+                                    }
+                                    
+                                    geojson_layer_all = L.geoJson(response, {
+                                        style: {"color": '#bf2015', "weight": 3, "fill": false}
+                                    });
+                                    geojson_layer_all.addTo(map.defaultMapRef);
+                                    if(sourcePolygon){
+                                        sourcePolygon.bringToFront()
+                                    }
+                                    if(geojson_layer){
+                                        geojson_layer.bringToFront()
+                                    }                                    
+                                }
+                            });
+                        }
+
+                        function showAllPolyOdMap() {
+                            if(!showAllPolygonFlag){
+                                showAllPolygonFlag = true;
+                                $("#show_allText").text("OFF");
+                                getAllPolyOdMap();
+                            } else {
+                                showAllPolygonFlag = false;
+                                $("#show_allText").text("ON");
+                                if (geojson_layer_all) {
+                                    map.defaultMapRef.removeLayer(geojson_layer_all);
+                                }
+                            }
+                        }
+
+                        map.defaultMapRef.on('zoomend', showAllPolyOdMapZoomend = function(){
+                            if(showAllPolygonFlag){
+                                getAllPolyOdMap();
+                            }
+                        } ); 
+
+                        map.defaultMapRef.on('moveend', showAllPolyOdMapMoveend = function(){
+                            if(showAllPolygonFlag){
+                                getAllPolyOdMap();
+                            }
+                        } );
 
                         function animateOdMap() {
                             if (!animationFlag) {	// && current_page < dates.length - 1
@@ -10380,12 +10583,21 @@ if (!isset($_SESSION)) {
                         function changePrecision() {
                             if (precision !== $("#precision").val()) {
                                 precision = $("#precision").val();
+                                
+                                var query_od = odID;
+                                if(precision == "communes" || !isNaN(precision) ){
+                                    var tmp = query_od.split("_");
+                                    query_od = tmp[0] + "_" + tmp[1] + "_" + precision;
+                                    // console.log(query_od);
+                                }
+
                                 $.ajax({
                                     url: '../widgets/get_od_metadata.php',
                                     data: {
                                         precision: precision,
                                         action: "dates",
-                                        organization: organization
+                                        organization: organization,
+                                        od_id: query_od
                                     },
                                     async: false,
                                     cache: false,
@@ -10833,17 +11045,28 @@ if (!isset($_SESSION)) {
                             }
                         }
 
-                        function load(setView, async) {
+                        function load(setView, async) {  
                             // get OD data
                             let dataQuery = "";
                             let polygonQuery = "";
+                            let type =  ""; 
+                            
                             if (precision == 'communes') {
                                 dataQuery = "get";
                                 polygonQuery = "polygon";
+                            } else if(precision == 'poi' || precision == 'section' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region') {
+                                dataQuery = "get";
+                                polygonQuery = "polygon";
+                                type = precision;
                             } else {
                                 dataQuery = "get_mgrs";
                                 polygonQuery = "mgrs_polygon";
-                            }
+                            } 
+
+                            targetPolyID = [];
+                            sourcePolyID = [];
+                            sourcePolyName = [];
+                            
                             $.ajax({
                                 url: odUrl + dataQuery,
                                 async: async == 'False' ? false : true,
@@ -10854,18 +11077,32 @@ if (!isset($_SESSION)) {
                                     precision: precision,
                                     from_date: mapDate,
                                     organization: organization,
-                                    inflow: inflow
+                                    inflow: inflow,
+                                    od_id: odID,
+                                    perc: getPerc
                                 },
                                 success: function(response) {
                                     // remove old layer
                                     if (geojson_layer) {
                                         map.defaultMapRef.removeLayer(geojson_layer);
                                     }
+                                    console.log('Target response OK')
+                                    // if(responce.properties.density)
+                                    targetPolyID = [];
+                                    if(response.features){
+                                        for(let ii = 0; ii<response.features.length; ii++){
+                                            targetPolyID.push(response.features[ii].id);
+                                        }
+                                    }
+
                                     geojson_layer = L.geoJson(response, {
                                         style: style,
                                         onEachFeature: onEachFeature
                                     });
                                     geojson_layer.addTo(map.defaultMapRef);
+                                    jQuery.event.trigger({
+                                        type: "newOdTargetData",
+                                    });
                                 }
                             });
 
@@ -10876,30 +11113,156 @@ if (!isset($_SESSION)) {
                                 data: {
                                     precision: precision,
                                     latitude: latitude,
-                                    longitude: longitude
+                                    longitude: longitude,
+                                    type: type, 
+                                    organization: organization
                                 },
                                 success: function(response) {
                                     // remove old layer
                                     if (sourcePolygon) {
                                         map.defaultMapRef.removeLayer(sourcePolygon);
                                     }
-
-                                    var src = L.polygon(response)
+                                    console.log('Source response OK')
+                                    
+                                    sourcePolyID = [];
+                                    sourcePolyName = []
+                                    if(response.features){
+                                        sourcePolyID.push(response.features[0].id);
+                                        sourcePolyName.push(response.features[0].properties.txt_name)
+                                    }
+                                    src = L.geoJson(response, {
+                                        style: {"color": '#0000FF'},
+                                        //onEachFeature: onEachFeature
+                                    });
                                     sourcePolygon = src;
-                                    src.setStyle({fillColor: '#0000FF'});
                                     src.addTo(map.defaultMapRef);
+                                    if(geojson_layer){
+                                        try{
+                                            geojson_layer.bringToFront();
+                                        }catch{
+                                            
+                                        }
+                                    } 
+                                    jQuery.event.trigger({
+                                        type: "newOdSourceData",
+                                    });
+                                    // ORIGINAL CODE
+                                    //var src = L.polygon(response)
+                                    //sourcePolygon = src;
+                                    //src.setStyle({fillColor: '#0000FF'});
+                                    //src.addTo(map.defaultMapRef);
                                 }
-                            });
+                            });                            
                         }
 
+                        function update_od_gui () {
+                        // nascondi comandi inflow/outflow se source e target sono lo stesso unico poligono
+                        
+                            if(sourcePolyID.length === targetPolyID.length && sourcePolyID[0] === targetPolyID[0]){
+                                if(document.getElementById('odFlowControl')){
+                                        if(inflow === 'True'){
+                                            document.getElementById('odFlowControl').innerHTML= '<label for="Flow">Flow:&nbsp;</label>' +
+                                                                                                '<select name="flow" id="flow" ' + disabledAnimation() + '>' +
+                                                                                                '<option value="inflow">inflow</option>' +
+                                                                                                '</select>';
+                                        } else {
+                                            document.getElementById('odFlowControl').innerHTML= '<label for="Flow">Flow:&nbsp;</label>' +
+                                                                                                '<select name="flow" id="flow" ' + disabledAnimation() + '>' +
+                                                                                                '<option value="outflow">outflow</option>' +
+                                                                                                '</select>';
+                                        }
+                                        // if(inflow === 'true'){
+                                        //     document.getElementById('odFlowControl').innerHTML= '<label for="Flow">Flow:&nbsp;</label>' +
+                                        //                                                         '<span name="flow" id="flow">inflow</span>';
+                                        //     $("#flow").val() = "inflow";
+                                        // } else {
+                                        //     document.getElementById('odFlowControl').innerHTML= '<label for="Flow">Flow:&nbsp;</label>' +
+                                        //                                                         '<span name="flow" id="flow">outflow</span>';
+                                        //     $("#flow").val() = "outflow";
+                                        // }
+                                }
+                                // if(document.getElementById('info_legend_id')){
+                                //         document.getElementById("info_legend_id").style.visibility = 'hidden';
+                                //         document.getElementById("legendColorContainer").style.visibility = 'hidden';
+                                // }
+                            }else{
+                                // if(document.getElementById('odFlowControl')){
+                                //         document.getElementById('odFlowControl').style.visibility = 'visible';
+                                // }
+                                if(legendColorObserver){
+                                    legendColorObserver.disconnect();
+                                }
+                                if(document.getElementById("info_legend_id")){
+                                        document.getElementById("info_legend_id").style.display = "block";
+                                        document.getElementById("legendColorContainer").style.display = "block";
+
+                                        document.getElementById("info_legend_id").style.visibility = 'visible';
+                                        document.getElementById("legendColorContainer").style.visibility = 'visible';
+                                }
+                                if(legendColorObserver){
+                                    legendColorObserver.observe(document.getElementById("legendColorContainer"), { attributes: true });
+                                }
+                            }
+                        };
+                        $(document).on('newOdTargetData', newOdTargetData = function (event) {
+                        //    console.log('[event] newOdTargetData')
+                            if(sourcePolyID.length > 0 && targetPolyID.length >0){
+                                update_od_gui();
+                            }
+                            event.stopPropagation();
+                        });
+                        $(document).on('newOdSourceData', newOdSourceData = function (event) {
+                        //    console.log('[event] newOdSourceData')
+                            if(sourcePolyID.length > 0 && targetPolyID.length >0){
+                                update_od_gui();
+                            }
+
+                            if(statID !== "" && sourcePolyID){
+                                let eventJson = new Object();
+                                eventJson.topic = "get_stats";
+                                eventJson.sourceID = sourcePolyID[0];
+                                eventJson.sourceName = sourcePolyName[0];
+                                eventJson.precision = precision;
+                                eventJson.from_date = mapDate;
+                                eventJson.organization = organization;
+                                eventJson.inflow = inflow;
+                                eventJson.od_id = odID;
+                                eventJson.perc = getPerc;
+                                eventJson.stat_id = statID;
+                                currentValue = JSON.stringify(eventJson);
+                                if (nodeId != null) {
+                                    triggerEventOnIotApp(map.defaultMapRef, currentValue);
+                                }
+                            }else{
+                                let eventJson = new Object();
+                                eventJson.topic = "clear";
+                                currentValue = JSON.stringify(eventJson);
+                                if (nodeId != null) {
+                                    triggerEventOnIotApp(map.defaultMapRef, currentValue);
+                                }
+                            }
+
+                            event.stopPropagation();
+                        });
+
                         function style(feature) {
+                            // if(feature.properties.density.length > 1){
+                            //     color = getColor(feature.properties.density[Object.keys(feature.properties.density)[0]])
+                            // }else{
+                            //     color = getColor(feature.properties.density)
+                            // }
+                            if ((typeof feature.properties.density == 'number') || (feature.properties.density == 'string')){
+                                color = getColor(feature.properties.density)
+                            } else {
+                                color = getColor(feature.properties.density[Object.keys(feature.properties.density)[0]])
+                            }
                             return {
                                 weight: 2,
                                 opacity: 1,
                                 color: 'white',
                                 dashArray: '3',
                                 fillOpacity: current_opacity_od,
-                                fillColor: getColor(feature.properties.density)
+                                fillColor: color //getColor(feature.properties.density)
                             };
                         }
 
@@ -10942,15 +11305,31 @@ if (!isset($_SESSION)) {
                             geojson_layer.resetStyle(e.target);
                             map.flowInfo.update();
                         }
-
-                        map.defaultMapRef.on('click', function(e) {
+                        
+                        odmapClick = function(e) {
                             if(animationFlag === false){
                                 var pointAndClickCoord = e.latlng;
                                 latitude = pointAndClickCoord.lat.toFixed(5);
                                 longitude = pointAndClickCoord.lng.toFixed(5);
                                 load();
+                                map.flowInfo.update();                                
+                                // if(sourcePolyID.length === targetPolyID.length && sourcePolyID[0] === targetPolyID[0] && statID !== ""){
+                                //    // send data to nodered to work on statistics (provenienze)        
+                                //    console.log('Get Provenienze!')
+                                // }
                             }
-                        });
+                        }
+
+                        map.defaultMapRef.on('click', odmapClick);
+                        // map.defaultMapRef.on('click', odmapClick = function(e) {
+                        //     if(animationFlag === false){
+                        //         var pointAndClickCoord = e.latlng;
+                        //         latitude = pointAndClickCoord.lat.toFixed(5);
+                        //         longitude = pointAndClickCoord.lng.toFixed(5);
+                        //         load();
+                        //         map.flowInfo.update();
+                        //     }
+                        // });
 
                         function addOdToMap() {
                             animationFlag = false;
@@ -11021,12 +11400,18 @@ if (!isset($_SESSION)) {
 
                                 let od = {};
                                 od.eventType = "od";
+                                var query_od = odID;
+                                if(precision == "communes" || !isNaN(precision) ){
+                                    var tmp = query_od.split("_");
+                                    query_od = tmp[0] + "_" + tmp[1] + "_" + precision;
+                                }
                                 $.ajax({
                                     url: '../widgets/get_od_metadata.php',
                                     data: {
                                         precision: precision,
                                         action: "dates",
-                                        organization: organization
+                                        organization: organization,
+                                        od_id: query_od
                                     },
                                     async: false,
                                     cache: false,
@@ -11082,19 +11467,21 @@ if (!isset($_SESSION)) {
                                 map.legendOd.addTo(map.defaultMapRef);
                                 map.flowInfo.addTo(map.defaultMapRef);
                                 map.eventsOnMap.push(od);
-
+                               
                                 var legendColors = L.control({position: 'bottomleft'});
 
                                 legendColors.onAdd = function () {
                                     var div = L.DomUtil.create('div', 'info_legend'),
                                         labels = [],
                                         from, to;
-
+                                    div.id ="info_legend_id";
+                                    div.style.display = "none";
+                                    div.style.visibility = "hidden";
                                     div.style.backgroundColor = "#cccccc";
                                     div.style.textAlign = "left";
                                     div.style.lineHeigth = "18px";
                                     div.style.fontWeight = "bold";
-                                    labels.push('<div id="container" style="margin:8px">Flow');
+                                    labels.push('<div id="legendColorContainer" style="margin:8px; display:none; visibility: hidden;">Flow'); 
                                     for (i = 0; i < colors.length; i++) {
                                         if ((colors[i])[0] != null) {
                                             from = ((colors[i])[0]) * 100;
@@ -11115,11 +11502,52 @@ if (!isset($_SESSION)) {
                                     div.innerHTML = labels.join('<br>');
 
                                     L.DomEvent.disableClickPropagation(div);
-
+                                    div.style.display = "none";
                                     return div;
                                 };
 
                                 legendColors.addTo(map.defaultMapRef);
+
+                                
+
+                                    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                    // Select the node that will be observed for mutations
+                                    const targetNode = document.getElementById('legendColorContainer');
+
+                                    // Options for the observer (which mutations to observe)
+                                    const config = { attributes: true }; //, childList: true, subtree: true };
+
+                                    // Callback function to execute when mutations are observed
+                                    const callback = function(mutationsList, observer) {
+                                        // Use traditional 'for loops' for IE 11
+                                        for(const mutation of mutationsList) {
+                                            if (mutation.type === 'childList') {
+                                                // console.log('A child node has been added or removed.');
+                                            }
+                                            else if (mutation.type === 'attributes') {
+                                                // console.log('The ' + mutation.attributeName + ' attribute was modified.');
+
+                                                observer.disconnect();
+                                                document.getElementById("info_legend_id").style.display = "none";
+                                                document.getElementById("legendColorContainer").style.display = "none";
+                                                document.getElementById("info_legend_id").style.visibility = 'hidden';
+                                                document.getElementById("legendColorContainer").style.visibility = 'hidden';
+                                                observer.observe(document.getElementById("legendColorContainer"), { attributes: true });
+                                            }
+                                        }
+                                    };
+
+                                    // Create an observer instance linked to the callback function
+                                    legendColorObserver = new MutationObserver(callback);
+
+                                    // Start observing the target node for configured mutations
+                                    legendColorObserver.observe(targetNode, config);
+
+                                    // Later, you can stop observing
+                                    // observer.disconnect();
+                                    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
                                 event.legendColors = legendColors;
                                 map.eventsOnMap.push(event);
@@ -11732,6 +12160,9 @@ if (!isset($_SESSION)) {
                         if (geojson_layer !== null){
                             map.defaultMapRef.removeLayer(geojson_layer);
                         }
+                        if (geojson_layer_all !== null){
+                            map.defaultMapRef.removeLayer(geojson_layer_all);
+                        }
                         if (sourcePolygon !== null){
                             map.defaultMapRef.removeLayer(sourcePolygon);
                         }
@@ -11765,7 +12196,15 @@ if (!isset($_SESSION)) {
                             }
                         }
                     }
-                    map.defaultMapRef.off('click');
+                    map.defaultMapRef.off('click', odmapClick);
+                    if(nodeRedClick != null){
+                        map.defaultMapRef.on('click', nodeRedClick);
+                    }
+                    $(document).off('newOdTargetData', newOdTargetData);
+                    $(document).off('newOdSourceData', newOdSourceData);
+                    map.defaultMapRef.off('zoomend', showAllPolyOdMapZoomend);
+                    map.defaultMapRef.off('moveend', showAllPolyOdMapMoveend);
+                    
                 });
 
                 $(document).on('toggleAddMode', function (event) {
@@ -11952,15 +12391,26 @@ if (!isset($_SESSION)) {
                     //   globalMapView = true;
 
                     //if (metricName != 'Map' && nodeId != null) {
+                    // if (nodeId != null) {
+                    //     map.defaultMapRef.on('click', nodeRedClick = function(e) {
+                    //         //    alert('Map Clicked!');
+                    //         let eventJson = new Object();
+                    //         eventJson.latitude = e.latlng.lat;
+                    //         eventJson.longitude = e.latlng.lng;
+                    //         currentValue = JSON.stringify(eventJson);
+                    //         triggerEventOnIotApp(map.defaultMapRef, currentValue);
+                    //     })
+                    // }
+                    nodeRedClick = function(e) {
+                        //    alert('Map Clicked!');
+                        let eventJson = new Object();
+                        eventJson.latitude = e.latlng.lat;
+                        eventJson.longitude = e.latlng.lng;
+                        currentValue = JSON.stringify(eventJson);
+                        triggerEventOnIotApp(map.defaultMapRef, currentValue);
+                    }
                     if (nodeId != null) {
-                        map.defaultMapRef.on('click', function(e) {
-                            //    alert('Map Clicked!');
-                            let eventJson = new Object();
-                            eventJson.latitude = e.latlng.lat;
-                            eventJson.longitude = e.latlng.lng;
-                            currentValue = JSON.stringify(eventJson);
-                            triggerEventOnIotApp(map.defaultMapRef, currentValue);
-                        })
+                        map.defaultMapRef.on('click', nodeRedClick)
                     }
 
                     // parte mappa 3D - CORTI
