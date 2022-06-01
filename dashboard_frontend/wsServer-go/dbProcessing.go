@@ -307,7 +307,7 @@ func dbCommunication(jsonMsg []byte, user *WebsocketUser) {
 		} else {
                         /*save last value on Config_widget_dashboard rowParameters if the SendToEmitted is coming from nodered*/
                         if dat["username"] == nil && dat["inputName"] == nil {
-                                newValueJson, _ := json.Marshal(dat["value"])
+                                newValueJson := dat["value"]
                                 var err2 error
                                 _, err2 = db.Exec("UPDATE "+dashboard+".Config_widget_dashboard SET rowParameters=? WHERE name_w=?", newValueJson, dat["widgetUniqueName"].(string))
                                 if err2!= nil {
