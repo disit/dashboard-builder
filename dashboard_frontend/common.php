@@ -610,6 +610,9 @@ function get_access_token($token_endpoint, $username, $password, $client_id){
 
 function redirect_on_login() {
     $host='www.snap4city.org';
+    if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+        $host=$_SERVER['HTTP_X_FORWARDED_HOST'];
+    }
     header("Location: ../management/ssoLogin.php?redirect=https://$host" . $_SERVER['REQUEST_URI']);
     exit();
 }
