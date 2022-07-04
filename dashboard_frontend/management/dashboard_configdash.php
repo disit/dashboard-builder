@@ -96,6 +96,7 @@
     <link rel="stylesheet" type="text/css" href="../css/DataTables/jquery.dataTables.min.css">
     <script type="text/javascript" charset="utf8" src="../js/DataTables/Select-1.2.5/js/dataTables.select.min.js"></script>
     <link rel="stylesheet" type="text/css" href="../js/DataTables/Select-1.2.5/css/select.dataTables.min.css">
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/dataTables.scrollResize.min.js"></script>
 
     
     <!-- Select2-->

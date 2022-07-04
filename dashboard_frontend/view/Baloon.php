@@ -95,14 +95,7 @@
                 //Se non è pubblica può andare avanti con codice standard, altrimenti gli viene chiesto di collegarsi
                 if($row['visibility'] != 'public')
                 {
-                    $host='main.snap4city.org';
-if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
-  $host=$_SERVER['HTTP_X_FORWARDED_HOST'];
-  if($host=='dashboard.km4city.org')
-    $host.='/dashboardSmartCity';
-}
-                    header("Location: ../management/ssoLogin.php?redirect=https://$host/view/index.php?iddasboard=" . $_REQUEST['iddasboard']);
-                    exit();
+                    redirect_on_login();
                 }
             }
 
@@ -335,6 +328,19 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
 
     <!-- New WS -->
    <script src="https://www.snap4city.org/synoptics/socket.io/socket.io.js"></script>
+
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/datatables.js"></script>
+    <link rel="stylesheet" type="text/css" href="../js/DataTables/datatables.css">
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/responsive.bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/DataTables/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/DataTables/responsive.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/DataTables/jquery.dataTables.min.css">
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/Select-1.2.5/js/dataTables.select.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../js/DataTables/Select-1.2.5/css/select.dataTables.min.css">
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/dataTables.scrollResize.min.js"></script>
 
     <script type='text/javascript'>
         var array_metrics = new Array();
@@ -1916,6 +1922,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
 
                     $currDom = $_SERVER['HTTP_HOST'];
 
+
                     $domQ = "SELECT * FROM Dashboard.Domains WHERE domains LIKE '%$currDom%'";
                     $r = mysqli_query($link, $domQ);
 
@@ -2097,18 +2104,8 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                 }
                 mysqli_close($link);
                 ?>
-				<ul class="secondary-menu">
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/49" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Privacy Policy</a></li>
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/48" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Cookies Policy</a></li>
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/legal" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Terms and Conditions</a></li>
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/contact" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Contact us</a></li>
                 </ul>
-				<div class="footerLogo">
-	        		<a title="Snap4City" href="https://www.snap4city.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" alt="DISIT"></a>
-	        	</div>
-	        	<div class="profileButton">
-	        		<a title="Snap4City" href="https://www.snap4city.org" target="_blank"><span class="material-icons">person</span>My Profile</a>
-	        	</div>
+                <?php include('footer-Baloon.html');?>
             </div>
 			</div>
       	</nav>

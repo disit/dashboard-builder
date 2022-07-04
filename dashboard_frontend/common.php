@@ -394,10 +394,38 @@ function checkAlphaNumAndSpaces($entry) {
     }
 }
 
+function getUserIP()
+{
+    // Get real visitor IP behind CloudFlare network
+    if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
+        $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+        $_SERVER['HTTP_CLIENT_IP'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
+    }
+    $client  = @$_SERVER['HTTP_CLIENT_IP'];
+    $forward = @$_SERVER['HTTP_X_FORWARDED_FOR'];
+    $remote  = $_SERVER['REMOTE_ADDR'];
+
+    if(filter_var($client, FILTER_VALIDATE_IP))
+    {
+        $ip = $client;
+    }
+    elseif(filter_var($forward, FILTER_VALIDATE_IP))
+    {
+        $ip = $forward;
+    }
+    else
+    {
+        $ip = $remote;
+    }
+
+    return $ip;
+}
+
 function eventLog($msgArray)
 {
     $string="";
-    $logData['event_datetime']='['.date('D Y-m-d h:i:s A').'] [client '.$_SERVER['REMOTE_ADDR'].']';
+    // $logData['event_datetime']='['.date('D Y-m-d h:i:s A').'] [client '.$_SERVER['REMOTE_ADDR'].']';
+    $logData['event_datetime']='['.date('D Y-m-d h:i:s A').'] [client '.getUserIP().'--'.$_SERVER['HTTP_USER_AGENT'].']';
     if(is_array($msgArray))
     {
         foreach($msgArray as $msg)
@@ -578,4 +606,10 @@ function get_access_token($token_endpoint, $username, $password, $client_id){
     curl_close($ch);
     return json_decode($curl_response)->access_token;
 
+}
+
+function redirect_on_login() {
+    $host='www.snap4city.org';
+    header("Location: ../management/ssoLogin.php?redirect=https://$host" . $_SERVER['REQUEST_URI']);
+    exit();
 }

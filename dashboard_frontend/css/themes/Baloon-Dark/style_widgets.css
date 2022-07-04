@@ -92,6 +92,7 @@ div.loadingTextDiv
     align-items: flex-end; 
     justify-content: center; 
     text-align: center;
+    background: transparent!important;
 }
 
 div.loadingIconDiv
@@ -122,6 +123,7 @@ div.loadingDiv, div.noDataAlert, div.loadErrorAlert
     height: 100%;
     display: none;
     color: var(--text-color);
+    background: transparent!important;
 }
 
 div.loadErrorAlertText, div.noDataAlertText
@@ -575,6 +577,15 @@ div.onOffButton{
 	border-radius: 30px!important;
 	padding: 10px;
 	font-family: 'Dosis', sans-serif;
+  box-shadow: 4px 0px 10px #00000019!important;
+}
+
+div.onOffButtonBefore{
+  box-shadow: none!important;
+}
+
+div.onOffButtonAfter{
+  box-shadow: none!important;
 }
 
 .prevMeteo{
@@ -1753,7 +1764,7 @@ div.tooltip-inner
 
 .eventLink, .eventLink:link, .eventLink:visited, .eventLink:active
 {
-    color: var(--text-color);
+    color: #000;
     text-decoration: none;
 }
 
@@ -2263,10 +2274,12 @@ atafLastUpdateWrapper
 
 .source_button
 {
-   float: left;
-   margin-left: 0px;
-   margin-right: 2px;
-   font-size: 22px !important;
+  float: left;
+  margin-left: 0px;
+  margin-right: 2px;
+  font-size: 1vw!important;
+  color: var(--acc-02-color)!important;
+  margin-right: 10px;
 }
 
 .countdown

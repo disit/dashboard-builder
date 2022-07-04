@@ -286,7 +286,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 				  "value": JSON.stringify(newValue),
 				  "inputName": widgetProperties.param.name,
 				  "dashboardId": widgetProperties.param.id_dashboard,
-				  "username" : $('#authForm #hiddenUsername').val(),
+				  //"username" : $('#authForm #hiddenUsername').val(),
+                  "username" : "multiChoiceUser",
 				  "nrInputId": widgetProperties.param.nrInputId
 			};
 			// console.log("Sending..."); console.log(data); 

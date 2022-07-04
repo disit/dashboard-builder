@@ -2916,21 +2916,21 @@
 
                 for (i = 0; i < data.table.length; i++)
                 {
-                    if (data.table[i].mono_multi === 'Mono')
-                    {
-                        //ICONE MONO
-                        newIcon = $('<div data-toggle="popover" data-placement="bottom" data-html="true" data-widgetCategory="' + data.table[i].widgetCategory + '" data-available="' + data.table[i].available + '" data-trigger="hover" data-selected="false" data-content="<span>' + data.table[i].description + '</span>" data-id="' + data.table[i].id + '" data-iconName="' + data.table[i].icon + '" data-mainWidget="' + data.table[i].mainWidget + '" data-targetWidget="' + data.table[i].targetWidget + '" data-snap4CityType="' + data.table[i].snap4CityType + '" data-icon="' + data.table[i].icon + '" data-mono_multi="' + data.table[i].mono_multi + '" data-description="' + data.table[i].description + '" class="iconsMonoSingleIcon addWidgetWizardIconClickClass"></div>');
-                        newIcon.css('background-image', 'url("../img/widgetIcons/mono/' + data.table[i].icon + '")');
+                    if (data.table[i].mainWidget != "widgetForm" && data.table[i].mainWidget != "widgetEvent" && data.table[i].mainWidget != "widgetSnap4D3") {
+                        if (data.table[i].mono_multi === 'Mono') {
+                            //ICONE MONO
+                            newIcon = $('<div data-toggle="popover" data-placement="bottom" data-html="true" data-widgetCategory="' + data.table[i].widgetCategory + '" data-available="' + data.table[i].available + '" data-trigger="hover" data-selected="false" data-content="<span>' + data.table[i].description + '</span>" data-id="' + data.table[i].id + '" data-iconName="' + data.table[i].icon + '" data-mainWidget="' + data.table[i].mainWidget + '" data-targetWidget="' + data.table[i].targetWidget + '" data-snap4CityType="' + data.table[i].snap4CityType + '" data-icon="' + data.table[i].icon + '" data-mono_multi="' + data.table[i].mono_multi + '" data-description="' + data.table[i].description + '" class="iconsMonoSingleIcon addWidgetWizardIconClickClass"></div>');
+                            newIcon.css('background-image', 'url("../img/widgetIcons/mono/' + data.table[i].icon + '")');
 
-                        $('.addWidgetWizardIconsCnt').eq(0).append(newIcon);
-                        $('[data-toggle="tooltip"]').tooltip();
-                    } else
-                    {
-                        //ICONE MULTI
-                        newIcon = $('<div data-toggle="popover" data-placement="bottom" data-html="true" data-widgetCategory="' + data.table[i].widgetCategory + '" data-available="' + data.table[i].available + '" data-trigger="hover" data-selected="false" data-content="<span>' + data.table[i].description + '</span>" data-selected="false" data-id="' + data.table[i].id + '" data-iconName="' + data.table[i].icon + '" data-mainWidget="' + data.table[i].mainWidget + '" data-targetWidget="' + data.table[i].targetWidget + '" data-snap4CityType="' + data.table[i].snap4CityType + '" data-icon="' + data.table[i].icon + '" data-mono_multi="' + data.table[i].mono_multi + '" data-description="' + data.table[i].description + '" class="iconsMonoMultiIcon addWidgetWizardIconClickClass"></div>');
-                        newIcon.css('background-image', 'url("../img/widgetIcons/multi/' + data.table[i].icon + '")');
+                            $('.addWidgetWizardIconsCnt').eq(0).append(newIcon);
+                            $('[data-toggle="tooltip"]').tooltip();
+                        } else {
+                            //ICONE MULTI
+                            newIcon = $('<div data-toggle="popover" data-placement="bottom" data-html="true" data-widgetCategory="' + data.table[i].widgetCategory + '" data-available="' + data.table[i].available + '" data-trigger="hover" data-selected="false" data-content="<span>' + data.table[i].description + '</span>" data-selected="false" data-id="' + data.table[i].id + '" data-iconName="' + data.table[i].icon + '" data-mainWidget="' + data.table[i].mainWidget + '" data-targetWidget="' + data.table[i].targetWidget + '" data-snap4CityType="' + data.table[i].snap4CityType + '" data-icon="' + data.table[i].icon + '" data-mono_multi="' + data.table[i].mono_multi + '" data-description="' + data.table[i].description + '" class="iconsMonoMultiIcon addWidgetWizardIconClickClass"></div>');
+                            newIcon.css('background-image', 'url("../img/widgetIcons/multi/' + data.table[i].icon + '")');
 
-                        $('.addWidgetWizardIconsCnt').eq(1).append(newIcon);
+                            $('.addWidgetWizardIconsCnt').eq(1).append(newIcon);
+                        }
                     }
                 }
 

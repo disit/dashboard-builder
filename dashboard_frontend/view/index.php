@@ -322,6 +322,19 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     <!-- New WS -->
    <script src="https://www.snap4city.org/synoptics/socket.io/socket.io.js"></script>
 
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/datatables.js"></script>
+    <link rel="stylesheet" type="text/css" href="../js/DataTables/datatables.css">
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/dataTables.responsive.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/responsive.bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/DataTables/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/DataTables/responsive.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/DataTables/jquery.dataTables.min.css">
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/Select-1.2.5/js/dataTables.select.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../js/DataTables/Select-1.2.5/css/select.dataTables.min.css">
+    <script type="text/javascript" charset="utf8" src="../js/DataTables/dataTables.scrollResize.min.js"></script>
+
     <script type='text/javascript'>
         var array_metrics = new Array();
         var headerFontSize, headerModFontSize, subtitleFontSize, subtitleModFontSize, dashboardId, dashboardName, dashboardOrg, dashboardOrgKbUrl, logoFilename, logoLink,
@@ -2225,25 +2238,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             <ul id="gridsterUl"></ul>            
         </div>
 
-        <hr id="horizontalFooterLine" style="height:1px;width:75%;border:none;color:#333;background-color:#333;margin-bottom:-10px;" />
-        <div class="footerNavRow">
-            <div id="firstColumnFooter" class="footerNavColumn">
-                <!-- empty -->
-            </div>
-            <div id="footerPolicyId" class="footerNavColumn">
-                <ul class="menu nav">
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/49" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Privacy Policy</a></li>
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/48" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Cookies Policy</a></li>
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/legal" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Terms and Conditions</a></li>
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/contact" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Contact us</a></li>
-                </ul>
-            </div>
-            <div id="footerLogoId" class="footerNavColumn">
-                <div style="width:68%;float:right;">
-                <a title="Disit" href="https://www.snap4city.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" alt="Mountains" style="width:100%"></a>
-                </div>
-            </div>
-        </div>
+        <?php include('footer.html');?>
 
         <script type="text/javascript">
             // Get URL

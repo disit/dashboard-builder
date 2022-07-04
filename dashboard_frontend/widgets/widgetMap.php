@@ -296,6 +296,11 @@ if (!isset($_SESSION)) {
 			var spiderMarkers = {};
             var altViewMode = null;
 
+            function encodeHTMLEntities(text) {
+                var textArea = document.createElement('textarea');
+                textArea.innerText = text;
+                return textArea.innerHTML;
+            }
 
             function triggerEventOnIotApp(map, message) {
 
@@ -1037,10 +1042,21 @@ if (!isset($_SESSION)) {
                                                             if (serviceProperties.realtimeAttributes && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]] && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit) {
                                                                 value_unit = serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit;
                                                             }
-                                                            if (value_unit == "SURI") {
-                                                                dataVal = '<div class="tooltipSuri">[SURI id]<span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                                            if (dataVal.length > 50 && value_unit !== "SURI") {
+                                                                dataVal = '<div class="tooltipSuri">' + encodeHTMLEntities(dataVal).substring(0, 20) + '... <span class="tooltipSuriText">' + dataVal + '</span></div>';
                                                             }
-                                                            dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
+                                                            if (value_unit == "SURI") {
+                                                                if (dataVal.includes("http://www.disit.org/km4city")) {
+                                                                    dataVal = '<div class="tooltipSuri">[SURI id]<span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                                                } else {
+                                                                    dataVal = '<div class="tooltipSuri">[WEB Url]<span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                                                }
+                                                            }
+                                                            if (dataVal.length > 50) {
+                                                                dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value).replace(/["]+/g, '') + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
+                                                            } else {
+                                                                dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
+                                                            }
                                                             data4HBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">4h</button></td>';
                                                             dataDayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">24h</button></td>';
                                                             data7DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">7d</button></td>';
@@ -1729,34 +1745,37 @@ if (!isset($_SESSION)) {
                                     let qType = "";
                                     let passData = {};
                                     let widTargets = "";
-                                    if ($(this).attr("data-lastValue").includes("http://") || $(this).attr("data-lastValue").includes("https://")) {
+                                    if ($(this).attr("data-lastValue").includes("http://www.disit.org/km4city")) {
                                         qType = "Default";
                                         q = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri($(this).attr("data-lastValue")) + "&format=json&fullCount=false";
+                                        for (var i = 0; i < widgetTargetList.length; i++) {
+                                            if (widTargets == "") {
+                                                widTargets = widgetTargetList[i];
+                                            } else {
+                                                widTargets = widTargets + "," + widgetTargetList[i];
+                                            }
+                                        }
+                                        passData.desc = "SURI_" + $(this).attr("data-field");
+                                        passData.query = q;
+                                        passData.queryType = qType;
+                                        passData.color1 = $(this).attr("data-color1");
+                                        passData.color2 = $(this).attr("data-color2");
+                                        passData.targets = widTargets;
+                                        passData.fromSURI = true
+
+                                        $.event.trigger({
+                                            type: "addSelectorPin",
+                                            target: map.mapName,
+                                            passedData: passData,
+                                            // passedParams: passedParams
+                                        });
+                                    } else if ($(this).attr("data-lastValue").includes("http://") || $(this).attr("data-lastValue").includes("https://")) {
+                                        window.open($(this).attr("data-lastValue"), '_blank');
                                     } else {
                                         qType = "MyPOI";
                                         q = $(this).attr("data-lastValue");
                                     }
-                                    for (var i = 0; i < widgetTargetList.length; i++) {
-                                        if (widTargets == "") {
-                                            widTargets = widgetTargetList[i];
-                                        } else {
-                                            widTargets = widTargets + "," + widgetTargetList[i];
-                                        }
-                                    }
-                                    passData.desc = "SURI_" + $(this).attr("data-field");
-                                    passData.query = q;
-                                    passData.queryType = qType;
-                                    passData.color1 = $(this).attr("data-color1");
-                                    passData.color2 = $(this).attr("data-color2");
-                                    passData.targets = widTargets;
-                                    passData.fromSURI = true
-                                    
-                                    $.event.trigger({
-                                        type: "addSelectorPin",
-                                        target: map.mapName,
-                                        passedData: passData,
-                                        // passedParams: passedParams
-                                    });
+
                                 }
 
                                 for (var i = 0; i < widgetTargetList.length; i++) {

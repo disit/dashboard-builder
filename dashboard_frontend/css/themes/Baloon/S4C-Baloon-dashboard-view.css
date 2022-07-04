@@ -207,6 +207,35 @@ body{
 
 #dashboardViewWidgetsContainer{
 	padding: 30px;
+  box-sizing: content-box;
+}
+
+/* MODAL OVERLAY */
+
+.modal-content{
+  padding: 20px!important;
+  background-color: var(--wdgt-bg-color)!important;
+  box-shadow: 4px 0px 10px #00000019!important;
+  border-radius: 60px!important;
+  border: none!important;
+}
+
+.modalHeader{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.modalHeader .col-xs-offset-1{
+  margin-left: 0!important;
+  font-family: 'Dosis', sans-serif!important;
+  font-size: 1.5vw!important;
+  font-weight: 600!important;
+  line-height: 2.5rem!important;
+  text-align: left!important;
+  color: var(--acc-02-color)!important;
+  background: var(--wdgt-bg-color)!important;
+  text-transform: uppercase!important;
 }
 
 /* HEADER */
@@ -547,6 +576,11 @@ nav#s4c-sidebar ul.secondary-menu li a{
 	transition:         background 0.5s ease-in-out;
 }
 
+/* #gridsterUl li[data-widgettype="widgetButton"] {
+    background: transparent!important;
+    box-shadow: none!important;
+} */
+
 /* WIDGET HEADER */
 
 .titleDiv
@@ -652,13 +686,14 @@ nav#s4c-sidebar ul.secondary-menu li a{
 
 #widgetInfoModalCancelBtnView
 {
-    background-color: var(--dash-bg-color)!important;
+    background-color: transparent!important;
+    color: var(--acc-02-color);
 }
 
 #widgetInfoModalCancelBtnView:hover
 {
-    background-color: var(--dash-bg-color) !important;
     cursor: pointer;
+    color: var(--text-color);
 }
 
 .timeControlsContainer
