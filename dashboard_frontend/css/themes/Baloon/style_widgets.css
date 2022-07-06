@@ -2274,10 +2274,12 @@ atafLastUpdateWrapper
 
 .source_button
 {
-   float: left;
-   margin-left: 0px;
-   margin-right: 2px;
-   font-size: 22px !important;
+  float: left;
+  margin-left: 0px;
+  margin-right: 2px;
+  font-size: 1vw!important;
+  color: var(--acc-02-color)!important;
+  margin-right: 10px;
 }
 
 .countdown
