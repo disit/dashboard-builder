@@ -1906,6 +1906,7 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                         enabled: false
                     },
                     chart: {
+                        zoomType: 'x',
                         backgroundColor: 'transparent',
                         type: 'areaspline',
                         style: {

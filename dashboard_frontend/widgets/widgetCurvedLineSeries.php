@@ -966,6 +966,7 @@
 
                     Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
                         chart: {
+                            zoomType: 'x',
                             type: highchartsChartType,
                             backgroundColor: 'transparent',
                             //Funzione di applicazione delle soglie

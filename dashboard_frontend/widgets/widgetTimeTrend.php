@@ -866,6 +866,7 @@
                             enabled: false
                         },
                         chart: {
+                            zoomType: 'x',
                             backgroundColor: 'transparent',
                             type: 'areaspline',
                             events: {
@@ -993,6 +994,7 @@
                             enabled: false
                         },
                         chart: {
+                            zoomType: 'x',
                             backgroundColor: 'transparent',
                             type: 'areaspline',
                             events: {
