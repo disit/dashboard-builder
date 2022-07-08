@@ -8680,7 +8680,10 @@ if (!isset($_SESSION)) {
                                            } else if (map.eventsOnMap[i].type === 'addOD'){
                                                map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
                                                map.eventsOnMap.splice(i, 1);
-                                           } 
+                                           } else if (map.eventsOnMap[i].type === 'addPolyStat'){
+                                               map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
+                                               map.eventsOnMap.splice(i, 1);
+                                           }
                                        }
                                    }
                                }
@@ -9965,8 +9968,17 @@ if (!isset($_SESSION)) {
                         let organization = "";
                         let inflow = "";
                         let odID = "";
-                        let getPerc = "";
+                        let getPerc = "True";
                         let statID = "";
+                        let allPoly = "False";
+                        let panelOnShape = false;
+                        let colorMapName = "ODcolormap1";
+                        let sourcePolyColor = "#0000FF";
+                        let opacity = "0.6";
+                        let allPolyColor = "#bf2015";
+                        let panelBackgroundColor = "#cccccc";
+                        let panelFontColor = "#505050";
+
                         for (n=0; n < parameters.length; n++) {
                             if (parameters[n].split("=")[0] == "latitude") {
                                 latitude = parameters[n].split("=")[1];
@@ -9984,6 +9996,23 @@ if (!isset($_SESSION)) {
                                 getPerc = parameters[n].split("=")[1];
                             } else if (parameters[n].split("=")[0] == "stat_id") {
                                 statID = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "all_polygon") {
+                                allPoly = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "panel_on_shape") {
+                                panelOnShape = parameters[n].split("=")[1];
+                                panelOnShape = ((panelOnShape == "False") ? false : true)
+                            } else if (parameters[n].split("=")[0] == "color_map") {
+                                colorMapName = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "source_polygon_color") {
+                                sourcePolyColor = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "opacity") {
+                                opacity = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "all_polygon_color") {
+                                allPolyColor = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "panel_bg_color") {
+                                panelBackgroundColor = parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "panel_font_color") {
+                                panelFontColor = parameters[n].split("=")[1];
                             }
                         }
 
@@ -9996,7 +10025,7 @@ if (!isset($_SESSION)) {
                         let animationPeriod = "week";
                         let animationCounter = 0;
                         let shapeTypes = [];
-                        let showAllPolygonFlag = false;
+                        let showAllPolygonFlag = ((allPoly === "False") ? false : true);
                         let legendColorObserver = null;
                         mapName = "Origin-Destination Map";
 
@@ -10007,7 +10036,7 @@ if (!isset($_SESSION)) {
                             var colorScale = {};
 
                             $.ajax({
-                                url: odUrl + "color?metric_name=ODcolormap1",
+                                url: odUrl + "color?metric_name=" + colorMapName,
                                 type: "GET",
                                 async: false,
                                 dataType: 'json',
@@ -10056,14 +10085,22 @@ if (!isset($_SESSION)) {
 
                         function setOption(option, value, decimals) {
                             if (option == "maxOpacity") {
-                                if (geojson_layer) {
+                                if (geojson_layer || sourcePolygon) {
                                     current_opacity_od = value;
                                     if (decimals) {
                                         $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity_od).toFixed(parseInt(decimals)));
                                         $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity_od).toFixed(parseInt(decimals)));
-                                        geojson_layer.setStyle({fillOpacity: current_opacity_od});
+                                        if(geojson_layer){
+                                            geojson_layer.setStyle({fillOpacity: current_opacity_od});
+                                        }
+                                        if(sourcePolygon){
+                                            sourcePolygon.setStyle({fillOpacity: current_opacity_od});
+                                        }
                                     }
                                 }
+
+                                
+
                             }
                         }
 
@@ -10091,6 +10128,8 @@ if (!isset($_SESSION)) {
                             map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
                         }
 
+                        
+
                         map.legendOd.onAdd = function () {
                             map.legendOdDiv = L.DomUtil.create('div');
                             map.legendOdDiv.id = "odLegend";
@@ -10103,20 +10142,21 @@ if (!isset($_SESSION)) {
                             }
                             map.legendOdDiv.style.width = "340px";
                             map.legendOdDiv.style.fontWeight = "bold";
-                            map.legendOdDiv.style.background = "#cccccc";
+                            map.legendOdDiv.style.background = panelBackgroundColor; //"#cccccc";
                             map.legendOdDiv.style.padding = "10px";
+                            map.legendOdDiv.style.color = panelFontColor;
 
                             map.legendOdDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
                             map.legendOdDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">OD Controls:</div>';
 
                             // SHOW ALL POLYGONS (NOT YET IMPLEMENTED FOR COMMUNES AND MSGR!!!)
-                            if(precision == 'poi' || precision == 'section' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region'){
+                            if(precision == 'poi' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region'){
                                 if (showAllPolygonFlag === false){
                                     map.legendOdDiv.innerHTML += '' + 
                                         '<div class="text" style="width:50%; float:right">' + 
                                             '<label class="switch">' + 
                                                 '<input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_show_all">' + 
-                                                '<div class="slider round">' + 
+                                                '<div class="slider round" id="slider_poly" style="background-color:#DBDBDB">' + 
                                                     //'<div class="show_allOn"></div>' + 
                                                     '<div class="show_allOff" id="show_allText" style="color: black; text-align: center">ON</div>' + 
                                                 '</div>' + 
@@ -10130,27 +10170,28 @@ if (!isset($_SESSION)) {
                                         '<div class="text" style="width:50%; float:right">' + 
                                             '<label class="switch">' + 
                                                 '<input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_show_all" checked>' + 
-                                                '<div class="slider round">' + 
+                                                '<div class="slider round" id="slider_poly" style="background-color:' + panelFontColor + '">' + 
                                                     //'<div class="show_allOff"></div>' + 
-                                                    '<div class="show_allOn" id="show_allText" style="color: black; text-align: center">OFF</div>' + 
+                                                    '<div class="show_allOn" id="show_allText" style="color: white; text-align: center">OFF</div>' + 
                                                 '</div>' + 
                                             '</label>' + 
                                         '</div>' + //</div>' +
                                         '<div id="odShowAllControl">' +
                                             '<label for="ShowAll">Show all polygons:&nbsp;</label>' + 
                                         '</div>';
+                                    getAllPolyOdMap();
                                 }
                             }
                             
                             if (animationFlag === false) {
                                 if (animationPeriod === "week") {
-                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Start</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
+                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round" id="animation_slider" style="background-color:#DBDBDB"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Start</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
                                         '<div id="odAnimationControl">' +
                                         '<label for="Animation">Time period:&nbsp;</label><select name="animation" id="animationPeriod" >' +
                                         '<option value="week">week</option>' +
                                         '<option value="month">month</option>' + '</select></div>';
                                 } else {
-                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Start</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
+                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round" id="animation_slider" style="background-color:#DBDBDB"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Start</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
                                         '<div id="odAnimationControl">' +
                                         '<label for="Animation">Time period:&nbsp;</label><select name="animation" id="animationPeriod" >' +
                                         '<option value="month">month</option>' +
@@ -10158,13 +10199,13 @@ if (!isset($_SESSION)) {
                                 }
                             } else {
                                 if (animationPeriod === "week") {
-                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation" checked disabled><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Stop</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
+                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation" checked disabled><div class="slider round" id="animation_slider" style="background-color:' + panelFontColor + '"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: white; text-align: right">Stop</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
                                         '<div id="odAnimationControl">' +
                                         '<label for="Animation">Time period:&nbsp;</label><select name="animation" id="animationPeriod" disabled>' +
                                         '<option value="week">week</option>' +
                                         '<option value="month">month</option>' + '</select></div>';
                                 } else {
-                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation" checked disabled><div class="slider round"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: black; text-align: right">Stop</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
+                                    map.legendOdDiv.innerHTML += '<div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation" checked disabled><div class="slider round" id="animation_slider" style="background-color:' + panelFontColor + '"><span class="animationOn"></span><span class="animationOff" id="animationText" style="color: white; text-align: right">Stop</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>' +
                                         '<div id="odAnimationControl">' +
                                         '<label for="Animation">Time period:&nbsp;</label><select name="animation" id="animationPeriod" disabled>' +
                                         '<option value="month">month</option>' +
@@ -10178,7 +10219,7 @@ if (!isset($_SESSION)) {
                             }
 
                             //precision
-                            if(precision != 'poi' && precision != 'section' && precision !='ace' && precision != 'municipality' && precision != 'province' && precision != 'region'){
+                            if(precision != 'poi' && precision !='ace' && precision != 'municipality' && precision != 'province' && precision != 'region'){
                                 let options = '';
                                 for(let i=0;i<shapeTypes.length;i++){
                                     if(shapeTypes[i] !== precision){
@@ -10217,9 +10258,9 @@ if (!isset($_SESSION)) {
                             map.legendOdDiv.innerHTML +=
                                 '<div id="odOpacityControl">' +
                                 '<div style="display:inline-block; vertical-align:super;">Max Opacity: &nbsp;&nbsp;&nbsp;&nbsp;</div>' +
-                                '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_opacity" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
-                                '<input id="<?= $_REQUEST['name_w'] ?>_slidermaxOpacity" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="0" max="1" value="' + current_opacity_od + '" step="0.01" ' + disabledAnimation() + '>' +
-                                '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="upSlider_opacity" style="display:inline-block;vertical-align:super; color: #0078A8">&#10095;</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
+                                '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_opacity" style="display:inline-block; vertical-align:super; color: ' + panelFontColor + '">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
+                                '<input id="<?= $_REQUEST['name_w'] ?>_slidermaxOpacity" style="display:inline-block; vertical-align:baseline; width:auto; accent-color:' + panelFontColor + '" type="range" min="0" max="1" value="' + current_opacity_od + '" step="0.01" ' + disabledAnimation() + '>' +
+                                '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<div id="upSlider_opacity" style="display:inline-block;vertical-align:super; color: ' + panelFontColor + '">&#10095;</div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
                                 '<span id="<?= $_REQUEST['name_w'] ?>_rangemaxOpacity" style="display:inline-block;vertical-align:super;">' + current_opacity_od + '</span>' +
                                 '</div>';
 
@@ -10255,7 +10296,7 @@ if (!isset($_SESSION)) {
                                     setOption('maxOpacity', this.value, 2)
                                 }, false);
                                 
-                                if(precision == 'poi' || precision == 'section' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region'){
+                                if(precision == 'poi' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region'){
                                     document.getElementById("<?= $_REQUEST['name_w'] ?>_show_all").addEventListener("click", function () {
                                         showAllPolyOdMap()
                                     }, false);
@@ -10312,7 +10353,8 @@ if (!isset($_SESSION)) {
                             }
                             map.flowInfoDiv.style.width = "240px" //"170px";
                             map.flowInfoDiv.style.fontWeight = "bold";
-                            map.flowInfoDiv.style.background = "#cccccc";
+                            map.flowInfoDiv.style.background = panelBackgroundColor; //"#cccccc";
+                            map.flowInfoDiv.style.color = panelFontColor;
                             map.flowInfoDiv.style.padding = "10px";
                             this.update();
                             return map.flowInfoDiv;
@@ -10389,10 +10431,10 @@ if (!isset($_SESSION)) {
                             bbox = map.defaultMapRef.getBounds();
                             console.log(bbox);
 
-                            let type =  "";                             
+                            let type =  ""; // TODO :: controlla retrocompatibilità                            
                             if (precision == 'communes') {
                                 type = "communes";
-                            } else if(precision == 'poi' || precision == 'section' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region') {
+                            } else if(precision == 'poi' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region') {
                                 type = precision;
                             } else {
                                 type = "mgrs";
@@ -10416,7 +10458,7 @@ if (!isset($_SESSION)) {
                                     }
                                     
                                     geojson_layer_all = L.geoJson(response, {
-                                        style: {"color": '#bf2015', "weight": 3, "fill": false}
+                                        style: {"color": allPolyColor, "weight": 3, "fill": false}
                                     });
                                     geojson_layer_all.addTo(map.defaultMapRef);
                                     if(sourcePolygon){
@@ -10433,10 +10475,14 @@ if (!isset($_SESSION)) {
                             if(!showAllPolygonFlag){
                                 showAllPolygonFlag = true;
                                 $("#show_allText").text("OFF");
+                                $("#show_allText")[0].style.color = "white";
+                                $("#slider_poly")[0].style.backgroundColor = panelFontColor;
                                 getAllPolyOdMap();
                             } else {
                                 showAllPolygonFlag = false;
                                 $("#show_allText").text("ON");
+                                $("#show_allText")[0].style.color = "black";
+                                $("#slider_poly")[0].style.backgroundColor = "#DBDBDB";
                                 if (geojson_layer_all) {
                                     map.defaultMapRef.removeLayer(geojson_layer_all);
                                 }
@@ -10573,6 +10619,8 @@ if (!isset($_SESSION)) {
                             } else {
                                 animationFlag = false;
                                 $("#<?= $_REQUEST['name_w'] ?>_animation").prop('checked', false);
+                                $("#animation_slider")[0].style.backgroundColor = "#DBDBDB";
+                                $("#animationText")[0].style.color = "black";
                                 $("#animationText").text("Wait");
                                 $("#<?= $_REQUEST['name_w'] ?>_animation").prop('disabled', true);
                                 setTimeout(function () {
@@ -11064,16 +11112,16 @@ if (!isset($_SESSION)) {
                             }
                         }
 
-                        function load(setView, async) {  
+                        function load(setView, async) {  /// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOOK HERE
                             // get OD data
                             let dataQuery = "";
                             let polygonQuery = "";
-                            let type =  ""; 
+                            let type =  ""; // TODO :: controlla retrocompatibilità
                             
                             if (precision == 'communes') {
                                 dataQuery = "get";
                                 polygonQuery = "polygon";
-                            } else if(precision == 'poi' || precision == 'section' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region') {
+                            } else if(precision == 'poi' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region') {
                                 dataQuery = "get";
                                 polygonQuery = "polygon";
                                 type = precision;
@@ -11133,7 +11181,7 @@ if (!isset($_SESSION)) {
                                     precision: precision,
                                     latitude: latitude,
                                     longitude: longitude,
-                                    type: type, 
+                                    type: type, // TODO controlla retrocompatibilità
                                     organization: organization
                                 },
                                 success: function(response) {
@@ -11142,7 +11190,7 @@ if (!isset($_SESSION)) {
                                         map.defaultMapRef.removeLayer(sourcePolygon);
                                     }
                                     console.log('Source response OK')
-                                    
+                                    // MODIFED CODE 2022-05-05
                                     sourcePolyID = [];
                                     sourcePolyName = []
                                     if(response.features){
@@ -11150,7 +11198,11 @@ if (!isset($_SESSION)) {
                                         sourcePolyName.push(response.features[0].properties.txt_name)
                                     }
                                     src = L.geoJson(response, {
-                                        style: {"color": '#0000FF'},
+                                        style: {
+                                            "color": sourcePolyColor,
+                                            "fillOpacity": current_opacity_od,
+                                            "fillColor": sourcePolyColor
+                                        },
                                         //onEachFeature: onEachFeature
                                     });
                                     sourcePolygon = src;
@@ -11181,14 +11233,16 @@ if (!isset($_SESSION)) {
                                 if(document.getElementById('odFlowControl')){
                                         if(inflow === 'True'){
                                             document.getElementById('odFlowControl').innerHTML= '<label for="Flow">Flow:&nbsp;</label>' +
-                                                                                                '<select name="flow" id="flow" ' + disabledAnimation() + '>' +
-                                                                                                '<option value="inflow">inflow</option>' +
-                                                                                                '</select>';
+                                                                                                '<span name="precision" id="precision" ' + disabledAnimation() + '>inflow</span>';
+                                                                                                // '<select name="flow" id="flow" ' + disabledAnimation() + '>' +
+                                                                                                // '<option value="inflow">inflow</option>' +
+                                                                                                // '</select>';
                                         } else {
                                             document.getElementById('odFlowControl').innerHTML= '<label for="Flow">Flow:&nbsp;</label>' +
-                                                                                                '<select name="flow" id="flow" ' + disabledAnimation() + '>' +
-                                                                                                '<option value="outflow">outflow</option>' +
-                                                                                                '</select>';
+                                                                                                '<span name="precision" id="precision" ' + disabledAnimation() + '>outflow</span>';
+                                                                                                // '<select name="flow" id="flow" ' + disabledAnimation() + '>' +
+                                                                                                // '<option value="outflow">outflow</option>' +
+                                                                                                // '</select>';
                                         }
                                         // if(inflow === 'true'){
                                         //     document.getElementById('odFlowControl').innerHTML= '<label for="Flow">Flow:&nbsp;</label>' +
@@ -11248,6 +11302,8 @@ if (!isset($_SESSION)) {
                                 eventJson.od_id = odID;
                                 eventJson.perc = getPerc;
                                 eventJson.stat_id = statID;
+                                eventJson.latitude = latitude;
+                                eventJson.longitude = longitude;
                                 currentValue = JSON.stringify(eventJson);
                                 if (nodeId != null) {
                                     triggerEventOnIotApp(map.defaultMapRef, currentValue);
@@ -11275,11 +11331,15 @@ if (!isset($_SESSION)) {
                             } else {
                                 color = getColor(feature.properties.density[Object.keys(feature.properties.density)[0]])
                             }
+                            if(typeof color === 'undefined'){
+                                color = sourcePolyColor;
+                            }
                             return {
-                                weight: 2,
-                                opacity: 1,
-                                color: 'white',
-                                dashArray: '3',
+                                //weight: 2,
+                                //opacity: 1,
+                                //color: 'white',
+                                //dashArray: '3',
+                                stroke: false,
                                 fillOpacity: current_opacity_od,
                                 fillColor: color //getColor(feature.properties.density)
                             };
@@ -11303,26 +11363,80 @@ if (!isset($_SESSION)) {
                             });
                         }
 
+                        function fillPolygonPopup(props){
+                            data = '<div style="background-color:' + panelBackgroundColor + ';color:' + panelFontColor + ';margin:0px;padding:5px;width:100%;height:100%">';
+                            var keyNames = Object.keys(props.density);
+                            if(keyNames.length<=1){
+                                if(getPerc === 'True'){
+                                    data = data + 'OD Flows<br />' + 
+                                    '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
+                                    'Rate: ' + 100 * Math.round(props.density * Math.pow(10, 5)) / Math.pow(10, 5) + '%';
+                                }else{
+                                    data = data + 'OD Flows<br />' + 
+                                    '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
+                                    'Value: ' + props.density;
+                                }
+                            }else{
+                                if(getPerc === 'True'){
+                                    rates = '<br /><ul>';
+                                    for(let i=0; i<keyNames.length; i++){
+                                        rates = rates + '<li>' + keyNames[i].replace(/_/g,' ') + ': ' + 
+                                            100 * Math.round(props.density[keyNames[i]] * Math.pow(10, 5)) / Math.pow(10, 5) + '%</li>';
+                                    }
+                                    rates = rates + '</ul>'
+                                    data = data + 'OD Flows<br />' + 
+                                    '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
+                                    'Rates: ' + rates;
+                                }else{
+                                    rates = '<br /><ul>';
+                                    for(let i=0; i<keyNames.length; i++){
+                                        rates = rates + '<li>' + keyNames[i].replace(/_/g,' ') + ': ' + 
+                                            props.density[keyNames[i]] + '</li>';
+                                    }
+                                    rates = rates + '</ul>'
+                                    data = data + 'OD Flows<br />' + 
+                                    '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
+                                    'Values: ' + rates;
+                                }
+                            }
+                            return data + '</div>';
+                        }
+
                         function highlightFeature(e) {
                             var layer = e.target;
+                            // layer.setStyle({
+                            //     weight: 5,
+                            //     color: '#666',
+                            //     dashArray: '',
+                            //     fillOpacity: current_opacity_od
+                            // });
 
-                            layer.setStyle({
-                                weight: 5,
-                                color: '#666',
-                                dashArray: '',
-                                fillOpacity: current_opacity_od
-                            });
+                            if(panelOnShape){
+                                var popupStyle = {
+                                    closeButton: false,
+                                    maxWidth: 300
+                                }
+                                layer.bindPopup(fillPolygonPopup(layer.feature.properties),popupStyle);
+                                layer.off('click', layer._openPopup);
+                                layer.openPopup(e.latlng);
+                                map.flowInfoDiv.style.display = "none";
+                            } else {
+                                if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                                    layer.bringToFront();
+                                }
 
-                            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                                layer.bringToFront();
+                                map.flowInfo.update(layer.feature.properties);
                             }
-
-                            map.flowInfo.update(layer.feature.properties);
                         }
 
                         function resetHighlight(e) {
-                            geojson_layer.resetStyle(e.target);
-                            map.flowInfo.update();
+                            geojson_layer.resetStyle(e.target); // CONTROLLA!!
+                            if(panelOnShape){
+                                e.target.closePopup();
+                                map.flowInfoDiv.style.display = "block";
+                            } else {
+                                map.flowInfo.update();
+                            }
                         }
                         
                         odmapClick = function(e) {
@@ -11332,10 +11446,10 @@ if (!isset($_SESSION)) {
                                 longitude = pointAndClickCoord.lng.toFixed(5);
                                 load();
                                 map.flowInfo.update();                                
-                                // if(sourcePolyID.length === targetPolyID.length && sourcePolyID[0] === targetPolyID[0] && statID !== ""){
-                                //    // send data to nodered to work on statistics (provenienze)        
-                                //    console.log('Get Provenienze!')
-                                // }
+                                if(sourcePolyID.length === targetPolyID.length && sourcePolyID[0] === targetPolyID[0] && statID !== ""){
+                                    // send data to nodered to work on statistics (provenienze)        
+                                    console.log('Get Provenienze!')
+                                }
                             }
                         }
 
@@ -11446,8 +11560,11 @@ if (!isset($_SESSION)) {
                                 });
 
                                 colors = getOdColorLegend();
+                                if (opacity != null) {
+                                    current_opacity_od = parseFloat(opacity);
+                                }
                                 if (current_opacity_od == null) {
-                                    current_opacity_od = 0.60;
+                                    current_opacity_od = parseFloat(opacity); //0.60;
                                 }
 
                                 current_page = (dates.length)-1;
@@ -11486,7 +11603,8 @@ if (!isset($_SESSION)) {
                                 map.legendOd.addTo(map.defaultMapRef);
                                 map.flowInfo.addTo(map.defaultMapRef);
                                 map.eventsOnMap.push(od);
-                               
+
+                                
                                 var legendColors = L.control({position: 'bottomleft'});
 
                                 legendColors.onAdd = function () {
@@ -11496,7 +11614,8 @@ if (!isset($_SESSION)) {
                                     div.id ="info_legend_id";
                                     div.style.display = "none";
                                     div.style.visibility = "hidden";
-                                    div.style.backgroundColor = "#cccccc";
+                                    div.style.backgroundColor = panelBackgroundColor; //"#cccccc";
+                                    div.style.color = panelFontColor;
                                     div.style.textAlign = "left";
                                     div.style.lineHeigth = "18px";
                                     div.style.fontWeight = "bold";
@@ -11507,11 +11626,13 @@ if (!isset($_SESSION)) {
                                         } else {
                                             from = 0;
                                         }
+                                        from = Math.round(from * 10) / 10
                                         if ((colors[i])[1] != null) {
                                             to = ((colors[i])[1]) * 100;
                                         } else {
                                             to = 100
                                         }
+                                        to = Math.round(to * 10) / 10
                                         hex = (colors[i])[2];
                                         labels.push(
                                             '<i style="background:' + hex + ';width:18px;height:18px;float:left;margin-right:8px;opacity:0.7;"></i> ' +
@@ -11746,6 +11867,9 @@ if (!isset($_SESSION)) {
                         }
                     }
                 });
+
+                
+                ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
                 $(document).on('removeAlarm', function (event) {
                     if (event.target === map.mapName) {
@@ -15825,6 +15949,18 @@ if (!isset($_SESSION)) {
         padding-left: 10px;
     }
 </style>	<!-- FINE CORTI STYLE -->
+
+<!-- OD POPUP STYLE -->
+<style>
+    .leaflet-popup-content {
+        margin: 0;
+        line-height: 1.5;
+    }
+    .leaflet-popup-tip-container {
+        display: none;
+    }
+</style>
+<!-- FINE OD POPUP STYLE -->
 
 <div class="widget" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div">
     <div class='ui-widget-content'>
