@@ -1028,50 +1028,52 @@ if (!isset($_SESSION)) {
                                         popupText += '<tbody>';
                                         var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn, data7DayBtn,
                                             data30DayBtn, data6MonthsBtn, data1YearBtn, data2YearBtn, data10YearBtn, value_unit = null;
-                                        for (var i = 0; i < realTimeData.head.vars.length; i++) {
-                                            if(realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== null && realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== undefined) {
-                                                if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]]) && (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined')) {
-                                                    if ((realTimeData.head.vars[i] !== 'updating') && (realTimeData.head.vars[i] !== 'measuredTime') && (realTimeData.head.vars[i] !== 'instantTime')) {
-                                                        if (!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available')) {
-                                                            //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
-                                                         /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
-                                                                return str.toUpperCase();
-                                                            });*/
-                                                            dataDesc = realTimeData.head.vars[i];
-                                                            dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
-                                                            if (serviceProperties.realtimeAttributes && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]] && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit) {
-                                                                value_unit = serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit;
-                                                            }
-                                                            if (dataVal.length > 50 && value_unit !== "SURI") {
-                                                                dataVal = '<div class="tooltipSuri">' + encodeHTMLEntities(dataVal).substring(0, 20) + '... <span class="tooltipSuriText">' + dataVal + '</span></div>';
-                                                            }
-                                                            if (value_unit == "SURI") {
-                                                                if (dataVal.includes("http://www.disit.org/km4city")) {
-                                                                    dataVal = '<div class="tooltipSuri">[SURI id]<span class="tooltipSuriText">' + dataVal + '</span></div>';
-                                                                } else {
-                                                                    dataVal = '<div class="tooltipSuri">[WEB Url]<span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                        if (realTimeData.head != null) {
+                                            for (var i = 0; i < realTimeData.head.vars.length; i++) {
+                                                if (realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== null && realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== undefined) {
+                                                    if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]]) && (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined')) {
+                                                        if ((realTimeData.head.vars[i] !== 'updating') && (realTimeData.head.vars[i] !== 'measuredTime') && (realTimeData.head.vars[i] !== 'instantTime')) {
+                                                            if (!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available')) {
+                                                                //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                                /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
+                                                                       return str.toUpperCase();
+                                                                   });*/
+                                                                dataDesc = realTimeData.head.vars[i];
+                                                                dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
+                                                                if (serviceProperties.realtimeAttributes && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]] && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit) {
+                                                                    value_unit = serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit;
                                                                 }
+                                                                if (dataVal.length > 50 && value_unit !== "SURI") {
+                                                                    dataVal = '<div class="tooltipSuri">' + encodeHTMLEntities(dataVal).substring(0, 20) + '... <span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                                                }
+                                                                if (value_unit == "SURI") {
+                                                                    if (dataVal.includes("http://www.disit.org/km4city")) {
+                                                                        dataVal = '<div class="tooltipSuri">[SURI id]<span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                                                    } else {
+                                                                        dataVal = '<div class="tooltipSuri">[WEB Url]<span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                                                    }
+                                                                }
+                                                                if (dataVal.length > 50) {
+                                                                    dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value).replace(/["]+/g, '') + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
+                                                                } else {
+                                                                    dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
+                                                                }
+                                                                data4HBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">4h</button></td>';
+                                                                dataDayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">24h</button></td>';
+                                                                data7DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">7d</button></td>';
+                                                                data30DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">30d</button></td>';
+                                                                data6MonthsBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">6m</button></td>';
+                                                                data1YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">1y</button></td>';
+                                                                data2YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="2 year" data-range="730/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">2y</button></td>';
+                                                                data10YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="10 year" data-range="3650/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">10y</button></td>';
+                                                                popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
                                                             }
-                                                            if (dataVal.length > 50) {
-                                                                dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value).replace(/["]+/g, '') + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
-                                                            } else {
-                                                                dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
-                                                            }
-                                                            data4HBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">4h</button></td>';
-                                                            dataDayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">24h</button></td>';
-                                                            data7DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">7d</button></td>';
-                                                            data30DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">30d</button></td>';
-                                                            data6MonthsBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">6m</button></td>';
-                                                            data1YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">1y</button></td>';
-                                                            data2YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="2 year" data-range="730/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">2y</button></td>';
-                                                            data10YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="10 year" data-range="3650/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">10y</button></td>';
-                                                            popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
+                                                        } else {
+                                                            measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
+                                                            var now = new Date();
+                                                            var measuredTimeDate = new Date(measuredTime);
+                                                            rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
                                                         }
-                                                    } else {
-                                                        measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
-                                                        var now = new Date();
-                                                        var measuredTimeDate = new Date(measuredTime);
-                                                        rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
                                                     }
                                                 }
                                             }
@@ -8672,12 +8674,15 @@ if (!isset($_SESSION)) {
                                                }
                                            } else if (map.eventsOnMap[i].eventType === 'od'){
                                                map.defaultMapRef.removeLayer(geojson_layer);
-                                               map.defaultMapRef.removeLayer(geojson_layer_all);
+                                               if (geojson_layer_all) {
+                                                   map.defaultMapRef.removeLayer(geojson_layer_all);
+                                               }
                                                map.defaultMapRef.removeLayer(sourcePolygon);
                                                map.defaultMapRef.removeControl(map.legendOd);
                                                map.defaultMapRef.removeControl(map.flowInfo);
                                                map.eventsOnMap.splice(i, 1);
                                            } else if (map.eventsOnMap[i].type === 'addOD'){
+                                               current_page = 0;
                                                map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
                                                map.eventsOnMap.splice(i, 1);
                                            } else if (map.eventsOnMap[i].type === 'addPolyStat'){
@@ -8746,11 +8751,62 @@ if (!isset($_SESSION)) {
 	                           //     heatmapData = null;
 	                                $.ajax({
 	                                    url: apiUrl,
-	                                    async: false,
+	                                    async: true,
 	                                    cache: false,
 	                                    dataType: "text",
 	                                    success: function (data) {
 	                                        trafficData = JSON.parse(data);
+                                            map.defaultMapRef.createPane('TrafficFlowManager:' + datasetName);
+                                            map.defaultMapRef.getPane('TrafficFlowManager:' + datasetName).style.zIndex = 420;
+
+                                            // Setup map
+                                            //       if (heatmapData && heatmapData.length > 0) {
+                                            const timestamp = trafficData[0].dateTime;
+                                            current_traffic_opacity = 1
+                                            trafficMapName = trafficData[0].fluxName;
+                                            trafficMapDate = timestamp.replace('T', ' ');
+
+                                            // Add layer to map
+                                            trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
+                                                layers: trafficData[0].layerName,
+                                                format: 'image/png',
+                                                crs: L.CRS.EPSG4326,
+                                                transparent: true,
+                                                opacity: current_traffic_opacity,
+                                                pane: 'TrafficFlowManager:' + datasetName
+                                            }).addTo(map.defaultMapRef);
+
+                                            // Add Legend
+                                            map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+                                            map.eventsOnMap.push(heatmap);
+                                            const heatmapLegendColors = L.control({position: 'bottomright'});
+                                            heatmapLegendColors.onAdd = function () {
+                                                const div = L.DomUtil.create('div', 'info legend');
+                                                const legendImgPath = "../trafficRTDetails/legend.png";
+                                                div.innerHTML += " <img src=" + legendImgPath + " height='120'" + '<br style="margin-bottom:20px;">';
+                                                return div;
+                                            };
+                                            heatmapLegendColors.addTo(map.defaultMapRef);
+                                            event.legendColors = heatmapLegendColors;
+                                            map.eventsOnMap.push(event);
+
+                                            // Done!
+                                            loadingDiv.empty();
+                                            loadingDiv.append(loadOkText);
+                                            parHeight = loadOkText.height();
+                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                            loadOkText.css("margin-top", parMarginTop + "px");
+                                            setTimeout(function () {
+                                                loadingDiv.css("opacity", 0);
+                                                setTimeout(function () {
+                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                    });
+                                                    loadingDiv.remove();
+                                                }, 350);
+                                            }, 1000);
+
+                                            // return;
 	                                    },
 	                                    error: function (errorData) {
 	                                        console.log("Ko Traffic Heatmap");
@@ -8758,57 +8814,7 @@ if (!isset($_SESSION)) {
 	                                    }
 	                                });
 
-	                                map.defaultMapRef.createPane('TrafficFlowManager:' + datasetName);
-	                                map.defaultMapRef.getPane('TrafficFlowManager:' + datasetName).style.zIndex = 420;
-
-	                                // Setup map
-                            //       if (heatmapData && heatmapData.length > 0) {
-                                       const timestamp = trafficData[0].dateTime;
-                                       current_traffic_opacity = 1
-                                       trafficMapName = trafficData[0].fluxName;
-                                       trafficMapDate = timestamp.replace('T', ' ');
-
-                                       // Add layer to map
-                                       trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
-                                           layers: trafficData[0].layerName,
-                                           format: 'image/png',
-                                           crs: L.CRS.EPSG4326,
-                                           transparent: true,
-                                           opacity: current_traffic_opacity,
-                                           pane: 'TrafficFlowManager:' + datasetName
-                                       }).addTo(map.defaultMapRef);
-
-                                       // Add Legend
-                                       map.trafficLegendHeatmap.addTo(map.defaultMapRef);
-                                       map.eventsOnMap.push(heatmap);
-                                       const heatmapLegendColors = L.control({position: 'bottomright'});
-                                       heatmapLegendColors.onAdd = function () {
-                                           const div = L.DomUtil.create('div', 'info legend');
-                                           const legendImgPath = "../trafficRTDetails/legend.png";
-                                           div.innerHTML += " <img src=" + legendImgPath + " height='120'" + '<br style="margin-bottom:20px;">';
-                                           return div;
-                                       };
-                                       heatmapLegendColors.addTo(map.defaultMapRef);
-                                       event.legendColors = heatmapLegendColors;
-                                       map.eventsOnMap.push(event);
-
-                                       // Done!
-                                       loadingDiv.empty();
-                                       loadingDiv.append(loadOkText);
-                                       parHeight = loadOkText.height();
-                                       parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                       loadOkText.css("margin-top", parMarginTop + "px");
-                                       setTimeout(function () {
-                                           loadingDiv.css("opacity", 0);
-                                           setTimeout(function () {
-                                               loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                                   $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                               });
-                                               loadingDiv.remove();
-                                           }, 350);
-                                       }, 1000);
-
-                                       return;
+	                                return;
                                    }
 	                 //      }
 	                       // FINE TRAFFICFLOWMANAGER
@@ -8831,139 +8837,156 @@ if (!isset($_SESSION)) {
                                heatmapData = null;
                                $.ajax({
                                    url: query,
-                                   async: false,
+                                   async: true,
                                    cache: false,
                                    dataType: "text",
                                    success: function (data) {
                                        heatmapData = JSON.parse(data);
-                                   },
-                                   error: function (errorData) {
-                                       console.log("Ko Heatmap");
-                                       console.log(JSON.stringify(errorData));
-                                   }
-                               });
+                                       //     for (var i = 0; i < heatmapData.length; i++) {
+                                       //heatmap recommender data
+                                       /*   map.testData = {
+                                              //   max: 8,
+                                              data: heatmapData[current_page].data
+                                          };  */
 
-                               //     for (var i = 0; i < heatmapData.length; i++) {
-                               //heatmap recommender data
-                               /*   map.testData = {
-                                      //   max: 8,
-                                      data: heatmapData[current_page].data
-                                  };  */
+                                       // Initialize array of Days from metadata
+                                       // daysArray = initDaysArray(heatmapData);
 
-                               // Initialize array of Days from metadata
-                               daysArray = initDaysArray(heatmapData);
+                                       //heatmap recommender metadata
+                                       map.testMetadata = {
+                                           //   max: 8,
+                                           metadata: heatmapData[current_page].metadata
+                                       };
 
-                               //heatmap recommender metadata
-                               map.testMetadata = {
-                                   //   max: 8,
-                                   metadata: heatmapData[current_page].metadata
-                               };
+                                       if (map.testMetadata.metadata.metricName !== undefined) {
+                                           heatmapMetricName = map.testMetadata.metadata.metricName
+                                       } else {
+                                           heatmapMetricName = "airTemperature";
+                                           mapName = "WMS_PROVA";
+                                       }
 
-                               if (map.testMetadata.metadata.metricName !== undefined) {
-                                   heatmapMetricName = map.testMetadata.metadata.metricName
-                               } else {
-                                   heatmapMetricName = "airTemperature";
-                                   mapName = "WMS_PROVA";
-                               }
+                                       if (map.testMetadata.metadata.mapName !== undefined) {
+                                           mapName = map.testMetadata.metadata.mapName;
+                                       } else {
+                                           mapName = "WMS_PROVA";
+                                       }
 
-                               if (map.testMetadata.metadata.mapName !== undefined) {
-                                   mapName = map.testMetadata.metadata.mapName;
-                               } else {
-                                   mapName = "WMS_PROVA";
-                               }
+                                       if (map.testMetadata.metadata.date !== undefined) {
+                                           mapDate = map.testMetadata.metadata.date;
+                                       } else {
+                                           mapDate = "DATA";
+                                       }
 
-                               if (map.testMetadata.metadata.date !== undefined) {
-                                   mapDate = map.testMetadata.metadata.date;
-                               } else {
-                                   mapDate = "DATA";
-                               }
+                                       $.ajax({
+                                           url: "../controllers/getHeatmapRange.php",
+                                           type: "GET",
+                                           data: {
+                                               metricName: heatmapMetricName
+                                           },
+                                           async: true,
+                                           dataType: 'json',
+                                           success: function (data) {
+                                               try {
+                                                   if (data['detail'] == "Ok") {
 
-                               $.ajax({
-                                   url: "../controllers/getHeatmapRange.php",
-                                   type: "GET",
-                                   data: {
-                                       metricName: heatmapMetricName
-                                   },
-                                   async: true,
-                                   dataType: 'json',
-                                   success: function (data) {
-                                       try {
-                                           if (data['detail'] == "Ok") {
+                                                       //  if (data['heatmapRange'].length > 1) {
+                                                       if (data['heatmapRange'][0]) {
+                                                           heatmapRange = data['heatmapRange'];
+                                                           initHeatmapLayer(heatmapRange);   // OLD-API
+                                                           // Set current_radius come variabile globale per essere sincronizzata attraverso le varie azioni (zoom ecc...)
+                                                           if (current_radius == null) {
+                                                               current_radius = map.cfg.radius;
+                                                           }
+                                                           if (current_opacity == null) {
+                                                               current_opacity = map.cfg.maxOpacity;
+                                                           }
 
-                                               //  if (data['heatmapRange'].length > 1) {
-                                               if (data['heatmapRange'][0]) {
-                                                   heatmapRange = data['heatmapRange'];
-                                                   initHeatmapLayer(heatmapRange);   // OLD-API
-                                                   // Set current_radius come variabile globale per essere sincronizzata attraverso le varie azioni (zoom ecc...)
-                                                   if (current_radius == null) {
-                                                       current_radius = map.cfg.radius;
-                                                   }
-                                                   if (current_opacity == null) {
-                                                       current_opacity = map.cfg.maxOpacity;
-                                                   }
+                                                       } else {
+                                                           heatmapRange = [];
+                                                       }
 
-                                               } else {
-                                                   heatmapRange = [];
-                                               }
+                                                       if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
+                                                           //    if (event.passedData.includes("heatmap.php")) {
+                                                           addHeatmapFromClient(false);
 
-                                               if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
-                                           //    if (event.passedData.includes("heatmap.php")) {
-                                                   addHeatmapFromClient(false);
+                                                       } else {                    // NEW HEATMAP  FIRST INSTANTIATION
+                                                           // CORTI - Pane
+                                                           map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);
+                                                           map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;
 
-                                                } else {                    // NEW HEATMAP  FIRST INSTANTIATION
-                                                    // CORTI - Pane
-                                                    map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);
-                                                    map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;
-                                                    
-                                                    //   if (animationFlag === false) {
-                                                    //   var timestampISO = "2019-01-23T20:20:15.000Z";
-                                                    var timestamp = map.testMetadata.metadata.date;
-                                                    var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
-                                                    wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
-                                                        layers: 'Snap4City:' + wmsDatasetName,
-                                                        format: 'image/png',
-                                                        crs: L.CRS.EPSG4326,
-                                                        transparent: true,
-                                                        opacity: current_opacity,
-                                                        time: timestampISO,
-                                                        //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
-                                                        tiled: true,   // TESTARE COME ANTWERP ??
-                                                                //  attribution: "IGN ©"
-                                                        pane: 'Snap4City:' + wmsDatasetName	// CORTI
-                                                    }).addTo(map.defaultMapRef);
-                        
-                                                    //    current_opacity = 0.5;
+                                                           //   if (animationFlag === false) {
+                                                           //   var timestampISO = "2019-01-23T20:20:15.000Z";
+                                                           var timestamp = map.testMetadata.metadata.date;
+                                                           var timestampISO = timestamp.replace(" ", "T") + ".000Z";
+                                                           //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                           wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
+                                                               layers: 'Snap4City:' + wmsDatasetName,
+                                                               format: 'image/png',
+                                                               crs: L.CRS.EPSG4326,
+                                                               transparent: true,
+                                                               opacity: current_opacity,
+                                                               time: timestampISO,
+                                                               //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
+                                                               tiled: true,   // TESTARE COME ANTWERP ??
+                                                               //  attribution: "IGN ©"
+                                                               pane: 'Snap4City:' + wmsDatasetName	// CORTI
+                                                           }).addTo(map.defaultMapRef);
 
-                                                       // add legend to map
-                                                       map.legendHeatmap.addTo(map.defaultMapRef);
-                                                       map.eventsOnMap.push(heatmap);
-                                                       var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+                                                           //    current_opacity = 0.5;
 
-                                                       var heatmapLegendColors = L.control({position: 'bottomleft'});
+                                                           // add legend to map
+                                                           map.legendHeatmap.addTo(map.defaultMapRef);
+                                                           map.eventsOnMap.push(heatmap);
+                                                           var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
 
-                                                       heatmapLegendColors.onAdd = function (map) {
+                                                           var heatmapLegendColors = L.control({position: 'bottomleft'});
 
-                                                           var div = L.DomUtil.create('div', 'info legend'),
-                                                               grades = ["Legend"];
-                                                           //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
-                                                           var legendImgPath = heatmapRange[0].iconPath; // OLD-API
-                                                           div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
-                                                           return div;
-                                                       };
+                                                           heatmapLegendColors.onAdd = function (map) {
 
-                                                       heatmapLegendColors.addTo(map.defaultMapRef);
-                                                       //  map.eventsOnMap.push(heatmap);
+                                                               var div = L.DomUtil.create('div', 'info legend'),
+                                                                   grades = ["Legend"];
+                                                               //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
+                                                               var legendImgPath = heatmapRange[0].iconPath; // OLD-API
+                                                               div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
+                                                               return div;
+                                                           };
 
-                                                       event.legendColors = heatmapLegendColors;
-                                                       map.eventsOnMap.push(event);
+                                                           heatmapLegendColors.addTo(map.defaultMapRef);
+                                                           //  map.eventsOnMap.push(heatmap);
 
+                                                           event.legendColors = heatmapLegendColors;
+                                                           map.eventsOnMap.push(event);
+
+                                                           loadingDiv.empty();
+                                                           loadingDiv.append(loadOkText);
+
+                                                           parHeight = loadOkText.height();
+                                                           parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                           loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                           setTimeout(function () {
+                                                               loadingDiv.css("opacity", 0);
+                                                               setTimeout(function () {
+                                                                   loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                                       $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                                   });
+                                                                   loadingDiv.remove();
+                                                               }, 350);
+                                                           }, 1000);
+                                                           //  } else {
+
+                                                           //  }    // FINE ELSE ANIMATION
+                                                       }    // FINE ELSE NEW WMS HEATMAP FIRST INSTANTIATION
+
+                                                   } else {
+                                                       console.log("Ko Heatmap");
+                                                       console.log(JSON.stringify(errorData));
                                                        loadingDiv.empty();
-                                                       loadingDiv.append(loadOkText);
+                                                       loadingDiv.append(loadKoText);
 
-                                                       parHeight = loadOkText.height();
+                                                       parHeight = loadKoText.height();
                                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                                       loadOkText.css("margin-top", parMarginTop + "px");
+                                                       loadKoText.css("margin-top", parMarginTop + "px");
 
                                                        setTimeout(function () {
                                                            loadingDiv.css("opacity", 0);
@@ -8974,12 +8997,27 @@ if (!isset($_SESSION)) {
                                                                loadingDiv.remove();
                                                            }, 350);
                                                        }, 1000);
-                                                 //  } else {
+                                                   }
+                                               } catch(err) {
+                                                   loadingDiv.empty();
+                                                   loadingDiv.append(loadKoText);
 
-                                                //  }    // FINE ELSE ANIMATION
-                                               }    // FINE ELSE NEW WMS HEATMAP FIRST INSTANTIATION
-
-                                           } else {
+                                                   parHeight = loadKoText.height();
+                                                   parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                   loadKoText.css("margin-top", parMarginTop + "px");
+                                                   console.log("Error: " + err);
+                                                   setTimeout(function () {
+                                                       loadingDiv.css("opacity", 0);
+                                                       setTimeout(function () {
+                                                           loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                               $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                           });
+                                                           loadingDiv.remove();
+                                                       }, 350);
+                                                   }, 1000);
+                                               }
+                                           },
+                                           error: function (errorData) {
                                                console.log("Ko Heatmap");
                                                console.log(JSON.stringify(errorData));
                                                loadingDiv.empty();
@@ -8999,46 +9037,14 @@ if (!isset($_SESSION)) {
                                                    }, 350);
                                                }, 1000);
                                            }
-                                       } catch(err) {
-                                           loadingDiv.empty();
-                                           loadingDiv.append(loadKoText);
-
-                                           parHeight = loadKoText.height();
-                                           parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                           loadKoText.css("margin-top", parMarginTop + "px");
-                                           console.log("Error: " + err);
-                                           setTimeout(function () {
-                                               loadingDiv.css("opacity", 0);
-                                               setTimeout(function () {
-                                                   loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                                       $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                   });
-                                                   loadingDiv.remove();
-                                               }, 350);
-                                           }, 1000);
-                                       }
+                                       });
                                    },
                                    error: function (errorData) {
                                        console.log("Ko Heatmap");
                                        console.log(JSON.stringify(errorData));
-                                       loadingDiv.empty();
-                                       loadingDiv.append(loadKoText);
-
-                                       parHeight = loadKoText.height();
-                                       parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                       loadKoText.css("margin-top", parMarginTop + "px");
-
-                                       setTimeout(function () {
-                                           loadingDiv.css("opacity", 0);
-                                           setTimeout(function () {
-                                               loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                                   $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                               });
-                                               loadingDiv.remove();
-                                           }, 350);
-                                       }, 1000);
                                    }
                                });
+
                            } catch(err) {
                                loadingDiv.empty();
                                loadingDiv.append(loadKoText);
@@ -9262,152 +9268,251 @@ if (!isset($_SESSION)) {
                             heatmapData = null;
                             $.ajax({
                                 url: query,
-                                async: false,
+                                async: true,
                                 cache: false,
                                 dataType: "text",
                                 success: function (data) {
                                     heatmapData = JSON.parse(data);
-                                },
-                                error: function (errorData) {
-                                    console.log("Ko Heatmap");
-                                    console.log(JSON.stringify(errorData));
-                                }
-                            });
+                                    map.testMetadata = {
+                                        //   max: 8,
+                                        metadata: heatmapData[current_page].metadata
+                                    };
 
-                            map.testMetadata = {
-                                //   max: 8,
-                                metadata: heatmapData[current_page].metadata
-                            };
+                                    if (map.testMetadata.metadata.metricName !== undefined) {
+                                        heatmapMetricName = map.testMetadata.metadata.metricName
+                                    } else {
+                                        heatmapMetricName = "airTemperature";
+                                        mapName = "WMS_PROVA";
+                                    }
 
-                            if (map.testMetadata.metadata.metricName !== undefined) {
-                                heatmapMetricName = map.testMetadata.metadata.metricName
-                            } else {
-                                heatmapMetricName = "airTemperature";
-                                mapName = "WMS_PROVA";
-                            }
+                                    if (map.testMetadata.metadata.mapName !== undefined) {
+                                        mapName = map.testMetadata.metadata.mapName;
+                                    } else {
+                                        mapName = "WMS_PROVA";
+                                    }
 
-                            if (map.testMetadata.metadata.mapName !== undefined) {
-                                mapName = map.testMetadata.metadata.mapName;
-                            } else {
-                                mapName = "WMS_PROVA";
-                            }
+                                    if (map.testMetadata.metadata.date !== undefined) {
+                                        mapDate = map.testMetadata.metadata.date;
+                                    } else {
+                                        mapDate = "DATA";
+                                    }
 
-                            if (map.testMetadata.metadata.date !== undefined) {
-                                mapDate = map.testMetadata.metadata.date;
-                            } else {
-                                mapDate = "DATA";
-                            }
+                                    $.ajax({
+                                        url: "../controllers/getHeatmapRange.php",
+                                        type: "GET",
+                                        data: {
+                                            metricName: heatmapMetricName
+                                        },
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function (data) {
+                                            try {
+                                                if (data['detail'] == "Ok") {
+                                                    //  if (data['heatmapRange'].length > 1) {
 
-                            $.ajax({
-                                url: "../controllers/getHeatmapRange.php",
-                                type: "GET",
-                                data: {
-                                    metricName: heatmapMetricName
-                                },
-                                async: true,
-                                dataType: 'json',
-                                success: function (data) {
-                                    try {
-                                        if (data['detail'] == "Ok") {
-                                          //  if (data['heatmapRange'].length > 1) {
+                                                    if (data['heatmapRange'][0]) {
+                                                        heatmapRange = data['heatmapRange'];
+                                                        initHeatmapLayer(heatmapRange);   // OLD-API
+                                                        // Gestione della sincronia dei check-box del cambio raggio on zoom e computo raggio su base dati dopo aggiornamento legenda
 
-                                            if (data['heatmapRange'][0]) {
-                                                heatmapRange = data['heatmapRange'];
-                                                initHeatmapLayer(heatmapRange);   // OLD-API
-                                                // Gestione della sincronia dei check-box del cambio raggio on zoom e computo raggio su base dati dopo aggiornamento legenda
+                                                    } else {
+                                                        heatmapRange = [];
+                                                    }
 
-                                            } else {
-                                                heatmapRange = [];
-                                            }
-
-                                            if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
+                                                    if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
 
 
-                                            //    let dataQuery = "https://heatmap.snap4city.org/data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
-                                                let dataQuery = heatmapUrl + "data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
+                                                        //    let dataQuery = "https://heatmap.snap4city.org/data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
+                                                        let dataQuery = heatmapUrl + "data/" + mapName + "/" + heatmapMetricName + "/" + mapDate.replace(" ", "T") + "Z/0";
 
-                                                $.ajax({
-                                                    url: dataQuery,
-                                                    type: "GET",
-                                                    data: {
-                                                    },
-                                                    async: true,
-                                                    cache: false,
-                                                    dataType: 'json',
-                                                    success: function (heatmapResData) {
-                                                        if (heatmapResData['data']) {
-                                                        //    heatmapRange = heatmapData['heatmapRange'];
-                                                            initHeatmapLayer(heatmapRange);   // OLD-API
-                                                            // Set current_radius come variabile globale per essere sincronizzata attraverso le varie azioni (zoom ecc...)
-                                                            if (current_radius == null) {
-                                                                current_radius = map.cfg.radius;
-                                                            }
-                                                            if (current_opacity == null) {
-                                                                current_opacity = map.cfg.maxOpacity;
-                                                            }
+                                                        $.ajax({
+                                                            url: dataQuery,
+                                                            type: "GET",
+                                                            data: {
+                                                            },
+                                                            async: true,
+                                                            cache: false,
+                                                            dataType: 'json',
+                                                            success: function (heatmapResData) {
+                                                                if (heatmapResData['data']) {
+                                                                    //    heatmapRange = heatmapData['heatmapRange'];
+                                                                    initHeatmapLayer(heatmapRange);   // OLD-API
+                                                                    // Set current_radius come variabile globale per essere sincronizzata attraverso le varie azioni (zoom ecc...)
+                                                                    if (current_radius == null) {
+                                                                        current_radius = map.cfg.radius;
+                                                                    }
+                                                                    if (current_opacity == null) {
+                                                                        current_opacity = map.cfg.maxOpacity;
+                                                                    }
 
-                                                        } else {
-                                                            heatmapRange = [];
-                                                        }
-
-                                                        if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
-                                                            map.testData = {
-                                                                //   max: 8,
-                                                                data: heatmapResData.data
-                                                            };
-
-                                                            //heatmap recommender metadata
-                                                            map.testMetadata = {
-                                                                //   max: 8,
-                                                                metadata: heatmapResData.metadata
-                                                            };
-
-                                                            if (heatmapRange[0].range1Inf == null) {
-                                                                if (heatmapMetricName == "EAQI" || heatmapMetricName == "CAQI") {
-                                                                    heatmapRange[0].range1Inf = heatmapRange[0].range4Inf;
-                                                                } else if (heatmapMetricName == "CO" || heatmapMetricName == "Benzene") {
-                                                                    heatmapRange[0].range1Inf = heatmapRange[0].range3Inf;
-                                                                    heatmapRange[0].range10Inf = heatmapRange[0].range8Inf;
-                                                                }
-                                                            }
-                                                            map.heatmapLayer.setData({max:heatmapRange[0].range10Inf, min:heatmapRange[0].range1Inf, data:map.testData.data});
-                                                            map.defaultMapRef.addLayer(map.heatmapLayer);   // OLD HEATMAP
-                                                            //    if (estimateRadiusFlag === true) {
-                                                            var distArray = [];             // MODALITA HEATMAP ON DATA DISTANCE
-                                                            if (heatmapResData.length > 20) {
-                                                                for (k = 0; k < 20; k++) {
-                                                                    distArray[k] = distance(heatmapResData[k].latitude, heatmapResData[k].latitude, heatmapResData[k + 1].latitude, heatmapResData[k + 1].latitude, "K");
+                                                                } else {
+                                                                    heatmapRange = [];
                                                                 }
 
-                                                                var sum = 0;
-                                                                for (var i = 0; i < distArray.length; i++) {
-                                                                    sum += distArray[i];
-                                                                }
-                                                                estimatedRadius = sum / distArray.length;
-                                                                if (estimatedRadius <= 1) {
-                                                                    estimatedRadius = 2;
-                                                                }
-                                                                //   if (estimateRadiusFlag === true) {
-                                                            } else {
-                                                                estimatedRadius = current_radius;
-                                                            }
+                                                                if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
+                                                                    map.testData = {
+                                                                        //   max: 8,
+                                                                        data: heatmapResData.data
+                                                                    };
 
-                                                            metresPerPixel = 40075016.686 * Math.abs(Math.cos(map.defaultMapRef.getCenter().lat * Math.PI / 180)) / Math.pow(2, map.defaultMapRef.getZoom() + 8);
-                                                            var initRadius = ((estimatedRadius * 1000) / metresPerPixel) / 50;
-                                                            if (current_page == 0 ) {
-                                                                setOption('radius', initRadius.toFixed(1), 1);
-                                                            } else {
-                                                                setOption('radius', current_radius.toFixed(1), 1);
+                                                                    //heatmap recommender metadata
+                                                                    map.testMetadata = {
+                                                                        //   max: 8,
+                                                                        metadata: heatmapResData.metadata
+                                                                    };
+
+                                                                    if (heatmapRange[0].range1Inf == null) {
+                                                                        if (heatmapMetricName == "EAQI" || heatmapMetricName == "CAQI") {
+                                                                            heatmapRange[0].range1Inf = heatmapRange[0].range4Inf;
+                                                                        } else if (heatmapMetricName == "CO" || heatmapMetricName == "Benzene") {
+                                                                            heatmapRange[0].range1Inf = heatmapRange[0].range3Inf;
+                                                                            heatmapRange[0].range10Inf = heatmapRange[0].range8Inf;
+                                                                        }
+                                                                    }
+                                                                    map.heatmapLayer.setData({max:heatmapRange[0].range10Inf, min:heatmapRange[0].range1Inf, data:map.testData.data});
+                                                                    map.defaultMapRef.addLayer(map.heatmapLayer);   // OLD HEATMAP
+                                                                    //    if (estimateRadiusFlag === true) {
+                                                                    var distArray = [];             // MODALITA HEATMAP ON DATA DISTANCE
+                                                                    if (heatmapResData.length > 20) {
+                                                                        for (k = 0; k < 20; k++) {
+                                                                            distArray[k] = distance(heatmapResData[k].latitude, heatmapResData[k].latitude, heatmapResData[k + 1].latitude, heatmapResData[k + 1].latitude, "K");
+                                                                        }
+
+                                                                        var sum = 0;
+                                                                        for (var i = 0; i < distArray.length; i++) {
+                                                                            sum += distArray[i];
+                                                                        }
+                                                                        estimatedRadius = sum / distArray.length;
+                                                                        if (estimatedRadius <= 1) {
+                                                                            estimatedRadius = 2;
+                                                                        }
+                                                                        //   if (estimateRadiusFlag === true) {
+                                                                    } else {
+                                                                        estimatedRadius = current_radius;
+                                                                    }
+
+                                                                    metresPerPixel = 40075016.686 * Math.abs(Math.cos(map.defaultMapRef.getCenter().lat * Math.PI / 180)) / Math.pow(2, map.defaultMapRef.getZoom() + 8);
+                                                                    var initRadius = ((estimatedRadius * 1000) / metresPerPixel) / 50;
+                                                                    if (current_page == 0 ) {
+                                                                        setOption('radius', initRadius.toFixed(1), 1);
+                                                                    } else {
+                                                                        setOption('radius', current_radius.toFixed(1), 1);
+                                                                    }
+                                                                    //   }
+                                                                } else {                    // NEW HEATMAP
+                                                                    //   var timestampISO = "2019-01-23T20:20:15.000Z";
+                                                                    map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                                                    map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
+
+                                                                    var timestamp = map.testMetadata.metadata.date;
+                                                                    var timestampISO = timestamp.replace(" ", "T") + ".000Z";
+                                                                    //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                                    wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
+                                                                        layers: 'Snap4City:' + wmsDatasetName,
+                                                                        format: 'image/png',
+                                                                        crs: L.CRS.EPSG4326,
+                                                                        transparent: true,
+                                                                        opacity: current_opacity,
+                                                                        time: timestampISO,
+                                                                        //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
+                                                                        tiled: true,
+                                                                        //  attribution: "IGN ©"
+                                                                        pane: 'Snap4City:' + wmsDatasetName	// CORTI
+                                                                    }).addTo(map.defaultMapRef);
+                                                                    //     current_opacity = 0.5;
+
+                                                                }
+
+                                                                // add legend to map
+                                                                map.legendHeatmap.addTo(map.defaultMapRef);
+                                                                map.eventsOnMap.push(heatmap);
+                                                                var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+
+                                                                //    var legendImgPath = heatmapRange[0].iconPath;
+                                                                //     div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';
+                                                                var heatmapLegendColors = L.control({position: 'bottomleft'});
+
+                                                                heatmapLegendColors.onAdd = function (map) {
+
+                                                                    var div = L.DomUtil.create('div', 'info legend'),
+                                                                        grades = ["Legend"];
+                                                                    //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
+                                                                    var legendImgPath = heatmapRange[0].iconPath; // OLD-API
+                                                                    div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
+                                                                    return div;
+                                                                };
+
+                                                                heatmapLegendColors.addTo(map.defaultMapRef);
+                                                                //    map.eventsOnMap.push(heatmap);
+
+                                                                event.legendColors = heatmapLegendColors;
+                                                                map.eventsOnMap.push(event);
+
+                                                                if(changeRadiusOnZoom) {
+                                                                    $('#<?= $_REQUEST['name_w'] ?>_changeRad').prop('checked', true);
+                                                                    if(estimateRadiusFlag) {
+                                                                        $('#<?= $_REQUEST['name_w'] ?>_changeRad').prop('disabled', true);
+                                                                    }
+                                                                }
+
+                                                                if(estimateRadiusFlag) {
+                                                                    $('#<?= $_REQUEST['name_w'] ?>_estimateRad').prop('checked', true);
+                                                                    $('#<?= $_REQUEST['name_w'] ?>_estimateRad').prop('disabled', false);
+                                                                } else {
+                                                                    $('#<?= $_REQUEST['name_w'] ?>_estimateRad').prop('disabled', false);
+                                                                }
+
+                                                                loadingDiv.empty();
+                                                                loadingDiv.append(loadOkText);
+
+                                                                parHeight = loadOkText.height();
+                                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                                loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                                setTimeout(function () {
+                                                                    loadingDiv.css("opacity", 0);
+                                                                    setTimeout(function () {
+                                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                                        });
+                                                                        loadingDiv.remove();
+                                                                    }, 350);
+                                                                }, 1000);
+
+                                                            },
+                                                            error: function (errorData) {
+                                                                console.log("Ko Heatmap");
+                                                                console.log(JSON.stringify(errorData));
+                                                                loadingDiv.empty();
+                                                                loadingDiv.append(loadKoText);
+
+                                                                parHeight = loadKoText.height();
+                                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                                loadKoText.css("margin-top", parMarginTop + "px");
+
+                                                                setTimeout(function () {
+                                                                    loadingDiv.css("opacity", 0);
+                                                                    setTimeout(function () {
+                                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                                        });
+                                                                        loadingDiv.remove();
+                                                                    }, 350);
+                                                                }, 1000);
                                                             }
-                                                            //   }
-                                                        } else {                    // NEW HEATMAP
-                                                            //   var timestampISO = "2019-01-23T20:20:15.000Z";
+                                                        });
+
+
+                                                    } else {
+                                                        if (animationFlag === false) {
+
                                                             map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
                                                             map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
 
+                                                            // NEW HEATMAP
                                                             var timestamp = map.testMetadata.metadata.date;
                                                             var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                        //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
+                                                            //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
                                                             wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
                                                                 layers: 'Snap4City:' + wmsDatasetName,
                                                                 format: 'image/png',
@@ -9420,396 +9525,313 @@ if (!isset($_SESSION)) {
                                                                 //  attribution: "IGN ©"
                                                                 pane: 'Snap4City:' + wmsDatasetName	// CORTI
                                                             }).addTo(map.defaultMapRef);
-                                                       //     current_opacity = 0.5;
 
-                                                        }
+                                                            // add legend to map
+                                                            map.legendHeatmap.addTo(map.defaultMapRef);
+                                                            var heatmapLegendColors = L.control({position: 'bottomleft'});
 
-                                                        // add legend to map
-                                                        map.legendHeatmap.addTo(map.defaultMapRef);
-                                                        map.eventsOnMap.push(heatmap);
-                                                        var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+                                                            heatmapLegendColors.onAdd = function (map) {
 
-                                                        //    var legendImgPath = heatmapRange[0].iconPath;
-                                                        //     div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';
-                                                        var heatmapLegendColors = L.control({position: 'bottomleft'});
+                                                                var div = L.DomUtil.create('div', 'info legend'),
+                                                                    grades = ["Legend"];
+                                                                //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
+                                                                var legendImgPath = heatmapRange[0].iconPath;         // OLD-API
+                                                                div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    // OLD-API
+                                                                return div;
+                                                            };
 
-                                                        heatmapLegendColors.onAdd = function (map) {
+                                                            heatmapLegendColors.addTo(map.defaultMapRef);
+                                                            map.eventsOnMap.push(heatmap);
+                                                            event.legendColors = heatmapLegendColors;
+                                                            map.eventsOnMap.push(event);
 
-                                                            var div = L.DomUtil.create('div', 'info legend'),
-                                                                grades = ["Legend"];
-                                                            //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
-                                                            var legendImgPath = heatmapRange[0].iconPath; // OLD-API
-                                                            div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
-                                                            return div;
-                                                        };
+                                                            loadingDiv.empty();
+                                                            loadingDiv.append(loadOkText);
 
-                                                        heatmapLegendColors.addTo(map.defaultMapRef);
-                                                    //    map.eventsOnMap.push(heatmap);
+                                                            parHeight = loadOkText.height();
+                                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                            loadOkText.css("margin-top", parMarginTop + "px");
 
-                                                        event.legendColors = heatmapLegendColors;
-                                                        map.eventsOnMap.push(event);
-
-                                                        if(changeRadiusOnZoom) {
-                                                            $('#<?= $_REQUEST['name_w'] ?>_changeRad').prop('checked', true);
-                                                            if(estimateRadiusFlag) {
-                                                                $('#<?= $_REQUEST['name_w'] ?>_changeRad').prop('disabled', true);
-                                                            }
-                                                        }
-
-                                                        if(estimateRadiusFlag) {
-                                                            $('#<?= $_REQUEST['name_w'] ?>_estimateRad').prop('checked', true);
-                                                            $('#<?= $_REQUEST['name_w'] ?>_estimateRad').prop('disabled', false);
-                                                        } else {
-                                                            $('#<?= $_REQUEST['name_w'] ?>_estimateRad').prop('disabled', false);
-                                                        }
-
-                                                        loadingDiv.empty();
-                                                        loadingDiv.append(loadOkText);
-
-                                                        parHeight = loadOkText.height();
-                                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                                        loadOkText.css("margin-top", parMarginTop + "px");
-
-                                                        setTimeout(function () {
-                                                            loadingDiv.css("opacity", 0);
                                                             setTimeout(function () {
-                                                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                                });
-                                                                loadingDiv.remove();
-                                                            }, 350);
-                                                        }, 1000);
-
-                                                    },
-                                                    error: function (errorData) {
-                                                        console.log("Ko Heatmap");
-                                                        console.log(JSON.stringify(errorData));
-                                                        loadingDiv.empty();
-                                                        loadingDiv.append(loadKoText);
-
-                                                        parHeight = loadKoText.height();
-                                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                                        loadKoText.css("margin-top", parMarginTop + "px");
-
-                                                        setTimeout(function () {
-                                                            loadingDiv.css("opacity", 0);
-                                                            setTimeout(function () {
-                                                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                                });
-                                                                loadingDiv.remove();
-                                                            }, 350);
-                                                        }, 1000);
-                                                    }
-                                                });
-
-
-                                            } else {
-                                                if (animationFlag === false) {
-
-                                                    map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
-                                                    map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
-
-                                                    // NEW HEATMAP
-                                                    var timestamp = map.testMetadata.metadata.date;
-                                                    var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                //    wmsLayer = L.tileLayer.wms("https://wmsserver.snap4city.org/geoserver/Snap4City/wms", {
-                                                    wmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/Snap4City/wms", {
-                                                        layers: 'Snap4City:' + wmsDatasetName,
-                                                        format: 'image/png',
-                                                        crs: L.CRS.EPSG4326,
-                                                        transparent: true,
-                                                        opacity: current_opacity,
-                                                        time: timestampISO,
-                                                        //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
-                                                        tiled: true,
-                                                        //  attribution: "IGN ©"
-                                                        pane: 'Snap4City:' + wmsDatasetName	// CORTI
-                                                    }).addTo(map.defaultMapRef);
-
-                                                    // add legend to map
-                                                    map.legendHeatmap.addTo(map.defaultMapRef);
-                                                    var heatmapLegendColors = L.control({position: 'bottomleft'});
-
-                                                    heatmapLegendColors.onAdd = function (map) {
-
-                                                        var div = L.DomUtil.create('div', 'info legend'),
-                                                            grades = ["Legend"];
-                                                        //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
-                                                        var legendImgPath = heatmapRange[0].iconPath;         // OLD-API
-                                                        div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    // OLD-API
-                                                        return div;
-                                                    };
-
-                                                    heatmapLegendColors.addTo(map.defaultMapRef);
-                                                    map.eventsOnMap.push(heatmap);
-                                                    event.legendColors = heatmapLegendColors;
-                                                    map.eventsOnMap.push(event);
-
-                                                    loadingDiv.empty();
-                                                    loadingDiv.append(loadOkText);
-
-                                                    parHeight = loadOkText.height();
-                                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                                    loadOkText.css("margin-top", parMarginTop + "px");
-
-                                                    setTimeout(function () {
-                                                        loadingDiv.css("opacity", 0);
-                                                        setTimeout(function () {
-                                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                            });
-                                                            loadingDiv.remove();
-                                                        }, 350);
-                                                    }, 1000);
-                                                } else {
-                                                    // ANIMATION WMS HEATMAP
-
-                                                    map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
-                                                    map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
-
-                                                    var animationCurrentDayTimestamp = [];
-                                                    var animationCurrentDayFwdTimestamp = [];
-                                                    var animationCurrentDayBckwdTimestamp = [];
-                                                    var animationStringTimestamp = "";
-                                                    var timestamp = map.testMetadata.metadata.date;
-                                                    //    var timestampISO = timestamp.replace(" ", "T") + ".000Z";
-                                                    var day = timestamp.substring(0, 10);
-                                                    if (current_page == 0) {
-                                                        var offsetFwd = current_page;
-                                                        while (heatmapData[offsetFwd].metadata['date'].substring(0, 10) == day) {
-                                                            animationCurrentDayFwdTimestamp.push(heatmapData[offsetFwd].metadata['date'].replace(" ", "T") + ".000Z");
-                                                            offsetFwd++;
-                                                            if (offsetFwd > numHeatmapPages() -1) {
-                                                                break;
-                                                            }
-                                                        }
-                                                    } else if (current_page == numHeatmapPages() - 1) {
-                                                        var offsetBckwd = current_page - 1;
-                                                        while (heatmapData[offsetBckwd].metadata['date'].substring(0, 10) == day) {
-                                                            animationCurrentDayBckwdTimestamp.push(heatmapData[offsetBckwd].metadata['date'].replace(" ", "T") + ".000Z");
-                                                            offsetBckwd--;
-                                                            if (offsetBckwd < 0) {
-                                                                break;
-                                                            }
-                                                        }
-                                                    } else {
-                                                        var offsetFwd = current_page;
-                                                        while (heatmapData[offsetFwd].metadata['date'].substring(0, 10) == day) {
-                                                            animationCurrentDayFwdTimestamp.push(heatmapData[offsetFwd].metadata['date'].replace(" ", "T") + ".000Z");
-                                                            offsetFwd++;
-                                                            if (offsetFwd > numHeatmapPages() -1) {
-                                                                break;
-                                                            }
-                                                        }
-                                                        var offsetBckwd = current_page - 1;
-                                                        while (heatmapData[offsetBckwd].metadata['date'].substring(0, 10) == day) {
-                                                            animationCurrentDayBckwdTimestamp.push(heatmapData[offsetBckwd].metadata['date'].replace(" ", "T") + ".000Z");
-                                                            offsetBckwd--;
-                                                            if (offsetBckwd < 0) {
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-
-                                                    /*     if (animationCurrentDayFwdTimestamp.length == 0) {
-                                                             animationCurrentDayTimestamp = animationCurrentDayBckwdTimestamp;
-                                                         } else if (animationCurrentDayBckwdTimestamp.length == 0) {
-                                                             animationCurrentDayTimestamp = animationCurrentDayFwdTimestamp;
-                                                         } else {*/
-                                                    animationCurrentDayTimestamp = animationCurrentDayFwdTimestamp.reverse().concat(animationCurrentDayBckwdTimestamp);
-                                                //    animationCurrentDayTimestamp = animationCurrentDayTimestamp.reverse();
-                                                    animationStringTimestamp = animationCurrentDayTimestamp.join(",");
-                                                    //  }
-
-
-                                                    var bboxJson = {};
-                                                    $.ajax({
-                                                    //    url: "https://heatmap.snap4city.org/bbox.php?layer=" + map.testMetadata.metadata.mapName,
-                                                        url: heatmapUrl + "bbox.php?layer=" + map.testMetadata.metadata.mapName,
-                                                        type: "GET",
-                                                        async: false,
-                                                        dataType: 'json',
-                                                        success: function (resultBbox) {
-                                                            bboxJson = resultBbox;
-                                                        },
-                                                        error: function (errbbox) {
-                                                            alert("Error in retrieving bounding box for current heatmap: " + mapName);
-                                                            console.log(errbbox);
-                                                        }
-                                                    });
-
-                                                    /*    var bboxPage = "https://wmsserver.snap4city.org/"
-                                                        var bboxHtmlContent = "";
-                                                        $.get("test.php", function(htmlData){
-                                                            bboxHtmlContent = htmlData;
-                                                        });  */
-
-                                                    /*       var args = {
-
-                                                                    // reference to your leaflet map
-                                                                    map: map.defaultMapRef,
-
-                                                                    // WMS endpoint
-                                                                    url: 'https://wmsserver.snap4city.org/geoserver/Snap4City/wms',
-
-                                                                    // time slices to create (u probably want more than 2)
-                                                                    times: ["2019-04-18T11:06:18.000Z", "2019-04-18T09:06:18.000Z", "2019-04-18T07:06:18.000Z", "2019-04-18T05:06:18.000Z", "2019-04-18T03:06:18.000Z", "2019-04-18T01:06:18.000Z"],
-
-                                                                    // the bounds for the entire target WMS layer
-                                                                    bbox: ["24.90215", "60.1615000000001", "24.98005", "60.1959"],
-
-                                                                    // how long to show each frame in the animation
-                                                                    timeoutMs: 300,
-
-                                                                    frames: [
-                                                                        {
-                                                                            "time": "2019-04-18T11:06:18.000Z",
-                                                                             "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T110618Z"
-                                                                           // "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAwwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7djRCcJAEEXRrdaeUssUNyKYD8HAohHMvnNkGhi4s8Qxfq9vowcQ59G+/iG3fTcA9G8jkNm+GwDZ7bsBEN5/6R/i2q/XsSnIbF//ENJ/HY+NQWb7+oeF+6+JaTcAUtvfxwbhou3XZO8H7esfgvrv92OTkNm+/iG3fTcAFu5/pv39B2S2r3/Ibd8NgDX6/7R9/UNu+24AXLf/M9rXP+S2vz0HyGxf//Af/fdc39590L7vfdC+//kht3/dg/Y1D8HtAxH96x7y2tc8ZPave8hr38Zglfg1D95+vUPq228ZEGRrzQMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHzhDpylbKQ="
-                                                                         },
-                                                                         {
-                                                                            "time": "2019-04-18T09:06:18.000Z",
-                                                                             "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T090618Z"
-                                                                          //   "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAxwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dXRCcMwEERBVeueUouKu5DkJwKDHWKDrZ2Ba2DhSa2dr5ZWDYjzal//kNu+NwD0bxHIbN8bANntewNA/xaCzParf85SENR+H89aENJ/Xz+LQWb7+ofJ++/bZzm4eft9X+veAND+cKV/iOu/xrMkZLavf8ht3xsAAf3X9lkWJmu/9p91IbP9d//eAJij/1+71z9kt+8NgPv2Xwe0r3+4Vvvf3Z7153sD4NrtH3BN/xDZv+5B+5qHjPZ1D5n96x60r3nIaF/3kNm/7iG4fSCuf8tBVvsWg1ni1zz4+/UOqX+/MSDIozQPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwhycnMYt0"
-                                                                         },
-                                                                        {
-                                                                            "time": "2019-04-18T07:06:18.000Z",
-                                                                             "img": https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T070618Z
-                                                                        //    "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAzwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dbRDYJAEEVRqqUna9nixighJCofupLAvnNgGpjkDkzT8er5Amke7esfctuveRkbgaD+5619/UNu+24AZLfvBoD+bQgy23cDILv9avqHyP7bNjYGIe2397E1COi/7Y/NQWb7bgBcvP214x+61z8M0n/n2CQEtl/L2CZktu8GQFD/tT82C5nt6x9y23cDYMD+67uxZQhtf32A6/ZfHe3rH3LbdwPgPO2/9np09/qH8/b/6Rb8s33g/O2Xf33Qfkf7wPD96x7C2wdi2tc9ZPave8hr3wYhr3+bg6z2bQxGiV/z4Nuvd0j99lsGBLmV5gEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADrcAd+SmZk="
-                                                                        },
-                                                                        {
-                                                                            "time": "2019-04-18T05:06:18.000Z",
-                                                                             "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T050618Z"
-                                                                         //   "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAA1AEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dvRCYNAEEVRq7Wn1LLFTUggSIgYRQJx3jnrNDBwd7+cpt+r5wekebSvf8ht3x0A4f3P+oe49uf3sRlo3v782b07APSvf8ht3x0A2e3rH7L7r+EOgLj2xzK2BiH9j/WxOWjc/vg+NgjN2h/7xxbhov2PY627A0D7+gftVy1jqxDSf62PzULj9mt7bBcatl/7x5ahSf91fGwZLt5+nRvbhgv2f7b71wH+p/063/au7t0BENP+5gFa9q97yGtf85DXvu4hr3/dQ177moe89nUPef3rHvLa1zz07n/XAdq+/ZqHxm7+ywFvv/9wIfXttwxIar80DwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcMIdCPB4EA=="
-                                                                        },
-                                                                        {
-                                                                            "time": "2019-04-18T03:06:18.000Z",
-                                                                             "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T030618Z"
-                                                                        //    "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAwwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dfBCcMwEEVBVZueVEuK2xDwJSEQG1tg6c+IbUDwVnZr49WjVQPi1LPVe9wEZLZvB4D+3Qhktm8HQHb7dgDo3w1BZvt2AAS2X5/jtmDh/uv/uDFYrP3aP24NFum/jrVvB0B2+3YAZLevfwjv3w6AnH/+XwdYsv3dB5i+/1MHmK79yw4wTftDDnDr/oce4JbtDz99G+BmC2Bg798DrNd+PzDA3O33EwPM03+/aIA52tc85LWve8jrX/eQ177mIa993UMW3/iQ+/ZrHrz9ugdvv+Zh/Xe/NA/efr1D5NsPJD38mgcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADjhBT9JH44="
-                                                                        },
-                                                                        {
-                                                                            "time": "2019-04-18T01:06:18.000Z",
-                                                                             "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T010618Z"
-                                                                          //  "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAvgEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7ddbCsJAEEXB2f8OerUjIkI+FJOY59yqpjcgnOnY2v56b70BcZ7t6x9y2/cGgP79IpDZvjcAstv3BkDw7X8PkPGf/9sAw7b/c4Dh+l80wCDxrxggt39vAOS27w2A7Pb1D5n912SBjPbrwwLjtl8zFhir/1q4wP3br5UL3LP92miB+/RfGy9w/fZrxwWu2f+e3Vd/LXCt9o/ofrrA+Y5sXv8weP+6h7z2NQ9Z7bv1kNe/7iGvfc1DVvtuPeT1r3vIa1/zkNe/7iH39msexmy/z/vuB3JuP5Bz+4EgvukBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+8QDzyKb4"
-                                                                        }
-                                                                         ],
-
-                                                                // OPTIONAL - only required if you are not providing your own frames
-                                                                // **See defining image request for more info**
-                                                                // due to CORS restrictions, you need to define an async function to ask your proxy server to make the WMS
-                                                                // GetMap request and resolve the result (as a base64 encoded string). This example is using a call to a server function called
-                                                                // 'getImage' (in MeteorJS). Note that if your target WMS is CORS enabled, you can just define a direct HTTP request here instead.
-                                                                proxyFunction: function(requestUrl, time, resolve, reject){
-
-                                                                    $.ajax({
-                                                                        type: "GET",
-                                                                        url: requestUrl,
-                                                                        beforeSend: function (xhr) {
-                                                                            xhr.overrideMimeType('text/plain; charset=x-user-defined');
-                                                                        },
-                                                                        success: function (result, textStatus, jqXHR) {
-                                                                            if(result.length < 1){
-                                                                                alert("The thumbnail doesn't exist");
-                                                                                $("#thumbnail").attr("src", "data:image/png;base64,");
-                                                                                return
-                                                                            }
-
-                                                                            var binary = "";
-                                                                            var responseText = jqXHR.responseText;
-                                                                            var responseTextLen = responseText.length;
-
-                                                                            for ( i = 0; i < responseTextLen; i++ ) {
-                                                                                binary += String.fromCharCode(responseText.charCodeAt(i) & 255)
-                                                                            }
-                                                                         //   $("#thumbnail").attr("src", "data:image/png;base64,"+btoa(binary));
-                                                                            resolve({ time: time, img: btoa(binary) });
-                                                                        },
-                                                                        error: function(xhr, textStatus, errorThrown){
-                                                                            alert("Error in getting document "+textStatus);
-                                                                        }
+                                                                loadingDiv.css("opacity", 0);
+                                                                setTimeout(function () {
+                                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
                                                                     });
+                                                                    loadingDiv.remove();
+                                                                }, 350);
+                                                            }, 1000);
+                                                        } else {
+                                                            // ANIMATION WMS HEATMAP
 
-                                                                },
+                                                            map.defaultMapRef.createPane('Snap4City:' + wmsDatasetName);    // CORTI
+                                                            map.defaultMapRef.getPane('Snap4City:' + wmsDatasetName).style.zIndex = 420;    // CORTI
 
-                                                                // OPTIONAL - only required if you are not providing your own frames
-                                                                // your WMS query params
-                                                                params: {
-                                                                    BBOX: "24.90215,60.1615000000001,24.98005,60.1959",
-                                                                    LAYERS: "Snap4City:" + wmsDatasetName,
-                                                                    SRS: "EPSG:4326",
-                                                                    VERSION: "1.1.1",
-                                                                    WIDTH: 256,
-                                                                    HEIGHT: 256,
-                                                                    transparent: true,
-
-                                                                    // ncWMS params (optional)
-                                                                //    abovemaxcolor: "extend",
-                                                                //    belowmincolor: "extend",
-                                                                //    colorscalerange: "10.839295,13.386014",
-                                                                //    elevation: "-5.050000000000001",
-                                                                    format: "image/png",
-                                                                //    logscale: false,
-                                                                //    numcolorbands: "50",
-                                                                    opacity: current_opacity,
-                                                                //    styles: "boxfill/rainbow"
+                                                            var animationCurrentDayTimestamp = [];
+                                                            var animationCurrentDayFwdTimestamp = [];
+                                                            var animationCurrentDayBckwdTimestamp = [];
+                                                            var animationStringTimestamp = "";
+                                                            var timestamp = map.testMetadata.metadata.date;
+                                                            //    var timestampISO = timestamp.replace(" ", "T") + ".000Z";
+                                                            var day = timestamp.substring(0, 10);
+                                                            if (current_page == 0) {
+                                                                var offsetFwd = current_page;
+                                                                while (heatmapData[offsetFwd].metadata['date'].substring(0, 10) == day) {
+                                                                    animationCurrentDayFwdTimestamp.push(heatmapData[offsetFwd].metadata['date'].replace(" ", "T") + ".000Z");
+                                                                    offsetFwd++;
+                                                                    if (offsetFwd > numHeatmapPages() -1) {
+                                                                        break;
+                                                                    }
                                                                 }
+                                                            } else if (current_page == numHeatmapPages() - 1) {
+                                                                var offsetBckwd = current_page - 1;
+                                                                while (heatmapData[offsetBckwd].metadata['date'].substring(0, 10) == day) {
+                                                                    animationCurrentDayBckwdTimestamp.push(heatmapData[offsetBckwd].metadata['date'].replace(" ", "T") + ".000Z");
+                                                                    offsetBckwd--;
+                                                                    if (offsetBckwd < 0) {
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                var offsetFwd = current_page;
+                                                                while (heatmapData[offsetFwd].metadata['date'].substring(0, 10) == day) {
+                                                                    animationCurrentDayFwdTimestamp.push(heatmapData[offsetFwd].metadata['date'].replace(" ", "T") + ".000Z");
+                                                                    offsetFwd++;
+                                                                    if (offsetFwd > numHeatmapPages() -1) {
+                                                                        break;
+                                                                    }
+                                                                }
+                                                                var offsetBckwd = current_page - 1;
+                                                                while (heatmapData[offsetBckwd].metadata['date'].substring(0, 10) == day) {
+                                                                    animationCurrentDayBckwdTimestamp.push(heatmapData[offsetBckwd].metadata['date'].replace(" ", "T") + ".000Z");
+                                                                    offsetBckwd--;
+                                                                    if (offsetBckwd < 0) {
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            }
 
-                                                             };
+                                                            /*     if (animationCurrentDayFwdTimestamp.length == 0) {
+                                                                     animationCurrentDayTimestamp = animationCurrentDayBckwdTimestamp;
+                                                                 } else if (animationCurrentDayBckwdTimestamp.length == 0) {
+                                                                     animationCurrentDayTimestamp = animationCurrentDayFwdTimestamp;
+                                                                 } else {*/
+                                                            animationCurrentDayTimestamp = animationCurrentDayFwdTimestamp.reverse().concat(animationCurrentDayBckwdTimestamp);
+                                                            //    animationCurrentDayTimestamp = animationCurrentDayTimestamp.reverse();
+                                                            animationStringTimestamp = animationCurrentDayTimestamp.join(",");
+                                                            //  }
 
-                                                            LeafletWmsAnimator.initAnimation(args, function(frames){
 
-                                                                // if you didn't provide your own frames this callback function returns the
-                                                                // array of images with their respective time stamps (e.g. you can use timestamps in UI)
-                                                            });  */
+                                                            var bboxJson = {};
+                                                            $.ajax({
+                                                                //    url: "https://heatmap.snap4city.org/bbox.php?layer=" + map.testMetadata.metadata.mapName,
+                                                                url: heatmapUrl + "bbox.php?layer=" + map.testMetadata.metadata.mapName,
+                                                                type: "GET",
+                                                                async: false,
+                                                                dataType: 'json',
+                                                                success: function (resultBbox) {
+                                                                    bboxJson = resultBbox;
+                                                                },
+                                                                error: function (errbbox) {
+                                                                    alert("Error in retrieving bounding box for current heatmap: " + mapName);
+                                                                    console.log(errbbox);
+                                                                }
+                                                            });
 
-                                                    var upEastLat = parseFloat(bboxJson['maxy']);
-                                                    var upEastLon = parseFloat(bboxJson['maxx']);
-                                                    var bottomWestLat = parseFloat(bboxJson['miny']);
-                                                    var bottomWestLon = parseFloat(bboxJson['minx']);
-                                                //    var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
-                                                    var imageUrl = geoServerUrl + 'geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
-                                                    var imageBounds = [[bottomWestLat, bottomWestLon], [upEastLat, upEastLon]];
-                                                    var overlayOpacity = current_opacity;
+                                                            /*    var bboxPage = "https://wmsserver.snap4city.org/"
+                                                                var bboxHtmlContent = "";
+                                                                $.get("test.php", function(htmlData){
+                                                                    bboxHtmlContent = htmlData;
+                                                                });  */
 
-                                                    // ANIMATED GIF LAYER
-                                                    var animatedLayer = L.imageOverlay(imageUrl, imageBounds, {opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName}).addTo(map.defaultMapRef);
+                                                            /*       var args = {
 
-                                                    // add legend to map
-                                                    map.legendHeatmap.addTo(map.defaultMapRef);
-                                                //    $("<?= $_REQUEST['name_w'] ?>_animation").prop("checked",true);
-                                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").checked = true;
-                                               //     $("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
-                                                    $("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider('disable');
-                                               //     document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
-                                               //     document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
-                                                    map.eventsOnMap.push(animatedLayer);
-                                                    var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+                                                                            // reference to your leaflet map
+                                                                            map: map.defaultMapRef,
 
-                                                    var heatmapLegendColors = L.control({position: 'bottomleft'});
+                                                                            // WMS endpoint
+                                                                            url: 'https://wmsserver.snap4city.org/geoserver/Snap4City/wms',
 
-                                                    heatmapLegendColors.onAdd = function (map) {
+                                                                            // time slices to create (u probably want more than 2)
+                                                                            times: ["2019-04-18T11:06:18.000Z", "2019-04-18T09:06:18.000Z", "2019-04-18T07:06:18.000Z", "2019-04-18T05:06:18.000Z", "2019-04-18T03:06:18.000Z", "2019-04-18T01:06:18.000Z"],
 
-                                                        var div = L.DomUtil.create('div', 'info legend'),
-                                                            grades = ["Legend"];
-                                                        //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
-                                                        var legendImgPath = heatmapRange[0].iconPath; // OLD-API
-                                                        div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
-                                                        return div;
-                                                    };
+                                                                            // the bounds for the entire target WMS layer
+                                                                            bbox: ["24.90215", "60.1615000000001", "24.98005", "60.1959"],
 
-                                                    heatmapLegendColors.addTo(map.defaultMapRef);
-                                                    //  map.eventsOnMap.push(heatmap);
+                                                                            // how long to show each frame in the animation
+                                                                            timeoutMs: 300,
 
-                                                    event.legendColors = heatmapLegendColors;
-                                                    map.eventsOnMap.push(event);
+                                                                            frames: [
+                                                                                {
+                                                                                    "time": "2019-04-18T11:06:18.000Z",
+                                                                                     "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T110618Z"
+                                                                                   // "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAwwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7djRCcJAEEXRrdaeUssUNyKYD8HAohHMvnNkGhi4s8Qxfq9vowcQ59G+/iG3fTcA9G8jkNm+GwDZ7bsBEN5/6R/i2q/XsSnIbF//ENJ/HY+NQWb7+oeF+6+JaTcAUtvfxwbhou3XZO8H7esfgvrv92OTkNm+/iG3fTcAFu5/pv39B2S2r3/Ibd8NgDX6/7R9/UNu+24AXLf/M9rXP+S2vz0HyGxf//Af/fdc39590L7vfdC+//kht3/dg/Y1D8HtAxH96x7y2tc8ZPave8hr38Zglfg1D95+vUPq228ZEGRrzQMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHzhDpylbKQ="
+                                                                                 },
+                                                                                 {
+                                                                                    "time": "2019-04-18T09:06:18.000Z",
+                                                                                     "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T090618Z"
+                                                                                  //   "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAxwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dXRCcMwEERBVeueUouKu5DkJwKDHWKDrZ2Ba2DhSa2dr5ZWDYjzal//kNu+NwD0bxHIbN8bANntewNA/xaCzParf85SENR+H89aENJ/Xz+LQWb7+ofJ++/bZzm4eft9X+veAND+cKV/iOu/xrMkZLavf8ht3xsAAf3X9lkWJmu/9p91IbP9d//eAJij/1+71z9kt+8NgPv2Xwe0r3+4Vvvf3Z7153sD4NrtH3BN/xDZv+5B+5qHjPZ1D5n96x60r3nIaF/3kNm/7iG4fSCuf8tBVvsWg1ni1zz4+/UOqX+/MSDIozQPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwhycnMYt0"
+                                                                                 },
+                                                                                {
+                                                                                    "time": "2019-04-18T07:06:18.000Z",
+                                                                                     "img": https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T070618Z
+                                                                                //    "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAzwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dbRDYJAEEVRqqUna9nixighJCofupLAvnNgGpjkDkzT8er5Amke7esfctuveRkbgaD+5619/UNu+24AZLfvBoD+bQgy23cDILv9avqHyP7bNjYGIe2397E1COi/7Y/NQWb7bgBcvP214x+61z8M0n/n2CQEtl/L2CZktu8GQFD/tT82C5nt6x9y23cDYMD+67uxZQhtf32A6/ZfHe3rH3LbdwPgPO2/9np09/qH8/b/6Rb8s33g/O2Xf33Qfkf7wPD96x7C2wdi2tc9ZPave8hr3wYhr3+bg6z2bQxGiV/z4Nuvd0j99lsGBLmV5gEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADrcAd+SmZk="
+                                                                                },
+                                                                                {
+                                                                                    "time": "2019-04-18T05:06:18.000Z",
+                                                                                     "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T050618Z"
+                                                                                 //   "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAA1AEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dvRCYNAEEVRq7Wn1LLFTUggSIgYRQJx3jnrNDBwd7+cpt+r5wekebSvf8ht3x0A4f3P+oe49uf3sRlo3v782b07APSvf8ht3x0A2e3rH7L7r+EOgLj2xzK2BiH9j/WxOWjc/vg+NgjN2h/7xxbhov2PY627A0D7+gftVy1jqxDSf62PzULj9mt7bBcatl/7x5ahSf91fGwZLt5+nRvbhgv2f7b71wH+p/063/au7t0BENP+5gFa9q97yGtf85DXvu4hr3/dQ177moe89nUPef3rHvLa1zz07n/XAdq+/ZqHxm7+ywFvv/9wIfXttwxIar80DwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcMIdCPB4EA=="
+                                                                                },
+                                                                                {
+                                                                                    "time": "2019-04-18T03:06:18.000Z",
+                                                                                     "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T030618Z"
+                                                                                //    "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAwwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dfBCcMwEEVBVZueVEuK2xDwJSEQG1tg6c+IbUDwVnZr49WjVQPi1LPVe9wEZLZvB4D+3Qhktm8HQHb7dgDo3w1BZvt2AAS2X5/jtmDh/uv/uDFYrP3aP24NFum/jrVvB0B2+3YAZLevfwjv3w6AnH/+XwdYsv3dB5i+/1MHmK79yw4wTftDDnDr/oce4JbtDz99G+BmC2Bg798DrNd+PzDA3O33EwPM03+/aIA52tc85LWve8jrX/eQ177mIa993UMW3/iQ+/ZrHrz9ugdvv+Zh/Xe/NA/efr1D5NsPJD38mgcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADjhBT9JH44="
+                                                                                },
+                                                                                {
+                                                                                    "time": "2019-04-18T01:06:18.000Z",
+                                                                                     "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T010618Z"
+                                                                                  //  "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAvgEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7ddbCsJAEEXB2f8OerUjIkI+FJOY59yqpjcgnOnY2v56b70BcZ7t6x9y2/cGgP79IpDZvjcAstv3BkDw7X8PkPGf/9sAw7b/c4Dh+l80wCDxrxggt39vAOS27w2A7Pb1D5n912SBjPbrwwLjtl8zFhir/1q4wP3br5UL3LP92miB+/RfGy9w/fZrxwWu2f+e3Vd/LXCt9o/ofrrA+Y5sXv8weP+6h7z2NQ9Z7bv1kNe/7iGvfc1DVvtuPeT1r3vIa1/zkNe/7iH39msexmy/z/vuB3JuP5Bz+4EgvukBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+8QDzyKb4"
+                                                                                }
+                                                                                 ],
+
+                                                                        // OPTIONAL - only required if you are not providing your own frames
+                                                                        // **See defining image request for more info**
+                                                                        // due to CORS restrictions, you need to define an async function to ask your proxy server to make the WMS
+                                                                        // GetMap request and resolve the result (as a base64 encoded string). This example is using a call to a server function called
+                                                                        // 'getImage' (in MeteorJS). Note that if your target WMS is CORS enabled, you can just define a direct HTTP request here instead.
+                                                                        proxyFunction: function(requestUrl, time, resolve, reject){
+
+                                                                            $.ajax({
+                                                                                type: "GET",
+                                                                                url: requestUrl,
+                                                                                beforeSend: function (xhr) {
+                                                                                    xhr.overrideMimeType('text/plain; charset=x-user-defined');
+                                                                                },
+                                                                                success: function (result, textStatus, jqXHR) {
+                                                                                    if(result.length < 1){
+                                                                                        alert("The thumbnail doesn't exist");
+                                                                                        $("#thumbnail").attr("src", "data:image/png;base64,");
+                                                                                        return
+                                                                                    }
+
+                                                                                    var binary = "";
+                                                                                    var responseText = jqXHR.responseText;
+                                                                                    var responseTextLen = responseText.length;
+
+                                                                                    for ( i = 0; i < responseTextLen; i++ ) {
+                                                                                        binary += String.fromCharCode(responseText.charCodeAt(i) & 255)
+                                                                                    }
+                                                                                 //   $("#thumbnail").attr("src", "data:image/png;base64,"+btoa(binary));
+                                                                                    resolve({ time: time, img: btoa(binary) });
+                                                                                },
+                                                                                error: function(xhr, textStatus, errorThrown){
+                                                                                    alert("Error in getting document "+textStatus);
+                                                                                }
+                                                                            });
+
+                                                                        },
+
+                                                                        // OPTIONAL - only required if you are not providing your own frames
+                                                                        // your WMS query params
+                                                                        params: {
+                                                                            BBOX: "24.90215,60.1615000000001,24.98005,60.1959",
+                                                                            LAYERS: "Snap4City:" + wmsDatasetName,
+                                                                            SRS: "EPSG:4326",
+                                                                            VERSION: "1.1.1",
+                                                                            WIDTH: 256,
+                                                                            HEIGHT: 256,
+                                                                            transparent: true,
+
+                                                                            // ncWMS params (optional)
+                                                                        //    abovemaxcolor: "extend",
+                                                                        //    belowmincolor: "extend",
+                                                                        //    colorscalerange: "10.839295,13.386014",
+                                                                        //    elevation: "-5.050000000000001",
+                                                                            format: "image/png",
+                                                                        //    logscale: false,
+                                                                        //    numcolorbands: "50",
+                                                                            opacity: current_opacity,
+                                                                        //    styles: "boxfill/rainbow"
+                                                                        }
+
+                                                                     };
+
+                                                                    LeafletWmsAnimator.initAnimation(args, function(frames){
+
+                                                                        // if you didn't provide your own frames this callback function returns the
+                                                                        // array of images with their respective time stamps (e.g. you can use timestamps in UI)
+                                                                    });  */
+
+                                                            var upEastLat = parseFloat(bboxJson['maxy']);
+                                                            var upEastLon = parseFloat(bboxJson['maxx']);
+                                                            var bottomWestLat = parseFloat(bboxJson['miny']);
+                                                            var bottomWestLon = parseFloat(bboxJson['minx']);
+                                                            //    var imageUrl = 'https://wmsserver.snap4city.org/geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                                            var imageUrl = geoServerUrl + 'geoserver/wms/animate?LAYERS=' + wmsDatasetName + '&aparam=time&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true';
+                                                            var imageBounds = [[bottomWestLat, bottomWestLon], [upEastLat, upEastLon]];
+                                                            var overlayOpacity = current_opacity;
+
+                                                            // ANIMATED GIF LAYER
+                                                            var animatedLayer = L.imageOverlay(imageUrl, imageBounds, {opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName}).addTo(map.defaultMapRef);
+
+                                                            // add legend to map
+                                                            map.legendHeatmap.addTo(map.defaultMapRef);
+                                                            //    $("<?= $_REQUEST['name_w'] ?>_animation").prop("checked",true);
+                                                            document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").checked = true;
+                                                            //     $("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
+                                                            $("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider('disable');
+                                                            //     document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
+                                                            //     document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
+                                                            map.eventsOnMap.push(animatedLayer);
+                                                            var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+
+                                                            var heatmapLegendColors = L.control({position: 'bottomleft'});
+
+                                                            heatmapLegendColors.onAdd = function (map) {
+
+                                                                var div = L.DomUtil.create('div', 'info legend'),
+                                                                    grades = ["Legend"];
+                                                                //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
+                                                                var legendImgPath = heatmapRange[0].iconPath; // OLD-API
+                                                                div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
+                                                                return div;
+                                                            };
+
+                                                            heatmapLegendColors.addTo(map.defaultMapRef);
+                                                            //  map.eventsOnMap.push(heatmap);
+
+                                                            event.legendColors = heatmapLegendColors;
+                                                            map.eventsOnMap.push(event);
+
+                                                            loadingDiv.empty();
+                                                            loadingDiv.append(loadOkText);
+
+                                                            parHeight = loadOkText.height();
+                                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                            loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                            setTimeout(function () {
+                                                                loadingDiv.css("opacity", 0);
+                                                                setTimeout(function () {
+                                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                                    });
+                                                                    loadingDiv.remove();
+                                                                }, 350);
+                                                            }, 1000);
+                                                        }
+                                                    }
+
+                                                } else {
+                                                    console.log("Ko Heatmap");
+                                                    console.log(JSON.stringify(errorData));
 
                                                     loadingDiv.empty();
-                                                    loadingDiv.append(loadOkText);
+                                                    loadingDiv.append(loadKoText);
 
-                                                    parHeight = loadOkText.height();
+                                                    parHeight = loadKoText.height();
                                                     parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                                    loadOkText.css("margin-top", parMarginTop + "px");
+                                                    loadKoText.css("margin-top", parMarginTop + "px");
 
                                                     setTimeout(function () {
                                                         loadingDiv.css("opacity", 0);
@@ -9820,10 +9842,28 @@ if (!isset($_SESSION)) {
                                                             loadingDiv.remove();
                                                         }, 350);
                                                     }, 1000);
-                                                }
-                                            }
 
-                                        } else {
+                                                }
+                                            } catch(err) {
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadKoText);
+
+                                                parHeight = loadKoText.height();
+                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                loadKoText.css("margin-top", parMarginTop + "px");
+                                                console.log("Error: " + err);
+                                                setTimeout(function () {
+                                                    loadingDiv.css("opacity", 0);
+                                                    setTimeout(function () {
+                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                        });
+                                                        loadingDiv.remove();
+                                                    }, 350);
+                                                }, 1000);
+                                            }
+                                        },
+                                        error: function (errorData) {
                                             console.log("Ko Heatmap");
                                             console.log(JSON.stringify(errorData));
 
@@ -9845,46 +9885,11 @@ if (!isset($_SESSION)) {
                                             }, 1000);
 
                                         }
-                                    } catch(err) {
-                                        loadingDiv.empty();
-                                        loadingDiv.append(loadKoText);
-
-                                        parHeight = loadKoText.height();
-                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                        loadKoText.css("margin-top", parMarginTop + "px");
-                                        console.log("Error: " + err);
-                                        setTimeout(function () {
-                                            loadingDiv.css("opacity", 0);
-                                            setTimeout(function () {
-                                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                });
-                                                loadingDiv.remove();
-                                            }, 350);
-                                        }, 1000);
-                                    }
+                                    });
                                 },
                                 error: function (errorData) {
                                     console.log("Ko Heatmap");
                                     console.log(JSON.stringify(errorData));
-
-                                    loadingDiv.empty();
-                                    loadingDiv.append(loadKoText);
-
-                                    parHeight = loadKoText.height();
-                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                    loadKoText.css("margin-top", parMarginTop + "px");
-
-                                    setTimeout(function () {
-                                        loadingDiv.css("opacity", 0);
-                                        setTimeout(function () {
-                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                            });
-                                            loadingDiv.remove();
-                                        }, 350);
-                                    }, 1000);
-
                                 }
                             });
 
@@ -10666,71 +10671,71 @@ if (!isset($_SESSION)) {
                                         organization: organization,
                                         od_id: query_od
                                     },
-                                    async: false,
+                                    async: true,
                                     cache: false,
                                     dataType: 'json',
                                     type: "POST",
                                     success: function (data) {
                                         dates = data;
+                                        current_page = (dates.length)-1;
+                                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                            if (map.eventsOnMap[i].eventType === 'od') {
+                                                removeOd(false);
+                                                map.eventsOnMap.splice(i, 1);
+                                            } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                                if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                                                    map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                                    map.eventsOnMap.splice(i, 1);
+                                                }
+                                            }
+                                        }
+
+                                        if (addMode === 'additive') {
+                                            addOdFromClient();
+                                        }
+                                        if (addMode === 'exclusive') {
+                                            map.defaultMapRef.eachLayer(function (layer) {
+                                                map.defaultMapRef.removeLayer(layer);
+                                            });
+                                            map.eventsOnMap.length = 0;
+
+                                            //Remove WidgetAlarm active pins
+                                            $.event.trigger({
+                                                type: "removeAlarmPin",
+                                            });
+                                            //Remove WidgetEvacuationPlans active pins
+                                            $.event.trigger({
+                                                type: "removeEvacuationPlanPin",
+                                            });
+                                            //Remove WidgetEvents active pins
+                                            $.event.trigger({
+                                                type: "removeEventFIPin",
+                                            });
+                                            //Remove WidgetResources active pins
+                                            $.event.trigger({
+                                                type: "removeResourcePin",
+                                            });
+                                            //Remove WidgetOperatorEvents active pins
+                                            $.event.trigger({
+                                                type: "removeOperatorEventPin",
+                                            });
+                                            //Remove WidgetTrafficEvents active pins
+                                            $.event.trigger({
+                                                type: "removeTrafficEventPin",
+                                            });
+                                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                                maxZoom: 18
+                                            }).addTo(map.defaultMapRef);
+
+                                            addOdFromClient();
+                                        }
                                     },
                                     error: function (errorData) {
                                         console.log("Ko OD");
                                         console.log(JSON.stringify(errorData));
                                     }
                                 });
-                                current_page = (dates.length)-1;
-                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                    if (map.eventsOnMap[i].eventType === 'od') {
-                                        removeOd(false);
-                                        map.eventsOnMap.splice(i, 1);
-                                    } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                        if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
-                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                                            map.eventsOnMap.splice(i, 1);
-                                        }
-                                    }
-                                }
-
-                                if (addMode === 'additive') {
-                                    addOdFromClient();
-                                }
-                                if (addMode === 'exclusive') {
-                                    map.defaultMapRef.eachLayer(function (layer) {
-                                        map.defaultMapRef.removeLayer(layer);
-                                    });
-                                    map.eventsOnMap.length = 0;
-
-                                    //Remove WidgetAlarm active pins
-                                    $.event.trigger({
-                                        type: "removeAlarmPin",
-                                    });
-                                    //Remove WidgetEvacuationPlans active pins
-                                    $.event.trigger({
-                                        type: "removeEvacuationPlanPin",
-                                    });
-                                    //Remove WidgetEvents active pins
-                                    $.event.trigger({
-                                        type: "removeEventFIPin",
-                                    });
-                                    //Remove WidgetResources active pins
-                                    $.event.trigger({
-                                        type: "removeResourcePin",
-                                    });
-                                    //Remove WidgetOperatorEvents active pins
-                                    $.event.trigger({
-                                        type: "removeOperatorEventPin",
-                                    });
-                                    //Remove WidgetTrafficEvents active pins
-                                    $.event.trigger({
-                                        type: "removeTrafficEventPin",
-                                    });
-                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 18
-                                    }).addTo(map.defaultMapRef);
-
-                                    addOdFromClient();
-                                }
                             }
                         }
 
@@ -11153,7 +11158,7 @@ if (!isset($_SESSION)) {
                                     if (geojson_layer) {
                                         map.defaultMapRef.removeLayer(geojson_layer);
                                     }
-                                    console.log('Target response OK')
+                                    //console.log('Target response OK')
                                     // if(responce.properties.density)
                                     targetPolyID = [];
                                     if(response.features){
@@ -11189,7 +11194,7 @@ if (!isset($_SESSION)) {
                                     if (sourcePolygon) {
                                         map.defaultMapRef.removeLayer(sourcePolygon);
                                     }
-                                    console.log('Source response OK')
+                                    //console.log('Source response OK')
                                     // MODIFED CODE 2022-05-05
                                     sourcePolyID = [];
                                     sourcePolyName = []
@@ -11546,12 +11551,157 @@ if (!isset($_SESSION)) {
                                         organization: organization,
                                         od_id: query_od
                                     },
-                                    async: false,
+                                    async: true,
                                     cache: false,
                                     dataType: 'json',
                                     type: "POST",
                                     success: function (data) {
                                         dates = data;
+                                        colors = getOdColorLegend();
+                                        if (opacity != null) {
+                                            current_opacity_od = parseFloat(opacity);
+                                        }
+                                        if (current_opacity_od == null) {
+                                            current_opacity_od = parseFloat(opacity); //0.60;
+                                        }
+
+                                        current_page = (dates.length)-1;
+
+
+                                        map.defaultMapRef.createPane('Snap4City: OD Flows');
+                                        map.defaultMapRef.getPane('Snap4City: OD Flows').style.zIndex = 420;
+
+                                        mapDate = dates[current_page];
+                                        load();
+
+                                        $.ajax({
+                                            url: '../widgets/get_od_metadata.php',
+                                            data: {
+                                                precision: precision,
+                                                action: "shape_type",
+                                                organization: organization
+                                            },
+                                            async: true,
+                                            cache: false,
+                                            dataType: 'json',
+                                            type: "POST",
+                                            success: function (data) {
+                                                for(let i=0; i<data.length; i++){
+                                                    data[i] = (data[i].split("_"))[2];
+                                                }
+                                                shapeTypes = data;
+
+                                                // add legend to map
+                                                map.legendOd.addTo(map.defaultMapRef);
+                                                map.flowInfo.addTo(map.defaultMapRef);
+                                                map.eventsOnMap.push(od);
+
+
+                                                var legendColors = L.control({position: 'bottomleft'});
+
+                                                legendColors.onAdd = function () {
+                                                    var div = L.DomUtil.create('div', 'info_legend'),
+                                                        labels = [],
+                                                        from, to;
+                                                    div.id ="info_legend_id";
+                                                    div.style.display = "none";
+                                                    div.style.visibility = "hidden";
+                                                    div.style.backgroundColor = panelBackgroundColor; //"#cccccc";
+                                                    div.style.color = panelFontColor;
+                                                    div.style.textAlign = "left";
+                                                    div.style.lineHeigth = "18px";
+                                                    div.style.fontWeight = "bold";
+                                                    labels.push('<div id="legendColorContainer" style="margin:8px; display:none; visibility: hidden;">Flow');
+                                                    for (i = 0; i < colors.length; i++) {
+                                                        if ((colors[i])[0] != null) {
+                                                            from = ((colors[i])[0]) * 100;
+                                                        } else {
+                                                            from = 0;
+                                                        }
+                                                        from = Math.round(from * 10) / 10
+                                                        if ((colors[i])[1] != null) {
+                                                            to = ((colors[i])[1]) * 100;
+                                                        } else {
+                                                            to = 100
+                                                        }
+                                                        to = Math.round(to * 10) / 10
+                                                        hex = (colors[i])[2];
+                                                        labels.push(
+                                                            '<i style="background:' + hex + ';width:18px;height:18px;float:left;margin-right:8px;opacity:0.7;"></i> ' +
+                                                            from + (to ? '&ndash;' + to : '+') + '%');
+                                                    }
+                                                    labels.push('</div>');
+                                                    div.innerHTML = labels.join('<br>');
+
+                                                    L.DomEvent.disableClickPropagation(div);
+                                                    div.style.display = "none";
+                                                    return div;
+                                                };
+
+                                                legendColors.addTo(map.defaultMapRef);
+
+                                                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                // Select the node that will be observed for mutations
+                                                const targetNode = document.getElementById('legendColorContainer');
+
+                                                // Options for the observer (which mutations to observe)
+                                                const config = { attributes: true }; //, childList: true, subtree: true };
+
+                                                // Callback function to execute when mutations are observed
+                                                const callback = function(mutationsList, observer) {
+                                                    // Use traditional 'for loops' for IE 11
+                                                    for(const mutation of mutationsList) {
+                                                        if (mutation.type === 'childList') {
+                                                            // console.log('A child node has been added or removed.');
+                                                        }
+                                                        else if (mutation.type === 'attributes') {
+                                                            // console.log('The ' + mutation.attributeName + ' attribute was modified.');
+
+                                                            observer.disconnect();
+                                                            document.getElementById("info_legend_id").style.display = "none";
+                                                            document.getElementById("legendColorContainer").style.display = "none";
+                                                            document.getElementById("info_legend_id").style.visibility = 'hidden';
+                                                            document.getElementById("legendColorContainer").style.visibility = 'hidden';
+                                                            observer.observe(document.getElementById("legendColorContainer"), { attributes: true });
+                                                        }
+                                                    }
+                                                };
+
+                                                // Create an observer instance linked to the callback function
+                                                legendColorObserver = new MutationObserver(callback);
+
+                                                // Start observing the target node for configured mutations
+                                                legendColorObserver.observe(targetNode, config);
+
+                                                // Later, you can stop observing
+                                                // observer.disconnect();
+                                                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                                                event.legendColors = legendColors;
+                                                map.eventsOnMap.push(event);
+
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadOkText);
+
+                                                parHeight = loadOkText.height();
+                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                setTimeout(function () {
+                                                    loadingDiv.css("opacity", 0);
+                                                    setTimeout(function () {
+                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                        });
+                                                        loadingDiv.remove();
+                                                    }, 350);
+                                                }, 1000);
+                                            },
+                                            error: function (errorData) {
+                                                console.log("No Data!!!");
+                                                console.log(JSON.stringify(errorData));
+                                            }
+                                        });
                                     },
                                     error: function (errorData) {
                                         console.log("Ko OD");
@@ -11559,155 +11709,6 @@ if (!isset($_SESSION)) {
                                     }
                                 });
 
-                                colors = getOdColorLegend();
-                                if (opacity != null) {
-                                    current_opacity_od = parseFloat(opacity);
-                                }
-                                if (current_opacity_od == null) {
-                                    current_opacity_od = parseFloat(opacity); //0.60;
-                                }
-
-                                current_page = (dates.length)-1;
-
-
-                                map.defaultMapRef.createPane('Snap4City: OD Flows');
-                                map.defaultMapRef.getPane('Snap4City: OD Flows').style.zIndex = 420;
-
-                                mapDate = dates[current_page];
-                                load();
-
-                                $.ajax({
-                                    url: '../widgets/get_od_metadata.php',
-                                    data: {
-                                        precision: precision,
-                                        action: "shape_type",
-                                        organization: organization
-                                    },
-                                    async: false,
-                                    cache: false,
-                                    dataType: 'json',
-                                    type: "POST",
-                                    success: function (data) {
-                                        for(let i=0; i<data.length; i++){
-                                            data[i] = (data[i].split("_"))[2];
-                                        }
-                                        shapeTypes = data;
-                                    },
-                                    error: function (errorData) {
-                                        console.log("No Data!!!");
-                                        console.log(JSON.stringify(errorData));
-                                    }
-                                });
-
-                                // add legend to map
-                                map.legendOd.addTo(map.defaultMapRef);
-                                map.flowInfo.addTo(map.defaultMapRef);
-                                map.eventsOnMap.push(od);
-
-                                
-                                var legendColors = L.control({position: 'bottomleft'});
-
-                                legendColors.onAdd = function () {
-                                    var div = L.DomUtil.create('div', 'info_legend'),
-                                        labels = [],
-                                        from, to;
-                                    div.id ="info_legend_id";
-                                    div.style.display = "none";
-                                    div.style.visibility = "hidden";
-                                    div.style.backgroundColor = panelBackgroundColor; //"#cccccc";
-                                    div.style.color = panelFontColor;
-                                    div.style.textAlign = "left";
-                                    div.style.lineHeigth = "18px";
-                                    div.style.fontWeight = "bold";
-                                    labels.push('<div id="legendColorContainer" style="margin:8px; display:none; visibility: hidden;">Flow'); 
-                                    for (i = 0; i < colors.length; i++) {
-                                        if ((colors[i])[0] != null) {
-                                            from = ((colors[i])[0]) * 100;
-                                        } else {
-                                            from = 0;
-                                        }
-                                        from = Math.round(from * 10) / 10
-                                        if ((colors[i])[1] != null) {
-                                            to = ((colors[i])[1]) * 100;
-                                        } else {
-                                            to = 100
-                                        }
-                                        to = Math.round(to * 10) / 10
-                                        hex = (colors[i])[2];
-                                        labels.push(
-                                            '<i style="background:' + hex + ';width:18px;height:18px;float:left;margin-right:8px;opacity:0.7;"></i> ' +
-                                            from + (to ? '&ndash;' + to : '+') + '%');
-                                    }
-                                    labels.push('</div>');
-                                    div.innerHTML = labels.join('<br>');
-
-                                    L.DomEvent.disableClickPropagation(div);
-                                    div.style.display = "none";
-                                    return div;
-                                };
-
-                                legendColors.addTo(map.defaultMapRef);
-
-                                
-
-                                    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                                    // Select the node that will be observed for mutations
-                                    const targetNode = document.getElementById('legendColorContainer');
-
-                                    // Options for the observer (which mutations to observe)
-                                    const config = { attributes: true }; //, childList: true, subtree: true };
-
-                                    // Callback function to execute when mutations are observed
-                                    const callback = function(mutationsList, observer) {
-                                        // Use traditional 'for loops' for IE 11
-                                        for(const mutation of mutationsList) {
-                                            if (mutation.type === 'childList') {
-                                                // console.log('A child node has been added or removed.');
-                                            }
-                                            else if (mutation.type === 'attributes') {
-                                                // console.log('The ' + mutation.attributeName + ' attribute was modified.');
-
-                                                observer.disconnect();
-                                                document.getElementById("info_legend_id").style.display = "none";
-                                                document.getElementById("legendColorContainer").style.display = "none";
-                                                document.getElementById("info_legend_id").style.visibility = 'hidden';
-                                                document.getElementById("legendColorContainer").style.visibility = 'hidden';
-                                                observer.observe(document.getElementById("legendColorContainer"), { attributes: true });
-                                            }
-                                        }
-                                    };
-
-                                    // Create an observer instance linked to the callback function
-                                    legendColorObserver = new MutationObserver(callback);
-
-                                    // Start observing the target node for configured mutations
-                                    legendColorObserver.observe(targetNode, config);
-
-                                    // Later, you can stop observing
-                                    // observer.disconnect();
-                                    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-                                event.legendColors = legendColors;
-                                map.eventsOnMap.push(event);
-
-                                loadingDiv.empty();
-                                loadingDiv.append(loadOkText);
-
-                                parHeight = loadOkText.height();
-                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                loadOkText.css("margin-top", parMarginTop + "px");
-
-                                setTimeout(function () {
-                                    loadingDiv.css("opacity", 0);
-                                    setTimeout(function () {
-                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                        });
-                                        loadingDiv.remove();
-                                    }, 350);
-                                }, 1000);
                             } catch(err) {
                                 loadingDiv.empty();
                                 loadingDiv.append(loadKoText);

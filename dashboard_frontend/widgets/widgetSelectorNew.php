@@ -1221,7 +1221,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             if ($(this).attr("data-onMap") === "false") {
                                 var sourceSelector = event.currentTarget.offsetParent;
                                 $('.gisPinLink').each(function( index ) {
-                                    if($(this).attr("data-query").includes("wmsserver.snap4city.org")) {
+                                    if((($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org") || $(this).attr("data-query").includes(geoServerUrl)) && $(this).attr("data-query") != thisQuery) || $(this).attr("data-query").includes("<?= $od_hostname ?>")) {
+                                    //if($(this).attr("data-query").includes("wmsserver.snap4city.org")) {
                                         if (sourceSelector == $(this).offsetParent()[0]) {
                                             if ($(this).attr("data-onMap") === "true") {
                                                 $(this).attr("data-onMap", "false");

@@ -119,7 +119,8 @@ if (!isset($_SESSION)) {
 <script src="../widgets/layers/KML.js"></script>
 
 <!-- Adreani deckgl -->
-<script src="../widgets/layers/deckgl.min.js"></script>
+<!-- <script src="../widgets/layers/deckgl.min.js"></script> -->
+<script src="../widgets/layers/deckgl-beta.min.js"></script>
 <script src="../widgets/layers/gif-frames.js"></script>
 <script src="../widgets/layers/webgl-utils.js"></script>
 <script src="../widgets/layers/m4.js"></script>
@@ -181,6 +182,15 @@ if (!isset($_SESSION)) {
         $roofedBuildingsPaths = scandir("../widgets/layers/edificato/roofBuildings");
         ?>
 
+        const version = '1.2.0';
+        const channel = 'alpha 1';
+
+        /** @type {MapManager} */
+        var mapManger;
+        /** @type {EventMapManager} */
+        var eventMapManager;
+
+        var fullscreenOn = false;
 
         var headerHeight = 25;
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
@@ -257,9 +267,13 @@ if (!isset($_SESSION)) {
         var svgContainerArray = [];
         var oms = {} // OverlappingMarkerSpiderfier for Leaflet
 
+        const mapMenuId = 'dropdown-menu-id';
+        const lightMenuId = 'light-dropdown';
+
         // Variabili deckgl
         var is3dOn = true;
         var lightsOn = false;
+        var shadowsOn = false;
         var map3d;
         var map3dGL;
         var gifWms = {
@@ -406,24 +420,11 @@ if (!isset($_SESSION)) {
 
         }
 
-        function onEachFeature(feature, layer) {
-            //console.log(layer);
-
-            /*var dataObj = {};
-
-            dataObj.lat = layer.feature.geometry.coordinates[1];
-            dataObj.lng = layer.feature.geometry.coordinates[0];
-            dataObj.eventType = "selectorEvent";
-
-            map.eventsOnMap.push(dataObj);
-            console.log(map.eventsOnMap);*/
-
-        }
-
         function onEachFeatureSpiderify(feature, layer) {
             oms.addMarker(layer);
         }
 
+        // TODO: need to separate
         //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
         function gisPrepareCustomMarker(feature, latlng) {
             if (feature.properties.altViewMode == "CustomPin" || feature.properties.altViewMode ==
@@ -4964,131 +4965,133 @@ if (!isset($_SESSION)) {
                                 popupText += '<tbody>';
                                 var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn, data7DayBtn,
                                     data30DayBtn, data6MonthsBtn, data1YearBtn = null;
-                                for (var i = 0; i < realTimeData.head.vars.length; i++) {
-                                    if (realTimeData.results.bindings[0][realTimeData.head.vars[i]] !==
-                                        null && realTimeData.results.bindings[0][realTimeData.head.vars[
-                                            i]] !== undefined) {
-                                        if ((realTimeData.results.bindings[0][realTimeData.head.vars[
+                                if (realTimeData.head != null) {
+                                    for (var i = 0; i < realTimeData.head.vars.length; i++) {
+                                        if (realTimeData.results.bindings[0][realTimeData.head.vars[i]] !==
+                                            null && realTimeData.results.bindings[0][realTimeData.head.vars[
+                                                i]] !== undefined) {
+                                            if ((realTimeData.results.bindings[0][realTimeData.head.vars[
                                                 i]]) && (realTimeData.results.bindings[0][realTimeData
                                                 .head.vars[i]
-                                            ].value.trim() !== '') && (realTimeData.head.vars[i] !==
+                                                ].value.trim() !== '') && (realTimeData.head.vars[i] !==
                                                 null) && (realTimeData.head.vars[i] !== 'undefined')) {
-                                            if ((realTimeData.head.vars[i] !== 'updating') && (
+                                                if ((realTimeData.head.vars[i] !== 'updating') && (
                                                     realTimeData.head.vars[i] !== 'measuredTime') && (
                                                     realTimeData.head.vars[i] !== 'instantTime')) {
-                                                if (!realTimeData.results.bindings[0][realTimeData.head
+                                                    if (!realTimeData.results.bindings[0][realTimeData.head
                                                         .vars[i]
-                                                    ].value.includes('Not Available')) {
-                                                    //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
-                                                    /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
-                                                           return str.toUpperCase();
-                                                       });*/
-                                                    dataDesc = realTimeData.head.vars[i];
-                                                    dataVal = realTimeData.results.bindings[0][
+                                                        ].value.includes('Not Available')) {
+                                                        //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                        /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
+                                                               return str.toUpperCase();
+                                                           });*/
+                                                        dataDesc = realTimeData.head.vars[i];
+                                                        dataVal = realTimeData.results.bindings[0][
+                                                            realTimeData.head.vars[i]
+                                                            ].value;
+                                                        dataLastBtn =
+                                                            '<td><button style="width: 30px" data-id="' +
+                                                            latLngId +
+                                                            '" type="button" class="lastValueBtn btn btn-sm " data-fake="' +
+                                                            fake + '" data-fakeid="' + fakeId +
+                                                            '" data-id="' + latLngId + '" data-field="' +
+                                                            realTimeData.head.vars[i] +
+                                                            '" data-serviceUri="' + feature.properties
+                                                                .serviceUri +
+                                                            '" data-lastDataClicked="false" data-targetWidgets="' +
+                                                            targetWidgets + '" data-lastValue="' +
+                                                            realTimeData.results.bindings[0][realTimeData
+                                                                .head.vars[i]
+                                                                ].value + '" data-color1="' + color1 +
+                                                            '" data-color2="' + color2 +
+                                                            '">Last</button></td>';
+                                                        data4HBtn =
+                                                            '<td><button style="width: 30px" data-id="' +
+                                                            latLngId +
+                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                            fake + '" data-fakeid="' + fakeId +
+                                                            '" data-id="' + latLngId + '" data-field="' +
+                                                            realTimeData.head.vars[i] +
+                                                            '" data-serviceUri="' + feature.properties
+                                                                .serviceUri +
+                                                            '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' +
+                                                            targetWidgets + '" data-color1="' + color1 +
+                                                            '" data-color2="' + color2 +
+                                                            '">4h</button></td>';
+                                                        dataDayBtn =
+                                                            '<td><button style="width: 30px" data-id="' +
+                                                            latLngId +
+                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                            fake + '" data-id="' + fakeId +
+                                                            '" data-field="' + realTimeData.head.vars[i] +
+                                                            '" data-serviceUri="' + feature.properties
+                                                                .serviceUri +
+                                                            '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' +
+                                                            targetWidgets + '" data-color1="' + color1 +
+                                                            '" data-color2="' + color2 +
+                                                            '">24h</button></td>';
+                                                        data7DayBtn =
+                                                            '<td><button style="width: 30px" data-id="' +
+                                                            latLngId +
+                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                            fake + '" data-id="' + fakeId +
+                                                            '" data-field="' + realTimeData.head.vars[i] +
+                                                            '" data-serviceUri="' + feature.properties
+                                                                .serviceUri +
+                                                            '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' +
+                                                            targetWidgets + '" data-color1="' + color1 +
+                                                            '" data-color2="' + color2 +
+                                                            '">7d</button></td>';
+                                                        data30DayBtn =
+                                                            '<td><button style="width: 30px" data-id="' +
+                                                            latLngId +
+                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                            fake + '" data-id="' + fakeId +
+                                                            '" data-field="' + realTimeData.head.vars[i] +
+                                                            '" data-serviceUri="' + feature.properties
+                                                                .serviceUri +
+                                                            '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' +
+                                                            targetWidgets + '" data-color1="' + color1 +
+                                                            '" data-color2="' + color2 +
+                                                            '">30d</button></td>';
+                                                        data6MonthsBtn =
+                                                            '<td><button style="width: 30px" data-id="' +
+                                                            latLngId +
+                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                            fake + '" data-id="' + fakeId +
+                                                            '" data-field="' + realTimeData.head.vars[i] +
+                                                            '" data-serviceUri="' + feature.properties
+                                                                .serviceUri +
+                                                            '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' +
+                                                            targetWidgets + '" data-color1="' + color1 +
+                                                            '" data-color2="' + color2 +
+                                                            '">6m</button></td>';
+                                                        data1YearBtn =
+                                                            '<td><button style="width: 30px" data-id="' +
+                                                            latLngId +
+                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                            fake + '" data-id="' + fakeId +
+                                                            '" data-field="' + realTimeData.head.vars[i] +
+                                                            '" data-serviceUri="' + feature.properties
+                                                                .serviceUri +
+                                                            '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' +
+                                                            targetWidgets + '" data-color1="' + color1 +
+                                                            '" data-color2="' + color2 +
+                                                            '">1y</button></td>';
+                                                        popupText += '<tr><td>' + dataDesc + '</td><td>' +
+                                                            floatToString(dataVal, 6) + '</td>' +
+                                                            dataLastBtn + data4HBtn + dataDayBtn +
+                                                            data7DayBtn + data30DayBtn + data6MonthsBtn +
+                                                            data1YearBtn + '</tr>';
+                                                    }
+                                                } else {
+                                                    measuredTime = realTimeData.results.bindings[0][
                                                         realTimeData.head.vars[i]
-                                                    ].value;
-                                                    dataLastBtn =
-                                                        '<td><button style="width: 30px" data-id="' +
-                                                        latLngId +
-                                                        '" type="button" class="lastValueBtn btn btn-sm " data-fake="' +
-                                                        fake + '" data-fakeid="' + fakeId +
-                                                        '" data-id="' + latLngId + '" data-field="' +
-                                                        realTimeData.head.vars[i] +
-                                                        '" data-serviceUri="' + feature.properties
-                                                        .serviceUri +
-                                                        '" data-lastDataClicked="false" data-targetWidgets="' +
-                                                        targetWidgets + '" data-lastValue="' +
-                                                        realTimeData.results.bindings[0][realTimeData
-                                                            .head.vars[i]
-                                                        ].value + '" data-color1="' + color1 +
-                                                        '" data-color2="' + color2 +
-                                                        '">Last</button></td>';
-                                                    data4HBtn =
-                                                        '<td><button style="width: 30px" data-id="' +
-                                                        latLngId +
-                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                        fake + '" data-fakeid="' + fakeId +
-                                                        '" data-id="' + latLngId + '" data-field="' +
-                                                        realTimeData.head.vars[i] +
-                                                        '" data-serviceUri="' + feature.properties
-                                                        .serviceUri +
-                                                        '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' +
-                                                        targetWidgets + '" data-color1="' + color1 +
-                                                        '" data-color2="' + color2 +
-                                                        '">4h</button></td>';
-                                                    dataDayBtn =
-                                                        '<td><button style="width: 30px" data-id="' +
-                                                        latLngId +
-                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                        fake + '" data-id="' + fakeId +
-                                                        '" data-field="' + realTimeData.head.vars[i] +
-                                                        '" data-serviceUri="' + feature.properties
-                                                        .serviceUri +
-                                                        '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' +
-                                                        targetWidgets + '" data-color1="' + color1 +
-                                                        '" data-color2="' + color2 +
-                                                        '">24h</button></td>';
-                                                    data7DayBtn =
-                                                        '<td><button style="width: 30px" data-id="' +
-                                                        latLngId +
-                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                        fake + '" data-id="' + fakeId +
-                                                        '" data-field="' + realTimeData.head.vars[i] +
-                                                        '" data-serviceUri="' + feature.properties
-                                                        .serviceUri +
-                                                        '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' +
-                                                        targetWidgets + '" data-color1="' + color1 +
-                                                        '" data-color2="' + color2 +
-                                                        '">7d</button></td>';
-                                                    data30DayBtn =
-                                                        '<td><button style="width: 30px" data-id="' +
-                                                        latLngId +
-                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                        fake + '" data-id="' + fakeId +
-                                                        '" data-field="' + realTimeData.head.vars[i] +
-                                                        '" data-serviceUri="' + feature.properties
-                                                        .serviceUri +
-                                                        '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' +
-                                                        targetWidgets + '" data-color1="' + color1 +
-                                                        '" data-color2="' + color2 +
-                                                        '">30d</button></td>';
-                                                    data6MonthsBtn =
-                                                        '<td><button style="width: 30px" data-id="' +
-                                                        latLngId +
-                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                        fake + '" data-id="' + fakeId +
-                                                        '" data-field="' + realTimeData.head.vars[i] +
-                                                        '" data-serviceUri="' + feature.properties
-                                                        .serviceUri +
-                                                        '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' +
-                                                        targetWidgets + '" data-color1="' + color1 +
-                                                        '" data-color2="' + color2 +
-                                                        '">6m</button></td>';
-                                                    data1YearBtn =
-                                                        '<td><button style="width: 30px" data-id="' +
-                                                        latLngId +
-                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                        fake + '" data-id="' + fakeId +
-                                                        '" data-field="' + realTimeData.head.vars[i] +
-                                                        '" data-serviceUri="' + feature.properties
-                                                        .serviceUri +
-                                                        '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' +
-                                                        targetWidgets + '" data-color1="' + color1 +
-                                                        '" data-color2="' + color2 +
-                                                        '">1y</button></td>';
-                                                    popupText += '<tr><td>' + dataDesc + '</td><td>' +
-                                                        floatToString(dataVal, 6) + '</td>' +
-                                                        dataLastBtn + data4HBtn + dataDayBtn +
-                                                        data7DayBtn + data30DayBtn + data6MonthsBtn +
-                                                        data1YearBtn + '</tr>';
+                                                        ].value.replace("T", " ");
+                                                    var now = new Date();
+                                                    var measuredTimeDate = new Date(measuredTime);
+                                                    rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
                                                 }
-                                            } else {
-                                                measuredTime = realTimeData.results.bindings[0][
-                                                    realTimeData.head.vars[i]
-                                                ].value.replace("T", " ");
-                                                var now = new Date();
-                                                var measuredTimeDate = new Date(measuredTime);
-                                                rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
                                             }
                                         }
                                     }
@@ -9487,6 +9490,7 @@ if (!isset($_SESSION)) {
             });
         }
 
+        // deprecated we'll we use 2 different function depending on the type of map
         //calcolo automatico del rettangolo di dimensioni minime per mostrare tutti e soli i pin col massimo grado di zoom possibile
         function resizeMapView(mapRef) {
 
@@ -9572,6 +9576,7 @@ if (!isset($_SESSION)) {
             }
         }
 
+        // move to 2d
         function addDefaultBaseMap(map) {
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
@@ -9579,12 +9584,16 @@ if (!isset($_SESSION)) {
             }).addTo(map);
         }
 
+        // map initializations
         //Tipicamente questa funzione viene invocata dopo che sono stati scaricati i dati per il widget (se ne ha bisogno) e ci va dentro la logica che costruisce il contenuto del widget
         function populateWidget() {
             let lastPopup = null;
 
             showWidgetContent(widgetName);
 
+            eventMapManager = new EventMapManager(widgetName);
+
+            // getting style parameters
             let mapDivLocal = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map";
             map.mapName = widgetName;
             map.mapDivLocal = mapDivLocal;
@@ -9640,7 +9649,6 @@ if (!isset($_SESSION)) {
             }
             console.log('tentative to display 3d map');
             const defaultLayer = createTileLayer(tileUrls);
-            //layers.push(defaultLayer);
             layers.terrain = defaultLayer;
 
             if (styleParameters != null && styleParameters.buildingType != null) {
@@ -9661,7 +9669,8 @@ if (!isset($_SESSION)) {
                         const data = {
                             position: [11.2501685710125, 43.7720562843695]
                         };
-                        const scene1 = "../widgets/layers/edificato/flat-buildings-1.0.0/model_textured.gltf";
+                        // const scene1 = "../widgets/layers/edificato/model_textured_not_compr.glb";
+                        const scene1 = "../widgets/layers/edificato/flat-buildings-1.0.0/model_textured.glb";
                         const mesh1 = createMeshLayer(data, "scene1-layer", scene1);
                         layers.building = mesh1;
 
@@ -9692,18 +9701,17 @@ if (!isset($_SESSION)) {
             const width = $(`#${widgetName}_map3d`).width();
 
             var effects = [];
+            $('#lightTimestamp').val(formatDatetime(Date.now()));
             if (styleParameters != null && styleParameters.useLighting != null && styleParameters.useLighting ==
                 'yes') {
                 lightsOn = true;
-                $('#lightTimestamp').css('visibility', 'visible');
-                $('#lightTimestamp').val(styleParameters.lightTimestamp);
-                $('.mapOptions').css('top', '67px');
                 effects = [createLights()];
+                showLightSection();
             } else {
-                $('#lightTimestamp').val(formatDatetime(Date.now()));
-                $('#lightTimestamp').css('visibility', 'hidden');
-                $('.mapOptions').css('top', '36px');
+                lightsOn = false;
+                hideLightSection();
             }
+            $('#lightEnable').prop('checked', lightsOn);
             currentViewState = {
                 latitude: latInit,
                 longitude: lngInit,
@@ -9724,7 +9732,13 @@ if (!isset($_SESSION)) {
             map3d = new deck.DeckGL({
                 mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
                 viewState: currentViewState,
-                controller: true,
+                controller: {
+                    doubleClickZoom: false,
+                    inertia: true,
+                    scrollZoom: {
+                        smooth: true,
+                    }
+                },
                 container: `${widgetName}_map3d`,
                 effects,
                 //_animate: true,
@@ -9803,6 +9817,10 @@ if (!isset($_SESSION)) {
                             }
 
                         }, 2000);
+                    // need too calc the delta distance inside the controller
+                    // last tested formula -> deltaDistance <= tollerance / (2 ^ zoom)
+                    // do not trigger with the mouse wheel
+
                     currentViewState = viewState;
                     map3d.setProps({
                         viewState: viewState,
@@ -9810,13 +9828,6 @@ if (!isset($_SESSION)) {
                     $('#deck-zoom-box').text(parseInt(viewState.zoom));
                     reloadPopupDiv();
                     return viewState;
-                },
-                onClick: (info, event) => {
-                    //console.log('deck click');
-                    //if (justClicked)
-                    //justClicked = false;
-                    //else
-                    //$('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'hidden');
                 },
                 getCursor: () => cursorType,
                 getTooltip: ({
@@ -9991,20 +10002,35 @@ if (!isset($_SESSION)) {
                 setDeckMode('selection');
             });
 
-            $('#deck-light-btn').on('click', function() {
-                lightsOn = !lightsOn;
+            $('#lightEnable').on('click', (event) => {
+                lightsOn = event.currentTarget.checked;
                 reloadLight();
                 if (lightsOn) {
-                    $('#lightTimestamp').css('visibility', 'visible');
-                    $('.mapOptions').css('top', '67px');
+                    showLightSection();
                 } else {
-                    $('#lightTimestamp').css('visibility', 'hidden');
-                    $('.mapOptions').css('top', '36px');
+                    hideLightSection();
                 }
+            });
+            $('#shadowEnable').on('click', (event) => {
+                shadowsOn = event.currentTarget.checked;
+                reloadLight(); 
             });
             $('#lightTimestamp').on('input', function() {
                 reloadLight();
             })
+
+            hideMenu(mapMenuId);
+            hideMenu(lightMenuId);
+
+            $('#deck-light-btn').click((event) => toggleLightMenu());
+            $('#dropdownMenu1').click((event) => toggleMapMenu());
+            $('#fullscreen-map-btn').click((event) => {
+                fullscreenOn = !fullscreenOn;
+                if (fullscreenOn)
+                    $(`#${widgetName}_chartContainer`)[0].requestFullscreen();
+                else
+                    document.exitFullscreen();
+            });
 
             $('#2DButton').click(function(event) {
                 is3dOn = false;
@@ -10019,6 +10045,7 @@ if (!isset($_SESSION)) {
             $('#no-building').click(function(event) {
                 selectTickMenuBuilding('no-building');
                 layers.building = [];
+                layers.dynamicBuildings = [];
                 updateLayers();
             });
 
@@ -10030,6 +10057,7 @@ if (!isset($_SESSION)) {
                     getFillColor: buildingColor,
                     getLineColor: [255, 255, 255],
                 });
+                layers.dynamicBuildings = [];
                 layers.building = buildingLayer;
                 deltaTimestamp = 0;
                 updateLayers();
@@ -10043,10 +10071,11 @@ if (!isset($_SESSION)) {
                 const data = {
                     position: [11.2501685710125, 43.7720562843695]
                 };
-                const scene1 = "../widgets/layers/edificato/flat-buildings-1.0.0/model_textured.gltf";
+                const scene1 = "../widgets/layers/edificato/flat-buildings-1.0.0/model_textured.glb";
                 const mesh1 = createMeshLayer(data, "scene1-layer", scene1);
                 deltaTimestamp = 43200000;
 
+                layers.dynamicBuildings = [];
                 layers.building = mesh1;
 
                 updateLayers();
@@ -10060,69 +10089,29 @@ if (!isset($_SESSION)) {
                 const scene = "../widgets/layers/edificato/centre.gltf";
                 const mesh = createMeshLayer(data1, "scene-layer", scene, buildingColor);
                 layers.building = mesh;
+                layers.dynamicBuildings = [];
 
-                // var buildingInfos = {};
-                // $.ajax({
-                //     url: '../widgets/layers/edificato/roofedBuildings/header.json',
-                //     async: false,
-                //     dataType: 'json',
-                //     success: (header) => buildingInfos = header,
-                //     error: (err) => console.error(err),
-                // });
+                updateLayers();
+                reloadLight();
+            });
+            $('#building-elevated').click(function(event) {
+                selectTickMenuBuilding('building-elevated');
 
-                // const scene32 = `../widgets/layers/edificato/roofedBuildings/BID_32-1.glb`;
-                // const mesh32 = new deck.ScenegraphLayer({
-                //     id: `bid32-scene-layer`,
-                //     data: [{
-                //         position: [11.244890, 43.758802, -47.79]
-                //     }],
-                //     pickable: false,
-                //     scenegraph: scene32,
-                //     _lighting: 'pbr',
-                //     getOrientation: d => [0, 0, 0],
-                //     sizeScale: 1,
-                //     getPosition: d => d.position,
-                // });
-                // const scene88 = `../widgets/layers/edificato/roofedBuildings/BID_88.glb`;
-                // const mesh88 = new deck.ScenegraphLayer({
-                //     id: `bid88-scene-layer`,
-                //     data: [{
-                //         position: [11.270701, 43.763352, -47.79]
-                //     }],
-                //     pickable: false,
-                //     scenegraph: scene88,
-                //     _lighting: 'pbr',
-                //     getOrientation: d => [0, 0, 0],
-                //     sizeScale: 1,
-                //     getPosition: d => d.position,
-                // });
-                // layers.building = mesh32;
-                // var i = 0;
-                // for (let building of buildingInfos.buildings) {
-                    // const scene = `../widgets/layers/edificato/florence_high.glb`;
-                    // // const scene = `../widgets/layers/edificato/roofedBuildings/${building}`;
-                    // const mesh = new deck.ScenegraphLayer({
-                    //     // id: `${building.replace('.', '-')}-scene-layer`,
-                    //     id: `dynamic-scene-layer`,
-                    //     data: [
-                    //         data1,
-                    //     ],
-                    //     pickable: false,
-                    //     scenegraph: scene,
-                    //     _lighting: 'pbr',
-                    //     getOrientation: d => [0, 0, 0],
-                    //     sizeScale: 1,
-                    //     // getPosition: d => [0, 0, -47.79],
-                    //     getPosition: d => [11.2526225, 43.769562, -47.79],
-                    // });
-                    // layers.building = mesh;
-                    // // layers.dynamicBuildings.push(mesh);
-                //     i++;
-                //     if (i >= 10)
-                //         break;
-                // }
-
-                // deltaTimestamp = 43200000;
+                const scene1src = `../widgets/layers/edificato/elevated-buildings-1.0.0/sangiorgio_textured.glb`;
+                const scene1pos = [11.255241284985537, 43.765521723567616, -46.79];
+                const scene2src = `../widgets/layers/edificato/elevated-buildings-1.0.0/model_textured.glb`;
+                const scene2pos = [11.2501685710125, 43.7720562843695, 0];
+                layers.dynamicBuildings = [];
+                layers.building = null;
+                layers.dynamicBuildings.push(createSceneGraphLayer({
+                    source: scene1src,
+                    positions: scene1pos
+                }));
+                const data = {
+                    position: scene2pos,
+                };
+                const mesh = createMeshLayer(data, "cutted-building-layer", scene2src, buildingColor);
+                layers.building = mesh;
 
                 updateLayers();
                 reloadLight();
@@ -10419,449 +10408,236 @@ if (!isset($_SESSION)) {
             });
 
             $(document).on('addAlarm', function(event) {
-                if (event.target === map.mapName) {
-                    function addAlarmsToMap() {
-                        let passedData = event.passedData;
+                function addAlarmsToMap() {
+                    let passedData = event.passedData;
 
-                        for (let j = 0; j < passedData.length; j++) {
+                    for (let j = 0; j < passedData.length; j++) {
 
-                            let lat = passedData[j].lat;
-                            let lng = passedData[j].lng;
-                            let eventType = passedData[j].eventType;
-                            let eventName = passedData[j].eventName;
-                            let eventStartDate = passedData[j].eventStartDate;
-                            let eventStartTime = passedData[j].eventStartTime;
-                            let eventSeverity = passedData[j].eventSeverity;
-                            passedData[j].type = "alarmEvent";
+                        let lat = passedData[j].lat;
+                        let lng = passedData[j].lng;
+                        let eventType = passedData[j].eventType;
+                        let eventName = passedData[j].eventName;
+                        let eventStartDate = passedData[j].eventStartDate;
+                        let eventStartTime = passedData[j].eventStartTime;
+                        let eventSeverity = passedData[j].eventSeverity;
+                        passedData[j].type = "alarmEvent";
 
-                            //Creazione dell'icona custom per il pin
-                            switch (eventSeverity) {
-                                case "MINOR":
-                                    mapPinImg = '../img/alarmIcons/' + alarmTypes[eventType].mapIconLow;
-                                    severityColor = "#ffcc00";
-                                    break;
-
-                                case "MAJOR":
-                                    mapPinImg = '../img/alarmIcons/' + alarmTypes[eventType].mapIconMed;
-                                    severityColor = "#ff9900";
-                                    break;
-
-                                case "CRITICAL":
-                                    mapPinImg = '../img/alarmIcons/' + alarmTypes[eventType].mapIconHigh;
-                                    severityColor = "#ff6666";
-                                    break;
-                            }
-
-                            let pinIcon = new L.DivIcon({
-                                className: null,
-                                html: '<img src="' + mapPinImg + '" class="leafletPin" />',
-                                iconAnchor: [18, 36]
-                            });
-
-                            let markerLocation = new L.LatLng(lat, lng);
-                            let marker = new L.Marker(markerLocation, {
-                                icon: pinIcon
-                            });
-                            passedData[j].marker = marker;
-
-                            //Creazione del popup per il pin appena creato
-                            let popupText = "<span class='mapPopupTitle'>" + eventName + "</span>" +
-                                "<span class='mapPopupLine'><i>Start date: </i>" + eventStartDate + " - " +
-                                eventStartTime + "</span>" +
-                                "<span class='mapPopupLine'><i>Event type: </i>" + alarmTypes[eventType]
-                                .desc.toUpperCase() + "</span>" +
-                                "<span class='mapPopupLine'><i>Event severity: </i><span style='background-color: " +
-                                severityColor + "'>" + eventSeverity.toUpperCase() + "</span></span>";
-
-                            map.defaultMapRef.addLayer(marker);
-                            lastPopup = marker.bindPopup(popupText, {
-                                offset: [-5, -40],
-                                maxWidth: 600
-                            }).openPopup();
-
-                            map.eventsOnMap.push(passedData[j]);
-
-                        }
-                    }
-
-                    if (addMode === 'additive') {
-                        addAlarmsToMap();
-                    }
-
-                    if (addMode === 'exclusive') {
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].type !== 'addAlarm') {
-                                map.defaultMapRef.eachLayer(function(layer) {
-                                    map.defaultMapRef.removeLayer(layer);
-                                });
-                                map.eventsOnMap.length = 0;
+                        //Creazione dell'icona custom per il pin
+                        switch (eventSeverity) {
+                            case "MINOR":
+                                mapPinImg = '../img/alarmIcons/' + alarmTypes[eventType].mapIconLow;
+                                severityColor = "#ffcc00";
                                 break;
-                            }
+
+                            case "MAJOR":
+                                mapPinImg = '../img/alarmIcons/' + alarmTypes[eventType].mapIconMed;
+                                severityColor = "#ff9900";
+                                break;
+
+                            case "CRITICAL":
+                                mapPinImg = '../img/alarmIcons/' + alarmTypes[eventType].mapIconHigh;
+                                severityColor = "#ff6666";
+                                break;
                         }
-                        //Remove WidgetEvacuationPlans active pins
-                        $.event.trigger({
-                            type: "removeEvacuationPlanPin",
-                        });
-                        //Remove WidgetSelector active pins
-                        $.event.trigger({
-                            type: "removeSelectorEventPin",
-                        });
-                        //Remove WidgetEvents active pins
-                        $.event.trigger({
-                            type: "removeEventFIPin",
-                        });
-                        //Remove WidgetResources active pins
-                        $.event.trigger({
-                            type: "removeResourcePin",
-                        });
-                        //Remove WidgetOperatorEvents active pins
-                        $.event.trigger({
-                            type: "removeOperatorEventPin",
-                        });
-                        //Remove WidgetTrafficEvents active pins
-                        $.event.trigger({
-                            type: "removeTrafficEventPin",
-                        });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
-                        }).addTo(map.defaultMapRef);
 
-                        addAlarmsToMap();
+                        let pinIcon = new L.DivIcon({
+                            className: null,
+                            html: '<img src="' + mapPinImg + '" class="leafletPin" />',
+                            iconAnchor: [18, 36]
+                        });
+
+                        let markerLocation = new L.LatLng(lat, lng);
+                        let marker = new L.Marker(markerLocation, {
+                            icon: pinIcon
+                        });
+                        passedData[j].marker = marker;
+
+                        //Creazione del popup per il pin appena creato
+                        let popupText = "<span class='mapPopupTitle'>" + eventName + "</span>" +
+                            "<span class='mapPopupLine'><i>Start date: </i>" + eventStartDate + " - " +
+                            eventStartTime + "</span>" +
+                            "<span class='mapPopupLine'><i>Event type: </i>" + alarmTypes[eventType]
+                            .desc.toUpperCase() + "</span>" +
+                            "<span class='mapPopupLine'><i>Event severity: </i><span style='background-color: " +
+                            severityColor + "'>" + eventSeverity.toUpperCase() + "</span></span>";
+
+                        map.defaultMapRef.addLayer(marker);
+                        lastPopup = marker.bindPopup(popupText, {
+                            offset: [-5, -40],
+                            maxWidth: 600
+                        }).openPopup();
+
+                        map.eventsOnMap.push(passedData[j]);
+
                     }
-
-
-                    //   resizeMapView(map.defaultMapRef);
                 }
+                eventMapManager.legacyTrigger(event, addAlarmsToMap);
             });
             $(document).on('addEvacuationPlan', function(event) {
-                if (event.target === map.mapName) {
-                    function addEvacuationPlanToMap() {
-                        let passedData = event.passedData;
+                function addEvacuationPlanToMap() {
+                    let passedData = event.passedData;
 
-                        for (let k = 0; k < passedData.length; k++) {
+                    for (let k = 0; k < passedData.length; k++) {
 
-                            let plansObj = passedData[k].plansObj;
-                            let planId = passedData[k].planId;
-                            let evacuationColors = passedData[k].colors;
+                        let plansObj = passedData[k].plansObj;
+                        let planId = passedData[k].planId;
+                        let evacuationColors = passedData[k].colors;
 
-                            shownPolyGroup = L.featureGroup();
-                            shownPolyGroup.eventType = passedData[k].eventType;
+                        shownPolyGroup = L.featureGroup();
+                        shownPolyGroup.eventType = passedData[k].eventType;
 
 
-                            for (let j = 0; j < plansObj[planId].payload.evacuation_paths.length; j++) {
-                                path = [];
+                        for (let j = 0; j < plansObj[planId].payload.evacuation_paths.length; j++) {
+                            path = [];
 
-                                for (let i = 0; i < plansObj[planId].payload.evacuation_paths[j].coords
-                                    .length; i++) {
-                                    let point = [];
-                                    point[0] = plansObj[planId].payload.evacuation_paths[j].coords[i]
-                                        .latitude;
-                                    point[1] = plansObj[planId].payload.evacuation_paths[j].coords[i]
-                                        .longitude;
-                                    path.push(point);
-                                    console.log(path);
-                                }
-
-                                let polyline = L.polyline(path, {
-                                    color: evacuationColors[j % 6]
-                                });
-                                shownPolyGroup.addLayer(polyline);
+                            for (let i = 0; i < plansObj[planId].payload.evacuation_paths[j].coords
+                                .length; i++) {
+                                let point = [];
+                                point[0] = plansObj[planId].payload.evacuation_paths[j].coords[i]
+                                    .latitude;
+                                point[1] = plansObj[planId].payload.evacuation_paths[j].coords[i]
+                                    .longitude;
+                                path.push(point);
+                                console.log(path);
                             }
-                            passedData[k].polyGroup = shownPolyGroup;
-                            map.eventsOnMap.push(passedData[k]);
+
+                            let polyline = L.polyline(path, {
+                                color: evacuationColors[j % 6]
+                            });
+                            shownPolyGroup.addLayer(polyline);
                         }
-                        map.defaultMapRef.addLayer(shownPolyGroup);
-
-                        shownPolyGroup.maxLat = shownPolyGroup.getBounds()._northEast.lat;
-                        shownPolyGroup.minLat = shownPolyGroup.getBounds()._southWest.lat;
-                        shownPolyGroup.maxLng = shownPolyGroup.getBounds()._northEast.lng;
-                        shownPolyGroup.minLng = shownPolyGroup.getBounds()._southWest.lng;
+                        passedData[k].polyGroup = shownPolyGroup;
+                        map.eventsOnMap.push(passedData[k]);
                     }
+                    map.defaultMapRef.addLayer(shownPolyGroup);
 
-                    if (addMode === 'additive') {
-                        addEvacuationPlanToMap();
-                    }
-
-                    if (addMode === 'exclusive') {
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType !== 'evacuationPlan') {
-                                map.defaultMapRef.eachLayer(function(layer) {
-                                    map.defaultMapRef.removeLayer(layer);
-                                });
-                                map.eventsOnMap.length = 0;
-                                break;
-                            }
-                        }
-                        //Remove WidgetAlarm active pins
-                        $.event.trigger({
-                            type: "removeAlarmPin",
-                        });
-                        //Remove WidgetSelector active pins
-                        $.event.trigger({
-                            type: "removeSelectorEventPin",
-                        });
-                        //Remove WidgetEvents active pins
-                        $.event.trigger({
-                            type: "removeEventFIPin",
-                        });
-                        //Remove WidgetResources active pins
-                        $.event.trigger({
-                            type: "removeResourcePin",
-                        });
-                        //Remove WidgetOperatorEvents active pins
-                        $.event.trigger({
-                            type: "removeOperatorEventPin",
-                        });
-                        //Remove WidgetTrafficEvents active pins
-                        $.event.trigger({
-                            type: "removeTrafficEventPin",
-                        });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
-                        }).addTo(map.defaultMapRef);
-
-                        addEvacuationPlanToMap();
-                    }
-
-                    //console.log(map.eventsOnMap.length);
-
-                    // resizeMapView(map.defaultMapRef);
+                    shownPolyGroup.maxLat = shownPolyGroup.getBounds()._northEast.lat;
+                    shownPolyGroup.minLat = shownPolyGroup.getBounds()._southWest.lat;
+                    shownPolyGroup.maxLng = shownPolyGroup.getBounds()._northEast.lng;
+                    shownPolyGroup.minLng = shownPolyGroup.getBounds()._southWest.lng;
                 }
+                eventMapManager.legacyTrigger(event, addEvacuationPlanToMap);
             });
 
             $(document).on('addBubbleChart', function(event) {
-                /*  if (event.target === map.mapName) {
-                      if (lastPopup !== null) {
-                          lastPopup.closePopup();
-                      }
-
-                      function addBubbleChartToMap() {
-                          alert("Bubble Charts to be implemented!");
-                      }
-
-
-                      if (addMode === 'additive') {
-                          addBubbleChartToMap();
-                      }
-
-                      if (addMode === 'exclusive') {
-                          for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                              if (map.eventsOnMap[i].eventType !== 'selectorEvent') {
-                                  map.defaultMapRef.eachLayer(function (layer) {
-                                      map.defaultMapRef.removeLayer(layer);
-                                  });
-                                  map.eventsOnMap.length = 0;
-                                  break;
-                              }
-                          }
-                          //Remove WidgetAlarm active pins
-                          $.event.trigger({
-                              type: "removeAlarmPin",
-                          });
-                          //Remove WidgetEvacuationPlans active pins
-                          $.event.trigger({
-                              type: "removeEvacuationPlanPin",
-                          });
-                          //Remove WidgetEvents active pins
-                          $.event.trigger({
-                              type: "removeEventFIPin",
-                          });
-                          //Remove WidgetResources active pins
-                          $.event.trigger({
-                              type: "removeResourcePin",
-                          });
-                          //Remove WidgetOperatorEvents active pins
-                          $.event.trigger({
-                              type: "removeOperatorEventPin",
-                          });
-                          //Remove WidgetTrafficEvents active pins
-                          $.event.trigger({
-                              type: "removeTrafficEventPin",
-                          });
-                          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                              attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                              maxZoom: 18
-                          }).addTo(map.defaultMapRef);
-
-                          addBubbleChartToMap();
-                      }
-
-                  }*/
-
-                if (event.target === map.mapName) {
+                function addSelectorEventToMap() {
                     if (lastPopup !== null) {
                         lastPopup.closePopup();
                     }
+                    var passedData = event.passedData;
 
-                    function addSelectorEventToMap() {
-                        var passedData = event.passedData;
+                    var mapBounds = map.defaultMapRef.getBounds();
+                    if (is3dOn)
+                        mapBounds = getLegacyBoundingBox(currentViewState);
+                    var query = passedData.query;
+                    var targets = passedData.targets;
+                    var eventGenerator = passedData.eventGenerator;
+                    var color1 = passedData.color1;
+                    var color2 = passedData.color2;
+                    var queryType = passedData.queryType;
+                    var desc = passedData.desc;
+                    var display = passedData.display;
+                    if (desc == "") {
+                        desc = query;
+                    }
+                    var pinattr = passedData.pinattr;
+                    var pincolor = passedData.pincolor;
+                    var symbolcolor = passedData.symbolcolor;
+                    var iconFilePath = passedData.iconFilePath;
+                    bubbleSelectedMetric[desc] = passedData.bubbleSelectedMetric;
+                    var altViewMode = passedData.altViewMode;
 
-                        var mapBounds = map.defaultMapRef.getBounds();
-                        if (is3dOn)
-                            mapBounds = getLegacyBoundingBox(currentViewState);
-                        var query = passedData.query;
-                        var targets = passedData.targets;
-                        var eventGenerator = passedData.eventGenerator;
-                        var color1 = passedData.color1;
-                        var color2 = passedData.color2;
-                        var queryType = passedData.queryType;
-                        var desc = passedData.desc;
-                        var display = passedData.display;
-                        if (desc == "") {
-                            desc = query;
+                    var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+
+                    if ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0) {
+                        loadingDiv.insertAfter($(
+                            '#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
+                    } else {
+                        loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_map'));
+                    }
+
+                    loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($(
+                            '#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
+                        .length * loadingDiv.height())) + "px");
+                    loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv
+                        .width()) + "px");
+
+                    if (desc == query) {
+                        var loadingText = $(
+                            '<p class="gisMapLoadingDivTextPar">adding to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>'
+                        );
+                        var loadOkText = $(
+                            '<p class="gisMapLoadingDivTextPar"> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>'
+                        );
+                        var loadKoText = $(
+                            '<p class="gisMapLoadingDivTextPar">error adding to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>'
+                        );
+                    } else {
+                        var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc
+                            .toLowerCase() +
+                            '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>'
+                        );
+                        var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc
+                            .toLowerCase() +
+                            '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>'
+                        );
+                        var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc
+                            .toLowerCase() +
+                            '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>'
+                        );
+                    }
+
+                    loadingDiv.css("background", color1);
+                    loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " +
+                        color2 + ")");
+                    loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " +
+                        color2 + ")");
+                    loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " +
+                        color2 + ")");
+                    loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " +
+                        color2 + ")");
+
+                    loadingDiv.show();
+
+                    loadingDiv.append(loadingText);
+                    loadingDiv.css("opacity", 1);
+
+                    var parHeight = loadingText.height();
+                    var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                    loadingText.css("margin-top", parMarginTop + "px");
+
+                    var re1 = '(selection)'; // Word 1
+                    var re2 = '(=)'; // Any Single Character 1
+                    var re3 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])'; // Float 1
+                    var re4 = '(;|%3B)'; // Any Single Character 2
+                    var re5 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])'; // Float 2
+                    var re6 = '(;|%3B)?'; // Any Single Character 3
+                    var re7 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?'; // Float 3
+                    var re8 = '(;|%3B)?'; // Any Single Character 4
+                    var re9 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?'; // Float 4
+
+                    var pattern = new RegExp(re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9, [
+                        "i"
+                    ]);
+
+                    /*   if (queryType === "Default") {
+                            if (pattern.test(query)) {
+                                query = query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                            }
+                            else {
+                                query = query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                            }
                         }
-                        var pinattr = passedData.pinattr;
-                        var pincolor = passedData.pincolor;
-                        var symbolcolor = passedData.symbolcolor;
-                        var iconFilePath = passedData.iconFilePath;
-                        bubbleSelectedMetric[desc] = passedData.bubbleSelectedMetric;
-                        var altViewMode = passedData.altViewMode;
 
-                        var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
-
-                        if ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0) {
-                            loadingDiv.insertAfter($(
-                                '#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
-                        } else {
-                            loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_map'));
+                        if (targets !== "") {
+                            targets = targets.split(",");
                         }
+                        else {
+                            targets = [];
+                        }*/
 
-                        loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($(
-                                '#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                            .length * loadingDiv.height())) + "px");
-                        loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv
-                            .width()) + "px");
-
-                        if (desc == query) {
-                            var loadingText = $(
-                                '<p class="gisMapLoadingDivTextPar">adding to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>'
-                            );
-                            var loadOkText = $(
-                                '<p class="gisMapLoadingDivTextPar"> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>'
-                            );
-                            var loadKoText = $(
-                                '<p class="gisMapLoadingDivTextPar">error adding to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>'
-                            );
-                        } else {
-                            var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc
-                                .toLowerCase() +
-                                '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>'
-                            );
-                            var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc
-                                .toLowerCase() +
-                                '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>'
-                            );
-                            var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc
-                                .toLowerCase() +
-                                '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>'
-                            );
-                        }
-
-                        loadingDiv.css("background", color1);
-                        loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " +
-                            color2 + ")");
-                        loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " +
-                            color2 + ")");
-                        loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " +
-                            color2 + ")");
-                        loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " +
-                            color2 + ")");
-
-                        loadingDiv.show();
-
-                        loadingDiv.append(loadingText);
-                        loadingDiv.css("opacity", 1);
-
-                        var parHeight = loadingText.height();
-                        var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                        loadingText.css("margin-top", parMarginTop + "px");
-
-                        var re1 = '(selection)'; // Word 1
-                        var re2 = '(=)'; // Any Single Character 1
-                        var re3 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])'; // Float 1
-                        var re4 = '(;|%3B)'; // Any Single Character 2
-                        var re5 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])'; // Float 2
-                        var re6 = '(;|%3B)?'; // Any Single Character 3
-                        var re7 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?'; // Float 3
-                        var re8 = '(;|%3B)?'; // Any Single Character 4
-                        var re9 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?'; // Float 4
-
-                        var pattern = new RegExp(re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9, [
-                            "i"
-                        ]);
-
-                        /*   if (queryType === "Default") {
-                               if (pattern.test(query)) {
-                                   query = query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
-                               }
-                               else {
-                                   query = query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
-                               }
-                           }
-
-                           if (targets !== "") {
-                               targets = targets.split(",");
-                           }
-                           else {
-                               targets = [];
-                           }*/
-
-                        if (queryType === "Default") {
-                            if (passedData.query.includes("datamanager/api/v1/poidata/")) { // DA GESTIRE
-                                if (passedData.desc != "My POI") {
-                                    myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
-                                    apiUrl = "../controllers/myPOIProxy.php";
-                                    dataForApi = myPOIId;
-                                    query = passedData.query;
-                                } else {
-                                    apiUrl = "../controllers/myPOIProxy.php";
-                                    dataForApi = "All";
-                                    query = passedData.query;
-                                }
-                            } else if (passedData.query.includes("/iot/") && !passedData.query.includes(
-                                    "/api/v1/")) { // DA GESTIRE
-                                query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData
-                                    .query + "&format=json";
-                            } else {
-                                if (pattern.test(passedData.query)) {
-                                    query = passedData.query.replace(pattern, "selection=" + mapBounds[
-                                            "_southWest"].lat + ";" + mapBounds["_southWest"].lng +
-                                        ";" + mapBounds["_northEast"].lat + ";" + mapBounds[
-                                            "_northEast"].lng);
-                                } else {
-                                    query = passedData.query + "&selection=" + mapBounds["_southWest"].lat +
-                                        ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"]
-                                        .lat + ";" + mapBounds["_northEast"].lng;
-                                }
-                                if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode ==
-                                    "DynamicCustomPin") {
-                                    query = query + "&valueName=" + bubbleSelectedMetric[desc];
-                                }
-                                query = "<?= $superServiceMapProxy ?>api/v1?" + query.split('?')[1];
-                            }
-                            if (!query.includes("&maxResults")) {
-                                if (!query.includes("&queryId")) {
-                                    query = query + "&maxResults=0";
-                                }
-                            }
-                        } else if (queryType === "Sensor") {
-                            if (event.query != null) {
-                                query = "<?= $superServiceMapProxy ?>" + event.query;
-                            } else if (query != null) {
-                                query = "<?= $superServiceMapProxy ?>" + encodeServiceUri(query);
-                            }
-                            if (query.includes("&fromTime=")) {
-                                if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode ==
-                                    "DynamicCustomPin") {
-                                    query = query.split("&fromTime=")[0] + "&valueName=" +
-                                        bubbleSelectedMetric[desc];
-                                }
-                            } else {
-                                query = query + bubbleSelectedMetric[desc];
-                            }
-                        } else if (queryType === "MyPOI") {
+                    if (queryType === "Default") {
+                        if (passedData.query.includes("datamanager/api/v1/poidata/")) { // DA GESTIRE
                             if (passedData.desc != "My POI") {
                                 myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
                                 apiUrl = "../controllers/myPOIProxy.php";
@@ -10872,94 +10648,103 @@ if (!isset($_SESSION)) {
                                 dataForApi = "All";
                                 query = passedData.query;
                             }
+                        } else if (passedData.query.includes("/iot/") && !passedData.query.includes(
+                                "/api/v1/")) { // DA GESTIRE
+                            query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData
+                                .query + "&format=json";
                         } else {
-                            query = passedData.query;
-                        }
-
-                        if (passedData.targets !== "") {
-                            targets = passedData.targets.split(",");
-                        } else {
-                            targets = [];
-                        }
-
-                        if (queryType != "MyPOI" && !passedData.query.includes(
-                                "datamanager/api/v1/poidata/")) {
-                            apiUrl = query + "&geometry=true&fullCount=false";
-                        }
-
-                        //    if (queryType === "Sensor" && query.includes("%2525")) {
-                        if (query.includes("%2525") && !query.includes("%252525")) {
-                            let queryPart1 = query.split("/resource/")[0];
-                            let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
-                            let queryPart3 = query.split("&format=")[1];
-                            if (queryPart3 != undefined) {
-                                apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2) + "&format=" +
-                                    queryPart3;
+                            if (pattern.test(passedData.query)) {
+                                query = passedData.query.replace(pattern, "selection=" + mapBounds[
+                                        "_southWest"].lat + ";" + mapBounds["_southWest"].lng +
+                                    ";" + mapBounds["_northEast"].lat + ";" + mapBounds[
+                                        "_northEast"].lng);
                             } else {
-                                apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2);
+                                query = passedData.query + "&selection=" + mapBounds["_southWest"].lat +
+                                    ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"]
+                                    .lat + ";" + mapBounds["_northEast"].lng;
+                            }
+                            if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode ==
+                                "DynamicCustomPin") {
+                                query = query + "&valueName=" + bubbleSelectedMetric[desc];
+                            }
+                            query = "<?= $superServiceMapProxy ?>api/v1?" + query.split('?')[1];
+                        }
+                        if (!query.includes("&maxResults")) {
+                            if (!query.includes("&queryId")) {
+                                query = query + "&maxResults=0";
                             }
                         }
+                    } else if (queryType === "Sensor") {
+                        if (event.query != null) {
+                            query = "<?= $superServiceMapProxy ?>" + event.query;
+                        } else if (query != null) {
+                            query = "<?= $superServiceMapProxy ?>" + encodeServiceUri(query);
+                        }
+                        if (query.includes("&fromTime=")) {
+                            if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode ==
+                                "DynamicCustomPin") {
+                                query = query.split("&fromTime=")[0] + "&valueName=" +
+                                    bubbleSelectedMetric[desc];
+                            }
+                        } else {
+                            query = query + bubbleSelectedMetric[desc];
+                        }
+                    } else if (queryType === "MyPOI") {
+                        if (passedData.desc != "My POI") {
+                            myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
+                            apiUrl = "../controllers/myPOIProxy.php";
+                            dataForApi = myPOIId;
+                            query = passedData.query;
+                        } else {
+                            apiUrl = "../controllers/myPOIProxy.php";
+                            dataForApi = "All";
+                            query = passedData.query;
+                        }
+                    } else {
+                        query = passedData.query;
+                    }
 
-                        $.ajax({
-                            //    url: query + "&geometry=true&fullCount=false",
-                            url: apiUrl,
-                            type: "GET",
-                            data: {
-                                myPOIId: dataForApi
+                    if (passedData.targets !== "") {
+                        targets = passedData.targets.split(",");
+                    } else {
+                        targets = [];
+                    }
 
-                            },
-                            async: true,
-                            timeout: 0,
-                            dataType: 'json',
-                            success: function(geoJsonData) {
-                                var fatherGeoJsonNode = {};
+                    if (queryType != "MyPOI" && !passedData.query.includes(
+                            "datamanager/api/v1/poidata/")) {
+                        apiUrl = query + "&geometry=true&fullCount=false";
+                    }
 
-                                if (queryType === "Default") {
-                                    if (passedData.query.includes(
-                                            "datamanager/api/v1/poidata/")) {
-                                        fatherGeoJsonNode.features = [];
-                                        if (passedData.desc != "My POI") {
-                                            fatherGeoJsonNode.features[0] = geoJsonData;
-                                        } else {
-                                            fatherGeoJsonNode.features = geoJsonData;
-                                        }
-                                        fatherGeoJsonNode.type = "FeatureCollection";
-                                    } else {
-                                        var countObjKeys = 0;
-                                        var objContainer = {};
-                                        Object.keys(geoJsonData).forEach(function(key) {
-                                            if (countObjKeys == 0) {
-                                                if (geoJsonData.hasOwnProperty(key)) {
-                                                    fatherGeoJsonNode = geoJsonData[
-                                                        key];
-                                                }
-                                            } else {
-                                                if (geoJsonData.hasOwnProperty(key)) {
-                                                    if (geoJsonData[key].features) {
-                                                        fatherGeoJsonNode.features =
-                                                            fatherGeoJsonNode.features
-                                                            .concat(geoJsonData[key]
-                                                                .features);
-                                                    }
-                                                }
-                                            }
-                                            countObjKeys++;
-                                        });
-                                        /*    if (geoJsonData.hasOwnProperty("BusStops")) {
-                                                fatherGeoJsonNode = geoJsonData.BusStops;
-                                            } else {
-                                                if (geoJsonData.hasOwnProperty("SensorSites")) {
-                                                    fatherGeoJsonNode = geoJsonData.SensorSites;
-                                                } else {
-                                                    if (geoJsonData.hasOwnProperty("Service")) {
-                                                        fatherGeoJsonNode = geoJsonData.Service;
-                                                    } else {
-                                                        fatherGeoJsonNode = geoJsonData.Services;
-                                                    }
-                                                }
-                                            }*/
-                                    }
-                                } else if (queryType === "MyPOI") {
+                    //    if (queryType === "Sensor" && query.includes("%2525")) {
+                    if (query.includes("%2525") && !query.includes("%252525")) {
+                        let queryPart1 = query.split("/resource/")[0];
+                        let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
+                        let queryPart3 = query.split("&format=")[1];
+                        if (queryPart3 != undefined) {
+                            apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2) + "&format=" +
+                                queryPart3;
+                        } else {
+                            apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2);
+                        }
+                    }
+
+                    $.ajax({
+                        //    url: query + "&geometry=true&fullCount=false",
+                        url: apiUrl,
+                        type: "GET",
+                        data: {
+                            myPOIId: dataForApi
+
+                        },
+                        async: true,
+                        timeout: 0,
+                        dataType: 'json',
+                        success: function(geoJsonData) {
+                            var fatherGeoJsonNode = {};
+
+                            if (queryType === "Default") {
+                                if (passedData.query.includes(
+                                        "datamanager/api/v1/poidata/")) {
                                     fatherGeoJsonNode.features = [];
                                     if (passedData.desc != "My POI") {
                                         fatherGeoJsonNode.features[0] = geoJsonData;
@@ -10968,1195 +10753,219 @@ if (!isset($_SESSION)) {
                                     }
                                     fatherGeoJsonNode.type = "FeatureCollection";
                                 } else {
-                                    /*   var countObjKeys = 0;
-                                       var objContainer = {};
-                                       Object.keys(geoJsonData).forEach(function (key) {
-                                           if (countObjKeys == 0) {
-                                               if (geoJsonData.hasOwnProperty(key)) {
-                                                   fatherGeoJsonNode = geoJsonData[key];
-                                               }
-                                           } else {
-                                               if (geoJsonData.hasOwnProperty(key)) {
-                                                   fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
-                                               }
-                                           }
-                                           countObjKeys++;
-                                       });*/
-                                    if (geoJsonData.hasOwnProperty("BusStop")) {
-                                        fatherGeoJsonNode = geoJsonData.BusStop;
-                                    } else {
-                                        if (geoJsonData.hasOwnProperty("Sensor")) {
-                                            fatherGeoJsonNode = geoJsonData.Sensor;
-                                        } else {
-                                            if (geoJsonData.hasOwnProperty("Service")) {
-                                                fatherGeoJsonNode = geoJsonData.Service;
-                                            } else {
-                                                fatherGeoJsonNode = geoJsonData.Services;
-                                            }
-                                        }
-                                    }
-                                    //   fatherGeoJsonNode.features[0].properties.realtime = {};
-                                    //    if (geoJsonData.hasOwnProperty("realtime") && bubbleSelectedMetric[desc] != '') {     // Commenta x POT. MOD. CONV. addSelectorPin
-                                    if (geoJsonData.hasOwnProperty(
-                                            "realtime"
-                                        )) { // Attiva x POT. MOD. CONV. addSelectorPin
-                                        var dataObj = {};
-                                        if (fatherGeoJsonNode.features[0].properties
-                                            .realtimeAttributes.hasOwnProperty(
-                                                bubbleSelectedMetric[desc])) {
-                                            fatherGeoJsonNode.features[0].properties[
-                                                    bubbleSelectedMetric[desc]] = geoJsonData
-                                                .realtime.results.bindings[0][
-                                                    bubbleSelectedMetric[desc]
-                                                ].value;
-                                            if (isNaN(parseFloat(fatherGeoJsonNode.features[0]
-                                                    .properties[bubbleSelectedMetric[desc]]
-                                                ))) {
-                                                fatherGeoJsonNode.features.splice(0, 1);
-                                            } else {
-                                                if (fatherGeoJsonNode.features[0].properties[
-                                                        bubbleSelectedMetric[desc]] >
-                                                    maxValue) {
-                                                    maxValue = fatherGeoJsonNode.features[0]
-                                                        .properties[bubbleSelectedMetric[desc]];
-                                                }
-                                                if (geoJsonData.realtime.results.bindings[0]
-                                                    .hasOwnProperty("measuredTime")) {
-                                                    fatherGeoJsonNode.features[0].properties
-                                                        .measuredTime = geoJsonData.realtime
-                                                        .results.bindings[0].measuredTime.value;
-                                                } else {
-                                                    fatherGeoJsonNode.features[0].properties
-                                                        .measuredTime = null;
-                                                }
-
-                                                dataObj.lat = fatherGeoJsonNode.features[0]
-                                                    .geometry.coordinates[1];
-                                                dataObj.lng = fatherGeoJsonNode.features[0]
-                                                    .geometry.coordinates[0];
-                                                dataObj.eventType = "selectorEvent";
-                                                dataObj.desc = desc;
-                                                dataObj.query = passedData.query;
-                                                dataObj.targets = passedData.targets;
-                                                dataObj.eventGenerator = passedData
-                                                    .eventGenerator;
-                                                dataObj.color1 = passedData.color1;
-                                                dataObj.color2 = passedData.color2;
-                                                dataObj.queryType = passedData.queryType;
-                                                dataObj.display = passedData.display;
-                                                dataObj.iconTextMode = passedData.iconTextMode;
-
-                                                //    map.eventsOnMap.push(dataObj);
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .distance;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .typeLabel;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .tipo;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .photoThumbs;
-                                                //   delete fatherGeoJsonNode.features[0].properties.serviceUri;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .serviceType;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .lastValue;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .multimedia;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .hasGeometry;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .municipality;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .address;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .organization;
-                                                //    delete fatherGeoJsonNode.features[0].properties.realtimeAttributes;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .linkDBpedia;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .avgStars;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .starsCount;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .comments;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .photos;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .photoOrigs;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .wktGeometry;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .description;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .description2;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .description;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .civic;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .cap;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .email;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .note;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .city;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .province;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .website;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .phone;
-                                                delete fatherGeoJsonNode.features[0].properties
-                                                    .fax;
+                                    var countObjKeys = 0;
+                                    var objContainer = {};
+                                    Object.keys(geoJsonData).forEach(function(key) {
+                                        if (countObjKeys == 0) {
+                                            if (geoJsonData.hasOwnProperty(key)) {
+                                                fatherGeoJsonNode = geoJsonData[
+                                                    key];
                                             }
                                         } else {
-                                            fatherGeoJsonNode.features[0].properties[
-                                                bubbleSelectedMetric[desc]] = 0;
-                                            //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
-                                            fatherGeoJsonNode.features.splice(0, 1);
-                                        }
-                                    }
-                                }
-
-                                var maxValue = 0;
-
-                                //  if (bubbleSelectedMetric[desc] != '') {     // Comment x POT. MOD. CONV. addSelectorPin
-                                //     if (fatherGeoJsonNode.features.length == 1 && geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[desc]]) {
-
-                                //     console.log("Lenght of SMart CIty API Response for Event '" + passedData.desc + "': " + fatherGeoJsonNode.features.length);
-                                //     } else {
-                                var i = 0;
-                                // for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
-                                while (i < fatherGeoJsonNode.features.length) {
-                                    var dataObj = {};
-
-                                    if (altViewMode != "Bubble") {
-                                        fatherGeoJsonNode.features[i].properties.targetWidgets =
-                                            targets;
-                                        fatherGeoJsonNode.features[i].properties.color1 =
-                                            color1;
-                                        fatherGeoJsonNode.features[i].properties.color2 =
-                                            color2;
-                                        fatherGeoJsonNode.features[i].properties.pinattr =
-                                            passedData.pinattr;
-                                        fatherGeoJsonNode.features[i].properties.pincolor =
-                                            passedData.pincolor;
-                                        fatherGeoJsonNode.features[i].properties.symbolcolor =
-                                            passedData.symbolcolor;
-                                        fatherGeoJsonNode.features[i].properties.iconFilePath =
-                                            passedData.iconFilePath;
-                                        fatherGeoJsonNode.features[i].properties.altViewMode =
-                                            passedData.altViewMode;
-                                        if (fatherGeoJsonNode.features[i].properties
-                                            .lastValue == null && geoJsonData.hasOwnProperty(
-                                                "realtime")
-                                        ) { // Attiva x POT. MOD. CONV. addSelectorPin
-                                            if (fatherGeoJsonNode.features[0].properties
-                                                .realtimeAttributes.hasOwnProperty(
-                                                    bubbleSelectedMetric[desc])) {
-                                                var key = bubbleSelectedMetric[desc];
-                                                var obj = {};
-                                                obj[key] = geoJsonData.realtime.results
-                                                    .bindings[0][bubbleSelectedMetric[desc]]
-                                                    .value;
-                                                fatherGeoJsonNode.features[0].properties[
-                                                    "lastValue"] = obj;
-                                            }
-                                        }
-                                    }
-
-                                    var valueObj = {};
-                                    if (fatherGeoJsonNode.features[i].properties.lastValue !=
-                                        null) {
-                                        if (fatherGeoJsonNode.features[i].properties.lastValue
-                                            .hasOwnProperty(bubbleSelectedMetric[desc])) {
-                                            fatherGeoJsonNode.features[i].properties[
-                                                    bubbleSelectedMetric[desc]] =
-                                                fatherGeoJsonNode.features[i].properties
-                                                .lastValue[bubbleSelectedMetric[desc]];
-                                            fatherGeoJsonNode.features[i].properties[
-                                                    bubbleSelectedMetric[desc]] =
-                                                fatherGeoJsonNode.features[i].properties[
-                                                    bubbleSelectedMetric[desc]].replace(/"/g,
-                                                    "");
-                                            if (isNaN(parseFloat(fatherGeoJsonNode.features[i]
-                                                    .properties[bubbleSelectedMetric[desc]]
-                                                ))) {
-                                                if (altViewMode != "CustomPin" && altViewMode !=
-                                                    "DynamicCustomPin") {
-                                                    fatherGeoJsonNode.features.splice(i, 1);
-                                                    continue;
-                                                }
-                                            } else {
-                                                if (fatherGeoJsonNode.features[i].properties[
-                                                        bubbleSelectedMetric[desc]] >
-                                                    maxValue) {
-                                                    maxValue = fatherGeoJsonNode.features[i]
-                                                        .properties[bubbleSelectedMetric[desc]];
-                                                }
-                                            }
-                                        } else {
-                                            fatherGeoJsonNode.features[i].properties[
-                                                bubbleSelectedMetric[desc]] = 0;
-                                            //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
-                                            fatherGeoJsonNode.features.splice(i, 1);
-                                            continue;
-                                        }
-                                    } else {
-                                        fatherGeoJsonNode.features[i].properties[
-                                            bubbleSelectedMetric[desc]] = 0;
-                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
-                                        fatherGeoJsonNode.features.splice(i, 1);
-                                        continue;
-                                    }
-
-                                    if (fatherGeoJsonNode.features[i].properties.lastValue
-                                        .hasOwnProperty("measuredTime")) {
-                                        fatherGeoJsonNode.features[i].properties.measuredTime =
-                                            fatherGeoJsonNode.features[i].properties.lastValue[
-                                                "measuredTime"];
-                                    } else {
-                                        fatherGeoJsonNode.features[i].properties.measuredTime =
-                                            null;
-                                    }
-
-                                    dataObj.lat = fatherGeoJsonNode.features[i].geometry
-                                        .coordinates[1];
-                                    dataObj.lng = fatherGeoJsonNode.features[i].geometry
-                                        .coordinates[0];
-                                    dataObj.eventType = "selectorEvent";
-                                    dataObj.desc = desc;
-                                    dataObj.query = passedData.query;
-                                    dataObj.targets = passedData.targets;
-                                    dataObj.eventGenerator = passedData.eventGenerator;
-                                    dataObj.color1 = passedData.color1;
-                                    dataObj.color2 = passedData.color2;
-                                    dataObj.queryType = passedData.queryType;
-                                    dataObj.display = passedData.display;
-                                    dataObj.iconTextMode = passedData.iconTextMode;
-
-                                    //    map.eventsOnMap.push(dataObj);
-                                    if (altViewMode == "Bubble") {
-                                        delete fatherGeoJsonNode.features[i].properties
-                                            .distance;
-                                        delete fatherGeoJsonNode.features[i].properties
-                                            .typeLabel;
-                                        delete fatherGeoJsonNode.features[i].properties.tipo;
-                                        delete fatherGeoJsonNode.features[i].properties
-                                            .photoThumbs;
-                                        delete fatherGeoJsonNode.features[i].properties
-                                            .serviceUri;
-                                        delete fatherGeoJsonNode.features[i].properties
-                                            .serviceType;
-                                        delete fatherGeoJsonNode.features[i].properties
-                                            .lastValue;
-                                        delete fatherGeoJsonNode.features[i].properties
-                                            .multimedia;
-                                        delete fatherGeoJsonNode.features[i].properties
-                                            .hasGeometry;
-                                    }
-                                    i++;
-                                }
-                                //     }
-
-                                map.eventsOnMap.push(dataObj);
-                                //  console.log("Number of Devices with Matched Attributes for Event '" + passedData.desc + "': " + fatherGeoJsonNode.features.length);
-                                if (altViewMode != "Bubble") {
-
-                                    countSvgCnt = 0;
-                                    currentCustomSvgLayer = desc;
-                                    // Aggiornare totalSvgCnt con la length di fatherJsonNode
-                                    totalSvgCnt = fatherGeoJsonNode.features.length;
-
-                                    //    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
-                                    if(is3dOn) {
-                                        if (altViewMode == 'DynamicCustomPin') {
-                                            var min = 0;
-                                            var max = 100;
-                                            const c = "";
-                                            minS = apiUrl.match(/min=\d+(.\d+)?/);
-                                            maxS = apiUrl.match(/max=\d+(.\d+)?/);
-                                            if (minS)
-                                                min = parseFloat(minS[0].split('=')[1]);
-                                            if (maxS)
-                                                max = parseFloat(maxS[0].split('=')[1]);
-                                            const metric = bubbleSelectedMetric[desc];
-                                            let featureRemaining = fatherGeoJsonNode.features.length;
-                                            const loadingRTDiv = new LoadingDiv({
-                                                text: 'Loading real-time data.',
-                                                color1,
-                                                color2,
-                                            });
-                                            let rtOn = false;
-                                            for (let feature of fatherGeoJsonNode.features) {
-                                                const uri = feature.properties.serviceUri;
-                                                const url =
-                                                    `../controllers/superservicemapProxy.php/api/v1/?serviceUri=${uri}&format=json&fullCount=false`;
-                                                $.ajax({
-                                                    url,
-                                                    type: 'GET',
-                                                    async: true,
-                                                    success: (data) => {
-                                                        try {
-                                                            feature.realtime = data.realtime;
-                                                            const newVal = parseFloat(data.realtime.results.bindings[0][metric].value);
-                                                            if (newVal)
-                                                                feature.elevation = (newVal / (max - min)) * 80;
-                                                            featureRemaining--;
-                                                            if (featureRemaining == 0) {
-                                                                for (let layer of layers.fixedPins) {
-                                                                    if (layer.props.id == passedData.desc) {
-                                                                        const updateSensor3DLayer = new Sensors3DLayer({
-                                                                            data: fatherGeoJsonNode.features,
-                                                                            id: `${passedData.desc}`,
-                                                                            getFillColor: rgbaStringToArray(color1).slice(0,
-                                                                                -1),
-                                                                            getElevation: d => d.elevation || 0,
-                                                                            updateTriggers: {
-                                                                                getElevation: featureRemaining,
-                                                                            },
-                                                                            onClick: (event, info) => {
-                                                                                console.log('sensor3d triggered click');
-                                                                                info.object = event.object;
-                                                                                info.coordinate = event.coordinate;
-                                                                                onMarkerClick(event, info);
-                                                                            },
-                                                                        });
-                                                                        removeLayerSet(layer.props.id, layers.fixedPins);
-                                                                        layers.fixedPins.push(updateSensor3DLayer);
-                                                                        updateLayers();
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                loadingRTDiv.setStatus('ok');
-                                                            }
-                                                        } catch (err) {
-                                                            loadingRTDiv.setStatus('ko');
-                                                            console.error('error during converting metrics in sensors 3d');
-                                                            console.error(err);
-                                                        }
-                                                    },
-                                                    error: (err) => console.error(err),
-                                                });
-                                            }
-                                            const sensor3DLayer = new Sensors3DLayer({
-                                                data: fatherGeoJsonNode.features,
-                                                id: passedData.desc,
-                                                getElevation: d => d.elevation || 0,
-                                                updateTriggers: {
-                                                    getElevation: featureRemaining,
-                                                },
-                                                getFillColor: rgbaStringToArray(color1).slice(0,
-                                                    -1),
-                                                onClick: (event, info) => {
-                                                    console.log('sensor3d triggered click');
-                                                    info.object = event.object;
-                                                    info.coordinate = event.coordinate;
-                                                    onMarkerClick(event, info);
-                                                },
-                                            });
-                                            layers.fixedPins.push(sensor3DLayer);
-                                        } else {
-                                            const svgLayer = createSVGLayer({
-                                                id: desc,
-                                                data: fatherGeoJsonNode.features,
-                                                onClick: (event, info) => {
-                                                    console.log('sensor3d triggered click');
-                                                    info.object = event.object;
-                                                    info.coordinate = event.coordinate;
-                                                    onMarkerClick(event, info);
-                                                },
-                                            });
-                                            layers.pin.push(svgLayer);
-                                        }
-                                        updateLayers();
-                                    } else {
-                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-                                            pointToLayer: gisPrepareCustomMarker,
-                                            onEachFeature: onEachFeatureSpiderify
-                                            //   }).addTo(map.defaultMapRef);
-                                        });
-                                    }
-                                    //    }
-
-                                    loadingDiv.empty();
-                                    loadingDiv.append(loadOkText);
-
-                                    parHeight = loadOkText.height();
-                                    parMarginTop = Math.floor((loadingDiv.height() -
-                                        parHeight) / 2);
-                                    loadOkText.css("margin-top", parMarginTop + "px");
-
-                                    setTimeout(function() {
-                                        loadingDiv.css("opacity", 0);
-                                        setTimeout(function() {
-                                            loadingDiv.nextAll(
-                                                "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                            ).each(function() {
-                                                $(this).css("top", ($(
-                                                            '#<?= $_REQUEST['name_w'] ?>_div'
-                                                        )
-                                                        .height() -
-                                                        (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                                                .length -
-                                                                1) *
-                                                            loadingDiv
-                                                            .height()
-                                                        )) +
-                                                    "px");
-                                            });
-                                            loadingDiv.remove();
-                                        }, 350);
-                                    }, 1000);
-
-                                    eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        "i.gisLoadingIcon").hide();
-                                    eventGenerator.parents('div.gisMapPtrContainer').siblings(
-                                        'div.gisQueryDescContainer').find(
-                                        'p.gisQueryDescPar').css("font-weight", "bold");
-                                    eventGenerator.parents('div.gisMapPtrContainer').siblings(
-                                        'div.gisQueryDescContainer').find(
-                                        'p.gisQueryDescPar').css("color", eventGenerator
-                                        .attr("data-activeFontColor"));
-                                    if (eventGenerator.parents("div.gisMapPtrContainer").find(
-                                            'a.gisPinLink').attr("data-symbolMode") ===
-                                        'auto') {
-                                        eventGenerator.parents("div.gisMapPtrContainer").find(
-                                            "i.gisPinIcon").html("near_me");
-                                        eventGenerator.parents("div.gisMapPtrContainer").find(
-                                            "i.gisPinIcon").css("color", "white");
-                                        eventGenerator.parents("div.gisMapPtrContainer").find(
-                                            "i.gisPinIcon").css("text-shadow",
-                                            "2px 2px 4px black");
-                                    } else {
-                                        //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                        eventGenerator.parents("div.gisMapPtrContainer").find(
-                                            "div.gisPinCustomIconUp").show();
-                                        eventGenerator.parents("div.gisMapPtrContainer").find(
-                                            "div.gisPinCustomIconUp").css("height", "100%");
-                                    }
-
-                                    eventGenerator.show();
-
-                                    var wkt = null;
-
-                                    if (display !== 'pins') {
-                                        stopGeometryAjax[desc] = false;
-                                        gisGeometryTankForFullscreen[desc] = {
-                                            capacity: fatherGeoJsonNode.features.length,
-                                            shown: false,
-                                            tank: [],
-                                            lastConsumedIndex: 0
-                                        };
-
-                                        for (var i = 0; i < fatherGeoJsonNode.features
-                                            .length; i++) {
-                                            if (fatherGeoJsonNode.features[i].properties
-                                                .hasOwnProperty('hasGeometry') &&
-                                                fatherGeoJsonNode.features[i].properties
-                                                .hasOwnProperty('serviceUri')) {
-                                                if (fatherGeoJsonNode.features[i].properties
-                                                    .hasGeometry === true) {
-                                                    //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
-
-                                                    $.ajax({
-                                                        url: "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" +
-                                                            fatherGeoJsonNode.features[
-                                                                i].properties
-                                                            .serviceUri,
-                                                        type: "GET",
-                                                        data: {},
-                                                        async: true,
-                                                        timeout: 0,
-                                                        dataType: 'json',
-                                                        success: function(
-                                                            geometryGeoJson) {
-                                                            if (!stopGeometryAjax[
-                                                                    desc]) {
-                                                                // Creazione nuova istanza del parser Wkt
-                                                                wkt = new Wkt.Wkt();
-
-                                                                // Lettura del WKT dalla risposta
-                                                                wkt.read(
-                                                                    geometryGeoJson
-                                                                    .Service
-                                                                    .features[0]
-                                                                    .properties
-                                                                    .wktGeometry,
-                                                                    null);
-
-                                                                var ciclePathFeature = [{
-                                                                    type: "Feature",
-                                                                    properties: geometryGeoJson
-                                                                        .Service
-                                                                        .features[
-                                                                            0
-                                                                        ]
-                                                                        .properties,
-                                                                    geometry: wkt
-                                                                        .toJson()
-                                                                }];
-
-                                                                if (!
-                                                                    gisGeometryLayersOnMap
-                                                                    .hasOwnProperty(
-                                                                        desc)) {
-                                                                    gisGeometryLayersOnMap
-                                                                        [desc] = [];
-                                                                }
-
-                                                                // CORTI - Pane
-                                                                map.defaultMapRef
-                                                                    .createPane(
-                                                                        'ciclePathFeature'
-                                                                    );
-                                                                map.defaultMapRef
-                                                                    .getPane(
-                                                                        'ciclePathFeature'
-                                                                    ).style
-                                                                    .zIndex = 420;
-
-                                                                gisGeometryLayersOnMap
-                                                                    [desc].push(L
-                                                                        .geoJSON(
-                                                                            ciclePathFeature, {
-                                                                                pane: 'ciclePathFeature'
-                                                                            })
-                                                                        .addTo(map
-                                                                            .defaultMapRef
-                                                                        ));
-                                                                gisGeometryTankForFullscreen
-                                                                    [desc].tank
-                                                                    .push(
-                                                                        ciclePathFeature
-                                                                    );
-                                                            }
-                                                        },
-                                                        error: function(
-                                                            geometryErrorData) {
-                                                            console.log("Ko");
-                                                            console.log(JSON
-                                                                .stringify(
-                                                                    geometryErrorData
-                                                                ));
-                                                        }
-                                                    });
+                                            if (geoJsonData.hasOwnProperty(key)) {
+                                                if (geoJsonData[key].features) {
+                                                    fatherGeoJsonNode.features =
+                                                        fatherGeoJsonNode.features
+                                                        .concat(geoJsonData[key]
+                                                            .features);
                                                 }
                                             }
                                         }
-                                    }
-
-                                } else {
-
-                                    bubbles[desc] = {};
-                                    map.defaultMapRef.createPane('bubblePane');
-                                    map.defaultMapRef.getPane('bubblePane').style.zIndex = 415;
-                                    if (fatherGeoJsonNode.features.length > 0) {
-                                        bubbles[desc] = L.bubbleLayer(fatherGeoJsonNode, {
-                                            property: bubbleSelectedMetric[desc],
-                                            legend: false,
-                                            max_radius: 25,
-                                            //    scale: 'YlGnBu',
-                                            //    scale: [passedData.color1, '#ffffff'],
-                                            //    scale: ['#ffffff', passedData.color1],
-                                            //    scale: passedData.color1,
-                                            //    pane: 'bubblePane',
-                                            style: {
-                                                fillColor: passedData.color1,
-                                                weight: 0.3,
-                                                pane: 'bubblePane'
-                                            },
-                                            tooltip: true
-                                        });
-
-                                        /*   if (isNaN(bubbles.options.style.radius)) {
-                                               bubbles.options.style.radius = 10;
-                                           }*/
-
-                                        bubbles[desc].addTo(map.defaultMapRef);
-
-                                        loadingDiv.empty();
-                                        loadingDiv.append(loadOkText);
-
-                                        parHeight = loadOkText.height();
-                                        parMarginTop = Math.floor((loadingDiv.height() -
-                                            parHeight) / 2);
-                                        loadOkText.css("margin-top", parMarginTop + "px");
-
-                                        setTimeout(function() {
-                                            loadingDiv.css("opacity", 0);
-                                            setTimeout(function() {
-                                                loadingDiv.nextAll(
-                                                    "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                                ).each(function() {
-                                                    $(this).css("top", (
-                                                            $(
-                                                                '#<?= $_REQUEST['name_w'] ?>_div'
-                                                            )
-                                                            .height() -
-                                                            (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                                                    .length -
-                                                                    1
-                                                                ) *
-                                                                loadingDiv
-                                                                .height()
-                                                            )) +
-                                                        "px");
-                                                });
-                                                loadingDiv.remove();
-                                            }, 350);
-                                        }, 1000);
-
-                                        eventGenerator.parents("div.gisMapPtrContainer").find(
-                                            "i.gisLoadingIcon").hide();
-                                        eventGenerator.parents('div.gisMapPtrContainer')
-                                            .siblings('div.gisQueryDescContainer').find(
-                                                'p.gisQueryDescPar').css("font-weight", "bold");
-                                        eventGenerator.parents('div.gisMapPtrContainer')
-                                            .siblings('div.gisQueryDescContainer').find(
-                                                'p.gisQueryDescPar').css("color", eventGenerator
-                                                .attr("data-activeFontColor"));
-                                        if (eventGenerator.parents("div.gisMapPtrContainer")
-                                            .find('a.gisPinLink').attr("data-symbolMode") ===
-                                            'auto') {
-                                            eventGenerator.parents("div.gisMapPtrContainer")
-                                                .find("i.gisPinIcon").html("near_me");
-                                            eventGenerator.parents("div.gisMapPtrContainer")
-                                                .find("i.gisPinIcon").css("color", "white");
-                                            eventGenerator.parents("div.gisMapPtrContainer")
-                                                .find("i.gisPinIcon").css("text-shadow",
-                                                    "2px 2px 4px black");
-                                        } else {
-                                            //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                            eventGenerator.parents("div.gisMapPtrContainer")
-                                                .find("div.gisPinCustomIconUp").show();
-                                            eventGenerator.parents("div.gisMapPtrContainer")
-                                                .find("div.gisPinCustomIconUp").css("height",
-                                                    "100%");
-                                        }
-
-                                        eventGenerator.show();
-                                    } else {
-                                        var loadNoBubbleMetricsText = $(
-                                            '<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>'
-                                        );
-                                        loadingDiv.empty();
-                                        loadingDiv.append(loadNoBubbleMetricsText);
-
-                                        parHeight = loadNoBubbleMetricsText.height();
-                                        parMarginTop = Math.floor((loadingDiv.height() -
-                                            parHeight) / 2);
-                                        loadNoBubbleMetricsText.css("margin-top", parMarginTop +
-                                            "px");
-                                        setTimeout(function() {
-                                            loadingDiv.css("opacity", 0);
-                                            setTimeout(function() {
-                                                loadingDiv.nextAll(
-                                                    "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                                ).each(function() {
-                                                    $(this).css("top", (
-                                                            $(
-                                                                '#<?= $_REQUEST['name_w'] ?>_div'
-                                                            )
-                                                            .height() -
-                                                            (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                                                    .length -
-                                                                    1
-                                                                ) *
-                                                                loadingDiv
-                                                                .height()
-                                                            )) +
-                                                        "px");
-                                                });
-                                                loadingDiv.remove();
-                                            }, 350);
-                                        }, 1000);
-
-                                        eventGenerator.parents("div.gisMapPtrContainer").find(
-                                            "i.gisLoadingIcon").hide();
-                                        eventGenerator.parents("div.gisMapPtrContainer").find(
-                                            "i.gisLoadErrorIcon").show();
-
-                                        setTimeout(function() {
-                                            eventGenerator.parents(
-                                                "div.gisMapPtrContainer").find(
-                                                "i.gisLoadErrorIcon").hide();
-                                            eventGenerator.parents(
-                                                "div.gisMapPtrContainer").find(
-                                                "a.gisPinLink").attr("data-onMap",
-                                                "false");
-                                            eventGenerator.parents(
-                                                "div.gisMapPtrContainer").find(
-                                                "a.gisPinLink").show();
-                                        }, 1500);
-
-                                    }
-
-                                    // CORTI - setta markers nella mappa 3D
-                                    //                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-                                    //                                            pointToLayer: gisPrepareCustomMarker,
-                                    //                                            onEachFeature: onEachFeature
-                                    //                                        }).addTo(map.default3DMapRef);
-
-                                    //     }
-                                }
-
-                                // COMMENTA l'else x POT. MOD. CONV. addSelectorPin
-                                /*    } else {
-                                        var loadNoBubbleMetricsText = $('<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
-                                        loadingDiv.empty();
-                                        loadingDiv.append(loadNoBubbleMetricsText);
-
-                                        parHeight = loadNoBubbleMetricsText.height();
-                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                        loadNoBubbleMetricsText.css("margin-top", parMarginTop + "px");
-                                        setTimeout(function () {
-                                            loadingDiv.css("opacity", 0);
-                                            setTimeout(function () {
-                                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
-                                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                });
-                                                loadingDiv.remove();
-                                            }, 350);
-                                        }, 1000);
-
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
-
-                                        setTimeout(function () {
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
-                                        }, 1500);
-                                        
-                                    }*/
-                                // Fine commento else x POT. MOD. CONV. addSelectorPin
-                            },
-                            error: function(errorData) {
-                                gisLayersOnMap[event.desc] = "loadError";
-
-                                loadingDiv.empty();
-                                loadingDiv.append(loadKoText);
-
-                                parHeight = loadKoText.height();
-                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) /
-                                    2);
-                                loadKoText.css("margin-top", parMarginTop + "px");
-
-                                setTimeout(function() {
-                                    loadingDiv.css("opacity", 0);
-                                    setTimeout(function() {
-                                        loadingDiv.nextAll(
-                                            "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                        ).each(function(i) {
-                                            $(this).css("top", ($(
-                                                    '#<?= $_REQUEST['name_w'] ?>_div'
-                                                ).height() -
-                                                (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                                        .length -
-                                                        1) *
-                                                    loadingDiv
-                                                    .height())
-                                            ) + "px");
-                                        });
-                                        loadingDiv.remove();
-                                    }, 350);
-                                }, 1000);
-
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "i.gisLoadingIcon").hide();
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "i.gisLoadErrorIcon").show();
-
-                                setTimeout(function() {
-                                    eventGenerator.parents("div.gisMapPtrContainer")
-                                        .find("i.gisLoadErrorIcon").hide();
-                                    eventGenerator.parents("div.gisMapPtrContainer")
-                                        .find("a.gisPinLink").attr("data-onMap",
-                                            "false");
-                                    eventGenerator.parents("div.gisMapPtrContainer")
-                                        .find("a.gisPinLink").show();
-                                }, 1500);
-
-                                console.log("Error in getting GeoJSON from ServiceMap");
-                                console.log(JSON.stringify(errorData));
-                            }
-                        });
-                    }
-
-                    if (addMode === 'additive') {
-                        addSelectorEventToMap();
-                    }
-
-                    if (addMode === 'exclusive') {
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType !== 'selectorEvent') {
-                                map.defaultMapRef.eachLayer(function(layer) {
-                                    map.defaultMapRef.removeLayer(layer);
-                                });
-                                map.eventsOnMap.length = 0;
-                                break;
-                            }
-                        }
-                        //Remove WidgetAlarm active pins
-                        $.event.trigger({
-                            type: "removeAlarmPin",
-                        });
-                        //Remove WidgetEvacuationPlans active pins
-                        $.event.trigger({
-                            type: "removeEvacuationPlanPin",
-                        });
-                        //Remove WidgetEvents active pins
-                        $.event.trigger({
-                            type: "removeEventFIPin",
-                        });
-                        //Remove WidgetResources active pins
-                        $.event.trigger({
-                            type: "removeResourcePin",
-                        });
-                        //Remove WidgetOperatorEvents active pins
-                        $.event.trigger({
-                            type: "removeOperatorEventPin",
-                        });
-                        //Remove WidgetTrafficEvents active pins
-                        $.event.trigger({
-                            type: "removeTrafficEventPin",
-                        });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
-                        }).addTo(map.defaultMapRef);
-
-                        addSelectorEventToMap();
-                    }
-
-                    //  resizeMapView(map.defaultMapRef);
-                }
-
-            });
-
-            $(document).on('addSelectorPin', function(event) {
-
-                if (event.target === map.mapName) {
-                    if (lastPopup !== null) {
-                        lastPopup.closePopup();
-                    }
-
-                    function addSelectorEventToMap() {
-                        var passedData = event.passedData;
-
-                        var mapBounds = map.defaultMapRef.getBounds();
-                        var mapBounds3d = getMaxBoundingBox(currentViewState);
-                        var query = passedData.query;
-                        var targets = passedData.targets;
-                        var eventGenerator = passedData.eventGenerator;
-                        var color1 = passedData.color1;
-                        var color2 = passedData.color2;
-                        var queryType = passedData.queryType;
-                        var desc = passedData.desc;
-                        var display = passedData.display;
-                        if (desc == "") {
-                            desc = query;
-                        }
-                        var pinattr = passedData.pinattr;
-                        var pincolor = passedData.pincolor;
-                        var symbolcolor = passedData.symbolcolor;
-                        var iconFilePath = passedData.iconFilePath;
-
-                        var loadingDiv = new LoadingDiv({
-                            text: desc,
-                            color1,
-                            color2,
-                            autoremove: false,
-                        });
-
-                        var re1 = '(selection)'; // Word 1
-                        var re2 = '(=)'; // Any Single Character 1
-                        var re3 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])'; // Float 1
-                        var re4 = '(;|%3B)'; // Any Single Character 2
-                        var re5 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])'; // Float 2
-                        var re6 = '(;|%3B)?'; // Any Single Character 3
-                        var re7 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?'; // Float 3
-                        var re8 = '(;|%3B)?'; // Any Single Character 4
-                        var re9 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?'; // Float 4
-
-                        var pattern = new RegExp(re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9, [
-                            "i"
-                        ]);
-
-                        /*   if (queryType === "Default") {
-                               if (pattern.test(query)) {
-                                   query = query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
-                               }
-                               else {
-                                   query = query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
-                               }
-                           }
-
-                           if (targets !== "") {
-                               targets = targets.split(",");
-                           }
-                           else {
-                               targets = [];
-                           }*/
-
-                        if (queryType === "Default") {
-                            if (passedData.query.includes("datamanager/api/v1/poidata/")) {
-                                if (passedData.desc != "My POI") {
-                                    myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
-                                    apiUrl = "../controllers/myPOIProxy.php";
-                                    dataForApi = myPOIId;
-                                    query = passedData.query;
-                                } else {
-                                    apiUrl = "../controllers/myPOIProxy.php";
-                                    dataForApi = "All";
-                                    query = passedData.query;
-                                }
-                            } else if (passedData.query.includes("/iot/") && !passedData.query.includes(
-                                    "/api/v1/")) {
-                                query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData
-                                    .query + "&format=json";
-                            } else {
-                                var selQuery;
-                                if (is3dOn)
-                                    selQuery =
-                                    `&selection=${mapBounds3d[0][1]};${mapBounds3d[0][0]};${mapBounds3d[1][1]};${mapBounds3d[1][0]}`;
-                                else
-                                    selQuery = "&selection=" + mapBounds["_southWest"].lat + ";" +
-                                    mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" +
-                                    mapBounds["_northEast"].lng;
-                                if (pattern.test(passedData.query))
-                                    query = passedData.query.replace(pattern, selQuery);
-                                else
-                                    query = passedData.query + selQuery;
-                                // if (pattern.test(passedData.query)) {
-                                //     if (is3dOn) 
-                                //         query = passedData.query.replace(pattern, `selection=wkt:POLYGON((mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0]`);
-                                //     else
-                                //         query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
-                                // } else {
-                                //     if (is3dOn)
-                                //         query = passedData.query + "&selection=wkt:POLYGON((" + mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0];
-                                //     else
-                                //         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
-                                // }
-                                query = "<?= $superServiceMapProxy ?>api/v1?" + query.split('?')[1];
-                            }
-                            if (!query.includes("&maxResults")) {
-                                if (!query.includes("&queryId")) {
-                                    query = query + "&maxResults=0";
-                                }
-                            }
-                        } else if (queryType === "Sensor") {
-                            if (event.query != null) {
-                                query = "<?= $superServiceMapProxy ?>" + event.query;
-                            } else if (query != null) {
-                                query = "<?= $superServiceMapProxy ?>" + encodeServiceUri(query);
-                            }
-                        } else if (queryType === "MyPOI") {
-                            if (passedData.desc != "My POI") {
-                                myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
-                                apiUrl = "../controllers/myPOIProxy.php";
-                                dataForApi = myPOIId;
-                                query = passedData.query;
-                            } else {
-                                apiUrl = "../controllers/myPOIProxy.php";
-                                dataForApi = "All";
-                                query = passedData.query;
-                            }
-                        } else {
-                            query = passedData.query;
-                        }
-
-                        if (passedData.targets !== "") {
-                            targets = passedData.targets.split(",");
-                        } else {
-                            targets = [];
-                        }
-
-                        if (queryType != "MyPOI" && !passedData.query.includes(
-                                "datamanager/api/v1/poidata/")) {
-                            apiUrl = query + "&geometry=true&fullCount=false";
-                        }
-
-                        //    if (queryType === "Sensor" && query.includes("%2525")) {
-                        if (query.includes("%2525") && !query.includes("%252525")) {
-                            let queryPart1 = query.split("/resource/")[0];
-                            let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
-                            let queryPart3 = query.split("&format=")[1];
-                            if (queryPart3 != undefined) {
-                                apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2) + "&format=" +
-                                    queryPart3;
-                            } else {
-                                apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2);
-                            }
-                        }
-
-                        $.ajax({
-                            //    url: query + "&geometry=true&fullCount=false",
-                            url: apiUrl,
-                            type: "GET",
-                            data: {
-                                myPOIId: dataForApi
-                            },
-                            async: true,
-                            timeout: 0,
-                            dataType: 'json',
-                            success: function(geoJsonData) {
-                                var fatherGeoJsonNode = {};
-                                /*    if (queryType === "Default") {
-                                        if (geoJsonData.hasOwnProperty("BusStops")) {
+                                        countObjKeys++;
+                                    });
+                                    /*    if (geoJsonData.hasOwnProperty("BusStops")) {
                                             fatherGeoJsonNode = geoJsonData.BusStops;
-                                        }
-                                        else {
+                                        } else {
                                             if (geoJsonData.hasOwnProperty("SensorSites")) {
                                                 fatherGeoJsonNode = geoJsonData.SensorSites;
-                                            }
-                                            else {
-                                                fatherGeoJsonNode = geoJsonData.Services;
-                                            }
-                                        }
-                                    }
-                                    else {
-                                        if (geoJsonData.hasOwnProperty("BusStop")) {
-                                            fatherGeoJsonNode = geoJsonData.BusStop;
-                                        }
-                                        else {
-                                            if (geoJsonData.hasOwnProperty("Sensor")) {
-                                                fatherGeoJsonNode = geoJsonData.Sensor;
-                                            }
-                                            else {
+                                            } else {
                                                 if (geoJsonData.hasOwnProperty("Service")) {
                                                     fatherGeoJsonNode = geoJsonData.Service;
-                                                }
-                                                else {
+                                                } else {
                                                     fatherGeoJsonNode = geoJsonData.Services;
                                                 }
                                             }
-                                        }
-                                    }*/
-
-                                if (queryType === "Default") {
-                                    if (passedData.query.includes(
-                                            "datamanager/api/v1/poidata/")) {
-                                        fatherGeoJsonNode.features = [];
-                                        if (passedData.desc != "My POI") {
-                                            fatherGeoJsonNode.features[0] = geoJsonData;
-                                        } else {
-                                            fatherGeoJsonNode.features = geoJsonData;
-                                        }
-                                        fatherGeoJsonNode.type = "FeatureCollection";
-                                    } else {
-                                        var countObjKeys = 0;
-                                        var objContainer = {};
-                                        Object.keys(geoJsonData).forEach(function(key) {
-                                            if (countObjKeys == 0) {
-                                                if (geoJsonData.hasOwnProperty(key)) {
-                                                    fatherGeoJsonNode = geoJsonData[
-                                                        key];
-                                                }
-                                            } else {
-                                                if (geoJsonData.hasOwnProperty(key)) {
-                                                    if (geoJsonData[key].features) {
-                                                        fatherGeoJsonNode.features =
-                                                            fatherGeoJsonNode.features
-                                                            .concat(geoJsonData[key]
-                                                                .features);
-                                                    }
-                                                }
-                                            }
-                                            countObjKeys++;
-                                        });
-                                        /*    if (geoJsonData.hasOwnProperty("BusStops")) {
-                                                fatherGeoJsonNode = geoJsonData.BusStops;
-                                            } else {
-                                                if (geoJsonData.hasOwnProperty("SensorSites")) {
-                                                    fatherGeoJsonNode = geoJsonData.SensorSites;
-                                                } else {
-                                                    if (geoJsonData.hasOwnProperty("Service")) {
-                                                        fatherGeoJsonNode = geoJsonData.Service;
-                                                    } else {
-                                                        fatherGeoJsonNode = geoJsonData.Services;
-                                                    }
-                                                }
-                                            }*/
-                                    }
-                                } else if (queryType === "MyPOI") {
-                                    fatherGeoJsonNode.features = [];
-                                    if (passedData.desc != "My POI") {
-                                        fatherGeoJsonNode.features[0] = geoJsonData;
-                                    } else {
-                                        fatherGeoJsonNode.features = geoJsonData;
-                                    }
-                                    fatherGeoJsonNode.type = "FeatureCollection";
+                                        }*/
+                                }
+                            } else if (queryType === "MyPOI") {
+                                fatherGeoJsonNode.features = [];
+                                if (passedData.desc != "My POI") {
+                                    fatherGeoJsonNode.features[0] = geoJsonData;
                                 } else {
-                                    /*   var countObjKeys = 0;
-                                       var objContainer = {};
-                                       Object.keys(geoJsonData).forEach(function (key) {
-                                           if (countObjKeys == 0) {
-                                               if (geoJsonData.hasOwnProperty(key)) {
-                                                   fatherGeoJsonNode = geoJsonData[key];
-                                               }
-                                           } else {
-                                               if (geoJsonData.hasOwnProperty(key)) {
-                                                   fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
-                                               }
-                                           }
-                                           countObjKeys++;
-                                       });*/
-                                    if (geoJsonData.hasOwnProperty("BusStop")) {
-                                        fatherGeoJsonNode = geoJsonData.BusStop;
-                                    } else {
-                                        if (geoJsonData.hasOwnProperty("Sensor")) {
-                                            fatherGeoJsonNode = geoJsonData.Sensor;
-                                        } else {
-                                            if (geoJsonData.hasOwnProperty("Service")) {
-                                                fatherGeoJsonNode = geoJsonData.Service;
-                                            } else {
-                                                fatherGeoJsonNode = geoJsonData.Services;
+                                    fatherGeoJsonNode.features = geoJsonData;
+                                }
+                                fatherGeoJsonNode.type = "FeatureCollection";
+                            } else {
+                                /*   var countObjKeys = 0;
+                                    var objContainer = {};
+                                    Object.keys(geoJsonData).forEach(function (key) {
+                                        if (countObjKeys == 0) {
+                                            if (geoJsonData.hasOwnProperty(key)) {
+                                                fatherGeoJsonNode = geoJsonData[key];
                                             }
+                                        } else {
+                                            if (geoJsonData.hasOwnProperty(key)) {
+                                                fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                            }
+                                        }
+                                        countObjKeys++;
+                                    });*/
+                                if (geoJsonData.hasOwnProperty("BusStop")) {
+                                    fatherGeoJsonNode = geoJsonData.BusStop;
+                                } else {
+                                    if (geoJsonData.hasOwnProperty("Sensor")) {
+                                        fatherGeoJsonNode = geoJsonData.Sensor;
+                                    } else {
+                                        if (geoJsonData.hasOwnProperty("Service")) {
+                                            fatherGeoJsonNode = geoJsonData.Service;
+                                        } else {
+                                            fatherGeoJsonNode = geoJsonData.Services;
                                         }
                                     }
                                 }
-
-                                if (is3dOn && (display == "undefined" || display.includes(
-                                        'pins')) && fatherGeoJsonNode.features.length != 0) {
-                                    for (var i = 0; i < fatherGeoJsonNode.features
-                                        .length; i++) {
-                                        gisPrepareCustomMarker(fatherGeoJsonNode.features[i],
-                                            []);
-                                    }
-
-                                    const otherProps = {
-                                        apiUrl: this.url,
-                                        targets,
-                                        color1,
-                                        color2,
-                                        pinattr: passedData.pinattr,
-                                        pincolor: passedData.pincolor,
-                                        symbolcolor: passedData.symbolcolor,
-                                        iconFilePath: passedData.iconFilePath,
-                                    };
-
-                                    apiUrls3D[`${passedData.desc}`] = event;
-
-                                    const sensorLayer = createSensorLayer({
-                                        data: fatherGeoJsonNode.features,
-                                        id: passedData.desc
-                                    });
-                                    layers.pin.push(sensorLayer);
-                                    updateLayers();
-                                }
-
-                                for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
-
+                                //   fatherGeoJsonNode.features[0].properties.realtime = {};
+                                //    if (geoJsonData.hasOwnProperty("realtime") && bubbleSelectedMetric[desc] != '') {     // Commenta x POT. MOD. CONV. addSelectorPin
+                                if (geoJsonData.hasOwnProperty(
+                                        "realtime"
+                                    )) { // Attiva x POT. MOD. CONV. addSelectorPin
                                     var dataObj = {};
+                                    if (fatherGeoJsonNode.features[0].properties
+                                        .realtimeAttributes.hasOwnProperty(
+                                            bubbleSelectedMetric[desc])) {
+                                        fatherGeoJsonNode.features[0].properties[
+                                                bubbleSelectedMetric[desc]] = geoJsonData
+                                            .realtime.results.bindings[0][
+                                                bubbleSelectedMetric[desc]
+                                            ].value;
+                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[0]
+                                                .properties[bubbleSelectedMetric[desc]]
+                                            ))) {
+                                            fatherGeoJsonNode.features.splice(0, 1);
+                                        } else {
+                                            if (fatherGeoJsonNode.features[0].properties[
+                                                    bubbleSelectedMetric[desc]] >
+                                                maxValue) {
+                                                maxValue = fatherGeoJsonNode.features[0]
+                                                    .properties[bubbleSelectedMetric[desc]];
+                                            }
+                                            if (geoJsonData.realtime.results.bindings[0]
+                                                .hasOwnProperty("measuredTime")) {
+                                                fatherGeoJsonNode.features[0].properties
+                                                    .measuredTime = geoJsonData.realtime
+                                                    .results.bindings[0].measuredTime.value;
+                                            } else {
+                                                fatherGeoJsonNode.features[0].properties
+                                                    .measuredTime = null;
+                                            }
 
+                                            dataObj.lat = fatherGeoJsonNode.features[0]
+                                                .geometry.coordinates[1];
+                                            dataObj.lng = fatherGeoJsonNode.features[0]
+                                                .geometry.coordinates[0];
+                                            dataObj.eventType = "selectorEvent";
+                                            dataObj.desc = desc;
+                                            dataObj.query = passedData.query;
+                                            dataObj.targets = passedData.targets;
+                                            dataObj.eventGenerator = passedData
+                                                .eventGenerator;
+                                            dataObj.color1 = passedData.color1;
+                                            dataObj.color2 = passedData.color2;
+                                            dataObj.queryType = passedData.queryType;
+                                            dataObj.display = passedData.display;
+                                            dataObj.iconTextMode = passedData.iconTextMode;
+
+                                            //    map.eventsOnMap.push(dataObj);
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .distance;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .typeLabel;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .tipo;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .photoThumbs;
+                                            //   delete fatherGeoJsonNode.features[0].properties.serviceUri;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .serviceType;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .lastValue;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .multimedia;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .hasGeometry;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .municipality;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .address;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .organization;
+                                            //    delete fatherGeoJsonNode.features[0].properties.realtimeAttributes;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .linkDBpedia;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .avgStars;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .starsCount;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .comments;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .photos;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .photoOrigs;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .wktGeometry;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .description;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .description2;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .description;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .civic;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .cap;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .email;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .note;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .city;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .province;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .website;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .phone;
+                                            delete fatherGeoJsonNode.features[0].properties
+                                                .fax;
+                                        }
+                                    } else {
+                                        fatherGeoJsonNode.features[0].properties[
+                                            bubbleSelectedMetric[desc]] = 0;
+                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
+                                        fatherGeoJsonNode.features.splice(0, 1);
+                                    }
+                                }
+                            }
+
+                            var maxValue = 0;
+
+                            //  if (bubbleSelectedMetric[desc] != '') {     // Comment x POT. MOD. CONV. addSelectorPin
+                            //     if (fatherGeoJsonNode.features.length == 1 && geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[desc]]) {
+
+                            //     console.log("Lenght of SMart CIty API Response for Event '" + passedData.desc + "': " + fatherGeoJsonNode.features.length);
+                            //     } else {
+                            var i = 0;
+                            // for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
+                            while (i < fatherGeoJsonNode.features.length) {
+                                var dataObj = {};
+
+                                if (altViewMode != "Bubble") {
                                     fatherGeoJsonNode.features[i].properties.targetWidgets =
                                         targets;
-                                    fatherGeoJsonNode.features[i].properties.color1 = color1;
-                                    fatherGeoJsonNode.features[i].properties.color2 = color2;
+                                    fatherGeoJsonNode.features[i].properties.color1 =
+                                        color1;
+                                    fatherGeoJsonNode.features[i].properties.color2 =
+                                        color2;
                                     fatherGeoJsonNode.features[i].properties.pinattr =
                                         passedData.pinattr;
                                     fatherGeoJsonNode.features[i].properties.pincolor =
@@ -12165,57 +10974,282 @@ if (!isset($_SESSION)) {
                                         passedData.symbolcolor;
                                     fatherGeoJsonNode.features[i].properties.iconFilePath =
                                         passedData.iconFilePath;
-                                    //    fatherGeoJsonNode.features[i].properties.altViewMode = passedData.altViewMode;
-
-                                    dataObj.lat = fatherGeoJsonNode.features[i].geometry
-                                        .coordinates[1];
-                                    dataObj.lng = fatherGeoJsonNode.features[i].geometry
-                                        .coordinates[0];
-                                    dataObj.eventType = "selectorEvent";
-                                    dataObj.desc = desc;
-                                    dataObj.query = passedData.query;
-                                    dataObj.targets = passedData.targets;
-                                    dataObj.eventGenerator = passedData.eventGenerator;
-                                    dataObj.color1 = passedData.color1;
-                                    dataObj.color2 = passedData.color2;
-                                    dataObj.queryType = passedData.queryType;
-                                    dataObj.display = passedData.display;
-                                    dataObj.iconTextMode = passedData.iconTextMode;
-
-                                    //    map.eventsOnMap.push(dataObj);
+                                    fatherGeoJsonNode.features[i].properties.altViewMode =
+                                        passedData.altViewMode;
+                                    if (fatherGeoJsonNode.features[i].properties
+                                        .lastValue == null && geoJsonData.hasOwnProperty(
+                                            "realtime")
+                                    ) { // Attiva x POT. MOD. CONV. addSelectorPin
+                                        if (fatherGeoJsonNode.features[0].properties
+                                            .realtimeAttributes.hasOwnProperty(
+                                                bubbleSelectedMetric[desc])) {
+                                            var key = bubbleSelectedMetric[desc];
+                                            var obj = {};
+                                            obj[key] = geoJsonData.realtime.results
+                                                .bindings[0][bubbleSelectedMetric[desc]]
+                                                .value;
+                                            fatherGeoJsonNode.features[0].properties[
+                                                "lastValue"] = obj;
+                                        }
+                                    }
                                 }
 
-                                map.eventsOnMap.push(dataObj);
+                                var valueObj = {};
+                                if (fatherGeoJsonNode.features[i].properties.lastValue !=
+                                    null) {
+                                    if (fatherGeoJsonNode.features[i].properties.lastValue
+                                        .hasOwnProperty(bubbleSelectedMetric[desc])) {
+                                        fatherGeoJsonNode.features[i].properties[
+                                                bubbleSelectedMetric[desc]] =
+                                            fatherGeoJsonNode.features[i].properties
+                                            .lastValue[bubbleSelectedMetric[desc]];
+                                        fatherGeoJsonNode.features[i].properties[
+                                                bubbleSelectedMetric[desc]] =
+                                            fatherGeoJsonNode.features[i].properties[
+                                                bubbleSelectedMetric[desc]].replace(/"/g,
+                                                "");
+                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[i]
+                                                .properties[bubbleSelectedMetric[desc]]
+                                            ))) {
+                                            if (altViewMode != "CustomPin" && altViewMode !=
+                                                "DynamicCustomPin") {
+                                                fatherGeoJsonNode.features.splice(i, 1);
+                                                continue;
+                                            }
+                                        } else {
+                                            if (fatherGeoJsonNode.features[i].properties[
+                                                    bubbleSelectedMetric[desc]] >
+                                                maxValue) {
+                                                maxValue = fatherGeoJsonNode.features[i]
+                                                    .properties[bubbleSelectedMetric[desc]];
+                                            }
+                                        }
+                                    } else {
+                                        fatherGeoJsonNode.features[i].properties[
+                                            bubbleSelectedMetric[desc]] = 0;
+                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
+                                        fatherGeoJsonNode.features.splice(i, 1);
+                                        continue;
+                                    }
+                                } else {
+                                    fatherGeoJsonNode.features[i].properties[
+                                        bubbleSelectedMetric[desc]] = 0;
+                                    //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
+                                    fatherGeoJsonNode.features.splice(i, 1);
+                                    continue;
+                                }
 
-                                if (!gisLayersOnMap.hasOwnProperty(desc) && (display !==
-                                        'geometries') && !is3dOn) {
+                                if (fatherGeoJsonNode.features[i].properties.lastValue
+                                    .hasOwnProperty("measuredTime")) {
+                                    fatherGeoJsonNode.features[i].properties.measuredTime =
+                                        fatherGeoJsonNode.features[i].properties.lastValue[
+                                            "measuredTime"];
+                                } else {
+                                    fatherGeoJsonNode.features[i].properties.measuredTime =
+                                        null;
+                                }
+
+                                dataObj.lat = fatherGeoJsonNode.features[i].geometry
+                                    .coordinates[1];
+                                dataObj.lng = fatherGeoJsonNode.features[i].geometry
+                                    .coordinates[0];
+                                dataObj.eventType = "selectorEvent";
+                                dataObj.desc = desc;
+                                dataObj.query = passedData.query;
+                                dataObj.targets = passedData.targets;
+                                dataObj.eventGenerator = passedData.eventGenerator;
+                                dataObj.color1 = passedData.color1;
+                                dataObj.color2 = passedData.color2;
+                                dataObj.queryType = passedData.queryType;
+                                dataObj.display = passedData.display;
+                                dataObj.iconTextMode = passedData.iconTextMode;
+
+                                //    map.eventsOnMap.push(dataObj);
+                                if (altViewMode == "Bubble") {
+                                    delete fatherGeoJsonNode.features[i].properties
+                                        .distance;
+                                    delete fatherGeoJsonNode.features[i].properties
+                                        .typeLabel;
+                                    delete fatherGeoJsonNode.features[i].properties.tipo;
+                                    delete fatherGeoJsonNode.features[i].properties
+                                        .photoThumbs;
+                                    delete fatherGeoJsonNode.features[i].properties
+                                        .serviceUri;
+                                    delete fatherGeoJsonNode.features[i].properties
+                                        .serviceType;
+                                    delete fatherGeoJsonNode.features[i].properties
+                                        .lastValue;
+                                    delete fatherGeoJsonNode.features[i].properties
+                                        .multimedia;
+                                    delete fatherGeoJsonNode.features[i].properties
+                                        .hasGeometry;
+                                }
+                                i++;
+                            }
+                            //     }
+
+                            map.eventsOnMap.push(dataObj);
+                            //  console.log("Number of Devices with Matched Attributes for Event '" + passedData.desc + "': " + fatherGeoJsonNode.features.length);
+                            if (altViewMode != "Bubble") {
+
+                                countSvgCnt = 0;
+                                currentCustomSvgLayer = desc;
+                                // Aggiornare totalSvgCnt con la length di fatherJsonNode
+                                totalSvgCnt = fatherGeoJsonNode.features.length;
+
+                                //    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
+                                if (is3dOn) {
+                                    if (altViewMode == 'DynamicCustomPin') {
+                                        var min = 0;
+                                        var max = 100;
+                                        const c = "";
+                                        minS = apiUrl.match(/min=\d+(.\d+)?/);
+                                        maxS = apiUrl.match(/max=\d+(.\d+)?/);
+                                        if (minS)
+                                            min = parseFloat(minS[0].split('=')[1]);
+                                        if (maxS)
+                                            max = parseFloat(maxS[0].split('=')[1]);
+                                        const metric = bubbleSelectedMetric[desc];
+                                        let featureRemaining = fatherGeoJsonNode.features.length;
+                                        const loadingRTDiv = new LoadingDiv({
+                                            text: 'Loading real-time data.',
+                                            color1,
+                                            color2,
+                                        });
+                                        let rtOn = false;
+                                        for (let feature of fatherGeoJsonNode.features) {
+                                            const uri = feature.properties.serviceUri;
+                                            const url =
+                                                `../controllers/superservicemapProxy.php/api/v1/?serviceUri=${uri}&format=json&fullCount=false`;
+                                            $.ajax({
+                                                url,
+                                                type: 'GET',
+                                                async: true,
+                                                success: (data) => {
+                                                    try {
+                                                        feature.realtime = data.realtime;
+                                                        const newVal = parseFloat(data.realtime.results.bindings[0][metric].value);
+                                                        if (newVal)
+                                                            feature.elevation = (newVal / (max - min)) * 80;
+                                                        featureRemaining--;
+                                                        if (featureRemaining == 0) {
+                                                            for (let layer of layers.fixedPins) {
+                                                                if (layer.props.id == passedData.desc) {
+                                                                    const updateSensor3DLayer = new Sensors3DLayer({
+                                                                        data: fatherGeoJsonNode.features,
+                                                                        id: `${passedData.desc}`,
+                                                                        getFillColor: rgbaStringToArray(color1).slice(0,
+                                                                            -1),
+                                                                        getElevation: d => d.elevation || 0,
+                                                                        updateTriggers: {
+                                                                            getElevation: featureRemaining,
+                                                                        },
+                                                                        onClick: (event, info) => {
+                                                                            console.log('sensor3d triggered click');
+                                                                            info.object = event.object;
+                                                                            info.coordinate = event.coordinate;
+                                                                            onMarkerClick(event, info);
+                                                                        },
+                                                                    });
+                                                                    removeLayerSet(layer.props.id, layers.fixedPins);
+                                                                    layers.fixedPins.push(updateSensor3DLayer);
+                                                                    updateLayers();
+                                                                    break;
+                                                                }
+                                                            }
+                                                            loadingRTDiv.setStatus('ok');
+                                                        }
+                                                    } catch (err) {
+                                                        loadingRTDiv.setStatus('ko');
+                                                        console.error('error during converting metrics in sensors 3d');
+                                                        console.error(err);
+                                                    }
+                                                },
+                                                error: (err) => console.error(err),
+                                            });
+                                        }
+                                        const sensor3DLayer = new Sensors3DLayer({
+                                            data: fatherGeoJsonNode.features,
+                                            id: passedData.desc,
+                                            getElevation: d => d.elevation || 0,
+                                            updateTriggers: {
+                                                getElevation: featureRemaining,
+                                            },
+                                            getFillColor: rgbaStringToArray(color1).slice(0,
+                                                -1),
+                                            onClick: (event, info) => {
+                                                console.log('sensor3d triggered click');
+                                                info.object = event.object;
+                                                info.coordinate = event.coordinate;
+                                                onMarkerClick(event, info);
+                                            },
+                                        });
+                                        layers.fixedPins.push(sensor3DLayer);
+                                    } else {
+                                        const svgLayer = createSVGLayer({
+                                            id: desc,
+                                            data: fatherGeoJsonNode.features,
+                                            onClick: (event, info) => {
+                                                console.log('sensor3d triggered click');
+                                                info.object = event.object;
+                                                info.coordinate = event.coordinate;
+                                                onMarkerClick(event, info);
+                                            },
+                                        });
+                                        layers.pin.push(svgLayer);
+                                    }
+                                    updateLayers();
+                                } else {
                                     gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
                                         pointToLayer: gisPrepareCustomMarker,
                                         onEachFeature: onEachFeatureSpiderify
-                                    }).addTo(map.defaultMapRef);
-                                    //    oms.addMarker(gisLayersOnMap[desc]._layers);
-
-                                    // CORTI - setta markers nella mappa 3D
-                                    //                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-                                    //                                            pointToLayer: gisPrepareCustomMarker,
-                                    //                                            onEachFeature: onEachFeature
-                                    //                                        }).addTo(map.default3DMapRef);
-
+                                        //   }).addTo(map.defaultMapRef);
+                                    });
                                 }
+                                //    }
 
-                                loadingDiv.setStatus('ok');
-                                setTimeout(() => loadingDiv.remove(), 1000);
+                                loadingDiv.empty();
+                                loadingDiv.append(loadOkText);
+
+                                parHeight = loadOkText.height();
+                                parMarginTop = Math.floor((loadingDiv.height() -
+                                    parHeight) / 2);
+                                loadOkText.css("margin-top", parMarginTop + "px");
+
+                                setTimeout(function() {
+                                    loadingDiv.css("opacity", 0);
+                                    setTimeout(function() {
+                                        loadingDiv.nextAll(
+                                            "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
+                                        ).each(function() {
+                                            $(this).css("top", ($(
+                                                        '#<?= $_REQUEST['name_w'] ?>_div'
+                                                    )
+                                                    .height() -
+                                                    (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
+                                                            .length -
+                                                            1) *
+                                                        loadingDiv
+                                                        .height()
+                                                    )) +
+                                                "px");
+                                        });
+                                        loadingDiv.remove();
+                                    }, 350);
+                                }, 1000);
 
                                 eventGenerator.parents("div.gisMapPtrContainer").find(
                                     "i.gisLoadingIcon").hide();
                                 eventGenerator.parents('div.gisMapPtrContainer').siblings(
-                                        'div.gisQueryDescContainer').find('p.gisQueryDescPar')
-                                    .css("font-weight", "bold");
+                                    'div.gisQueryDescContainer').find(
+                                    'p.gisQueryDescPar').css("font-weight", "bold");
                                 eventGenerator.parents('div.gisMapPtrContainer').siblings(
-                                        'div.gisQueryDescContainer').find('p.gisQueryDescPar')
-                                    .css("color", eventGenerator.attr("data-activeFontColor"));
+                                    'div.gisQueryDescContainer').find(
+                                    'p.gisQueryDescPar').css("color", eventGenerator
+                                    .attr("data-activeFontColor"));
                                 if (eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        'a.gisPinLink').attr("data-symbolMode") === 'auto') {
+                                        'a.gisPinLink').attr("data-symbolMode") ===
+                                    'auto') {
                                     eventGenerator.parents("div.gisMapPtrContainer").find(
                                         "i.gisPinIcon").html("near_me");
                                     eventGenerator.parents("div.gisMapPtrContainer").find(
@@ -12247,30 +11281,33 @@ if (!isset($_SESSION)) {
                                     for (var i = 0; i < fatherGeoJsonNode.features
                                         .length; i++) {
                                         if (fatherGeoJsonNode.features[i].properties
-                                            .hasOwnProperty('hasGeometry') && fatherGeoJsonNode
-                                            .features[i].properties.hasOwnProperty('serviceUri')
-                                        ) {
+                                            .hasOwnProperty('hasGeometry') &&
+                                            fatherGeoJsonNode.features[i].properties
+                                            .hasOwnProperty('serviceUri')) {
                                             if (fatherGeoJsonNode.features[i].properties
                                                 .hasGeometry === true) {
                                                 //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
 
                                                 $.ajax({
                                                     url: "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" +
-                                                        fatherGeoJsonNode.features[i]
-                                                        .properties.serviceUri,
+                                                        fatherGeoJsonNode.features[
+                                                            i].properties
+                                                        .serviceUri,
                                                     type: "GET",
                                                     data: {},
                                                     async: true,
                                                     timeout: 0,
                                                     dataType: 'json',
-                                                    success: function(geometryGeoJson) {
+                                                    success: function(
+                                                        geometryGeoJson) {
                                                         if (!stopGeometryAjax[
                                                                 desc]) {
                                                             // Creazione nuova istanza del parser Wkt
                                                             wkt = new Wkt.Wkt();
 
                                                             // Lettura del WKT dalla risposta
-                                                            wkt.read(geometryGeoJson
+                                                            wkt.read(
+                                                                geometryGeoJson
                                                                 .Service
                                                                 .features[0]
                                                                 .properties
@@ -12282,55 +11319,12 @@ if (!isset($_SESSION)) {
                                                                 properties: geometryGeoJson
                                                                     .Service
                                                                     .features[
-                                                                        0]
+                                                                        0
+                                                                    ]
                                                                     .properties,
                                                                 geometry: wkt
                                                                     .toJson()
                                                             }];
-
-                                                            if (is3dOn) {
-                                                                const
-                                                                    cyclingData = [];
-                                                                const index =
-                                                                    getLayerIndexSet(
-                                                                        passedData
-                                                                        .desc,
-                                                                        layers
-                                                                        .cycling);
-                                                                if (index != -1)
-                                                                    cyclingData
-                                                                    .push(...layers
-                                                                        .cycling[
-                                                                            index]
-                                                                        .props.data
-                                                                    );
-                                                                cyclingData.push(...
-                                                                    ciclePathFeature
-                                                                );
-                                                                apiUrls3D[
-                                                                    `${passedData.desc}`
-                                                                ] = event;
-
-                                                                const cyclingLayer =
-                                                                    createPathLayer(
-                                                                        cyclingData,
-                                                                        passedData
-                                                                        .desc);
-                                                                if (index != -1) {
-                                                                    layers.cycling[
-                                                                            index] =
-                                                                        null;
-                                                                    updateLayers();
-                                                                    layers.cycling[
-                                                                            index] =
-                                                                        cyclingLayer;
-                                                                } else
-                                                                    layers.cycling
-                                                                    .push(
-                                                                        cyclingLayer
-                                                                    );
-                                                                updateLayers();
-                                                            }
 
                                                             if (!
                                                                 gisGeometryLayersOnMap
@@ -12348,725 +11342,1260 @@ if (!isset($_SESSION)) {
                                                             map.defaultMapRef
                                                                 .getPane(
                                                                     'ciclePathFeature'
-                                                                ).style.zIndex =
-                                                                420;
+                                                                ).style
+                                                                .zIndex = 420;
 
-                                                            gisGeometryLayersOnMap[
-                                                                desc].push(L
-                                                                .geoJSON(
-                                                                    ciclePathFeature, {
-                                                                        pane: 'ciclePathFeature'
-                                                                    }).addTo(map
-                                                                    .defaultMapRef
-                                                                ));
+                                                            gisGeometryLayersOnMap
+                                                                [desc].push(L
+                                                                    .geoJSON(
+                                                                        ciclePathFeature, {
+                                                                            pane: 'ciclePathFeature'
+                                                                        })
+                                                                    .addTo(map
+                                                                        .defaultMapRef
+                                                                    ));
                                                             gisGeometryTankForFullscreen
-                                                                [desc].tank.push(
+                                                                [desc].tank
+                                                                .push(
                                                                     ciclePathFeature
                                                                 );
-                                                            loadingDiv.setStatus('ok');
-                                                            setTimeout(() => loadingDiv.remove(), 1000);
                                                         }
                                                     },
-                                                    error: function(geometryErrorData) {
+                                                    error: function(
+                                                        geometryErrorData) {
                                                         console.log("Ko");
-                                                        console.log(JSON.stringify(
-                                                            geometryErrorData
-                                                        ));
+                                                        console.log(JSON
+                                                            .stringify(
+                                                                geometryErrorData
+                                                            ));
                                                     }
                                                 });
                                             }
                                         }
                                     }
-                                } 
-                            },
-                            error: function(errorData) {
-                                gisLayersOnMap[event.desc] = "loadError";
+                                }
 
-                                loadingDiv.setStatus('ko');
-                                setTimeout(() => loadingDiv.remove(), 1000);
+                            } else {
 
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "i.gisLoadingIcon").hide();
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "i.gisLoadErrorIcon").show();
+                                bubbles[desc] = {};
+                                map.defaultMapRef.createPane('bubblePane');
+                                map.defaultMapRef.getPane('bubblePane').style.zIndex = 415;
+                                if (fatherGeoJsonNode.features.length > 0) {
+                                    bubbles[desc] = L.bubbleLayer(fatherGeoJsonNode, {
+                                        property: bubbleSelectedMetric[desc],
+                                        legend: false,
+                                        max_radius: 25,
+                                        //    scale: 'YlGnBu',
+                                        //    scale: [passedData.color1, '#ffffff'],
+                                        //    scale: ['#ffffff', passedData.color1],
+                                        //    scale: passedData.color1,
+                                        //    pane: 'bubblePane',
+                                        style: {
+                                            fillColor: passedData.color1,
+                                            weight: 0.3,
+                                            pane: 'bubblePane'
+                                        },
+                                        tooltip: true
+                                    });
 
-                                setTimeout(function() {
-                                    eventGenerator.parents("div.gisMapPtrContainer")
-                                        .find("i.gisLoadErrorIcon").hide();
-                                    eventGenerator.parents("div.gisMapPtrContainer")
-                                        .find("a.gisPinLink").attr("data-onMap",
+                                    /*   if (isNaN(bubbles.options.style.radius)) {
+                                            bubbles.options.style.radius = 10;
+                                        }*/
+
+                                    bubbles[desc].addTo(map.defaultMapRef);
+
+                                    loadingDiv.empty();
+                                    loadingDiv.append(loadOkText);
+
+                                    parHeight = loadOkText.height();
+                                    parMarginTop = Math.floor((loadingDiv.height() -
+                                        parHeight) / 2);
+                                    loadOkText.css("margin-top", parMarginTop + "px");
+
+                                    setTimeout(function() {
+                                        loadingDiv.css("opacity", 0);
+                                        setTimeout(function() {
+                                            loadingDiv.nextAll(
+                                                "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
+                                            ).each(function() {
+                                                $(this).css("top", (
+                                                        $(
+                                                            '#<?= $_REQUEST['name_w'] ?>_div'
+                                                        )
+                                                        .height() -
+                                                        (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
+                                                                .length -
+                                                                1
+                                                            ) *
+                                                            loadingDiv
+                                                            .height()
+                                                        )) +
+                                                    "px");
+                                            });
+                                            loadingDiv.remove();
+                                        }, 350);
+                                    }, 1000);
+
+                                    eventGenerator.parents("div.gisMapPtrContainer").find(
+                                        "i.gisLoadingIcon").hide();
+                                    eventGenerator.parents('div.gisMapPtrContainer')
+                                        .siblings('div.gisQueryDescContainer').find(
+                                            'p.gisQueryDescPar').css("font-weight", "bold");
+                                    eventGenerator.parents('div.gisMapPtrContainer')
+                                        .siblings('div.gisQueryDescContainer').find(
+                                            'p.gisQueryDescPar').css("color", eventGenerator
+                                            .attr("data-activeFontColor"));
+                                    if (eventGenerator.parents("div.gisMapPtrContainer")
+                                        .find('a.gisPinLink').attr("data-symbolMode") ===
+                                        'auto') {
+                                        eventGenerator.parents("div.gisMapPtrContainer")
+                                            .find("i.gisPinIcon").html("near_me");
+                                        eventGenerator.parents("div.gisMapPtrContainer")
+                                            .find("i.gisPinIcon").css("color", "white");
+                                        eventGenerator.parents("div.gisMapPtrContainer")
+                                            .find("i.gisPinIcon").css("text-shadow",
+                                                "2px 2px 4px black");
+                                    } else {
+                                        //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
+                                        eventGenerator.parents("div.gisMapPtrContainer")
+                                            .find("div.gisPinCustomIconUp").show();
+                                        eventGenerator.parents("div.gisMapPtrContainer")
+                                            .find("div.gisPinCustomIconUp").css("height",
+                                                "100%");
+                                    }
+
+                                    eventGenerator.show();
+                                } else {
+                                    var loadNoBubbleMetricsText = $(
+                                        '<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>'
+                                    );
+                                    loadingDiv.empty();
+                                    loadingDiv.append(loadNoBubbleMetricsText);
+
+                                    parHeight = loadNoBubbleMetricsText.height();
+                                    parMarginTop = Math.floor((loadingDiv.height() -
+                                        parHeight) / 2);
+                                    loadNoBubbleMetricsText.css("margin-top", parMarginTop +
+                                        "px");
+                                    setTimeout(function() {
+                                        loadingDiv.css("opacity", 0);
+                                        setTimeout(function() {
+                                            loadingDiv.nextAll(
+                                                "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
+                                            ).each(function() {
+                                                $(this).css("top", (
+                                                        $(
+                                                            '#<?= $_REQUEST['name_w'] ?>_div'
+                                                        )
+                                                        .height() -
+                                                        (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
+                                                                .length -
+                                                                1
+                                                            ) *
+                                                            loadingDiv
+                                                            .height()
+                                                        )) +
+                                                    "px");
+                                            });
+                                            loadingDiv.remove();
+                                        }, 350);
+                                    }, 1000);
+
+                                    eventGenerator.parents("div.gisMapPtrContainer").find(
+                                        "i.gisLoadingIcon").hide();
+                                    eventGenerator.parents("div.gisMapPtrContainer").find(
+                                        "i.gisLoadErrorIcon").show();
+
+                                    setTimeout(function() {
+                                        eventGenerator.parents(
+                                            "div.gisMapPtrContainer").find(
+                                            "i.gisLoadErrorIcon").hide();
+                                        eventGenerator.parents(
+                                            "div.gisMapPtrContainer").find(
+                                            "a.gisPinLink").attr("data-onMap",
                                             "false");
-                                    eventGenerator.parents("div.gisMapPtrContainer")
-                                        .find("a.gisPinLink").show();
-                                }, 1500);
+                                        eventGenerator.parents(
+                                            "div.gisMapPtrContainer").find(
+                                            "a.gisPinLink").show();
+                                    }, 1500);
 
-                                console.log("Error in getting GeoJSON from ServiceMap");
-                                console.log(JSON.stringify(errorData));
+                                }
+
+                                // CORTI - setta markers nella mappa 3D
+                                //                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
+                                //                                            pointToLayer: gisPrepareCustomMarker,
+                                //                                            onEachFeature: onEachFeature
+                                //                                        }).addTo(map.default3DMapRef);
+
+                                //     }
                             }
-                        });
-                    }
 
-                    if (addMode === 'additive') {
-                        addSelectorEventToMap();
-                    }
+                            // COMMENTA l'else x POT. MOD. CONV. addSelectorPin
+                            /*    } else {
+                                    var loadNoBubbleMetricsText = $('<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                                    loadingDiv.empty();
+                                    loadingDiv.append(loadNoBubbleMetricsText);
 
-                    if (addMode === 'exclusive') {
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType !== 'selectorEvent') {
-                                map.defaultMapRef.eachLayer(function(layer) {
-                                    map.defaultMapRef.removeLayer(layer);
-                                });
-                                map.eventsOnMap.length = 0;
-                                break;
+                                    parHeight = loadNoBubbleMetricsText.height();
+                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                    loadNoBubbleMetricsText.css("margin-top", parMarginTop + "px");
+                                    setTimeout(function () {
+                                        loadingDiv.css("opacity", 0);
+                                        setTimeout(function () {
+                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
+                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                            });
+                                            loadingDiv.remove();
+                                        }, 350);
+                                    }, 1000);
+
+                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
+
+                                    setTimeout(function () {
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
+                                    }, 1500);
+                                    
+                                }*/
+                            // Fine commento else x POT. MOD. CONV. addSelectorPin
+                        },
+                        error: function(errorData) {
+                            gisLayersOnMap[event.desc] = "loadError";
+
+                            loadingDiv.empty();
+                            loadingDiv.append(loadKoText);
+
+                            parHeight = loadKoText.height();
+                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) /
+                                2);
+                            loadKoText.css("margin-top", parMarginTop + "px");
+
+                            setTimeout(function() {
+                                loadingDiv.css("opacity", 0);
+                                setTimeout(function() {
+                                    loadingDiv.nextAll(
+                                        "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
+                                    ).each(function(i) {
+                                        $(this).css("top", ($(
+                                                '#<?= $_REQUEST['name_w'] ?>_div'
+                                            ).height() -
+                                            (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
+                                                    .length -
+                                                    1) *
+                                                loadingDiv
+                                                .height())
+                                        ) + "px");
+                                    });
+                                    loadingDiv.remove();
+                                }, 350);
+                            }, 1000);
+
+                            eventGenerator.parents("div.gisMapPtrContainer").find(
+                                "i.gisLoadingIcon").hide();
+                            eventGenerator.parents("div.gisMapPtrContainer").find(
+                                "i.gisLoadErrorIcon").show();
+
+                            setTimeout(function() {
+                                eventGenerator.parents("div.gisMapPtrContainer")
+                                    .find("i.gisLoadErrorIcon").hide();
+                                eventGenerator.parents("div.gisMapPtrContainer")
+                                    .find("a.gisPinLink").attr("data-onMap",
+                                        "false");
+                                eventGenerator.parents("div.gisMapPtrContainer")
+                                    .find("a.gisPinLink").show();
+                            }, 1500);
+
+                            console.log("Error in getting GeoJSON from ServiceMap");
+                            console.log(JSON.stringify(errorData));
+                        }
+                    });
+                }
+                eventMapManager.legacyTrigger(event, addSelectorEventToMap);
+            });
+
+            $(document).on('addSelectorPin', function(event) {
+                function addSelectorEventToMap() {
+                    if (lastPopup !== null) {
+                        lastPopup.closePopup();
+                    }
+                    var passedData = event.passedData;
+
+                    var mapBounds = map.defaultMapRef.getBounds();
+                    var mapBounds3d = getMaxBoundingBox(currentViewState);
+                    var query = passedData.query;
+                    var targets = passedData.targets;
+                    var eventGenerator = passedData.eventGenerator;
+                    var color1 = passedData.color1;
+                    var color2 = passedData.color2;
+                    var queryType = passedData.queryType;
+                    var desc = passedData.desc;
+                    var display = passedData.display;
+                    if (desc == "") {
+                        desc = query;
+                    }
+                    var pinattr = passedData.pinattr;
+                    var pincolor = passedData.pincolor;
+                    var symbolcolor = passedData.symbolcolor;
+                    var iconFilePath = passedData.iconFilePath;
+
+                    var loadingDiv = new LoadingDiv({
+                        text: desc,
+                        color1,
+                        color2,
+                        autoremove: false,
+                    });
+
+                    var re1 = '(selection)'; // Word 1
+                    var re2 = '(=)'; // Any Single Character 1
+                    var re3 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])'; // Float 1
+                    var re4 = '(;|%3B)'; // Any Single Character 2
+                    var re5 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])'; // Float 2
+                    var re6 = '(;|%3B)?'; // Any Single Character 3
+                    var re7 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?'; // Float 3
+                    var re8 = '(;|%3B)?'; // Any Single Character 4
+                    var re9 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?'; // Float 4
+
+                    var pattern = new RegExp(re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9, [
+                        "i"
+                    ]);
+
+                    /*   if (queryType === "Default") {
+                            if (pattern.test(query)) {
+                                query = query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                            }
+                            else {
+                                query = query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                             }
                         }
-                        //Remove WidgetAlarm active pins
-                        $.event.trigger({
-                            type: "removeAlarmPin",
-                        });
-                        //Remove WidgetEvacuationPlans active pins
-                        $.event.trigger({
-                            type: "removeEvacuationPlanPin",
-                        });
-                        //Remove WidgetEvents active pins
-                        $.event.trigger({
-                            type: "removeEventFIPin",
-                        });
-                        //Remove WidgetResources active pins
-                        $.event.trigger({
-                            type: "removeResourcePin",
-                        });
-                        //Remove WidgetOperatorEvents active pins
-                        $.event.trigger({
-                            type: "removeOperatorEventPin",
-                        });
-                        //Remove WidgetTrafficEvents active pins
-                        $.event.trigger({
-                            type: "removeTrafficEventPin",
-                        });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
-                        }).addTo(map.defaultMapRef);
 
-                        addSelectorEventToMap();
+                        if (targets !== "") {
+                            targets = targets.split(",");
+                        }
+                        else {
+                            targets = [];
+                        }*/
+
+                    if (queryType === "Default") {
+                        if (passedData.query.includes("datamanager/api/v1/poidata/")) {
+                            if (passedData.desc != "My POI") {
+                                myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
+                                apiUrl = "../controllers/myPOIProxy.php";
+                                dataForApi = myPOIId;
+                                query = passedData.query;
+                            } else {
+                                apiUrl = "../controllers/myPOIProxy.php";
+                                dataForApi = "All";
+                                query = passedData.query;
+                            }
+                        } else if (passedData.query.includes("/iot/") && !passedData.query.includes(
+                                "/api/v1/")) {
+                            query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData
+                                .query + "&format=json";
+                        } else {
+                            var selQuery;
+                            if (is3dOn)
+                                selQuery =
+                                `&selection=${mapBounds3d[0][1]};${mapBounds3d[0][0]};${mapBounds3d[1][1]};${mapBounds3d[1][0]}`;
+                            // selQuery =
+                            // `&selection=${mapBounds3d[0][1]};${mapBounds3d[0][0]};${mapBounds3d[1][1]};${mapBounds3d[1][0]}`;
+                            else
+                                selQuery = "&selection=" + mapBounds["_southWest"].lat + ";" +
+                                mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" +
+                                mapBounds["_northEast"].lng;
+                            if (pattern.test(passedData.query))
+                                query = passedData.query.replace(pattern, selQuery);
+                            else
+                                query = passedData.query + selQuery;
+                            // if (pattern.test(passedData.query)) {
+                            //     if (is3dOn) 
+                            //         query = passedData.query.replace(pattern, `selection=wkt:POLYGON((mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0]`);
+                            //     else
+                            //         query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                            // } else {
+                            //     if (is3dOn)
+                            //         query = passedData.query + "&selection=wkt:POLYGON((" + mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0];
+                            //     else
+                            //         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                            // }
+                            query = "<?= $superServiceMapProxy ?>api/v1?" + query.split('?')[1];
+                        }
+                        if (!query.includes("&maxResults")) {
+                            if (!query.includes("&queryId")) {
+                                query = query + "&maxResults=0";
+                            }
+                        }
+                    } else if (queryType === "Sensor") {
+                        if (event.query != null) {
+                            query = "<?= $superServiceMapProxy ?>" + event.query;
+                        } else if (query != null) {
+                            query = "<?= $superServiceMapProxy ?>" + encodeServiceUri(query);
+                        }
+                    } else if (queryType === "MyPOI") {
+                        if (passedData.desc != "My POI") {
+                            myPOIId = passedData.query.split("datamanager/api/v1/poidata/")[1];
+                            apiUrl = "../controllers/myPOIProxy.php";
+                            dataForApi = myPOIId;
+                            query = passedData.query;
+                        } else {
+                            apiUrl = "../controllers/myPOIProxy.php";
+                            dataForApi = "All";
+                            query = passedData.query;
+                        }
+                    } else {
+                        query = passedData.query;
                     }
 
-                    //  resizeMapView(map.defaultMapRef);
+                    if (passedData.targets !== "") {
+                        targets = passedData.targets.split(",");
+                    } else {
+                        targets = [];
+                    }
+
+                    if (queryType != "MyPOI" && !passedData.query.includes(
+                            "datamanager/api/v1/poidata/")) {
+                        apiUrl = query + "&geometry=true&fullCount=false";
+                    }
+
+                    //    if (queryType === "Sensor" && query.includes("%2525")) {
+                    if (query.includes("%2525") && !query.includes("%252525")) {
+                        let queryPart1 = query.split("/resource/")[0];
+                        let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
+                        let queryPart3 = query.split("&format=")[1];
+                        if (queryPart3 != undefined) {
+                            apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2) + "&format=" +
+                                queryPart3;
+                        } else {
+                            apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2);
+                        }
+                    }
+
+                    $.ajax({
+                        //    url: query + "&geometry=true&fullCount=false",
+                        url: apiUrl,
+                        type: "GET",
+                        data: {
+                            myPOIId: dataForApi
+                        },
+                        async: true,
+                        timeout: 0,
+                        dataType: 'json',
+                        success: function(geoJsonData) {
+                            var fatherGeoJsonNode = {};
+                            /*    if (queryType === "Default") {
+                                    if (geoJsonData.hasOwnProperty("BusStops")) {
+                                        fatherGeoJsonNode = geoJsonData.BusStops;
+                                    }
+                                    else {
+                                        if (geoJsonData.hasOwnProperty("SensorSites")) {
+                                            fatherGeoJsonNode = geoJsonData.SensorSites;
+                                        }
+                                        else {
+                                            fatherGeoJsonNode = geoJsonData.Services;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (geoJsonData.hasOwnProperty("BusStop")) {
+                                        fatherGeoJsonNode = geoJsonData.BusStop;
+                                    }
+                                    else {
+                                        if (geoJsonData.hasOwnProperty("Sensor")) {
+                                            fatherGeoJsonNode = geoJsonData.Sensor;
+                                        }
+                                        else {
+                                            if (geoJsonData.hasOwnProperty("Service")) {
+                                                fatherGeoJsonNode = geoJsonData.Service;
+                                            }
+                                            else {
+                                                fatherGeoJsonNode = geoJsonData.Services;
+                                            }
+                                        }
+                                    }
+                                }*/
+
+                            if (queryType === "Default") {
+                                if (passedData.query.includes(
+                                        "datamanager/api/v1/poidata/")) {
+                                    fatherGeoJsonNode.features = [];
+                                    if (passedData.desc != "My POI") {
+                                        fatherGeoJsonNode.features[0] = geoJsonData;
+                                    } else {
+                                        fatherGeoJsonNode.features = geoJsonData;
+                                    }
+                                    fatherGeoJsonNode.type = "FeatureCollection";
+                                } else {
+                                    var countObjKeys = 0;
+                                    var objContainer = {};
+                                    Object.keys(geoJsonData).forEach(function(key) {
+                                        if (countObjKeys == 0) {
+                                            if (geoJsonData.hasOwnProperty(key)) {
+                                                fatherGeoJsonNode = geoJsonData[
+                                                    key];
+                                            }
+                                        } else {
+                                            if (geoJsonData.hasOwnProperty(key)) {
+                                                if (geoJsonData[key].features) {
+                                                    fatherGeoJsonNode.features =
+                                                        fatherGeoJsonNode.features
+                                                        .concat(geoJsonData[key]
+                                                            .features);
+                                                }
+                                            }
+                                        }
+                                        countObjKeys++;
+                                    });
+                                    /*    if (geoJsonData.hasOwnProperty("BusStops")) {
+                                            fatherGeoJsonNode = geoJsonData.BusStops;
+                                        } else {
+                                            if (geoJsonData.hasOwnProperty("SensorSites")) {
+                                                fatherGeoJsonNode = geoJsonData.SensorSites;
+                                            } else {
+                                                if (geoJsonData.hasOwnProperty("Service")) {
+                                                    fatherGeoJsonNode = geoJsonData.Service;
+                                                } else {
+                                                    fatherGeoJsonNode = geoJsonData.Services;
+                                                }
+                                            }
+                                        }*/
+                                }
+                            } else if (queryType === "MyPOI") {
+                                fatherGeoJsonNode.features = [];
+                                if (passedData.desc != "My POI") {
+                                    fatherGeoJsonNode.features[0] = geoJsonData;
+                                } else {
+                                    fatherGeoJsonNode.features = geoJsonData;
+                                }
+                                fatherGeoJsonNode.type = "FeatureCollection";
+                            } else {
+                                /*   var countObjKeys = 0;
+                                    var objContainer = {};
+                                    Object.keys(geoJsonData).forEach(function (key) {
+                                        if (countObjKeys == 0) {
+                                            if (geoJsonData.hasOwnProperty(key)) {
+                                                fatherGeoJsonNode = geoJsonData[key];
+                                            }
+                                        } else {
+                                            if (geoJsonData.hasOwnProperty(key)) {
+                                                fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                            }
+                                        }
+                                        countObjKeys++;
+                                    });*/
+                                if (geoJsonData.hasOwnProperty("BusStop")) {
+                                    fatherGeoJsonNode = geoJsonData.BusStop;
+                                } else {
+                                    if (geoJsonData.hasOwnProperty("Sensor")) {
+                                        fatherGeoJsonNode = geoJsonData.Sensor;
+                                    } else {
+                                        if (geoJsonData.hasOwnProperty("Service")) {
+                                            fatherGeoJsonNode = geoJsonData.Service;
+                                        } else {
+                                            fatherGeoJsonNode = geoJsonData.Services;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (is3dOn && (display == "undefined" || display.includes(
+                                    'pins')) && fatherGeoJsonNode.features.length != 0) {
+                                for (var i = 0; i < fatherGeoJsonNode.features
+                                    .length; i++) {
+                                    gisPrepareCustomMarker(fatherGeoJsonNode.features[i],
+                                        []);
+                                }
+
+                                const otherProps = {
+                                    apiUrl: this.url,
+                                    targets,
+                                    color1,
+                                    color2,
+                                    pinattr: passedData.pinattr,
+                                    pincolor: passedData.pincolor,
+                                    symbolcolor: passedData.symbolcolor,
+                                    iconFilePath: passedData.iconFilePath,
+                                };
+
+                                apiUrls3D[`${passedData.desc}`] = event;
+
+                                const sensorLayer = createSensorLayer({
+                                    data: fatherGeoJsonNode.features,
+                                    id: passedData.desc
+                                });
+                                layers.pin.push(sensorLayer);
+                                updateLayers();
+                            }
+
+                            for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
+
+                                var dataObj = {};
+
+                                fatherGeoJsonNode.features[i].properties.targetWidgets =
+                                    targets;
+                                fatherGeoJsonNode.features[i].properties.color1 = color1;
+                                fatherGeoJsonNode.features[i].properties.color2 = color2;
+                                fatherGeoJsonNode.features[i].properties.pinattr =
+                                    passedData.pinattr;
+                                fatherGeoJsonNode.features[i].properties.pincolor =
+                                    passedData.pincolor;
+                                fatherGeoJsonNode.features[i].properties.symbolcolor =
+                                    passedData.symbolcolor;
+                                fatherGeoJsonNode.features[i].properties.iconFilePath =
+                                    passedData.iconFilePath;
+                                //    fatherGeoJsonNode.features[i].properties.altViewMode = passedData.altViewMode;
+
+                                dataObj.lat = fatherGeoJsonNode.features[i].geometry
+                                    .coordinates[1];
+                                dataObj.lng = fatherGeoJsonNode.features[i].geometry
+                                    .coordinates[0];
+                                dataObj.eventType = "selectorEvent";
+                                dataObj.desc = desc;
+                                dataObj.query = passedData.query;
+                                dataObj.targets = passedData.targets;
+                                dataObj.eventGenerator = passedData.eventGenerator;
+                                dataObj.color1 = passedData.color1;
+                                dataObj.color2 = passedData.color2;
+                                dataObj.queryType = passedData.queryType;
+                                dataObj.display = passedData.display;
+                                dataObj.iconTextMode = passedData.iconTextMode;
+                            }
+
+                            // map.eventsOnMap.push(dataObj);
+
+                            if (!gisLayersOnMap.hasOwnProperty(desc) && (display !==
+                                    'geometries') && !is3dOn) {
+                                gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
+                                    pointToLayer: gisPrepareCustomMarker,
+                                    onEachFeature: onEachFeatureSpiderify
+                                }).addTo(map.defaultMapRef);
+                                //    oms.addMarker(gisLayersOnMap[desc]._layers);
+
+                                // CORTI - setta markers nella mappa 3D
+                                //                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
+                                //                                            pointToLayer: gisPrepareCustomMarker,
+                                //                                            onEachFeature: onEachFeature
+                                //                                        }).addTo(map.default3DMapRef);
+
+                            }
+
+                            loadingDiv.setStatus('ok');
+                            setTimeout(() => loadingDiv.remove(), 1000);
+
+                            eventGenerator.parents("div.gisMapPtrContainer").find(
+                                "i.gisLoadingIcon").hide();
+                            eventGenerator.parents('div.gisMapPtrContainer').siblings(
+                                    'div.gisQueryDescContainer').find('p.gisQueryDescPar')
+                                .css("font-weight", "bold");
+                            eventGenerator.parents('div.gisMapPtrContainer').siblings(
+                                    'div.gisQueryDescContainer').find('p.gisQueryDescPar')
+                                .css("color", eventGenerator.attr("data-activeFontColor"));
+                            if (eventGenerator.parents("div.gisMapPtrContainer").find(
+                                    'a.gisPinLink').attr("data-symbolMode") === 'auto') {
+                                eventGenerator.parents("div.gisMapPtrContainer").find(
+                                    "i.gisPinIcon").html("near_me");
+                                eventGenerator.parents("div.gisMapPtrContainer").find(
+                                    "i.gisPinIcon").css("color", "white");
+                                eventGenerator.parents("div.gisMapPtrContainer").find(
+                                    "i.gisPinIcon").css("text-shadow",
+                                    "2px 2px 4px black");
+                            } else {
+                                //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
+                                eventGenerator.parents("div.gisMapPtrContainer").find(
+                                    "div.gisPinCustomIconUp").show();
+                                eventGenerator.parents("div.gisMapPtrContainer").find(
+                                    "div.gisPinCustomIconUp").css("height", "100%");
+                            }
+
+                            eventGenerator.show();
+
+                            var wkt = null;
+
+                            if (display !== 'pins') {
+                                stopGeometryAjax[desc] = false;
+                                gisGeometryTankForFullscreen[desc] = {
+                                    capacity: fatherGeoJsonNode.features.length,
+                                    shown: false,
+                                    tank: [],
+                                    lastConsumedIndex: 0
+                                };
+
+                                for (var i = 0; i < fatherGeoJsonNode.features
+                                    .length; i++) {
+                                    if (fatherGeoJsonNode.features[i].properties
+                                        .hasOwnProperty('hasGeometry') && fatherGeoJsonNode
+                                        .features[i].properties.hasOwnProperty('serviceUri')
+                                    ) {
+                                        if (fatherGeoJsonNode.features[i].properties
+                                            .hasGeometry === true) {
+                                            //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
+
+                                            $.ajax({
+                                                url: "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" +
+                                                    fatherGeoJsonNode.features[i]
+                                                    .properties.serviceUri,
+                                                type: "GET",
+                                                data: {},
+                                                async: true,
+                                                timeout: 0,
+                                                dataType: 'json',
+                                                success: function(geometryGeoJson) {
+                                                    if (!stopGeometryAjax[
+                                                            desc]) {
+                                                        // Creazione nuova istanza del parser Wkt
+                                                        wkt = new Wkt.Wkt();
+
+                                                        // Lettura del WKT dalla risposta
+                                                        wkt.read(geometryGeoJson
+                                                            .Service
+                                                            .features[0]
+                                                            .properties
+                                                            .wktGeometry,
+                                                            null);
+
+                                                        var ciclePathFeature = [{
+                                                            type: "Feature",
+                                                            properties: geometryGeoJson
+                                                                .Service
+                                                                .features[
+                                                                    0]
+                                                                .properties,
+                                                            geometry: wkt
+                                                                .toJson()
+                                                        }];
+
+                                                        if (is3dOn) {
+                                                            const
+                                                                cyclingData = [];
+                                                            const index =
+                                                                getLayerIndexSet(
+                                                                    passedData
+                                                                    .desc,
+                                                                    layers
+                                                                    .cycling);
+                                                            if (index != -1)
+                                                                cyclingData
+                                                                .push(...layers
+                                                                    .cycling[
+                                                                        index]
+                                                                    .props.data
+                                                                );
+                                                            cyclingData.push(...
+                                                                ciclePathFeature
+                                                            );
+                                                            apiUrls3D[
+                                                                `${passedData.desc}`
+                                                            ] = event;
+
+                                                            const cyclingLayer =
+                                                                createPathLayer(
+                                                                    cyclingData,
+                                                                    passedData
+                                                                    .desc);
+                                                            if (index != -1) {
+                                                                layers.cycling[
+                                                                        index] =
+                                                                    null;
+                                                                updateLayers();
+                                                                layers.cycling[
+                                                                        index] =
+                                                                    cyclingLayer;
+                                                            } else
+                                                                layers.cycling
+                                                                .push(
+                                                                    cyclingLayer
+                                                                );
+                                                            updateLayers();
+                                                        }
+
+                                                        if (!
+                                                            gisGeometryLayersOnMap
+                                                            .hasOwnProperty(
+                                                                desc)) {
+                                                            gisGeometryLayersOnMap
+                                                                [desc] = [];
+                                                        }
+
+                                                        // CORTI - Pane
+                                                        map.defaultMapRef
+                                                            .createPane(
+                                                                'ciclePathFeature'
+                                                            );
+                                                        map.defaultMapRef
+                                                            .getPane(
+                                                                'ciclePathFeature'
+                                                            ).style.zIndex =
+                                                            420;
+
+                                                        gisGeometryLayersOnMap[
+                                                            desc].push(L
+                                                            .geoJSON(
+                                                                ciclePathFeature, {
+                                                                    pane: 'ciclePathFeature'
+                                                                }).addTo(map
+                                                                .defaultMapRef
+                                                            ));
+                                                        gisGeometryTankForFullscreen
+                                                            [desc].tank.push(
+                                                                ciclePathFeature
+                                                            );
+                                                        loadingDiv.setStatus('ok');
+                                                        setTimeout(() => loadingDiv.remove(), 1000);
+                                                    }
+                                                },
+                                                error: function(geometryErrorData) {
+                                                    console.log("Ko");
+                                                    console.log(JSON.stringify(
+                                                        geometryErrorData
+                                                    ));
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        error: function(errorData) {
+                            gisLayersOnMap[event.desc] = "loadError";
+
+                            loadingDiv.setStatus('ko');
+                            setTimeout(() => loadingDiv.remove(), 1000);
+
+                            eventGenerator.parents("div.gisMapPtrContainer").find(
+                                "i.gisLoadingIcon").hide();
+                            eventGenerator.parents("div.gisMapPtrContainer").find(
+                                "i.gisLoadErrorIcon").show();
+
+                            setTimeout(function() {
+                                eventGenerator.parents("div.gisMapPtrContainer")
+                                    .find("i.gisLoadErrorIcon").hide();
+                                eventGenerator.parents("div.gisMapPtrContainer")
+                                    .find("a.gisPinLink").attr("data-onMap",
+                                        "false");
+                                eventGenerator.parents("div.gisMapPtrContainer")
+                                    .find("a.gisPinLink").show();
+                            }, 1500);
+
+                            console.log("Error in getting GeoJSON from ServiceMap");
+                            console.log(JSON.stringify(errorData));
+                        }
+                    });
                 }
+                eventMapManager.legacyTrigger(event, addSelectorEventToMap);
             });
             $(document).on('addEventFI', function(event) {
-                if (event.target === map.mapName) {
-                    function addEventFIToMap() {
-                        let passedData = event.passedData;
+                function addEventFIToMap() {
+                    let passedData = event.passedData;
 
-                        for (let j = 0; j < passedData.length; j++) {
+                    for (let j = 0; j < passedData.length; j++) {
 
-                            let lat = passedData[j].lat;
-                            let lng = passedData[j].lng;
-                            let categoryIT = passedData[j].categoryIT;
+                        let lat = passedData[j].lat;
+                        let lng = passedData[j].lng;
+                        let categoryIT = passedData[j].categoryIT;
 
-                            let name = passedData[j].name;
-                            if (name.includes('?')) {
-                                name = name.replace(/\?/g, "'");
-                            }
-
-                            let place = passedData[j].place;
-                            if (place.includes('?')) {
-                                place = place.replace(/\?/g, "'");
-                            }
-
-                            let startDate = passedData[j].startDate;
-                            let endDate = passedData[j].endDate;
-                            let startTime = passedData[j].startTime;
-                            let freeEvent = passedData[j].freeEvent;
-                            let address = passedData[j].address;
-                            if (address.includes('?')) {
-                                address = address.replace(/\?/g, "'");
-                            }
-
-                            let civic = passedData[j].civic;
-                            let price = passedData[j].price;
-                            let phone = passedData[j].phone;
-                            let descriptionIT = passedData[j].descriptionIT;
-                            if (descriptionIT.includes('?')) {
-                                descriptionIT = descriptionIT.replace(/\?/g, "'");
-                            }
-
-                            let website = passedData[j].website;
-                            let colorClass = passedData[j].colorClass;
-                            let mapIconName = passedData[j].mapIconName;
-
-                            let mapPinImg = '../img/eventsIcons/' + mapIconName + '.png';
-
-                            let pinIcon = new L.DivIcon({
-                                className: null,
-                                html: '<img src="' + mapPinImg + '" class="leafletPin" />',
-                                iconAnchor: [18, 36]
-                            });
-
-                            let markerLocation = new L.LatLng(lat, lng);
-                            let marker = new L.Marker(markerLocation, {
-                                icon: pinIcon
-                            });
-                            passedData[j].marker = marker;
-
-                            //Creazione del popup per il pin appena creato
-                            let popupText = '<h3 class="' + colorClass + ' recreativeEventMapTitle">' +
-                                name + '</h3>';
-                            popupText +=
-                                '<div class="recreativeEventMapBtnContainer"><button class="recreativeEventMapDetailsBtn recreativeEventMapBtn ' +
-                                colorClass +
-                                ' recreativeEventMapBtnActive" type="button">Details</button><button class="recreativeEventMapDescriptionBtn recreativeEventMapBtn ' +
-                                colorClass +
-                                '" type="button">Description</button><button class="recreativeEventMapTimingBtn recreativeEventMapBtn ' +
-                                colorClass +
-                                '" type="button">Timing</button><button class="recreativeEventMapContactsBtn recreativeEventMapBtn ' +
-                                colorClass + '" type="button">Contacts</button></div>';
-
-                            popupText +=
-                                '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
-                            if ((place !== 'undefined') || (address !== 'undefined')) {
-                                if (categoryIT !== 'undefined') {
-                                    popupText += '<b>Category: </b>' + categoryIT;
-                                }
-
-                                if (place !== 'undefined') {
-                                    popupText += '<br/>';
-                                    popupText += '<b>Location: </b>' + place;
-                                }
-
-                                if (address !== 'undefined') {
-                                    popupText += '<br/>';
-                                    popupText += '<b>Address: </b>' + address;
-                                    if (civic !== 'undefined') {
-                                        popupText += ' ' + civic;
-                                    }
-                                }
-
-                                if (freeEvent !== 'undefined') {
-                                    popupText += '<br/>';
-                                    if ((freeEvent !== 'yes') && (freeEvent !== 'YES') && (freeEvent !==
-                                            'Yes')) {
-                                        if (price !== 'undefined') {
-                                            popupText += '<b>Price (€) : </b>' + price + "<br>";
-                                        } else {
-                                            popupText += '<b>Price (€) : </b>N/A<br>';
-                                        }
-                                    } else {
-                                        popupText += '<b>Free event: </b>' + freeEvent + '<br>';
-                                    }
-                                }
-                            } else {
-                                popupText += 'No further details available';
-                            }
-                            popupText += '</div>';
-
-                            popupText +=
-                                '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
-                            if (descriptionIT !== 'undefined') {
-                                popupText += descriptionIT;
-                            } else {
-                                popupText += 'No description available';
-                            }
-                            popupText += '</div>';
-
-                            popupText +=
-                                '<div class="recreativeEventMapDataContainer recreativeEventMapTimingContainer">';
-                            if ((startDate !== 'undefined') || (endDate !== 'undefined') || (startTime !==
-                                    'undefined')) {
-                                popupText += '<b>From: </b>';
-                                if (startDate !== 'undefined') {
-                                    popupText += startDate;
-                                } else {
-                                    popupText += 'N/A';
-                                }
-                                popupText += '<br/>';
-
-                                popupText += '<b>To: </b>';
-                                if (endDate !== 'undefined') {
-                                    popupText += endDate;
-                                } else {
-                                    popupText += 'N/A';
-                                }
-                                popupText += '<br/>';
-
-                                if (startTime !== 'undefined') {
-                                    popupText += '<b>Times: </b>' + startTime + '<br/>';
-                                } else {
-                                    popupText += '<b>Times: </b>N/A<br/>';
-                                }
-
-                            } else {
-                                popupText += 'No timings info available';
-                            }
-                            popupText += '</div>';
-
-                            popupText +=
-                                '<div class="recreativeEventMapDataContainer recreativeEventMapContactsContainer">';
-                            if ((phone !== 'undefined') || (website !== 'undefined')) {
-                                if (phone !== 'undefined') {
-                                    popupText += '<b>Phone: </b>' + phone + '<br/>';
-                                } else {
-                                    popupText += '<b>Phone: </b>N/A<br/>';
-                                }
-
-                                if (website !== 'undefined') {
-                                    if (website.includes('http') || website.includes('https')) {
-                                        popupText += '<b><a href="' + website +
-                                            '" target="_blank">Website</a></b><br>';
-                                    } else {
-                                        popupText += '<b><a href="' + website +
-                                            '" target="_blank">Website</a></b><br>';
-                                    }
-                                } else {
-                                    popupText += '<b>Website: </b>N/A';
-                                }
-                            } else {
-                                popupText += 'No contacts info available';
-                            }
-                            popupText += '</div>';
-
-                            map.defaultMapRef.addLayer(marker);
-                            lastPopup = marker.bindPopup(popupText, {
-                                offset: [-5, -40],
-                                maxWidth: 300
-                            });
-
-                            lastPopup.on('popupopen', function() {
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn')
-                                    .off('click');
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn')
-                                    .click(function() {
-                                        $('#' + widgetName +
-                                                '_map div.recreativeEventMapDataContainer')
-                                            .hide();
-                                        $('#' + widgetName +
-                                                '_map div.recreativeEventMapDetailsContainer')
-                                            .show();
-                                        $('#' + widgetName +
-                                                '_map button.recreativeEventMapBtn')
-                                            .removeClass('recreativeEventMapBtnActive');
-                                        $(this).addClass('recreativeEventMapBtnActive');
-                                    });
-
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn')
-                                    .off('click');
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn')
-                                    .click(function() {
-                                        $('#' + widgetName +
-                                                '_map div.recreativeEventMapDataContainer')
-                                            .hide();
-                                        $('#' + widgetName +
-                                                '_map div.recreativeEventMapDescContainer')
-                                            .show();
-                                        $('#' + widgetName +
-                                                '_map button.recreativeEventMapBtn')
-                                            .removeClass('recreativeEventMapBtnActive');
-                                        $(this).addClass('recreativeEventMapBtnActive');
-                                    });
-
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTimingBtn')
-                                    .off('click');
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTimingBtn')
-                                    .click(function() {
-                                        $('#' + widgetName +
-                                                '_map div.recreativeEventMapDataContainer')
-                                            .hide();
-                                        $('#' + widgetName +
-                                                '_map div.recreativeEventMapTimingContainer')
-                                            .show();
-                                        $('#' + widgetName +
-                                                '_map button.recreativeEventMapBtn')
-                                            .removeClass('recreativeEventMapBtnActive');
-                                        $(this).addClass('recreativeEventMapBtnActive');
-                                    });
-
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn')
-                                    .off('click');
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn')
-                                    .click(function() {
-                                        $('#' + widgetName +
-                                                '_map div.recreativeEventMapDataContainer')
-                                            .hide();
-                                        $('#' + widgetName +
-                                                '_map div.recreativeEventMapContactsContainer')
-                                            .show();
-                                        $('#' + widgetName +
-                                                '_map button.recreativeEventMapBtn')
-                                            .removeClass('recreativeEventMapBtnActive');
-                                        $(this).addClass('recreativeEventMapBtnActive');
-                                    });
-                            });
-
-                            lastPopup.openPopup();
-
-                            map.eventsOnMap.push(passedData[j]);
+                        let name = passedData[j].name;
+                        if (name.includes('?')) {
+                            name = name.replace(/\?/g, "'");
                         }
-                    }
 
-                    if (addMode === 'additive') {
-                        addEventFIToMap();
-                    }
+                        let place = passedData[j].place;
+                        if (place.includes('?')) {
+                            place = place.replace(/\?/g, "'");
+                        }
 
-                    if (addMode === 'exclusive') {
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType !== 'eventFI') {
-                                map.defaultMapRef.eachLayer(function(layer) {
-                                    map.defaultMapRef.removeLayer(layer);
+                        let startDate = passedData[j].startDate;
+                        let endDate = passedData[j].endDate;
+                        let startTime = passedData[j].startTime;
+                        let freeEvent = passedData[j].freeEvent;
+                        let address = passedData[j].address;
+                        if (address.includes('?')) {
+                            address = address.replace(/\?/g, "'");
+                        }
+
+                        let civic = passedData[j].civic;
+                        let price = passedData[j].price;
+                        let phone = passedData[j].phone;
+                        let descriptionIT = passedData[j].descriptionIT;
+                        if (descriptionIT.includes('?')) {
+                            descriptionIT = descriptionIT.replace(/\?/g, "'");
+                        }
+
+                        let website = passedData[j].website;
+                        let colorClass = passedData[j].colorClass;
+                        let mapIconName = passedData[j].mapIconName;
+
+                        let mapPinImg = '../img/eventsIcons/' + mapIconName + '.png';
+
+                        let pinIcon = new L.DivIcon({
+                            className: null,
+                            html: '<img src="' + mapPinImg + '" class="leafletPin" />',
+                            iconAnchor: [18, 36]
+                        });
+
+                        let markerLocation = new L.LatLng(lat, lng);
+                        let marker = new L.Marker(markerLocation, {
+                            icon: pinIcon
+                        });
+                        passedData[j].marker = marker;
+
+                        //Creazione del popup per il pin appena creato
+                        let popupText = '<h3 class="' + colorClass + ' recreativeEventMapTitle">' +
+                            name + '</h3>';
+                        popupText +=
+                            '<div class="recreativeEventMapBtnContainer"><button class="recreativeEventMapDetailsBtn recreativeEventMapBtn ' +
+                            colorClass +
+                            ' recreativeEventMapBtnActive" type="button">Details</button><button class="recreativeEventMapDescriptionBtn recreativeEventMapBtn ' +
+                            colorClass +
+                            '" type="button">Description</button><button class="recreativeEventMapTimingBtn recreativeEventMapBtn ' +
+                            colorClass +
+                            '" type="button">Timing</button><button class="recreativeEventMapContactsBtn recreativeEventMapBtn ' +
+                            colorClass + '" type="button">Contacts</button></div>';
+
+                        popupText +=
+                            '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
+                        if ((place !== 'undefined') || (address !== 'undefined')) {
+                            if (categoryIT !== 'undefined') {
+                                popupText += '<b>Category: </b>' + categoryIT;
+                            }
+
+                            if (place !== 'undefined') {
+                                popupText += '<br/>';
+                                popupText += '<b>Location: </b>' + place;
+                            }
+
+                            if (address !== 'undefined') {
+                                popupText += '<br/>';
+                                popupText += '<b>Address: </b>' + address;
+                                if (civic !== 'undefined') {
+                                    popupText += ' ' + civic;
+                                }
+                            }
+
+                            if (freeEvent !== 'undefined') {
+                                popupText += '<br/>';
+                                if ((freeEvent !== 'yes') && (freeEvent !== 'YES') && (freeEvent !==
+                                        'Yes')) {
+                                    if (price !== 'undefined') {
+                                        popupText += '<b>Price (€) : </b>' + price + "<br>";
+                                    } else {
+                                        popupText += '<b>Price (€) : </b>N/A<br>';
+                                    }
+                                } else {
+                                    popupText += '<b>Free event: </b>' + freeEvent + '<br>';
+                                }
+                            }
+                        } else {
+                            popupText += 'No further details available';
+                        }
+                        popupText += '</div>';
+
+                        popupText +=
+                            '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
+                        if (descriptionIT !== 'undefined') {
+                            popupText += descriptionIT;
+                        } else {
+                            popupText += 'No description available';
+                        }
+                        popupText += '</div>';
+
+                        popupText +=
+                            '<div class="recreativeEventMapDataContainer recreativeEventMapTimingContainer">';
+                        if ((startDate !== 'undefined') || (endDate !== 'undefined') || (startTime !==
+                                'undefined')) {
+                            popupText += '<b>From: </b>';
+                            if (startDate !== 'undefined') {
+                                popupText += startDate;
+                            } else {
+                                popupText += 'N/A';
+                            }
+                            popupText += '<br/>';
+
+                            popupText += '<b>To: </b>';
+                            if (endDate !== 'undefined') {
+                                popupText += endDate;
+                            } else {
+                                popupText += 'N/A';
+                            }
+                            popupText += '<br/>';
+
+                            if (startTime !== 'undefined') {
+                                popupText += '<b>Times: </b>' + startTime + '<br/>';
+                            } else {
+                                popupText += '<b>Times: </b>N/A<br/>';
+                            }
+
+                        } else {
+                            popupText += 'No timings info available';
+                        }
+                        popupText += '</div>';
+
+                        popupText +=
+                            '<div class="recreativeEventMapDataContainer recreativeEventMapContactsContainer">';
+                        if ((phone !== 'undefined') || (website !== 'undefined')) {
+                            if (phone !== 'undefined') {
+                                popupText += '<b>Phone: </b>' + phone + '<br/>';
+                            } else {
+                                popupText += '<b>Phone: </b>N/A<br/>';
+                            }
+
+                            if (website !== 'undefined') {
+                                if (website.includes('http') || website.includes('https')) {
+                                    popupText += '<b><a href="' + website +
+                                        '" target="_blank">Website</a></b><br>';
+                                } else {
+                                    popupText += '<b><a href="' + website +
+                                        '" target="_blank">Website</a></b><br>';
+                                }
+                            } else {
+                                popupText += '<b>Website: </b>N/A';
+                            }
+                        } else {
+                            popupText += 'No contacts info available';
+                        }
+                        popupText += '</div>';
+
+                        map.defaultMapRef.addLayer(marker);
+                        lastPopup = marker.bindPopup(popupText, {
+                            offset: [-5, -40],
+                            maxWidth: 300
+                        });
+
+                        lastPopup.on('popupopen', function() {
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn')
+                                .off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn')
+                                .click(function() {
+                                    $('#' + widgetName +
+                                            '_map div.recreativeEventMapDataContainer')
+                                        .hide();
+                                    $('#' + widgetName +
+                                            '_map div.recreativeEventMapDetailsContainer')
+                                        .show();
+                                    $('#' + widgetName +
+                                            '_map button.recreativeEventMapBtn')
+                                        .removeClass('recreativeEventMapBtnActive');
+                                    $(this).addClass('recreativeEventMapBtnActive');
                                 });
-                                map.eventsOnMap.length = 0;
-                                break;
-                            }
-                        }
-                        //Remove WidgetAlarm active pins
-                        $.event.trigger({
-                            type: "removeAlarmPin",
-                        });
-                        //Remove WidgetEvacuationPlans active pins
-                        $.event.trigger({
-                            type: "removeEvacuationPlanPin",
-                        });
-                        //Remove WidgetSelector active pins
-                        $.event.trigger({
-                            type: "removeSelectorEventPin",
-                        });
-                        //Remove WidgetResources active pins
-                        $.event.trigger({
-                            type: "removeResourcePin",
-                        });
-                        //Remove WidgetOperatorEvents active pins
-                        $.event.trigger({
-                            type: "removeOperatorEventPin",
-                        });
-                        //Remove WidgetTrafficEvents active pins
-                        $.event.trigger({
-                            type: "removeTrafficEventPin",
-                        });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
-                        }).addTo(map.defaultMapRef);
 
-                        addEventFIToMap();
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn')
+                                .off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn')
+                                .click(function() {
+                                    $('#' + widgetName +
+                                            '_map div.recreativeEventMapDataContainer')
+                                        .hide();
+                                    $('#' + widgetName +
+                                            '_map div.recreativeEventMapDescContainer')
+                                        .show();
+                                    $('#' + widgetName +
+                                            '_map button.recreativeEventMapBtn')
+                                        .removeClass('recreativeEventMapBtnActive');
+                                    $(this).addClass('recreativeEventMapBtnActive');
+                                });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTimingBtn')
+                                .off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTimingBtn')
+                                .click(function() {
+                                    $('#' + widgetName +
+                                            '_map div.recreativeEventMapDataContainer')
+                                        .hide();
+                                    $('#' + widgetName +
+                                            '_map div.recreativeEventMapTimingContainer')
+                                        .show();
+                                    $('#' + widgetName +
+                                            '_map button.recreativeEventMapBtn')
+                                        .removeClass('recreativeEventMapBtnActive');
+                                    $(this).addClass('recreativeEventMapBtnActive');
+                                });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn')
+                                .off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn')
+                                .click(function() {
+                                    $('#' + widgetName +
+                                            '_map div.recreativeEventMapDataContainer')
+                                        .hide();
+                                    $('#' + widgetName +
+                                            '_map div.recreativeEventMapContactsContainer')
+                                        .show();
+                                    $('#' + widgetName +
+                                            '_map button.recreativeEventMapBtn')
+                                        .removeClass('recreativeEventMapBtnActive');
+                                    $(this).addClass('recreativeEventMapBtnActive');
+                                });
+                        });
+
+                        lastPopup.openPopup();
+
+                        map.eventsOnMap.push(passedData[j]);
                     }
-
-
-                    //  resizeMapView(map.defaultMapRef);
                 }
+                eventMapManager.legacyTrigger(event, addEventFIToMap);
             });
             $(document).on('addResource', function(event) {
-                if (event.target === map.mapName) {
-                    function addResourceToMap() {
-                        let passedData = event.passedData;
+                function addResourceToMap() {
+                    let passedData = event.passedData;
 
-                        for (let j = 0; j < passedData.length; j++) {
+                    for (let j = 0; j < passedData.length; j++) {
 
-                            let lat = passedData[j].lat;
-                            let lng = passedData[j].lng;
-                            let eventType = passedData[j].eventType;
-                            let eventName = passedData[j].eventName;
-                            let eventStartDate = passedData[j].eventStartDate;
-                            let eventStartTime = passedData[j].eventStartTime;
+                        let lat = passedData[j].lat;
+                        let lng = passedData[j].lng;
+                        let eventType = passedData[j].eventType;
+                        let eventName = passedData[j].eventName;
+                        let eventStartDate = passedData[j].eventStartDate;
+                        let eventStartTime = passedData[j].eventStartTime;
 
-                            mapPinImg = '../img/resourceIcons/metroMap.png';
+                        mapPinImg = '../img/resourceIcons/metroMap.png';
 
-                            pinIcon = new L.DivIcon({
-                                className: null,
-                                html: '<img src="' + mapPinImg + '" class="leafletPin" />',
-                                iconAnchor: [18, 36]
-                            });
+                        pinIcon = new L.DivIcon({
+                            className: null,
+                            html: '<img src="' + mapPinImg + '" class="leafletPin" />',
+                            iconAnchor: [18, 36]
+                        });
 
-                            var markerLocation = new L.LatLng(lat, lng);
-                            var marker = new L.Marker(markerLocation, {
-                                icon: pinIcon
-                            });
+                        var markerLocation = new L.LatLng(lat, lng);
+                        var marker = new L.Marker(markerLocation, {
+                            icon: pinIcon
+                        });
 
-                            passedData[j].marker = marker;
+                        passedData[j].marker = marker;
 
-                            //Creazione del popup per il pin appena creato
-                            var popupText = "<span class='mapPopupTitle'>" + eventName.toUpperCase() +
-                                "</span>" +
-                                "<span class='mapPopupLine'>" + eventStartDate + " - " + eventStartTime +
-                                "</span>";
+                        //Creazione del popup per il pin appena creato
+                        var popupText = "<span class='mapPopupTitle'>" + eventName.toUpperCase() +
+                            "</span>" +
+                            "<span class='mapPopupLine'>" + eventStartDate + " - " + eventStartTime +
+                            "</span>";
 
-                            map.defaultMapRef.addLayer(marker);
-                            lastPopup = marker.bindPopup(popupText, {
-                                offset: [-5, -40]
-                            }).openPopup();
+                        map.defaultMapRef.addLayer(marker);
+                        lastPopup = marker.bindPopup(popupText, {
+                            offset: [-5, -40]
+                        }).openPopup();
 
-                            map.eventsOnMap.push(passedData[j]);
+                        map.eventsOnMap.push(passedData[j]);
 
-                        }
                     }
-
-                    if (addMode === 'additive') {
-                        addResourceToMap();
-                    }
-
-                    if (addMode === 'exclusive') {
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType !== 'resource') {
-                                map.defaultMapRef.eachLayer(function(layer) {
-                                    map.defaultMapRef.removeLayer(layer);
-                                });
-                                map.eventsOnMap.length = 0;
-                                break;
-                            }
-                        }
-                        //Remove WidgetAlarm active pins
-                        $.event.trigger({
-                            type: "removeAlarmPin",
-                        });
-                        //Remove WidgetEvacuationPlans active pins
-                        $.event.trigger({
-                            type: "removeEvacuationPlanPin",
-                        });
-                        //Remove WidgetSelector active pins
-                        $.event.trigger({
-                            type: "removeSelectorEventPin",
-                        });
-                        //Remove WidgetEvents active pins
-                        $.event.trigger({
-                            type: "removeEventFIPin",
-                        });
-                        //Remove WidgetOperatorEvents active pins
-                        $.event.trigger({
-                            type: "removeOperatorEventPin",
-                        });
-                        //Remove WidgetTrafficEvents active pins
-                        $.event.trigger({
-                            type: "removeTrafficEventPin",
-                        });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
-                        }).addTo(map.defaultMapRef);
-
-                        addResourceToMap();
-                    }
-
-
-                    //   resizeMapView(map.defaultMapRef);
                 }
+                eventMapManager.legacyTrigger(event, addResourceToMap);
             });
             $(document).on('addOperatorEvent', function(event) {
-                if (event.target === map.mapName) {
-                    function addOperatorEventToMap() {
-                        let passedData = event.passedData;
+                function addOperatorEventToMap() {
+                    let passedData = event.passedData;
 
-                        for (let j = 0; j < passedData.length; j++) {
+                    for (let j = 0; j < passedData.length; j++) {
 
-                            let lat = passedData[j].lat;
-                            let lng = passedData[j].lng;
-                            let eventType = passedData[j].eventType;
-                            let eventName = passedData[j].eventName;
-                            let eventStartDate = passedData[j].eventStartDate;
-                            let eventStartTime = passedData[j].eventStartTime;
-                            let eventPeopleNumber = parseInt(passedData[j].eventPeopleNumber);
-                            let eventOperatorName = passedData[j].eventOperatorName;
-                            let eventColor = passedData[j].eventColor;
+                        let lat = passedData[j].lat;
+                        let lng = passedData[j].lng;
+                        let eventType = passedData[j].eventType;
+                        let eventName = passedData[j].eventName;
+                        let eventStartDate = passedData[j].eventStartDate;
+                        let eventStartTime = passedData[j].eventStartTime;
+                        let eventPeopleNumber = parseInt(passedData[j].eventPeopleNumber);
+                        let eventOperatorName = passedData[j].eventOperatorName;
+                        let eventColor = passedData[j].eventColor;
 
 
-                            let markerLocation = new L.LatLng(lat, lng);
-                            let marker = new L.Marker(markerLocation);
-                            passedData[j].marker = marker;
+                        let markerLocation = new L.LatLng(lat, lng);
+                        let marker = new L.Marker(markerLocation);
+                        passedData[j].marker = marker;
 
-                            //Creazione del popup per il pin appena creato
-                            popupText = "<span class='mapPopupTitle'>" + eventColor.toUpperCase() +
-                                "</span>" +
-                                "<span class='mapPopupLine'>" + eventStartDate + " - " + eventStartTime +
-                                "</span>" +
-                                //    "<span class='mapPopupLine'>PEOPLE INVOLVED: " + eventPeopleNumber + "</span>" +
-                                "<span class='mapPopupLine'>TICKET NUMBER: " + eventPeopleNumber +
-                                "</span>" +
-                                "<span class='mapPopupLine'>OPERATOR: " + eventOperatorName.toUpperCase() +
-                                "</span>";
+                        //Creazione del popup per il pin appena creato
+                        popupText = "<span class='mapPopupTitle'>" + eventColor.toUpperCase() +
+                            "</span>" +
+                            "<span class='mapPopupLine'>" + eventStartDate + " - " + eventStartTime +
+                            "</span>" +
+                            //    "<span class='mapPopupLine'>PEOPLE INVOLVED: " + eventPeopleNumber + "</span>" +
+                            "<span class='mapPopupLine'>TICKET NUMBER: " + eventPeopleNumber +
+                            "</span>" +
+                            "<span class='mapPopupLine'>OPERATOR: " + eventOperatorName.toUpperCase() +
+                            "</span>";
 
-                            map.defaultMapRef.addLayer(marker);
-                            lastPopup = marker.bindPopup(popupText, {
-                                offset: [0, 0]
-                            }).openPopup();
+                        map.defaultMapRef.addLayer(marker);
+                        lastPopup = marker.bindPopup(popupText, {
+                            offset: [0, 0]
+                        }).openPopup();
 
-                            map.eventsOnMap.push(passedData[j]);
+                        map.eventsOnMap.push(passedData[j]);
 
-                        }
                     }
-
-                    if (addMode === 'additive') {
-                        addOperatorEventToMap();
-                    }
-
-                    if (addMode === 'exclusive') {
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType !== 'OperatorEvent') {
-                                map.defaultMapRef.eachLayer(function(layer) {
-                                    map.defaultMapRef.removeLayer(layer);
-                                });
-                                map.eventsOnMap.length = 0;
-                                break;
-                            }
-                        }
-                        //Remove WidgetAlarm active pins
-                        $.event.trigger({
-                            type: "removeAlarmPin",
-                        });
-                        //Remove WidgetEvacuationPlans active pins
-                        $.event.trigger({
-                            type: "removeEvacuationPlanPin",
-                        });
-                        //Remove WidgetSelector active pins
-                        $.event.trigger({
-                            type: "removeSelectorEventPin",
-                        });
-                        //Remove WidgetEvents active pins
-                        $.event.trigger({
-                            type: "removeEventFIPin",
-                        });
-                        //Remove WidgetResources active pins
-                        $.event.trigger({
-                            type: "removeResourcePin",
-                        });
-                        //Remove WidgetTrafficEvents active pins
-                        $.event.trigger({
-                            type: "removeTrafficEventPin",
-                        });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
-                        }).addTo(map.defaultMapRef);
-
-                        addOperatorEventToMap();
-                    }
-
-
-                    // resizeMapView(map.defaultMapRef);
                 }
+                eventMapManager.legacyTrigger(event, addOperatorEventToMap);
             });
             $(document).on('addTrafficEvent', function(event) {
-                if (event.target === map.mapName) {
-                    function addTrafficEventToMap() {
-                        let passedData = event.passedData;
+                function addTrafficEventToMap() {
+                    let passedData = event.passedData;
 
-                        for (let j = 0; j < passedData.length; j++) {
+                    for (let j = 0; j < passedData.length; j++) {
 
-                            let lat = passedData[j].lat;
-                            let lng = passedData[j].lng;
-                            let eventType = passedData[j].eventType;
-                            let eventSubtype = passedData[j].eventSubtype;
-                            let eventName = passedData[j].eventName;
-                            let eventStartDate = passedData[j].eventStartDate;
-                            let eventStartTime = passedData[j].eventStartTime;
-                            let eventSeverity = passedData[j].eventSeverity;
-                            let eventseveritynum = passedData[j].eventseveritynum;
-                            passedData[j].type = "trafficEvent";
+                        let lat = passedData[j].lat;
+                        let lng = passedData[j].lng;
+                        let eventType = passedData[j].eventType;
+                        let eventSubtype = passedData[j].eventSubtype;
+                        let eventName = passedData[j].eventName;
+                        let eventStartDate = passedData[j].eventStartDate;
+                        let eventStartTime = passedData[j].eventStartTime;
+                        let eventSeverity = passedData[j].eventSeverity;
+                        let eventseveritynum = passedData[j].eventseveritynum;
+                        passedData[j].type = "trafficEvent";
 
-                            //Creazione dell'icona custom per il pin
-                            switch (eventSeverity) {
-                                case "Low":
-                                    mapPinImg = '../img/trafficIcons/' + trafficEventTypes["type" +
-                                        eventType].mapIconLow;
-                                    severityColor = "#ffcc00";
-                                    break;
-
-                                case "Med":
-                                    mapPinImg = '../img/trafficIcons/' + trafficEventTypes["type" +
-                                        eventType].mapIconMed;
-                                    severityColor = "#ff9900";
-                                    break;
-
-                                case "High":
-                                    mapPinImg = '../img/trafficIcons/' + trafficEventTypes["type" +
-                                        eventType].mapIconHigh;
-                                    severityColor = "#ff6666";
-                                    break;
-                            }
-
-                            let pinIcon = new L.DivIcon({
-                                className: null,
-                                html: '<img src="' + mapPinImg + '" class="leafletPin" />',
-                                iconAnchor: [18, 36]
-                            });
-
-                            let markerLocation = new L.LatLng(lat, lng);
-                            let marker = new L.Marker(markerLocation, {
-                                icon: pinIcon
-                            });
-                            passedData[j].marker = marker;
-
-                            //Creazione del popup per il pin appena creato
-                            popupText = "<span class='mapPopupTitle'>" + eventName + "</span>" +
-                                "<span class='mapPopupLine'><i>Start date</i>: " + eventStartDate + " - " +
-                                eventStartTime + "</span>" +
-                                "<span class='mapPopupLine'><i>Event type</i>: " + trafficEventTypes[
-                                    "type" + eventType].desc.toUpperCase() + "</span>" +
-                                "<span class='mapPopupLine'><i>Event subtype</i>: " + trafficEventSubTypes[
-                                    "subType" + eventSubtype].toUpperCase() + "</span>" +
-                                "<span class='mapPopupLine'><i>Event severity</i>: " + eventseveritynum +
-                                " - <span style='background-color: " + severityColor + "'>" + eventSeverity
-                                .toUpperCase() + "</span></span>";
-
-                            map.defaultMapRef.addLayer(marker);
-                            lastPopup = marker.bindPopup(popupText, {
-                                offset: [-5, -40],
-                                maxWidth: 600
-                            }).openPopup();
-
-                            map.eventsOnMap.push(passedData[j]);
-                        }
-                    }
-
-                    if (addMode === 'additive') {
-                        addTrafficEventToMap();
-                    }
-
-                    if (addMode === 'exclusive') {
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].type !== "trafficEvent") {
-                                map.defaultMapRef.eachLayer(function(layer) {
-                                    map.defaultMapRef.removeLayer(layer);
-                                });
-                                map.eventsOnMap.length = 0;
+                        //Creazione dell'icona custom per il pin
+                        switch (eventSeverity) {
+                            case "Low":
+                                mapPinImg = '../img/trafficIcons/' + trafficEventTypes["type" +
+                                    eventType].mapIconLow;
+                                severityColor = "#ffcc00";
                                 break;
-                            }
+
+                            case "Med":
+                                mapPinImg = '../img/trafficIcons/' + trafficEventTypes["type" +
+                                    eventType].mapIconMed;
+                                severityColor = "#ff9900";
+                                break;
+
+                            case "High":
+                                mapPinImg = '../img/trafficIcons/' + trafficEventTypes["type" +
+                                    eventType].mapIconHigh;
+                                severityColor = "#ff6666";
+                                break;
                         }
-                        //Remove WidgetAlarm active pins
-                        $.event.trigger({
-                            type: "removeAlarmPin",
-                        });
-                        //Remove WidgetEvacuationPlans active pins
-                        $.event.trigger({
-                            type: "removeEvacuationPlanPin",
-                        });
-                        //Remove WidgetSelector active pins
-                        $.event.trigger({
-                            type: "removeSelectorEventPin",
-                        });
-                        //Remove WidgetEvents active pins
-                        $.event.trigger({
-                            type: "removeEventFIPin",
-                        });
-                        //Remove WidgetResources active pins
-                        $.event.trigger({
-                            type: "removeResourcePin",
-                        });
-                        //Remove WidgetOperatorEvents active pins
-                        $.event.trigger({
-                            type: "removeOperatorEventPin",
-                        });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
-                        }).addTo(map.defaultMapRef);
 
-                        addTrafficEventToMap();
+                        let pinIcon = new L.DivIcon({
+                            className: null,
+                            html: '<img src="' + mapPinImg + '" class="leafletPin" />',
+                            iconAnchor: [18, 36]
+                        });
+
+                        let markerLocation = new L.LatLng(lat, lng);
+                        let marker = new L.Marker(markerLocation, {
+                            icon: pinIcon
+                        });
+                        passedData[j].marker = marker;
+
+                        //Creazione del popup per il pin appena creato
+                        popupText = "<span class='mapPopupTitle'>" + eventName + "</span>" +
+                            "<span class='mapPopupLine'><i>Start date</i>: " + eventStartDate + " - " +
+                            eventStartTime + "</span>" +
+                            "<span class='mapPopupLine'><i>Event type</i>: " + trafficEventTypes[
+                                "type" + eventType].desc.toUpperCase() + "</span>" +
+                            "<span class='mapPopupLine'><i>Event subtype</i>: " + trafficEventSubTypes[
+                                "subType" + eventSubtype].toUpperCase() + "</span>" +
+                            "<span class='mapPopupLine'><i>Event severity</i>: " + eventseveritynum +
+                            " - <span style='background-color: " + severityColor + "'>" + eventSeverity
+                            .toUpperCase() + "</span></span>";
+
+                        map.defaultMapRef.addLayer(marker);
+                        lastPopup = marker.bindPopup(popupText, {
+                            offset: [-5, -40],
+                            maxWidth: 600
+                        }).openPopup();
+
+                        map.eventsOnMap.push(passedData[j]);
                     }
-
-
-                    //  resizeMapView(map.defaultMapRef);
                 }
+                eventMapManager.legacyTrigger(event, addTrafficEventToMap);
             });
 
+            // TODO: move to map manager.
             // Cristiano : Dynamic Routing
             var scenarioLayer = null;
             var scenarioControl = null;
@@ -18184,11 +17713,10 @@ if (!isset($_SESSION)) {
             // end Cristiano
 
             $(document).on('addTrafficRealTimeDetails', function(event) {
-                if (event.target === map.mapName) {
+                function addTrafficRTDetailsToMap(event) {
                     var so = map.defaultMapRef.getBounds()._southWest;
                     var ne = map.defaultMapRef.getBounds()._northEast;
                     var zm = map.defaultMapRef.getZoom();
-                    apiUrls3D['traffic'] = event;
 
                     if (is3dOn) {
                         const maxBB = getMaxBoundingBox(currentViewState);
@@ -18201,420 +17729,348 @@ if (!isset($_SESSION)) {
 
                     var roadsJson = event.passedData + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" +
                         ne.lat + "&eLong=" + ne.lng + "&zoom=" + zm;
+                    var event = {};
+                    event.eventType = "trafficRealTimeDetails";
+                    event.maxLat = ne.lat;
+                    event.minLat = so.lat;
+                    event.maxLng = ne.lng;
+                    event.minLng = so.lng;
+                    event.zm = zm;
 
-                    function addTrafficRTDetailsToMap() {
-                        var event = {};
-                        event.eventType = "trafficRealTimeDetails";
-                        event.maxLat = ne.lat;
-                        event.minLat = so.lat;
-                        event.maxLng = ne.lng;
-                        event.minLng = so.lng;
-                        event.zm = zm;
+                    event.marker = new L.LayerGroup();
 
-                        var myMarker = new L.LayerGroup();
+                    map.defaultMapRef.on('click', function(e) {
+                        var bnds = map.defaultMapRef.getBounds()
+                        if (roads == null)
+                            loadRoads();
+                        else {}
+                    });
 
-                        /*    $.ajax({
-                            //    url: "../trafficRTDetails/sensorsCoord.json",
-                                url: "https://firenzetraffic.km4city.org/trafficRTDetails/sensorsCoord.php",
-                                type: "GET",
-                                async: false,
-                                cache: false,
-                                dataType: 'json',
-                                success: function (_sensors) {
-                                    sensors = JSON.parse(_sensors);
-                                    for (var i = 0; i < sensors.length; i++) {
-                                        if (sensors[i].sensorLat > so.lat && sensors[i].sensorLat < ne.lat && sensors[i].sensorLong > so.lng && sensors[i].sensorLong < ne.lng) {
-                                            var mark = L.circleMarker([sensors[i].sensorLat, sensors[i].sensorLong]);
-                                            mark.addTo(myMarker);
-                                        }
-                                    }
-                                    myMarker.addTo(map.defaultMapRef);
-                                }
-                            }); */
+                    // CORTI - zIndex
+                    map.defaultMapRef.createPane('trafficFlow');
+                    map.defaultMapRef.getPane('trafficFlow').style.zIndex = 420;
 
-                        event.marker = myMarker;
+                    var wktLayer = new L.LayerGroup();
+                    var roads = null;
+                    var time = 0;
 
-                        map.defaultMapRef.on('click', function(e) {
-                            var bnds = map.defaultMapRef.getBounds()
-                            if (roads == null)
-                                loadRoads();
-                            else {}
-                        });
+                    loadRoads();
 
-                        // CORTI - zIndex
-                        map.defaultMapRef.createPane('trafficFlow');
-                        map.defaultMapRef.getPane('trafficFlow').style.zIndex = 420;
-
-                        var wktLayer = new L.LayerGroup();
-                        var roads = null;
-                        var time = 0;
-
-                        loadRoads();
-
-                        function loadRoads() {
-                            defaults = {
-                                icon: new L.DivIcon({
-                                    className: "geo-icon"
-                                }),
-                                editable: true,
-                                color: '#AA0000',
-                                weight: 2.5,
-                                opacity: 1,
-                                fillColor: '#AA0000',
-                                fillOpacity: 1,
-                                pane: 'trafficFlow' // CORTI
-                            };
-
-                            $.ajax({
-                                url: roadsJson,
-                                type: "GET",
-                                async: true,
-                                dataType: 'json',
-                                success: function(_roads) {
-                                    roads = JSON.parse(JSON.stringify(_roads));
-
-                                    if (!densityTable)
-                                        loadDensityTable(false);
-                                    loadDensity(_roads);
-                                },
-                                error: function(err) {
-                                    console.log(err);
-                                    alert("error see log json");
-                                }
-                            });
-                        }
-
-                        function loadDensity(roads) {
-                            $.ajax({
-                                //    url: "http://localhost/dashboardSmartCity/trafficRTDetails/density/read.php" + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat + "&eLong=" + ne.lng + "&zoom=" + zm,
-                                url: "https://firenzetraffic.km4city.org/trafficRTDetails/density/read.php" +
-                                    "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat +
-                                    "&eLong=" + ne.lng + "&zoom=" + zm,
-                                type: "GET",
-                                async: false,
-                                cache: false,
-                                dataType: 'json',
-                                success: function(_density) {
-
-                                    if (is3dOn) {
-                                        var result = _density;
-                                        // Removing first null object
-                                        if (roads[0].road == null)
-                                            roads = roads.slice(1);
-
-                                        // For all roads
-                                        for (var i = 0; i < roads.length; i++) {
-                                            var road = roads[i];
-                                            var density = result[road.road];
-                                            // for all segments
-                                            for (var j = 0; j < road.segments.length; j++) {
-                                                var segment = road.segments[j];
-                                                segment.startPos = [parseFloat(segment.start
-                                                    .long), parseFloat(segment.start
-                                                    .lat)];
-                                                segment.endPos = [parseFloat(segment.end.long),
-                                                    parseFloat(segment.end.lat)
-                                                ];
-                                                segment.middlePos = getMiddlePosition(segment.startPos, segment.endPos);
-                                                var segmentDensity = density.data[0][segment
-                                                    .id
-                                                ];
-                                                segment.density = parseFloat(segmentDensity);
-                                                segment.relativeDensity = parseFloat(segment
-                                                    .density) / parseFloat(segment.Lanes);
-                                                if (segment.relativeDensity > 1)
-                                                    segment.relativeDensity = 1;
-                                                segment.nextRelativeDensity = parseFloat(segment.relativeDensity);
-                                                segment.prevRelativeDensity = parseFloat(segment.relativeDensity);
-                                                segment.color = getDensityColor(segment.relativeDensity);
-                                                segment.prevColor = segment.color;
-                                                segment.nextColor = segment.color;
-                                                if (j > 0) {
-                                                    var prevSegment = road.segments[j - 1];
-                                                    const avgRelativeDensity = (prevSegment.relativeDensity + segment.relativeDensity) / 2;
-                                                    const avgColor = getDensityColor(avgRelativeDensity);
-                                                    prevSegment.nextRelativeDensity = avgRelativeDensity;
-                                                    prevSegment.nextColor = avgColor;
-                                                    segment.prevRelativeDensity = avgRelativeDensity;
-                                                    segment.prevColor = avgColor;
-                                                }
-                                            }
-                                        }
-
-                                        for (let i = 0; i < roads.length; i++) {
-                                            const road = roads[i];
-                                            const lastIndexRoad = road.segments.length - 1;
-                                            let roadToAttach = {
-                                                toStart: {
-                                                    fromStart: [],
-                                                    fromEnd: [],
-                                                },
-                                                toEnd: {
-                                                    fromStart: [],
-                                                    fromEnd: [],
-                                                }
-                                            }
-                                            for (let j = i + 1; j < roads.length; j++) {
-                                                const nextRoad = roads[j];
-                                                const lastIndexNextRoad = nextRoad.segments.length - 1;
-                                                if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[0].startPos))
-                                                    roadToAttach.toStart.fromStart.push(nextRoad);
-                                                else if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[lastIndexNextRoad].endPos))
-                                                    roadToAttach.toStart.fromEnd.push(nextRoad);
-                                                else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[0].startPos))
-                                                    roadToAttach.toEnd.fromStart.push(nextRoad);
-                                                else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[lastIndexNextRoad].endPos))
-                                                    roadToAttach.toEnd.fromEnd.push(nextRoad);
-                                            }
-                                            var avgStart = road.segments[0].prevRelativeDensity;
-                                            for (let evalRoad of roadToAttach.toStart.fromStart)
-                                                avgStart += evalRoad.segments[0].prevRelativeDensity;
-                                            for (let evalRoad of roadToAttach.toStart.fromEnd)
-                                                avgStart += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
-                                            avgStart /= (1 + roadToAttach.toStart.fromStart.length + 
-                                                roadToAttach.toStart.fromEnd.length);
-                                            avgStartColor = getDensityColor(avgStart);
-                                            for (let evalRoad of roadToAttach.toStart.fromStart) {
-                                                evalRoad.segments[0].prevRelativeDensity = avgStart;
-                                                evalRoad.segments[0].prevColor = avgStartColor;
-                                            }
-                                            for (let evalRoad of roadToAttach.toStart.fromEnd) {
-                                                evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgStart;
-                                                evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgStartColor;
-                                            }
-                                            road.segments[0].prevRelativeDensity = avgStart;
-                                            road.segments[0].prevColor = avgStartColor;
-                                            
-                                            var avgEnd = road.segments[lastIndexRoad].nextRelativeDensity;
-                                            for (let evalRoad of roadToAttach.toEnd.fromStart)
-                                                avgEnd += evalRoad.segments[0].prevRelativeDensity;
-                                            for (let evalRoad of roadToAttach.toEnd.fromEnd)
-                                                avgEnd += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
-                                            avgEnd /= (1 + roadToAttach.toEnd.fromStart.length + 
-                                                roadToAttach.toEnd.fromEnd.length);
-                                            avgEndColor = getDensityColor(avgEnd);
-                                            for (let evalRoad of roadToAttach.toEnd.fromStart) {
-                                                evalRoad.segments[0].prevRelativeDensity = avgEnd;
-                                                evalRoad.segments[0].prevColor = avgEndColor;
-                                            }
-                                            for (let evalRoad of roadToAttach.toEnd.fromEnd) {
-                                                evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgEnd;
-                                                evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgEndColor;
-                                            }
-                                            road.segments[lastIndexRoad].nextRelativeDensity = avgEnd;
-                                            road.segments[lastIndexRoad].nextColor = avgEndColor;
-                                        }
-
-
-                                        layers.traffic = [];
-                                        // apiUrls3D[`traffic`] = event;
-
-                                        var allSegments = [];
-                                        for (let road of roads) {
-                                            allSegments.push(...road.segments);
-                                        }
-                                        const trafficLayer = new CrestLayer({
-                                            id: 'crest-layer',
-                                            data: allSegments,
-                                            getStartPosition: (d) => d.startPos,
-                                            getMiddlePosition: (d) => d.middlePos,
-                                            getEndPosition: (d) => d.endPos,
-                                            getStartDensity: (d) => d.prevRelativeDensity,
-                                            getMiddleDensity: (d) => d.relativeDensity,
-                                            getEndDensity: (d) => d.nextRelativeDensity,
-                                            getStartColor: (d) => d.prevColor.map(x => x / 255),
-                                            getMiddleColor: (d) => d.color.map(x => x / 255),
-                                            getEndColor: (d) => d.nextColor.map(x => x / 255),
-                                        });
-                                        layers.traffic.push(trafficLayer);
-                                        updateLayers();
-                                        return;
-                                    }
-
-                                    density = JSON.parse(JSON.stringify(_density));
-
-                                    for (var i = 0; i < roads.length; i++) {
-                                        if (density.hasOwnProperty((roads[i].road))) {
-                                            roads[i].data = density[roads[i].road].data;
-                                        }
-                                    }
-
-                                    event.roads = roads;
-
-                                    time = 0;
-                                    draw(time);
-                                    console.log("@time " + time);
-                                },
-                                error: function(err) {
-                                    console.log(err);
-                                    alert("error see log json");
-                                }
-                            });
-                        }
-
-                        function draw(t) {
-                            if (roads == null)
-                                return;
-                            //wktLayer.clearLayers();
-                            for (var i = 0; i < roads.length; i++) {
-                                var segs = roads[i].segments;
-                                for (var j = 0; j < segs.length; j++) {
-                                    var seg = segs[j];
-                                    if (typeof seg.start != "undefined") {
-                                        var wktPoint = "POINT(" + seg.start.long + " " + seg.start.lat +
-                                            ")";
-                                        var wktLine = "LINESTRING(" + seg.start.long + " " + seg.start.lat +
-                                            "," + seg.end.long + " " + seg.end.lat + ")";
-
-                                        try {
-                                            if (!jQuery.isEmptyObject(roads[i].data[0])) {
-                                                var value = Number(roads[i].data[t][seg.id].replace(",",
-                                                    "."));
-                                                var green = 0.3;
-                                                var yellow = 0.6;
-                                                var orange = 0.9;
-                                                if (seg.Lanes == 2) {
-                                                    green = 0.6;
-                                                    yellow = 1.2;
-                                                    orange = 1.8;
-                                                }
-                                                if (seg.FIPILI == 1) {
-                                                    green = 0.25;
-                                                    yellow = 0.5;
-                                                    orange = 0.75;
-                                                }
-                                                if (seg.Lanes == 3) {
-                                                    green = 0.9;
-                                                    yellow = 1.5;
-                                                    orange = 2;
-                                                }
-                                                if (seg.Lanes == 4) {
-                                                    green = 1.2;
-                                                    yellow = 1.6;
-                                                    orange = 2;
-                                                }
-                                                if (seg.Lanes == 5) {
-                                                    green = 1.6;
-                                                    yellow = 2;
-                                                    orange = 2.4;
-                                                }
-                                                if (seg.Lanes == 6) {
-                                                    green = 2;
-                                                    yellow = 2.4;
-                                                    orange = 2.8;
-                                                }
-                                                if (value <= green)
-                                                    defaults.color = "#00ff00";
-                                                else if (value <= yellow)
-                                                    defaults.color = "#ffff00";
-                                                else if (value <= orange)
-                                                    defaults.color = "#ff8c00";
-                                                else
-                                                    defaults.color = "#ff0000";
-                                                defaults.fillColor = defaults.color;
-
-                                                if (!seg.obj) {
-                                                    var wkt = new Wkt.Wkt();
-                                                    wkt.read(wktLine, "newMap");
-                                                    obj = wkt.toObject(defaults);
-                                                    obj.options.trafficFlow = true;
-                                                    obj.addTo(wktLayer);
-                                                    seg.obj = obj;
-
-                                                } else {
-                                                    seg.obj.setStyle(defaults);
-                                                }
-                                            }
-                                        } catch (e) {
-                                            console.log(e);
-                                        }
-                                    }
-                                }
-                            }
-                            wktLayer.addTo(map.defaultMapRef);
-                        }
-
-                        event.trafficLayer = wktLayer;
-
-                        //Create legend
-                        var legend = L.control({
-                            position: 'bottomright'
-                        });
-
-                        legend.onAdd = function(map) {
-
-                            var div = L.DomUtil.create('div', 'info legend'),
-                                grades = ["Legend"],
-                                //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
-                                labels = [
-                                    "https://firenzetraffic.km4city.org/trafficRTDetails/legend.png"
-                                ];
-
-                            // loop through our density intervals and generate a label with a colored square for each interval
-                            for (var i = 0; i < grades.length; i++) {
-                                div.innerHTML +=
-                                    grades[i] + (" <img src=" + labels[i] +
-                                        " height='120' width='80' background='#cccccc'>") + '<br>';
-                            }
-
-                            return div;
+                    function loadRoads() {
+                        defaults = {
+                            icon: new L.DivIcon({
+                                className: "geo-icon"
+                            }),
+                            editable: true,
+                            color: '#AA0000',
+                            weight: 2.5,
+                            opacity: 1,
+                            fillColor: '#AA0000',
+                            fillOpacity: 1,
+                            pane: 'trafficFlow' // CORTI
                         };
 
-                        legend.addTo(map.defaultMapRef);
+                        $.ajax({
+                            url: roadsJson,
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            success: function(_roads) {
+                                roads = JSON.parse(JSON.stringify(_roads));
 
-                        event.legend = legend;
-                        map.eventsOnMap.push(event);
-                        //window.setInterval("loadDensity();", 300000);
+                                if (!densityTable)
+                                    loadDensityTable(false);
+                                loadDensity(_roads);
+                            },
+                            error: function(err) {
+                                console.log(err);
+                                alert("error see log json");
+                            }
+                        });
                     }
 
-                    if (addMode === 'additive') {
-                        addTrafficRTDetailsToMap();
+                    function loadDensity(roads) {
+                        $.ajax({
+                            //    url: "http://localhost/dashboardSmartCity/trafficRTDetails/density/read.php" + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat + "&eLong=" + ne.lng + "&zoom=" + zm,
+                            url: "https://firenzetraffic.km4city.org/trafficRTDetails/density/read.php" +
+                                "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat +
+                                "&eLong=" + ne.lng + "&zoom=" + zm,
+                            type: "GET",
+                            async: false,
+                            cache: false,
+                            dataType: 'json',
+                            success: function(_density) {
+
+                                if (is3dOn) {
+                                    var result = _density;
+                                    // Removing first null object
+                                    if (roads[0].road == null)
+                                        roads = roads.slice(1);
+
+                                    // For all roads
+                                    for (var i = 0; i < roads.length; i++) {
+                                        var road = roads[i];
+                                        var density = result[road.road];
+                                        // for all segments
+                                        for (var j = 0; j < road.segments.length; j++) {
+                                            var segment = road.segments[j];
+                                            segment.startPos = [parseFloat(segment.start
+                                                .long), parseFloat(segment.start
+                                                .lat)];
+                                            segment.endPos = [parseFloat(segment.end.long),
+                                                parseFloat(segment.end.lat)
+                                            ];
+                                            segment.middlePos = getMiddlePosition(segment.startPos, segment.endPos);
+                                            var segmentDensity = density.data[0][segment
+                                                .id
+                                            ];
+                                            segment.density = parseFloat(segmentDensity);
+                                            segment.relativeDensity = parseFloat(segment
+                                                .density) / parseFloat(segment.Lanes);
+                                            if (segment.relativeDensity > 1)
+                                                segment.relativeDensity = 1;
+                                            segment.nextRelativeDensity = parseFloat(segment.relativeDensity);
+                                            segment.prevRelativeDensity = parseFloat(segment.relativeDensity);
+                                            segment.color = getDensityColor(segment.relativeDensity);
+                                            segment.prevColor = segment.color;
+                                            segment.nextColor = segment.color;
+                                            if (j > 0) {
+                                                var prevSegment = road.segments[j - 1];
+                                                const avgRelativeDensity = (prevSegment.relativeDensity + segment.relativeDensity) / 2;
+                                                const avgColor = getDensityColor(avgRelativeDensity);
+                                                prevSegment.nextRelativeDensity = avgRelativeDensity;
+                                                prevSegment.nextColor = avgColor;
+                                                segment.prevRelativeDensity = avgRelativeDensity;
+                                                segment.prevColor = avgColor;
+                                            }
+                                        }
+                                    }
+
+                                    for (let i = 0; i < roads.length; i++) {
+                                        const road = roads[i];
+                                        const lastIndexRoad = road.segments.length - 1;
+                                        let roadToAttach = {
+                                            toStart: {
+                                                fromStart: [],
+                                                fromEnd: [],
+                                            },
+                                            toEnd: {
+                                                fromStart: [],
+                                                fromEnd: [],
+                                            }
+                                        }
+                                        for (let j = i + 1; j < roads.length; j++) {
+                                            const nextRoad = roads[j];
+                                            const lastIndexNextRoad = nextRoad.segments.length - 1;
+                                            if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[0].startPos))
+                                                roadToAttach.toStart.fromStart.push(nextRoad);
+                                            else if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[lastIndexNextRoad].endPos))
+                                                roadToAttach.toStart.fromEnd.push(nextRoad);
+                                            else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[0].startPos))
+                                                roadToAttach.toEnd.fromStart.push(nextRoad);
+                                            else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[lastIndexNextRoad].endPos))
+                                                roadToAttach.toEnd.fromEnd.push(nextRoad);
+                                        }
+                                        var avgStart = road.segments[0].prevRelativeDensity;
+                                        for (let evalRoad of roadToAttach.toStart.fromStart)
+                                            avgStart += evalRoad.segments[0].prevRelativeDensity;
+                                        for (let evalRoad of roadToAttach.toStart.fromEnd)
+                                            avgStart += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
+                                        avgStart /= (1 + roadToAttach.toStart.fromStart.length +
+                                            roadToAttach.toStart.fromEnd.length);
+                                        avgStartColor = getDensityColor(avgStart);
+                                        for (let evalRoad of roadToAttach.toStart.fromStart) {
+                                            evalRoad.segments[0].prevRelativeDensity = avgStart;
+                                            evalRoad.segments[0].prevColor = avgStartColor;
+                                        }
+                                        for (let evalRoad of roadToAttach.toStart.fromEnd) {
+                                            evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgStart;
+                                            evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgStartColor;
+                                        }
+                                        road.segments[0].prevRelativeDensity = avgStart;
+                                        road.segments[0].prevColor = avgStartColor;
+
+                                        var avgEnd = road.segments[lastIndexRoad].nextRelativeDensity;
+                                        for (let evalRoad of roadToAttach.toEnd.fromStart)
+                                            avgEnd += evalRoad.segments[0].prevRelativeDensity;
+                                        for (let evalRoad of roadToAttach.toEnd.fromEnd)
+                                            avgEnd += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
+                                        avgEnd /= (1 + roadToAttach.toEnd.fromStart.length +
+                                            roadToAttach.toEnd.fromEnd.length);
+                                        avgEndColor = getDensityColor(avgEnd);
+                                        for (let evalRoad of roadToAttach.toEnd.fromStart) {
+                                            evalRoad.segments[0].prevRelativeDensity = avgEnd;
+                                            evalRoad.segments[0].prevColor = avgEndColor;
+                                        }
+                                        for (let evalRoad of roadToAttach.toEnd.fromEnd) {
+                                            evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgEnd;
+                                            evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgEndColor;
+                                        }
+                                        road.segments[lastIndexRoad].nextRelativeDensity = avgEnd;
+                                        road.segments[lastIndexRoad].nextColor = avgEndColor;
+                                    }
+
+
+                                    layers.traffic = [];
+                                    // apiUrls3D[`traffic`] = event;
+
+                                    var allSegments = [];
+                                    for (let road of roads) {
+                                        allSegments.push(...road.segments);
+                                    }
+                                    const trafficLayer = new CrestLayer({
+                                        id: 'crest-layer',
+                                        data: allSegments,
+                                        getStartPosition: (d) => d.startPos,
+                                        getMiddlePosition: (d) => d.middlePos,
+                                        getEndPosition: (d) => d.endPos,
+                                        getStartDensity: (d) => d.prevRelativeDensity,
+                                        getMiddleDensity: (d) => d.relativeDensity,
+                                        getEndDensity: (d) => d.nextRelativeDensity,
+                                        getStartColor: (d) => d.prevColor.map(x => x / 255),
+                                        getMiddleColor: (d) => d.color.map(x => x / 255),
+                                        getEndColor: (d) => d.nextColor.map(x => x / 255),
+                                    });
+                                    layers.traffic.push(trafficLayer);
+                                    updateLayers();
+                                    return;
+                                }
+
+                                density = JSON.parse(JSON.stringify(_density));
+
+                                for (var i = 0; i < roads.length; i++) {
+                                    if (density.hasOwnProperty((roads[i].road))) {
+                                        roads[i].data = density[roads[i].road].data;
+                                    }
+                                }
+
+                                event.roads = roads;
+
+                                time = 0;
+                                draw(time);
+                                console.log("@time " + time);
+                            },
+                            error: function(err) {
+                                console.log(err);
+                                alert("error see log json");
+                            }
+                        });
                     }
 
-                    if (addMode === 'exclusive') {
-                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].type !== "trafficRealTimeDetails") {
-                                map.defaultMapRef.eachLayer(function(layer) {
-                                    map.defaultMapRef.removeLayer(layer);
-                                });
-                                map.eventsOnMap.length = 0;
-                                break;
+                    function draw(t) {
+                        if (roads == null)
+                            return;
+                        //wktLayer.clearLayers();
+                        for (var i = 0; i < roads.length; i++) {
+                            var segs = roads[i].segments;
+                            for (var j = 0; j < segs.length; j++) {
+                                var seg = segs[j];
+                                if (typeof seg.start != "undefined") {
+                                    var wktPoint = "POINT(" + seg.start.long + " " + seg.start.lat +
+                                        ")";
+                                    var wktLine = "LINESTRING(" + seg.start.long + " " + seg.start.lat +
+                                        "," + seg.end.long + " " + seg.end.lat + ")";
+
+                                    try {
+                                        if (!jQuery.isEmptyObject(roads[i].data[0])) {
+                                            var value = Number(roads[i].data[t][seg.id].replace(",",
+                                                "."));
+                                            var green = 0.3;
+                                            var yellow = 0.6;
+                                            var orange = 0.9;
+                                            if (seg.Lanes == 2) {
+                                                green = 0.6;
+                                                yellow = 1.2;
+                                                orange = 1.8;
+                                            }
+                                            if (seg.FIPILI == 1) {
+                                                green = 0.25;
+                                                yellow = 0.5;
+                                                orange = 0.75;
+                                            }
+                                            if (seg.Lanes == 3) {
+                                                green = 0.9;
+                                                yellow = 1.5;
+                                                orange = 2;
+                                            }
+                                            if (seg.Lanes == 4) {
+                                                green = 1.2;
+                                                yellow = 1.6;
+                                                orange = 2;
+                                            }
+                                            if (seg.Lanes == 5) {
+                                                green = 1.6;
+                                                yellow = 2;
+                                                orange = 2.4;
+                                            }
+                                            if (seg.Lanes == 6) {
+                                                green = 2;
+                                                yellow = 2.4;
+                                                orange = 2.8;
+                                            }
+                                            if (value <= green)
+                                                defaults.color = "#00ff00";
+                                            else if (value <= yellow)
+                                                defaults.color = "#ffff00";
+                                            else if (value <= orange)
+                                                defaults.color = "#ff8c00";
+                                            else
+                                                defaults.color = "#ff0000";
+                                            defaults.fillColor = defaults.color;
+
+                                            if (!seg.obj) {
+                                                var wkt = new Wkt.Wkt();
+                                                wkt.read(wktLine, "newMap");
+                                                obj = wkt.toObject(defaults);
+                                                obj.options.trafficFlow = true;
+                                                obj.addTo(wktLayer);
+                                                seg.obj = obj;
+
+                                            } else {
+                                                seg.obj.setStyle(defaults);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.log(e);
+                                    }
+                                }
                             }
                         }
-                        //Remove WidgetAlarm active pins
-                        $.event.trigger({
-                            type: "removeAlarmPin",
-                        });
-                        //Remove WidgetEvacuationPlans active pins
-                        $.event.trigger({
-                            type: "removeEvacuationPlanPin",
-                        });
-                        //Remove WidgetEvents active pins
-                        $.event.trigger({
-                            type: "removeEventFIPin",
-                        });
-                        //Remove WidgetResources active pins
-                        $.event.trigger({
-                            type: "removeResourcePin",
-                        });
-                        //Remove WidgetOperatorEvents active pins
-                        $.event.trigger({
-                            type: "removeOperatorEventPin",
-                        });
-                        //Remove WidgetTrafficEvents active pins
-                        $.event.trigger({
-                            type: "removeTrafficEventPin",
-                        });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
-                        }).addTo(map.defaultMapRef);
-
-                        addTrafficRTDetailsToMap();
+                        wktLayer.addTo(map.defaultMapRef);
                     }
 
-                    //resizeMapView(map.defaultMapRef);
+                    event.trafficLayer = wktLayer;
+
+                    //Create legend
+                    var legend = L.control({
+                        position: 'bottomright'
+                    });
+
+                    legend.onAdd = function(map) {
+
+                        var div = L.DomUtil.create('div', 'info legend'),
+                            grades = ["Legend"],
+                            //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
+                            labels = [
+                                "https://firenzetraffic.km4city.org/trafficRTDetails/legend.png"
+                            ];
+
+                        // loop through our density intervals and generate a label with a colored square for each interval
+                        for (var i = 0; i < grades.length; i++) {
+                            div.innerHTML +=
+                                grades[i] + (" <img src=" + labels[i] +
+                                    " height='120' width='80' background='#cccccc'>") + '<br>';
+                        }
+
+                        return div;
+                    };
+
+                    legend.addTo(map.defaultMapRef);
+
+                    event.legend = legend;
+                    map.eventsOnMap.push(event);
                 }
+                eventMapManager.legacyTrigger(event, addTrafficRTDetailsToMap);
             });
 
             $(document).on('addHeatmap', function(event) {
@@ -19954,7 +19410,7 @@ if (!isset($_SESSION)) {
                                         event.legendColors = heatmapLegendColors;
                                         map.eventsOnMap.push(event);
 
-                                        loadingDiv.setStatus('ok') 
+                                        loadingDiv.setStatus('ok')
                                     },
                                     error: function(errorData) {
                                         console.log("Ko Traffic Heatmap");
@@ -21275,107 +20731,17 @@ if (!isset($_SESSION)) {
                                     } else {
                                         console.log("Ko Heatmap");
                                         console.log(JSON.stringify(errorData));
-
                                         loadingDiv.setStatus('ko');
-                                        // loadingDiv.empty();
-                                        // loadingDiv.append(loadKoText);
-
-                                        // parHeight = loadKoText.height();
-                                        // parMarginTop = Math.floor((loadingDiv.height() -
-                                        //     parHeight) / 2);
-                                        // loadKoText.css("margin-top", parMarginTop + "px");
-
-                                        // setTimeout(function() {
-                                        //     loadingDiv.css("opacity", 0);
-                                        //     setTimeout(function() {
-                                        //         loadingDiv.nextAll(
-                                        //             "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                        //         ).each(function(i) {
-                                        //             $(this).css("top", (
-                                        //                     $(
-                                        //                         '#<?= $_REQUEST['name_w'] ?>_div'
-                                        //                         )
-                                        //                     .height() -
-                                        //                     (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                        //                             .length -
-                                        //                             1
-                                        //                         ) *
-                                        //                         loadingDiv
-                                        //                         .height()
-                                        //                     )) +
-                                        //                 "px");
-                                        //         });
-                                        //         loadingDiv.remove();
-                                        //     }, 350);
-                                        // }, 1000);
-
                                     }
                                 } catch (err) {
                                     console.log("Error: " + err);
                                     loadingDiv.setStatus('ko');
-                                    // loadingDiv.empty();
-                                    // loadingDiv.append(loadKoText);
-
-                                    // parHeight = loadKoText.height();
-                                    // parMarginTop = Math.floor((loadingDiv.height() -
-                                    //     parHeight) / 2);
-                                    // loadKoText.css("margin-top", parMarginTop + "px");
-                                    // setTimeout(function() {
-                                    //     loadingDiv.css("opacity", 0);
-                                    //     setTimeout(function() {
-                                    //         loadingDiv.nextAll(
-                                    //             "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                    //         ).each(function(i) {
-                                    //             $(this).css("top", ($(
-                                    //                         '#<?= $_REQUEST['name_w'] ?>_div'
-                                    //                     )
-                                    //                     .height() -
-                                    //                     (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                    //                             .length -
-                                    //                             1) *
-                                    //                         loadingDiv
-                                    //                         .height()
-                                    //                     )) +
-                                    //                 "px");
-                                    //         });
-                                    //         loadingDiv.remove();
-                                    //     }, 350);
-                                    // }, 1000);
                                 }
                             },
                             error: function(errorData) {
                                 console.log("Ko Heatmap");
                                 console.log(JSON.stringify(errorData));
-
                                 loadingDiv.setStatus('ko');
-                                // loadingDiv.empty();
-                                // loadingDiv.append(loadKoText);
-
-                                // parHeight = loadKoText.height();
-                                // parMarginTop = Math.floor((loadingDiv.height() - parHeight) /
-                                //     2);
-                                // loadKoText.css("margin-top", parMarginTop + "px");
-
-                                // setTimeout(function() {
-                                //     loadingDiv.css("opacity", 0);
-                                //     setTimeout(function() {
-                                //         loadingDiv.nextAll(
-                                //             "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                //         ).each(function(i) {
-                                //             $(this).css("top", ($(
-                                //                     '#<?= $_REQUEST['name_w'] ?>_div'
-                                //                 ).height() -
-                                //                 (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                //                         .length -
-                                //                         1) *
-                                //                     loadingDiv
-                                //                     .height())
-                                //             ) + "px");
-                                //         });
-                                //         loadingDiv.remove();
-                                //     }, 350);
-                                // }, 1000);
-
                             }
                         });
 
@@ -21474,7 +20840,7 @@ if (!isset($_SESSION)) {
                 }
             });
             $(document).on('removeSelectorPin', function(event) {
-                if (event.target === map.mapName) {
+                function removeSelectorPin() {
                     var passedData = event.passedData;
 
                     var desc = passedData.desc;
@@ -21484,8 +20850,8 @@ if (!isset($_SESSION)) {
                         delete apiUrls3D[`${passedData.desc}`];
                         if (display == "undefined" || display.includes('pins'))
                             removeLayerSet(passedData.desc, layers.pin);
-                            removeLayerSet(passedData.desc, layers.fixedPins);
-                            removeLayerSet(`${passedData.desc}-RT`, layers.fixedPins);
+                        removeLayerSet(passedData.desc, layers.fixedPins);
+                        removeLayerSet(`${passedData.desc}-RT`, layers.fixedPins);
                         if (display.includes('geometries'))
                             removeLayerSet(passedData.desc, layers.cycling);
                         updateLayers();
@@ -21527,80 +20893,16 @@ if (!isset($_SESSION)) {
                     }
 
                     delete gisGeometryTankForFullscreen[desc];
-
-                    for (i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                        if (!map.eventsOnMap[i]) continue;
-                        if ((map.eventsOnMap[i].eventType === 'selectorEvent') && (map.eventsOnMap[i]
-                                .desc === desc)) {
-                            map.eventsOnMap.splice(i, 1);
-                        }
-                    }
-
-                    //console.log(map.eventsOnMap.length);
-
-                    //  resizeMapView(map.defaultMapRef);
                 }
+                eventMapManager.legacyTrigger(event, removeSelectorPin);
             });
             $(document).on('removeBubbles', function(event) {
-                if (event.target === map.mapName) {
-                    var passedData = event.passedData;
-
-                    var desc = passedData.desc;
-                    var display = passedData.display;
-
-                    if (desc == "") {
-                        desc = passedData.query;
-                    }
-
-                    // if (is3dOn)
-                    //     removeLayerSet(`${desc}-svg-layer`, layers.pin);
-                    // else
-                        map.defaultMapRef.removeLayer(bubbles[desc]);
-
-                    /*     if (stopGeometryAjax.hasOwnProperty(desc)) {
-                             stopGeometryAjax[desc] = true;
-                         }
-
-                         if (display !== 'geometries') {
-                             if (gisLayersOnMap[desc] && gisLayersOnMap[desc] !== "loadError") {
-                                 map.defaultMapRef.removeLayer(gisLayersOnMap[desc]);
-
-                                 if (gisGeometryLayersOnMap.hasOwnProperty(desc)) {
-                                     if (gisGeometryLayersOnMap[desc].length > 0) {
-                                         for (var i = 0; i < gisGeometryLayersOnMap[desc].length; i++) {
-                                             map.defaultMapRef.removeLayer(gisGeometryLayersOnMap[desc][i]);
-                                         }
-                                         delete gisGeometryLayersOnMap[desc];
-                                     }
-                                 }
-                             }
-                             delete gisLayersOnMap[desc];
-                         }
-                         else {
-                             if (gisGeometryLayersOnMap.hasOwnProperty(desc)) {
-                                 if (gisGeometryLayersOnMap[desc].length > 0) {
-                                     for (var i = 0; i < gisGeometryLayersOnMap[desc].length; i++) {
-                                         map.defaultMapRef.removeLayer(gisGeometryLayersOnMap[desc][i]);
-                                     }
-                                     delete gisGeometryLayersOnMap[desc];
-                                 }
-                             }
-                         }
-
-                         delete gisGeometryTankForFullscreen[desc];  */
-
-                    for (i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                        if (!map.eventsOnMap[i]) continue;
-                        if ((map.eventsOnMap[i].eventType === 'selectorEvent') && (map.eventsOnMap[i]
-                                .desc === desc)) {
-                            map.eventsOnMap.splice(i, 1);
-                        }
-                    }
-
-                    //console.log(map.eventsOnMap.length);
-
-                    //  resizeMapView(map.defaultMapRef);
+                function removeBubble() {
+                    const passedData = event.passedData;
+                    const desc = passedData.desc == "" ? passedData.query : passedData.desc;
+                    map.defaultMapRef.removeLayer(bubbles[desc]);
                 }
+                eventMapManager.legacyTrigger(event, removeBubble);
             });
             $(document).on('removeEventFI', function(event) {
                 if (event.target === map.mapName) {
@@ -21885,12 +21187,9 @@ if (!isset($_SESSION)) {
                 }
                 map.defaultMapRef.off('click', heatmapClick);
             });
-
             $(document).on('toggleAddMode', function(event) {
-                addMode = event.addMode;
-                //console.log(addMode);
+                eventMapManager.setAddMode(event.addMode);
             });
-
         }
 
         // Funzione che risponde all'evento resize del widget, indotto o dal ridimensionatore manuale dell'editor di dashboard oppure dalla dashboard stessa in modalità responsive
@@ -21988,6 +21287,13 @@ if (!isset($_SESSION)) {
                     bScaler: 7.97 / 3,
                     offset: -50.97
                     // offset: -3.18
+                },
+                loadOptions: {
+                    terrain: {
+                        tesselator: 'martini',
+                        // tesselator: 'delatin',
+                        meshMaxError: 1,
+                    },
                 },
                 refinementStrategy: 'best-available',
                 color: [255, 255, 255],
@@ -22237,8 +21543,8 @@ if (!isset($_SESSION)) {
                 scenegraph: scenegraph,
                 _lighting: 'pbr',
                 color: [200, 200, 200, 255],
-                getOrientation: d => [0, 0, 90],
-                getScale: d => [0.722, 1, 0.722],
+                getOrientation: [0, 0, 90],
+                getScale: [0.722, 1, 0.722],
                 getPosition: d => d.position,
                 onClick: (event) => {
                     // TODO: Add better timer
@@ -22247,44 +21553,21 @@ if (!isset($_SESSION)) {
             });
         }
 
-        function createBuildingTileLayer(props) {
-            return new deck.TileLayer({
-                id: "osm-building-layer",
-                minZoom: 0,
-                maxZoom: 20,
-                tileSize: 256,
-                opacity: 1,
-                // pickable: true,
-
-                renderSubLayers: props => {
-                    const {
-                        bbox: {
-                            west,
-                            south,
-                            east,
-                            north
-                        }
-                    } = props.tile;
-
-                    return new deck.GeoJsonLayer({
-                        id: id,
-                        data: props.data,
-                        extruded: true,
-                        pickable: true,
-                        stroked: false,
-                        filled: true,
-                        lineWidthScale: 20,
-                        lineWidthMinPixels: 2,
-                        getFillColor: [255, 102, 0, 200],
-                        getLineColor: [255, 255, 255],
-                        getElevation: f => f.properties.height || f.properties.levels || 10,
-                        getRadius: 100,
-                        getLineWidth: 1,
-                    });
-                },
-                onClick: (info, event) => addMarker(info.coordinate),
-                ...props
-
+        function createSceneGraphLayer(props) {
+            const {positions, source } = props;
+            return new deck.ScenegraphLayer({
+                id: `${source}-scene-layer`,
+                data: [{
+                    positions
+                }],
+                pickable: false,
+                scenegraph: source,
+                _lighting: 'pbr',
+                getOrientation: [0, 0, 0],
+                getScale: [0.722, 0.722, 1],
+                sizeScale: 1,
+                getPosition: d => d.positions,
+                ...props,
             });
         }
 
@@ -22411,7 +21694,7 @@ if (!isset($_SESSION)) {
                         cursorType = 'pointer';
                     }
                     // if (redraw)
-                    // redrawIconLayer(info.layer);
+                    //     redrawIconLayer(info.layer);
                 },
                 onClick: (info, event) => {
                     onMarkerClick(event, info);
@@ -22777,12 +22060,9 @@ if (!isset($_SESSION)) {
         }
 
         function redrawIconLayer(layer) {
-            const id = layer.props.id;
-            const data = layer.props.data;
             // const props = apiUrls3D[`${id}`];
             const sensorLayer = createSensorLayer({
-                data,
-                id
+                ...layer.props
             });
 
             removeLayerSet(id, layers.pin);
@@ -22793,7 +22073,7 @@ if (!isset($_SESSION)) {
         function updateLayers() {
             map3d.setProps({
                 layers: [
-                    layers.background,
+                    // layers.background,
                     layers.terrain,
                     layers.orthomaps,
                     layers.wms,
@@ -22968,6 +22248,7 @@ if (!isset($_SESSION)) {
                 timestamp: now,
                 color: [255, 255, 255],
                 intensity: 1,
+                _shadow: shadowsOn,
             });
             const ambientLight = new deck.AmbientLight({
                 color: [255, 255, 255],
@@ -22975,13 +22256,15 @@ if (!isset($_SESSION)) {
             });
             const directionalLight = new deck.DirectionalLight({
                 color: [255, 255, 255],
+                // _shadow: true,
                 intensity: intensityFactor,
                 direction: [xDirection, -0.5, zDirection],
             });
 
             return new deck.LightingEffect({
                 ambientLight,
-                directionalLight
+                // directionalLight
+                sunLight,
             });
         }
 
@@ -22998,10 +22281,12 @@ if (!isset($_SESSION)) {
                 const lights = createLights();
                 map3d.setProps({
                     effects: [lights],
+                    _animate: shadowsOn,
                 });
             } else {
                 map3d.setProps({
                     effects: [],
+                    _animate: false,
                 });
             }
         }
@@ -23306,6 +22591,39 @@ if (!isset($_SESSION)) {
             updateLayers();
         }
 
+        function toggleMapMenu() {
+            hideMenu(lightMenuId);
+            toggleMenu(mapMenuId);
+        }
+
+        function toggleLightMenu() {
+            hideMenu(mapMenuId);
+            toggleMenu(lightMenuId);
+        }
+
+        function showLightSection() {
+            $('#lightSection').css('display', 'block');
+        }
+
+        function hideLightSection() {
+            $('#lightSection').css('display', 'none');
+        }
+
+        function toggleMenu(id) {
+            if ($(`#${id}`).css('display') == 'none')
+                showMenu(id);
+            else
+                hideMenu(id);
+        }
+
+        function hideMenu(id) {
+            $(`#${id}`).css('display', 'none');
+        }
+
+        function showMenu(id) {
+            $(`#${id}`).css('display', 'flex');
+        }
+
         function reverseColorButton(id) {
             const element = $(`#${id}`);
             const bg = element.css('color');
@@ -23323,23 +22641,27 @@ if (!isset($_SESSION)) {
             if (!template || !template.length) {
                 return null;
             }
-            if (Array.isArray(template)) {
-                const index = Math.abs(properties.x + properties.y) % template.length;
-                template = template[index];
+
+            // supporting deckgl version 8.8
+            var x, y, z;
+            if (properties.x) {
+                ({x, y, z} = properties);
+            } else {
+                ({x, y, z} = properties.index);
             }
 
-            const {
-                x,
-                y,
-                z,
-                bbox
-            } = properties;
+            if (Array.isArray(template)) {
+                const index = Math.abs(x + y) % template.length;
+                template = template[index];
+            }
+            const {bbox} = properties;
             return template
                 .replace(/\{x\}/g, x)
                 .replace(/\{y\}/g, y)
                 .replace(/\{z\}/g, z)
                 .replace(/\{-y\}/g, Math.pow(2, z) - y - 1)
-                .replace(/\{bbox\}/g, `${bbox.west},${bbox.south},${bbox.east},${bbox.north}`);
+                .replace(/\{bbox\}/g, `${bbox.west},${bbox.south},${bbox.east},${bbox.north}`)
+                .replace(/\{selection\}/g, `${bbox.west};${bbox.south};${bbox.east};${bbox.north}`);
         }
 
 
@@ -23461,14 +22783,6 @@ if (!isset($_SESSION)) {
             }
         }
 
-        class MapManager {
-            is3D = true;
-
-            static init() {
-
-            }
-        }
-
         class Map {
             map;
             viewState = {
@@ -23478,9 +22792,13 @@ if (!isset($_SESSION)) {
                 maxZoom: 18,
                 minZoom: 1,
             };
-            constructor() {
+            constructor(initialViewState) {
                 if (new.target === Map)
                     throw new TypeError("Cannot initialize abstract map directly");
+                this.viewState = {
+                    ...this.viewState,
+                    ...initialViewState,
+                }
             }
             init() {}
             addOrthomap() {}
@@ -23492,7 +22810,7 @@ if (!isset($_SESSION)) {
             addOrthomap() {}
         }
 
-        class map3D extends Map {
+        class Map3D extends Map {
             init() {
                 this.viewState = {
                     ...this.viewState,
@@ -23591,13 +22909,6 @@ if (!isset($_SESSION)) {
                         reloadPopupDiv();
                         return viewState;
                     },
-                    onClick: (info, event) => {
-                        //console.log('deck click');
-                        //if (justClicked)
-                        //justClicked = false;
-                        //else
-                        //$('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'hidden');
-                    },
                     getCursor: () => cursorType,
                     getTooltip: ({
                         object
@@ -23644,34 +22955,118 @@ if (!isset($_SESSION)) {
         }
 
         class EventMapManager {
+            static exclusiveTypes = [
+                'removeAlarmPin',
+                'removeEvacuationPlanPin',
+                'removeSelectorEventPin',
+                'removeSelectorEventPin',
+                'removeEventFIPin',
+                'removeResourcePin',
+                'removeOperatorEventPin',
+                'removeTrafficEventPin',
+            ];
+            static exclusiveMapppingTypes = {
+                'addAlarm': 'removeAlarmPin',
+                'addEvacuationPlan': 'removeEvacuationPlanPin',
+                'addBubbleChart': 'removeSelectorEventPin',
+                'addSelectorPin': 'removeSelectorEventPin',
+                'addEventFI': 'removeEventFIPin',
+                'addResource': 'removeResourcePin',
+                'addOperatorEvent': 'removeOperatorEventPin',
+                'addTrafficEvent': 'removeTrafficEventPin',
+            };
             /** @type {Map} */
-            static mapManager;
-            static registeredEvents = {};
-            static autoreloadEvents = {};
-            static autoreloadEnable = false;
+            // mapManager;
+            widgetName;
+            registeredEvents = {};
+            autoreloadEvents = {};
+            autoreloadEnable = false;
+            addMode = 'additive';
 
-            static addListeners() {
+            constructor(widgetName) {
+                this.widgetName = widgetName;
+            }
+
+            addListeners() {
 
             }
 
-            static setMapManager(mapManager) {
+            trigger(event) {
+
+            }
+
+            /***
+             * Legacy Trigger usa la funzione callback 
+             * al posto dell'equivalente di MapManager.
+             * @param event {Event} evento generato.
+             * @param callback {Function} funzione chiamata.
+             * @param triggerToEsclude {string} trigger da escludere in modalità esclusiva.
+             */
+            legacyTrigger(event, callback) {
+                if (event.target != this.widgetName)
+                    return;
+                if (event.type.match(/(add)\w+/g))
+                    this._legacyTriggerAdd(event, callback);
+                else if (event.type.match(/(remove)\w+/g))
+                    this._legacyTriggerRemove(event, callback);
+            }
+
+            _legacyTriggerAdd(event, callback) {
+                // in esclusive mode we need to remove all layers except for the orthomap.
+                if (this.addMode == 'exclusive') {
+                    const triggerToEsclude = EventMapManager.exclusiveMappingTypes[event.type];
+                    for (let type of EventMapManager.exclusiveTypes)
+                        if (triggerToEsclude == null || triggerToEsclude != type)
+                            $.event.trigger({
+                                type
+                            });
+                }
+                this.registeredEvents[`${event.type}-${event.desc}`] = event;
+                callback(event);
+            }
+
+            _legacyTriggerRemove(event, callback) {
+                delete this.registeredEvents[`${event.type}-${event.desc}`];
+                callback(event);
+            }
+
+            setAddMode(value) {
+                if (value != 'additive' && value != 'exclusive')
+                    return;
+                this.addMode = value;
+            }
+
+            setMapManager(mapManager) {
                 EventMapManager.mapManager = mapManager;
             }
 
-            static reloadEvents() {
+            reloadEvents() {
                 if (!EventMapManager.auto)
                     return;
 
                 EventMapManager._triggerReload(EventMapManager.autoreloadEvents);
             }
 
-            static reloadAllEvents() {
+            reloadAllEvents() {
                 EventMapManager._triggerReload(EventMapManager.registeredEvents);
             }
 
-            static _triggerReload(events) {
+            _triggerReload(events) {
                 for (let key in events)
                     $.event.trigger(events[key]);
+            }
+        }
+
+        class MapManager {
+            is3D = true;
+            /** @type {Map} */
+            map;
+            constructor() {
+                this.map = new Map3D();
+            }
+
+            initMap(viewState) {
+                this.map.init(viewState);
             }
         }
 
@@ -24505,15 +23900,42 @@ if (!isset($_SESSION)) {
             `;
 
             static defaultProps = {
-                getStartPosition: { type: 'attribute', value: (d) => d.startPosition },
-                getMiddlePosition: { type: 'attribute', value: (d) => d.middlePosition },
-                getEndPosition: { type: 'attribute', value: (d) => d.endPosition },
-                getStartDensity: { type: 'attribute', value: (d) => d.startDensity },
-                getMiddleDensity: { type: 'attribute', value: (d) => d.middleDensity },
-                getEndDensity: { type: 'attribute', value: (d) => d.endDensity },
-                getStartColor: { type: 'attribute', value: (d) => d.startColor.map(x => x / 255) },
-                getMiddleColor: { type: 'attribute', value: (d) => d.middleColor.map(x => x / 255) },
-                getEndColor: { type: 'attribute', value: (d) => d.endColor.map(x => x / 255) }
+                getStartPosition: {
+                    type: 'attribute',
+                    value: (d) => d.startPosition
+                },
+                getMiddlePosition: {
+                    type: 'attribute',
+                    value: (d) => d.middlePosition
+                },
+                getEndPosition: {
+                    type: 'attribute',
+                    value: (d) => d.endPosition
+                },
+                getStartDensity: {
+                    type: 'attribute',
+                    value: (d) => d.startDensity
+                },
+                getMiddleDensity: {
+                    type: 'attribute',
+                    value: (d) => d.middleDensity
+                },
+                getEndDensity: {
+                    type: 'attribute',
+                    value: (d) => d.endDensity
+                },
+                getStartColor: {
+                    type: 'attribute',
+                    value: (d) => d.startColor.map(x => x / 255)
+                },
+                getMiddleColor: {
+                    type: 'attribute',
+                    value: (d) => d.middleColor.map(x => x / 255)
+                },
+                getEndColor: {
+                    type: 'attribute',
+                    value: (d) => d.endColor.map(x => x / 255)
+                }
             };
 
             initializeState() {
@@ -24580,9 +24002,15 @@ if (!isset($_SESSION)) {
                 });
             }
 
-            updateState({props, oldProps, changeFlags}) {
+            updateState({
+                props,
+                oldProps,
+                changeFlags
+            }) {
                 if (changeFlags.extensionsChanged) {
-                    const {gl} = this.context;
+                    const {
+                        gl
+                    } = this.context;
                     this.state.model.delete();
                     this.state.model = this._getModel(gl);
                     this.getAttributeManager().invalidateAll();
@@ -24609,8 +24037,15 @@ if (!isset($_SESSION)) {
             ];
 
             _getMesh() {
-                const {getStartPosition, getEndPosition} = this.props;
-                const {density, startDensity, endDensity} = this.props;
+                const {
+                    getStartPosition,
+                    getEndPosition
+                } = this.props;
+                const {
+                    density,
+                    startDensity,
+                    endDensity
+                } = this.props;
                 const deltaLng = this._getDelta(getStartPosition[0], getEndPosition[0]);
                 const deltaLat = this._getDelta(getStartPosition[1], getEndPosition[1]);
                 const middlePosition = [deltaLng, deltaLat, 0];
@@ -24668,11 +24103,13 @@ if (!isset($_SESSION)) {
                         }
                     }),
                     isInstanced: true
-                }); 
+                });
             }
 
             draw(opt) {
-                const {model} = this.state;
+                const {
+                    model
+                } = this.state;
 
                 if (model)
                     model.draw();
@@ -25086,9 +24523,15 @@ if (!isset($_SESSION)) {
                 return info;
             }
 
-            updateState({props, oldProps, changeFlags}) {
+            updateState({
+                props,
+                oldProps,
+                changeFlags
+            }) {
                 if (changeFlags.extensionsChanged) {
-                    const {gl} = this.context;
+                    const {
+                        gl
+                    } = this.context;
                     this.setNeedsRedraw();
                 }
             }
@@ -25178,6 +24621,7 @@ if (!isset($_SESSION)) {
                     log.removed('workerUrl', 'loadOptions.terrain.workerUrl')();
                 }
             }
+
             getTiledTerrainData(tile) {
                 const {
                     elevationData,
@@ -25197,11 +24641,9 @@ if (!isset($_SESSION)) {
                     signal
                 } = tile;
                 const bottomLeft = viewport.isGeospatial ?
-                    viewport.projectFlat([bbox.west, bbox.south]) :
-                    [bbox.left, bbox.bottom];
+                    viewport.projectFlat([bbox.west, bbox.south]) : [bbox.left, bbox.bottom];
                 const topRight = viewport.isGeospatial ?
-                    viewport.projectFlat([bbox.east, bbox.north]) :
-                    [bbox.right, bbox.top];
+                    viewport.projectFlat([bbox.east, bbox.north]) : [bbox.right, bbox.top];
                 const bounds = [bottomLeft[0], bottomLeft[1], topRight[0], topRight[1]];
 
                 const terrain = this.loadTerrain({
@@ -25258,402 +24700,216 @@ if (!isset($_SESSION)) {
          * da tabella Config_widget_dashboard, la quale memorizza un record per ogni istanza di widget. Tale record viene scritto
          * quando il widget viene creato
          */
+        $.ajax({
+            //url: "../controllers/getWidgetParams.php",
+            url: "../widgets/getParametersWidgets.php",
+            type: "GET",
+            data: {
+                //widgetName: "<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"
+                nomeWidget: [
+                    "<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"
+                ]
+            },
+            async: true,
+            dataType: 'json',
+            success: function(widgetData) {
+                widgetData.params = widgetData.param;
+                //Parametri di costruzione del widget (struttura e aspetto)
+                showTitle = widgetData.params.showTitle;
+                widgetContentColor = widgetData.params.color_w;
+                fontSize = widgetData.params.fontSize;
+                fontColor = widgetData.params.fontColor;
+                hasTimer = widgetData.params.hasTimer;
+                chartColor = widgetData.params.chartColor;
+                dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
+                dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
+                chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
+                chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
+                appId = widgetData.params.appId;
+                flowId = widgetData.params.flowId;
+                nodeId = widgetData.params.nodeId;
+                nrMetricType = widgetData.params.nrMetricType;
+                sm_based = widgetData.params.sm_based;
+                rowParameters = widgetData.params.rowParameters;
+                sm_field = widgetData.params.sm_field;
+                addMode = widgetData.params.viewMode;
+                enableFullscreenModal = widgetData.params.enableFullscreenModal;
+                enableFullscreenTab = widgetData.params.enableFullscreenTab;
+                geoServerUrl = widgetData.geoServerUrl;
+                heatmapUrl = widgetData.heatmapUrl;
+                nodeRedInputName = widgetData.params.name;
+                nrInputId = widgetData.params.nrInputId;
 
-        function reloadOldWidgetParams() {
-            $.ajax({
-                url: "../controllers/getWidgetParams.php",
-                type: "GET",
-                data: {
-                    widgetName: "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>"
-                },
-                async: true,
-                dataType: 'json',
-                success: function(widgetData) {
-                    //Parametri di costruzione del widget (struttura e aspetto)
-                    showTitle = widgetData.params.showTitle;
-                    widgetContentColor = widgetData.params.color_w;
-                    fontSize = widgetData.params.fontSize;
-                    fontColor = widgetData.params.fontColor;
-                    hasTimer = widgetData.params.hasTimer;
-                    chartColor = widgetData.params.chartColor;
-                    dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
-                    dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
-                    chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
-                    chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
-                    appId = widgetData.params.appId;
-                    flowId = widgetData.params.flowId;
-                    nrMetricType = widgetData.params.nrMetricType;
-                    sm_based = widgetData.params.sm_based;
-                    rowParameters = widgetData.params.rowParameters;
-                    sm_field = widgetData.params.sm_field;
-                    addMode = widgetData.params.viewMode;
-                    enableFullscreenModal = widgetData.params.enableFullscreenModal;
-                    enableFullscreenTab = widgetData.params.enableFullscreenTab;
-                    geoServerUrl = widgetData.geoServerUrl;
-                    heatmapUrl = widgetData.heatmapUrl;
-
-                    if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget ===
-                            true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((
-                            embedWidget === false) && (showTitle === "no"))) {
-                        showHeader = false;
-                    } else {
-                        showHeader = true;
-                    }
-
-                    metricName = "<?= $_REQUEST['id_metric'] ?>";
-                    widgetTitle = widgetData.params.title_w;
-                    widgetHeaderColor = widgetData.params.frame_color_w;
-                    widgetHeaderFontColor = widgetData.params.headerFontColor;
-                    sizeRowsWidget = parseInt(widgetData.params.size_rows);
-                    styleParameters = JSON.parse(widgetData.params.styleParameters);
-                    widgetParameters = JSON.parse(widgetData.params.parameters);
-
-                    setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor,
-                        widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
-
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div')
-                        .parents('li.gs_w').off('resizeWidgets');
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div')
-                        .parents('li.gs_w').on('resizeWidgets', resizeWidget);
-
-                    $("#" + widgetName + "_buttonsDiv").css("height", "100%");
-                    $("#" + widgetName + "_buttonsDiv").css("float", "left");
-
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).css("font-size",
-                        "20px");
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hover(function() {
-                        $(this).find("span").css("color", "red");
-                    }, function() {
-                        $(this).find("span").css("color", widgetHeaderFontColor);
-                    });
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).css("font-size",
-                        "20px");
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hover(function() {
-                        $(this).find("span").css("color", "red");
-                    }, function() {
-                        $(this).find("span").css("color", widgetHeaderFontColor);
-                    });
-
-                    if (hostFile === "config") {
-                        if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'yes')) {
-                            $("#" + widgetName + "_buttonsDiv").css("width", "50px");
-                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 -
-                                50 - 25 - 2));
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
-                        } else {
-                            if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'no')) {
-                                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() -
-                                    25 - 25 - 25 - 2));
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
-                            } else {
-                                if ((enableFullscreenModal === 'no') && (enableFullscreenTab ===
-                                        'yes')) {
-                                    $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
-                                        .width() - 25 - 25 - 25 - 2));
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
-                                        .hide();
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1)
-                                        .show();
-                                } else {
-                                    $("#" + widgetName + "_buttonsDiv").css("width", "0px");
-                                    $("#" + widgetName + "_buttonsDiv").hide();
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
-                                        .width() - 25 - 0 - 25 - 2));
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
-                                        .hide();
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
-                                        .hide();
-                                }
-                            }
-                        }
-                    } else {
-                        if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'yes')) {
-                            $("#" + widgetName + "_buttonsDiv").css("width", "50px");
-                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 -
-                                50 - 2));
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
-                        } else {
-                            if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'no')) {
-                                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() -
-                                    25 - 25 - 2));
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
-                            } else {
-                                if ((enableFullscreenTab === 'no') && (enableFullscreenModal ===
-                                        'yes')) {
-                                    $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
-                                        .width() - 25 - 25 - 2));
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
-                                        .show();
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1)
-                                        .hide();
-                                } else {
-                                    $("#" + widgetName + "_buttonsDiv").hide();
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
-                                        .width() - 25 - 2));
-                                }
-                            }
-                        }
-                    }
-
-                    $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
-
-                    if (firstLoad === false) {
-                        showWidgetContent(widgetName);
-                    } else {
-                        setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-                    }
-                    populateWidget();
-                    //   globalMapView = true;
-
-                    // parte mappa 3D - CORTI
-                    setTimeout(function() {
-                        map.default3DMapRef = initMapsAndListeners(map);
-                        setTimeout(function() {
-                            if (defaultOrthomapMenuItem != null) {
-                                if (defaultOrthomapMenuItem.id != null) {
-                                    if (defaultOrthomapMenuItem.external == true) {
-                                        $('#defaultMap').addClass('hidden');
-                                    }
-                                    $('#' + defaultOrthomapMenuItem.id).removeClass(
-                                        'hidden');
-                                }
-                            }
-                        }, 500);
-                    }, 3000);
-
-                    // hide fullscreen
-                    $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv').addClass('hidden');
-
-                },
-                error: function(errorData) {
-                    console.error('Errore durante il ricevimento del vecchio widget params');
-
-                },
-            });
-
-        }
-
-        function reloadWidgetParams() {
-            $.ajax({
-                //url: "../controllers/getWidgetParams.php",
-                url: "../widgets/getParametersWidgets.php",
-                type: "GET",
-                data: {
-                    //widgetName: "<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"
-                    nomeWidget: [
-                        "<?= str_replace('.', '_', str_replace('-', '_', escapeForJS($_REQUEST['name_w']))) ?>"
-                    ]
-                },
-                async: true,
-                dataType: 'json',
-                success: function(widgetData) {
-                    widgetData.params = widgetData.param;
-                    //Parametri di costruzione del widget (struttura e aspetto)
-                    showTitle = widgetData.params.showTitle;
-                    widgetContentColor = widgetData.params.color_w;
-                    fontSize = widgetData.params.fontSize;
-                    fontColor = widgetData.params.fontColor;
-                    hasTimer = widgetData.params.hasTimer;
-                    chartColor = widgetData.params.chartColor;
-                    dataLabelsFontSize = widgetData.params.dataLabelsFontSize;
-                    dataLabelsFontColor = widgetData.params.dataLabelsFontColor;
-                    chartLabelsFontSize = widgetData.params.chartLabelsFontSize;
-                    chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
-                    appId = widgetData.params.appId;
-                    flowId = widgetData.params.flowId;
-                    nodeId = widgetData.params.nodeId;
-                    nrMetricType = widgetData.params.nrMetricType;
-                    sm_based = widgetData.params.sm_based;
-                    rowParameters = widgetData.params.rowParameters;
-                    sm_field = widgetData.params.sm_field;
-                    addMode = widgetData.params.viewMode;
-                    enableFullscreenModal = widgetData.params.enableFullscreenModal;
-                    enableFullscreenTab = widgetData.params.enableFullscreenTab;
-                    geoServerUrl = widgetData.geoServerUrl;
-                    heatmapUrl = widgetData.heatmapUrl;
-                    nodeRedInputName = widgetData.params.name;
-                    nrInputId = widgetData.params.nrInputId;
-
-                    if (widgetData.params.infoJson != "yes") {
-                        $('#' + mapOptionsDivName).hide();
-                    }
-
-                    if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget ===
-                            true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((
-                            embedWidget === false) && (showTitle === "no"))) {
-                        showHeader = false;
-                    } else {
-                        showHeader = true;
-                    }
-
-                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
-                    widgetTitle = widgetData.params.title_w;
-                    widgetHeaderColor = widgetData.params.frame_color_w;
-                    widgetHeaderFontColor = widgetData.params.headerFontColor;
-                    sizeRowsWidget = parseInt(widgetData.params.size_rows);
-                    styleParameters = JSON.parse(widgetData.params.styleParameters);
-                    widgetParameters = JSON.parse(widgetData.params.parameters);
-                    wsConnect = widgetParameters.wsConnect;
-
-                    if (metricName != 'Map' && nodeId != null) {
-                        openWs(widgetName);
-                    }
-                    if (socket == null && wsConnect == "yes") {
-                        newWSConnect();
-                    }
-
-                    setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor,
-                        widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
-
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div')
-                        .parents('li.gs_w').off('resizeWidgets');
-                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div')
-                        .parents('li.gs_w').on('resizeWidgets', resizeWidget);
-
-                    $("#" + widgetName + "_buttonsDiv").css("height", "100%");
-                    $("#" + widgetName + "_buttonsDiv").css("float", "left");
-
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).css("font-size",
-                        "20px");
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hover(function() {
-                        $(this).find("span").css("color", "red");
-                    }, function() {
-                        $(this).find("span").css("color", widgetHeaderFontColor);
-                    });
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).css("font-size",
-                        "20px");
-                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hover(function() {
-                        $(this).find("span").css("color", "red");
-                    }, function() {
-                        $(this).find("span").css("color", widgetHeaderFontColor);
-                    });
-
-                    if (hostFile === "config") {
-                        if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'yes')) {
-                            $("#" + widgetName + "_buttonsDiv").css("width", "50px");
-                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 -
-                                50 - 25 - 2));
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
-                        } else {
-                            if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'no')) {
-                                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() -
-                                    25 - 25 - 25 - 2));
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
-                            } else {
-                                if ((enableFullscreenModal === 'no') && (enableFullscreenTab ===
-                                        'yes')) {
-                                    $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
-                                        .width() - 25 - 25 - 25 - 2));
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
-                                        .hide();
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1)
-                                        .show();
-                                } else {
-                                    $("#" + widgetName + "_buttonsDiv").css("width", "0px");
-                                    $("#" + widgetName + "_buttonsDiv").hide();
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
-                                        .width() - 25 - 0 - 25 - 2));
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
-                                        .hide();
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
-                                        .hide();
-                                }
-                            }
-                        }
-                    } else {
-                        if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'yes')) {
-                            $("#" + widgetName + "_buttonsDiv").css("width", "50px");
-                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 -
-                                50 - 2));
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
-                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
-                        } else {
-                            if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'no')) {
-                                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() -
-                                    25 - 25 - 2));
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
-                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
-                            } else {
-                                if ((enableFullscreenTab === 'no') && (enableFullscreenModal ===
-                                        'yes')) {
-                                    $("#" + widgetName + "_buttonsDiv").css("width", "25px");
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
-                                        .width() - 25 - 25 - 2));
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
-                                        .show();
-                                    $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1)
-                                        .hide();
-                                } else {
-                                    $("#" + widgetName + "_buttonsDiv").hide();
-                                    titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
-                                        .width() - 25 - 2));
-                                }
-                            }
-                        }
-                    }
-
-                    $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
-
-                    if (firstLoad === false) {
-                        showWidgetContent(widgetName);
-                    } else {
-                        setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-                    }
-                    populateWidget();
-                    //   globalMapView = true;
-
-                    if (metricName != 'Map' && nodeId != null) {
-                        map.defaultMapRef.on('click', function(e) {
-                            //    alert('Map Clicked!');
-                            let eventJson = new Object();
-                            eventJson.latitude = e.latlng.lat;
-                            eventJson.longitude = e.latlng.lng;
-                            currentValue = JSON.stringify(eventJson);
-                            triggerEventOnIotApp(map.defaultMapRef, currentValue);
-                        })
-                    }
-
-                    // parte mappa 3D - CORTI
-                    setTimeout(function() {
-                        map.default3DMapRef = initMapsAndListeners(map);
-                        setTimeout(function() {
-                            if (defaultOrthomapMenuItem != null) {
-                                if (defaultOrthomapMenuItem.id != null) {
-                                    if (defaultOrthomapMenuItem.external == true) {
-                                        $('#defaultMap').addClass('hidden');
-                                    }
-                                    $('#' + defaultOrthomapMenuItem.id).removeClass(
-                                        'hidden');
-                                }
-                            }
-                        }, 500);
-                    }, 3000);
-                    // hide fullscreen
-                    $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv').addClass('hidden');
-
-                },
-                error: function(errorData) {
-                    console.error('Errore durante il ricevimento dei parametri widgets');
-
+                if (widgetData.params.infoJson != "yes") {
+                    $('#' + mapOptionsDivName).hide();
                 }
-            });
-        }
 
-        //reloadWidgetParams();
-        reloadOldWidgetParams();
+                if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget ===
+                        true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((
+                        embedWidget === false) && (showTitle === "no"))) {
+                    showHeader = false;
+                } else {
+                    showHeader = true;
+                }
+
+                metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
+                widgetTitle = widgetData.params.title_w;
+                widgetHeaderColor = widgetData.params.frame_color_w;
+                widgetHeaderFontColor = widgetData.params.headerFontColor;
+                sizeRowsWidget = parseInt(widgetData.params.size_rows);
+                styleParameters = JSON.parse(widgetData.params.styleParameters);
+                widgetParameters = JSON.parse(widgetData.params.parameters);
+                wsConnect = widgetParameters.wsConnect;
+
+                if (metricName != 'Map' && nodeId != null) {
+                    openWs(widgetName);
+                }
+                if (socket == null && wsConnect == "yes") {
+                    newWSConnect();
+                }
+
+                setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor,
+                    widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div')
+                    .parents('li.gs_w').off('resizeWidgets');
+                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div')
+                    .parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+                $("#" + widgetName + "_buttonsDiv").css("height", "100%");
+                $("#" + widgetName + "_buttonsDiv").css("float", "left");
+
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).css("font-size",
+                    "20px");
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hover(function() {
+                    $(this).find("span").css("color", "red");
+                }, function() {
+                    $(this).find("span").css("color", widgetHeaderFontColor);
+                });
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).css("font-size",
+                    "20px");
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hover(function() {
+                    $(this).find("span").css("color", "red");
+                }, function() {
+                    $(this).find("span").css("color", widgetHeaderFontColor);
+                });
+
+                if (hostFile === "config") {
+                    if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'yes')) {
+                        $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 -
+                            50 - 25 - 2));
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                    } else {
+                        if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'no')) {
+                            $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() -
+                                25 - 25 - 25 - 2));
+                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
+                        } else {
+                            if ((enableFullscreenModal === 'no') && (enableFullscreenTab ===
+                                    'yes')) {
+                                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
+                                    .width() - 25 - 25 - 25 - 2));
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
+                                    .hide();
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1)
+                                    .show();
+                            } else {
+                                $("#" + widgetName + "_buttonsDiv").css("width", "0px");
+                                $("#" + widgetName + "_buttonsDiv").hide();
+                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
+                                    .width() - 25 - 0 - 25 - 2));
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
+                                    .hide();
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
+                                    .hide();
+                            }
+                        }
+                    }
+                } else {
+                    if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'yes')) {
+                        $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+                        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 -
+                            50 - 2));
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+                        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                    } else {
+                        if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'no')) {
+                            $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() -
+                                25 - 25 - 2));
+                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+                        } else {
+                            if ((enableFullscreenTab === 'no') && (enableFullscreenModal ===
+                                    'yes')) {
+                                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
+                                    .width() - 25 - 25 - 2));
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0)
+                                    .show();
+                                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1)
+                                    .hide();
+                            } else {
+                                $("#" + widgetName + "_buttonsDiv").hide();
+                                titleWidth = parseInt(parseInt($("#" + widgetName + "_div")
+                                    .width() - 25 - 2));
+                            }
+                        }
+                    }
+                }
+
+                $("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
+
+                if (firstLoad === false) {
+                    showWidgetContent(widgetName);
+                } else {
+                    setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                }
+                populateWidget();
+                //   globalMapView = true;
+
+                if (metricName != 'Map' && nodeId != null) {
+                    map.defaultMapRef.on('click', function(e) {
+                        //    alert('Map Clicked!');
+                        let eventJson = new Object();
+                        eventJson.latitude = e.latlng.lat;
+                        eventJson.longitude = e.latlng.lng;
+                        currentValue = JSON.stringify(eventJson);
+                        triggerEventOnIotApp(map.defaultMapRef, currentValue);
+                    })
+                }
+
+                getMenuAjaxCall();
+
+                // parte mappa 3D - CORTI
+                // setTimeout(function() {
+                //     map.default3DMapRef = initMapsAndListeners(map);
+                //     setTimeout(function() {
+                //         if (defaultOrthomapMenuItem != null) {
+                //             if (defaultOrthomapMenuItem.id != null) {
+                //                 if (defaultOrthomapMenuItem.external == true) {
+                //                     $('#defaultMap').addClass('hidden');
+                //                 }
+                //                 $('#' + defaultOrthomapMenuItem.id).removeClass(
+                //                     'hidden');
+                //             }
+                //         }
+                //     }, 500);
+                // }, 3000);
+                // hide fullscreen
+                $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv').addClass('hidden');
+
+            },
+            error: function(errorData) {
+                console.error('Errore durante il ricevimento dei parametri widgets');
+
+            }
+        });
 
         //Risponditore ad evento resize
         $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>").on('customResizeEvent',
@@ -29776,221 +29032,55 @@ if (!isset($_SESSION)) {
             }
         }
 
-        //// 3D Map - CORTI
-        layersCreated = []; // layers created but not added to map
-        layersAddedToMap = []; // layers already added to map
-
-        function initMapsAndListeners(map) {
-            let map2D = map.defaultMapRef;
-            let map2DName = "<?= $_REQUEST['name_w'] ?>_map";
-
-            //                removeAllLayers(map.default3DMapRef);
-
-            // ready
-            //    map2D.panTo(new L.LatLng(43.769789, 11.255694));
-
-            // load menu
-            getMenuAjaxCall();
-
-            // dragend
-            map2D.on('dragend', function() {});
-
-            // zoomend
-            map2D.on('zoomend', function() {
-                // add layers with correct zoom
-                for (var i = 0; i < layersCreated.length; i++) {
-                    addLayerToMapByZoom(layersCreated[i].menu, layersCreated[i].layer, layersCreated[i]
-                        .subLayerIndex, i);
-                }
-            });
-
-            //                let map3D = load3DMap(map2D);
-            //
-            //                return map3D;
-        }
-
-        function load3DMap(map2D) {
-
-            //// WRLD
-            var map = L.Wrld.map("3DMap", "9c04ad00edd787920af1a451bdd6553a", {
-                center: map2D.getCenter(),
-                zoom: 18
-            });
-
-
-            //// MAPBOX
-            //                mapboxgl.accessToken = 'pk.eyJ1IjoiYW5kcmVhY29ydGk5MCIsImEiOiJjanhjN2dndTIwMGhnNDBvNDFkZzN3eHVoIn0.w07jn7vRfAcstoSz2EO5Ew';
-            //                var map = new mapboxgl.Map({
-            //                    style: 'mapbox://styles/mapbox/light-v10',
-            //                    center: map2D.getCenter(),
-            //                    zoom: 15.5,
-            //                    pitch: 45,
-            //                    bearing: -17.6,
-            //                    container: '3DMap'
-            //                });
-            //
-            //                map.on('load', function () {
-            //                    // Insert the layer beneath any symbol layer.
-            //                    var layers = map.getStyle().layers;
-            //
-            //                    var labelLayerId;
-            //                    for (var i = 0; i < layers.length; i++) {
-            //                        if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
-            //                            labelLayerId = layers[i].id;
-            //                            break;
-            //                        }
-            //                    }
-            //
-            //                    map.addLayer({
-            //                        'id': '3d-buildings',
-            //                        'source': 'composite',
-            //                        'source-layer': 'building',
-            //                        'filter': ['==', 'extrude', 'true'],
-            //                        'type': 'fill-extrusion',
-            //                        'minzoom': 15,
-            //                        'paint': {
-            //                            'fill-extrusion-color': '#aaa',
-            //
-            //                            // use an 'interpolate' expression to add a smooth transition effect to the
-            //                            // buildings as the user zooms in
-            //                            'fill-extrusion-height': [
-            //                                "interpolate", ["linear"], ["zoom"],
-            //                                15, 0,
-            //                                15.05, ["get", "height"]
-            //                            ],
-            //                            'fill-extrusion-base': [
-            //                                "interpolate", ["linear"], ["zoom"],
-            //                                15, 0,
-            //                                15.05, ["get", "min_height"]
-            //                            ],
-            //                            'fill-extrusion-opacity': .6
-            //                        }
-            //                    }, labelLayerId);
-            //                });
-
-            return map;
-        }
+        // leaflet token world 3d "9c04ad00edd787920af1a451bdd6553a", {
+        // map box token 'pk.eyJ1IjoiYW5kcmVhY29ydGk5MCIsImEiOiJjanhjN2dndTIwMGhnNDBvNDFkZzN3eHVoIn0.w07jn7vRfAcstoSz2EO5Ew';
 
         // CORTI
         function getMenuAjaxCall() {
             $.ajax({
                 url: "../controllers/getWidgetParams.php?widgetName=<?php echo $_REQUEST['name_w']; ?>",
                 type: "GET",
-                data: {},
-                async: true,
                 dataType: 'json',
                 success: function(data) {
                     let parameters = JSON.parse(data.params.parameters);
                     if (parameters.dropdownMenu) {
-                        parameters.dropdownMenu.reverse().forEach(function(menu) {
-                            let dropdownMenuField = $('#dropdownMenuTemplate').html();
-                            $('#' + menu.header + 'Header').after(dropdownMenuField);
-                            //    let mapOptionsDivName = widgetName + "_mapOptions";
-                            let $item = $('#' + mapOptionsDivName).find('.appendable').first();
-                            //    let $item = $('#mapOptions').find('.appendable').first();
-                            $item.find('a').append(menu.label);
-
-                            // icon
-                            if (menu.external) {
-                                $item.find('.appendable-icon').addClass('fa-map-pin');
-                            } else {
-                                $item.find('.appendable-icon').addClass('fa-check');
-                            }
-                            $item.find('.appendable-icon').attr('id', menu.id);
-
-                            // listener
-                            $item.find('a').click(function(evt) {
-                                // check if layer is removable
-                                let removeLayer = false;
-                                if (menu.header !== "checkables") {
-                                    //    removeAllLayers(map.defaultMapRef);
-                                    var layers = [];
-                                    map.defaultMapRef.eachLayer(function(layer) {
-                                        if (layer instanceof L.TileLayer) {
-                                            layers.push(layer);
-                                            if (layer.options.attribution !=
-                                                null && layer.options
-                                                .attribution != undefined) {
-                                                if (layer.options.attribution
-                                                    .includes("&copy;")) {
-                                                    map.defaultMapRef
-                                                        .removeLayer(layer);
-                                                    /* } else if (layer.options.layers.includes("orthomaps:")) {
-                                                         map.defaultMapRef.removeLayer(layer);
-                                                         for(var n = 0; n < layersCreated.length; n++) {
-                                                             if (layersCreated[n].layer.options.layers == layer.options.layers) {
-                                                                 layersCreated.splice(n, 1);
-                                                             }
-                                                         }*/
-                                                }
-                                            } else if (layer.options.pane !=
-                                                null && layer.options.pane !=
-                                                undefined) {
-                                                if (layer.options.layers !=
-                                                    null && layer.options
-                                                    .layers != undefined) {
-                                                    if (layer.options.layers
-                                                        .includes("Snap4CIty:")
-                                                    ) {
-                                                        map.defaultMapRef
-                                                            .removeLayer(layer);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    });
-                                    // removeAllIcons();
-                                    removeTileIcons();
-                                } else {
-                                    if (!$(evt.target).find('.appendable-icon')
-                                        .hasClass('hidden')) {
-                                        removeLayer = true;
-                                    }
+                        for (let itemMenu of parameters.dropdownMenu.reverse()) {
+                            const itemTemplate = `
+                            <li class="appendable">
+                                <a class="dropdown-item" href="#">
+                                    <i class="fa appendable-icon hidden fa-check" id="${itemMenu.id}"></i>
+                                ${itemMenu.label}</a>
+                            </li>
+                            `;
+                            const itemElement = $(itemTemplate); 
+                            let headerElement = $(`#${itemMenu.header}Header`);
+                            headerElement.last().after(itemElement);
+                            itemElement.click((event) => {
+                                switch(itemMenu.service) {
+                                    case "tileLayer":
+                                        addTileLayer(event, itemMenu);
+                                        break;
+                                    case "WMS":
+                                        addLayerWMS(evt, menu);
+                                        break;
+                                    case "KML":
+                                        addLayerKML(evt, menu);
+                                        break;
+                                    case "GeoJSON":
+                                        addLayerGeoJSON(evt, menu);
+                                        break;
+                                    case "SVG":
+                                        addLayerSVG(evt, menu);
+                                        break;
                                 }
-
-                                // action
-                                if (!removeLayer) {
-                                    switch (menu.service) {
-                                        case "tileLayer":
-                                            addTileLayer(evt, menu);
-                                            break;
-                                        case "WMS":
-                                            addLayerWMS(evt, menu);
-                                            break;
-                                        case "KML":
-                                            addLayerKML(evt, menu);
-                                            break;
-                                        case "GeoJSON":
-                                            addLayerGeoJSON(evt, menu);
-                                            break;
-                                        case "SVG":
-                                            addLayerSVG(evt, menu);
-                                            break;
-                                        default:
-                                            console.log("No service selected.");
-                                    }
-
-                                    // icon
-                                    $(evt.target).find('.appendable-icon').removeClass(
-                                        'hidden');
-                                } else {
-                                    removeLayerById(menu.id, evt);
-                                }
-
-                                // avoid dropdown close on click
-                                evt.stopPropagation();
+                                hideMenu(mapMenuId);
                             });
-                        });
+                        }
                     }
-
-                    // select default map as active
-                    //    $('#mapOptions').find('.appendable-icon').first().removeClass('hidden')
-                    $('#' + mapOptionsDivName).find('.appendable-icon').first().removeClass('hidden')
                 },
                 error: function() {
-                    console.log("An error occurred.");
+                    console.log("Error loading menu");
                 },
-                complete: function() {}
             });
         }
 
@@ -30098,30 +29188,11 @@ if (!isset($_SESSION)) {
 
         // change tileLayer of the map: light, dark, etc
         function addTileLayer(evt, menu) {
-            let layer;
-            if (menu.minZoom != undefined && menu.maxZoom != undefined) { // MOD PANTALEO-CORTI
-                layer = L.tileLayer(menu.linkUrl, {
-                    attribution: menu.layerAttribution,
-                    apikey: menu.apiKey,
-                    minZoom: menu.minZoom,
-                    maxZoom: menu.maxZoom
-                }).addTo(map.defaultMapRef);
-            } else {
-                layer = L.tileLayer(menu.linkUrl, {
-                    attribution: menu.layerAttribution,
-                    apikey: menu.apiKey
-                }).addTo(map.defaultMapRef);
-            }
-            layersAddedToMap.push({
-                "id": menu.id,
-                "layer": layer
-            });
             if (is3dOn) {
                 const tileUrls = [];
                 tileUrls.push(menu.linkUrl.replace("{s}", "a"));
                 tileUrls.push(menu.linkUrl.replace("{s}", "b"));
                 tileUrls.push(menu.linkUrl.replace("{s}", "c"));
-                // const tileUrl = menu.linkUrl.replace("{s}", "c");
                 if (terrainOn)
                     layers.terrain = createNewTerrainTileLayer({
                         elevationUrl,
@@ -30130,15 +29201,26 @@ if (!isset($_SESSION)) {
                 else
                     layers.terrain = createTileLayer(tileUrls, menu.id);
                 updateLayers();
+            } else {
+                let layer;
+                if (menu.minZoom != undefined && menu.maxZoom != undefined) { // MOD PANTALEO-CORTI
+                    layer = L.tileLayer(menu.linkUrl, {
+                        attribution: menu.layerAttribution,
+                        apikey: menu.apiKey,
+                        minZoom: menu.minZoom,
+                        maxZoom: menu.maxZoom
+                    }).addTo(map.defaultMapRef);
+                } else {
+                    layer = L.tileLayer(menu.linkUrl, {
+                        attribution: menu.layerAttribution,
+                        apikey: menu.apiKey
+                    }).addTo(map.defaultMapRef);
+                }
+                layersAddedToMap.push({
+                    "id": menu.id,
+                    "layer": layer
+                });
             }
-
-            // example of TMS for GeoServer
-            //                let layer = L.tileLayer('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/ambiti_amministrativi_toscana:firenze_sat_here_z17@EPSG%3A900913@jpeg/{z}/{x}/{y}.png', {
-            //                  maxZoom: 18,
-            //                  tms: true,
-            //                  crs: L.CRS.EPSG4326,
-            //                  attribution: false
-            //                });
         }
 
         function addLayerKML(evt, menu) {
@@ -30208,29 +29290,29 @@ if (!isset($_SESSION)) {
 </script>
 
 <style>
+    #<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer {
+        overflow-y: hidden;
+    }
+
     #<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d {
-        position: absolute;
-        top: 25px;
+        position: relative;
+        top: -100%;
         left: 0;
         width: 100%;
-        height: calc(100% - 25px);
+        height: 100%;
         overflow: hidden;
         z-index: 999;
         background-color: white;
     }
 
     .mapOptions {
-        position: absolute;
-        top: 36px;
-        left: 70px;
+        position: inherit;
+        /* top: 36px;
+        left: 70px; */
         z-index: 430;
     }
 
-    .dropdown-menu .dropdown-header {
-        padding-left: 10px;
-        color: #c3c3c3;
-        z-index: 430;
-    }
+
 
     .dropdown-menu .dropdown-item {
         padding-left: 10px;
@@ -30241,11 +29323,8 @@ if (!isset($_SESSION)) {
         color: white;
     }
 
-    #deck-controls {
-        position: absolute;
-        top: 0px;
-        left: 5px;
-        z-index: 425;
+    #universal-controls {
+        z-index: 430;
     }
 
     #deck-controls-bottom {
@@ -30266,10 +29345,9 @@ if (!isset($_SESSION)) {
 
     .deck-btn-set {
         margin: 5px;
-    }
-
-    #dropdownMenu1 {
-        margin-left: 5px;
+        display: flex;
+        flex-wrap: nowrap;
+        flex-direction: row;
     }
 
     .deck-btn-set>button,
@@ -30415,18 +29493,128 @@ if (!isset($_SESSION)) {
         color: red;
     }
 
-    #deck-movement-mode,
+    /* #deck-movement-mode,
     #deck-selection-mode {
+        padding: 0;
+    } */
+
+    .deck-btn-set > button {
         padding: 0;
     }
 
-    /* #loadingDivsSection > * {
-        width: 230px;
-        height: 100px;
+    #universal-map-controls, #universal-map-overlay {
+        position: absolute;
+        top: 25px;
+        left: 0px;
+        z-index: 430;
+        height: calc(100% - 25px);
+        width: 100%;
+        pointer-events: none;
+    }
+
+    .deck-controls {
+        z-index: 430;
+    }
+
+    #universal-top-left,
+    #universal-bottom-left,
+    #universal-top-middle,
+    #universal-bottom-middle,
+    #universal-top-right,
+    #universal-bottom-right {
+        position: absolute;
+        pointer-events: none;
+    }
+
+    #universal-map-overlay *,
+    #universal-top-left *,
+    #universal-bottom-left *,
+    #universal-top-middle *,
+    #universal-bottom-middle *,
+    #universal-top-right *,
+    #universal-bottom-right * {
+        pointer-events: auto;
+    }
+
+    #universal-top-left {
+        top: 0;
+        left: 0;
+    }
+    #universal-bottom-left {
+        bottom: 0;
+        left: 0;
+    }
+    #universal-top-middle {
+        top: 0;
+        left: 33.3%;
+        right: 33.3%;
+    }
+    #universal-bottom-middle {
+        bottom: 0;
+        left: 33.3%;
+        right: 33.3%;
+    }
+    #universal-top-right {
+        top: 0;
+        right: 0;
+    }
+    #universal-bottom-right {
+        bottom: 0;
+        right: 0;
+    }
+
+    .map-menu-container {
+        position: absolute;
+        top: 40px;
+        left: 80px;
+        bottom: 0;
+        z-index: 440;
+    }
+
+    .dropdown-menu {
+        display: inline-flex;
+        writing-mode: vertical-lr;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        overflow: hidden;
+    }
+
+    .dropdown-menu > li {
+        writing-mode: horizontal-tb;
+        margin: 2px;
+    }
+
+    .map-menu {
+        left: 40px;
+        top: 0px;
+        /* height: calc(100% - 40px); */
+    }
+
+    .dropdown-menu {
+        background-color: white;
+    }
+
+    .dropdown-header {
+        color: black;
+        padding: 3px 10px!important;
+        font-weight: bold;
+    }
+
+    .dropdown-item {
+        color: #2c2c2c;
+    }
+
+    .map-light-menu {
+        writing-mode: horizontal-tb;
+        position: absolute;
         padding: 10px;
-        margin: 0px 0px 10px 10px;
-        border-radius: 30px;
-    } */
+    }
+
+    .map-light-menu-container {
+        bottom: auto;
+        min-width: 150px;
+    }
+
 </style>
 
 <div class="widget" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div">
@@ -30465,83 +29653,116 @@ if (!isset($_SESSION)) {
 
             <!-- Dentro questo DIV ci va il contenuto vero e proprio (e specifico) del widget (si chiama _chartContainer solo per legacy, non contiene necessariamente un grafico) -->
             <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer" class="chartContainer">
-                <!-- Originale 1-->
-                <!--<div id="map" style="height: 180px"></div>-->
-
-                <!-- Correzione 1 -->
+                <!-- Mappa 2D -->
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map" style="height: 100%; width: 100%;" class="mapContainer"></div>
-
-                <!-- deckgl layer -->
-                <div class="dropdown mapOptions" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptions">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        <i class="fa fa-spinner fa-spin hidden" id="loadingMenu"></i> Maps
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu map-menu" id="dropdown-menu-id" aria-labelledby="dropdownMenu1">
-                        <li class="dropdown-header">2D / 3D</li>
-                        <li><a class="dropdown-item" href="#" id="2DButton">2D Map</a></li>
-                        <li><a class="dropdown-item" href="#" id="3DButton">3D Map</a></li>
-                        <li role="separator" class="divider hidden"></li>
-                        <!--   <li class="dropdown-header" id="layersHeader">World OrthMaps</li>   -->
-                        <li class="dropdown-header" id="layersHeader">External Providers Open Orthomaps</li>
-                        <li role="separator" class="divider"></li>
-                        <!--   <li class="dropdown-header" id="checkablesHeader">Checkable Layers/Maps</li>    -->
-                        <li class="dropdown-header" id="checkablesHeader">WMS & GeoJSON Orthomaps</li>
-                        <li role="separator" class="divider"></li>
-                        <li class="dropdown-header" id="checkablesHeader">Building sources</li>
-                        <li><a class="dropdown-item" href="#" id="no-building"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;No Building</a></li>
-                        <li><a class="dropdown-item" href="#" id="building-mesh"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed</a></li>
-                        <li><a class="dropdown-item" href="#" id="building-mesh-notext"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed No
-                                Texture</a></li>
-                        <li><a class="dropdown-item" href="#" id="building-light"><i class="fa appendable-icon fa-map-pin"></i>&nbsp;Building Light</a></li>
-                    </ul>
-                    <template id="dropdownMenuTemplate">
-                        <li class="appendable">
-                            <a class="dropdown-item" href="#">
-                                <i class="fa appendable-icon hidden"></i>
-                            </a>
-                        </li>
-                    </template>
-                </div>
-                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d" class="map3d">
-                    <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_deck_popup" class="deck-popup">
-                    </div>
-                    <div id="deck-controls">
-                        <div class="deck-btn-set">
-                            <button id="deck-light-btn">L</button>
-                            <input type="datetime-local" id="lightTimestamp" />
-                        </div>
-                        <div class="deck-btn-set">
-                            <button id="deck-pitch-up">↙</button>
-                            <button id="deck-pitch-down">↗</button>
-                        </div>
-                        <div class="deck-btn-set">
-                            <button id="deck-bear-down">↶</button>
-                            <button id="deck-bear-up">↷</button>
-                        </div>
-                        <div class="deck-btn-set">
-                            <button id="deck-zoom-down">-</button>
-                            <button id="deck-zoom-up">+</button>
-                        </div>
-                        <div class="deck-btn-set">
-                            <div id="deck-zoom-box">
-                                14
+                <!-- Mappa 3D -->
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d" class="map3d"></div>
+                <!-- Controlli universali -->
+                <!-- TODO: da finire -->
+                <div id="universal-map-controls">
+                    <div id="universal-top-left">
+                        <div id="deck-controls">
+                            <div class="deck-btn-set">
+                                <div>
+                                    <button id="deck-light-btn" class="btn btn-primary">
+                                        <i class="fa fa-sun-o" aria-hidden="true"></i>
+                                        <i class="fa-solid fa-sun"></i>
+                                        <i class="fa fa-caret-right" id="loadingMenu"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="deck-btn-set">
+                                <div class="dropdown mapOptions" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptions">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                        <i class="fa fa-spinner fa-spin hidden" id="loadingMenu"></i> Maps
+                                        <i class="fa fa-caret-right" id="loadingMenu"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="deck-btn-set">
+                                <button id="deck-pitch-up">↙</button>
+                                <button id="deck-pitch-down">↗</button>
+                            </div>
+                            <div class="deck-btn-set">
+                                <button id="deck-bear-down">↶</button>
+                                <button id="deck-bear-up">↷</button>
+                            </div>
+                            <div class="deck-btn-set">
+                                <button id="deck-zoom-down">-</button>
+                                <button id="deck-zoom-up">+</button>
+                            </div>
+                            <div class="deck-btn-set">
+                                <div id="deck-zoom-box">
+                                    14
+                                </div>
+                                <button id="fullscreen-map-btn">
+                                    <i class="fa fa-arrows-alt" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            <div class="deck-btn-set">
+                                <button id="deck-movement-mode">
+                                    <!-- <i class="fa-solid fa-arrow-pointer"></i> -->
+                                    <i class="fa fa-mouse-pointer" aria-hidden="true"></i>
+                                </button>
+                                <button id="deck-selection-mode">
+                                    <i class="fa-solid fa-hand-pointer"></i>
+                                    <i class="fa fa-hand-pointer-o" aria-hidden="true"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="deck-btn-set">
-                            <button id="deck-movement-mode">
-                                <!-- <i class="fa-solid fa-arrow-pointer"></i> -->
-                                <i class="fa fa-mouse-pointer" aria-hidden="true"></i>
-                            </button>
-                            <button id="deck-selection-mode">
-                                <i class="fa-solid fa-hand-pointer"></i>
-                                <i class="fa fa-hand-pointer-o" aria-hidden="true"></i>
-                            </button>
+                    </div>
+                    <div id="universal-bottom-left"></div>
+                    <div id="universal-top-middle"></div>
+                    <div id="universal-bottom-middle"></div>
+                    <div id="universal-top-right"></div>
+                    <div id="universal-bottom-right"></div>
+                </div>
+
+                <div id="universal-map-overlay">
+                    <div class="map-menu map-light-menu">
+                        <div id="light-dropdown" class="dropdown-menu map-menu map-menu-container map-light-menu map-light-menu-container">
+                            <div>
+                                <label for="ligth-enable">Enable Lights</label>
+                                <input type="checkbox" name="light-enable" id="lightEnable">
+                            </div>
+                            <div id="lightSection">
+                                <div>
+                                    <label for="light-timestamp">Datetime: </label>
+                                    <input type="datetime-local" name="light-timestamp" id="lightTimestamp" />
+                                </div>
+                                <div>
+                                    <label for="shadow-enable">Enable dynamic shadows (experimental)</label>
+                                    <input type="checkbox" name="shadow-enable" id="shadowEnable">
+                                </div>
+                                <!-- <div>
+                                    <button>Animate day cycle</button>
+                                </div> -->
+                            </div>
                         </div>
                     </div>
-                    <div id="loadingDivsSection"></div>
-                    <div id="deck-building-popup"></div>
+                    <div class="map-menu map-menu-container">
+                        <ul class="dropdown-menu map-menu" id="dropdown-menu-id" aria-labelledby="dropdownMenu1">
+                            <li class="dropdown-header">2D / 3D</li>
+                            <li><a class="dropdown-item" href="#" id="2DButton">2D Map</a></li>
+                            <li><a class="dropdown-item" href="#" id="3DButton">3D Map</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li class="dropdown-header" id="layersHeader">External Providers Open Orthomaps</li>
+                            <li role="separator" class="divider"></li>
+                            <li class="dropdown-header" id="checkablesHeader">WMS &amp; GeoJSON Orthomaps</li>
+                            <li role="separator" class="divider"></li>
+                            <li class="dropdown-header" id="checkablesHeader">Building sources</li>
+                            <li><a class="dropdown-item" href="#" id="no-building"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;No Building</a></li>
+                            <li><a class="dropdown-item" href="#" id="building-mesh"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed</a></li>
+                            <li><a class="dropdown-item" href="#" id="building-mesh-notext"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed No
+                                    Texture</a></li>
+                            <li><a class="dropdown-item" href="#" id="building-elevated"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building elevated</a></li>
+                            <li><a class="dropdown-item" href="#" id="building-light"><i class="fa appendable-icon fa-map-pin"></i>&nbsp;Building Light</a></li>
+                        </ul>
+                    </div>
                 </div>
+                <!-- Popups -->
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_deck_popup" class="deck-popup"></div>
+                <div id="deck-building-popup"></div>
             </div>
         </div>
     </div>
