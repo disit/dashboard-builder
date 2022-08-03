@@ -2202,6 +2202,9 @@
                         break;
                  }
             }
+            for (var i = 0; i < chartSeriesObject.length; i++) {
+                chartSeriesObject[i].data = chartSeriesObject[i].data.sort((a, b) => a[0] - b[0])
+            }
             return null; 
         }
         

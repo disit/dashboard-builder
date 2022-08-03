@@ -9,13 +9,13 @@
 
 text {
    	text-shadow: none!important;
-    font-family: 'Exo 2', sans-serif!important;
-    font-weight: 600!important;
+    font-family: 'Roboto Mono', sans-serif!important;
+    font-weight: 400!important;
     font-size: 1.1rem!important;
 }
 
 tspan{
-	font-family: 'Exo 2', sans-serif!important;
+	font-family: 'Condensed', sans-serif!important;
 }
 
 /* ---- END ---- */
@@ -33,44 +33,35 @@ tspan{
 
 .nav_ul{
 	display: flex;
-    justify-content: end;
+    justify-content: center;
     border: none;
     padding: 10px 0;
-    border-bottom: 1px solid #f5f5f5;
     margin-bottom: 10px;
     background: var(--wdgt-bg-color);
 }
 
 .nav_ul li a{
-	font-family: 'Dosis', sans-serif;
+	font-family: 'Titillium Web', sans-serif;
 	font-weight: 600!important;
     font-size: 1.3rem!important;
     text-shadow: none!important;
-    text-transform: uppercase;
-    background: var(--tab-bg-color);
+    text-transform: capitalize;
     color: var(--tab-text-color)!important;
     margin-left: 10px;
     padding: 10px;
-    border-radius: 30px;
     cursor: pointer;
     text-align: center;
-    border: none;
+    border: none!important;
 }
 
-.nav_ul li a:hover{
-	background: var(--tab-hover-color);
+.nav_ul li a:hover, .nav_ul li.active a:hover{
+	background: transparent;
 	border: none;
 }
 
 .nav_ul li.active a{
-	border: none!important;
-	background: var(--tab-active-bg-color);
-    color: var(--tab-active-text-color)!important;
-}
-
-.nav_ul li.active a:hover{
-	border: none!important;
-	background: var(--tab-active-hover-color);
+	border-bottom: 2px solid var(--tab-active-border-color)!important;
+  color: var(--tab-active-text-color)!important;
 }
 
 /* ---- END ---- */
@@ -204,33 +195,35 @@ div.widgetSeparator
 
 .chartContainer
 {
-    width: 100%;
-    height: 100%;
-    margin: 0 auto;
-    overflow-y: scroll;
-    background: var(--wdgt-bg-color);
-    -webkit-transition: background 0.5s ease-in-out;
+  width: 100%;
+  height: calc(100% - 25px);
+  margin: 25px auto;
+  overflow-y: auto;
+  background: var(--wdgt-bg-color);
+  -webkit-transition: background 0.5s ease-in-out;
 	-ms-transition:     background 0.5s ease-in-out;
 	transition:         background 0.5s ease-in-out;
 }
 
+
+
 .map2dContainer
 {
-    width: calc(100% + 25px);
-    height: 100%;
-    margin: 0 auto;
-    overflow-y: scroll;
-    background: var(--wdgt-bg-color);
-    -webkit-transition: background 0.5s ease-in-out;
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
+  margin: 0 auto;
+  overflow-y: scroll;
+  background: var(--wdgt-bg-color);
+  -webkit-transition: background 0.5s ease-in-out;
   -ms-transition:     background 0.5s ease-in-out;
   transition:         background 0.5s ease-in-out;
 }
 
 .chartContainerPie
 {
-    width: 100%;
-    height: 86%;
-    margin: 0 auto;
+  width: 100%;
+  height: 86%;
+  margin: 0 auto;
 }
 
 .legendContainer1
@@ -313,7 +306,8 @@ div.widgetSeparator
     border-collapse: collapse;
     /*Per avere colonne tutte della stessa larghezza*/
     table-layout: fixed;
-    font-weight: bold;
+    font-weight: 400;
+    font-family: 'Roboto Mono', sans-serif;
 }
 
 .tableStyle tr
@@ -473,24 +467,26 @@ div.singleBtnContainer
 }
 
 .leaflet-container{
-  font-family: 'Exo 2', sans-serif!important;
+  font-family: 'Roboto Mono', sans-serif!important;
 }
 
 div#heatmapLegend, div#trafficHeatmapLegend{
-    color: #000;
-    border-radius: 30px;
-    padding: 20px!important;
+    color: var(--text-color);
+    padding: 15px!important;
+    margin: 35px 35px 0 0;
+    background: var(--dash-bg-color)!important;
 }
 
 div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button]{
     border: none!important;
-    border-radius: 30px;
     background: var(--acc-01-color);
+    padding: 5px 10px;
+    color: #fff;
 }
 
 .mapOptions{
-	  top: 55px!important;
-    left: 100px!important;
+	  top: 155px!important;
+    left: 130px!important;
     z-index: 500!important;
 }
 
@@ -526,13 +522,13 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
 }
 
 #deck-controls{
-    top: 50px!important;
-    left: 30px!important;
+    top: 115px!important;
+    left: 50px!important;
 }
 
 .deck-btn-set > button, #deck-zoom-box {
-    background-color: var(--acc-01-color)!important;
-    color: #000!important;
+    background-color: var(--dash-bg-color)!important;
+    color: var(--text-color)!important;
     border: none!important;
     font-size: 16px!important;
     border-radius: 30px!important;
@@ -542,49 +538,59 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     align-items: center;
 }
 
-#deck-light-btn {
-    width: 70px;
-}
-
-#deck-controls input, #light-dropdown input{
-    background-color: var(--acc-01-color)!important;
-    color: #000!important;
+#deck-controls input{
+    background-color: var(--dash-bg-color)!important;
+    color: var(--text-color)!important;
     border: none!important;
     font-size: 16px!important;
-    border-radius: 30px!important;
+    border-radius: 10px!important;
     padding: 0 10px!important;
     display: inline-flex;
     justify-content: center;
     align-items: center;
 }
 
-.dropdown-menu a:hover, .dropdown-menu a:focus {
-    background-color: var(--dash-bg-color)!important;
-}
-
 .map3d {
   position: absolute!important;
-  top: 45px!important;
-  left: 20px!important;
-  width: calc(100% - 40px)!important;
-  height: calc(100% - 65px)!important;
-  border-radius: 30px!important;
+  top: 91px!important;
+  left: 25px!important;
+  width: calc(100% - 50px)!important;
+  height: calc(100% - 116px)!important;
   overflow: hidden!important;
 }
 
 .btn-primary{
-	background: var(--acc-01-color)!important;
-	color: #000!important;
+	background-color: var(--acc-01-color)!important;
+	color: #fff!important;
 	border: none!important;
-	border-radius: 30px!important;
-	padding: 10px!important;
+	border-radius: 0px!important;
+	padding: 15px 25px!important;
 	text-transform: uppercase;
 	font-weight: 700;
+  font-family: 'Roboto Mono', sans-serif;
+}
+
+.open .btn-primary{
+  background-color: var(--dash-bg-color)!important;
+  color: var(--text-color)!important;
+  border: none!important;
+}
+
+.btn:focus, .btn:active:focus, .btn.active:focus, .btn.focus, .btn:active.focus, .btn.active.focus{
+  outline: none!important;
+}
+
+.leaflet-right .leaflet-control{
+  margin-right: 35px!important;
 }
 
 .map-menu {
-    border-radius: 30px;
+    border-radius: 0px;
     border: none;
+    background-color: var(--dash-bg-color)!important;
+    color: var(--text-color)!important;
+    box-shadow: 0px 0px 80px #002b551a;
+    font-family: 'Roboto Mono', sans-serif;
 }
 
 #FIRENZE
@@ -613,10 +619,10 @@ div.buttonTxtContainer
 }
 
 div.onOffButton{
-	border-radius: 30px!important;
-	padding: 10px;
-	font-family: 'Dosis', sans-serif;
-  box-shadow: 4px 0px 10px #00000019!important;
+	border-radius: 10px!important;
+  padding: 10px;
+  font-family: 'Titillium Web', sans-serif;
+  font-weight: 500!important;
 }
 
 div.onOffButtonBefore{
@@ -751,7 +757,7 @@ div.onOffButtonAfter{
 {
     width: 100%;
     height: 100%;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .meteoPcLegendaRow
@@ -857,16 +863,16 @@ div.onOffButtonAfter{
 .meteoPcRow
 {
     width: 100%;
-    border-radius: 60px;
-    margin: 5px 0;
-    overflow: hidden;
+    border-bottom: 1px solid var(--wdgt-bg-color);
 }
 
 .meteoPcDesc span{
+  font-family: 'Titillium Web', sans-serif;
 	font-size: 1.2rem!important;
-    padding: 0 10px;
-    text-transform: uppercase;
-    font-weight: 600;
+  padding: 0 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .meteoPcIcon
@@ -887,7 +893,7 @@ div.onOffButtonAfter{
 	font-family: "Font Awesome 6 Free";
     font-weight: 900;
     font-size: 1.8rem;
-    color: #000;
+    color: var(--text-color);
     margin-left: 20px;
 }
 
@@ -896,7 +902,7 @@ div.onOffButtonAfter{
 	font-family: "Font Awesome 6 Free";
     font-weight: 900;
     font-size: 1.8rem;
-    color: #000;
+    color: var(--text-color);
     margin-left: 20px;
 }
 
@@ -905,7 +911,7 @@ div.onOffButtonAfter{
 	font-family: "Font Awesome 6 Free";
     font-weight: 900;
     font-size: 1.8rem;
-    color: #000;
+    color: var(--text-color);
     margin-left: 20px;
 }
 
@@ -914,7 +920,7 @@ div.onOffButtonAfter{
 	font-family: "Font Awesome 6 Free";
     font-weight: 900;
     font-size: 1.8rem;
-    color: #000;
+    color: var(--text-color);
     margin-left: 20px;
 }
 
@@ -923,7 +929,7 @@ div.onOffButtonAfter{
 	font-family: "Font Awesome 6 Free";
     font-weight: 900;
     font-size: 1.8rem;
-    color: #000;
+    color: var(--text-color);
     margin-left: 20px;
 }
 
@@ -932,7 +938,7 @@ div.onOffButtonAfter{
 	font-family: "Font Awesome 6 Free";
     font-weight: 900;
     font-size: 1.8rem;
-    color: #000;
+    color: var(--text-color);
     margin-left: 20px;
 }
 
@@ -941,7 +947,7 @@ div.onOffButtonAfter{
 	font-family: "Font Awesome 6 Free";
     font-weight: 900;
     font-size: 1.8rem;
-    color: #000;
+    color: var(--text-color);
     margin-left: 20px;
 }
 
@@ -1459,27 +1465,29 @@ span.recreativeEventPinShowMsg, span.recreativeEventPinHideMsg
 {
    height: auto!important;
    flex-basis: 25%;
+   border-radius: 5px;
 }
 
 p.eventTitlePar
 {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     margin: 0;
     padding: 15px;
+    color: #fff;
 }
 
 p.eventTitlePar span{
 	font-size: 1rem!important;
-    font-weight: 700;
+    font-weight: 400;
 }
 
 p.recreativeEventTitlePar
 {
    display: block;
-   width: 100%;
+   width: 100%; 
    height: auto;
    max-height: 100%;
    text-align: center;
@@ -1648,8 +1656,8 @@ div.tooltip-inner
 }
 
 .mapContainer{
-	border-radius: 30px;
-    overflow: hidden;
+  overflow: hidden;
+  padding: 25px 0;
 }
 
 .styleSelect {
@@ -1666,31 +1674,32 @@ div.tooltip-inner
 .styleSelect:after{
 	content: "\e5cf";
 	font-family: 'Material Icons';
-  	font-size: 1.8rem;
+  	font-size: 2rem;
     line-height: 1rem;
     position: absolute;
     width: 3.5vw;
     height: 100%;
-    right: 1px;
+    right: 10px;
     top: 1px;
     pointer-events: none;
     align-items: center;
     display: flex;
+    justify-content: flex-end;
 }
 
 .styleSelect select{
-	width: 90%;
+	  width: 100%;
     padding: 10px;
-    border-radius: 20px;
-    border: 2px solid var(--selectore-bg-color);
+    border-radius: 0px;
+    border: none;
+    border-bottom: 1px solid var(--sec-04-color);
+    color: 1px solid var(--sec-04-color);
     margin: 0 auto;
-    box-shadow: 4px 0px 10px #00000019;
     display: block;
-    font-family: 'Dosis', sans-serif;
+    font-family: 'Titillium Web', sans-serif;
     font-size: 1vw;
     font-weight: 600;
     line-height: 2.5rem;
-    text-transform: uppercase;
     cursor: pointer;
     /* Hide original icon */
     -webkit-appearance: none;
@@ -1803,7 +1812,7 @@ div.tooltip-inner
 
 .eventLink, .eventLink:link, .eventLink:visited, .eventLink:active
 {
-    color: #000;
+    color: var(--text-color);
     text-decoration: none;
 }
 
@@ -2279,6 +2288,7 @@ atafLastUpdateWrapper
 {
     overflow: auto;
     background: var(--wdgt-bg-color)!important;
+    height: fit-content!important;
 
 }
 
@@ -2313,12 +2323,12 @@ atafLastUpdateWrapper
 
 .source_button
 {
-  float: left;
-  margin-left: 0px;
-  margin-right: 2px;
-  font-size: 1vw!important;
-  color: var(--acc-02-color)!important;
-  margin-right: 10px;
+   float: left;
+   margin-left: 0px;
+   margin-right: 2px;
+   font-size: 1vw!important;
+   color: var(--acc-02-color)!important;
+   margin-right: 10px;
 }
 
 .countdown
@@ -2329,9 +2339,9 @@ atafLastUpdateWrapper
     border: none;
     display: inline-flex;
     color: var(--text-color);
-    font-family: 'Exo 2', sans-serif;
+    font-family: 'Condensed', sans-serif;
     font-size: 1vw;
-	font-weight: 500;
+	font-weight: 300;
 }
 
 .icons-modify-widget
@@ -3070,14 +3080,14 @@ atafLastUpdateWrapper
 
 .trafficEventRow {
     display: flex;
-    flex-direction: row;
+    flex-direction: row-reverse;
     justify-content: space-between;
     align-items: center;
-    background: var(--dash-bg-color);
+    background: var(--wdgt-bg-color);
     color: var(--text-color);
     height: auto!important;
-    border-radius: 30px;
-    margin-bottom: 5px!important;
+    border-bottom: 1px solid var(--sec-03-color);
+    padding: 10px 0;
 }
 
 .trafficEventIcon
@@ -3097,7 +3107,6 @@ atafLastUpdateWrapper
 .otherTrafficEventTitle
 {
    background: var(--wdgt-bg-color);
-   border-radius: 30px 0 0 30px;
 }
 
 .otherTrafficEvent
@@ -3111,7 +3120,6 @@ atafLastUpdateWrapper
 .incidentTitle
 {
    background: var(--wdgt-bg-color);
-   border-radius: 30px 0 0 30px;
 }
 
 .incident
@@ -3125,7 +3133,6 @@ atafLastUpdateWrapper
 .slipperyTitle
 {
    background: var(--wdgt-bg-color);
-   border-radius: 30px 0 0 30px; 
 }
 
 .slippery
@@ -3139,7 +3146,6 @@ atafLastUpdateWrapper
 .highSeverityTitle
 {
    background: var(--rischio-Red-color);
-   border-radius: 30px 0 0 30px;
 }
 
 .highSeverity
@@ -3153,7 +3159,6 @@ atafLastUpdateWrapper
 .medSeverityTitle
 {
    background: var(--rischio-Orange-color);
-   border-radius: 30px 0 0 30px;
 }
 
 .medSeverity
@@ -3167,7 +3172,6 @@ atafLastUpdateWrapper
 .lowSeverityTitle
 {
    background: var(--rischio-Blue-color);
-   border-radius: 30px 0 0 30px;
 }
 
 .lowSeverity
@@ -3181,7 +3185,6 @@ atafLastUpdateWrapper
 .operatorEventWhiteTitle
 {
    background: var(--rischio-White-color);
-   border-radius: 30px 0 0 30px;
    color: #000;
 }
 
@@ -3196,7 +3199,6 @@ atafLastUpdateWrapper
 .operatorEventBlueTitle
 {
    background: var(--rischio-Blue-color);
-   border-radius: 30px 0 0 30px;
    color: #000;
 }
 
@@ -3211,7 +3213,6 @@ atafLastUpdateWrapper
 .operatorEventGreenTitle
 {
    background: var(--rischio-Green-color);
-   border-radius: 30px 0 0 30px;
    color: #000;
 }
 
@@ -3226,7 +3227,6 @@ atafLastUpdateWrapper
 .operatorEventYellowTitle
 {
    background: var(--rischio-Orange-color);
-   border-radius: 30px 0 0 30px;
    color: #000;
 }
 
@@ -3241,7 +3241,6 @@ atafLastUpdateWrapper
 .operatorEventRedTitle
 {
    background: var(--rischio-Red-color);
-   border-radius: 30px 0 0 30px;
    color: #000;
 }
 
@@ -3256,7 +3255,6 @@ atafLastUpdateWrapper
 .roadWorksTitle
 {
    background: var(--rischio-Yellow-color);
-   border-radius: 30px 0 0 30px;
    color: #000;
 }
 
@@ -3271,7 +3269,7 @@ atafLastUpdateWrapper
 .trafficEventDataContainer
 {
    display: flex;
-   flex-direction: row;
+   flex-direction: row-reverse;
    flex-wrap: wrap;
    justify-content: flex-start;
    flex-basis: 70%;
@@ -3366,12 +3364,12 @@ atafLastUpdateWrapper
 }
 
 .trafficEventPinContainer a.trafficEventLink i{
-	color: var(--acc-01-color)!important;
+	color: var(--acc-01-color)!important;;
 	font-size: 2.5rem!important;
 }
 
 .trafficEventPinContainer a.trafficEventLink i:hover{
-	color: #000!important;
+	color: var(--text-color)!important;;
 }
 
 .trafficEventPinMsgContainer
@@ -3680,13 +3678,16 @@ div.gisRollerContainer
 div.gisRollerContainer .selectorRow{
 	display: flex;
 	align-items: center;
-	margin: 0.3rem 0px;
+	margin: 5px 0px;
+  padding: 10px 0px;
+  border-bottom: 1px solid var(--sec-03-color);
 }
 
 div.gisRollerContainer .selectorRow:after{
 	content: "\e5cc";
 	font-family: 'Material Icons';
-	font-size: 1.8rem;
+	font-size: 3rem;
+  color: var(--sec-04-color);
 }
 
 .selectorNew{
@@ -3695,13 +3696,12 @@ div.gisRollerContainer .selectorRow:after{
 
 div.gisMapPtrContainer
 {
-    height: 4rem;
+    height: 3.5rem;
     width: 7rem!important;
     margin-top: 0px;
     margin-bottom: 0px;
     margin-right: 10px;
-    border-radius: 20px;
-    background: var(--sec-02-color);
+    border-radius: 5px;
 }
 
 div.gisQueryDescContainer
@@ -3718,9 +3718,10 @@ div.gisQueryDescContainer
    word-wrap: break-word;
    overflow: hidden;
    word-break: break-word;
-   font-size: 1vw!important;
-   font-weight: 400!important;
+   font-size: 1.5rem!important;
+   font-weight: 600!important;
    color: var(--text-color)!important;
+   margin: 0!important;
 }
 
 div.gisPinContainer{
@@ -3754,7 +3755,7 @@ span.gisPinShowMsg, span.gisPinHideMsg, span.gisPinNoQueryMsg, span.gisPinNoMaps
 
 .gisPinLink:hover
 {
-   color: #000;
+   color: var(--text-color);
    text-decoration: none;
    cursor: pointer;
 }
@@ -3765,7 +3766,13 @@ span.gisPinShowMsg, span.gisPinHideMsg, span.gisPinNoQueryMsg, span.gisPinNoMaps
 }
 
 .gisPinLink .gisPinIcon{
-	font-size: 20px!important;
+	font-size: 18px!important;
+  color: var(--text-color)!important;
+}
+
+.gisPinContainer a[data-onmap="true"] .gisPinIcon {
+    color: #353535!important;
+    mix-blend-mode: color-burn;
 }
 
 i.gisLoadingIcon, i.gisLoadErrorIcon
@@ -4195,7 +4202,7 @@ p.gisMapLoadingDivTextPar
 }*/
 
 div.numericKeyboardContainer{
-	font-family: 'Dosis', sans-serif!important;
+	font-family: 'Roboto', sans-serif!important;
 }
 
 div.numericKeyboardContainer .row{
@@ -4209,17 +4216,20 @@ div.numericKeyboardValueContainer{
 }
 
 button.numericKeyboardBtn, button.numericKeyboardEnterBtn{
-	border-radius: 30px;
-	background: var(--sec-01-color)!important;
-	color: var(--acc-01-color)!important;
-    font-weight: 600;
-    border: 2px solid var(--wdgt-bg-color)!important;
-    font-size: 2rem!important;
+	border-radius: 5px;
+	background: var(--dash-bg-color)!important;
+	color: var(--text-color)!important;
+  font-family: 'Roboto Mono', sans-serif;
+  font-weight: 400;
+  font-size: 1.5rem!important;
+  box-shadow: 0px 2px 0px var(--sec-04-color);
+  width: calc(100% - 4px)!important;
+  height: calc(100% - 4px)!important;
 }
 
 span.displayLabel, span.displayVal{
 	padding: 0 10px;
-	font-family: 'Exo 2', sans-serif;
+	font-family: 'Condensed', sans-serif;
 }
 
 .tooltipSuri {

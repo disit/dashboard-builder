@@ -494,6 +494,37 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     z-index: 500!important;
 }
 
+#universal-map-controls, #universal-map-overlay {
+    position: absolute!important;
+    top: 45px!important;
+    left: 20px!important;
+    margin: 10px!important;
+    height: calc(100% - 85px)!important;
+    width: calc(100% - 60px)!important;
+}
+
+#universal-map-overlay .map-menu {
+    left: 40px!important;
+    top: 0px!important;
+}
+
+#universal-map-overlay .map-ligth-menu {
+    top: -15px!important;
+}
+
+#universal-map-overlay .dropdown-menu {
+    background-color: var(--wdgt-bg-color)!important;
+}
+
+#universal-map-overlay .dropdown-header {
+    color: var(--acc-01-color)!important;
+    padding: 3px 10px!important;
+}
+
+#universal-map-overlay .dropdown-item {
+    color: var(--text-color)!important;
+}
+
 #deck-controls{
     top: 50px!important;
     left: 30px!important;
@@ -511,7 +542,11 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     align-items: center;
 }
 
-#deck-controls input{
+#deck-light-btn {
+    width: 70px;
+}
+
+#deck-controls input, #light-dropdown input{
     background-color: var(--acc-01-color)!important;
     color: #000!important;
     border: none!important;
@@ -521,6 +556,10 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     display: inline-flex;
     justify-content: center;
     align-items: center;
+}
+
+.dropdown-menu a:hover, .dropdown-menu a:focus {
+    background-color: var(--dash-bg-color)!important;
 }
 
 .map3d {
