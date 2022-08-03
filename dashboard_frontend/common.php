@@ -609,10 +609,16 @@ function get_access_token($token_endpoint, $username, $password, $client_id){
 }
 
 function redirect_on_login() {
-    $host='www.snap4city.org';
+    //$host='www.snap4city.org';
+    $host=$_SERVER['HTTP_HOST'];
+    //$host=$host.'/dashboardSmartCity';
     if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
         $host=$_SERVER['HTTP_X_FORWARDED_HOST'];
     }
-    header("Location: ../management/ssoLogin.php?redirect=https://$host" . $_SERVER['REQUEST_URI']);
+    if ($host=='localhost') {
+        header("Location: ../management/ssoLogin.php?redirect=http://$host" . $_SERVER['REQUEST_URI']);
+    } else {
+        header("Location: ../management/ssoLogin.php?redirect=https://$host" . $_SERVER['REQUEST_URI']);
+    }
     exit();
 }
