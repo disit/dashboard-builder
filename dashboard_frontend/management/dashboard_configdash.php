@@ -26384,7 +26384,38 @@
                                             }
                                         });
                                         
-                                        //Nuova riga
+                                        newLabel = $('<div id="areaOpacity"><label for="areaChartOpacityM" class="col-md-1 control-label">Area Lines Opacity [0, 1]</label></div>');
+                                        newInnerDiv = $('<div id="areaOpInnerDiv" class="col-md-1"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="areaChartOpacityM" name="areaChartOpacityM">');
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newInput.show();
+                                        $('#areaOpacity').hide();
+                                        $('#areaOpInnerDiv').hide();
+                                        $('#areaChartOpacityM').hide();
+
+                                        if ($('#chartTypeM').val() === "area") {
+                                            $('#areaOpacity').show();
+                                            $('#areaOpInnerDiv').show();
+                                            $('#areaChartOpacityM').val(styleParameters['areaChartOpacityM']);
+                                            $('#areaChartOpacityM').show();
+                                        }
+                                        
+                                        $('#chartTypeM').change(function () {
+                                            if ($('#chartTypeM').val() === "area") {
+                                                $('#areaOpacity').show();
+                                                $('#areaOpInnerDiv').show();
+                                                $('#areaChartOpacityM').show();
+                                            } else {
+                                                $('#areaOpacity').hide();
+                                                $('#areaOpInnerDiv').hide();
+                                                $('#areaChartOpacityM').hide();
+                                            }
+                                        });
+                                        
                                         //Data labels
                                     /*    newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);*/

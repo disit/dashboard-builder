@@ -2564,6 +2564,7 @@
             $fontFamily = mysqli_real_escape_string($link, sanitizePostString('inputFontFamilyWidgetM'));
         }
         $groupByAttrM = NULL;
+        $areaChartOpacityM = NULL;
         
         $lastEditDate = date('Y-m-d H:i:s');
         
@@ -3045,6 +3046,10 @@
             {
                 $dayHourView = sanitizePostString('dayHourView');
             }
+            if(isset($_POST['areaChartOpacityM'])&&($_POST['areaChartOpacityM']!=""))
+            {
+                $areaChartOpacityM = sanitizePostString('areaChartOpacityM');
+            }
             
             //if(isset($_POST['TTTDate'])&&($_POST['TTTDate']!=""))
             //{
@@ -3073,6 +3078,7 @@
             $styleParametersArrayM['xAxisDataset'] = $xAxisDatasetM;
             $styleParametersArrayM['lineWidth'] = $lineWidthM;
             $styleParametersArrayM['alrLook'] = $alrLookM;
+            $styleParametersArrayM['areaChartOpacityM'] = $areaChartOpacityM;
 
             if(isset($_POST['deviceLabelsM_0'])&&($_POST['deviceLabelsM_0']!=""))
             {

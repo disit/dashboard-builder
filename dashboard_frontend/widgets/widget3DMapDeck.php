@@ -31,10 +31,9 @@ if (!isset($_SESSION)) {
 
     .switch {
         position: relative;
-        display: inline-block;
         width: 80px;
         height: 15px;
-        float: right
+        float: right;
     }
 
     .switch input {
@@ -183,7 +182,7 @@ if (!isset($_SESSION)) {
         ?>
 
         const version = '1.2.0';
-        const channel = 'alpha 1';
+        const channel = 'beta 1';
 
         /** @type {MapManager} */
         var mapManger;
@@ -325,6 +324,18 @@ if (!isset($_SESSION)) {
         var eventsGenerated = {};
         var deckMode = 'movement';
 
+        const riccardoBuildingsProp = {
+            position: [11.2501685710125, 43.7720562843695],
+            getOrientation: [0, 0, 90],
+            getScale: [0.722, 1, 0.722],
+        };
+
+        const marcoBuildingsProp = {
+            position: [11.255241284985537, 43.765521723567616, -46.79],
+            getOrientation: [0, 0, 0],
+            getScale: [0.722, 0.722, 1],
+        }
+
         console.log("entrato in widget3DMapDeck. WidgetName = " + widgetName);
 
         var current_page = 0;
@@ -420,6 +431,7 @@ if (!isset($_SESSION)) {
 
         }
 
+        // TODO: go to 2D map
         function onEachFeatureSpiderify(feature, layer) {
             oms.addMarker(layer);
         }
@@ -906,3656 +918,20 @@ if (!isset($_SESSION)) {
             });
 
             marker.on('click', function(event) {
-                //    map.defaultMapRef.off('moveend');
-
-                event.target.unbindPopup();
-                newpopup = null;
-                var popupText, realTimeData, measuredTime, rtDataAgeSec, targetWidgets, color1, color2 =
-                    null;
-                var urlToCall, fake, fakeId = null;
-
-                //    alert("CLICK!");
-
-                if (feature.properties.fake === 'true') {
-                    urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + feature.id;
-                    fake = true;
-                    fakeId = feature.id;
-                } else {
-                    urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(
-                        feature.properties.serviceUri) + "&format=json&fullCount=false";
-                    fake = false;
+                const info = {
+                    object: feature,
                 }
-
-                var latLngId = event.target.getLatLng().lat + "" + event.target.getLatLng().lng;
-                latLngId = latLngId.replace(".", "");
-                latLngId = latLngId.replace(".",
-                    ""); //Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
-
-                // TBD if(this.feature.properties.kpidata != null) { // MAKE MyKPI / MyPOI API CALL AND VISUALIZATION }
-
-                $.ajax({
-                    url: urlToCall,
-                    type: "GET",
-                    data: {},
-                    async: true,
-                    dataType: 'json',
-                    success: function(geoJsonServiceData) {
-                        var fatherNode = null;
-                        if (geoJsonServiceData.hasOwnProperty("BusStop")) {
-                            fatherNode = geoJsonServiceData.BusStop;
-                        } else {
-                            if (geoJsonServiceData.hasOwnProperty("Sensor")) {
-                                fatherNode = geoJsonServiceData.Sensor;
-                            } else {
-                                //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
-                                fatherNode = geoJsonServiceData.Service;
-                            }
-                        }
-
-                        var serviceProperties = fatherNode.features[0].properties;
-                        var underscoreIndex = serviceProperties.serviceType.indexOf("_");
-                        var serviceClass = serviceProperties.serviceType.substr(0,
-                            underscoreIndex);
-                        var serviceSubclass = serviceProperties.serviceType.substr(
-                            underscoreIndex);
-                        serviceSubclass = serviceSubclass.replace(/_/g, " ");
-
-                        fatherNode.features[0].properties.targetWidgets = feature.properties
-                            .targetWidgets;
-                        fatherNode.features[0].properties.color1 = feature.properties.color1;
-                        fatherNode.features[0].properties.color2 = feature.properties.color2;
-                        targetWidgets = feature.properties.targetWidgets;
-                        color1 = feature.properties.color1;
-                        color2 = feature.properties.color2;
-
-                        //Popup nuovo stile uguali a quelli degli eventi ricreativi
-                        popupText = '<h3 class="recreativeEventMapTitle" style="background: ' +
-                            color1 + '; background: -webkit-linear-gradient(right, ' + color1 +
-                            ', ' + color2 + '); background: -o-linear-gradient(right, ' +
-                            color1 + ', ' + color2 +
-                            '); background: -moz-linear-gradient(right, ' + color1 + ', ' +
-                            color2 + '); background: linear-gradient(to right, ' + color1 +
-                            ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
-                        if ((serviceProperties.serviceUri !== '') && (serviceProperties
-                                .serviceUri !== undefined) && (serviceProperties.serviceUri !==
-                                'undefined') && (serviceProperties.serviceUri !== null) && (
-                                serviceProperties.serviceUri !== 'null')) {
-                            popupText +=
-                                '<div class="recreativeEventMapSubTitle" style="background: ' +
-                                color1 + '; background: -webkit-linear-gradient(right, ' +
-                                color1 + ', ' + color2 +
-                                '); background: -o-linear-gradient(right, ' + color1 + ', ' +
-                                color2 + '); background: -moz-linear-gradient(right, ' +
-                                color1 + ', ' + color2 +
-                                '); background: linear-gradient(to right, ' + color1 + ', ' +
-                                color2 + ');">' + "Value Name: " + serviceProperties.serviceUri
-                                .split("/")[serviceProperties.serviceUri.split("/").length -
-                                    1] + '</div>';
-                            //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
-                        }
-                        popupText +=
-                            '<div class="recreativeEventMapBtnContainer"><button data-id="' +
-                            latLngId +
-                            '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' +
-                            color1 + '; background: -webkit-linear-gradient(right, ' + color1 +
-                            ', ' + color2 + '); background: -o-linear-gradient(right, ' +
-                            color1 + ', ' + color2 +
-                            '); background: -moz-linear-gradient(right, ' + color1 + ', ' +
-                            color2 + '); background: linear-gradient(to right, ' + color1 +
-                            ', ' + color2 + ');">Details</button><button data-id="' + latLngId +
-                            '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' +
-                            color1 + '; background: -webkit-linear-gradient(right, ' + color1 +
-                            ', ' + color2 + '); background: -o-linear-gradient(right, ' +
-                            color1 + ', ' + color2 +
-                            '); background: -moz-linear-gradient(right, ' + color1 + ', ' +
-                            color2 + '); background: linear-gradient(to right, ' + color1 +
-                            ', ' + color2 + ');">Description</button><button data-id="' +
-                            latLngId +
-                            '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' +
-                            color1 + '; background: -webkit-linear-gradient(right, ' + color1 +
-                            ', ' + color2 + '); background: -o-linear-gradient(right, ' +
-                            color1 + ', ' + color2 +
-                            '); background: -moz-linear-gradient(right, ' + color1 + ', ' +
-                            color2 + '); background: linear-gradient(to right, ' + color1 +
-                            ', ' + color2 + ');">RT data</button>' + (geoJsonServiceData
-                                .hasOwnProperty("BusStop") ? '<button data-id="' + latLngId +
-                                '" class="recreativeEventMapTplTmtblBtn recreativeEventMapBtn" type="button" style="background: ' +
-                                color1 + '; background: -webkit-linear-gradient(right, ' +
-                                color1 + ', ' + color2 +
-                                '); background: -o-linear-gradient(right, ' + color1 + ', ' +
-                                color2 + '); background: -moz-linear-gradient(right, ' +
-                                color1 + ', ' + color2 +
-                                '); background: linear-gradient(to right, ' + color1 + ', ' +
-                                color2 + ');">TIMETABLE</button><button data-id="' + latLngId +
-                                '" class="recreativeEventMapTplBtn recreativeEventMapBtn" type="button" style="background: ' +
-                                color1 + '; background: -webkit-linear-gradient(right, ' +
-                                color1 + ', ' + color2 +
-                                '); background: -o-linear-gradient(right, ' + color1 + ', ' +
-                                color2 + '); background: -moz-linear-gradient(right, ' +
-                                color1 + ', ' + color2 +
-                                '); background: linear-gradient(to right, ' + color1 + ', ' +
-                                color2 + ');">BROWSE</button>' : '') + '</div>';
-
-                        popupText +=
-                            '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
-
-                        popupText += '<table id="' + latLngId +
-                            '" class="gisPopupGeneralDataTable">';
-                        //Intestazione
-                        popupText += '<thead>';
-                        popupText += '<th style="background: ' + color2 + '">Description</th>';
-                        popupText += '<th style="background: ' + color2 + '">Value</th>';
-                        popupText += '</thead>';
-
-                        //Corpo
-                        popupText += '<tbody>';
-
-                        for (var featureKey in serviceProperties) {
-                            if (serviceProperties.hasOwnProperty(featureKey)) {
-                                if (serviceProperties[featureKey] != null && serviceProperties[
-                                        featureKey] !== '' && serviceProperties[featureKey] !==
-                                    ' ' && featureKey !== 'targetWidgets' && featureKey !==
-                                    'color1' && featureKey !== 'color2' && featureKey !==
-                                    'realtimeAttributes') {
-                                    if (!Array.isArray(serviceProperties[featureKey]) || (Array
-                                            .isArray(serviceProperties[featureKey] &&
-                                                serviceProperties[featureKey].length > 0))) {
-                                        popupText += '<tr><td>' + featureKey + '</td><td>' +
-                                            serviceProperties[featureKey] + '</td></tr>';
-                                    }
-                                }
-                            }
-                        }
-                        if (metricName != 'Map' && nodeId != null && serviceProperties[
-                                "serviceUri"] != null && serviceProperties["serviceUri"] !=
-                            '') {
-                            let eventJson = new Object();
-                            eventJson.latitude = feature.geometry.coordinates[1];
-                            eventJson.longitude = feature.geometry.coordinates[0];
-                            eventJson.serviceUri = serviceProperties["serviceUri"];
-                            currentValue = JSON.stringify(eventJson);
-                            triggerEventOnIotApp(map.defaultMapRef, currentValue);
-                        }
-
-                        popupText += '</tbody>';
-                        popupText += '</table>';
-
-                        /*if (geoJsonServiceData.hasOwnProperty('busLines')) {
-                            if (geoJsonServiceData.busLines.results.bindings.length > 0) {
-                                popupText += '<b>Lines: </b>';
-                                for (var i = 0; i < geoJsonServiceData.busLines.results.bindings.length; i++) {
-                                    popupText += '<span style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + geoJsonServiceData.busLines.results.bindings[i].busLine.value + '</span> ';
-                                }
-                            }
-                        }*/
-
-                        if (geoJsonServiceData.hasOwnProperty("BusStop")) {
-                            popupText +=
-                                '<div class="tplProgressBar" style="display:none; width:100%; height:1em; margin-top:1em; background: ' +
-                                color1 + '; background: -webkit-linear-gradient(right, ' +
-                                color1 + ', ' + color2 +
-                                '); background: -o-linear-gradient(right, ' + color1 + ', ' +
-                                color2 + '); background: -moz-linear-gradient(right, ' +
-                                color1 + ', ' + color2 +
-                                '); background: linear-gradient(to right, ' + color1 + ', ' +
-                                color2 + ');"></div>';
-                        }
-
-                        popupText += '</div>';
-
-                        popupText +=
-                            '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
-
-                        if ((serviceProperties.serviceUri !== '') && (serviceProperties
-                                .serviceUri !== undefined) && (serviceProperties.serviceUri !==
-                                'undefined') && (serviceProperties.serviceUri !== null) && (
-                                serviceProperties.serviceUri !== 'null')) {
-                            popupText += "Value Name: " + serviceProperties.serviceUri.split(
-                                    "/")[serviceProperties.serviceUri.split("/").length - 1] +
-                                "<br>";
-                        }
-
-                        if ((serviceProperties.serviceType !== '') && (serviceProperties
-                                .serviceType !== undefined) && (serviceProperties
-                                .serviceType !== 'undefined') && (serviceProperties
-                                .serviceType !== null) && (serviceProperties.serviceType !==
-                                'null')) {
-                            popupText += "Nature: " + serviceProperties.serviceType.split(
-                                /_(.+)/)[0] + "<br>";
-                            popupText += "Subnature: " + serviceProperties.serviceType.split(
-                                /_(.+)/)[1] + "<br><br>";
-                        }
-
-                        if (serviceProperties.hasOwnProperty('description')) {
-                            if ((serviceProperties.description !== '') && (serviceProperties
-                                    .description !== undefined) && (serviceProperties
-                                    .description !== 'undefined') && (serviceProperties
-                                    .description !== null) && (serviceProperties.description !==
-                                    'null')) {
-                                popupText += serviceProperties.description + "<br>";
-                            } else {
-                                popupText += "No description available";
-                            }
-                        } else {
-                            popupText += 'No description available';
-                        }
-
-                        popupText += '</div>';
-
-                        popupText +=
-                            '<div class="recreativeEventMapDataContainer recreativeEventMapContactsContainer">';
-
-                        var hasRealTime = false;
-
-                        if (geoJsonServiceData.hasOwnProperty("realtime")) {
-                            if (!jQuery.isEmptyObject(geoJsonServiceData.realtime)) {
-                                realTimeData = geoJsonServiceData.realtime;
-                                popupText +=
-                                    '<div class="popupLastUpdateContainer centerWithFlex"><b>Last update:&nbsp;</b><span class="popupLastUpdate" data-id="' +
-                                    latLngId + '"></span></div>';
-
-                                if ((serviceClass.includes("Emergency")) && (serviceSubclass
-                                        .includes("First aid"))) {
-                                    //Tabella ad hoc per First Aid
-                                    popupText += '<table id="' + latLngId +
-                                        '" class="psPopupTable">';
-                                    var series = {
-                                        "firstAxis": {
-                                            "desc": "Priority",
-                                            "labels": [
-                                                "Red code",
-                                                "Yellow code",
-                                                "Green code",
-                                                "Blue code",
-                                                "White code"
-                                            ]
-                                        },
-                                        "secondAxis": {
-                                            "desc": "Status",
-                                            "labels": [],
-                                            "series": []
-                                        }
-                                    };
-
-                                    var dataSlot = null;
-
-                                    measuredTime = realTimeData.results.bindings[0].measuredTime
-                                        .value.replace("T", " ").replace("Z", "");
-
-                                    for (var i = 0; i < realTimeData.results.bindings
-                                        .length; i++) {
-                                        if (realTimeData.results.bindings[i].state.value
-                                            .indexOf("estinazione") > 0) {
-                                            series.secondAxis.labels.push("Addressed");
-                                        }
-
-                                        if (realTimeData.results.bindings[i].state.value
-                                            .indexOf("ttesa") > 0) {
-                                            series.secondAxis.labels.push("Waiting");
-                                        }
-
-                                        if (realTimeData.results.bindings[i].state.value
-                                            .indexOf("isita") > 0) {
-                                            series.secondAxis.labels.push("In visit");
-                                        }
-
-                                        if (realTimeData.results.bindings[i].state.value
-                                            .indexOf("emporanea") > 0) {
-                                            series.secondAxis.labels.push("Observation");
-                                        }
-
-                                        if (realTimeData.results.bindings[i].state.value
-                                            .indexOf("tali") > 0) {
-                                            series.secondAxis.labels.push("Totals");
-                                        }
-
-                                        dataSlot = [];
-                                        dataSlot.push(realTimeData.results.bindings[i].redCode
-                                            .value);
-                                        dataSlot.push(realTimeData.results.bindings[i]
-                                            .yellowCode.value);
-                                        dataSlot.push(realTimeData.results.bindings[i].greenCode
-                                            .value);
-                                        dataSlot.push(realTimeData.results.bindings[i].blueCode
-                                            .value);
-                                        dataSlot.push(realTimeData.results.bindings[i].whiteCode
-                                            .value);
-
-                                        series.secondAxis.series.push(dataSlot);
-                                    }
-
-                                    var colsQt = parseInt(parseInt(series.firstAxis.labels
-                                        .length) + 1);
-                                    var rowsQt = parseInt(parseInt(series.secondAxis.labels
-                                        .length) + 1);
-
-                                    for (var i = 0; i < rowsQt; i++) {
-                                        var newRow = $("<tr></tr>");
-                                        var z = parseInt(parseInt(i) - 1);
-
-                                        if (i === 0) {
-                                            //Riga di intestazione
-                                            for (var j = 0; j < colsQt; j++) {
-                                                if (j === 0) {
-                                                    //Cella (0,0)
-                                                    var newCell = $("<td></td>");
-
-                                                    newCell.css("background-color",
-                                                        "transparent");
-                                                } else {
-                                                    //Celle labels
-                                                    var k = parseInt(parseInt(j) - 1);
-                                                    var colLabelBckColor = null;
-                                                    switch (k) {
-                                                        case 0:
-                                                            colLabelBckColor = "#ff0000";
-                                                            break;
-
-                                                        case 1:
-                                                            colLabelBckColor = "#ffff00";
-                                                            break;
-
-                                                        case 2:
-                                                            colLabelBckColor = "#66ff33";
-                                                            break;
-
-                                                        case 3:
-                                                            colLabelBckColor = "#66ccff";
-                                                            break;
-
-                                                        case 4:
-                                                            colLabelBckColor = "#ffffff";
-                                                            break;
-                                                    }
-
-                                                    newCell = $("<td><span>" + series.firstAxis
-                                                        .labels[k] + "</span></td>");
-                                                    newCell.css("font-weight", "bold");
-                                                    newCell.css("background-color",
-                                                        colLabelBckColor);
-                                                }
-                                                newRow.append(newCell);
-                                            }
-                                        } else {
-                                            //Righe dati
-                                            for (var j = 0; j < colsQt; j++) {
-                                                k = parseInt(parseInt(j) - 1);
-                                                if (j === 0) {
-                                                    //Cella label
-                                                    newCell = $("<td>" + series.secondAxis
-                                                        .labels[z] + "</td>");
-                                                    newCell.css("font-weight", "bold");
-                                                } else {
-                                                    //Celle dati
-                                                    newCell = $("<td>" + series.secondAxis
-                                                        .series[z][k] + "</td>");
-                                                    if (i === (rowsQt - 1)) {
-                                                        newCell.css('font-weight', 'bold');
-                                                        switch (j) {
-                                                            case 1:
-                                                                newCell.css('background-color',
-                                                                    '#ffb3b3');
-                                                                break;
-
-                                                            case 2:
-                                                                newCell.css('background-color',
-                                                                    '#ffff99');
-                                                                break;
-
-                                                            case 3:
-                                                                newCell.css('background-color',
-                                                                    '#d9ffcc');
-                                                                break;
-
-                                                            case 4:
-                                                                newCell.css('background-color',
-                                                                    '#cceeff');
-                                                                break;
-
-                                                            case 5:
-                                                                newCell.css('background-color',
-                                                                    'white');
-                                                                break;
-                                                        }
-                                                    }
-                                                }
-                                                newRow.append(newCell);
-                                            }
-                                        }
-                                        popupText += newRow.prop('outerHTML');
-                                    }
-
-                                    popupText += '</table>';
-                                } else {
-                                    //Tabella nuovo stile
-                                    popupText += '<table id="' + latLngId +
-                                        '" class="gisPopupTable">';
-
-                                    //Intestazione
-                                    popupText += '<thead>';
-                                    popupText += '<th style="background: ' + color1 +
-                                        '; background: -webkit-linear-gradient(right, ' +
-                                        color1 + ', ' + color2 +
-                                        '); background: -o-linear-gradient(right, ' + color1 +
-                                        ', ' + color2 +
-                                        '); background: -moz-linear-gradient(right, ' + color1 +
-                                        ', ' + color2 +
-                                        '); background: linear-gradient(to right, ' + color1 +
-                                        ', ' + color2 + ');">Description</th>';
-                                    popupText += '<th style="background: ' + color1 +
-                                        '; background: -webkit-linear-gradient(right, ' +
-                                        color1 + ', ' + color2 +
-                                        '); background: -o-linear-gradient(right, ' + color1 +
-                                        ', ' + color2 +
-                                        '); background: -moz-linear-gradient(right, ' + color1 +
-                                        ', ' + color2 +
-                                        '); background: linear-gradient(to right, ' + color1 +
-                                        ', ' + color2 + ');">Value</th>';
-                                    popupText += '<th colspan="7" style="background: ' +
-                                        color1 +
-                                        '; background: -webkit-linear-gradient(right, ' +
-                                        color1 + ', ' + color2 +
-                                        '); background: -o-linear-gradient(right, ' + color1 +
-                                        ', ' + color2 +
-                                        '); background: -moz-linear-gradient(right, ' + color1 +
-                                        ', ' + color2 +
-                                        '); background: linear-gradient(to right, ' + color1 +
-                                        ', ' + color2 + ');">Buttons</th>';
-                                    popupText += '</thead>';
-
-                                    //Corpo
-                                    popupText += '<tbody>';
-                                    var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn,
-                                        data7DayBtn,
-                                        data30DayBtn, data6MonthsBtn, data1YearBtn = null;
-                                    for (var i = 0; i < realTimeData.head.vars.length; i++) {
-                                        if (realTimeData.results.bindings[0][realTimeData.head
-                                                .vars[i]
-                                            ] !== null && realTimeData.results.bindings[0][
-                                                realTimeData.head.vars[i]
-                                            ] !== undefined) {
-                                            if ((realTimeData.results.bindings[0][realTimeData
-                                                    .head.vars[i]
-                                                ]) && (realTimeData.results.bindings[0][
-                                                    realTimeData.head.vars[i]
-                                                ].value.trim() !== '') && (realTimeData.head
-                                                    .vars[i] !== null) && (realTimeData.head
-                                                    .vars[i] !== 'undefined')) {
-                                                if ((realTimeData.head.vars[i] !==
-                                                        'updating') && (realTimeData.head.vars[
-                                                        i] !== 'measuredTime') && (realTimeData
-                                                        .head.vars[i] !== 'instantTime')) {
-                                                    if (!realTimeData.results.bindings[0][
-                                                            realTimeData.head.vars[i]
-                                                        ].value.includes('Not Available')) {
-                                                        //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
-                                                        /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
-                                                               return str.toUpperCase();
-                                                           });*/
-                                                        dataDesc = realTimeData.head.vars[i];
-                                                        dataVal = realTimeData.results.bindings[
-                                                                0][realTimeData.head.vars[i]]
-                                                            .value;
-                                                        dataLastBtn = '<td><button data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="lastValueBtn btn " data-fake="' +
-                                                            fake + '" data-fakeid="' + fakeId +
-                                                            '" data-id="' + latLngId +
-                                                            '" data-field="' + realTimeData.head
-                                                            .vars[i] + '" data-serviceUri="' +
-                                                            feature.properties.serviceUri +
-                                                            '" data-lastDataClicked="false" data-targetWidgets="' +
-                                                            targetWidgets +
-                                                            '" data-lastValue="' + realTimeData
-                                                            .results.bindings[0][realTimeData
-                                                                .head.vars[i]
-                                                            ].value + '" data-color1="' +
-                                                            color1 + '" data-color2="' +
-                                                            color2 +
-                                                            '">Last<br>value</button></td>';
-                                                        data4HBtn = '<td><button data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn " data-fake="' +
-                                                            fake + '" data-fakeid="' + fakeId +
-                                                            '" data-id="' + latLngId +
-                                                            '" data-field="' + realTimeData.head
-                                                            .vars[i] + '" data-serviceUri="' +
-                                                            feature.properties.serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' +
-                                                            color1 + '" data-color2="' +
-                                                            color2 +
-                                                            '">Last<br>4 hours</button></td>';
-                                                        dataDayBtn = '<td><button data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head
-                                                            .vars[i] + '" data-serviceUri="' +
-                                                            feature.properties.serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' +
-                                                            color1 + '" data-color2="' +
-                                                            color2 +
-                                                            '">Last<br>24 hours</button></td>';
-                                                        data7DayBtn = '<td><button data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head
-                                                            .vars[i] + '" data-serviceUri="' +
-                                                            feature.properties.serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' +
-                                                            color1 + '" data-color2="' +
-                                                            color2 +
-                                                            '">Last<br>7 days</button></td>';
-                                                        data30DayBtn = '<td><button data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head
-                                                            .vars[i] + '" data-serviceUri="' +
-                                                            feature.properties.serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' +
-                                                            color1 + '" data-color2="' +
-                                                            color2 +
-                                                            '">Last<br>30 days</button></td>';
-                                                        data6MonthsBtn =
-                                                            '<td><button data-id="' + latLngId +
-                                                            '" type="button" class="timeTrendBtn btn " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head
-                                                            .vars[i] + '" data-serviceUri="' +
-                                                            feature.properties.serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' +
-                                                            color1 + '" data-color2="' +
-                                                            color2 +
-                                                            '">Last<br>6 months</button></td>';
-                                                        data1YearBtn = '<td><button data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head
-                                                            .vars[i] + '" data-serviceUri="' +
-                                                            feature.properties.serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' +
-                                                            color1 + '" data-color2="' +
-                                                            color2 +
-                                                            '">Last<br>1 year</button></td>';
-                                                        popupText += '<tr><td>' + dataDesc +
-                                                            '</td><td>' + dataVal + '</td>' +
-                                                            dataLastBtn + data4HBtn +
-                                                            dataDayBtn + data7DayBtn +
-                                                            data30DayBtn + data6MonthsBtn +
-                                                            data1YearBtn + '</tr>';
-                                                    }
-                                                } else {
-                                                    measuredTime = realTimeData.results
-                                                        .bindings[0][realTimeData.head.vars[i]]
-                                                        .value.replace("T", " ");
-                                                    var now = new Date();
-                                                    var measuredTimeDate = new Date(
-                                                        measuredTime);
-                                                    rtDataAgeSec = Math.abs(now -
-                                                        measuredTimeDate) / 1000;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    popupText += '</tbody>';
-                                    popupText += '</table>';
-                                    popupText +=
-                                        '<p><b>Keep data on target widget(s) after popup close: </b><input data-id="' +
-                                        latLngId +
-                                        '" type="checkbox" class="gisPopupKeepDataCheck" data-keepData="false"/></p>';
-                                }
-
-                                hasRealTime = true;
-                            }
-                        }
-
-                        popupText += '</div>';
-
-                        if (geoJsonServiceData.hasOwnProperty("BusStop")) {
-                            popupText += '<div id="linesof_' + serviceProperties['serviceUri']
-                                .replace(/[^a-zA-Z0-9]/g, "") +
-                                '" class="recreativeEventMapDataContainer recreativeEventMapTplContainer">Please wait...</div>';
-                            popupText += '<div id="tmtblof_' + serviceProperties['serviceUri']
-                                .replace(/[^a-zA-Z0-9]/g, "") +
-                                '" class="recreativeEventMapDataContainer recreativeEventMapTplTmtblContainer">Please wait...</div>';
-                        }
-
-                        newpopup = L.popup({
-                            closeOnClick: false, //Non lo levare, sennò autoclose:false non funziona
-                            autoClose: false,
-                            offset: [15, 0],
-                            //minWidth: 435,
-                            minWidth: 400,
-                            maxWidth: 1200,
-                            //	className: geoJsonServiceData.hasOwnProperty("BusStop")?"draggableAndResizablePopup":"nonDraggableAndResizablePopup"
-                            className: "draggableAndResizablePopup"
-                        }).setContent(popupText);
-
-                        event.target.bindPopup(newpopup).openPopup();
-
-                        // draggable 
-                        var makeDraggable = function(popup, excluding) {
-                            var pos = map.defaultMapRef.latLngToLayerPoint(popup
-                                .getLatLng());
-                            L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
-                            var draggable = new L.Draggable(popup._container, popup
-                                ._wrapper);
-                            draggable.enable();
-                            $(".draggableAndResizablePopup").css("cursor", "move");
-                            draggable.on('dragend', function() {
-                                var pos = map.defaultMapRef.layerPointToLatLng(this
-                                    ._newPos);
-                                popup.setLatLng(pos);
-                                $(popup._wrapper).siblings(
-                                    ".leaflet-popup-tip-container").hide();
-                            });
-                            excluding.forEach((excluded) => {
-                                $(excluded).css("cursor", "auto").on("mouseover",
-                                    function(e) {
-                                        draggable.disable();
-                                    }).on("mouseout", function(e) {
-                                    draggable.enable();
-                                });
-                            });
-                        };
-                        //	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
-                        if (newpopup.options.className == "draggableAndResizablePopup")
-                            makeDraggable(newpopup, [
-                                ".draggableAndResizablePopup .recreativeEventMapDataContainer"
-                            ]);
-
-
-                        //
-
-                        // resizable 
-                        $(".draggableAndResizablePopup .leaflet-popup-content-wrapper").css({
-                            "resize": "both",
-                            "overflow": "auto",
-                            "min-width": "400px",
-                            "max-width": "1200px",
-                            "min-height": "100px",
-                            "max-height": "400px"
-                        });
-                        //
-
-                        // responsive			
-                        $(".draggableAndResizablePopup .recreativeEventMapDataContainer").css({
-                            "width": "100%",
-                            "height": "100%"
-                        });
-                        //
-
-                        if (geoJsonServiceData.hasOwnProperty("BusStop")) {
-
-                            $.getJSON('<?= $whatifmdtendpt ?>?stop=' + encodeURIComponent(
-                                    serviceProperties['serviceUri']) + "&list=graphs",
-                                function(graphs) {
-                                    var pAgency = graphs.join();
-                                    var routesMarkup =
-                                        "<p class=\"tplpoi_routesSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;" +
-                                        new Date().toLocaleDateString("en", {
-                                            weekday: 'long',
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        }) + "</p>";
-                                    var progress = {
-                                        todo: -1,
-                                        done: -1,
-                                        bar: 0
-                                    };
-                                    $.getJSON('<?= $whatifmdtendpt ?>?agency=' +
-                                        encodeURIComponent(pAgency) + '&stop=' +
-                                        encodeURIComponent(serviceProperties[
-                                            'serviceUri']) + '&date=' +
-                                        encodeURIComponent(new Date().toISOString()
-                                            .slice(0, 10)) + '&list=routes',
-                                        function(routes) {
-                                            if (Object.keys(routes).length == 0) {
-                                                $(".recreativeEventMapTplBtn").hide();
-                                                return;
-                                            }
-                                            Object.keys(routes).forEach(function(key) {
-                                                var route = routes[key];
-                                                var rteBtnUrl =
-                                                    '<?= $whatifmdtendpt ?>?agency=' +
-                                                    encodeURIComponent(
-                                                        pAgency) + '&route=' +
-                                                    encodeURIComponent(route[
-                                                        "uri"]) + "&stop=" +
-                                                    encodeURIComponent(
-                                                        serviceProperties[
-                                                            'serviceUri']) +
-                                                    "&date=" +
-                                                    encodeURIComponent(
-                                                        new Date().toISOString()
-                                                        .slice(0, 10)) +
-                                                    "&list=trips";
-                                                routesMarkup +=
-                                                    "<p class=\"tplpoi_wifstprte\"><button class=\"polyin_" +
-                                                    route["uri"].replace(
-                                                        /[^a-zA-Z0-9]/g, "") +
-                                                    "\" data-uri=\"" + route[
-                                                        "uri"] +
-                                                    "\" data-url=\"" +
-                                                    rteBtnUrl +
-                                                    "\" data-geoms=\"" + route[
-                                                        "geoms"].join("|") +
-                                                    "\" data-key=\"" + key +
-                                                    "\" style=\"width:100%; background-color:#" +
-                                                    route["color"] +
-                                                    "; color:#" + route[
-                                                        "text_color"] + "\">" +
-                                                    route["type"] + " " + route[
-                                                        "short_name"] + " " +
-                                                    route["long_name"] +
-                                                    "</button></p>";
-                                                route["geoms"].forEach(function(
-                                                    path) {
-                                                    var latlngs = [];
-                                                    path.split("((")[1]
-                                                        .split("))")[0]
-                                                        .split(",")
-                                                        .forEach(
-                                                            function(
-                                                                node) {
-                                                                latlngs
-                                                                    .push(
-                                                                        new L
-                                                                        .LatLng(
-                                                                            node
-                                                                            .trim()
-                                                                            .split(
-                                                                                " "
-                                                                            )[
-                                                                                1
-                                                                            ],
-                                                                            node
-                                                                            .trim()
-                                                                            .split(
-                                                                                " "
-                                                                            )[
-                                                                                0
-                                                                            ]
-                                                                        )
-                                                                    );
-                                                            });
-                                                    var polyline = new L
-                                                        .Polyline(
-                                                            latlngs, {
-                                                                className: "tplPoiPolyline polyof_" +
-                                                                    serviceProperties[
-                                                                        'serviceUri'
-                                                                    ]
-                                                                    .replace(
-                                                                        /[^a-zA-Z0-9]/g,
-                                                                        ""
-                                                                    ) +
-                                                                    " polyin_" +
-                                                                    route[
-                                                                        "uri"
-                                                                    ]
-                                                                    .replace(
-                                                                        /[^a-zA-Z0-9]/g,
-                                                                        ""
-                                                                    ),
-                                                                color: "#" +
-                                                                    route[
-                                                                        "color"
-                                                                    ],
-                                                                weight: 6
-                                                            })
-                                                        .bindTooltip(
-                                                            route[
-                                                                "type"
-                                                            ] +
-                                                            " " + route[
-                                                                "short_name"
-                                                            ] +
-                                                            " " + route[
-                                                                "long_name"
-                                                            ], {
-                                                                direction: 'right'
-                                                            });
-                                                    polyline.on(
-                                                        "mouseover",
-                                                        function(
-                                                            e) {
-                                                            e.target
-                                                                .openTooltip(
-                                                                    e
-                                                                    .latlng
-                                                                );
-                                                        });
-                                                    if ("undefined" ==
-                                                        typeof tplPoiItems
-                                                    ) {
-                                                        tplPoiItems =
-                                                            new L
-                                                            .FeatureGroup();
-                                                        map.defaultMapRef
-                                                            .addLayer(
-                                                                tplPoiItems
-                                                            );
-                                                    }
-                                                    polyline.addTo(
-                                                        tplPoiItems);
-                                                });
-                                                newpopup.on('remove',
-                                                    function() {
-                                                        $(".polyof_" +
-                                                                serviceProperties[
-                                                                    'serviceUri'
-                                                                ]
-                                                                .replace(
-                                                                    /[^a-zA-Z0-9]/g,
-                                                                    ""))
-                                                            .hide(); // TODO Remove only those related to the specific stop!!
-                                                    });
-                                                // qui andiamo a generare tutte le stop raggiungibili direttamente (senza cambi) da quella selezionata																						
-                                                $.getJSON(rteBtnUrl, function(
-                                                    trips) {
-                                                    var tripGeoms = [];
-                                                    Object.keys(trips)
-                                                        .forEach(
-                                                            function(
-                                                                tripkey
-                                                            ) {
-                                                                if (!
-                                                                    tripGeoms
-                                                                    .includes(
-                                                                        trips[
-                                                                            tripkey
-                                                                        ]
-                                                                        [
-                                                                            "path"
-                                                                        ]
-                                                                    )
-                                                                ) {
-                                                                    tripGeoms
-                                                                        .push(
-                                                                            trips[
-                                                                                tripkey
-                                                                            ]
-                                                                            [
-                                                                                "path"
-                                                                            ]
-                                                                        );
-                                                                    $.getJSON(
-                                                                        '<?= $whatifmdtendpt ?>?agency=' +
-                                                                        encodeURIComponent(
-                                                                            pAgency
-                                                                        ) +
-                                                                        '&trip=' +
-                                                                        encodeURIComponent(
-                                                                            trips[
-                                                                                tripkey
-                                                                            ]
-                                                                            [
-                                                                                "uri"
-                                                                            ]
-                                                                        ) +
-                                                                        "&list=stops",
-                                                                        function(
-                                                                            stops
-                                                                        ) {
-                                                                            var eventDesc =
-                                                                                null;
-                                                                            map["eventsOnMap"]
-                                                                                .forEach(
-                                                                                    function(
-                                                                                        mapevt
-                                                                                    ) {
-                                                                                        if (mapevt[
-                                                                                                "color1"
-                                                                                            ] ==
-                                                                                            feature[
-                                                                                                "properties"
-                                                                                            ]
-                                                                                            [
-                                                                                                "color1"
-                                                                                            ] &&
-                                                                                            mapevt[
-                                                                                                "color2"
-                                                                                            ] ==
-                                                                                            feature[
-                                                                                                "properties"
-                                                                                            ]
-                                                                                            [
-                                                                                                "color2"
-                                                                                            ]
-                                                                                        ) {
-                                                                                            eventDesc
-                                                                                                =
-                                                                                                mapevt[
-                                                                                                    "desc"
-                                                                                                ];
-                                                                                        }
-                                                                                    }
-                                                                                );
-                                                                            if (progress
-                                                                                .todo ==
-                                                                                -
-                                                                                1 &&
-                                                                                stops
-                                                                                .length >
-                                                                                0
-                                                                            ) {
-                                                                                progress
-                                                                                    .todo =
-                                                                                    stops
-                                                                                    .length;
-                                                                            } else {
-                                                                                progress
-                                                                                    .todo +=
-                                                                                    stops
-                                                                                    .length;
-                                                                            }
-                                                                            stops
-                                                                                .forEach(
-                                                                                    function(
-                                                                                        stop
-                                                                                    ) {
-                                                                                        Number
-                                                                                            .prototype
-                                                                                            .countDecimals =
-                                                                                            function() {
-                                                                                                if (Math
-                                                                                                    .floor(
-                                                                                                        this
-                                                                                                        .valueOf()
-                                                                                                    ) ===
-                                                                                                    this
-                                                                                                    .valueOf()
-                                                                                                )
-                                                                                                    return 0;
-                                                                                                return this
-                                                                                                    .toString()
-                                                                                                    .split(
-                                                                                                        "."
-                                                                                                    )[
-                                                                                                        1
-                                                                                                    ]
-                                                                                                    .length ||
-                                                                                                    0;
-                                                                                            };
-                                                                                        for (
-                                                                                            var l =
-                                                                                                0; l <
-                                                                                            gisLayersOnMap[
-                                                                                                eventDesc
-                                                                                            ]
-                                                                                            .getLayers()
-                                                                                            .length; l++
-                                                                                        ) {
-                                                                                            var layer =
-                                                                                                gisLayersOnMap[
-                                                                                                    eventDesc
-                                                                                                ]
-                                                                                                .getLayers()[
-                                                                                                    l
-                                                                                                ];
-                                                                                            if ((layer[
-                                                                                                        "feature"
-                                                                                                    ] &&
-                                                                                                    layer[
-                                                                                                        "feature"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "serviceUri"
-                                                                                                    ] ==
-                                                                                                    stop[
-                                                                                                        "stop_uri"
-                                                                                                    ]
-                                                                                                ) ||
-                                                                                                ((!layer[
-                                                                                                        "feature"
-                                                                                                    ]) &&
-                                                                                                    layer[
-                                                                                                        "_latlng"
-                                                                                                    ] &&
-                                                                                                    layer[
-                                                                                                        "_latlng"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "lat"
-                                                                                                    ] &&
-                                                                                                    parseFloat(
-                                                                                                        layer[
-                                                                                                            "_latlng"
-                                                                                                        ]
-                                                                                                        [
-                                                                                                            "lat"
-                                                                                                        ]
-                                                                                                    ) ==
-                                                                                                    parseFloat(
-                                                                                                        stop[
-                                                                                                            "pos_lat"
-                                                                                                        ]
-                                                                                                    )
-                                                                                                    .toFixed(
-                                                                                                        parseFloat(
-                                                                                                            layer[
-                                                                                                                "_latlng"
-                                                                                                            ]
-                                                                                                            [
-                                                                                                                "lat"
-                                                                                                            ]
-                                                                                                        )
-                                                                                                        .countDecimals()
-                                                                                                    ) &&
-                                                                                                    layer[
-                                                                                                        "_latlng"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "lng"
-                                                                                                    ] &&
-                                                                                                    parseFloat(
-                                                                                                        layer[
-                                                                                                            "_latlng"
-                                                                                                        ]
-                                                                                                        [
-                                                                                                            "lng"
-                                                                                                        ]
-                                                                                                    ) ==
-                                                                                                    parseFloat(
-                                                                                                        stop[
-                                                                                                            "pos_lon"
-                                                                                                        ]
-                                                                                                    )
-                                                                                                    .toFixed(
-                                                                                                        parseFloat(
-                                                                                                            layer[
-                                                                                                                "_latlng"
-                                                                                                            ]
-                                                                                                            [
-                                                                                                                "lng"
-                                                                                                            ]
-                                                                                                        )
-                                                                                                        .countDecimals()
-                                                                                                    )
-                                                                                                )
-                                                                                            ) {
-                                                                                                if (progress
-                                                                                                    .done ==
-                                                                                                    -
-                                                                                                    1
-                                                                                                )
-                                                                                                    progress
-                                                                                                    .done =
-                                                                                                    1;
-                                                                                                else progress
-                                                                                                    .done +=
-                                                                                                    1;
-                                                                                                if (progress
-                                                                                                    .done >
-                                                                                                    -
-                                                                                                    1 &&
-                                                                                                    progress
-                                                                                                    .todo >
-                                                                                                    -
-                                                                                                    1 &&
-                                                                                                    progress
-                                                                                                    .bar <=
-                                                                                                    100 *
-                                                                                                    progress
-                                                                                                    .done /
-                                                                                                    progress
-                                                                                                    .todo
-                                                                                                ) {
-                                                                                                    progress
-                                                                                                        .bar =
-                                                                                                        100 *
-                                                                                                        progress
-                                                                                                        .done /
-                                                                                                        progress
-                                                                                                        .todo;
-                                                                                                    $(newpopup
-                                                                                                            ._container
-                                                                                                        )
-                                                                                                        .find(
-                                                                                                            "div.tplProgressBar"
-                                                                                                        )
-                                                                                                        .css(
-                                                                                                            "width",
-                                                                                                            (100 *
-                                                                                                                progress
-                                                                                                                .done /
-                                                                                                                progress
-                                                                                                                .todo
-                                                                                                            ) +
-                                                                                                            "%"
-                                                                                                        );
-                                                                                                    $(newpopup
-                                                                                                            ._container
-                                                                                                        )
-                                                                                                        .find(
-                                                                                                            "div.tplProgressBar"
-                                                                                                        )
-                                                                                                        .show();
-                                                                                                } else {
-                                                                                                    if (progress
-                                                                                                        .bar <
-                                                                                                        99
-                                                                                                    ) {
-                                                                                                        progress
-                                                                                                            .bar++;
-                                                                                                        $(newpopup
-                                                                                                                ._container
-                                                                                                            )
-                                                                                                            .find(
-                                                                                                                "div.tplProgressBar"
-                                                                                                            )
-                                                                                                            .css(
-                                                                                                                "width",
-                                                                                                                progress
-                                                                                                                .bar +
-                                                                                                                "%"
-                                                                                                            );
-                                                                                                        $(newpopup
-                                                                                                                ._container
-                                                                                                            )
-                                                                                                            .find(
-                                                                                                                "div.tplProgressBar"
-                                                                                                            )
-                                                                                                            .show();
-                                                                                                    }
-                                                                                                }
-                                                                                                return;
-                                                                                            }
-                                                                                        }
-                                                                                        $.getJSON(
-                                                                                            "<?= $superServiceMapProxy ?>/api/v1?realtime=false&graphUri=" +
-                                                                                            encodeURIComponent(
-                                                                                                pAgency
-                                                                                            ) +
-                                                                                            "&serviceUri=" +
-                                                                                            encodeURIComponent(
-                                                                                                stop[
-                                                                                                    "stop_uri"
-                                                                                                ]
-                                                                                            ),
-                                                                                            function(
-                                                                                                stopdata
-                                                                                            ) {
-                                                                                                var newFeature =
-                                                                                                    stopdata[
-                                                                                                        "BusStop"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "features"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        0
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "color1"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "color1"
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "color2"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "color2"
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "pinattr"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "pinattr"
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "pincolor"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "pincolor"
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "symbolcolor"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "symbolcolor"
-                                                                                                    ];
-                                                                                                var newMarker =
-                                                                                                    gisPrepareCustomMarker(
-                                                                                                        newFeature, {
-                                                                                                            "lng": newFeature[
-                                                                                                                    "geometry"
-                                                                                                                ]
-                                                                                                                [
-                                                                                                                    "coordinates"
-                                                                                                                ]
-                                                                                                                [
-                                                                                                                    0
-                                                                                                                ],
-                                                                                                            "lat": newFeature[
-                                                                                                                    "geometry"
-                                                                                                                ]
-                                                                                                                [
-                                                                                                                    "coordinates"
-                                                                                                                ]
-                                                                                                                [
-                                                                                                                    1
-                                                                                                                ]
-                                                                                                        }
-                                                                                                    );
-                                                                                                newMarker
-                                                                                                    .addTo(
-                                                                                                        gisLayersOnMap[
-                                                                                                            eventDesc
-                                                                                                        ]
-                                                                                                    );
-                                                                                                if (progress
-                                                                                                    .done ==
-                                                                                                    -
-                                                                                                    1
-                                                                                                )
-                                                                                                    progress
-                                                                                                    .done =
-                                                                                                    1;
-                                                                                                else progress
-                                                                                                    .done +=
-                                                                                                    1;
-                                                                                                if (progress
-                                                                                                    .done >
-                                                                                                    -
-                                                                                                    1 &&
-                                                                                                    progress
-                                                                                                    .todo >
-                                                                                                    -
-                                                                                                    1 &&
-                                                                                                    progress
-                                                                                                    .bar <
-                                                                                                    100 *
-                                                                                                    progress
-                                                                                                    .done /
-                                                                                                    progress
-                                                                                                    .todo
-                                                                                                ) {
-                                                                                                    progress
-                                                                                                        .bar =
-                                                                                                        100 *
-                                                                                                        progress
-                                                                                                        .done /
-                                                                                                        progress
-                                                                                                        .todo;
-                                                                                                    $(newpopup
-                                                                                                            ._container
-                                                                                                        )
-                                                                                                        .find(
-                                                                                                            "div.tplProgressBar"
-                                                                                                        )
-                                                                                                        .css(
-                                                                                                            "width",
-                                                                                                            (100 *
-                                                                                                                progress
-                                                                                                                .done /
-                                                                                                                progress
-                                                                                                                .todo
-                                                                                                            ) +
-                                                                                                            "%"
-                                                                                                        );
-                                                                                                    $(newpopup
-                                                                                                            ._container
-                                                                                                        )
-                                                                                                        .find(
-                                                                                                            "div.tplProgressBar"
-                                                                                                        )
-                                                                                                        .show();
-                                                                                                } else {
-                                                                                                    if (progress
-                                                                                                        .bar <
-                                                                                                        99
-                                                                                                    ) {
-                                                                                                        progress
-                                                                                                            .bar++;
-                                                                                                        $(newpopup
-                                                                                                                ._container
-                                                                                                            )
-                                                                                                            .find(
-                                                                                                                "div.tplProgressBar"
-                                                                                                            )
-                                                                                                            .css(
-                                                                                                                "width",
-                                                                                                                progress
-                                                                                                                .bar +
-                                                                                                                "%"
-                                                                                                            );
-                                                                                                        $(newpopup
-                                                                                                                ._container
-                                                                                                            )
-                                                                                                            .find(
-                                                                                                                "div.tplProgressBar"
-                                                                                                            )
-                                                                                                            .show();
-                                                                                                    }
-                                                                                                }
-                                                                                            }
-                                                                                        );
-                                                                                    }
-                                                                                );
-                                                                        }
-                                                                    );
-                                                                }
-                                                            });
-                                                });
-                                                //
-                                            });
-                                            if (Object.keys(routes).length === 0 &&
-                                                routes.constructor === Object)
-                                                routesMarkup +=
-                                                "<p>No routes found for this date.</p>";
-                                            $("#linesof_" + serviceProperties[
-                                                    'serviceUri'].replace(
-                                                    /[^a-zA-Z0-9]/g, "")).empty()
-                                                .append($(routesMarkup));
-                                            $(".polyof_" + serviceProperties[
-                                                'serviceUri'].replace(
-                                                /[^a-zA-Z0-9]/g, "")).click(
-                                                function() {
-                                                    var classes = $(this).attr(
-                                                        'class').split(/\s+/);
-                                                    $.each(classes, function(i, c) {
-                                                        if (c.startsWith(
-                                                                'polyin_'
-                                                            )) {
-                                                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' +
-                                                                    latLngId +
-                                                                    '"]')
-                                                                .click();
-                                                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' +
-                                                                    latLngId +
-                                                                    '"]')
-                                                                .parent()
-                                                                .siblings(
-                                                                    'div.recreativeEventMapTplContainer'
-                                                                ).find(
-                                                                    "button." +
-                                                                    c)
-                                                                .click();
-                                                            map.defaultMapRef
-                                                                .panTo(new L
-                                                                    .LatLng(
-                                                                        event
-                                                                        .target
-                                                                        .getLatLng()
-                                                                        .lat,
-                                                                        event
-                                                                        .target
-                                                                        .getLatLng()
-                                                                        .lng
-                                                                    ));
-                                                        }
-                                                    });
-                                                });
-
-
-                                            $("#linesof_" + serviceProperties[
-                                                    'serviceUri'].replace(
-                                                    /[^a-zA-Z0-9]/g, "") +
-                                                " p.tplpoi_wifstprte button").click(
-                                                function() {
-                                                    var wifstprtebtn = $(this);
-                                                    var wifstprtebtnhtml = $(this)
-                                                        .html();
-                                                    var rteUri = $(this).data(
-                                                        "uri");
-                                                    $(this).html("Please wait...");
-                                                    var hrRouteTxt = $(this).data(
-                                                        "key");
-                                                    lastSelectedRoute = hrRouteTxt;
-
-                                                    var bg = $(this).css(
-                                                        "background-color");
-                                                    var fg = $(this).css("color");
-                                                    $.getJSON($(this).data("url"),
-                                                        function(trips) {
-                                                            $("#linesof_" +
-                                                                    serviceProperties[
-                                                                        'serviceUri'
-                                                                    ]
-                                                                    .replace(
-                                                                        /[^a-zA-Z0-9]/g,
-                                                                        ""))
-                                                                .find("p")
-                                                                .hide();
-                                                            wifstprtebtn.html(
-                                                                wifstprtebtnhtml
-                                                            );
-                                                            var affectedTripsMarkup =
-                                                                "";
-                                                            var tripsMarkup =
-                                                                "<p class=\"tplpoi_tripsSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;" +
-                                                                new Date()
-                                                                .toLocaleDateString(
-                                                                    "en", {
-                                                                        weekday: 'long',
-                                                                        year: 'numeric',
-                                                                        month: 'long',
-                                                                        day: 'numeric'
-                                                                    }) +
-                                                                "<br><strong>Route:</strong>&nbsp;" +
-                                                                hrRouteTxt +
-                                                                "</p><div style=\"height:100%; border: medium solid black; padding:0.5em;\" class=\"tplpoi_tripsDivInRoute\"><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0; display:none;\"><strong>Affected Trips:</strong></p><div id=\"tplpoi_affectedtrips\" style=\"display:none;\"></div><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0;\"><strong style=\"display:none;\">All Trips:</strong></p>";
-                                                            $(".polyof_" +
-                                                                    serviceProperties[
-                                                                        'serviceUri'
-                                                                    ]
-                                                                    .replace(
-                                                                        /[^a-zA-Z0-9]/g,
-                                                                        ""))
-                                                                .hide();
-                                                            Object.keys(trips)
-                                                                .sort(function(
-                                                                    a, b) {
-                                                                    if (trips[
-                                                                            a
-                                                                        ]
-                                                                        [
-                                                                            "start"
-                                                                        ] >
-                                                                        trips[
-                                                                            b
-                                                                        ]
-                                                                        [
-                                                                            "start"
-                                                                        ]
-                                                                    )
-                                                                        return 1;
-                                                                    else return -
-                                                                        1;
-                                                                }).forEach(
-                                                                    function(
-                                                                        tripkey
-                                                                    ) {
-                                                                        var trip =
-                                                                            trips[
-                                                                                tripkey
-                                                                            ];
-                                                                        var theTripUrl =
-                                                                            '<?= $whatifmdtendpt ?>?agency=' +
-                                                                            encodeURIComponent(
-                                                                                pAgency
-                                                                            ) +
-                                                                            '&trip=' +
-                                                                            encodeURIComponent(
-                                                                                trip[
-                                                                                    "uri"
-                                                                                ]
-                                                                            ) +
-                                                                            "&list=stops";
-                                                                        tripsMarkup
-                                                                            +=
-                                                                            "<p class=\"tplpoi_wifstptrp\"><button style=\"text-align:left; width:100%; background-color:" +
-                                                                            bg +
-                                                                            "; color:" +
-                                                                            fg +
-                                                                            ";\" data-tripkey=\"" +
-                                                                            tripkey +
-                                                                            "\" data-path=\"" +
-                                                                            trip[
-                                                                                "path"
-                                                                            ] +
-                                                                            "\" data-url=\"" +
-                                                                            theTripUrl +
-                                                                            "\" data-routeuri=\"" +
-                                                                            rteUri +
-                                                                            "\" data-routebgcolor=\"" +
-                                                                            trip[
-                                                                                "route"
-                                                                            ]
-                                                                            [
-                                                                                "bg_color"
-                                                                            ] +
-                                                                            "\" data-routefgcolor=\"" +
-                                                                            trip[
-                                                                                "route"
-                                                                            ]
-                                                                            [
-                                                                                "fg_color"
-                                                                            ] +
-                                                                            "\" data-routeshortname=\"" +
-                                                                            trip[
-                                                                                "route"
-                                                                            ]
-                                                                            [
-                                                                                "short_name"
-                                                                            ] +
-                                                                            "\" data-routelongname=\"" +
-                                                                            trip[
-                                                                                "route"
-                                                                            ]
-                                                                            [
-                                                                                "long_name"
-                                                                            ] +
-                                                                            "\" data-routetype=\"" +
-                                                                            trip[
-                                                                                "route"
-                                                                            ]
-                                                                            [
-                                                                                "type"
-                                                                            ] +
-                                                                            "\" data-agencyname=\"" +
-                                                                            trip[
-                                                                                "route"
-                                                                            ]
-                                                                            [
-                                                                                "agency"
-                                                                            ] +
-                                                                            "\">" +
-                                                                            trip[
-                                                                                "start"
-                                                                            ]
-                                                                            .substring(
-                                                                                0,
-                                                                                5
-                                                                            ) +
-                                                                            "&nbsp;<span style=\"border:thin solid " +
-                                                                            fg +
-                                                                            "; padding:0.2em;\">" +
-                                                                            (trip[
-                                                                                    "direction"
-                                                                                ] ==
-                                                                                "0" ?
-                                                                                "&rharu;" :
-                                                                                "&lhard;"
-                                                                            ) +
-                                                                            "</span>&nbsp;" +
-                                                                            trip[
-                                                                                "headsign"
-                                                                            ] +
-                                                                            "</button></p>";
-                                                                        var
-                                                                            latlngs = [];
-                                                                        trip[
-                                                                                "path"
-                                                                            ]
-                                                                            .split(
-                                                                                "(("
-                                                                            )[
-                                                                                1
-                                                                            ]
-                                                                            .split(
-                                                                                "))"
-                                                                            )[
-                                                                                0
-                                                                            ]
-                                                                            .split(
-                                                                                ","
-                                                                            )
-                                                                            .forEach(
-                                                                                function(
-                                                                                    node
-                                                                                ) {
-                                                                                    latlngs
-                                                                                        .push(
-                                                                                            new L
-                                                                                            .LatLng(
-                                                                                                node
-                                                                                                .trim()
-                                                                                                .split(
-                                                                                                    " "
-                                                                                                )[
-                                                                                                    1
-                                                                                                ],
-                                                                                                node
-                                                                                                .trim()
-                                                                                                .split(
-                                                                                                    " "
-                                                                                                )[
-                                                                                                    0
-                                                                                                ]
-                                                                                            )
-                                                                                        );
-                                                                                }
-                                                                            );
-                                                                        var polyline =
-                                                                            new L
-                                                                            .Polyline(
-                                                                                latlngs, {
-                                                                                    weight: 6,
-                                                                                    color: wifstprtebtn
-                                                                                        .css(
-                                                                                            "background-color"
-                                                                                        ),
-                                                                                    className: "tplPoiPolyline polyof_" +
-                                                                                        serviceProperties[
-                                                                                            'serviceUri'
-                                                                                        ]
-                                                                                        .replace(
-                                                                                            /[^a-zA-Z0-9]/g,
-                                                                                            ""
-                                                                                        ) +
-                                                                                        " polyof_" +
-                                                                                        rteUri
-                                                                                        .replace(
-                                                                                            /[^a-zA-Z0-9]/g,
-                                                                                            ""
-                                                                                        )
-                                                                                }
-                                                                            );
-                                                                        polyline
-                                                                            .addTo(
-                                                                                tplPoiItems
-                                                                            );
-                                                                    });
-                                                            tripsMarkup +=
-                                                                "</div>";
-                                                            tripsMarkup +=
-                                                                "<p class=\"tplpoi_backToRoutes\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
-                                                            $("#linesof_" +
-                                                                    serviceProperties[
-                                                                        'serviceUri'
-                                                                    ]
-                                                                    .replace(
-                                                                        /[^a-zA-Z0-9]/g,
-                                                                        ""))
-                                                                .find(
-                                                                    "p.tplpoi_tripsSubHead"
-                                                                ).remove();
-                                                            $("#linesof_" +
-                                                                    serviceProperties[
-                                                                        'serviceUri'
-                                                                    ]
-                                                                    .replace(
-                                                                        /[^a-zA-Z0-9]/g,
-                                                                        ""))
-                                                                .find(
-                                                                    "div.tplpoi_tripsDivInRoute"
-                                                                ).remove();
-                                                            $("#linesof_" +
-                                                                    serviceProperties[
-                                                                        'serviceUri'
-                                                                    ]
-                                                                    .replace(
-                                                                        /[^a-zA-Z0-9]/g,
-                                                                        ""))
-                                                                .find(
-                                                                    "p.tplpoi_backToRoutes"
-                                                                ).remove();
-                                                            $("#linesof_" +
-                                                                    serviceProperties[
-                                                                        'serviceUri'
-                                                                    ]
-                                                                    .replace(
-                                                                        /[^a-zA-Z0-9]/g,
-                                                                        ""))
-                                                                .append($(
-                                                                    tripsMarkup
-                                                                ));
-
-                                                            $("#linesof_" +
-                                                                serviceProperties[
-                                                                    'serviceUri'
-                                                                ]
-                                                                .replace(
-                                                                    /[^a-zA-Z0-9]/g,
-                                                                    "") +
-                                                                " p.tplpoi_backToRoutes button"
-                                                            ).click(
-                                                                function() {
-                                                                    $("#linesof_" +
-                                                                            serviceProperties[
-                                                                                'serviceUri'
-                                                                            ]
-                                                                            .replace(
-                                                                                /[^a-zA-Z0-9]/g,
-                                                                                ""
-                                                                            )
-                                                                        )
-                                                                        .find(
-                                                                            "p"
-                                                                        )
-                                                                        .hide();
-                                                                    $("#linesof_" +
-                                                                            serviceProperties[
-                                                                                'serviceUri'
-                                                                            ]
-                                                                            .replace(
-                                                                                /[^a-zA-Z0-9]/g,
-                                                                                ""
-                                                                            )
-                                                                        )
-                                                                        .find(
-                                                                            "div.tplpoi_tripsDivInRoute"
-                                                                        )
-                                                                        .hide();
-                                                                    $("#linesof_" +
-                                                                            serviceProperties[
-                                                                                'serviceUri'
-                                                                            ]
-                                                                            .replace(
-                                                                                /[^a-zA-Z0-9]/g,
-                                                                                ""
-                                                                            )
-                                                                        )
-                                                                        .find(
-                                                                            "p.tplpoi_routesSubHead"
-                                                                        )
-                                                                        .show();
-                                                                    $("#linesof_" +
-                                                                            serviceProperties[
-                                                                                'serviceUri'
-                                                                            ]
-                                                                            .replace(
-                                                                                /[^a-zA-Z0-9]/g,
-                                                                                ""
-                                                                            )
-                                                                        )
-                                                                        .find(
-                                                                            "p.tplpoi_wifstprte"
-                                                                        )
-                                                                        .show();
-                                                                    $(".polyof_" +
-                                                                            serviceProperties[
-                                                                                'serviceUri'
-                                                                            ]
-                                                                            .replace(
-                                                                                /[^a-zA-Z0-9]/g,
-                                                                                ""
-                                                                            )
-                                                                        )
-                                                                        .show();
-                                                                });
-
-                                                            $("#linesof_" +
-                                                                serviceProperties[
-                                                                    'serviceUri'
-                                                                ]
-                                                                .replace(
-                                                                    /[^a-zA-Z0-9]/g,
-                                                                    "") +
-                                                                " p.tplpoi_wifstptrp button"
-                                                            ).click(
-                                                                function() {
-                                                                    var wifstptrpbtn =
-                                                                        $(
-                                                                            this
-                                                                        );
-                                                                    var wifstptrpbtnhtml =
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .html();
-                                                                    var theaffectedstopsMarkup =
-                                                                        "";
-                                                                    var theTripMarkup =
-                                                                        "<p class=\"tplpoi_theTripSubhead\" style=\"background-color:black; color:white;  padding:0.5em;\"><strong>Agency:</strong>&nbsp;" +
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "agencyname"
-                                                                        ) +
-                                                                        "<br><strong>Route:</strong>&nbsp;" +
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "routetype"
-                                                                        ) +
-                                                                        " " +
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "routeshortname"
-                                                                        ) +
-                                                                        " " +
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "routelongname"
-                                                                        ) +
-                                                                        "<br><strong>Trip:</strong>&nbsp;" +
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .html()
-                                                                        .replace(
-                                                                            "<strong>",
-                                                                            ""
-                                                                        )
-                                                                        .replace(
-                                                                            "</strong>",
-                                                                            ""
-                                                                        ) +
-                                                                        "</p><div class=\"tplpoi_fullTripData\" style=\"height:100%; border: medium solid black; padding:0.5em;\"><p style=\"margin:0px 0; display:none;\"><strong>Affected Stops:</strong></p><div id=\"tplpoi_affectedstops\" style=\"display:none;\"></div><p style=\"margin:0px 0;\"><strong style=\"display:none;\">All Stops:</strong></p>";
-                                                                    $(this)
-                                                                        .html(
-                                                                            "Please wait..."
-                                                                        );
-                                                                    var bgcolor =
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "routebgcolor"
-                                                                        );
-                                                                    var fgcolor =
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "routefgcolor"
-                                                                        );
-                                                                    var routetype =
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "routetype"
-                                                                        );
-                                                                    var path =
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "path"
-                                                                        );
-                                                                    var tripkey =
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "tripkey"
-                                                                        );
-                                                                    var routeUri =
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "routeuri"
-                                                                        );
-
-                                                                    $.getJSON(
-                                                                        $(
-                                                                            this
-                                                                        )
-                                                                        .data(
-                                                                            "url"
-                                                                        ),
-                                                                        function(
-                                                                            tripdata
-                                                                        ) {
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    )
-                                                                                )
-                                                                                .find(
-                                                                                    "p.tplpoi_tripsSubHead"
-                                                                                )
-                                                                                .hide();
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    )
-                                                                                )
-                                                                                .find(
-                                                                                    "p.tplpoi_wifstptrp"
-                                                                                )
-                                                                                .hide();
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    )
-                                                                                )
-                                                                                .find(
-                                                                                    "p.tplpoi_backToRoutes"
-                                                                                )
-                                                                                .hide();
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    )
-                                                                                )
-                                                                                .find(
-                                                                                    "div.tplpoi_tripsDivInRoute"
-                                                                                )
-                                                                                .hide();
-                                                                            wifstptrpbtn
-                                                                                .html(
-                                                                                    wifstptrpbtnhtml
-                                                                                );
-                                                                            $(".polyof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    )
-                                                                                )
-                                                                                .hide();
-                                                                            var
-                                                                                latlngs = [];
-                                                                            path.split(
-                                                                                    "(("
-                                                                                )[
-                                                                                    1
-                                                                                ]
-                                                                                .split(
-                                                                                    "))"
-                                                                                )[
-                                                                                    0
-                                                                                ]
-                                                                                .split(
-                                                                                    ","
-                                                                                )
-                                                                                .forEach(
-                                                                                    function(
-                                                                                        node
-                                                                                    ) {
-                                                                                        latlngs
-                                                                                            .push(
-                                                                                                new L
-                                                                                                .LatLng(
-                                                                                                    node
-                                                                                                    .trim()
-                                                                                                    .split(
-                                                                                                        " "
-                                                                                                    )[
-                                                                                                        1
-                                                                                                    ],
-                                                                                                    node
-                                                                                                    .trim()
-                                                                                                    .split(
-                                                                                                        " "
-                                                                                                    )[
-                                                                                                        0
-                                                                                                    ]
-                                                                                                )
-                                                                                            );
-                                                                                    }
-                                                                                );
-                                                                            var polyline =
-                                                                                new L
-                                                                                .Polyline(
-                                                                                    latlngs, {
-                                                                                        weight: 6,
-                                                                                        color: "#" +
-                                                                                            bgcolor,
-                                                                                        className: "tplPoiPolyline polyof_" +
-                                                                                            serviceProperties[
-                                                                                                'serviceUri'
-                                                                                            ]
-                                                                                            .replace(
-                                                                                                /[^a-zA-Z0-9]/g,
-                                                                                                ""
-                                                                                            )
-                                                                                    }
-                                                                                );
-                                                                            polyline
-                                                                                .addTo(
-                                                                                    tplPoiItems
-                                                                                );
-                                                                            tripdata
-                                                                                .forEach(
-                                                                                    function(
-                                                                                        oneStop,
-                                                                                        stopNum
-                                                                                    ) {
-                                                                                        if (serviceProperties[
-                                                                                                'serviceUri'
-                                                                                            ] ==
-                                                                                            oneStop[
-                                                                                                "stop_uri"
-                                                                                            ]
-                                                                                        ) {
-                                                                                            theTripMarkup
-                                                                                                +=
-                                                                                                "<button data-serviceuri=\"" +
-                                                                                                oneStop[
-                                                                                                    "stop_uri"
-                                                                                                ] +
-                                                                                                "\" data-lat=\"" +
-                                                                                                oneStop[
-                                                                                                    "pos_lat"
-                                                                                                ] +
-                                                                                                "\" data-lon=\"" +
-                                                                                                oneStop[
-                                                                                                    "pos_lon"
-                                                                                                ] +
-                                                                                                "\" class=\"tplpoi_stopbtn\" style=\"text-align:left; width:100%; margin-bottom:1em; color:#" +
-                                                                                                fgcolor +
-                                                                                                "; background-color:#" +
-                                                                                                bgcolor +
-                                                                                                "; font-size:larger; font-weight:bold; \">#" +
-                                                                                                parseInt(
-                                                                                                    oneStop[
-                                                                                                        "sequence"
-                                                                                                    ]
-                                                                                                ) +
-                                                                                                " " +
-                                                                                                oneStop[
-                                                                                                    "code"
-                                                                                                ] +
-                                                                                                " " +
-                                                                                                oneStop[
-                                                                                                    "name"
-                                                                                                ] +
-                                                                                                "<br>ARR " +
-                                                                                                (stopNum >
-                                                                                                    0 ?
-                                                                                                    oneStop[
-                                                                                                        "arrival"
-                                                                                                    ]
-                                                                                                    .substring(
-                                                                                                        0,
-                                                                                                        5
-                                                                                                    ) :
-                                                                                                    "--:--"
-                                                                                                ) +
-                                                                                                " DEP " +
-                                                                                                (stopNum <
-                                                                                                    tripdata
-                                                                                                    .length -
-                                                                                                    1 ?
-                                                                                                    oneStop[
-                                                                                                        "departure"
-                                                                                                    ]
-                                                                                                    .substring(
-                                                                                                        0,
-                                                                                                        5
-                                                                                                    ) :
-                                                                                                    "--:--"
-                                                                                                ) +
-                                                                                                "</button>";
-                                                                                        } else {
-                                                                                            theTripMarkup
-                                                                                                +=
-                                                                                                "<button data-serviceuri=\"" +
-                                                                                                oneStop[
-                                                                                                    "stop_uri"
-                                                                                                ] +
-                                                                                                "\" data-lat=\"" +
-                                                                                                oneStop[
-                                                                                                    "pos_lat"
-                                                                                                ] +
-                                                                                                "\" data-lon=\"" +
-                                                                                                oneStop[
-                                                                                                    "pos_lon"
-                                                                                                ] +
-                                                                                                "\" class=\"tplpoi_stopbtn\" style=\"text-align:left; width:100%; margin-bottom:1em; color:#" +
-                                                                                                fgcolor +
-                                                                                                "; background-color:#" +
-                                                                                                bgcolor +
-                                                                                                ";\">#" +
-                                                                                                parseInt(
-                                                                                                    oneStop[
-                                                                                                        "sequence"
-                                                                                                    ]
-                                                                                                ) +
-                                                                                                " " +
-                                                                                                oneStop[
-                                                                                                    "code"
-                                                                                                ] +
-                                                                                                " " +
-                                                                                                oneStop[
-                                                                                                    "name"
-                                                                                                ] +
-                                                                                                "<br>ARR " +
-                                                                                                (stopNum >
-                                                                                                    0 ?
-                                                                                                    oneStop[
-                                                                                                        "arrival"
-                                                                                                    ]
-                                                                                                    .substring(
-                                                                                                        0,
-                                                                                                        5
-                                                                                                    ) :
-                                                                                                    "--:--"
-                                                                                                ) +
-                                                                                                " DEP " +
-                                                                                                (stopNum <
-                                                                                                    tripdata
-                                                                                                    .length -
-                                                                                                    1 ?
-                                                                                                    oneStop[
-                                                                                                        "departure"
-                                                                                                    ]
-                                                                                                    .substring(
-                                                                                                        0,
-                                                                                                        5
-                                                                                                    ) :
-                                                                                                    "--:--"
-                                                                                                ) +
-                                                                                                "</button>";
-                                                                                        }
-                                                                                    }
-                                                                                );
-                                                                            theTripMarkup
-                                                                                +=
-                                                                                "</div>";
-                                                                            theTripMarkup
-                                                                                +=
-                                                                                "<p class=\"tplpoi_backToTrips\"><button style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    )
-                                                                                )
-                                                                                .find(
-                                                                                    "p.tplpoi_theTripSubhead"
-                                                                                )
-                                                                                .remove();
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    )
-                                                                                )
-                                                                                .find(
-                                                                                    "div.tplpoi_fullTripData"
-                                                                                )
-                                                                                .remove();
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    )
-                                                                                )
-                                                                                .find(
-                                                                                    "p.tplpoi_backToTrips"
-                                                                                )
-                                                                                .remove();
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    )
-                                                                                )
-                                                                                .append(
-                                                                                    $(
-                                                                                        theTripMarkup
-                                                                                    )
-                                                                                );
-                                                                            if (theaffectedstopsMarkup ==
-                                                                                ""
-                                                                            ) {
-                                                                                theaffectedstopsMarkup
-                                                                                    =
-                                                                                    "<p>No stops found.</p>";
-                                                                            }
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    ) +
-                                                                                    " p.tplpoi_backToTrips button"
-                                                                                )
-                                                                                .click(
-                                                                                    function() {
-                                                                                        $("#linesof_" +
-                                                                                                serviceProperties[
-                                                                                                    'serviceUri'
-                                                                                                ]
-                                                                                                .replace(
-                                                                                                    /[^a-zA-Z0-9]/g,
-                                                                                                    ""
-                                                                                                )
-                                                                                            )
-                                                                                            .find(
-                                                                                                "p"
-                                                                                            )
-                                                                                            .hide();
-                                                                                        $("#linesof_" +
-                                                                                                serviceProperties[
-                                                                                                    'serviceUri'
-                                                                                                ]
-                                                                                                .replace(
-                                                                                                    /[^a-zA-Z0-9]/g,
-                                                                                                    ""
-                                                                                                )
-                                                                                            )
-                                                                                            .find(
-                                                                                                "div.tplpoi_fullTripData"
-                                                                                            )
-                                                                                            .hide();
-                                                                                        $("#linesof_" +
-                                                                                                serviceProperties[
-                                                                                                    'serviceUri'
-                                                                                                ]
-                                                                                                .replace(
-                                                                                                    /[^a-zA-Z0-9]/g,
-                                                                                                    ""
-                                                                                                )
-                                                                                            )
-                                                                                            .find(
-                                                                                                "p.tplpoi_tripsSubHead"
-                                                                                            )
-                                                                                            .show();
-                                                                                        $("#linesof_" +
-                                                                                                serviceProperties[
-                                                                                                    'serviceUri'
-                                                                                                ]
-                                                                                                .replace(
-                                                                                                    /[^a-zA-Z0-9]/g,
-                                                                                                    ""
-                                                                                                )
-                                                                                            )
-                                                                                            .find(
-                                                                                                "div.tplpoi_tripsDivInRoute"
-                                                                                            )
-                                                                                            .show();
-                                                                                        $("#linesof_" +
-                                                                                                serviceProperties[
-                                                                                                    'serviceUri'
-                                                                                                ]
-                                                                                                .replace(
-                                                                                                    /[^a-zA-Z0-9]/g,
-                                                                                                    ""
-                                                                                                )
-                                                                                            )
-                                                                                            .find(
-                                                                                                "p.tplpoi_wifstptrp"
-                                                                                            )
-                                                                                            .show();
-                                                                                        $("#linesof_" +
-                                                                                                serviceProperties[
-                                                                                                    'serviceUri'
-                                                                                                ]
-                                                                                                .replace(
-                                                                                                    /[^a-zA-Z0-9]/g,
-                                                                                                    ""
-                                                                                                )
-                                                                                            )
-                                                                                            .find(
-                                                                                                "p.tplpoi_backToRoutes"
-                                                                                            )
-                                                                                            .show();
-                                                                                        $(".polyof_" +
-                                                                                                routeUri
-                                                                                                .replace(
-                                                                                                    /[^a-zA-Z0-9]/g,
-                                                                                                    ""
-                                                                                                )
-                                                                                            )
-                                                                                            .show();
-                                                                                    }
-                                                                                );
-                                                                            Number
-                                                                                .prototype
-                                                                                .countDecimals =
-                                                                                function() {
-                                                                                    if (Math
-                                                                                        .floor(
-                                                                                            this
-                                                                                            .valueOf()
-                                                                                        ) ===
-                                                                                        this
-                                                                                        .valueOf()
-                                                                                    )
-                                                                                        return 0;
-                                                                                    return this
-                                                                                        .toString()
-                                                                                        .split(
-                                                                                            "."
-                                                                                        )[
-                                                                                            1
-                                                                                        ]
-                                                                                        .length ||
-                                                                                        0;
-                                                                                };
-                                                                            $("#linesof_" +
-                                                                                    serviceProperties[
-                                                                                        'serviceUri'
-                                                                                    ]
-                                                                                    .replace(
-                                                                                        /[^a-zA-Z0-9]/g,
-                                                                                        ""
-                                                                                    ) +
-                                                                                    " button.tplpoi_stopbtn"
-                                                                                )
-                                                                                .click(
-                                                                                    function() {
-                                                                                        var serviceuri =
-                                                                                            $(
-                                                                                                this
-                                                                                            )
-                                                                                            .data(
-                                                                                                "serviceuri"
-                                                                                            );
-                                                                                        var lat =
-                                                                                            $(
-                                                                                                this
-                                                                                            )
-                                                                                            .data(
-                                                                                                "lat"
-                                                                                            );
-                                                                                        var lon =
-                                                                                            $(
-                                                                                                this
-                                                                                            )
-                                                                                            .data(
-                                                                                                "lon"
-                                                                                            );
-                                                                                        var eventDesc =
-                                                                                            null;
-                                                                                        map["eventsOnMap"]
-                                                                                            .forEach(
-                                                                                                function(
-                                                                                                    mapevt
-                                                                                                ) {
-                                                                                                    if (mapevt[
-                                                                                                            "color1"
-                                                                                                        ] ==
-                                                                                                        feature[
-                                                                                                            "properties"
-                                                                                                        ]
-                                                                                                        [
-                                                                                                            "color1"
-                                                                                                        ] &&
-                                                                                                        mapevt[
-                                                                                                            "color2"
-                                                                                                        ] ==
-                                                                                                        feature[
-                                                                                                            "properties"
-                                                                                                        ]
-                                                                                                        [
-                                                                                                            "color2"
-                                                                                                        ]
-                                                                                                    ) {
-                                                                                                        eventDesc
-                                                                                                            =
-                                                                                                            mapevt[
-                                                                                                                "desc"
-                                                                                                            ];
-                                                                                                    }
-                                                                                                }
-                                                                                            );
-                                                                                        /*var doCreate = true;
-                                                                                        gisLayersOnMap[eventDesc].getLayers().forEach(function(layer){																														
-                                                                                        	if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) || 
-                                                                                        		( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
-                                                                                        		try { layer.closePopup(); } catch(e) {}
-                                                                                        		layer.fire('click');
-                                                                                        		doCreate=false;																
-                                                                                        	}
-                                                                                        });		
-                                                                                        if(!doCreate) return;												*/
-                                                                                        for (
-                                                                                            var l =
-                                                                                                0; l <
-                                                                                            gisLayersOnMap[
-                                                                                                eventDesc
-                                                                                            ]
-                                                                                            .getLayers()
-                                                                                            .length; l++
-                                                                                        ) {
-                                                                                            var layer =
-                                                                                                gisLayersOnMap[
-                                                                                                    eventDesc
-                                                                                                ]
-                                                                                                .getLayers()[
-                                                                                                    l
-                                                                                                ];
-                                                                                            if ((layer[
-                                                                                                        "feature"
-                                                                                                    ] &&
-                                                                                                    layer[
-                                                                                                        "feature"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "serviceUri"
-                                                                                                    ] ==
-                                                                                                    serviceuri
-                                                                                                ) ||
-                                                                                                ((!layer[
-                                                                                                        "feature"
-                                                                                                    ]) &&
-                                                                                                    layer[
-                                                                                                        "_latlng"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "lat"
-                                                                                                    ] ==
-                                                                                                    lat
-                                                                                                    .toFixed(
-                                                                                                        layer[
-                                                                                                            "_latlng"
-                                                                                                        ]
-                                                                                                        [
-                                                                                                            "lat"
-                                                                                                        ]
-                                                                                                        .countDecimals()
-                                                                                                    ) &&
-                                                                                                    layer[
-                                                                                                        "_latlng"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "lng"
-                                                                                                    ] ==
-                                                                                                    lon
-                                                                                                    .toFixed(
-                                                                                                        layer[
-                                                                                                            "_latlng"
-                                                                                                        ]
-                                                                                                        [
-                                                                                                            "lng"
-                                                                                                        ]
-                                                                                                        .countDecimals()
-                                                                                                    )
-                                                                                                )
-                                                                                            ) {
-                                                                                                try {
-                                                                                                    layer
-                                                                                                        .closePopup();
-                                                                                                } catch (
-                                                                                                    e
-                                                                                                ) {}
-                                                                                                layer
-                                                                                                    .fire(
-                                                                                                        'click'
-                                                                                                    );
-                                                                                                return;
-                                                                                            }
-                                                                                        }
-                                                                                        $.getJSON(
-                                                                                            "<?= $superServiceMapProxy ?>/api/v1?serviceUri=" +
-                                                                                            encodeURIComponent(
-                                                                                                serviceuri
-                                                                                            ),
-                                                                                            function(
-                                                                                                stopdata
-                                                                                            ) {
-                                                                                                var newFeature =
-                                                                                                    stopdata[
-                                                                                                        "BusStop"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "features"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        0
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "color1"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "color1"
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "color2"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "color2"
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "pinattr"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "pinattr"
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "pincolor"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "pincolor"
-                                                                                                    ];
-                                                                                                newFeature
-                                                                                                    [
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "symbolcolor"
-                                                                                                    ] =
-                                                                                                    feature[
-                                                                                                        "properties"
-                                                                                                    ]
-                                                                                                    [
-                                                                                                        "symbolcolor"
-                                                                                                    ];
-                                                                                                var newMarker =
-                                                                                                    gisPrepareCustomMarker(
-                                                                                                        newFeature, {
-                                                                                                            "lng": newFeature[
-                                                                                                                    "geometry"
-                                                                                                                ]
-                                                                                                                [
-                                                                                                                    "coordinates"
-                                                                                                                ]
-                                                                                                                [
-                                                                                                                    0
-                                                                                                                ],
-                                                                                                            "lat": newFeature[
-                                                                                                                    "geometry"
-                                                                                                                ]
-                                                                                                                [
-                                                                                                                    "coordinates"
-                                                                                                                ]
-                                                                                                                [
-                                                                                                                    1
-                                                                                                                ]
-                                                                                                        }
-                                                                                                    );
-                                                                                                newMarker
-                                                                                                    .addTo(
-                                                                                                        gisLayersOnMap[
-                                                                                                            eventDesc
-                                                                                                        ]
-                                                                                                    );
-                                                                                                newMarker
-                                                                                                    .fire(
-                                                                                                        'click'
-                                                                                                    );
-                                                                                            }
-                                                                                        );
-                                                                                    }
-                                                                                );
-                                                                        }
-                                                                    );
-
-                                                                });
-
-                                                        });
-
-                                                });
-
-                                        });
-                                });
-                        }
-
-                        if (hasRealTime) {
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' +
-                                latLngId + '"]').show();
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' +
-                                latLngId + '"]').trigger("click");
-                            $('#<?= $_REQUEST['name_w'] ?>_map span.popupLastUpdate[data-id="' +
-                                latLngId + '"]').html(measuredTime);
-                        } else {
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' +
-                                latLngId + '"]').hide();
-                        }
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn[data-id="' +
-                            latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn[data-id="' +
-                            latLngId + '"]').click(function() {
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapDataContainer').hide();
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapDetailsContainer').show();
-                            $(this).siblings('button.recreativeEventMapBtn')
-                                .removeClass('recreativeEventMapBtnActive');
-                            $(this).addClass('recreativeEventMapBtnActive');
-                        });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn[data-id="' +
-                            latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn[data-id="' +
-                            latLngId + '"]').click(function() {
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapDataContainer').hide();
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapDescContainer').show();
-                            $(this).siblings('button.recreativeEventMapBtn')
-                                .removeClass('recreativeEventMapBtnActive');
-                            $(this).addClass('recreativeEventMapBtnActive');
-                        });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' +
-                            latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' +
-                            latLngId + '"]').click(function() {
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapDataContainer').hide();
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapContactsContainer').show();
-                            $(this).siblings('button.recreativeEventMapBtn')
-                                .removeClass('recreativeEventMapBtnActive');
-                            $(this).addClass('recreativeEventMapBtnActive');
-                        });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' +
-                            latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' +
-                            latLngId + '"]').click(function() {
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapDataContainer').hide();
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapTplContainer').show();
-                            $(this).siblings('button.recreativeEventMapBtn')
-                                .removeClass('recreativeEventMapBtnActive');
-                            $(this).addClass('recreativeEventMapBtnActive');
-                            if ($("#linesof_" + serviceProperties['serviceUri'].replace(
-                                        /[^a-zA-Z0-9]/g, "") +
-                                    " p.tplpoi_backToTrips button").is(":visible")) {
-                                $("#linesof_" + serviceProperties['serviceUri'].replace(
-                                        /[^a-zA-Z0-9]/g, "") +
-                                    " p.tplpoi_backToTrips button").click();
-                            }
-                            if ($("#linesof_" + serviceProperties['serviceUri'].replace(
-                                        /[^a-zA-Z0-9]/g, "") +
-                                    " p.tplpoi_backToRoutes button").is(":visible")) {
-                                $("#linesof_" + serviceProperties['serviceUri'].replace(
-                                        /[^a-zA-Z0-9]/g, "") +
-                                    " p.tplpoi_backToRoutes button").click();
-                            }
-                        });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' +
-                            latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' +
-                            latLngId + '"]').click(function() {
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapDataContainer').hide();
-                            $(this).parent().siblings(
-                                'div.recreativeEventMapTplTmtblContainer').show();
-                            $(this).siblings('button.recreativeEventMapBtn')
-                                .removeClass('recreativeEventMapBtnActive');
-                            $(this).addClass('recreativeEventMapBtnActive');
-                            var tmtblBtn = $(this);
-                            var tmtblMarkup = "";
-                            $.getJSON('<?= $whatifmdtendpt ?>?stop=' +
-                                encodeURIComponent(
-                                    serviceProperties['serviceUri']) +
-                                "&list=graphs",
-                                function(graphs) {
-                                    var pAgency = graphs.join();
-                                    $.getJSON('<?= $whatifmdtendpt ?>?agency=' +
-                                        encodeURIComponent(pAgency) + '&stop=' +
-                                        encodeURIComponent(serviceProperties[
-                                            'serviceUri']) + "&list=timetable",
-                                        function(timetable) {
-                                            timetable.forEach(function(entry,
-                                                rownum) {
-                                                tmtblMarkup +=
-                                                    "<p class=\"tplpoi_tmtblrow\"><button data-r=\"" +
-                                                    entry["route"]
-                                                    .replace(
-                                                        /[^a-zA-Z0-9]/g,
-                                                        "") +
-                                                    "\" data-t=\"" +
-                                                    entry["trip"] +
-                                                    "\" data-n=\"" +
-                                                    rownum +
-                                                    "\" style=\"width:100%; background-color:#" +
-                                                    entry["bgcolor"] +
-                                                    "; color:#" + entry[
-                                                        "fgcolor"] +
-                                                    "\"><p style=\"font-size:larger; font-weight:bold; margin:0px; padding:0px; text-align:left;\">" +
-                                                    (entry[
-                                                            "departure"
-                                                        ] ?
-                                                        entry[
-                                                            "departure"
-                                                        ] : entry[
-                                                            "arrival"])
-                                                    .substring(0, 5) +
-                                                    "&nbsp;<span style=\"font-size:larger; border:thin solid #" +
-                                                    entry["fgcolor"] +
-                                                    ";\">" + entry[
-                                                        "number"] +
-                                                    "</span>&nbsp;" +
-                                                    entry["headsign"] +
-                                                    "</p><p class=\"nextstops\" style=\"margin:0px; padding:0px; font-weight:normal; text-align:left;\"></p></button></p>";
-                                            });
-                                            if (timetable.length == 0) {
-                                                tmtblMarkup +=
-                                                    "<p class=\"tplpoi_tmtblrow\">The timetable is currently not available for this stop.</p>";
-                                            }
-                                            tmtblBtn.parent().siblings(
-                                                'div.recreativeEventMapTplTmtblContainer'
-                                            ).empty();
-                                            tmtblBtn.parent().siblings(
-                                                'div.recreativeEventMapTplTmtblContainer'
-                                            ).append($(tmtblMarkup));
-                                            timetable.forEach(function(entry,
-                                                rownum) {
-                                                var theTripUrl =
-                                                    '<?= $whatifmdtendpt ?>?agency=' +
-                                                    encodeURIComponent(
-                                                        pAgency) +
-                                                    '&trip=' +
-                                                    encodeURIComponent(
-                                                        entry[
-                                                            "trip_uri"]
-                                                    ) +
-                                                    "&list=stops";
-                                                var n = rownum;
-                                                $.getJSON(theTripUrl,
-                                                    function(
-                                                        alltripstops
-                                                    ) {
-                                                        var span =
-                                                            $("p.tplpoi_tmtblrow button[data-t=\"" +
-                                                                entry[
-                                                                    "trip"
-                                                                ] +
-                                                                "\"][data-n=\"" +
-                                                                n +
-                                                                "\"] p.nextstops"
-                                                            );
-                                                        var spanMarkup =
-                                                            "";
-                                                        var isNext =
-                                                            false;
-                                                        alltripstops
-                                                            .forEach(
-                                                                function(
-                                                                    stop
-                                                                ) {
-                                                                    if (
-                                                                        isNext
-                                                                    ) {
-                                                                        if (-
-                                                                            1 ==
-                                                                            spanMarkup
-                                                                            .indexOf(
-                                                                                stop[
-                                                                                    "arrival"
-                                                                                ]
-                                                                                .substring(
-                                                                                    0,
-                                                                                    5
-                                                                                ) +
-                                                                                "&nbsp;" +
-                                                                                stop[
-                                                                                    "name"
-                                                                                ]
-                                                                                .replaceAll(
-                                                                                    " ",
-                                                                                    "&nbsp;"
-                                                                                ) +
-                                                                                "&nbsp;&bull; "
-                                                                            )
-                                                                        ) {
-                                                                            spanMarkup
-                                                                                +=
-                                                                                stop[
-                                                                                    "arrival"
-                                                                                ]
-                                                                                .substring(
-                                                                                    0,
-                                                                                    5
-                                                                                ) +
-                                                                                "&nbsp;" +
-                                                                                stop[
-                                                                                    "name"
-                                                                                ]
-                                                                                .replaceAll(
-                                                                                    " ",
-                                                                                    "&nbsp;"
-                                                                                ) +
-                                                                                "&nbsp;&bull; ";
-                                                                        }
-                                                                    }
-                                                                    if (stop[
-                                                                            "stop_uri"
-                                                                        ] ==
-                                                                        serviceProperties[
-                                                                            'serviceUri'
-                                                                        ]
-                                                                    ) {
-                                                                        isNext
-                                                                            =
-                                                                            true;
-                                                                    }
-                                                                });
-                                                        if (!
-                                                            spanMarkup
-                                                        ) {
-                                                            spanMarkup
-                                                                +=
-                                                                "This is the terminus stop, the trip does not continue further.&nbsp;&bull; ";
-                                                        }
-                                                        span.append(
-                                                            spanMarkup
-                                                            .substring(
-                                                                0,
-                                                                spanMarkup
-                                                                .length -
-                                                                13
-                                                            )
-                                                        );
-                                                    });
-                                            });
-                                            $(".tplpoi_tmtblrow button").click(
-                                                function() {
-                                                    $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' +
-                                                            latLngId + '"]')
-                                                        .click();
-                                                    var t = $(this).data(
-                                                        "t");
-                                                    var observer =
-                                                        new MutationObserver(
-                                                            function(
-                                                                mutations,
-                                                                observer) {
-                                                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' +
-                                                                        latLngId +
-                                                                        '"]'
-                                                                    )
-                                                                    .parent()
-                                                                    .siblings(
-                                                                        'div.recreativeEventMapTplContainer'
-                                                                    )
-                                                                    .find(
-                                                                        '.tplpoi_tripsDivInRoute .tplpoi_wifstptrp button[data-tripkey="' +
-                                                                        t +
-                                                                        '"]'
-                                                                    )
-                                                                    .click();
-                                                                observer
-                                                                    .disconnect();
-                                                            });
-                                                    observer.observe($(
-                                                            '#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' +
-                                                            latLngId +
-                                                            '"]')
-                                                        .parent()
-                                                        .siblings(
-                                                            'div.recreativeEventMapTplContainer'
-                                                        )[0], {
-                                                            childList: true
-                                                        });
-                                                    $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' +
-                                                            latLngId + '"]')
-                                                        .parent().siblings(
-                                                            'div.recreativeEventMapTplContainer'
-                                                        ).find(
-                                                            "button.polyin_" +
-                                                            $(this).data(
-                                                                "r"))
-                                                        .click();
-                                                });
-                                        });
-                                });
-                        });
-
-                        if (hasRealTime) {
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' +
-                                latLngId + '"]').trigger("click");
-                        }
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map table.gisPopupTable[id="' +
-                            latLngId + '"] button.btn-sm').css("background", color2);
-                        $('#<?= $_REQUEST['name_w'] ?>_map table.gisPopupTable[id="' +
-                            latLngId + '"] button.btn-sm').css("border", "none");
-                        $('#<?= $_REQUEST['name_w'] ?>_map table.gisPopupTable[id="' +
-                            latLngId + '"] button.btn-sm').css("color", "black");
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map table.gisPopupTable[id="' +
-                            latLngId + '"] button.btn-sm').focus(function() {
-                            $(this).css("outline", "0");
-                        });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck[data-id="' +
-                            latLngId + '"]').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck[data-id="' +
-                            latLngId + '"]').click(function() {
-                            if ($(this).attr("data-keepData") === "false") {
-                                $(this).attr("data-keepData", "true");
-                            } else {
-                                $(this).attr("data-keepData", "false");
-                            }
-                        });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off(
-                            'mouseenter');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off(
-                            'mouseleave');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn[data-id="' +
-                            latLngId + '"]').hover(function() {
-                                if ($(this).attr("data-lastDataClicked") === "false") {
-                                    $(this).css("background", color1);
-                                    $(this).css("background",
-                                        "-webkit-linear-gradient(left, " + color1 +
-                                        ", " + color2 + ")");
-                                    $(this).css("background",
-                                        "background: -o-linear-gradient(left, " +
-                                        color1 + ", " + color2 + ")");
-                                    $(this).css("background",
-                                        "background: -moz-linear-gradient(left, " +
-                                        color1 + ", " + color2 + ")");
-                                    $(this).css("background",
-                                        "background: linear-gradient(to left, " +
-                                        color1 + ", " + color2 + ")");
-                                    $(this).css("font-weight", "bold");
-                                }
-
-                                var widgetTargetList = $(this).attr("data-targetWidgets")
-                                    .split(',');
-                                var colIndex = $(this).parent().index();
-                                //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
-                                var title = $(this).parents("tr").find("td").eq(0).html();
-
-                                for (var i = 0; i < widgetTargetList.length; i++) {
-                                    $.event.trigger({
-                                        type: "mouseOverLastDataFromExternalContentGis_" +
-                                            widgetTargetList[i],
-                                        eventGenerator: $(this),
-                                        targetWidget: widgetTargetList[i],
-                                        value: $(this).attr("data-lastValue"),
-                                        color1: $(this).attr("data-color1"),
-                                        color2: $(this).attr("data-color2"),
-                                        widgetTitle: title
-                                    });
-                                }
-                            },
-                            function() {
-                                if ($(this).attr("data-lastDataClicked") === "false") {
-                                    $(this).css("background", color2);
-                                    $(this).css("font-weight", "normal");
-                                }
-                                var widgetTargetList = $(this).attr("data-targetWidgets")
-                                    .split(',');
-
-                                for (var i = 0; i < widgetTargetList.length; i++) {
-                                    $.event.trigger({
-                                        type: "mouseOutLastDataFromExternalContentGis_" +
-                                            widgetTargetList[i],
-                                        eventGenerator: $(this),
-                                        targetWidget: widgetTargetList[i],
-                                        value: $(this).attr("data-lastValue"),
-                                        color1: $(this).attr("data-color1"),
-                                        color2: $(this).attr("data-color2")
-                                    });
-                                }
-                            });
-
-                        //Disabilitiamo i 4Hours se last update più vecchio di 4 ore
-                        if (rtDataAgeSec > 14400) {
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                latLngId + '"][data-range="4/HOUR"]').attr("data-disabled",
-                                "true");
-                            //Disabilitiamo i 24Hours se last update più vecchio di 24 ore
-                            if (rtDataAgeSec > 86400) {
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                    latLngId + '"][data-range="1/DAY"]').attr(
-                                    "data-disabled", "true");
-                                //Disabilitiamo i 7 days se last update più vecchio di 7 days
-                                if (rtDataAgeSec > 604800) {
-                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                        latLngId + '"][data-range="7/DAY"]').attr(
-                                        "data-disabled", "true");
-                                    //Disabilitiamo i 30 days se last update più vecchio di 30 days
-                                    //if(rtDataAgeSec > 18144000)
-                                    if (rtDataAgeSec > 2592000) {
-                                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                            latLngId + '"][data-range="30/DAY"]').attr(
-                                            "data-disabled", "true");
-                                        //Disabilitiamo i 6 months se last update più vecchio di 180 days
-                                        if (rtDataAgeSec > 15552000) {
-                                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                                latLngId + '"][data-range="180/DAY"]').attr(
-                                                "data-disabled", "true");
-                                            //Disabilitiamo i 1 year se last update più vecchio di 365 days
-                                            if (rtDataAgeSec > 31536000) {
-                                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                                        latLngId + '"][data-range="365/DAY"]')
-                                                    .attr("data-disabled", "true");
-                                            } else {
-                                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                                        latLngId + '"][data-range="365/DAY"]')
-                                                    .attr("data-disabled", "false");
-                                            }
-                                        } else {
-                                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                                latLngId + '"][data-range="180/DAY"]').attr(
-                                                "data-disabled", "false");
-                                        }
-                                    } else {
-                                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                            latLngId + '"][data-range="30/DAY"]').attr(
-                                            "data-disabled", "false");
-                                    }
-                                } else {
-                                    $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpen button.timeTrendBtn[data-id="' +
-                                        latLngId + '"][data-range="7/DAY"]').attr(
-                                        "data-disabled", "false");
-                                }
-                            } else {
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                    latLngId + '"][data-range="1/DAY"]').attr(
-                                    "data-disabled", "false");
-                            }
-                        } else {
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                latLngId + '"][data-range="4/HOUR"]').attr("data-disabled",
-                                "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                latLngId + '"][data-range="1/DAY"]').attr("data-disabled",
-                                "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                latLngId + '"][data-range="7/DAY"]').attr("data-disabled",
-                                "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                latLngId + '"][data-range="30/DAY"]').attr("data-disabled",
-                                "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                latLngId + '"][data-range="180/DAY"]').attr("data-disabled",
-                                "false");
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                latLngId + '"][data-range="365/DAY"]').attr("data-disabled",
-                                "false");
-                        }
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off(
-                            'mouseenter');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off(
-                            'mouseleave');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                            latLngId + '"]').hover(function() {
-                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1)
-                                        .html())) || ($(this).attr("data-disabled") ===
-                                        "true")) {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                } else {
-                                    if ($(this).attr("data-timeTrendClicked") === "false") {
-                                        $(this).css("background", color1);
-                                        $(this).css("background",
-                                            "-webkit-linear-gradient(left, " + color1 +
-                                            ", " + color2 + ")");
-                                        $(this).css("background",
-                                            "background: -o-linear-gradient(left, " +
-                                            color1 + ", " + color2 + ")");
-                                        $(this).css("background",
-                                            "background: -moz-linear-gradient(left, " +
-                                            color1 + ", " + color2 + ")");
-                                        $(this).css("background",
-                                            "background: linear-gradient(to left, " +
-                                            color1 + ", " + color2 + ")");
-                                        $(this).css("font-weight", "bold");
-                                    }
-
-                                    var widgetTargetList = $(this).attr(
-                                        "data-targetWidgets").split(',');
-                                    //var colIndex = $(this).parent().index();
-                                    //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
-                                    var title = $(this).parents("tr").find("td").eq(0)
-                                        .html() + " - " + $(this).attr("data-range-shown");
-
-                                    for (var i = 0; i < widgetTargetList.length; i++) {
-                                        $.event.trigger({
-                                            type: "mouseOverTimeTrendFromExternalContentGis_" +
-                                                widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i],
-                                            value: $(this).attr("data-lastValue"),
-                                            color1: $(this).attr("data-color1"),
-                                            color2: $(this).attr("data-color2"),
-                                            widgetTitle: title
-                                        });
-                                    }
-                                }
-                            },
-                            function() {
-                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1)
-                                        .html())) || ($(this).attr("data-disabled") ===
-                                        "true")) {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                } else {
-                                    if ($(this).attr("data-timeTrendClicked") === "false") {
-                                        $(this).css("background", color2);
-                                        $(this).css("font-weight", "normal");
-                                    }
-
-                                    var widgetTargetList = $(this).attr(
-                                        "data-targetWidgets").split(',');
-                                    for (var i = 0; i < widgetTargetList.length; i++) {
-                                        $.event.trigger({
-                                            type: "mouseOutTimeTrendFromExternalContentGis_" +
-                                                widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i],
-                                            value: $(this).attr("data-lastValue"),
-                                            color1: $(this).attr("data-color1"),
-                                            color2: $(this).attr("data-color2")
-                                        });
-                                    }
-                                }
-                            });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn[data-id=' +
-                            latLngId + ']').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn[data-id=' +
-                            latLngId + ']').click(function(event) {
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn')
-                                .each(function(i) {
-                                    $(this).css("background", $(this).attr(
-                                        "data-color2"));
-                                });
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn')
-                                .css("font-weight", "normal");
-                            $(this).css("background", $(this).attr("data-color1"));
-                            $(this).css("font-weight", "bold");
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn')
-                                .attr("data-lastDataClicked", "false");
-                            $(this).attr("data-lastDataClicked", "true");
-                            var widgetTargetList = $(this).attr("data-targetWidgets")
-                                .split(',');
-                            var colIndex = $(this).parent().index();
-                            var title = $(this).parents("tr").find("td").eq(0).html();
-
-                            for (var i = 0; i < widgetTargetList.length; i++) {
-                                $.event.trigger({
-                                    type: "showLastDataFromExternalContentGis_" +
-                                        widgetTargetList[i],
-                                    eventGenerator: $(this),
-                                    targetWidget: widgetTargetList[i],
-                                    value: $(this).attr("data-lastValue"),
-                                    color1: $(this).attr("data-color1"),
-                                    color2: $(this).attr("data-color2"),
-                                    widgetTitle: title,
-                                    field: $(this).attr("data-field"),
-                                    serviceUri: $(this).attr("data-serviceUri"),
-                                    marker: markersCache["" + $(this).attr(
-                                        "data-id") + ""],
-                                    mapRef: map.defaultMapRef,
-                                    fake: $(this).attr("data-fake"),
-                                    fakeId: $(this).attr("data-fakeId")
-                                });
-                            }
-
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                latLngId + '"]').each(function(i) {
-                                if (isNaN(parseFloat($(this).parents('tr').find(
-                                        'td').eq(1).html())) || ($(this).attr(
-                                        "data-disabled") === "true")) {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                }
-                            });
-
-                        });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('click');
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').click(function(
-                            event) {
-                            if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1)
-                                    .html())) || ($(this).attr("data-disabled") ===
-                                    "true")) {
-                                $(this).css("background-color", "#e6e6e6");
-                                $(this).off("hover");
-                                $(this).off("click");
-                            } else {
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn')
-                                    .css("background", $(this).attr("data-color2"));
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn')
-                                    .css("font-weight", "normal");
-                                $(this).css("background", $(this).attr("data-color1"));
-                                $(this).css("font-weight", "bold");
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn')
-                                    .attr("data-timeTrendClicked", "false");
-                                $(this).attr("data-timeTrendClicked", "true");
-                                var widgetTargetList = $(this).attr(
-                                    "data-targetWidgets").split(',');
-                                var colIndex = $(this).parent().index();
-                                var title = $(this).parents("tr").find("td").eq(0)
-                                    .html() + " - " + $(this).attr("data-range-shown");
-                                var lastUpdateTime = $(this).parents(
-                                    'div.recreativeEventMapContactsContainer').find(
-                                    'span.popupLastUpdate').html();
-
-                                var now = new Date();
-                                var lastUpdateDate = new Date(lastUpdateTime);
-                                var diff = parseFloat(Math.abs(now - lastUpdateDate) /
-                                    1000);
-                                var range = $(this).attr("data-range");
-
-                                for (var i = 0; i < widgetTargetList.length; i++) {
-                                    $.event.trigger({
-                                        type: "showTimeTrendFromExternalContentGis_" +
-                                            widgetTargetList[i],
-                                        eventGenerator: $(this),
-                                        targetWidget: widgetTargetList[i],
-                                        range: range,
-                                        color1: $(this).attr("data-color1"),
-                                        color2: $(this).attr("data-color2"),
-                                        widgetTitle: title,
-                                        field: $(this).attr("data-field"),
-                                        serviceUri: $(this).attr(
-                                            "data-serviceUri"),
-                                        marker: markersCache["" + $(this).attr(
-                                            "data-id") + ""],
-                                        mapRef: map.defaultMapRef,
-                                        fake: false
-                                        //fake: $(this).attr("data-fake")
-                                    });
-                                }
-
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                                    latLngId + '"]').each(function(i) {
-                                    if (isNaN(parseFloat($(this).parents('tr')
-                                            .find('td').eq(1).html())) || ($(
-                                                this).attr("data-disabled") ===
-                                            "true")) {
-                                        $(this).css("background-color",
-                                            "#e6e6e6");
-                                        $(this).off("hover");
-                                        $(this).off("click");
-                                    }
-                                });
-                            }
-                        });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' +
-                            latLngId + '"]').each(function(i) {
-                            if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1)
-                                    .html())) || ($(this).attr("data-disabled") ===
-                                    "true")) {
-                                $(this).css("background-color", "#e6e6e6");
-                                $(this).off("hover");
-                                $(this).off("click");
-                            }
-                        });
-
-                        map.defaultMapRef.off('popupclose');
-                        map.defaultMapRef.on('popupclose', function(closeEvt) {
-                            var popupContent = $('<div></div>');
-                            popupContent.html(closeEvt.popup._content);
-
-                            if (popupContent.find("button.lastValueBtn").length > 0) {
-                                var widgetTargetList = popupContent.find(
-                                    "button.lastValueBtn").eq(0).attr(
-                                    "data-targetWidgets").split(',');
-
-                                if (($('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn[data-lastDataClicked=true]')
-                                        .length > 0) && ($(
-                                        'input.gisPopupKeepDataCheck').attr(
-                                        'data-keepData') === "false")) {
-                                    for (var i = 0; i < widgetTargetList.length; i++) {
-                                        $.event.trigger({
-                                            type: "restoreOriginalLastDataFromExternalContentGis_" +
-                                                widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i],
-                                            value: $(this).attr(
-                                                "data-lastValue"),
-                                            color1: $(this).attr("data-color1"),
-                                            color2: $(this).attr("data-color2")
-                                        });
-                                    }
-                                }
-
-                                if (($('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-timeTrendClicked=true]')
-                                        .length > 0) && ($(
-                                        'input.gisPopupKeepDataCheck').attr(
-                                        'data-keepData') === "false")) {
-                                    for (var i = 0; i < widgetTargetList.length; i++) {
-                                        $.event.trigger({
-                                            type: "restoreOriginalTimeTrendFromExternalContentGis_" +
-                                                widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i]
-                                        });
-                                    }
-                                }
-                            }
-                        });
-
-                        $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').off('click');
-                        /*  $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').on('click', function () {
-                              var compLatLngId = $(this).find('input[type=hidden]').val();
-
-                              $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').css("z-index", "-1");
-                              $(this).css("z-index", "999999");
-
-                              $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck').off('click');
-                              $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck[data-id="' + compLatLngId + '"]').click(function () {
-                                  if ($(this).attr("data-keepData") === "false") {
-                                      $(this).attr("data-keepData", "true");
-                                  }
-                                  else {
-                                      $(this).attr("data-keepData", "false");
-                                  }
-                              });
-
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseenter');
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseleave');
-                              $(this).find('button.lastValueBtn[data-id="' + compLatLngId + '"]').hover(function () {
-                                      if ($(this).attr("data-lastDataClicked") === "false") {
-                                          $(this).css("background", $(this).attr('data-color1'));
-                                          $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                          $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                          $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                          $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                          $(this).css("font-weight", "bold");
-                                      }
-
-                                      var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                      var colIndex = $(this).parent().index();
-                                      //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
-                                      var title = $(this).parents("tr").find("td").eq(0).html();
-
-                                      for (var i = 0; i < widgetTargetList.length; i++) {
-                                          $.event.trigger({
-                                              type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                              eventGenerator: $(this),
-                                              targetWidget: widgetTargetList[i],
-                                              value: $(this).attr("data-lastValue"),
-                                              color1: $(this).attr("data-color1"),
-                                              color2: $(this).attr("data-color2"),
-                                              widgetTitle: title
-                                          });
-                                      }
-                                  },
-                                  function () {
-                                      if ($(this).attr("data-lastDataClicked") === "false") {
-                                          $(this).css("background", $(this).attr('data-color2'));
-                                          $(this).css("font-weight", "normal");
-                                      }
-                                      var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-
-                                      for (var i = 0; i < widgetTargetList.length; i++) {
-                                          $.event.trigger({
-                                              type: "mouseOutLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                              eventGenerator: $(this),
-                                              targetWidget: widgetTargetList[i],
-                                              value: $(this).attr("data-lastValue"),
-                                              color1: $(this).attr("data-color1"),
-                                              color2: $(this).attr("data-color2")
-                                          });
-                                      }
-                                  });
-
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseenter');
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseleave');
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + compLatLngId + '"]').hover(function () {
-                                      if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                          $(this).css("background-color", "#e6e6e6");
-                                          $(this).off("hover");
-                                          $(this).off("click");
-                                      }
-                                      else {
-                                          if ($(this).attr("data-timeTrendClicked") === "false") {
-                                              $(this).css("background", $(this).attr('data-color1'));
-                                              $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                              $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                              $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                              $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                              $(this).css("font-weight", "bold");
-                                          }
-
-                                          var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                          var colIndex = $(this).parent().index();
-                                          //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
-                                          var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
-
-                                          for (var i = 0; i < widgetTargetList.length; i++) {
-                                              $.event.trigger({
-                                                  type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                                  eventGenerator: $(this),
-                                                  targetWidget: widgetTargetList[i],
-                                                  value: $(this).attr("data-lastValue"),
-                                                  color1: $(this).attr("data-color1"),
-                                                  color2: $(this).attr("data-color2"),
-                                                  widgetTitle: title
-                                              });
-                                          }
-                                      }
-                                  },
-                                  function () {
-                                      if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                          $(this).css("background-color", "#e6e6e6");
-                                          $(this).off("hover");
-                                          $(this).off("click");
-                                      }
-                                      else {
-                                          if ($(this).attr("data-timeTrendClicked") === "false") {
-                                              $(this).css("background", $(this).attr('data-color2'));
-                                              $(this).css("font-weight", "normal");
-                                          }
-
-                                          var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                          for (var i = 0; i < widgetTargetList.length; i++) {
-                                              $.event.trigger({
-                                                  type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                                  eventGenerator: $(this),
-                                                  targetWidget: widgetTargetList[i],
-                                                  value: $(this).attr("data-lastValue"),
-                                                  color1: $(this).attr("data-color1"),
-                                                  color2: $(this).attr("data-color2")
-                                              });
-                                          }
-                                      }
-                                  });
-
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('click');
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').click(function (event) {
-                                  $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').each(function (i) {
-                                      $(this).css("background", $(this).attr("data-color2"));
-                                  });
-                                  $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').css("font-weight", "normal");
-                                  $(this).css("background", $(this).attr("data-color1"));
-                                  $(this).css("font-weight", "bold");
-                                  $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').attr("data-lastDataClicked", "false");
-                                  $(this).attr("data-lastDataClicked", "true");
-                                  var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                  var colIndex = $(this).parent().index();
-                                  var title = $(this).parents("tr").find("td").eq(0).html();
-
-                                  for (var i = 0; i < widgetTargetList.length; i++) {
-                                      $.event.trigger({
-                                          type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                          eventGenerator: $(this),
-                                          targetWidget: widgetTargetList[i],
-                                          value: $(this).attr("data-lastValue"),
-                                          color1: $(this).attr("data-color1"),
-                                          color2: $(this).attr("data-color2"),
-                                          widgetTitle: title,
-                                          marker: markersCache["" + $(this).attr("data-id") + ""],
-                                          mapRef: map.defaultMapRef,
-                                          field: $(this).attr("data-field"),
-                                          serviceUri: $(this).attr("data-serviceUri"),
-                                          fake: $(this).attr("data-fake"),
-                                          fakeId: $(this).attr("data-fakeId")
-                                      });
-                                  }
-                              });
-
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('click');
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').click(function (event) {
-                                  if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                      $(this).css("background-color", "#e6e6e6");
-                                      $(this).off("hover");
-                                      $(this).off("click");
-                                  }
-                                  else {
-                                  //    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').each(function (i) {
-                                  //        $(this).css("background", $(this).attr("data-color2"));
-                                  //    });
-                                      $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').css("font-weight", "normal");
-                                      $(this).css("background", $(this).attr("data-color1"));
-                                      $(this).css("font-weight", "bold");
-                                      $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').attr("data-timeTrendClicked", "false");
-                                      $(this).attr("data-timeTrendClicked", "true");
-                                      var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                      var colIndex = $(this).parent().index();
-                                      var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
-                                      var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
-
-                                      var now = new Date();
-                                      var lastUpdateDate = new Date(lastUpdateTime);
-                                      var diff = parseFloat(Math.abs(now - lastUpdateDate) / 1000);
-                                      var range = $(this).attr("data-range");
-
-                                      for (var i = 0; i < widgetTargetList.length; i++) {
-                                          $.event.trigger({
-                                              type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                              eventGenerator: $(this),
-                                              targetWidget: widgetTargetList[i],
-                                              range: range,
-                                              color1: $(this).attr("data-color1"),
-                                              color2: $(this).attr("data-color2"),
-                                              widgetTitle: title,
-                                              field: $(this).attr("data-field"),
-                                              serviceUri: $(this).attr("data-serviceUri"), marker: markersCache["" + $(this).attr("data-id") + ""], mapRef: map.defaultMapRef, fake: $(this).attr("data-fake"),
-                                              fakeId: $(this).attr("data-fakeId")
-                                          });
-                                      }
-                                  }
-                              });
-
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
-                                  if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                      $(this).css("background-color", "#e6e6e6");
-                                      $(this).off("hover");
-                                      $(this).off("click");
-                                  }
-                              });
-                          }); */
-                    },
-                    error: function(errorData) {
-                        console.log("Error in data retrieval");
-                        console.log(JSON.stringify(errorData));
-                        var serviceProperties = feature.properties;
-
-                        var underscoreIndex = serviceProperties.serviceType.indexOf("_");
-                        var serviceClass = serviceProperties.serviceType.substr(0,
-                            underscoreIndex);
-                        var serviceSubclass = serviceProperties.serviceType.substr(
-                            underscoreIndex);
-                        serviceSubclass = serviceSubclass.replace(/_/g, " ");
-
-                        popupText = '<h3 class="gisPopupTitle">' + serviceProperties.name +
-                            '</h3>' +
-                            '<p><b>Typology: </b>' + serviceClass + " - " + serviceSubclass +
-                            '</p>' +
-                            '<p><i>Data are limited due to an issue in their retrieval</i></p>';
-
-                        event.target.bindPopup(popupText, {
-                            offset: [15, 0],
-                            minWidth: 215,
-                            maxWidth: 600
-                        }).openPopup();
-                    }
-                });
+                onMarkerClick(event, info);
             });
 
             return marker;
         }
 
         function onMarkerClick(event, info) {
-            //    map.defaultMapRef.off('moveend');
-
             var feature = info.object;
             newpopup = null;
             var popupText, realTimeData, measuredTime, rtDataAgeSec, targetWidgets, color1, color2 = null;
             var urlToCall, fake, fakeId = null;
-
-            //    alert("CLICK!");
 
             if (feature.properties.fake === 'true') {
                 urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + feature.id;
@@ -4600,8 +976,8 @@ if (!isset($_SESSION)) {
                     var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
                     serviceSubclass = serviceSubclass.replace(/_/g, " ");
 
-                    const mapEl = $(`#${widgetName}_map3d`);
-                    const popupDiv = $(`#${widgetName}_deck_popup`);
+                    // TODO: to 3D UI
+                    const popupId = is3dOn ? `#${widgetName}_deck_popup` : `#${widgetName}_map`;
 
                     fatherNode.features[0].properties.targetWidgets = feature.properties.targetWidgets;
                     fatherNode.features[0].properties.color1 = feature.properties.color1;
@@ -4707,15 +1083,6 @@ if (!isset($_SESSION)) {
                     popupText += '</tbody>';
                     popupText += '</table>';
 
-                    /*if (geoJsonServiceData.hasOwnProperty('busLines')) {
-                        if (geoJsonServiceData.busLines.results.bindings.length > 0) {
-                            popupText += '<b>Lines: </b>';
-                            for (var i = 0; i < geoJsonServiceData.busLines.results.bindings.length; i++) {
-                                popupText += '<span style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + geoJsonServiceData.busLines.results.bindings[i].busLine.value + '</span> ';
-                            }
-                        }
-                    }*/
-
                     if (geoJsonServiceData.hasOwnProperty("BusStop")) {
                         popupText +=
                             '<div class="tplProgressBar" style="display:none; width:100%; height:1em; margin-top:1em; background: ' +
@@ -4769,7 +1136,7 @@ if (!isset($_SESSION)) {
 
                     var hasRealTime = false;
 
-                    if (geoJsonServiceData.hasOwnProperty("realtime")) {
+                    if (geoJsonServiceData.hasOwnProperty("realtime") && !geoJsonServiceData.realtime.hasOwnProperty('error')) {
                         if (!jQuery.isEmptyObject(geoJsonServiceData.realtime)) {
                             realTimeData = geoJsonServiceData.realtime;
                             popupText +=
@@ -4965,133 +1332,131 @@ if (!isset($_SESSION)) {
                                 popupText += '<tbody>';
                                 var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn, data7DayBtn,
                                     data30DayBtn, data6MonthsBtn, data1YearBtn = null;
-                                if (realTimeData.head != null) {
-                                    for (var i = 0; i < realTimeData.head.vars.length; i++) {
-                                        if (realTimeData.results.bindings[0][realTimeData.head.vars[i]] !==
-                                            null && realTimeData.results.bindings[0][realTimeData.head.vars[
-                                                i]] !== undefined) {
-                                            if ((realTimeData.results.bindings[0][realTimeData.head.vars[
+                                for (var i = 0; i < realTimeData.head.vars.length; i++) {
+                                    if (realTimeData.results.bindings[0][realTimeData.head.vars[i]] !==
+                                        null && realTimeData.results.bindings[0][realTimeData.head.vars[
+                                            i]] !== undefined) {
+                                        if ((realTimeData.results.bindings[0][realTimeData.head.vars[
                                                 i]]) && (realTimeData.results.bindings[0][realTimeData
                                                 .head.vars[i]
-                                                ].value.trim() !== '') && (realTimeData.head.vars[i] !==
+                                            ].value.trim() !== '') && (realTimeData.head.vars[i] !==
                                                 null) && (realTimeData.head.vars[i] !== 'undefined')) {
-                                                if ((realTimeData.head.vars[i] !== 'updating') && (
+                                            if ((realTimeData.head.vars[i] !== 'updating') && (
                                                     realTimeData.head.vars[i] !== 'measuredTime') && (
                                                     realTimeData.head.vars[i] !== 'instantTime')) {
-                                                    if (!realTimeData.results.bindings[0][realTimeData.head
+                                                if (!realTimeData.results.bindings[0][realTimeData.head
                                                         .vars[i]
-                                                        ].value.includes('Not Available')) {
-                                                        //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
-                                                        /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
-                                                               return str.toUpperCase();
-                                                           });*/
-                                                        dataDesc = realTimeData.head.vars[i];
-                                                        dataVal = realTimeData.results.bindings[0][
-                                                            realTimeData.head.vars[i]
-                                                            ].value;
-                                                        dataLastBtn =
-                                                            '<td><button style="width: 30px" data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="lastValueBtn btn btn-sm " data-fake="' +
-                                                            fake + '" data-fakeid="' + fakeId +
-                                                            '" data-id="' + latLngId + '" data-field="' +
-                                                            realTimeData.head.vars[i] +
-                                                            '" data-serviceUri="' + feature.properties
-                                                                .serviceUri +
-                                                            '" data-lastDataClicked="false" data-targetWidgets="' +
-                                                            targetWidgets + '" data-lastValue="' +
-                                                            realTimeData.results.bindings[0][realTimeData
-                                                                .head.vars[i]
-                                                                ].value + '" data-color1="' + color1 +
-                                                            '" data-color2="' + color2 +
-                                                            '">Last</button></td>';
-                                                        data4HBtn =
-                                                            '<td><button style="width: 30px" data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                            fake + '" data-fakeid="' + fakeId +
-                                                            '" data-id="' + latLngId + '" data-field="' +
-                                                            realTimeData.head.vars[i] +
-                                                            '" data-serviceUri="' + feature.properties
-                                                                .serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' + color1 +
-                                                            '" data-color2="' + color2 +
-                                                            '">4h</button></td>';
-                                                        dataDayBtn =
-                                                            '<td><button style="width: 30px" data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head.vars[i] +
-                                                            '" data-serviceUri="' + feature.properties
-                                                                .serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' + color1 +
-                                                            '" data-color2="' + color2 +
-                                                            '">24h</button></td>';
-                                                        data7DayBtn =
-                                                            '<td><button style="width: 30px" data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head.vars[i] +
-                                                            '" data-serviceUri="' + feature.properties
-                                                                .serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' + color1 +
-                                                            '" data-color2="' + color2 +
-                                                            '">7d</button></td>';
-                                                        data30DayBtn =
-                                                            '<td><button style="width: 30px" data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head.vars[i] +
-                                                            '" data-serviceUri="' + feature.properties
-                                                                .serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' + color1 +
-                                                            '" data-color2="' + color2 +
-                                                            '">30d</button></td>';
-                                                        data6MonthsBtn =
-                                                            '<td><button style="width: 30px" data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head.vars[i] +
-                                                            '" data-serviceUri="' + feature.properties
-                                                                .serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' + color1 +
-                                                            '" data-color2="' + color2 +
-                                                            '">6m</button></td>';
-                                                        data1YearBtn =
-                                                            '<td><button style="width: 30px" data-id="' +
-                                                            latLngId +
-                                                            '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
-                                                            fake + '" data-id="' + fakeId +
-                                                            '" data-field="' + realTimeData.head.vars[i] +
-                                                            '" data-serviceUri="' + feature.properties
-                                                                .serviceUri +
-                                                            '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' +
-                                                            targetWidgets + '" data-color1="' + color1 +
-                                                            '" data-color2="' + color2 +
-                                                            '">1y</button></td>';
-                                                        popupText += '<tr><td>' + dataDesc + '</td><td>' +
-                                                            floatToString(dataVal, 6) + '</td>' +
-                                                            dataLastBtn + data4HBtn + dataDayBtn +
-                                                            data7DayBtn + data30DayBtn + data6MonthsBtn +
-                                                            data1YearBtn + '</tr>';
-                                                    }
-                                                } else {
-                                                    measuredTime = realTimeData.results.bindings[0][
+                                                    ].value.includes('Not Available')) {
+                                                    //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                    /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
+                                                        return str.toUpperCase();
+                                                    });*/
+                                                    dataDesc = realTimeData.head.vars[i];
+                                                    dataVal = realTimeData.results.bindings[0][
                                                         realTimeData.head.vars[i]
-                                                        ].value.replace("T", " ");
-                                                    var now = new Date();
-                                                    var measuredTimeDate = new Date(measuredTime);
-                                                    rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
+                                                    ].value;
+                                                    dataLastBtn =
+                                                        '<td><button style="width: 30px" data-id="' +
+                                                        latLngId +
+                                                        '" type="button" class="lastValueBtn btn btn-sm " data-fake="' +
+                                                        fake + '" data-fakeid="' + fakeId +
+                                                        '" data-id="' + latLngId + '" data-field="' +
+                                                        realTimeData.head.vars[i] +
+                                                        '" data-serviceUri="' + feature.properties
+                                                        .serviceUri +
+                                                        '" data-lastDataClicked="false" data-targetWidgets="' +
+                                                        targetWidgets + '" data-lastValue="' +
+                                                        realTimeData.results.bindings[0][realTimeData
+                                                            .head.vars[i]
+                                                        ].value + '" data-color1="' + color1 +
+                                                        '" data-color2="' + color2 +
+                                                        '">Last</button></td>';
+                                                    data4HBtn =
+                                                        '<td><button style="width: 30px" data-id="' +
+                                                        latLngId +
+                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                        fake + '" data-fakeid="' + fakeId +
+                                                        '" data-id="' + latLngId + '" data-field="' +
+                                                        realTimeData.head.vars[i] +
+                                                        '" data-serviceUri="' + feature.properties
+                                                        .serviceUri +
+                                                        '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' +
+                                                        targetWidgets + '" data-color1="' + color1 +
+                                                        '" data-color2="' + color2 +
+                                                        '">4h</button></td>';
+                                                    dataDayBtn =
+                                                        '<td><button style="width: 30px" data-id="' +
+                                                        latLngId +
+                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                        fake + '" data-id="' + fakeId +
+                                                        '" data-field="' + realTimeData.head.vars[i] +
+                                                        '" data-serviceUri="' + feature.properties
+                                                        .serviceUri +
+                                                        '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' +
+                                                        targetWidgets + '" data-color1="' + color1 +
+                                                        '" data-color2="' + color2 +
+                                                        '">24h</button></td>';
+                                                    data7DayBtn =
+                                                        '<td><button style="width: 30px" data-id="' +
+                                                        latLngId +
+                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                        fake + '" data-id="' + fakeId +
+                                                        '" data-field="' + realTimeData.head.vars[i] +
+                                                        '" data-serviceUri="' + feature.properties
+                                                        .serviceUri +
+                                                        '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' +
+                                                        targetWidgets + '" data-color1="' + color1 +
+                                                        '" data-color2="' + color2 +
+                                                        '">7d</button></td>';
+                                                    data30DayBtn =
+                                                        '<td><button style="width: 30px" data-id="' +
+                                                        latLngId +
+                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                        fake + '" data-id="' + fakeId +
+                                                        '" data-field="' + realTimeData.head.vars[i] +
+                                                        '" data-serviceUri="' + feature.properties
+                                                        .serviceUri +
+                                                        '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' +
+                                                        targetWidgets + '" data-color1="' + color1 +
+                                                        '" data-color2="' + color2 +
+                                                        '">30d</button></td>';
+                                                    data6MonthsBtn =
+                                                        '<td><button style="width: 30px" data-id="' +
+                                                        latLngId +
+                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                        fake + '" data-id="' + fakeId +
+                                                        '" data-field="' + realTimeData.head.vars[i] +
+                                                        '" data-serviceUri="' + feature.properties
+                                                        .serviceUri +
+                                                        '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' +
+                                                        targetWidgets + '" data-color1="' + color1 +
+                                                        '" data-color2="' + color2 +
+                                                        '">6m</button></td>';
+                                                    data1YearBtn =
+                                                        '<td><button style="width: 30px" data-id="' +
+                                                        latLngId +
+                                                        '" type="button" class="timeTrendBtn btn btn-sm " data-fake="' +
+                                                        fake + '" data-id="' + fakeId +
+                                                        '" data-field="' + realTimeData.head.vars[i] +
+                                                        '" data-serviceUri="' + feature.properties
+                                                        .serviceUri +
+                                                        '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' +
+                                                        targetWidgets + '" data-color1="' + color1 +
+                                                        '" data-color2="' + color2 +
+                                                        '">1y</button></td>';
+                                                    popupText += '<tr><td>' + dataDesc + '</td><td>' +
+                                                        floatToString(dataVal, 6) + '</td>' +
+                                                        dataLastBtn + data4HBtn + dataDayBtn +
+                                                        data7DayBtn + data30DayBtn + data6MonthsBtn +
+                                                        data1YearBtn + '</tr>';
                                                 }
+                                            } else {
+                                                measuredTime = realTimeData.results.bindings[0][
+                                                    realTimeData.head.vars[i]
+                                                ].value.replace("T", " ");
+                                                var now = new Date();
+                                                var measuredTimeDate = new Date(measuredTime);
+                                                rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
                                             }
                                         }
                                     }
@@ -5119,84 +1484,69 @@ if (!isset($_SESSION)) {
                             '" class="recreativeEventMapDataContainer recreativeEventMapTplTmtblContainer">Please wait...</div>';
                     }
 
-                    newpopup = L.popup({
-                        closeOnClick: false, //Non lo levare, sennò autoclose:false non funziona
-                        autoClose: false,
-                        offset: [15, 0],
-                        //minWidth: 435,
-                        minWidth: 400,
-                        maxWidth: 1200,
-                        //	className: geoJsonServiceData.hasOwnProperty("BusStop")?"draggableAndResizablePopup":"nonDraggableAndResizablePopup"
-                        className: "draggableAndResizablePopup"
-                    }).setContent(popupText);
+                    // 3D
+                    let newpopup = null;
+                    if (is3dOn) {
+                        const popupDiv = $(`#${widgetName}_deck_popup`);
+                        popupDiv.html(popupText);
+                        popupCoord = info.coordinate;
+                        reloadPopupDiv();
 
-                    //$(`#${widgetName}_deck_popup`).html(popupText);
-                    popupDiv.html(popupText);
+                        const resizableDivs = popupDiv.find('.recreativeEventMapDataContainer');
+                        resizableDivs.css('resize', 'both');
+                        resizableDivs.css('max-width', '750px');
+                        resizableDivs.css('min-width', '400px');
+                        resizableDivs.css('min-height', '100px');
+                        resizableDivs.css('max-height', '320px');
 
-                    // popup-section 2
-                    popupCoord = info.coordinate;
-                    reloadPopupDiv();
-                    // if (info.y + popupDiv.height() < mapEl.height())
-                    //     popupDiv.css('top', info.y);
-                    // else if (info.y - popupDiv.height() < 0)
-                    //     popupDiv.css('top', 0);
-                    // else
-                    //     popupDiv.css('top', info.y - popupDiv.height());
-
-                    // if (info.x + popupDiv.width() < mapEl.width())
-                    //     popupDiv.css('left', info.x);
-                    // else if (info.x - popupDiv.width() < 0)
-                    //     popupDiv.css('left', 0);
-                    // else
-                    //     popupDiv.css('left', info.x - popupDiv.width());
-
-                    const resizableDivs = popupDiv.find('.recreativeEventMapDataContainer');
-                    resizableDivs.css('resize', 'both');
-                    resizableDivs.css('max-width', '750px');
-                    resizableDivs.css('min-width', '400px');
-                    resizableDivs.css('min-height', '100px');
-                    resizableDivs.css('max-height', '320px');
-
-                    const btnClose = $('<button class="deck-close-btn">X</button>');
-                    popupDiv.append(btnClose);
-                    btnClose.on('click', function() {
-                        popupDiv.hide();
-                    });
-                    popupDiv.show();
-
-                    //const draggableBody = $('#<?= $_REQUEST['name_w'] ?>_deck_popup');
-                    //const draggableElement = $('#<?= $_REQUEST['name_w'] ?>_deck_popup .draggable-popup');
-                    //dragPopup(draggableBody, draggableElement);
-
-                    const draggableElement = popupDiv.find('.draggable-popup');
-                    dragPopup(popupDiv, draggableElement);
-
-                    // draggable 
-                    var makeDraggable = function(popup, excluding) {
-                        var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
-                        L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
-                        var draggable = new L.Draggable(popup._container, popup._wrapper);
-                        draggable.enable();
-                        $(".draggableAndResizablePopup").css("cursor", "move");
-                        draggable.on('dragend', function() {
-                            var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
-                            popup.setLatLng(pos);
-                            $(popup._wrapper).siblings(".leaflet-popup-tip-container")
-                                .hide();
+                        const btnClose = $('<button class="deck-close-btn">X</button>');
+                        popupDiv.append(btnClose);
+                        btnClose.on('click', function() {
+                            popupDiv.hide();
                         });
-                        excluding.forEach((excluded) => {
-                            $(excluded).css("cursor", "auto").on("mouseover", function(e) {
-                                draggable.disable();
-                            }).on("mouseout", function(e) {
-                                draggable.enable();
+
+                        popupDiv.show();
+                        const draggableElement = popupDiv.find('.draggable-popup');
+                        dragPopup(popupDiv, draggableElement);
+                    } else {
+                        // 2D
+                        newpopup = L.popup({
+                            closeOnClick: false, //Non lo levare, sennò autoclose:false non funziona
+                            autoClose: false,
+                            offset: [15, 0],
+                            //minWidth: 435,
+                            minWidth: 400,
+                            maxWidth: 1200,
+                            //	className: geoJsonServiceData.hasOwnProperty("BusStop")?"draggableAndResizablePopup":"nonDraggableAndResizablePopup"
+                            className: "draggableAndResizablePopup"
+                        }).setContent(popupText);
+                        event.target.bindPopup(newpopup).openPopup();
+
+                        var makeDraggable = function(popup, excluding) {
+                            var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
+                            L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
+                            var draggable = new L.Draggable(popup._container, popup._wrapper);
+                            draggable.enable();
+                            $(".draggableAndResizablePopup").css("cursor", "move");
+                            draggable.on('dragend', function() {
+                                var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
+                                popup.setLatLng(pos);
+                                $(popup._wrapper).siblings(".leaflet-popup-tip-container")
+                                    .hide();
                             });
-                        });
-                    };
-                    //	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
-                    //if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup .recreativeEventMapDataContainer"]);
-
-
-                    //
+                            excluding.forEach((excluded) => {
+                                $(excluded).css("cursor", "auto").on("mouseover", function(e) {
+                                    draggable.disable();
+                                }).on("mouseout", function(e) {
+                                    draggable.enable();
+                                });
+                            });
+                        };
+                        if (newpopup.options.className == "draggableAndResizablePopup")
+                            makeDraggable(newpopup, [
+                                ".draggableAndResizablePopup .recreativeEventMapDataContainer"
+                            ]);
+                    }
 
                     // resizable 
                     $(".draggableAndResizablePopup .leaflet-popup-content-wrapper").css({
@@ -5214,8 +1564,8 @@ if (!isset($_SESSION)) {
                         "width": "100%",
                         "height": "100%"
                     });
-                    //
 
+                    // Starting popup event trigger section
                     if (geoJsonServiceData.hasOwnProperty("BusStop")) {
 
                         $.getJSON('<?= $whatifmdtendpt ?>?stop=' + encodeURIComponent(serviceProperties[
@@ -6956,20 +3306,20 @@ if (!isset($_SESSION)) {
                     }
 
                     if (hasRealTime) {
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' +
+                        $(popupId + ' button.recreativeEventMapContactsBtn[data-id="' +
                             latLngId + '"]').show();
-                        $('#<?= $_REQUEST['name_w'] ?>draggableAndResizablePopup_map button.recreativeEventMapContactsBtn[data-id="' +
+                        $(popupId + ' button.recreativeEventMapContactsBtn[data-id="' +
                             latLngId + '"]').trigger("click");
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup span.popupLastUpdate[data-id="' +
+                        $(popupId + ' span.popupLastUpdate[data-id="' +
                             latLngId + '"]').html(measuredTime);
                     } else {
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' +
+                        $(popupId + ' button.recreativeEventMapContactsBtn[data-id="' +
                             latLngId + '"]').hide();
                     }
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapDetailsBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapDetailsBtn[data-id="' +
                         latLngId + '"]').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapDetailsBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapDetailsBtn[data-id="' +
                         latLngId + '"]').click(function() {
                         $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                         $(this).parent().siblings('div.recreativeEventMapDetailsContainer')
@@ -6979,9 +3329,9 @@ if (!isset($_SESSION)) {
                         $(this).addClass('recreativeEventMapBtnActive');
                     });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapDescriptionBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapDescriptionBtn[data-id="' +
                         latLngId + '"]').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapDescriptionBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapDescriptionBtn[data-id="' +
                         latLngId + '"]').click(function() {
                         $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                         $(this).parent().siblings('div.recreativeEventMapDescContainer').show();
@@ -6990,9 +3340,9 @@ if (!isset($_SESSION)) {
                         $(this).addClass('recreativeEventMapBtnActive');
                     });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapContactsBtn[data-id="' +
                         latLngId + '"]').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapContactsBtn[data-id="' +
                         latLngId + '"]').click(function() {
                         $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                         $(this).parent().siblings('div.recreativeEventMapContactsContainer')
@@ -7002,9 +3352,9 @@ if (!isset($_SESSION)) {
                         $(this).addClass('recreativeEventMapBtnActive');
                     });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapTplBtn[data-id="' +
                         latLngId + '"]').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapTplBtn[data-id="' +
                         latLngId + '"]').click(function() {
                         $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                         $(this).parent().siblings('div.recreativeEventMapTplContainer').show();
@@ -7027,9 +3377,9 @@ if (!isset($_SESSION)) {
                         }
                     });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplTmtblBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapTplTmtblBtn[data-id="' +
                         latLngId + '"]').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplTmtblBtn[data-id="' +
+                    $(popupId + ' button.recreativeEventMapTplTmtblBtn[data-id="' +
                         latLngId + '"]').click(function() {
                         $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
                         $(this).parent().siblings('div.recreativeEventMapTplTmtblContainer')
@@ -7168,13 +3518,13 @@ if (!isset($_SESSION)) {
                                         });
                                     });
                                     $(".tplpoi_tmtblrow button").click(function() {
-                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' +
+                                        $(popupId + ' button.recreativeEventMapTplBtn[data-id="' +
                                             latLngId + '"]').click();
                                         var t = $(this).data("t");
                                         var observer = new MutationObserver(
                                             function(mutations,
                                                 observer) {
-                                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' +
+                                                $(popupId + ' button.recreativeEventMapTplBtn[data-id="' +
                                                         latLngId + '"]')
                                                     .parent().parent()
                                                     .siblings(
@@ -7186,14 +3536,14 @@ if (!isset($_SESSION)) {
                                                 observer.disconnect();
                                             });
                                         observer.observe($(
-                                                '#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' +
+                                                popupId + ' button.recreativeEventMapTplBtn[data-id="' +
                                                 latLngId + '"]')
                                             .parent().parent().siblings(
                                                 'div.recreativeEventMapTplContainer'
                                             )[0], {
                                                 childList: true
                                             });
-                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapTplBtn[data-id="' +
+                                        $(popupId + ' button.recreativeEventMapTplBtn[data-id="' +
                                                 latLngId + '"]').parent()
                                             .parent().siblings(
                                                 'div.recreativeEventMapTplContainer'
@@ -7205,25 +3555,25 @@ if (!isset($_SESSION)) {
                     });
 
                     if (hasRealTime) {
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.recreativeEventMapContactsBtn[data-id="' +
+                        $(popupId + ' button.recreativeEventMapContactsBtn[data-id="' +
                             latLngId + '"]').trigger("click");
                     }
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup table.gisPopupTable[id="' + latLngId +
+                    $(popupId + ' table.gisPopupTable[id="' + latLngId +
                         '"] button.btn-sm').css("background", color2);
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup table.gisPopupTable[id="' + latLngId +
+                    $(popupId + ' table.gisPopupTable[id="' + latLngId +
                         '"] button.btn-sm').css("border", "none");
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup table.gisPopupTable[id="' + latLngId +
+                    $(popupId + ' table.gisPopupTable[id="' + latLngId +
                         '"] button.btn-sm').css("color", "black");
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup table.gisPopupTable[id="' + latLngId +
+                    $(popupId + ' table.gisPopupTable[id="' + latLngId +
                         '"] button.btn-sm').focus(function() {
                         $(this).css("outline", "0");
                     });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup input.gisPopupKeepDataCheck[data-id="' +
+                    $(popupId + ' input.gisPopupKeepDataCheck[data-id="' +
                         latLngId + '"]').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup input.gisPopupKeepDataCheck[data-id="' +
+                    $(popupId + ' input.gisPopupKeepDataCheck[data-id="' +
                         latLngId + '"]').click(function() {
                         if ($(this).attr("data-keepData") === "false") {
                             $(this).attr("data-keepData", "true");
@@ -7232,9 +3582,9 @@ if (!isset($_SESSION)) {
                         }
                     });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').off('mouseenter');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').off('mouseleave');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn[data-id="' +
+                    $(popupId + ' button.lastValueBtn').off('mouseenter');
+                    $(popupId + ' button.lastValueBtn').off('mouseleave');
+                    $(popupId + ' button.lastValueBtn[data-id="' +
                         latLngId + '"]').hover(function() {
                             if ($(this).attr("data-lastDataClicked") === "false") {
                                 $(this).css("background", color1);
@@ -7290,45 +3640,45 @@ if (!isset($_SESSION)) {
 
                     //Disabilitiamo i 4Hours se last update più vecchio di 4 ore
                     if (rtDataAgeSec > 14400) {
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                        $(popupId + ' button.timeTrendBtn[data-id="' +
                             latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "true");
                         //Disabilitiamo i 24Hours se last update più vecchio di 24 ore
                         if (rtDataAgeSec > 86400) {
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                            $(popupId + ' button.timeTrendBtn[data-id="' +
                                 latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "true");
                             //Disabilitiamo i 7 days se last update più vecchio di 7 days
                             if (rtDataAgeSec > 604800) {
-                                $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                                $(popupId + ' button.timeTrendBtn[data-id="' +
                                     latLngId + '"][data-range="7/DAY"]').attr("data-disabled",
                                     "true");
                                 //Disabilitiamo i 30 days se last update più vecchio di 30 days
                                 //if(rtDataAgeSec > 18144000)
                                 if (rtDataAgeSec > 2592000) {
-                                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                                    $(popupId + ' button.timeTrendBtn[data-id="' +
                                         latLngId + '"][data-range="30/DAY"]').attr("data-disabled",
                                         "true");
                                     //Disabilitiamo i 6 months se last update più vecchio di 180 days
                                     if (rtDataAgeSec > 15552000) {
-                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                                        $(popupId + ' button.timeTrendBtn[data-id="' +
                                             latLngId + '"][data-range="180/DAY"]').attr(
                                             "data-disabled", "true");
                                         //Disabilitiamo i 1 year se last update più vecchio di 365 days
                                         if (rtDataAgeSec > 31536000) {
-                                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                                            $(popupId + ' button.timeTrendBtn[data-id="' +
                                                 latLngId + '"][data-range="365/DAY"]').attr(
                                                 "data-disabled", "true");
                                         } else {
-                                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                                            $(popupId + ' button.timeTrendBtn[data-id="' +
                                                 latLngId + '"][data-range="365/DAY"]').attr(
                                                 "data-disabled", "false");
                                         }
                                     } else {
-                                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                                        $(popupId + ' button.timeTrendBtn[data-id="' +
                                             latLngId + '"][data-range="180/DAY"]').attr(
                                             "data-disabled", "false");
                                     }
                                 } else {
-                                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                                    $(popupId + ' button.timeTrendBtn[data-id="' +
                                         latLngId + '"][data-range="30/DAY"]').attr("data-disabled",
                                         "false");
                                 }
@@ -7338,27 +3688,27 @@ if (!isset($_SESSION)) {
                                     "false");
                             }
                         } else {
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                            $(popupId + ' button.timeTrendBtn[data-id="' +
                                 latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
                         }
                     } else {
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                        $(popupId + ' button.timeTrendBtn[data-id="' +
                             latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "false");
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                        $(popupId + ' button.timeTrendBtn[data-id="' +
                             latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                        $(popupId + ' button.timeTrendBtn[data-id="' +
                             latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                        $(popupId + ' button.timeTrendBtn[data-id="' +
                             latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                        $(popupId + ' button.timeTrendBtn[data-id="' +
                             latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                        $(popupId + ' button.timeTrendBtn[data-id="' +
                             latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
                     }
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').off('mouseenter');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').off('mouseleave');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                    $(popupId + ' button.timeTrendBtn').off('mouseenter');
+                    $(popupId + ' button.timeTrendBtn').off('mouseleave');
+                    $(popupId + ' button.timeTrendBtn[data-id="' +
                         latLngId + '"]').hover(function() {
                             if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) ||
                                 ($(this).attr("data-disabled") === "true")) {
@@ -7431,19 +3781,19 @@ if (!isset($_SESSION)) {
                             }
                         });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn[data-id=' + latLngId +
+                    $(popupId + ' button.lastValueBtn[data-id=' + latLngId +
                         ']').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn[data-id=' + latLngId +
+                    $(popupId + ' button.lastValueBtn[data-id=' + latLngId +
                         ']').click(function(event) {
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').each(
+                        $(popupId + ' button.lastValueBtn').each(
                             function(i) {
                                 $(this).css("background", $(this).attr("data-color2"));
                             });
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').css(
+                        $(popupId + ' button.lastValueBtn').css(
                             "font-weight", "normal");
                         $(this).css("background", $(this).attr("data-color1"));
                         $(this).css("font-weight", "bold");
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn').attr(
+                        $(popupId + ' button.lastValueBtn').attr(
                             "data-lastDataClicked", "false");
                         $(this).attr("data-lastDataClicked", "true");
                         var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
@@ -7469,7 +3819,7 @@ if (!isset($_SESSION)) {
                             });
                         }
 
-                        $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                        $(popupId + ' button.timeTrendBtn[data-id="' +
                             latLngId + '"]').each(function(i) {
                             if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1)
                                     .html())) || ($(this).attr("data-disabled") ===
@@ -7482,8 +3832,8 @@ if (!isset($_SESSION)) {
 
                     });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').off('click');
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').click(function(
+                    $(popupId + ' button.timeTrendBtn').off('click');
+                    $(popupId + ' button.timeTrendBtn').click(function(
                         event) {
                         if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) ||
                             ($(this).attr("data-disabled") === "true")) {
@@ -7491,13 +3841,13 @@ if (!isset($_SESSION)) {
                             $(this).off("hover");
                             $(this).off("click");
                         } else {
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').css(
+                            $(popupId + ' button.timeTrendBtn').css(
                                 "background", $(this).attr("data-color2"));
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn').css(
+                            $(popupId + ' button.timeTrendBtn').css(
                                 "font-weight", "normal");
                             $(this).css("background", $(this).attr("data-color1"));
                             $(this).css("font-weight", "bold");
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn')
+                            $(popupId + ' button.timeTrendBtn')
                                 .attr("data-timeTrendClicked", "false");
                             $(this).attr("data-timeTrendClicked", "true");
                             var widgetTargetList = $(this).attr("data-targetWidgets").split(
@@ -7534,7 +3884,7 @@ if (!isset($_SESSION)) {
                                 });
                             }
 
-                            $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                            $(popupId + ' button.timeTrendBtn[data-id="' +
                                 latLngId + '"]').each(function(i) {
                                 if (isNaN(parseFloat($(this).parents('tr').find('td')
                                         .eq(1).html())) || ($(this).attr(
@@ -7547,7 +3897,7 @@ if (!isset($_SESSION)) {
                         }
                     });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-id="' +
+                    $(popupId + ' button.timeTrendBtn[data-id="' +
                         latLngId + '"]').each(function(i) {
                         if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) ||
                             ($(this).attr("data-disabled") === "true")) {
@@ -7566,7 +3916,7 @@ if (!isset($_SESSION)) {
                             var widgetTargetList = popupContent.find("button.lastValueBtn").eq(
                                 0).attr("data-targetWidgets").split(',');
 
-                            if (($('#<?= $_REQUEST['name_w'] ?>_deck_popup button.lastValueBtn[data-lastDataClicked=true]')
+                            if (($(popupId + ' button.lastValueBtn[data-lastDataClicked=true]')
                                     .length > 0) && ($('input.gisPopupKeepDataCheck').attr(
                                     'data-keepData') === "false")) {
                                 for (var i = 0; i < widgetTargetList.length; i++) {
@@ -7582,7 +3932,7 @@ if (!isset($_SESSION)) {
                                 }
                             }
 
-                            if (($('#<?= $_REQUEST['name_w'] ?>_deck_popup button.timeTrendBtn[data-timeTrendClicked=true]')
+                            if (($(popupId + ' button.timeTrendBtn[data-timeTrendClicked=true]')
                                     .length > 0) && ($('input.gisPopupKeepDataCheck').attr(
                                     'data-keepData') === "false")) {
                                 for (var i = 0; i < widgetTargetList.length; i++) {
@@ -7597,220 +3947,7 @@ if (!isset($_SESSION)) {
                         }
                     });
 
-                    $('#<?= $_REQUEST['name_w'] ?>_deck_popup div.leaflet-popup').off('click');
-                    /*  $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').on('click', function () {
-                          var compLatLngId = $(this).find('input[type=hidden]').val();
-
-                          $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').css("z-index", "-1");
-                          $(this).css("z-index", "999999");
-
-                          $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck').off('click');
-                          $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck[data-id="' + compLatLngId + '"]').click(function () {
-                              if ($(this).attr("data-keepData") === "false") {
-                                  $(this).attr("data-keepData", "true");
-                              }
-                              else {
-                                  $(this).attr("data-keepData", "false");
-                              }
-                          });
-
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseenter');
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseleave');
-                          $(this).find('button.lastValueBtn[data-id="' + compLatLngId + '"]').hover(function () {
-                                  if ($(this).attr("data-lastDataClicked") === "false") {
-                                      $(this).css("background", $(this).attr('data-color1'));
-                                      $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                      $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                      $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                      $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                      $(this).css("font-weight", "bold");
-                                  }
-
-                                  var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                  var colIndex = $(this).parent().index();
-                                  //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
-                                  var title = $(this).parents("tr").find("td").eq(0).html();
-
-                                  for (var i = 0; i < widgetTargetList.length; i++) {
-                                      $.event.trigger({
-                                          type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                          eventGenerator: $(this),
-                                          targetWidget: widgetTargetList[i],
-                                          value: $(this).attr("data-lastValue"),
-                                          color1: $(this).attr("data-color1"),
-                                          color2: $(this).attr("data-color2"),
-                                          widgetTitle: title
-                                      });
-                                  }
-                              },
-                              function () {
-                                  if ($(this).attr("data-lastDataClicked") === "false") {
-                                      $(this).css("background", $(this).attr('data-color2'));
-                                      $(this).css("font-weight", "normal");
-                                  }
-                                  var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-
-                                  for (var i = 0; i < widgetTargetList.length; i++) {
-                                      $.event.trigger({
-                                          type: "mouseOutLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                          eventGenerator: $(this),
-                                          targetWidget: widgetTargetList[i],
-                                          value: $(this).attr("data-lastValue"),
-                                          color1: $(this).attr("data-color1"),
-                                          color2: $(this).attr("data-color2")
-                                      });
-                                  }
-                              });
-
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseenter');
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseleave');
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + compLatLngId + '"]').hover(function () {
-                                  if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                      $(this).css("background-color", "#e6e6e6");
-                                      $(this).off("hover");
-                                      $(this).off("click");
-                                  }
-                                  else {
-                                      if ($(this).attr("data-timeTrendClicked") === "false") {
-                                          $(this).css("background", $(this).attr('data-color1'));
-                                          $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                          $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                          $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                          $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                          $(this).css("font-weight", "bold");
-                                      }
-
-                                      var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                      var colIndex = $(this).parent().index();
-                                      //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
-                                      var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
-
-                                      for (var i = 0; i < widgetTargetList.length; i++) {
-                                          $.event.trigger({
-                                              type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                              eventGenerator: $(this),
-                                              targetWidget: widgetTargetList[i],
-                                              value: $(this).attr("data-lastValue"),
-                                              color1: $(this).attr("data-color1"),
-                                              color2: $(this).attr("data-color2"),
-                                              widgetTitle: title
-                                          });
-                                      }
-                                  }
-                              },
-                              function () {
-                                  if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                      $(this).css("background-color", "#e6e6e6");
-                                      $(this).off("hover");
-                                      $(this).off("click");
-                                  }
-                                  else {
-                                      if ($(this).attr("data-timeTrendClicked") === "false") {
-                                          $(this).css("background", $(this).attr('data-color2'));
-                                          $(this).css("font-weight", "normal");
-                                      }
-
-                                      var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                      for (var i = 0; i < widgetTargetList.length; i++) {
-                                          $.event.trigger({
-                                              type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                              eventGenerator: $(this),
-                                              targetWidget: widgetTargetList[i],
-                                              value: $(this).attr("data-lastValue"),
-                                              color1: $(this).attr("data-color1"),
-                                              color2: $(this).attr("data-color2")
-                                          });
-                                      }
-                                  }
-                              });
-
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('click');
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').click(function (event) {
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').each(function (i) {
-                                  $(this).css("background", $(this).attr("data-color2"));
-                              });
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').css("font-weight", "normal");
-                              $(this).css("background", $(this).attr("data-color1"));
-                              $(this).css("font-weight", "bold");
-                              $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').attr("data-lastDataClicked", "false");
-                              $(this).attr("data-lastDataClicked", "true");
-                              var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                              var colIndex = $(this).parent().index();
-                              var title = $(this).parents("tr").find("td").eq(0).html();
-
-                              for (var i = 0; i < widgetTargetList.length; i++) {
-                                  $.event.trigger({
-                                      type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                      eventGenerator: $(this),
-                                      targetWidget: widgetTargetList[i],
-                                      value: $(this).attr("data-lastValue"),
-                                      color1: $(this).attr("data-color1"),
-                                      color2: $(this).attr("data-color2"),
-                                      widgetTitle: title,
-                                      marker: markersCache["" + $(this).attr("data-id") + ""],
-                                      mapRef: map.defaultMapRef,
-                                      field: $(this).attr("data-field"),
-                                      serviceUri: $(this).attr("data-serviceUri"),
-                                      fake: $(this).attr("data-fake"),
-                                      fakeId: $(this).attr("data-fakeId")
-                                  });
-                              }
-                          });
-
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('click');
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').click(function (event) {
-                              if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                  $(this).css("background-color", "#e6e6e6");
-                                  $(this).off("hover");
-                                  $(this).off("click");
-                              }
-                              else {
-                              //    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').each(function (i) {
-                              //        $(this).css("background", $(this).attr("data-color2"));
-                              //    });
-                                  $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').css("font-weight", "normal");
-                                  $(this).css("background", $(this).attr("data-color1"));
-                                  $(this).css("font-weight", "bold");
-                                  $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').attr("data-timeTrendClicked", "false");
-                                  $(this).attr("data-timeTrendClicked", "true");
-                                  var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                  var colIndex = $(this).parent().index();
-                                  var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
-                                  var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
-
-                                  var now = new Date();
-                                  var lastUpdateDate = new Date(lastUpdateTime);
-                                  var diff = parseFloat(Math.abs(now - lastUpdateDate) / 1000);
-                                  var range = $(this).attr("data-range");
-
-                                  for (var i = 0; i < widgetTargetList.length; i++) {
-                                      $.event.trigger({
-                                          type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                          eventGenerator: $(this),
-                                          targetWidget: widgetTargetList[i],
-                                          range: range,
-                                          color1: $(this).attr("data-color1"),
-                                          color2: $(this).attr("data-color2"),
-                                          widgetTitle: title,
-                                          field: $(this).attr("data-field"),
-                                          serviceUri: $(this).attr("data-serviceUri"),
-                                          marker: markersCache["" + $(this).attr("data-id") + ""],
-                                          mapRef: map.defaultMapRef,
-                                          fake: $(this).attr("data-fake"),
-                                          fakeId: $(this).attr("data-fakeId")
-                                      });
-                                  }
-                              }
-                          });
-
-                          $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
-                              if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                  $(this).css("background-color", "#e6e6e6");
-                                  $(this).off("hover");
-                                  $(this).off("click");
-                              }
-                          });
-                      }); */
+                    $(popupId + ' div.leaflet-popup').off('click');
                 },
                 error: function(errorData) {
                     console.log("Error in data retrieval");
@@ -8745,10 +4882,31 @@ if (!isset($_SESSION)) {
                                         latLngId + '"][data-range="7/DAY"]').attr(
                                         "data-disabled", "true");
                                     //Disabilitiamo i 30 days se last update più vecchio di 30 days
-                                    if (rtDataAgeSec > 18144000) {
+                                    //if(rtDataAgeSec > 18144000)
+                                    if (rtDataAgeSec > 2592000) {
                                         $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpenBodyDefaultMap button.timeTrendBtn[data-id="' +
                                             latLngId + '"][data-range="30/DAY"]').attr(
                                             "data-disabled", "true");
+                                        //Disabilitiamo i 6 months se last update più vecchio di 180 days
+                                        if (rtDataAgeSec > 15552000) {
+                                            $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpenBodyDefaultMap button.timeTrendBtn[data-id="' +
+                                                latLngId + '"][data-range="180/DAY"]').attr(
+                                                "data-disabled", "true");
+                                            //Disabilitiamo i 1 year se last update più vecchio di 365 days
+                                            if (rtDataAgeSec > 31536000) {
+                                                $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpenBodyDefaultMap button.timeTrendBtn[data-id="' +
+                                                        latLngId + '"][data-range="365/DAY"]')
+                                                    .attr("data-disabled", "true");
+                                            } else {
+                                                $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpenBodyDefaultMap button.timeTrendBtn[data-id="' +
+                                                        latLngId + '"][data-range="365/DAY"]')
+                                                    .attr("data-disabled", "false");
+                                            }
+                                        } else {
+                                            $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpenBodyDefaultMap button.timeTrendBtn[data-id="' +
+                                                latLngId + '"][data-range="180/DAY"]').attr(
+                                                "data-disabled", "false");
+                                        }
                                     } else {
                                         $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpenBodyDefaultMap button.timeTrendBtn[data-id="' +
                                             latLngId + '"][data-range="30/DAY"]').attr(
@@ -8776,6 +4934,12 @@ if (!isset($_SESSION)) {
                                 "false");
                             $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpenBodyDefaultMap button.timeTrendBtn[data-id="' +
                                 latLngId + '"][data-range="30/DAY"]').attr("data-disabled",
+                                "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpenBodyDefaultMap button.timeTrendBtn[data-id="' +
+                                latLngId + '"][data-range="180/DAY"]').attr("data-disabled",
+                                "false");
+                            $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpenBodyDefaultMap button.timeTrendBtn[data-id="' +
+                                latLngId + '"][data-range="365/DAY"]').attr("data-disabled",
                                 "false");
                         }
 
@@ -9610,8 +5774,7 @@ if (!isset($_SESSION)) {
                 lngInit = widgetParameters.latLng[1];
             }
             if (widgetParameters.zoom != null && widgetParameters.zoom != '') {
-                zoomInit = parseInt(widgetParameters.zoom);
-                $('#deck-zoom-box').text(zoomInit);
+                zoomInit = parseFloat(widgetParameters.zoom);
             }
             if (widgetParameters.pitch != null && widgetParameters.pitch != '') {
                 pitchInit = widgetParameters.pitch;
@@ -9654,47 +5817,19 @@ if (!isset($_SESSION)) {
             if (styleParameters != null && styleParameters.buildingType != null) {
                 switch (styleParameters.buildingType) {
                     case 'default':
-                        var buildingLayer = createBuildingLayer({
-                            data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
-                            getFillColor: buildingColor,
-                            getLineColor: [255, 255, 255],
-                        });
-                        layers.building = buildingLayer;
+                        loadLightBuildings();
                         break;
                     case 'mesh':
-                        // change to riccardo building
                         selectTickMenuBuilding('building-mesh');
-
-                        // scene 1
-                        const data = {
-                            position: [11.2501685710125, 43.7720562843695]
-                        };
-                        // const scene1 = "../widgets/layers/edificato/model_textured_not_compr.glb";
-                        const scene1 = "../widgets/layers/edificato/flat-buildings-1.0.0/model_textured.glb";
-                        const mesh1 = createMeshLayer(data, "scene1-layer", scene1);
-                        layers.building = mesh1;
-
+                        loadHighResBuildingsGLB();
                         break;
                     case 'mesh-notext':
                         selectTickMenuBuilding('building-mesh-notext');
-
-                        const data1 = {
-                            position: [11.2501685710125, 43.7720562843695]
-                        };
-                        const scene = "../widgets/layers/edificato/centre.gltf";
-                        const mesh = createMeshLayer(data1, "scene-layer", scene, buildingColor);
-                        layers.building = mesh;
-
+                        loadNotTexturedBuildings(); 
                         break;
                 }
             } else {
-                layers.building = [];
-                var buildingLayer = createBuildingLayer({
-                    data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
-                    getFillColor: buildingColor,
-                    getLineColor: [255, 255, 255],
-                });
-                layers.building.push(buildingLayer);
+                loadLightBuildings();
             }
 
             const height = $(`#${widgetName}_map3d`).height();
@@ -9716,7 +5851,7 @@ if (!isset($_SESSION)) {
                 latitude: latInit,
                 longitude: lngInit,
                 zoom: zoomInit,
-                maxZoom: 22,
+                maxZoom: 20,
                 minZoom: 1,
                 pitch: pitchInit,
                 maxPitch: 90,
@@ -9741,7 +5876,7 @@ if (!isset($_SESSION)) {
                 },
                 container: `${widgetName}_map3d`,
                 effects,
-                //_animate: true,
+                // _animate: true,
                 views: new deck.MapView({
                     farZMultiplier: 1.5,
                     altitude: 1,
@@ -9854,7 +5989,7 @@ if (!isset($_SESSION)) {
                     viewport
                 }) => {
                     cursorType = 'grab';
-                    // $('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'visible');
+                    // $(popupId + '').css('visibility', 'visible');
                 },
                 onDrag: ({
                     viewport
@@ -9963,7 +6098,7 @@ if (!isset($_SESSION)) {
                     manuallyControlled = true;
                 }
                 if (currentViewState.zoom + 1 >= currentViewState.maxZoom)
-                    currentViewState.zoom =  currentViewState.maxZoom;
+                    currentViewState.zoom = currentViewState.maxZoom;
                 else
                     currentViewState.zoom += 1;
                 map3d.setProps({
@@ -9995,10 +6130,10 @@ if (!isset($_SESSION)) {
                 $('#deck-zoom-box').text(parseInt(currentViewState.zoom));
             });
 
-            $('#deck-movement-mode').on('click', function (event) {
+            $('#deck-movement-mode').on('click', function(event) {
                 setDeckMode('movement');
             });
-            $('#deck-selection-mode').on('click', function (event) {
+            $('#deck-selection-mode').on('click', function(event) {
                 setDeckMode('selection');
             });
 
@@ -10044,79 +6179,64 @@ if (!isset($_SESSION)) {
 
             $('#no-building').click(function(event) {
                 selectTickMenuBuilding('no-building');
-                layers.building = [];
-                layers.dynamicBuildings = [];
+                hideMenu(mapMenuId);
+                clearBuildings();
                 updateLayers();
             });
 
             $('#building-light').click(function(event) {
                 //change to corti building
                 selectTickMenuBuilding('building-light');
-                var buildingLayer = createBuildingLayer({
-                    data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
-                    getFillColor: buildingColor,
-                    getLineColor: [255, 255, 255],
-                });
-                layers.dynamicBuildings = [];
-                layers.building = buildingLayer;
-                deltaTimestamp = 0;
+                hideMenu(mapMenuId);
+                clearBuildings();
+                loadLightBuildings();
                 updateLayers();
+                // TODO: really need to reload?
                 reloadLight();
             });
             $('#building-mesh').click(function(event) {
                 // change to riccardo building
                 selectTickMenuBuilding('building-mesh');
-                // scene 1
-
-                const data = {
-                    position: [11.2501685710125, 43.7720562843695]
-                };
-                const scene1 = "../widgets/layers/edificato/flat-buildings-1.0.0/model_textured.glb";
-                const mesh1 = createMeshLayer(data, "scene1-layer", scene1);
-                deltaTimestamp = 43200000;
-
-                layers.dynamicBuildings = [];
-                layers.building = mesh1;
-
+                hideMenu(mapMenuId);
+                clearBuildings();
+                loadHighResBuildingsGLB();
                 updateLayers();
                 reloadLight();
             });
             $('#building-mesh-notext').click(function(event) {
                 selectTickMenuBuilding('building-mesh-notext');
-                const data1 = {
-                    position: [11.2501685710125, 43.7720562843695]
-                };
-                const scene = "../widgets/layers/edificato/centre.gltf";
-                const mesh = createMeshLayer(data1, "scene-layer", scene, buildingColor);
-                layers.building = mesh;
-                layers.dynamicBuildings = [];
-
+                hideMenu(mapMenuId);
+                clearBuildings();
+                loadNotTexturedBuildings();
                 updateLayers();
                 reloadLight();
             });
             $('#building-elevated').click(function(event) {
                 selectTickMenuBuilding('building-elevated');
-
-                const scene1src = `../widgets/layers/edificato/elevated-buildings-1.0.0/sangiorgio_textured.glb`;
-                const scene1pos = [11.255241284985537, 43.765521723567616, -46.79];
-                const scene2src = `../widgets/layers/edificato/elevated-buildings-1.0.0/model_textured.glb`;
-                const scene2pos = [11.2501685710125, 43.7720562843695, 0];
-                layers.dynamicBuildings = [];
-                layers.building = null;
-                layers.dynamicBuildings.push(createSceneGraphLayer({
-                    source: scene1src,
-                    positions: scene1pos
-                }));
-                const data = {
-                    position: scene2pos,
-                };
-                const mesh = createMeshLayer(data, "cutted-building-layer", scene2src, buildingColor);
-                layers.building = mesh;
-
+                hideMenu(mapMenuId);
+                clearBuildings();
+                loadHighResBuildingsGLB();
+                loadElevatedBuildings();
                 updateLayers();
                 reloadLight();
             });
-
+            $('#building-mesh-gltf').click(() => {
+                selectTickMenuBuilding('building-mesh-gltf');
+                hideMenu(mapMenuId);
+                clearBuildings();
+                loadHighResBuildingsGltf();
+                updateLayers();
+                reloadLight();
+            });
+            $('#building-mesh-splitted').click(() => {
+                selectTickMenuBuilding('building-mesh-splitted');
+                hideMenu(mapMenuId);
+                clearBuildings();
+                loadHighResBuildingsCutted();
+                loadHighValueBuildings();
+                updateLayers();
+                reloadLight();
+            });
             if (!is3dOn) {
                 $(`#${widgetName}_map3d`).css('visibility', 'hidden');
             }
@@ -20722,8 +16842,6 @@ if (!isset($_SESSION)) {
 
                                                 event.legendColors = heatmapLegendColors;
                                                 map.eventsOnMap.push(event);
-
-
                                                 loadingDiv.setStatus('ok');
                                             }
                                         }
@@ -20823,6 +16941,7 @@ if (!isset($_SESSION)) {
                     //   resizeMapView(map.defaultMapRef);
                 }
             });
+
             $(document).on('removeEvacuationPlans', function(event) {
                 if (event.target === map.mapName) {
                     if (lastPopup !== null) {
@@ -20839,6 +16958,7 @@ if (!isset($_SESSION)) {
                     //console.log(map.eventsOnMap.length);
                 }
             });
+
             $(document).on('removeSelectorPin', function(event) {
                 function removeSelectorPin() {
                     var passedData = event.passedData;
@@ -20896,6 +17016,7 @@ if (!isset($_SESSION)) {
                 }
                 eventMapManager.legacyTrigger(event, removeSelectorPin);
             });
+
             $(document).on('removeBubbles', function(event) {
                 function removeBubble() {
                     const passedData = event.passedData;
@@ -20904,6 +17025,7 @@ if (!isset($_SESSION)) {
                 }
                 eventMapManager.legacyTrigger(event, removeBubble);
             });
+
             $(document).on('removeEventFI', function(event) {
                 if (event.target === map.mapName) {
                     let passedData = event.passedData;
@@ -20933,6 +17055,7 @@ if (!isset($_SESSION)) {
                     //  resizeMapView(map.defaultMapRef);
                 }
             });
+
             $(document).on('removeResource', function(event) {
                 if (event.target === map.mapName) {
                     let passedData = event.passedData;
@@ -20962,6 +17085,7 @@ if (!isset($_SESSION)) {
                     //   resizeMapView(map.defaultMapRef);
                 }
             });
+
             $(document).on('removeOperatorEvent', function(event) {
                 if (event.target === map.mapName) {
                     let passedData = event.passedData;
@@ -20991,6 +17115,7 @@ if (!isset($_SESSION)) {
                     //  resizeMapView(map.defaultMapRef);
                 }
             });
+
             $(document).on('removeTrafficEvent', function(event) {
                 if (event.target === map.mapName) {
                     let passedData = event.passedData;
@@ -21021,6 +17146,7 @@ if (!isset($_SESSION)) {
                     //  resizeMapView(map.defaultMapRef);
                 }
             });
+
             $(document).on('removeTrafficRealTimeDetails', function(event) {
                 if (event.target === map.mapName) {
                     if (is3dOn) {
@@ -21041,6 +17167,7 @@ if (!isset($_SESSION)) {
                     //  resizeMapView(map.defaultMapRef);
                 }
             });
+
             $(document).on('removeHeatmap', function(event) {
 
                 function removeHeatmap(resetPageFlag) {
@@ -21187,6 +17314,7 @@ if (!isset($_SESSION)) {
                 }
                 map.defaultMapRef.off('click', heatmapClick);
             });
+
             $(document).on('toggleAddMode', function(event) {
                 eventMapManager.setAddMode(event.addMode);
             });
@@ -21298,7 +17426,6 @@ if (!isset($_SESSION)) {
                 refinementStrategy: 'best-available',
                 color: [255, 255, 255],
                 elevationData: elevationUrl,
-
                 ...props,
             });
 
@@ -21546,29 +17673,93 @@ if (!isset($_SESSION)) {
                 getOrientation: [0, 0, 90],
                 getScale: [0.722, 1, 0.722],
                 getPosition: d => d.position,
-                onClick: (event) => {
-                    // TODO: Add better timer
-                    return true;
-                },
             });
         }
 
         function createSceneGraphLayer(props) {
-            const {positions, source } = props;
+            const {position, scenegraph} = props;
+            const name = scenegraph.split("/").pop();
             return new deck.ScenegraphLayer({
-                id: `${source}-scene-layer`,
+                id: `${name}-scene-layer`,
                 data: [{
-                    positions
+                    position
                 }],
                 pickable: false,
-                scenegraph: source,
                 _lighting: 'pbr',
-                getOrientation: [0, 0, 0],
-                getScale: [0.722, 0.722, 1],
-                sizeScale: 1,
-                getPosition: d => d.positions,
+                getPosition: d => d.position,
                 ...props,
             });
+        }
+
+        function clearBuildings() {
+            layers.building = null;
+            layers.dynamicBuildings = [];
+        }
+
+        function loadLightBuildings() {
+            layers.building = createBuildingLayer({
+                data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
+                getFillColor: buildingColor,
+                getLineColor: [255, 255, 255],
+            });
+        }
+
+        function loadHighResBuildingsGLB() {
+            layers.building = createSceneGraphLayer({
+                scenegraph: "../widgets/layers/edificato/flat-buildings-1.0.0/model_textured.glb",
+                ...riccardoBuildingsProp,
+            });
+        }
+
+        function loadHighResElevatedBuildingsGLB() {
+            layers.building = createSceneGraphLayer({
+                scenegraph: "../widgets/layers/edificato/elevated-buildings-1.0.0/model_textured.glb",
+                ...riccardoBuildingsProp,
+            });
+        }
+
+        function loadHighResBuildingsGltf() {
+            layers.building = createSceneGraphLayer({
+                scenegraph: "../widgets/layers/edificato/flat-buildings-1.0.0/model_textured.gltf",
+                ...riccardoBuildingsProp,
+            });
+        }
+
+        function loadHighResBuildingsCutted() {
+            layers.building = createSceneGraphLayer({
+                scenegraph: "../widgets/layers/edificato/flat-buildings-1.0.0/model_textured_cut.glb",
+                ...riccardoBuildingsProp,
+            });
+        }
+
+        function loadHighValueBuildings() {
+            const HVBs = [
+                'lanzi',
+                'pontevecchio',
+                'scroce',
+                'slorenzo',
+                'smn',
+            ];
+            for (let hvb of HVBs) {
+                layers.dynamicBuildings.push(createSceneGraphLayer({
+                    scenegraph: `../widgets/layers/edificato/edifici_aggiunti/${hvb}.glb`,
+                    ...riccardoBuildingsProp,
+                }));
+            }
+        }
+
+        function loadNotTexturedBuildings() {
+            layers.building = createSceneGraphLayer({
+                scenegraph: "../widgets/layers/edificato/centre.gltf",
+                ...riccardoBuildingsProp,
+            });
+        }
+
+        function loadElevatedBuildings() {
+            layers.dynamicBuildings.push(createSceneGraphLayer({
+                scenegraph: "../widgets/layers/edificato/elevated-buildings-1.0.0/sangiorgio_textured.glb",
+                ...marcoBuildingsProp,
+            }));
         }
 
         function createIconLayer(id = 'icon-layer') {
@@ -21701,10 +17892,6 @@ if (!isset($_SESSION)) {
                 },
                 ...props,
             });
-
-        }
-
-        function create3DSensorLayer(props) {
 
         }
 
@@ -22198,6 +18385,7 @@ if (!isset($_SESSION)) {
                 viewport = new deck.WebMercatorViewport(selectionState);
             const nw = viewport.unproject([0, 0]);
             const ne = viewport.unproject([viewport.width, 0]);
+            // **** Uncomment to show the selected zone ****
             // layers.selection = new deck.PolygonLayer({
             //     id: 'polygon-layer',
             //     data: [{
@@ -22403,6 +18591,8 @@ if (!isset($_SESSION)) {
             $('#no-building i').addClass('hidden');
             $('#building-mesh-notext i').addClass('hidden');
             $('#building-mesh i').addClass('hidden');
+            $('#building-mesh-gltf i').addClass('hidden');
+            $('#building-mesh-splitted i').addClass('hidden');
             $(`#${idSelected} i`).removeClass('hidden');
         }
 
@@ -22934,7 +19124,7 @@ if (!isset($_SESSION)) {
                         viewport
                     }) => {
                         cursorType = 'grab';
-                        // $('#<?= $_REQUEST['name_w'] ?>_deck_popup').css('visibility', 'visible');
+                        // $(popupId + '').css('visibility', 'visible');
                     },
                     onDrag: ({
                         viewport
@@ -24883,31 +21073,11 @@ if (!isset($_SESSION)) {
                         triggerEventOnIotApp(map.defaultMapRef, currentValue);
                     })
                 }
-
                 getMenuAjaxCall();
-
-                // parte mappa 3D - CORTI
-                // setTimeout(function() {
-                //     map.default3DMapRef = initMapsAndListeners(map);
-                //     setTimeout(function() {
-                //         if (defaultOrthomapMenuItem != null) {
-                //             if (defaultOrthomapMenuItem.id != null) {
-                //                 if (defaultOrthomapMenuItem.external == true) {
-                //                     $('#defaultMap').addClass('hidden');
-                //                 }
-                //                 $('#' + defaultOrthomapMenuItem.id).removeClass(
-                //                     'hidden');
-                //             }
-                //         }
-                //     }, 500);
-                // }, 3000);
-                // hide fullscreen
                 $('#<?= $_REQUEST['name_w'] ?>_buttonsDiv').addClass('hidden');
-
             },
             error: function(errorData) {
                 console.error('Errore durante il ricevimento dei parametri widgets');
-
             }
         });
 
@@ -29085,10 +25255,10 @@ if (!isset($_SESSION)) {
         }
 
         function addLayerWMS(evt, menu) {
-            let imageType = 'png';
-            if (menu.imageType) {
-                imageType = menu.imageType;
-            }
+            let imageType = menu.imageType || 'png';
+            // if (menu.imageType) {
+            //     imageType = menu.imageType;
+            // }
             for (var subLayerIndex = 0; subLayerIndex < menu.layers.length; subLayerIndex++) {
 
                 // zIndex
@@ -29314,7 +25484,7 @@ if (!isset($_SESSION)) {
 
 
 
-    .dropdown-menu .dropdown-item {
+    #universal-map-overlay .dropdown-menu .dropdown-item {
         padding-left: 10px;
     }
 
@@ -29571,7 +25741,7 @@ if (!isset($_SESSION)) {
         z-index: 440;
     }
 
-    .dropdown-menu {
+    #universal-map-overlay .dropdown-menu {
         display: inline-flex;
         writing-mode: vertical-lr;
         flex-wrap: wrap;
@@ -29579,7 +25749,7 @@ if (!isset($_SESSION)) {
         overflow: hidden;
     }
 
-    .dropdown-menu > li {
+    #universal-map-overlay .dropdown-menu > li {
         writing-mode: horizontal-tb;
         margin: 2px;
     }
@@ -29590,22 +25760,22 @@ if (!isset($_SESSION)) {
         /* height: calc(100% - 40px); */
     }
 
-    .dropdown-menu {
+    #universal-map-overlay .dropdown-menu {
         background-color: white;
     }
 
-    .dropdown-header {
+    #universal-map-overlay .dropdown-header {
         color: black;
         padding: 3px 10px!important;
         font-weight: bold;
     }
 
-    .dropdown-item {
+    #universal-map-overlay .dropdown-item {
         color: #2c2c2c;
     }
 
     .map-light-menu {
-        writing-mode: horizontal-tb;
+        writing-mode: horizontal-tb!important;
         position: absolute;
         padding: 10px;
     }
@@ -29752,7 +25922,9 @@ if (!isset($_SESSION)) {
                             <li role="separator" class="divider"></li>
                             <li class="dropdown-header" id="checkablesHeader">Building sources</li>
                             <li><a class="dropdown-item" href="#" id="no-building"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;No Building</a></li>
-                            <li><a class="dropdown-item" href="#" id="building-mesh"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed</a></li>
+                            <li><a class="dropdown-item" href="#" id="building-mesh"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed (GLB)</a></li>
+                            <li><a class="dropdown-item" href="#" id="building-mesh-gltf"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed (Gltf)</a></li>
+                            <li><a class="dropdown-item" href="#" id="building-mesh-splitted"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed (splitted GLB)</a></li>
                             <li><a class="dropdown-item" href="#" id="building-mesh-notext"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed No
                                     Texture</a></li>
                             <li><a class="dropdown-item" href="#" id="building-elevated"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building elevated</a></li>

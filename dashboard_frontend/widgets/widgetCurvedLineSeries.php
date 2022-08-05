@@ -77,6 +77,7 @@
         var counterday = 1;
         var currWeekDay = null;
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
+        var areaOpacity = null;
 
         //var trendType = 'monthWeek';
         //var trendType = 'dayHour';
@@ -963,6 +964,13 @@
 
             if (chartSeriesObject != null) {
             //    if (chartSeriesObject[0].data.length > 0) {
+                    if (areaOpacity == null) {
+                        if (styleParameters.areaChartOpacityM) {
+                            areaOpacity = styleParameters.areaChartOpacityM;
+                        } else {
+                            areaOpacity = 0.75;
+                        }
+                    }
 
                     Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
                         chart: {
@@ -1185,6 +1193,7 @@
                         },
                         plotOptions: {
                             series: {
+                                fillOpacity: areaOpacity,
                                 connectNulls: true,
                                 groupPadding: 0.1,
                                 pointPadding: 0,
