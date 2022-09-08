@@ -1132,7 +1132,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         }
 
                         //Heatmap - Daniele
-                        if (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org") || $(this).attr("data-query").includes(geoServerUrl)) && (widgetTargetList.length > 0)) {
+                        if (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) && (widgetTargetList.length > 0)) {
 
                             if ($(this).attr("data-onMap") === "false") {
 
@@ -1142,7 +1142,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 const isAddingTrafficFlowManagerHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true")
 
                                 $('.gisPinLink').each(function( index ) {
-                                    if((($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org") || $(this).attr("data-query").includes(geoServerUrl)) && $(this).attr("data-query") != thisQuery) || $(this).attr("data-query").includes("<?= $od_hostname ?>")) {
+                                    if((($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) && $(this).attr("data-query") != thisQuery) || $(this).attr("data-query").includes("<?= $od_hostname ?>")) {
                                         if (sourceSelector == $(this).offsetParent()[0]) {
                                             if ($(this).attr("data-onMap") === "true") {
 
@@ -1220,11 +1220,20 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         if ($(this).attr("data-query").includes("<?= $od_hostname ?>") && (widgetTargetList.length > 0)) {
                             if ($(this).attr("data-onMap") === "false") {
                                 var sourceSelector = event.currentTarget.offsetParent;
+
+                                const isAddingTrafficFlowManagerHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true")
+
                                 $('.gisPinLink').each(function( index ) {
-                                    if((($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org") || $(this).attr("data-query").includes(geoServerUrl)) && $(this).attr("data-query") != thisQuery) || $(this).attr("data-query").includes("<?= $od_hostname ?>")) {
+                                    if((($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) && $(this).attr("data-query") != thisQuery) || $(this).attr("data-query").includes("<?= $od_hostname ?>")) {
                                     //if($(this).attr("data-query").includes("wmsserver.snap4city.org")) {
                                         if (sourceSelector == $(this).offsetParent()[0]) {
                                             if ($(this).attr("data-onMap") === "true") {
+
+                                                const isRemovingTrafficFlowManagerPin = $(this).attr("data-query").includes("&trafficflowmanager=true");
+                                                if ((!isAddingTrafficFlowManagerHeatmap && isRemovingTrafficFlowManagerPin) || (isAddingTrafficFlowManagerHeatmap && !isRemovingTrafficFlowManagerPin)) {
+                                                    return;
+                                                }
+
                                                 $(this).attr("data-onMap", "false");
                                                 if ($(this).attr("data-symbolMode") === 'auto') {
                                                     if ($(this).attr("data-iconTextMode") == "icon" && $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") != null) {
@@ -1283,7 +1292,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         }
 
-                        if ((($(this).attr("data-query").includes("scenario")) !== true) && (($(this).attr("data-query").includes("whatif")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes("wmsserver.snap4city.org") || $(this).attr("data-query").includes(geoServerUrl)) !== true) && (($(this).attr("data-query").includes("<?= $od_hostname ?>")) !== true) && (widgetTargetList.length > 0)) {
+                        if ((($(this).attr("data-query").includes("scenario")) !== true) && (($(this).attr("data-query").includes("whatif")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl)) !== true) && (($(this).attr("data-query").includes("<?= $od_hostname ?>")) !== true) && (widgetTargetList.length > 0)) {
 
                             if ($(this).attr("data-onMap") === "false") {
                                 $(this).attr("data-onMap", "true");
