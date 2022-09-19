@@ -118,8 +118,8 @@ if (!isset($_SESSION)) {
 <script src="../widgets/layers/KML.js"></script>
 
 <!-- Adreani deckgl -->
-<!-- <script src="../widgets/layers/deckgl.min.js"></script> -->
-<script src="../widgets/layers/deckgl-beta.min.js"></script>
+<script src="../widgets/layers/deckgl.min.js"></script>
+<!-- <script src="../widgets/layers/deckgl-beta.min.js"></script> -->
 <script src="../widgets/layers/gif-frames.js"></script>
 <script src="../widgets/layers/webgl-utils.js"></script>
 <script src="../widgets/layers/m4.js"></script>
@@ -182,7 +182,7 @@ if (!isset($_SESSION)) {
         ?>
 
         const version = '1.2.0';
-        const channel = 'beta 1';
+        const channel = 'stable';
 
         /** @type {MapManager} */
         var mapManger;
@@ -323,6 +323,68 @@ if (!isset($_SESSION)) {
         var updateTimeout;
         var eventsGenerated = {};
         var deckMode = 'movement';
+
+        var supportedOrthomap = {
+        };
+
+        const supportedBuildings = {
+            none: {
+                displayedName: 'No Buildings',
+                id: 'menu-no-building',
+                action: () => {}
+            },
+            extruded: {
+                displayedName: 'Extruded Buildings',
+                id: 'menu-extruded-building',
+                action: () => {
+                    loadLightBuildings();
+                },
+            },
+            glb: {
+                displayedName: 'Meshed GLB Buildings',
+                id: 'menu-glb-building',
+                action: () => {
+                    loadHighResBuildingsGLB();
+                }
+            },
+            gltf: {
+                displayedName: 'Meshed GLTF Buildings',
+                id: 'menu-gltf-building',
+                action: () => {
+                    loadHighResBuildingsGltf();
+                },
+            },
+            splitted: {
+                displayedName: 'Meshed GLB Splitted',
+                id: 'menu-glb-splitted-building',
+                action: () => {
+                    loadHighResBuildingsCutted();
+                    loadHighValueBuildings();
+                },
+            },
+            no_text: {
+                displayedName: 'Meshed Not Textured',
+                id: 'menu-no-text-building',
+                action: () => {
+                    loadNotTexturedBuildings();
+                },
+            },
+            elevated: {
+                displayedName: 'Meshed with San Giorgio',
+                id: 'menu-combo-building',
+                action: () => {
+                    loadElevatedBuildings();
+                    loadHighResElevatedBuildingsGLB();
+                },
+            },
+            sgiorgio: {
+                displayedName: 'San Giorgio',
+                id: 'menu-sgiorgio-building',
+                action: () => {
+                    loadElevatedBuildings();
+                },
+            },
+        }
 
         const riccardoBuildingsProp = {
             position: [11.2501685710125, 43.7720562843695],
@@ -5820,11 +5882,9 @@ if (!isset($_SESSION)) {
                         loadLightBuildings();
                         break;
                     case 'mesh':
-                        selectTickMenuBuilding('building-mesh');
                         loadHighResBuildingsGLB();
                         break;
                     case 'mesh-notext':
-                        selectTickMenuBuilding('building-mesh-notext');
                         loadNotTexturedBuildings(); 
                         break;
                 }
@@ -5860,10 +5920,6 @@ if (!isset($_SESSION)) {
                 width: width,
             };
 
-            // const backgroundLayer = createTileLayer('../img/Sky/background_tile.png', 'background-layer');
-            const backgroundLayer = createTiledBackgroundLayer();
-            layers.background = backgroundLayer;
-
             map3d = new deck.DeckGL({
                 mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
                 viewState: currentViewState,
@@ -5882,11 +5938,7 @@ if (!isset($_SESSION)) {
                     altitude: 1,
                 }),
                 layers: [
-                    backgroundLayer,
                     defaultLayer,
-                    //mapLayer,
-                    //heatmapLayer,
-                    //trafficLayer,
                     layers.building,
                 ],
                 _customRender: (redrawReason) => {
@@ -6003,6 +6055,12 @@ if (!isset($_SESSION)) {
                 }) => {
                     manuallyControlled = false;
                     cursorType = 'grabbing';
+                    hideMenu(mapMenuId);
+                    hideMenu(lightMenuId);
+                },
+                onClick: (info, event) => {
+                    hideMenu(mapMenuId);
+                    hideMenu(lightMenuId);
                 },
             });
 
@@ -6170,73 +6228,65 @@ if (!isset($_SESSION)) {
             $('#2DButton').click(function(event) {
                 is3dOn = false;
                 $(`#${widgetName}_map3d`).css('visibility', 'hidden');
+                $('#2DButton i').removeClass('hidden');
+                $('#3DButton i').addClass('hidden');
+                hideMenu(mapMenuId);
             });
 
             $('#3DButton').click(function(event) {
                 is3dOn = true;
                 $(`#${widgetName}_map3d`).css('visibility', 'visible');
+                $('#2DButton i').addClass('hidden');
+                $('#3DButton i').removeClass('hidden');
+                hideMenu(mapMenuId);
             });
 
-            $('#no-building').click(function(event) {
-                selectTickMenuBuilding('no-building');
-                hideMenu(mapMenuId);
-                clearBuildings();
-                updateLayers();
-            });
+            let lastBuildingIdInsert = null;
+            for (let key in supportedBuildings) {
+                const building = supportedBuildings[key];
+                const menuBuildingTemplate = `
+                    <li>
+                        <a class="dropdown-item" href="#" id="${building.id}">
+                            <i class="fa appendable-icon hidden fa-map-pin"></i>
+                                &nbsp;${building.displayedName}
+                        </a>
+                    </li>
+                `;
+                const menuItem = $(menuBuildingTemplate);
+                const menuHeader = $('#buildingHeader');
+                if (lastBuildingIdInsert == null)
+                    menuItem.insertAfter(menuHeader);
+                else
+                    menuItem.insertAfter($(`#${lastBuildingIdInsert}`).parent());
+                menuItem.click(() => {
+                    selectTickMenuBuilding(building.id);
+                    hideMenu(mapMenuId);
+                    clearBuildings();
+                    building.action();
+                    updateLayers();
+                    reloadLight();
+                });
+                lastBuildingIdInsert = building.id;
+            }
 
-            $('#building-light').click(function(event) {
-                //change to corti building
-                selectTickMenuBuilding('building-light');
-                hideMenu(mapMenuId);
-                clearBuildings();
-                loadLightBuildings();
-                updateLayers();
-                // TODO: really need to reload?
-                reloadLight();
-            });
-            $('#building-mesh').click(function(event) {
-                // change to riccardo building
-                selectTickMenuBuilding('building-mesh');
-                hideMenu(mapMenuId);
-                clearBuildings();
-                loadHighResBuildingsGLB();
-                updateLayers();
-                reloadLight();
-            });
-            $('#building-mesh-notext').click(function(event) {
-                selectTickMenuBuilding('building-mesh-notext');
-                hideMenu(mapMenuId);
-                clearBuildings();
-                loadNotTexturedBuildings();
-                updateLayers();
-                reloadLight();
-            });
-            $('#building-elevated').click(function(event) {
-                selectTickMenuBuilding('building-elevated');
-                hideMenu(mapMenuId);
-                clearBuildings();
-                loadHighResBuildingsGLB();
-                loadElevatedBuildings();
-                updateLayers();
-                reloadLight();
-            });
-            $('#building-mesh-gltf').click(() => {
-                selectTickMenuBuilding('building-mesh-gltf');
-                hideMenu(mapMenuId);
-                clearBuildings();
-                loadHighResBuildingsGltf();
-                updateLayers();
-                reloadLight();
-            });
-            $('#building-mesh-splitted').click(() => {
-                selectTickMenuBuilding('building-mesh-splitted');
-                hideMenu(mapMenuId);
-                clearBuildings();
-                loadHighResBuildingsCutted();
-                loadHighValueBuildings();
-                updateLayers();
-                reloadLight();
-            });
+            switch (styleParameters.buildingType) {
+                case 'default':
+                    selectTickMenuBuilding(supportedBuildings.extruded.id);
+                    break;
+                case 'mesh':
+                    selectTickMenuBuilding(supportedBuildings.glb.id);
+                    break;
+                case 'mesh-notext':
+                    selectTickMenuBuilding(supportedBuildings.no_text.id);
+                    break;
+            }
+
+            setTimeout(() => {
+                selectTickMenuOrthomap('defaultMap');
+                if (styleParameters.defaultOrthomap)
+                    selectTickMenuOrthomap(styleParameters.defaultOrthomap);
+            }, 1000);
+
             if (!is3dOn) {
                 $(`#${widgetName}_map3d`).css('visibility', 'hidden');
             }
@@ -7237,6 +7287,9 @@ if (!isset($_SESSION)) {
                                             color2,
                                         });
                                         let rtOn = false;
+                                        if (totalSvgCnt == 0) {
+                                            loadingRTDiv.setStatus('empty');
+                                        }
                                         for (let feature of fatherGeoJsonNode.features) {
                                             const uri = feature.properties.serviceUri;
                                             const url =
@@ -14052,6 +14105,7 @@ if (!isset($_SESSION)) {
                                         getEndColor: (d) => d.nextColor.map(x => x / 255),
                                     });
                                     layers.traffic.push(trafficLayer);
+                                    layers.pin.push(createMockIcon());
                                     updateLayers();
                                     return;
                                 }
@@ -17153,6 +17207,7 @@ if (!isset($_SESSION)) {
                         // removeLayerSet('traffic-line-layer', layers.traffic);
                         delete apiUrls3D['traffic']
                         layers.traffic = [];
+                        removeLayerSet('mock-icon-layer', layers.pin);
                         updateLayers();
                     }
                     for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
@@ -17413,6 +17468,7 @@ if (!isset($_SESSION)) {
                     rScaler: 7.97 / 3,
                     gScaler: 7.97 / 3,
                     bScaler: 7.97 / 3,
+                    // offset di 47.79
                     offset: -50.97
                     // offset: -3.18
                 },
@@ -17680,7 +17736,7 @@ if (!isset($_SESSION)) {
             const {position, scenegraph} = props;
             const name = scenegraph.split("/").pop();
             return new deck.ScenegraphLayer({
-                id: `${name}-scene-layer`,
+                id: `${name.replace('.', '-')}-scene-layer`,
                 data: [{
                     position
                 }],
@@ -17748,6 +17804,30 @@ if (!isset($_SESSION)) {
             }
         }
 
+        function loadOSMB() {
+            layers.building = createBuildingLayer({
+                data: '../widgets/layers/edificato/osmb.geojson',
+                getFillColor: buildingColor,
+                getLineColor: [255, 255, 255],
+                getElevation: f => f.properties.heightmean - 47.79,
+            });
+        }
+        function loadOSMBRedux() {
+            layers.building = createBuildingLayer({
+                data: '../widgets/layers/edificato/osmb_redux.geojson',
+                getFillColor: buildingColor,
+                getLineColor: [255, 255, 255],
+                getElevation: f => f.properties.heightmean - 47.79,
+            });
+        }
+        function loadBorders() {
+            layers.building = createBuildingLayer({
+                data: '../widgets/layers/edificato/tile_grid.geojson',
+                getFillColor: buildingColor,
+                getLineColor: [255, 255, 255],
+            });
+        }
+
         function loadNotTexturedBuildings() {
             layers.building = createSceneGraphLayer({
                 scenegraph: "../widgets/layers/edificato/centre.gltf",
@@ -17808,7 +17888,7 @@ if (!isset($_SESSION)) {
                 pickable: true,
                 sizeScale: 7,
                 getPosition: d => d.geometry.coordinates,
-                getSize: d => 5,
+                getSize: 5,
                 loadOptions: {
                     imagebitmap: {
                         resizeWidth: 50,
@@ -17819,6 +17899,33 @@ if (!isset($_SESSION)) {
                     depthTest: false
                 },
                 ...props
+            });
+        }
+
+        function createMockIcon() {
+            const mockData = [{
+                position: [
+                    currentViewState.longitude,
+                    currentViewState.latitude,
+                ],
+            }];
+            return new deck.IconLayer({
+                id: 'mock-icon-layer',
+                getPosition: d => d.position,
+                getIcon: d => {
+                    return { 
+                        url: '../img/gisMapIcons/Environment_Air_quality_monitoring_station.png',
+                        width: 32,
+                        height: 37,
+                        anchorY: 37,
+                        anchorX: 0
+                    }
+                },
+                data: mockData,
+                pickable: true,
+                sizeScale: 7,
+                opacity: 0,
+                getSize: 5,
             });
         }
 
@@ -17836,9 +17943,6 @@ if (!isset($_SESSION)) {
             return new deck.IconLayer({
                 id: 'sensor-layer',
                 pickable: true,
-                //iconAtlas: d => d.iconPath,
-                //iconMapping: ICON_MAPPING,
-                //getIcon: d => 'sensor',
                 getIcon: d => {
                     if (d.hover == false) {
                         return {
@@ -17861,7 +17965,7 @@ if (!isset($_SESSION)) {
 
                 sizeScale: 7,
                 getPosition: d => d.geometry.coordinates,
-                getSize: d => 5,
+                getSize: 5,
                 parameters: {
                     depthTest: false
                 },
@@ -18258,24 +18362,50 @@ if (!isset($_SESSION)) {
         }
 
         function updateLayers() {
+            let usedLayers = [];
+            if (layers.terrain)
+                usedLayers.push(layers.terrain);
+            if (layers.orthomaps)
+                usedLayers.push(layers.orthomaps);
+            if (layers.wms)
+                usedLayers.push(layers.wms);
+            if (layers.trafficWms)
+                usedLayers.push(layers.trafficWms);
+            usedLayers.push(...layers.cycling);
+            if (layers.bus)
+                usedLayers.push(layers.bus);
+            if (layers.building)
+                usedLayers.push(layers.building);
+            usedLayers.push(...layers.dynamicBuildings);
+            if (layers.hoverBuilding)
+                usedLayers.push(layers.hoverBuilding);
+            if (layers.selection)
+                usedLayers.push(layers.selection);
+            usedLayers.push(...layers.fixedPins);
+            usedLayers.push(...layers.pin);
+            usedLayers.push(...layers.traffic);
             map3d.setProps({
                 layers: [
-                    // layers.background,
-                    layers.terrain,
-                    layers.orthomaps,
-                    layers.wms,
-                    layers.trafficWms,
-                    ...layers.cycling,
-                    layers.bus,
-                    layers.building,
-                    ...layers.dynamicBuildings,
-                    layers.hoverBuilding,
-                    layers.selection,
-                    ...layers.traffic,
-                    ...layers.fixedPins,
-                    ...layers.pin,
+                    ...usedLayers
                 ]
             })
+            // map3d.setProps({
+            //     layers: [
+            //         layers.terrain,
+            //         layers.orthomaps,
+            //         layers.wms,
+            //         layers.trafficWms,
+            //         ...layers.cycling,
+            //         layers.bus,
+            //         layers.building,
+            //         ...layers.dynamicBuildings,
+            //         layers.hoverBuilding,
+            //         layers.selection,
+            //         ...layers.fixedPins,
+            //         ...layers.pin,
+            //         ...layers.traffic,
+            //     ]
+            // })
         }
 
         function formatDatetime(timestamp) {
@@ -18587,12 +18717,16 @@ if (!isset($_SESSION)) {
         }
 
         function selectTickMenuBuilding(idSelected) {
-            $('#building-light i').addClass('hidden');
-            $('#no-building i').addClass('hidden');
-            $('#building-mesh-notext i').addClass('hidden');
-            $('#building-mesh i').addClass('hidden');
-            $('#building-mesh-gltf i').addClass('hidden');
-            $('#building-mesh-splitted i').addClass('hidden');
+            selectTickMenu(idSelected, supportedBuildings);
+        }
+
+        function selectTickMenuOrthomap(idSelected) {
+            selectTickMenu(idSelected, supportedOrthomap);
+        }
+
+        function selectTickMenu(idSelected, supportedMenu) {
+            for (let key in supportedMenu)
+                $(`#${supportedMenu[key].id} i`).addClass('hidden');
             $(`#${idSelected} i`).removeClass('hidden');
         }
 
@@ -18916,6 +19050,11 @@ if (!isset($_SESSION)) {
                             .toLowerCase() +
                             '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                         break;
+                    case 'empty':
+                        htmlText = $('<p class="gisMapLoadingDivTextPar">empty response for <b>' + text
+                            .toLowerCase() +
+                            '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                        break;
                     default:
                         htmlText = $('<p>Error during set status for loading div</p>')
                         break;
@@ -18945,7 +19084,7 @@ if (!isset($_SESSION)) {
                     timeout,
                     status
                 } = this.props;
-                if (autoremove && (status == 'ok' || status == 'ko'))
+                if (autoremove && (status == 'ok' || status == 'ko' || status == 'empty'))
                     this.remove(timeout);
             }
             _generateCSS() {
@@ -19860,7 +19999,9 @@ if (!isset($_SESSION)) {
                     new CrestLayer({
                         id: `crest-${this.props.id}`,
                         data: this.props.data,
-
+                        parameters: {
+                            depthTest: false
+                        },
                     }),
                     // ...planeLayers
                 ];
@@ -20226,6 +20367,7 @@ if (!isset($_SESSION)) {
                 3, 5, 4,
             ];
 
+            // not used
             _getMesh() {
                 const {
                     getStartPosition,
@@ -20840,7 +20982,7 @@ if (!isset($_SESSION)) {
                     elevationData: dataUrl,
                     bounds,
                     elevationDecoder,
-                    meshMaxError,
+                    meshMaxError: 9,
                     signal
                 });
                 const surface = textureUrl ? // If surface image fails to load, the tile should still be displayed
@@ -25217,11 +25359,16 @@ if (!isset($_SESSION)) {
                         for (let itemMenu of parameters.dropdownMenu.reverse()) {
                             const itemTemplate = `
                             <li class="appendable">
-                                <a class="dropdown-item" href="#">
-                                    <i class="fa appendable-icon hidden fa-check" id="${itemMenu.id}"></i>
-                                ${itemMenu.label}</a>
+                                <a class="dropdown-item" href="#" id="${itemMenu.id}">
+                                    <i class="fa appendable-icon hidden fa-map-pin"></i>
+                                &nbsp;${itemMenu.label}</a>
                             </li>
                             `;
+                            if (itemMenu.header == 'layers')
+                                supportedOrthomap[itemMenu.id] = {
+                                    id: itemMenu.id,
+                                    name: itemMenu.label
+                                }
                             const itemElement = $(itemTemplate); 
                             let headerElement = $(`#${itemMenu.header}Header`);
                             headerElement.last().after(itemElement);
@@ -25358,6 +25505,7 @@ if (!isset($_SESSION)) {
 
         // change tileLayer of the map: light, dark, etc
         function addTileLayer(evt, menu) {
+            selectTickMenuOrthomap(menu.id);
             if (is3dOn) {
                 const tileUrls = [];
                 tileUrls.push(menu.linkUrl.replace("{s}", "a"));
@@ -25465,12 +25613,12 @@ if (!isset($_SESSION)) {
     }
 
     #<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d {
-        position: relative;
-        top: -100%;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
+        position: relative!important;
+        top: -100%!important;
+        left: 0!important;
+        width: 100%!important;
+        height: 100%!important;
+        overflow: hidden!important;
         z-index: 999;
         background-color: white;
     }
@@ -25913,22 +26061,24 @@ if (!isset($_SESSION)) {
                     <div class="map-menu map-menu-container">
                         <ul class="dropdown-menu map-menu" id="dropdown-menu-id" aria-labelledby="dropdownMenu1">
                             <li class="dropdown-header">2D / 3D</li>
-                            <li><a class="dropdown-item" href="#" id="2DButton">2D Map</a></li>
-                            <li><a class="dropdown-item" href="#" id="3DButton">3D Map</a></li>
+                            <li>
+                                <a class="dropdown-item" href="#" id="2DButton">
+                                    <i class="fa appendable-icon hidden fa-map-pin"></i>
+                                    &nbsp;2D Map
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" id="3DButton">
+                                    <i class="fa appendable-icon fa-map-pin"></i>
+                                    &nbsp;3D Map
+                                </a>
+                            </li>
                             <li role="separator" class="divider"></li>
                             <li class="dropdown-header" id="layersHeader">External Providers Open Orthomaps</li>
                             <li role="separator" class="divider"></li>
                             <li class="dropdown-header" id="checkablesHeader">WMS &amp; GeoJSON Orthomaps</li>
                             <li role="separator" class="divider"></li>
-                            <li class="dropdown-header" id="checkablesHeader">Building sources</li>
-                            <li><a class="dropdown-item" href="#" id="no-building"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;No Building</a></li>
-                            <li><a class="dropdown-item" href="#" id="building-mesh"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed (GLB)</a></li>
-                            <li><a class="dropdown-item" href="#" id="building-mesh-gltf"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed (Gltf)</a></li>
-                            <li><a class="dropdown-item" href="#" id="building-mesh-splitted"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed (splitted GLB)</a></li>
-                            <li><a class="dropdown-item" href="#" id="building-mesh-notext"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building Meshed No
-                                    Texture</a></li>
-                            <li><a class="dropdown-item" href="#" id="building-elevated"><i class="fa appendable-icon hidden fa-map-pin"></i>&nbsp;Building elevated</a></li>
-                            <li><a class="dropdown-item" href="#" id="building-light"><i class="fa appendable-icon fa-map-pin"></i>&nbsp;Building Light</a></li>
+                            <li class="dropdown-header" id="buildingHeader">Building sources</li>
                         </ul>
                     </div>
                 </div>

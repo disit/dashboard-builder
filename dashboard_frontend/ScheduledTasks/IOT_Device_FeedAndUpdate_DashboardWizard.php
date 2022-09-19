@@ -203,6 +203,9 @@ $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']
 $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
 
 $accessToken=get_access_token($token_endpoint, $username, $password, $client_id);
+if (empty($accessToken)) {
+    exit("\nAccess Token Not Valid. Program Terminated.\n");
+}
 $apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=IOTID";
 $apiResults = file_get_contents($apiUrl);
 
@@ -334,7 +337,7 @@ if($rsIP) {
             "OPTIONAL {?s km4c:isMobile ?mobile.} " .
             "OPTIONAL {?s <http://www.w3.org/ns/ssn/implements> ?imp.} " .
             "?s a ?sType. " .
-            "?sType rdfs:subClassOf ?sCategory. " .
+            "?sType rdfs:subClassOf* ?sCategory. " .
             "?sCategory rdfs:subClassOf km4c:Service. " .
             "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)}";
 

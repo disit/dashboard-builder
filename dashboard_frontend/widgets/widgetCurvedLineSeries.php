@@ -82,6 +82,56 @@
         //var trendType = 'monthWeek';
         //var trendType = 'dayHour';
 
+        $(document).off('showCurvedLinesFromExternalContent_' + widgetName);
+        $(document).on('showCurvedLinesFromExternalContent_' + widgetName, function(event)
+        {
+            if(event.targetWidget === widgetName)
+            {
+
+                clearInterval(countdownRef);
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
+
+                var newValue = event.passedData;
+                //    var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
+                //    point.update(newValue);
+
+                rowParameters = newValue;
+                if(idMetric === 'AggregationSeries' || nrMetricType != null)
+                {
+                    //    rowParameters = JSON.parse(rowParameters);
+                    if (typicaltrend == 'Yes') {
+                        if (rowParameters != null && rowParameters.length > 1) {
+                            rowParameters.splice(1, rowParameters.length - 1);
+                        }
+                        if (trendType == 'dayHour') {
+                            //rowParameters = rowParameters.replace('[', '');
+                            //rowParameters = rowParameters.replace(']', '');
+                            //var row = '[';
+                            //for (var i = 0; i < 7; i++) {
+                            //    if (i < 6) {
+                            //        row += rowParameters + ', ';
+                            //    } else {
+                            //        row += rowParameters + ']';
+                            //    }
+                            //}
+                            //rowParameters = row;
+                            for (var k = 1; k < 7; k++) {
+                                rowParameters.push(rowParameters[k - 1]);
+                            }
+                        }
+                    }
+
+                    //    timeRange = widgetData.params.temporal_range_w;
+                    populateWidget(true, timeRange, null, timeNavCount);
+                }
+                else
+                {
+                    populateWidget(false, null, null, timeNavCount);
+                }
+
+            }
+        });
 
         var pattern = /Percentuale\//;
         console.log("Entrato in widgetCurvedLineSeries --> " + widgetName); 
@@ -2957,31 +3007,33 @@
 
                 if(idMetric === 'AggregationSeries' || nrMetricType != null)
                 {
-                    rowParameters = JSON.parse(rowParameters);
-                    if (typicaltrend == 'Yes') {
-                        if (rowParameters != null && rowParameters.length > 1) {
-                            rowParameters.splice(1, rowParameters.length - 1);
-                        }
-                        if (trendType == 'dayHour') {
-                            //rowParameters = rowParameters.replace('[', '');
-                            //rowParameters = rowParameters.replace(']', '');
-                            //var row = '[';
-                            //for (var i = 0; i < 7; i++) {
-                            //    if (i < 6) {
-                            //        row += rowParameters + ', ';
-                            //    } else {
-                            //        row += rowParameters + ']';
-                            //    }
-                            //}
-                            //rowParameters = row;
-                            for (var k = 1; k < 7; k++) {
-                                rowParameters.push(rowParameters[k - 1]);
+                    if (rowParameters) {
+                        rowParameters = JSON.parse(rowParameters);
+                        if (typicaltrend == 'Yes') {
+                            if (rowParameters != null && rowParameters.length > 1) {
+                                rowParameters.splice(1, rowParameters.length - 1);
+                            }
+                            if (trendType == 'dayHour') {
+                                //rowParameters = rowParameters.replace('[', '');
+                                //rowParameters = rowParameters.replace(']', '');
+                                //var row = '[';
+                                //for (var i = 0; i < 7; i++) {
+                                //    if (i < 6) {
+                                //        row += rowParameters + ', ';
+                                //    } else {
+                                //        row += rowParameters + ']';
+                                //    }
+                                //}
+                                //rowParameters = row;
+                                for (var k = 1; k < 7; k++) {
+                                    rowParameters.push(rowParameters[k - 1]);
+                                }
                             }
                         }
-                    }
 
-                    timeRange = widgetData.params.temporal_range_w;
-                    populateWidget(true, timeRange, null, timeNavCount);
+                        timeRange = widgetData.params.temporal_range_w;
+                        populateWidget(true, timeRange, null, timeNavCount);
+                    }
                 }
                 else
                 {

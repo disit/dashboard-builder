@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
@@ -76,6 +75,7 @@
             displayOnNeonEffect, impulseMode, targetEntity, targetEntityAttribute, baseValue, sequenceEntityUpdateInterval,
             actuatorTarget, username, endPointHost, endPointPort, nodeRedInputName = null;
         var useWebSocket = <?= $useActuatorWS ?>;
+        var code = null;
         if(Window.webSockets == undefined)
           Window.webSockets = {};
 
@@ -566,7 +566,7 @@
         {
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').addClass('onOffButtonActive');
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("background-color", buttonClickColor);
-            
+
             switch(viewMode)
             {
                 case "emptyButton":
@@ -586,14 +586,14 @@
                 case "displayOnly":
                     $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayFontClickColor);
                     $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOnNeonEffect);
-                    break;    
+                    break;
 
                 case "iconAndText":
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolColor);
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("text-shadow", symbolOnNeonEffect);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textClickColor);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
-                    break;    
+                    break;
 
                 case "iconAndDisplay":
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolColor);
@@ -607,7 +607,7 @@
                     $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOnNeonEffect);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textClickColor);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
-                    break;    
+                    break;
 
                 case "all":
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolColor);
@@ -616,37 +616,43 @@
                     $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOnNeonEffect);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textClickColor);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
-                    break;        
+                    break;
             }
-            
+
             switch(impulseMode)
             {
                 case "singlePress":
                     break;
-                    
+
                 case "sequence":
                     currentValue = impulseValue;
                     switch(viewMode)
                     {
                         case "displayOnly": case "iconAndDisplay": case "displayAndText": case "all":
                             $('#<?= $_REQUEST['name_w'] ?>_display span').html(impulseValue);
-                            break;       
+                            break;
 
                         default:
-                            break; 
+                            break;
                     }
                     sequenceEntityUpdateInterval = setInterval(sequenceEntityUpdate, 500);
                     break;
-                    
+
                 default:
-                    break;    
+                    break;
+            }
+
+            if (code != null && code != '') {
+                //execute();
+                var functionName = "execute_" + "<?= $_REQUEST['name_w'] ?>";
+                window[functionName]();
             }
         }
-        
+
         function handleMouseUp() {
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').removeClass('onOffButtonActive');
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("background-color", buttonColor);
-            
+
             switch(viewMode)
             {
                 case "emptyButton":
@@ -666,14 +672,14 @@
                 case "displayOnly":
                     $('#<?= $_REQUEST['name_w'] ?>_display').css('color', displayFontColor);
                     $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOffNeonEffect);
-                    break;    
+                    break;
 
                 case "iconAndText":
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolClickColor);
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("text-shadow", symbolOffNeonEffect);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textColor);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
-                    break;    
+                    break;
 
                 case "iconAndDisplay":
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolClickColor);
@@ -687,7 +693,7 @@
                     $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOffNeonEffect);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textColor);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
-                    break;    
+                    break;
 
                 case "all":
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("color", symbolClickColor);
@@ -696,13 +702,13 @@
                     $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOffNeonEffect);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textColor);
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
-                    break;        
+                    break;
             }
-            
+
             switch(impulseMode)
             {
                 case "singlePress":
-      
+
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').hide();
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("display", "none");
@@ -712,10 +718,10 @@
                     var loadingIconMarginTop = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').height())/2);
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("top", loadingIconMarginTop + "px");
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("left", loadingIconMarginLeft + "px");
-        
+
                     //$('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mousedown', handleMouseDown);
                     //$('#<?= $_REQUEST['name_w'] ?>_onOffButton').off('mouseup', handleMouseUp);
-                    
+
                     switch(actuatorTarget)
                     {
                         case 'broker':
@@ -733,7 +739,7 @@
                                 },
                                 async: true,
                                 dataType: 'json',
-                                success: function(data) 
+                                success: function(data)
                                 {
                                     switch(data.result)
                                     {
@@ -753,7 +759,7 @@
                                                     },
                                                     async: true,
                                                     dataType: 'json',
-                                                    success: function(data) 
+                                                    success: function(data)
                                                     {
                                                         switch(data.result)
                                                         {
@@ -777,12 +783,12 @@
                                                                     case "displayOnly":
                                                                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                                                        break;    
+                                                                        break;
 
                                                                     case "iconAndText":
                                                                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
-                                                                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');    
-                                                                        break;    
+                                                                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                                                                        break;
 
                                                                     case "iconAndDisplay":
                                                                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -802,14 +808,14 @@
                                                                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                                                                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                                        break;    
+                                                                        break;
 
                                                                     case "all":
                                                                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                                                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                                                                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                                        break;        
+                                                                        break;
                                                                 }
                                                                 break;
 
@@ -844,12 +850,12 @@
                                                                         case "displayOnly":
                                                                             $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                                             $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                                                            break;    
+                                                                            break;
 
                                                                         case "iconAndText":
                                                                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                                                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                                            break;    
+                                                                            break;
 
                                                                         case "iconAndDisplay":
                                                                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -869,14 +875,14 @@
                                                                             $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                                             $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                                                                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                                            break;    
+                                                                            break;
 
                                                                         case "all":
                                                                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                                                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
                                                                             $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                                             $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                                                            break;        
+                                                                            break;
                                                                     }
 
                                                                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
@@ -916,12 +922,12 @@
                                                                 case "displayOnly":
                                                                     $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                                     $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                                                    break;    
+                                                                    break;
 
                                                                 case "iconAndText":
                                                                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                                                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                                    break;    
+                                                                    break;
 
                                                                 case "iconAndDisplay":
                                                                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -941,14 +947,14 @@
                                                                     $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                                     $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                                                                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                                    break;    
+                                                                    break;
 
                                                                 case "all":
                                                                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                                                     $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
                                                                     $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                                     $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                                                    break;        
+                                                                    break;
                                                             }
 
                                                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
@@ -958,7 +964,7 @@
                                                     }
                                                 });
                                             }, 1000);
-                                            break;    
+                                            break;
 
                                         default:
                                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
@@ -991,12 +997,12 @@
                                                     case "displayOnly":
                                                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                                        break;    
+                                                        break;
 
                                                     case "iconAndText":
                                                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                        break;    
+                                                        break;
 
                                                     case "iconAndDisplay":
                                                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1016,14 +1022,14 @@
                                                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                                                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                        break;    
+                                                        break;
 
                                                     case "all":
                                                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
                                                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                                        break;        
+                                                        break;
                                                 }
 
                                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
@@ -1063,12 +1069,12 @@
                                             case "displayOnly":
                                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                                break;    
+                                                break;
 
                                             case "iconAndText":
                                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                                 $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                break;    
+                                                break;
 
                                             case "iconAndDisplay":
                                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1088,14 +1094,14 @@
                                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                                                 $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                                break;    
+                                                break;
 
                                             case "all":
                                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                                 $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
                                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                                 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                                break;        
+                                                break;
                                         }
 
                                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
@@ -1105,18 +1111,18 @@
                                 }
                             });
                             break;
-                            
+
                         case 'app':
                             var valueToSend = null;
                             if(impulseValue === 'currentPosition')
                             {
-                                if(navigator.geolocation) 
+                                if(navigator.geolocation)
                                 {
                                     navigator.geolocation.getCurrentPosition(function(position) {
                                         valueToSend = {
                                                latitude: position.coords.latitude,
                                                longitude: position.coords.longitude
-                                            };	
+                                            };
                                         valueToSend = JSON.stringify(valueToSend);
                                     });
                                 }
@@ -1170,9 +1176,9 @@
                                     success: onSuccess1,
                                     error: onError1
                                 });
-                            }                    
+                            }
                     break;
-                    
+
                 case "sequence":
                     clearInterval(sequenceEntityUpdateInterval);
                     $.ajax({
@@ -1189,7 +1195,7 @@
                         },
                         async: true,
                         dataType: 'json',
-                        success: function(data) 
+                        success: function(data)
                         {
                             /*switch(data.result)
                             {
@@ -1211,7 +1217,7 @@
 
                                 case "Ok":
                                     showUpdateResult("Device OK");
-                                    break;    
+                                    break;
                             }*/
                         },
                         error: function(errorData)
@@ -1226,18 +1232,18 @@
                             {
                                 case "displayOnly": case "iconAndDisplay": case "displayAndText": case "all":
                                     $('#<?= $_REQUEST['name_w'] ?>_display span').html(baseValue);
-                                    break;       
+                                    break;
 
                                 default:
-                                    break; 
+                                    break;
                             }
                         }
                     });
                     break;
-                    
+
                 default:
-                    
-                    break;    
+
+                    break;
             }
         }
         }
@@ -1287,7 +1293,7 @@
                                 dataType: 'json',
                                 success: onSuccess2,
                                 error: onError2
-                            });                            
+                            });
                         }
                     }, 1000);
                     break;
@@ -1318,11 +1324,11 @@
                             case "displayOnly":
                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                break;    
+                                break;
                             case "iconAndText":
                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                 $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                break;    
+                                break;
                             case "iconAndDisplay":
                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
@@ -1340,13 +1346,13 @@
                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                                 $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                break;    
+                                break;
                             case "all":
                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                 $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                break;        
+                                break;
                         }
 
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
@@ -1354,7 +1360,7 @@
                     break;
             }
         }
-        
+
         var onError1 = function(data) {
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "block");
@@ -1386,12 +1392,12 @@
                     case "displayOnly":
                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                        break;    
+                        break;
 
                     case "iconAndText":
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                        break;    
+                        break;
 
                     case "iconAndDisplay":
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1411,14 +1417,14 @@
                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                        break;    
+                        break;
 
                     case "all":
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                        break;        
+                        break;
                 }
 
                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
@@ -1454,12 +1460,12 @@
                         case "displayOnly":
                             $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                             $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                            break;    
+                            break;
 
                         case "iconAndText":
                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
-                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');    
-                            break;    
+                            $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                            break;
 
                         case "iconAndDisplay":
                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1479,14 +1485,14 @@
                             $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                             $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                            break;    
+                            break;
 
                         case "all":
                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                             $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                             $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                            break;        
+                            break;
                     }
                     break;
 
@@ -1521,12 +1527,12 @@
                             case "displayOnly":
                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                break;    
+                                break;
 
                             case "iconAndText":
                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                 $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                break;    
+                                break;
 
                             case "iconAndDisplay":
                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1546,14 +1552,14 @@
                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                                 $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                                break;    
+                                break;
 
                             case "all":
                                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                                 $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
                                 $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                                 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                                break;        
+                                break;
                         }
 
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
@@ -1561,7 +1567,7 @@
                     break;
             }
         }
-        
+
         var onError2 = function(data) {
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "block");
@@ -1593,12 +1599,12 @@
                     case "displayOnly":
                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                        break;    
+                        break;
 
                     case "iconAndText":
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                        break;    
+                        break;
 
                     case "iconAndDisplay":
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1618,14 +1624,14 @@
                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                        break;    
+                        break;
 
                     case "all":
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                        break;        
+                        break;
                 }
 
                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
@@ -1644,12 +1650,12 @@
                 var errorIconMarginTop = parseInt(($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height()- $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').height())/2);
                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("top", errorIconMarginTop + "px");
                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("left", errorIconMarginLeft + "px");
-                
+
                 setTimeout(function(){
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').toggleClass('onOffButtonActive');
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-times-circle-o').css("display", "none");
-                    
+
                     currentValue = baseValue;
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("background-color", buttonColor);
 
@@ -1676,7 +1682,7 @@
                             $('#<?= $_REQUEST['name_w'] ?>_display').css("color", displayFontColor);
                             $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                             $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOffNeonEffect);
-                            break;    
+                            break;
 
                         case "iconAndText":
                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1685,7 +1691,7 @@
                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("text-shadow", symbolOffNeonEffect);
                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textColor);
                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
-                            break;    
+                            break;
 
                         case "iconAndDisplay":
                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1713,7 +1719,7 @@
                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textColor);
                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
-                            break;    
+                            break;
 
                         case "all":
                             $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1726,9 +1732,9 @@
                             $('#<?= $_REQUEST['name_w'] ?>_display').css("box-shadow", displayOnNeonEffect);
                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("color", textClickColor);
                             $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css("text-shadow", "none");
-                            break;        
+                            break;
                     }
-                  
+
                     $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
                 }, 1500);
             }
@@ -1736,7 +1742,7 @@
             {
                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton').off().mousedown(handleMouseDown).mouseup(handleMouseUp);
                 $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-refresh').css("display", "none");
-                
+
                 switch(viewMode)
                 {
                     case "emptyButton":
@@ -1753,12 +1759,12 @@
                     case "displayOnly":
                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
-                        break;    
+                        break;
 
                     case "iconAndText":
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
-                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');    
-                        break;    
+                        $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
+                        break;
 
                     case "iconAndDisplay":
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
@@ -1773,26 +1779,26 @@
                             $("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
                         }
                         break;
-                        
+
                     case "displayAndText":
                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                        break;    
+                        break;
 
                     case "all":
                         $('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').show();
                         $('#<?= $_REQUEST['name_w'] ?>_display').css('display', 'flex');
                         $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
                         $('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('display', 'flex');
-                        break;        
+                        break;
                 }
             }
         }
-        
+
         function resizeWidget(){
 				setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
-				
+
 				if($("#<?= $_REQUEST['name_w'] ?>_chartContainer").width() > $("#<?= $_REQUEST['name_w'] ?>_chartContainer").height())
 				{
 					minDim = $("#<?= $_REQUEST['name_w'] ?>_chartContainer").height();
@@ -1807,14 +1813,14 @@
 				}
 				$('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("border-radius", minDim*onOffButtonRadius/200);
 				$('#<?= $_REQUEST['name_w'] ?>_onOffButton').css("font-size", minDim*0.3 + "px");
-				
+
 				switch(viewMode)
 				{
 					case "emptyButton":
 							break;
 
 					case "iconOnly":
-						
+
 						break;
 
 					case "textOnly":
@@ -1838,7 +1844,7 @@
 						{
 							$("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
 						}
-						break;    
+						break;
 
 					case "iconAndText":
 						$('#<?= $_REQUEST['name_w'] ?>_txtContainer').textfill({
@@ -1849,7 +1855,7 @@
 						{
 							$("#<?= $_REQUEST['name_w'] ?>_txtContainer span").css('font-size', textFontSize + 'px');
 						}
-						break;    
+						break;
 
 					case "iconAndDisplay":
 						$('#<?= $_REQUEST['name_w'] ?>_display').textfill({
@@ -1861,7 +1867,7 @@
 							$("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
 						}
 						break;
-						
+
 					case "displayAndText":
 						$('#<?= $_REQUEST['name_w'] ?>_display').textfill({
 							maxFontPixels: -20
@@ -1871,7 +1877,7 @@
 						{
 							$("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
 						}
-						
+
 						$('#<?= $_REQUEST['name_w'] ?>_txtContainer').textfill({
 							maxFontPixels: -20
 						});
@@ -1881,7 +1887,7 @@
 							$("#<?= $_REQUEST['name_w'] ?>_txtContainer span").css('font-size', textFontSize + 'px');
 						}
 						break;
-					
+
 					case "all":
 						$('#<?= $_REQUEST['name_w'] ?>_display').textfill({
 							maxFontPixels: -20
@@ -1891,10 +1897,10 @@
 						{
 							$("#<?= $_REQUEST['name_w'] ?>_display span").css('font-size', displayFontSize + 'px');
 						}
-						
+
 						var txtContainerHeight = $('#<?= $_REQUEST['name_w'] ?>_onOffButton').height() - ($('#<?= $_REQUEST['name_w'] ?>_onOffButton i.fa-power-off').height() + $('#<?= $_REQUEST['name_w'] ?>_display').height() + 0.18*($('#<?= $_REQUEST['name_w'] ?>_onOffButton').height()));
 						$('#<?= $_REQUEST['name_w'] ?>_txtContainer').css('height', txtContainerHeight + 'px');
-						
+
 						$('#<?= $_REQUEST['name_w'] ?>_txtContainer').textfill({
 							maxFontPixels: -20
 						});
@@ -1903,11 +1909,11 @@
 						{
 							$("#<?= $_REQUEST['name_w'] ?>_txtContainer span").css('font-size', textFontSize + 'px');
 						}
-						break;        
+						break;
 				}
 		}
-        //Fine definizioni di funzione 
-        
+        //Fine definizioni di funzione
+
         setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
         $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').off('resizeWidgets');
         $('#<?= $_REQUEST['name_w'] ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
@@ -1919,16 +1925,16 @@
         {
             setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
         }
-        
+
         //$("#<?= $_REQUEST['name_w'] ?>_titleDiv").html(widgetTitle);
-        
+
         $.ajax({
             url: getParametersWidgetUrl,
             type: "GET",
             data: {"nomeWidget": [widgetName]},
             async: true,
             dataType: 'json',
-            success: function (data) 
+            success: function (data)
             {
                 widgetProperties = data;
                 if((widgetProperties !== null) && (widgetProperties !== ''))
@@ -1944,6 +1950,7 @@
                     buttonColor = styleParameters.color;
                     buttonClickColor = styleParameters.clickColor;
                     actuatorTarget = widgetProperties.param.actuatorTarget;
+                    code = widgetProperties.param.code;
                     if(actuatorTarget === 'broker')
                     {
                         entityJson = widgetProperties.param.entityJson;
@@ -1967,7 +1974,7 @@
                         if(useWebSocket)
                             openWs(widgetName);
                     }
-                    
+
                     switch(dataType)
                     {
                         case "Integer": case "integer":
@@ -1993,13 +2000,13 @@
                             }
                             else
                             {
-                                currentValue = false;   
+                                currentValue = false;
                             }
                             baseValue = Boolean(baseValue);
                             impulseValue = Boolean(impulseValue);
-                            break;    
+                            break;
                     }
-                    
+
                     impulseMode = widgetParameters.impulseMode;
                     viewMode = styleParameters.viewMode;
                     symbolColor = styleParameters.symbolColor;
@@ -2008,14 +2015,14 @@
                     textColor = styleParameters.textColor;
                     textFontSize = styleParameters.textFontSize;
                     displayFontSize = styleParameters.displayFontSize;
-                    displayFontColor = styleParameters.displayFontColor; 
+                    displayFontColor = styleParameters.displayFontColor;
                     displayFontClickColor = styleParameters.displayFontClickColor;
-                    displayRadius = styleParameters.displayRadius; 
+                    displayRadius = styleParameters.displayRadius;
                     displayColor = styleParameters.displayColor;
                     displayWidth = styleParameters.displayWidth;
                     displayHeight = styleParameters.displayHeight;
                     symbolOnNeonEffectSetting = styleParameters.neonEffect;
-                    
+
                     switch(symbolOnNeonEffectSetting)
                     {
                         case "never":
@@ -2026,37 +2033,54 @@
                             displayOffNeonEffect = "none";
                             displayOnNeonEffect = "none";
                             break;
-                            
+
                         case "onStatus":
                             symbolOnNeonEffect = "0 0 1px #fff, 0 0 2px #fff, 0 0 4px " + symbolColor + ", 0 0 8px " + symbolColor + ", 0 0 14px " + symbolColor + ", 0 0 18px ";
                             symbolOffNeonEffect = "none";
                             textOnNeonEffect = "0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff, 0 0 8px " + textClickColor + ", 0 0 14px " + textClickColor + ", 0 0 20px " + textClickColor + ", 0 0 24px " + textClickColor + ", 0 0 28px " + textClickColor;
-                            textOffNeonEffect = "none"; 
+                            textOffNeonEffect = "none";
                             displayOnNeonEffect = displayFontClickColor + " 2px 2px 16px, " + displayFontClickColor + " 2px -2px 16px, " + displayFontClickColor + " -2px 2px 16px, " + displayFontClickColor + " -2px -2px 16px";
                             displayOffNeonEffect = "none";
-                            break;    
-                            
+                            break;
+
                         case "offStatus":
                             symbolOnNeonEffect = "none";
                             symbolOffNeonEffect = "0 0 1px #fff, 0 0 2px #fff, 0 0 4px " + symbolClickColor + ", 0 0 8px " + symbolClickColor + ", 0 0 14px " + symbolClickColor + ", 0 0 18px ";
                             textOnNeonEffect = "none";
-                            textOffNeonEffect = "0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff, 0 0 8px " + textColor + ", 0 0 14px " + textColor + ", 0 0 20px " + textColor + ", 0 0 24px " + textColor + ", 0 0 28px " + textColor; 
+                            textOffNeonEffect = "0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff, 0 0 8px " + textColor + ", 0 0 14px " + textColor + ", 0 0 20px " + textColor + ", 0 0 24px " + textColor + ", 0 0 28px " + textColor;
                             displayOnNeonEffect = "none";
                             displayOffNeonEffect = displayFontColor + " 2px 2px 16px, " + displayFontColor + " 2px -2px 16px, " + displayFontColor + " -2px 2px 16px, " + displayFontColor + " -2px -2px 16px";
                             break;
-                            
+
                         case "always":
                             symbolOnNeonEffect = "0 0 1px #fff, 0 0 2px #fff, 0 0 4px " + symbolColor + ", 0 0 8px " + symbolColor + ", 0 0 14px " + symbolColor + ", 0 0 18px ";
                             symbolOffNeonEffect = "0 0 1px #fff, 0 0 2px #fff, 0 0 4px " + symbolClickColor + ", 0 0 8px " + symbolClickColor + ", 0 0 14px " + symbolClickColor + ", 0 0 18px ";
                             textOnNeonEffect = "0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff, 0 0 8px " + textClickColor + ", 0 0 14px " + textClickColor + ", 0 0 20px " + textClickColor + ", 0 0 24px " + textClickColor + ", 0 0 28px " + textClickColor;
-                            textOffNeonEffect = "0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff, 0 0 8px " + textColor + ", 0 0 14px " + textColor + ", 0 0 20px " + textColor + ", 0 0 24px " + textColor + ", 0 0 28px " + textColor; 
+                            textOffNeonEffect = "0 0 2px #fff, 0 0 4px #fff, 0 0 6px #fff, 0 0 8px " + textColor + ", 0 0 14px " + textColor + ", 0 0 20px " + textColor + ", 0 0 24px " + textColor + ", 0 0 28px " + textColor;
                             displayOnNeonEffect = displayFontClickColor + " 2px 2px 16px, " + displayFontClickColor + " 2px -2px 16px, " + displayFontClickColor + " -2px 2px 16px, " + displayFontClickColor + " -2px -2px 16px";
                             displayOffNeonEffect = displayFontColor + " 2px 2px 16px, " + displayFontColor + " 2px -2px 16px, " + displayFontColor + " -2px 2px 16px, " + displayFontColor + " -2px -2px 16px";
-                            break;    
+                            break;
                     }
                     $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').hide();
                     $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').show();
-                    
+
+                    if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
+                        let code = widgetProperties.param.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>()");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
+                        // elem.src = newInfoDecoded;
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    }
+
                     populateWidget();
                 }
                 else
@@ -2083,23 +2107,23 @@
             },
             complete: function()
             {
-                
+
             }
         });
-        
+
         $(document).off('resizeHighchart_' + widgetName);
-        $(document).on('resizeHighchart_' + widgetName, function(event) 
+        $(document).on('resizeHighchart_' + widgetName, function(event)
         {
             showHeader = event.showHeader;
             populateWidget();
         });
-        
+
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
             resizeWidget();
         });
-        
-        //Web socket 
-        
+
+        //Web socket
+
         var openWs = function(widget)
         {
             try
@@ -2117,7 +2141,7 @@
                     openWsConn(widget);
                 }, function(){
                     console.log('init of socket failed!');
-                });                                          
+                });
                 /*webSocket.addEventListener('open', openWsConn);
                 webSocket.addEventListener('close', wsClosed);*/
             }
@@ -2126,7 +2150,7 @@
                 wsClosed();
             }
         };
-        
+
         var manageIncomingWsMsg = function(msg)
         {
             var msgObj = JSON.parse(msg.data);
@@ -2141,19 +2165,19 @@
               }
             }
         };
-        
+
         timeToReload=200;
-        var openWsConn = function(widget) {            
+        var openWsConn = function(widget) {
             var webSocket = Window.webSockets[widget];
             /*setTimeout(function(){
                 var webSocket = Window.webSockets[widget];
                 webSocket.removeEventListener('message', manageIncomingWsMsg);
                 webSocket.close();
             }, (timeToReload - 2)*1000);*/
-              
+
             webSocket.addEventListener('message', manageIncomingWsMsg);
         };
-        
+
         var wsClosed = function(e)
         {
             var webSocket = Window.webSockets["<?= $_REQUEST['name_w'] ?>"];
@@ -2161,7 +2185,7 @@
             if(wsRetryActive === 'yes')
             {
                 setTimeout(openWs, parseInt(wsRetryTime*1000));
-            }	
+            }
         };
 
         function initWebsocket(widget, url, existingWebsocket, retryTimeMs, success, failed) {
@@ -2195,7 +2219,7 @@
           return;
       };
 
-/*        
+/*
         function initWebsocket(widget, url, existingWebsocket, timeoutMs, numberOfRetries) {
           timeoutMs = timeoutMs ? timeoutMs : 1500;
           numberOfRetries = numberOfRetries ? numberOfRetries : 0;
@@ -2250,15 +2274,15 @@
           promise.then(function () {hasReturned = true;}, function () {hasReturned = true;});
           return promise;
       };
-*/      
-});//Fine document ready 
+*/
+});//Fine document ready
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
         <?php include '../widgets/widgetHeader.php'; ?>
         <?php include '../widgets/widgetCtxMenu.php'; ?>
-        
+
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
@@ -2267,9 +2291,9 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        
+
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
-            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
+            <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
             <div id="<?= $_REQUEST['name_w'] ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= $_REQUEST['name_w'] ?>_noDataAlertText" class="noDataAlertText">
                     No data available
@@ -2291,6 +2315,7 @@
                         <span></span>
                     </div>
                     <div id="<?= $_REQUEST['name_w'] ?>_onOffButtonAfter" class="onOffButtonAfter"></div>
+                    <div id="<?= $_REQUEST['name_w'] ?>_code"></div>
                 </div>
             </div>
         </div>

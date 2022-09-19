@@ -326,9 +326,9 @@
               {
                  $response['detail'] = 'queryKo';
               }
-              break;  
-              
-            case "updateBackgroundColor":  
+              break;
+
+            case "updateBackgroundColor":
               $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
               $query = "UPDATE Dashboard.Config_widget_dashboard SET color_w = " . returnManagedStringForDb($newColor) . " WHERE name_w = '$widgetName'";
               $result = mysqli_query($link, $query);
@@ -343,7 +343,20 @@
                  $response['detail'] = 'queryKo';
               }
               break;
-              
+
+            case "updateCkEditor":
+              $newInfo = mysqli_real_escape_string($link, $_REQUEST['newText']);
+              // $newInfo = preg_replace("/<\\/?script[^>]*>/", "", $newInfo);
+              $query = "UPDATE Dashboard.Config_widget_dashboard SET code = " . returnManagedStringForDb($newInfo) . " WHERE name_w = '$widgetName'";
+              $result = mysqli_query($link, $query);
+
+              if ($result) {
+                  $response['detail'] = 'Ok';
+              } else {
+                  $response['detail'] = 'queryKo';
+              }
+              break;
+
             case "updateChartColor":  
               $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);
               $query = "UPDATE Dashboard.Config_widget_dashboard SET chartColor = " . returnManagedStringForDb($newColor) . " WHERE name_w = '$widgetName'";

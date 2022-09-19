@@ -140,6 +140,11 @@ if (!isset($_SESSION)) {
 
 <script src="../js/jsonpath-0.8.0.js"></script>
 
+
+
+<script src="../js/jquery.datetimepicker.min.js"></script>
+<link rel="stylesheet" href="../css/jquery.datetimepicker.min.css"/>
+
 <!-- LEAFLET ANIMATOR PLUGIN -->
 <!-- <script type="text/javascript" src="../js/leaflet-wms-animator.js"></script> -->
 
@@ -289,6 +294,9 @@ if (!isset($_SESSION)) {
             var newOdSourceData = null;
             var showAllPolyOdMapZoomend = null;
             var showAllPolyOdMapMoveend = null;
+
+            var newOdDateTimeFunc = null;
+
             var iconTextMod = "null";
             var keycloak, socket = null;
             var subscribeFlag, tryingAuth, srvFailure = false;
@@ -299,6 +307,7 @@ if (!isset($_SESSION)) {
 			var agencyIcons = {};
 			var spiderMarkers = {};
             var altViewMode = null;
+            // var orgParams = null;
 
             function encodeHTMLEntities(text) {
                 var textArea = document.createElement('textarea');
@@ -10195,6 +10204,9 @@ if (!isset($_SESSION)) {
                         if(showAllPolyOdMapMoveend != null){
                             map.defaultMapRef.off('moveend', showAllPolyOdMapMoveend );
                         }
+                        if(newOdDateTimeFunc != null){
+                            map.defaultMapRef.off('newOdDatetime', newOdDateTimeFunc );
+                        }
                         
 
                         odOnMap = true;
@@ -10218,6 +10230,14 @@ if (!isset($_SESSION)) {
                         let allPolyColor = "#bf2015";
                         let panelBackgroundColor = "#cccccc";
                         let panelFontColor = "#505050";
+                        let panelWidth = "340px";
+                        let panelFontSize = "12px";
+                        let dataPanelWidth = "240px";
+                        let dataPanelFontSize = "12px";
+                        let popupPanelWidth = "300";
+                        let popupPanelFontSize = "12px"
+                        let cmFontSize = "12px";
+                        mapName = "Origin-Destination Map";
 
                         for (n=0; n < parameters.length; n++) {
                             if (parameters[n].split("=")[0] == "latitude") {
@@ -10253,12 +10273,29 @@ if (!isset($_SESSION)) {
                                 panelBackgroundColor = parameters[n].split("=")[1];
                             } else if (parameters[n].split("=")[0] == "panel_font_color") {
                                 panelFontColor = parameters[n].split("=")[1];
+                            }  else if (parameters[n].split("=")[0] == "map_name") {
+                                mapName = parameters[n].split("=")[1];
+                            }  else if (parameters[n].split("=")[0] == "panel_width") {
+                                panelWidth = parameters[n].split("=")[1];
+                            }  else if (parameters[n].split("=")[0] == "panel_font_size") {
+                                panelFontSize= parameters[n].split("=")[1];
+                            }  else if (parameters[n].split("=")[0] == "data_panel_width") {
+                                dataPanelWidth = parameters[n].split("=")[1];
+                            }  else if (parameters[n].split("=")[0] == "data_panel_font_size") {
+                                dataPanelFontSize= parameters[n].split("=")[1];
+                            }  else if (parameters[n].split("=")[0] == "popup_panel_width") {
+                                popupPanelWidth = parameters[n].split("=")[1];
+                            }  else if (parameters[n].split("=")[0] == "popup_panel_font_size") {
+                                popupPanelFontSize= parameters[n].split("=")[1];
+                            } else if (parameters[n].split("=")[0] == "cm_font_size") {
+                                cmFontSize= parameters[n].split("=")[1];
                             }
                         }
 
                         let sourcePolyID = [];
                         let targetPolyID = [];
                         let sourcePolyName = [];
+                        let newDateTimeSet = null;
 
                         let dates = [];
                         let colors = [];
@@ -10267,7 +10304,7 @@ if (!isset($_SESSION)) {
                         let shapeTypes = [];
                         let showAllPolygonFlag = ((allPoly === "False") ? false : true);
                         let legendColorObserver = null;
-                        mapName = "Origin-Destination Map";
+                        //mapName = "Origin-Destination Map";
 
                         //Crea un layer per la OD (i dati gli verranno passati nell'evento)
                         //OD configuration
@@ -10284,11 +10321,15 @@ if (!isset($_SESSION)) {
                                     colorScale = dataColorScale;
                                 },
                                 error: function (err) {
-                                    alert("Error in retrieving color map scale: ");
+                                    alert("Error in retrieving color map scale: " + colorMapName + ".\nCheck the console log for more info.");
                                     console.log(err);
                                 }
                             });
-
+                            if (typeof colorScale === "string"){
+                                alert("Error in retrieving color map scale: " + colorMapName + ".\nCheck the console log for more info.");
+                                console.log("Error in retrieving color map scale: \n" + colorScale);
+                                colorScale = {};
+                            }
                             return colorScale;
                         }
 
@@ -10380,17 +10421,19 @@ if (!isset($_SESSION)) {
                             } else {
                                 L.DomEvent.on(map.legendOdDiv, 'click', L.DomEvent.stopPropagation);
                             }
-                            map.legendOdDiv.style.width = "340px";
+                            map.legendOdDiv.style.width = panelWidth; //"340px";
                             map.legendOdDiv.style.fontWeight = "bold";
                             map.legendOdDiv.style.background = panelBackgroundColor; //"#cccccc";
                             map.legendOdDiv.style.padding = "10px";
                             map.legendOdDiv.style.color = panelFontColor;
+                            map.legendOdDiv.style.fontSize = panelFontSize; 
 
-                            map.legendOdDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
-                            map.legendOdDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">OD Controls:</div>';
+                            //map.legendOdDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
+                            map.legendOdDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName.replaceAll('_', ' ') + '</div>';
+                            map.legendOdDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left; text-decoration: underline;">Controls:</div>';
 
                             // SHOW ALL POLYGONS (NOT YET IMPLEMENTED FOR COMMUNES AND MSGR!!!)
-                            if(precision == 'poi' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region'){
+                            if(precision == 'poi' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region' || precision == 'communes'){
                                 if (showAllPolygonFlag === false){
                                     map.legendOdDiv.innerHTML += '' + 
                                         '<div class="text" style="width:50%; float:right">' + 
@@ -10421,6 +10464,9 @@ if (!isset($_SESSION)) {
                                         '</div>';
                                     getAllPolyOdMap();
                                 }
+                            } else {
+                                showAllPolygonFlag === false
+                                getAllPolyOdMap();
                             }
                             
                             if (animationFlag === false) {
@@ -10519,8 +10565,55 @@ if (!isset($_SESSION)) {
                                 '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextPeriod" value=">>" style="float: right" ' + disabledAnimation() + '/>' +
                                 '<div id="<?= $_REQUEST['name_w'] ?>_odPeriod" style="text-align: center">' + animationPeriod + '</div>' +
                                 '</div>';
-
+                            
+                            
+                            //map.legendOdDiv.innerHTML += '<input type="text" id="my-datepicker" class="datepicker" />';
+                            //map.legendOdDiv.innerHTML += '<input type="date" id="mydatepicker" name="trip-start" value="2018-07-22T00:00:00" min="2018-01-01" max="2018-12-31">'
+                            // map.legendOdDiv.innerHTML += '<input id="datetimepicker" type="text" >';
+                            
+                            $.datetimepicker.setDateFormatter('moment');
+                            
+                            
                             function checkLegend() {
+
+                                // document.getElementById("mydatepicker").addEventListener("change", function (event) {
+                                //     console.log(event);
+                                //     console.log(document.getElementById("mydatepicker").value);
+                                // }, false);
+
+                                document.getElementById("<?= $_REQUEST['name_w'] ?>_odDescr").addEventListener("click", function () {    
+                                    let thisDate = mapDate.split(' ')[0]; // day + '.' + mon + '.' + year;
+                                    let allowDates = []
+                                    let allowTimes = []  
+                                    for(let ii = 0; ii < dates.length; ii++){
+                                        allowDates.push(dates[ii].split(' ')[0]);
+                                        allowTimes.push(dates[ii].split(' ')[1].split(':')[0] + ':' + dates[ii].split(' ')[1].split(':')[1]);
+                                    }   
+                                    allowTimes = [...new Set(allowTimes)]; 
+
+                                    let timepicker = true;
+                                    if (allowTimes.length == 1){
+                                        timepicker = false;
+                                    } 
+                                                              
+                                    jQuery('#' + '<?= $_REQUEST['name_w'] ?>_odDescr').datetimepicker({   
+                                        //parentID:'#odLegend',
+                                        value:thisDate,
+                                        startDate: thisDate,
+                                        allowDates: allowDates,
+                                        format: 'YYYY-MM-DD HH:mm',
+                                        formatTime:'HH:mm',
+                                        formatDate:'YYYY-MM-DD',
+                                        allowTimes: allowTimes,
+                                        timepicker: timepicker,                           
+                                        onClose: function(ct,$i){
+                                            newDateTimeSet = ct;
+                                            console.log(ct);
+                                            jQuery.event.trigger({type: "newOdDatetime"});
+                                            $i.datetimepicker('destroy');
+                                        }
+                                    }).datetimepicker("show");
+                                });
 
                                 document.getElementById("animationPeriod").addEventListener("change", function () {
                                     changeAnimationPeriod()
@@ -10536,7 +10629,7 @@ if (!isset($_SESSION)) {
                                     setOption('maxOpacity', this.value, 2)
                                 }, false);
                                 
-                                if(precision == 'poi' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region'){
+                                if(precision == 'poi' || precision == 'ace' || precision == 'municipality' || precision == 'province' || precision == 'region' || precision == 'communes'){
                                     document.getElementById("<?= $_REQUEST['name_w'] ?>_show_all").addEventListener("click", function () {
                                         showAllPolyOdMap()
                                     }, false);
@@ -10591,10 +10684,11 @@ if (!isset($_SESSION)) {
                             } else {
                                 L.DomEvent.on(map.flowInfoDiv, 'click', L.DomEvent.stopPropagation);
                             }
-                            map.flowInfoDiv.style.width = "240px" //"170px";
+                            map.flowInfoDiv.style.width = dataPanelWidth; // "240px" //"170px";
                             map.flowInfoDiv.style.fontWeight = "bold";
                             map.flowInfoDiv.style.background = panelBackgroundColor; //"#cccccc";
                             map.flowInfoDiv.style.color = panelFontColor;
+                            map.flowInfoDiv.style.fontSize = dataPanelFontSize;
                             map.flowInfoDiv.style.padding = "10px";
                             this.update();
                             return map.flowInfoDiv;
@@ -10608,12 +10702,12 @@ if (!isset($_SESSION)) {
                                 var keyNames = Object.keys(props.density);
                                 if(keyNames.length<=1){
                                     if(getPerc === 'True'){
-                                        map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + 
+                                        map.flowInfoDiv.innerHTML = '<div>' + //OD Flows<br />' + 
                                         '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
                                         'Rate: ' + 100 * Math.round(props.density * Math.pow(10, 5)) / Math.pow(10, 5) + '%'  + 
                                         '</div>';
                                     }else{
-                                        map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + 
+                                        map.flowInfoDiv.innerHTML = '<div>' + //OD Flows<br />' +  
                                         '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
                                         'Value: ' + props.density  + 
                                         '</div>';
@@ -10626,7 +10720,7 @@ if (!isset($_SESSION)) {
                                                 100 * Math.round(props.density[keyNames[i]] * Math.pow(10, 5)) / Math.pow(10, 5) + '%</li>';
                                         }
                                         rates = rates + '</ul>'
-                                        map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + 
+                                        map.flowInfoDiv.innerHTML = '<div>' + //OD Flows<br />' +  
                                         '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
                                         'Rates: ' + rates  + 
                                         '</div>';
@@ -10637,14 +10731,14 @@ if (!isset($_SESSION)) {
                                                 props.density[keyNames[i]] + '</li>';
                                         }
                                         rates = rates + '</ul>'
-                                        map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + 
+                                        map.flowInfoDiv.innerHTML = '<div>' + //OD Flows<br />' + 
                                         '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
                                         'Values: ' + rates  + 
                                         '</div>';
                                     }
                                 }
                             }else{
-                                map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' +
+                                map.flowInfoDiv.innerHTML = '<div>' + //OD Flows<br />' + 
                                 'Hover over a zone' + '</div>';
                             }
                             // map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + (props ?
@@ -11090,6 +11184,65 @@ if (!isset($_SESSION)) {
                             }
                         }
 
+                        function newOdPage() {
+                            if (current_page < dates.length - 1) {
+                                changeOdPage(current_page);
+
+                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                    if (map.eventsOnMap[i].eventType === 'od') {
+                                        removeOd(false);
+                                        map.eventsOnMap.splice(i, 1);
+                                    } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                        if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                            map.eventsOnMap.splice(i, 1);
+                                        }
+                                    }
+                                }
+
+                                if (addMode === 'additive') {
+                                    addOdFromClient();
+                                }
+                                if (addMode === 'exclusive') {
+                                    map.defaultMapRef.eachLayer(function (layer) {
+                                        map.defaultMapRef.removeLayer(layer);
+                                    });
+                                    map.eventsOnMap.length = 0;
+
+                                    //Remove WidgetAlarm active pins
+                                    $.event.trigger({
+                                        type: "removeAlarmPin",
+                                    });
+                                    //Remove WidgetEvacuationPlans active pins
+                                    $.event.trigger({
+                                        type: "removeEvacuationPlanPin",
+                                    });
+                                    //Remove WidgetEvents active pins
+                                    $.event.trigger({
+                                        type: "removeEventFIPin",
+                                    });
+                                    //Remove WidgetResources active pins
+                                    $.event.trigger({
+                                        type: "removeResourcePin",
+                                    });
+                                    //Remove WidgetOperatorEvents active pins
+                                    $.event.trigger({
+                                        type: "removeOperatorEventPin",
+                                    });
+                                    //Remove WidgetTrafficEvents active pins
+                                    $.event.trigger({
+                                        type: "removeTrafficEventPin",
+                                    });
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                        maxZoom: 18
+                                    }).addTo(map.defaultMapRef);
+
+                                    addOdFromClient();
+                                }
+                            }
+                        }
+
                         function prevOdPage() {
                             if (current_page > 0) {
                                 current_page--;
@@ -11484,6 +11637,8 @@ if (!isset($_SESSION)) {
                                                                                                 // '<option value="outflow">outflow</option>' +
                                                                                                 // '</select>';
                                         }
+                                        document.getElementById('odFlowControl').style.display = "none";
+
                                         // if(inflow === 'true'){
                                         //     document.getElementById('odFlowControl').innerHTML= '<label for="Flow">Flow:&nbsp;</label>' +
                                         //                                                         '<span name="flow" id="flow">inflow</span>';
@@ -11517,6 +11672,40 @@ if (!isset($_SESSION)) {
                                 }
                             }
                         };
+
+
+                        $(document).on('newOdDatetime', newOdDateTimeFunc = function (event) {
+                            console.log('[event] new date and time set')
+                            console.log(newDateTimeSet);
+                            event.stopPropagation();
+
+                            tmpday = ('0' + newDateTimeSet.getDate()).slice(-2);
+                            tmpmonth = ('0' + (newDateTimeSet.getMonth())).slice(-2);
+                            tmpyear = newDateTimeSet.getFullYear();
+                            tmphour = ('0' + newDateTimeSet.getHours()).slice(-2);
+                            tmpmin = ('0' + newDateTimeSet.getMinutes()).slice(-2);
+
+                            tmpdatestring = new Date(Date.UTC(tmpyear, tmpmonth, tmpday, tmphour, tmpmin, '00')).toISOString();
+                            date = tmpdatestring.split('T')[0];
+                            time = tmpdatestring.split('T')[1].split('.')[0];
+                            // document.getElementById("<?= $_REQUEST['name_w'] ?>_odDescr").textContent = date + ' ' + time;
+
+                            mapDateSet = date + ' ' + time;
+                            dateIndex = dates.findIndex((dts) => dts === mapDateSet);
+
+                            if(dateIndex != -1){
+                                mapDate = mapDateSet;
+                                current_page = dateIndex;
+                                newOdPage();
+                                // load();
+                                // document.getElementById("<?= $_REQUEST['name_w'] ?>_odDescr").textContent = mapDate;
+                                // changeOdPage(current_page);
+                            } else {
+                                alert("No data available for the selected date-time!");
+                            }
+                            // console.log(dates);
+                        });
+
                         $(document).on('newOdTargetData', newOdTargetData = function (event) {
                         //    console.log('[event] newOdTargetData')
                             if(sourcePolyID.length > 0 && targetPolyID.length >0){
@@ -11604,15 +11793,15 @@ if (!isset($_SESSION)) {
                         }
 
                         function fillPolygonPopup(props){
-                            data = '<div style="background-color:' + panelBackgroundColor + ';color:' + panelFontColor + ';margin:0px;padding:5px;width:100%;height:100%">';
+                            data = '<div style="background-color:' + panelBackgroundColor + ';color:' + panelFontColor + ';font-size:' + popupPanelFontSize  + ';margin:0px;padding:5px;width:100%;height:100%">';
                             var keyNames = Object.keys(props.density);
                             if(keyNames.length<=1){
                                 if(getPerc === 'True'){
-                                    data = data + 'OD Flows<br />' + 
+                                    data = data + // 'OD Flows<br />' + 
                                     '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
                                     'Rate: ' + 100 * Math.round(props.density * Math.pow(10, 5)) / Math.pow(10, 5) + '%';
                                 }else{
-                                    data = data + 'OD Flows<br />' + 
+                                    data = data + //'OD Flows<br />' + 
                                     '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
                                     'Value: ' + props.density;
                                 }
@@ -11624,7 +11813,7 @@ if (!isset($_SESSION)) {
                                             100 * Math.round(props.density[keyNames[i]] * Math.pow(10, 5)) / Math.pow(10, 5) + '%</li>';
                                     }
                                     rates = rates + '</ul>'
-                                    data = data + 'OD Flows<br />' + 
+                                    data = data + //'OD Flows<br />' + 
                                     '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
                                     'Rates: ' + rates;
                                 }else{
@@ -11634,7 +11823,7 @@ if (!isset($_SESSION)) {
                                             props.density[keyNames[i]] + '</li>';
                                     }
                                     rates = rates + '</ul>'
-                                    data = data + 'OD Flows<br />' + 
+                                    data = data + //'OD Flows<br />' + 
                                     '<b>Area id: ' + (props.txt_name != '' ? props.txt_name : props.name) + '</b><br />' + 
                                     'Values: ' + rates;
                                 }
@@ -11654,7 +11843,7 @@ if (!isset($_SESSION)) {
                             if(panelOnShape){
                                 var popupStyle = {
                                     closeButton: false,
-                                    maxWidth: 300
+                                    maxWidth: popupPanelWidth //300
                                 }
                                 layer.bindPopup(fillPolygonPopup(layer.feature.properties),popupStyle);
                                 layer.off('click', layer._openPopup);
@@ -11693,6 +11882,9 @@ if (!isset($_SESSION)) {
                             }
                         }
 
+                        if(nodeRedClick != null){
+                            map.defaultMapRef.off('click', nodeRedClick)
+                        }
                         map.defaultMapRef.on('click', odmapClick);
                         // map.defaultMapRef.on('click', odmapClick = function(e) {
                         //     if(animationFlag === false){
@@ -11706,7 +11898,7 @@ if (!isset($_SESSION)) {
 
                         function addOdToMap() {
                             animationFlag = false;
-                            try {
+                            // try {
                                 if (map.eventsOnMap.length > 0) {
                                     for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
                                         if (map.eventsOnMap[i].eventType === 'od') {
@@ -11828,6 +12020,7 @@ if (!isset($_SESSION)) {
 
                                                 // add legend to map
                                                 map.legendOd.addTo(map.defaultMapRef);
+						document.getElementById("<?= $_REQUEST['name_w'] ?>_odDescr").style.cursor = 'pointer';
                                                 map.flowInfo.addTo(map.defaultMapRef);
                                                 map.eventsOnMap.push(od);
 
@@ -11843,6 +12036,7 @@ if (!isset($_SESSION)) {
                                                     div.style.visibility = "hidden";
                                                     div.style.backgroundColor = panelBackgroundColor; //"#cccccc";
                                                     div.style.color = panelFontColor;
+						    div.style.fontSize = cmFontSize;
                                                     div.style.textAlign = "left";
                                                     div.style.lineHeigth = "18px";
                                                     div.style.fontWeight = "bold";
@@ -11944,24 +12138,24 @@ if (!isset($_SESSION)) {
                                     }
                                 });
 
-                            } catch(err) {
-                                loadingDiv.empty();
-                                loadingDiv.append(loadKoText);
+                         //   } catch(err) {
+                         //       loadingDiv.empty();
+                         //       loadingDiv.append(loadKoText);
 
-                                parHeight = loadKoText.height();
-                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                loadKoText.css("margin-top", parMarginTop + "px");
-                                console.log("Error: " + err);
-                                setTimeout(function () {
-                                    loadingDiv.css("opacity", 0);
-                                    setTimeout(function () {
-                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                        });
-                                        loadingDiv.remove();
-                                    }, 350);
-                                }, 1000);
-                            }
+                            //     parHeight = loadKoText.height();
+                            //     parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                            //     loadKoText.css("margin-top", parMarginTop + "px");
+                            //     console.log("Error: " + err);
+                            //     setTimeout(function () {
+                            //         loadingDiv.css("opacity", 0);
+                            //         setTimeout(function () {
+                            //             loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                            //                 $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                            //             });
+                            //             loadingDiv.remove();
+                            //         }, 350);
+                            //     }, 1000);
+                            // }
                         }
 
                         function addOdFromClient() {
@@ -12017,6 +12211,7 @@ if (!isset($_SESSION)) {
 
                             // add legend to map
                             map.legendOd.addTo(map.defaultMapRef);
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_odDescr").style.cursor = 'pointer';
                             map.flowInfo.addTo(map.defaultMapRef);
                             map.eventsOnMap.push(od);
 
@@ -12608,6 +12803,7 @@ if (!isset($_SESSION)) {
                     $(document).off('newOdSourceData', newOdSourceData);
                     map.defaultMapRef.off('zoomend', showAllPolyOdMapZoomend);
                     map.defaultMapRef.off('moveend', showAllPolyOdMapMoveend);
+                    map.defaultMapRef.off('newOdDatetime', newOdDateTimeFunc);
                     
                 });
 
@@ -12668,6 +12864,10 @@ if (!isset($_SESSION)) {
                     heatmapUrl = widgetData.heatmapUrl;
                     nodeRedInputName = widgetData.params.name;
                     nrInputId = widgetData.params.nrInputId;
+
+                    /* getOrganizationParams(function(params) {
+                        orgParams = params[0];
+                    }); */
 
                 //    if (rowParameters && !JSON.parse(rowParameters).type.includes("remove")) {
                     if (rowParameters) {    
@@ -12815,7 +13015,7 @@ if (!isset($_SESSION)) {
                             triggerEventOnIotApp(map.defaultMapRef, currentValue);
                         }
                     }
-                    if (nodeId != null) {
+                    if (metricName != 'Map' && nodeId != null) {
                         map.defaultMapRef.on('click', nodeRedClick)
                     }
 
