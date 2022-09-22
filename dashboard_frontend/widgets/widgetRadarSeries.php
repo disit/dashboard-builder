@@ -62,7 +62,23 @@
         {
             showHeader = true;
         }
-        
+        //////
+		$(document).off('showRadarSeriesFromExternalContent_' + widgetName);
+        $(document).on('showRadarSeriesFromExternalContent_' + widgetName, function(event){
+            clearInterval(countdownRef);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+            <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
+            if(encodeURIComponent(metricName) === encodeURIComponent(metricName)) {
+                var newValue = event.passedData;
+                rowParameters = newValue;
+                $("#" + widgetName + "_loading").css("display", "block");
+                populateWidget();
+
+            }
+		});
+		
+		
+		/////
         //Definizioni di funzione specifiche del widget
         //Restituisce il JSON delle soglie se presente, altrimenti NULL
         /*function getThresholdsJson()

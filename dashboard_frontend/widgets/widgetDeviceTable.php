@@ -102,6 +102,18 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             error: "Missing minimum fields in one or more devices",
             missingFieldsPerDevice: null
         };
+		//
+		$(document).off('showDeviceTableFromExternalContent_' + widgetName);
+			$(document).on('showDeviceTableFromExternalContent_' + widgetName, function(event){
+			console.log('showDeviceTableFromExternalContent_Code!');
+					if(encodeURIComponent(metricName) === encodeURIComponent(metricName))
+						{
+							var newValue_<?= $_REQUEST['name_w'] ?> = event.passedData;
+							populateWidget(newValue_<?= $_REQUEST['name_w'] ?>);
+
+						}
+			});
+		//
 
         console.info(missingFieldsDevices);
         var test = {};

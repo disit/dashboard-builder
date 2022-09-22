@@ -70,6 +70,39 @@
             chartSeriesObject, startAngle, endAngle, groupByAttr = null;
         var flipFlag, emptyLegendFlagFromWs = false;
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
+		//////ADD CODE//////
+				//
+        $(document).off('showPieChartFromExternalContent_' + widgetName);
+        $(document).on('showPieChartFromExternalContent_' + widgetName, function(event){
+
+            clearInterval(countdownRef);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+            <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
+            if(encodeURIComponent(metricName) === encodeURIComponent(metricName))
+            {
+                //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
+                //metricName = 'AggregationSeries';
+                // console.log(metricName);
+                var newValue = event.passedData;
+                //console.log(newValue);
+                // console.log('RECEIVED PASSED DATA');
+                var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
+                   // point.update(newValue);
+
+
+                rowParameters = newValue;
+                console.log(rowParameters);
+
+                emptyLegendFlagFromWs = true;
+                $("#" + widgetName + "_loading").css("display", "block");
+                populateWidget();
+
+            }
+
+        });
+    /////
+		
+		
 
         console.log("Entrato in widgetPieChart --> " + widgetName);
 
@@ -786,6 +819,7 @@
         }
 
         function drawDiagram (id, seriesObj, pieObj){
+			//
             $(id).highcharts({
                 chart: {
                     plotBackgroundColor: null,
@@ -1855,7 +1889,8 @@
                 gridLineColor = widgetData.params.chartPlaneColor;
                 chartAxesColor = widgetData.params.chartAxesColor;
                 serviceUri = widgetData.params.serviceUri;
-
+				code = widgetData.params.code;
+				
                 if (nrMetricType != null) {
                     openWs();
                 }
@@ -1960,6 +1995,13 @@
                      }*/
 
                 rowParameters = JSON.parse(rowParameters);
+				////////////lettura code
+				
+					
+				
+				
+				
+				//////////////
                 populateWidget();
 
             },

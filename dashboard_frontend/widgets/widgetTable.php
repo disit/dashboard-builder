@@ -60,7 +60,33 @@
         var serviceUri = "";
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
         var emptyLegendFlagFromWs = false;
+///////////////////////////
+		$(document).off('showTableFromExternalContent_' + widgetName);
+        $(document).on('showTableFromExternalContent_' + widgetName, function(event)
+        {
+            if(encodeURIComponent(metricName) === encodeURIComponent(metricName))
+                    {
+                        clearInterval(countdownRef);
+                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+                        <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
+						
+                        //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
 
+                        var newValue = event.passedData;
+						console.log('event - Table:');
+						//metricName = 'AggregationSeries';
+						console.log(event);
+                    //    var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
+                        //    point.update(newValue);
+
+                        rowParameters = newValue;
+						
+                        emptyLegendFlagFromWs = true;
+                        loadData();
+
+                    }
+        });
+///////////////////
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
 		{
 			showHeader = false;
