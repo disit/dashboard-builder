@@ -3998,19 +3998,21 @@
                        $("#<?= $_REQUEST['name_w'] ?>_wrapper").show();
                        widgetParameters = JSON.parse(widgetProperties.param.parameters);
                        if (widgetParameters && widgetParameters['mode'] == "ckeditor") {
-                           let rowParams = widgetProperties.param.rowParameters;
-                           var text_ck_area = document.createElement("text_ck_area");
-                           text_ck_area.innerHTML = rowParams;
-                           var newInfoDecoded = text_ck_area.innerText;
-                           const getBlobURL = (code, type) => {
-                               const blob = new Blob([code], { type })
-                               return URL.createObjectURL(blob)
+                           if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
+                               let code = widgetProperties.param.code;
+                               var text_ck_area = document.createElement("text_ck_area");
+                               text_ck_area.innerHTML = code;
+                               var newInfoDecoded = text_ck_area.innerText;
+                               const getBlobURL = (code, type) => {
+                                   const blob = new Blob([code], {type})
+                                   return URL.createObjectURL(blob)
+                               }
+                               let htmlData = getBlobURL(newInfoDecoded, 'text/html');
+                               //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", "data:text/html;charset=utf-8," + encodeURI(rowParams));
+                               //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + encodeURI(rowParams));
+                               $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", htmlData);
+                               $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + htmlData);
                            }
-                           let htmlData = getBlobURL(newInfoDecoded, 'text/html');
-                       //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", "data:text/html;charset=utf-8," + encodeURI(rowParams));
-                       //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + encodeURI(rowParams));
-                           $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", htmlData);
-                           $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + htmlData);
                        } else {
                            $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
                            $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", url);

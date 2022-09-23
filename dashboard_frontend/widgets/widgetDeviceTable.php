@@ -109,6 +109,11 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					if(encodeURIComponent(metricName) === encodeURIComponent(metricName))
 						{
 							var newValue_<?= $_REQUEST['name_w'] ?> = event.passedData;
+							//
+							current_page_<?= $_REQUEST['name_w'] ?> = 0;
+							$('#current_page_<?= $_REQUEST['name_w'] ?>').val(0);
+							$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
+							//
 							populateWidget(newValue_<?= $_REQUEST['name_w'] ?>);
 
 						}
