@@ -55,6 +55,59 @@ if($action === "dates"){
         $process_list[] = $row['od_id'];
     }
     echo json_encode($process_list);
+}elseif ($action === "od_list"){
+    $query_n =	"SELECT table_id, od_metadata.od_id,value_type, value_unit, description, organization, kind, mode, transport, purpose, precision " .
+    "FROM od_metadata
+	FULL OUTER JOIN (SELECT 'od_data' as table_id, od_id, precision
+              FROM od_data 
+	          GROUP BY od_id, precision
+	          UNION ALL
+          SELECT 'od_data_mgrs' as table_id, od_id, precision
+              FROM od_data_mgrs
+	          GROUP BY od_id, precision) AS table_union 
+			  ON od_metadata.od_id = table_union.od_id";
+    $query_n_count = "SELECT COUNT(od_id) FROM od_metadata";
+    $result = $link->query($query_n) or die($link->errorInfo());
+    $process_list = array();
+    $num_rows     = $link->query($query_n_count)->fetchColumn();
+    $num_r = 0;
+    if ($num_rows > 0) {
+        foreach ($result as $row) {
+            $od_id = $row['od_id'];
+            $value_type = $row['value_type'];
+            $value_unit = $row['value_unit'];
+            $description = $row['description'];
+            $organization = $row['organization'];
+            $shape = "";
+            $precision = $row['precision'];
+            $kind = $row['kind'];
+            $mode = $row['mode'];
+            $transport = $row['transport'];
+            $purpose = $row['purpose'];
+            $metric_name = "ODcolormap1";
+            if ($row['table_id'] == "od_data") {
+                $shape = "communes";
+            } else if ($row['table_id'] == "od_data_mgrs") {
+                $shape = "square";
+            }
+
+            $listFile = array("od_id" => $od_id,
+                "value_type" => $value_type,
+                "value_unit" => $value_unit,
+                "description" => $description,
+                "organization" => $organization,
+                "shape" => $shape,
+                "precision" => $precision,
+                "kind" => $kind,
+                "mode" => $mode,
+                "transport" => $transport,
+                "purpose" => $purpose,
+                "metric_name" => $metric_name
+            );
+            array_push($process_list, $listFile);
+        }
+    }
+    echo json_encode($process_list);
 }else{
     echo('ERROR');
 }

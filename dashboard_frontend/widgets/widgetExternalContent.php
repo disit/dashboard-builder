@@ -3984,13 +3984,14 @@
                         metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
                         break;
 
-                    case "none":
+                /*    case "none":
                        $("#<?= $_REQUEST['name_w'] ?>_mapDiv").hide();
                        $("#<?= $_REQUEST['name_w'] ?>_defaultMapDiv").hide(); 
                        $("#<?= $_REQUEST['name_w'] ?>_gisMapDiv").hide();
                        $("#<?= $_REQUEST['name_w'] ?>_wrapper").show(); 
-                       break;
+                       break;   */
 
+                   case "none":
                    default:
                        $("#<?= $_REQUEST['name_w'] ?>_mapDiv").hide();
                        $("#<?= $_REQUEST['name_w'] ?>_defaultMapDiv").hide(); 

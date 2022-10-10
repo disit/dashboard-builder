@@ -60,6 +60,7 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                         $myQueryType = "MyPOI";
                         break;
 
+                    case "OD Matrix":
                     case "Tools":
                     case "Traffic Flow":
                     case "Heatmap":

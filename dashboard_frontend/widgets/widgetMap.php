@@ -109,9 +109,6 @@ if (!isset($_SESSION)) {
     .slider.round:before {
         border-radius: 50%;}
 
-    .leaflet-routing-container{
-        display:none;
-    }
 </style>
 
     <!-- Bring in the leaflet KML plugin -->
@@ -140,7 +137,7 @@ if (!isset($_SESSION)) {
 
 <script src="../js/jsonpath-0.8.0.js"></script>
 
-
+<script type="text/javascript" src="../js/dynamic_routing/leaflet-routing-machine.js"></script>
 
 <script src="../js/jquery.datetimepicker.min.js"></script>
 <link rel="stylesheet" href="../css/jquery.datetimepicker.min.css"/>
@@ -307,8 +304,54 @@ if (!isset($_SESSION)) {
 			var agencyIcons = {};
 			var spiderMarkers = {};
             var altViewMode = null;
-            // var orgParams = null;
+            var orgParams = null;
+            var serviceUrl = null;
 
+            function haversineDistance(lat1,lon1,lat2,lon2) {
+                function toRad(x) {
+                    return x * Math.PI / 180;
+                }
+                var R = 6371; // km
+    
+                var x1 = lat2 - lat1;
+                var dLat = toRad(x1);
+                var x2 = lon2 - lon1;
+                var dLon = toRad(x2)
+                var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                var d = R * c;
+    
+                return d; //in km
+            }
+    
+            function setServiceUrl(org,bounds) {
+                let sUrl = null;
+                lat = bounds.lat;
+                lng = bounds.lng;
+                let routing = JSON.parse(org.ghRouting);
+                //console.log(routing);
+                if (routing) {
+                    ghoptions = routing.length;
+                    //console.log(ghoptions);
+                    for (let i = 0; i < ghoptions; i++) {
+                        let routing_lat = routing[i].centreLatLng[0];
+                        let routing_lng = routing[i].centreLatLng[1];
+                        let routing_dist = routing[i].dist;
+                        let routing_ghUrl = routing[i].ghUrl;
+                        //console.log("havdist");
+                        //console.log(haversineDistance(lat,lng,routing_lat,routing_lng));
+                        if (haversineDistance(lat, lng, routing_lat, routing_lng) < routing_dist) {
+                            sUrl = routing_ghUrl + "route";
+                            //console.log("sUrl");
+                            //console.log(sUrl);
+                        }
+                    }
+                }
+                return sUrl;
+            }
+            
             function encodeHTMLEntities(text) {
                 var textArea = document.createElement('textarea');
                 textArea.innerText = text;
@@ -5772,11 +5815,16 @@ if (!isset($_SESSION)) {
                         // resizeMapView(map.defaultMapRef);
                     }
                 });
-
+                
                 //Collini
+                function delay(milliseconds){
+                    return new Promise(resolve => {
+                        setTimeout(resolve, milliseconds);
+                    });
+                }
                 $(document).on('addCustomTrajectory', function (event) {
                     if (event.target === map.mapName) {
-                        function addCustomTrajectoryToMap() {
+                        async function addCustomTrajectoryToMap() {
                             // prendo i passed data
                             let passedData = event.passedData;
                             // creo array in cui salvare risorse che mi servono per lanciare l'evento sulla mappa
@@ -5785,163 +5833,179 @@ if (!isset($_SESSION)) {
                             let traj_controls = new Array();
                             //ancora parsing dei dati
                             for (let j = 0; j < passedData.length; j++) {
+                                
                                 let eventType = passedData[j].eventType;
                                 let id = passedData[j].id;
                                 let points = passedData[j].points
                                 let prevlat = -1;
                                 let prevlng = -1;
-                                for (let o = 0; o < points.length; o++) { // per ogni punto
-                                    let position = points[o].position;
-                                    let mode = points[o].mode;
-                                    let colore = points[o].color;
-                                    let icona = points[o].icon;
-                                    let vehicle = "car";
-                                    //console.log("icona" + colore)
-                                    let lat = -1;  //inizializzo alcune variabili
-                                    let lng = -1;
-                                    let name = "";
-                                    let iconSUrl = "";
-                                    var LeafIcon = L.Icon.extend({
-                                        options: {
-                                            iconSize:     [38, 95],
-                                            shadowSize:   [50, 64],
-                                            iconAnchor:   [22, 94],
-                                            shadowAnchor: [4, 62],
-                                            popupAnchor:  [-3, -76]
+                                
+                                for (let o = 0; o < points.length; o++) { // per ogni punto 
+                                    await delay(0.1).then ( () => {
+                                        let position = points[o].position;
+                                        let mode = points[o].mode;
+                                        let colore = points[o].color;
+                                        let icona = points[o].icon;
+                                        let optionalhtmltrajpopup = points[o].optionalhtmltrajpopup;
+                                        if(optionalhtmltrajpopup.length<2){
+                                            optionalhtmltrajpopup = "<p>Trajectory Segment</p>";
+
                                         }
-                                    });
-
-                                    //add marker given position...
-                                    //console.log(position.serviceUri.length);
-                                    if(position.serviceUri.length < 1){ //no suri -> lat,lon
-                                        //console.log("object" + o + " no suri")
-                                        lat = parseFloat(position.gps.lat);
-                                        lng = parseFloat(position.gps.lng);
-                                        name = "Trajectory point " + o;
-                                        //console.log(icona);
-                                        if(icona.length>1){
-                                            var greenIcon = new LeafIcon({
-                                                iconUrl: icona,
-                                                //shadowUrl: 'http://leafletjs.com/examples/custom-icons/leaf-shadow.png'
-                                                iconSize: [35, 35],
-                                                iconAnchor: [5, 5],
-                                                popupAnchor: [0, -5]
-                                            })
-                                        }
-
-                                        //console.log(lat,lng)
-                                        let markerLocation = new L.LatLng(lat, lng); //mi creo il marker
-                                        let marker = new L.Marker(markerLocation,{icon: greenIcon});
-                                        //passedData[j].marker = marker;
-                                        //Creazione del popup per il pin appena creato
-                                        popupText = "<div>" + name + "</div>";
-                                        map.defaultMapRef.addLayer(marker.bindPopup(popupText, {offset: [0, 0]}));
-                                        traj_markers.push(marker);
-                                        //console.log("added marker");
-                                    }else{
-                                        //console.log("object" + o + " suri") // si usa la service uri
-                                        let suri = position.serviceUri;
-                                        //console.log(suri);
-                                        $.ajax({
-                                            type: 'GET',
-                                            url: suri,
-                                            dataType: "json",
-                                            contentType: 'application/json; charset=utf-8',
-                                            async: false,
-                                            success: function (data) {
-                                                //console.log(data);
-                                                // 3 casi (Service - Sensor - niente)
-                                                if (typeof data.Service !== 'undefined'){
-                                                    lat = data.Service.features[0].geometry.coordinates[1];
-                                                    lng = data.Service.features[0].geometry.coordinates[0];
-                                                    //console.log(data.Service.features[0].geometry.coordinates)
-                                                    name = data.Service.features[0].properties.name;
-                                                    iconSUrl = "../img/gisMapIcons/"+ data.Service.features[0].properties.subnature + ".png";
-                                                    data.Service.features[0].properties.color1 = colore;
-                                                    data.Service.features[0].properties.color2 = "#f5f5f5";
-                                                    console.log(data.Service.features[0]);
-                                                    var newMarker = gisPrepareCustomMarker( data.Service.features[0], { "lng": lng, "lat": lat} );
-                                                }else{
-                                                    if (typeof data.Sensor !== 'undefined'){
-                                                        lat = data.Sensor.features[0].geometry.coordinates[1];
-                                                        lng = data.Sensor.features[0].geometry.coordinates[0];
-                                                        name = data.Sensor.features[0].properties.name;
-                                                        iconSUrl = "../img/gisMapIcons/"+ data.Sensor.features[0].properties.subnature + ".png";
-                                                        data.Sensor.features[0].properties.color1 = colore;
-                                                        data.Sensor.features[0].properties.color2 = "#f5f5f5";
-                                                        console.log(data.Sensor.features[0]);
-                                                        var newMarker = gisPrepareCustomMarker( data.Sensor.features[0], { "lng": lng, "lat": lat} );
-                                                    }else{
-                                                        lat = data.features[0].geometry.coordinates[1];
-                                                        lng = data.features[0].geometry.coordinates[0];
-                                                        name = data.features[0].properties.name;
-                                                        iconSUrl = "../img/gisMapIcons/"+ data.features[0].properties.subnature + ".png";
-                                                        data.features[0].properties.color1 = colore;
-                                                        data.features[0].properties.color2 = "#f5f5f5";
-                                                        console.log(data.features[0]);
-                                                        var newMarker = gisPrepareCustomMarker( data.features[0], { "lng": lng, "lat": lat} );
-                                                    }
-                                                }
-
-                                                //console.log(newMarker);
-                                                map.defaultMapRef.addLayer(newMarker);
-                                                traj_markers.push(newMarker);
-                                            },
-                                            error: function (errorData) {
-                                                console.log(errorData);
+                                        let vehicle = "car";
+                                        //console.log("icona" + colore)
+                                        let lat = -1;  //inizializzo alcune variabili
+                                        let lng = -1;
+                                        let name = "";
+                                        let iconSUrl = "";
+                                        var LeafIcon = L.Icon.extend({
+                                            options: {
+                                               iconSize:     [38, 95],
+                                               shadowSize:   [50, 64],
+                                               iconAnchor:   [22, 94],
+                                               shadowAnchor: [4, 62],
+                                               popupAnchor:  [-3, -76]
                                             }
                                         });
-                                    }
 
+                                        //add marker given position...
+                                        //console.log(position.serviceUri.length);
+                                        if(position.serviceUri.length < 1){ //no suri -> lat,lon
+                                            //console.log("object" + o + " no suri")
+                                            lat = parseFloat(position.gps.lat);
+                                            lng = parseFloat(position.gps.lng);
+                                            name = "Trajectory point " + o;
+                                            //console.log(icona);
+                                                if(icona.length>1){
+                                                    var greenIcon = new LeafIcon({
+                                                        iconUrl: icona,
+                                                        //shadowUrl: 'http://leafletjs.com/examples/custom-icons/leaf-shadow.png'
+                                                        iconSize: [35, 35], 
+                                                        iconAnchor: [5, 5],
+                                                        popupAnchor: [0, -5]
+                                                    })
+                                                }
 
-                                    //add trajectory
-                                    if(o==0){
-                                        //console.log("initprevlatelong")
-                                        prevlat = lat;
-                                        prevlng = lng;
-                                    }else{//controllo che non sia il primo punto passato
-                                        if(mode.routing.manual){ // se viene sceleta la modalità manuale
-                                            var polyline = L.polyline([
-                                                [prevlat,prevlng],
-                                                [lat,lng]
-                                            ]);
-                                            map.defaultMapRef.addLayer(polyline.setStyle({color: points[o].color}));
-                                            traj_trajects.push(polyline);
-                                            prevlat = lat;
-                                            prevlng = lng;
-                                        }else{ //vai col graphopper
-                                            vehicle = mode.routing.graphhopper.type;
-                                            //console.log("prev" + prevlat + " " +prevlng)
-                                            //console.log("current" + lat + " " +lng)
-                                            var lrmtraj = L.Routing.control({
-                                                // Servlet params
-                                                waypoints: [L.latLng(prevlat,prevlng),
-                                                    L.latLng(lat,lng)],
-                                                avoid_area: "%7B%22type%22%3A%22FeatureCollection%22%2C%22features%22%3A%5B%7B%22type%22%3A%22Feature%22%2C%22properties%22%3A%7B%7D%2C%22geometry%22%3A%7B%22type%22%3A%22Polygon%22%2C%22coordinates%22%3A%5B%5B%5B11.279826%2C43.770474%5D%2C%5B11.276307%2C43.767561%5D%2C%5B11.27871%2C43.766135%5D%2C%5B11.281285%2C43.768491%5D%2C%5B11.279826%2C43.770474%5D%5D%5D%7D%7D%5D%2C%22scenarioName%22%3A%22prova%22%2C%22isPublic%22%3Atrue%7D",
-                                                vehicle: vehicle,
-                                                // end Servlet params
-                                                geocoder: L.Control.Geocoder.nominatim(),
-                                                routeWhileDragging: false,
-                                                reverseWaypoints: false,
-                                                showAlternatives: false,
-                                                show: false,
-                                                waypointMode: 'snap',
-                                                createMarker: function() {}
+                                                //console.log(lat,lng)
+                                                let markerLocation = new L.LatLng(lat, lng); //mi creo il marker
+                                                let marker = new L.Marker(markerLocation,{icon: greenIcon});
+                                                //passedData[j].marker = marker;
+                                                //Creazione del popup per il pin appena creato
+                                                popupText = "<div>" + name + "</div>";
+                                                map.defaultMapRef.addLayer(marker.bindPopup(popupText, {offset: [0, 0]}));
+                                                traj_markers.push(marker);
+                                                //console.log("added marker");
+                                        }else{
+                                            //console.log("object" + o + " suri") // si usa la service uri
+                                            let suri = position.serviceUri;
+                                            //console.log(suri);
+                                            $.ajax({
+                                                type: 'GET',
+                                                url: suri,
+                                                dataType: "json",
+                                                contentType: 'application/json; charset=utf-8',
+                                                async: false,
+                                                success: function (data) {
+                                                   //console.log(data);
+                                                   // 3 casi (Service - Sensor - niente)
+                                                   if (typeof data.Service !== 'undefined'){ 
+                                                       lat = data.Service.features[0].geometry.coordinates[1];
+                                                       lng = data.Service.features[0].geometry.coordinates[0];
+                                                       //console.log(data.Service.features[0].geometry.coordinates)
+                                                        name = data.Service.features[0].properties.name;
+                                                        iconSUrl = "../img/gisMapIcons/"+ data.Service.features[0].properties.subnature + ".png";
+                                                        data.Service.features[0].properties.color1 = colore;
+                                                        data.Service.features[0].properties.color2 = "#f5f5f5";
+                                                        console.log(data.Service.features[0]);
+                                                        var newMarker = gisPrepareCustomMarker( data.Service.features[0], { "lng": lng, "lat": lat} );
+                                                   }else{
+                                                       if (typeof data.Sensor !== 'undefined'){
+                                                            lat = data.Sensor.features[0].geometry.coordinates[1];
+                                                            lng = data.Sensor.features[0].geometry.coordinates[0];
+                                                            name = data.Sensor.features[0].properties.name;
+                                                            iconSUrl = "../img/gisMapIcons/"+ data.Sensor.features[0].properties.subnature + ".png";
+                                                            data.Sensor.features[0].properties.color1 = colore;
+                                                            data.Sensor.features[0].properties.color2 = "#f5f5f5";
+                                                            console.log(data.Sensor.features[0]);
+                                                            var newMarker = gisPrepareCustomMarker( data.Sensor.features[0], { "lng": lng, "lat": lat} );
+                                                        }else{
+                                                            lat = data.features[0].geometry.coordinates[1];
+                                                            lng = data.features[0].geometry.coordinates[0];
+                                                            name = data.features[0].properties.name;
+                                                            iconSUrl = "../img/gisMapIcons/"+ data.features[0].properties.subnature + ".png";
+                                                            data.features[0].properties.color1 = colore;
+                                                            data.features[0].properties.color2 = "#f5f5f5";
+                                                            console.log(data.features[0]);
+                                                            var newMarker = gisPrepareCustomMarker( data.features[0], { "lng": lng, "lat": lat} );
+                                                        }
+                                                   }
+
+                                                   //console.log(newMarker);
+                                                   map.defaultMapRef.addLayer(newMarker);
+                                                   traj_markers.push(newMarker);                                               
+                                                },
+                                                error: function (errorData) {
+                                                    console.log(errorData);
+                                                }
                                             });
-                                            //console.log(points[0].color);
-                                            lrmtraj.on('routeselected', function(e) {
-                                                let traie = L.polyline(e.route.coordinates).setStyle({color: points[o].color});
-                                                traie.addTo(map.defaultMapRef);
-                                                traj_trajects.push(traie);
-                                                //map.removeControl(control);
-                                            });
-                                            lrmtraj.addTo(map.defaultMapRef);
-                                            traj_controls.push(lrmtraj);
-                                            // e aggiorno le nuove precendenti latitudine e longitudine
-                                            prevlat = lat;
-                                            prevlng = lng;
                                         }
-                                    }
+
+                                        //add trajectory
+                                        if(o==0){
+                                            //console.log("initprevlatelong")
+                                            prevlat = lat;
+                                            prevlng = lng;
+                                        }else{//controllo che non sia il primo punto passato
+                                            if(mode.routing.manual){ // se viene sceleta la modalità manuale
+                                                var polyline = L.polyline([
+                                                    [prevlat,prevlng],
+                                                    [lat,lng]
+                                                ]);
+                                                map.defaultMapRef.addLayer(polyline.setStyle({color: points[o].color}).bindPopup(optionalhtmltrajpopup, {offset: [0, 0]}));
+                                                traj_trajects.push(polyline);
+                                                prevlat = lat;
+                                                prevlng = lng;
+                                            }else{ //vai col graphopper
+                                                vehicle = mode.routing.graphhopper.type;
+                                                //console.log("prev" + prevlat + " " +prevlng)
+                                                //console.log("current" + lat + " " +lng)
+						                        serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);	
+                                                var lrmtraj = L.Routing.control({
+                                                    // Servlet params
+                                                    serviceUrl: serviceUrl,
+                                                    waypoints: [L.latLng(prevlat,prevlng),
+                                                        L.latLng(lat,lng)],
+                                                    avoid_area: "%7B%22type%22%3A%22FeatureCollection%22%2C%22features%22%3A%5B%7B%22type%22%3A%22Feature%22%2C%22properties%22%3A%7B%7D%2C%22geometry%22%3A%7B%22type%22%3A%22Polygon%22%2C%22coordinates%22%3A%5B%5B%5B11.279826%2C43.770474%5D%2C%5B11.276307%2C43.767561%5D%2C%5B11.27871%2C43.766135%5D%2C%5B11.281285%2C43.768491%5D%2C%5B11.279826%2C43.770474%5D%5D%5D%7D%7D%5D%2C%22scenarioName%22%3A%22prova%22%2C%22isPublic%22%3Atrue%7D",
+                                                    vehicle: vehicle,
+                                                    // end Servlet params
+                                                    geocoder: L.Control.Geocoder.nominatim(),
+                                                    routeWhileDragging: false,
+                                                    reverseWaypoints: false,
+                                                    showAlternatives: false,
+                                                    show: false,
+                                                    waypointMode: 'snap',
+                                                    createMarker: function() {}
+                                                });
+
+                                                //console.log(points[0].color);
+                                                lrmtraj.on('routeselected', function(e) {
+                                                    let traie = L.polyline(e.route.coordinates).setStyle({color: points[o].color}).bindPopup(optionalhtmltrajpopup, {offset: [0, 0]});
+                                                    traie.addTo(map.defaultMapRef);
+                                                    traj_trajects.push(traie);
+                                                    //map.removeControl(control);
+                                                });
+                                                lrmtraj.addTo(map.defaultMapRef);
+                                                traj_controls.push(lrmtraj);
+                                               // e aggiorno le nuove precendenti latitudine e longitudine
+                                                prevlat = lat;
+                                                prevlng = lng;
+                                                
+                                                if($('.leaflet-routing-container').length){
+                                                        $(".leaflet-routing-container").remove();//Class()
+                                                }
+                                                
+                                            }
+                                        }
+                                    });    
                                 }
                             }
                             passedData.markers = traj_markers;
@@ -5953,7 +6017,7 @@ if (!isset($_SESSION)) {
 
                         if (addMode === 'additive') {
                             addCustomTrajectoryToMap();
-
+                            
                         }
 
                         if (addMode === 'exclusive') {
@@ -6003,6 +6067,9 @@ if (!isset($_SESSION)) {
                         // resizeMapView(map.defaultMapRef);
                     }
                 });
+                
+                
+                
                 
                 $(document).on('addTrafficEvent', function (event) {
                     if (event.target === map.mapName) {
@@ -6489,8 +6556,11 @@ if (!isset($_SESSION)) {
                                             lrmControl.remove(map);
                                             lrmControl = null;
                                         }
+
+                                        serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
                                         lrmControl = L.Routing.control({
                                             // Servlet params
+                                            serviceUrl: serviceUrl,
                                             waypoints: waypoints,
                                             avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
                                             vehicle: vehicle,
@@ -7183,8 +7253,11 @@ if (!isset($_SESSION)) {
                                     });
 
                                     // Init GH Leaflet Routing Machine 
+
+                                    serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
                                     lrmControl = L.Routing.control({
                                         // Servlet params
+                                        serviceUrl: serviceUrl,
                                         waypoints: [],
                                         avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
                                         vehicle: vehicle,
@@ -7365,8 +7438,10 @@ if (!isset($_SESSION)) {
                                                 lrmControl.remove(map);
                                                 lrmControl = null;
                                             }
+                                            serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
                                             lrmControl = L.Routing.control({
                                                 // Servlet params
+                                                serviceUrl: serviceUrl,
                                                 waypoints: waypoints,
                                                 avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
                                                 vehicle: vehicle,
@@ -7391,8 +7466,10 @@ if (!isset($_SESSION)) {
                                         });
                                         
                                         // init lrm with retrieved waypoints and avoid_area
+                                        serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
                                         lrmControl = L.Routing.control({
                                             // Servlet params
+                                            serviceUrl: serviceUrl,
                                             waypoints: [],
                                             avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
                                             vehicle: vehicle,
@@ -12865,9 +12942,9 @@ if (!isset($_SESSION)) {
                     nodeRedInputName = widgetData.params.name;
                     nrInputId = widgetData.params.nrInputId;
 
-                    /* getOrganizationParams(function(params) {
+                    getOrganizationParams(function(params) {
                         orgParams = params[0];
-                    }); */
+                    });
 
                 //    if (rowParameters && !JSON.parse(rowParameters).type.includes("remove")) {
                     if (rowParameters) {    

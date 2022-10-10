@@ -371,27 +371,6 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             $('#orgMenuCnt a.orgMenuSubItemLink').hide();
             $('.linkgen').css('text-decoration', 'none');
 
-            $.ajax({
-                url: "../controllers/dashOrganizationProxy.php",
-                data: {
-                    dashId: <?php echo $dashId ?>,
-                },
-                type: "GET",
-                async: true,
-                dataType: 'json',
-                success: function (data) {
-                    if (data.params.organizations == "Antwerp" || data.params.organizations == "Helsinki") {
-                        $('<script/>',{type:'text/javascript', src:'../js/dynamic_routing/leaflet-routing-machine-AntHel.js'}).appendTo('head');
-                    } else {
-                        $('<script/>',{type:'text/javascript', src:'../js/dynamic_routing/leaflet-routing-machine.js'}).appendTo('head');
-                    }
-                },
-                error: function (errorData) {
-                    console.log("Errore in reperimento Organizzaztion della dashboard di id = " + <?php echo $dashId ?> + "; ");
-                    console.log(JSON.stringify(errorData));
-                }
-            });
-
             $("#chatContainer").css("top", $('#dashboardViewHeaderContainer').height());
             $("#chatContainer").css("left", $(window).width() - $('#chatContainer').width());
             //$("#chatContainer").css("left", $('#dashboardViewHeaderContainer').width() + $('#logos').width() - $('#chatContainer').width());

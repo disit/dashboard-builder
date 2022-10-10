@@ -214,7 +214,21 @@
             
             var requestComplete = false;
             $('#<?= $_REQUEST['name_w'] ?>_sentContainer span.displayVal').text('Updating');  
-            
+            console.log('actuatorTarget: '+actuatorTarget);
+			//console.log('code: ' +widgetProperties.param.code);
+			//if (code != null && code != '') {
+			if (widgetProperties.param.code != null && widgetProperties.param.code != '') {
+                //execute();
+				///////////
+				console.log("execute_" + "<?= $_REQUEST['name_w'] ?>");
+				var displayVal  = $('#<?= $_REQUEST['name_w'] ?>_lastContainer span.displayVal').text();
+                var functionName = "execute_" + "<?= $_REQUEST['name_w'] ?>";
+				console.log(functionName);
+                window[functionName](displayVal);
+            }
+			//
+			
+			//
             switch(actuatorTarget)
             {
                 case 'broker':
@@ -280,10 +294,12 @@
                               "username" : $('#authForm #hiddenUsername').val(),
                               "nrInputId": nrInputId
                         };
+						
                         var webSocket = Window.webSockets[widgetName];
                         webSocket.ackReceived=false;
                         webSocket.onAck = function(data) {
                             requestComplete = true;
+							
                             //clearInterval(setUpdatingMsgInterval);
                             switch(data.result)
                             {
@@ -308,6 +324,8 @@
                                     break;    
                             }
                         }
+						//
+						
                         console.log(widgetName+" SEND ackReceived:"+webSocket.ackReceived)
                         if(webSocket.readyState==webSocket.OPEN) {
                             webSocket.send(JSON.stringify(data));
@@ -445,6 +463,7 @@
                 if((widgetProperties !== null) && (widgetProperties !== ''))
                 {
                     dashboardId = widgetProperties.param.id_dashboard;
+					code = widgetProperties.param.code;
                     styleParameters = getStyleParameters();
                     widgetParameters = JSON.parse(widgetProperties.param.parameters);
                     sizeRowsWidget = parseInt(widgetProperties.param.size_rows);
@@ -488,7 +507,28 @@
                     
                     $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').hide();
                     $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').show();
-                    
+					//
+					if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
+                        let code = widgetProperties.param.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+						var displayVal  = $('#<?= $_REQUEST['name_w'] ?>_lastContainer span.displayVal').text();
+						var displayVal ="";
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+						//newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(parameter)");
+						//alert('ciao');
+						
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
+                        // elem.src = newInfoDecoded;
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    }
+                    //
                     populateWidget();
                 }
                 else
@@ -714,4 +754,5 @@
             </div>
         </div>
     </div>	
+	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 

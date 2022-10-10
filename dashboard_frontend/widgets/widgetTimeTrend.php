@@ -77,6 +77,39 @@
         var expandedTimeRangeFlag = false;
         var currentTimeRange = null;
         var lastDateinDataArray = null;
+		//////ADD CODE//////
+				//
+				$(document).off('showTimeTrendFromExternalContent_' + widgetName);
+				$(document).on('showTimeTrendFromExternalContent_' + widgetName, function(event){					
+							
+                             /*   webSocket.close();
+                                clearInterval(countdownRef); 
+                                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);*/
+                                //var newValue = msgObj.newValue;
+								//var newValue = event.passedData.series;
+                                // TIME-ZONE CONVERSION and ADJUSTMENT TO ADD DIRECTLY INTO HIGHCHART SERIES (DEFAULT-UTC HIGHCHARTS MODE)
+                                var newValue = event.passedData;
+								
+								if(event.passedData.series){
+									var series_data = event.passedData.series;
+									var count_series = series_data.length;
+									console.log(count_series);
+									for(var i=0; i<count_series; i++){
+											var localTimeZone = moment.tz.guess();
+											var momentDateTime = moment(Date.now());
+											var offset = momentDateTime.utcOffset();
+											var localDteTimeAdj = momentDateTime.tz(localTimeZone).valueOf() + 60000 * offset;
+											if (series_data[i].date){
+												localDteTimeAdj = series_data[i].date;
+											}
+											chartRef.series[0].addPoint([localDteTimeAdj, parseFloat(series_data[i].value)], true);
+									}
+									/////////-TEST CONTENT
+								}
+								////////
+                            
+						});
+				/////
 
         console.log("Entrato in widgetTimeTrend --> " + widgetName);
 
@@ -596,7 +629,7 @@
                         //   }
                  //   }
                 }
-
+				
                 seriesData.sort(compareSeriesData);
 
                 maxValue = Math.max.apply(Math, valuesData);

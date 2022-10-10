@@ -49,6 +49,45 @@
         var rowParametersUrl = null;
 
         console.log("Widget Single Content: " + widgetName);
+		/////////////
+		$(document).off('showSingleContentFromExternalContent_' + widgetName);
+        $(document).on('showSingleContentFromExternalContent_' + widgetName, function(event){
+		console.log('showSingleContentFromExternalContent_AddCode!-CORRECT');
+				if(encodeURIComponent(metricName) === encodeURIComponent(metricName))
+                    {
+                       var newWsValue = event.passedData;
+						
+						if (newWsValue.dataOperation){
+							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("display", "none");
+							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", "100%");
+							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(newWsValue.dataOperation);
+						}else{
+							if (udm != null) {
+                            udm = null;
+                        }
+                        
+						//var cont = event.content;
+						//sm_field = newWsValue.sm_field;
+						useWebSocket = false;
+						console.log('newWsValue:');
+						console.log(newWsValue);
+						
+
+                        if (newWsValue.metricId != null) {
+                            rowParameters = JSON.stringify(newWsValue);
+                        } else {
+                            rowParameters = newWsValue;
+                            sm_based = 'no';
+                            if (udm != null) {
+                                udm = null;
+                            }
+                        }
+                        loadData();
+						}
+
+                    }
+		});
+		////////////
         
         $(document).off('changeMetricFromButton_' + widgetName);
         $(document).on('changeMetricFromButton_' + widgetName, function(event) 
@@ -457,7 +496,7 @@
 	}
 
 	    function loadData() {
-
+			
             if (rowParameters != null && rowParameters != '') {
                 if (IsJsonString(rowParameters)) {
                     if (JSON.parse(rowParameters).metricHighLevelType == "Sensor") {
@@ -468,7 +507,7 @@
                     sm_field = JSON.parse(rowParameters).metricType;
                 }
             }
-
+			
             if (fromGisExternalContent) {
                 urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri) + "&format=json";      // PANTALEO - DA METTERE SUPERSERVICEMAP ??
 
@@ -598,9 +637,10 @@
                 } else {
                     rowParametersUrl = encodeServiceUri(rowParameters);
                 }
-
+	console.log('sm_based: '+sm_based);
                 switch (sm_based) {
                     case 'yes':
+					
                         $.ajax({
                             url: "<?= $superServiceMapProxy?>" + rowParametersUrl,
                             type: "GET",
@@ -701,6 +741,8 @@
                             async: true,
                             dataType: 'json',
                             success: function (data) {
+								console.log('data: ');
+								console.log(data);
                                 metricData = data;
                                 needWebSocket = metricData.data[0].needWebSocket;
                                 $("#" + widgetName + "_loading").css("display", "none");

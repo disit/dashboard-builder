@@ -1633,3 +1633,29 @@ function sortMultiSerieForBarCharts(seriesObj, order, chartType)
     }
     return seriesObj;
 }
+
+function getOrganizationParams(callback) {
+
+    var properties = null;
+
+    $.ajax({
+        type: "GET",
+        url: "../controllers/getOrganizationParameters.php",
+        data: {
+            action: "getAllParameters",
+        },
+        async: true,
+        dataType: 'json',
+        success: function (data)
+        {
+            properties = [data];
+            callback(properties);
+        },
+        error: function(errorData)
+        {
+            console.log("Error while loading Organization Parameters.'");
+            console.log(JSON.stringify(errorData));
+        }
+    });
+
+}

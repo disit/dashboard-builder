@@ -66,6 +66,7 @@ if(isset($_SESSION['loggedUsername']) || @$_SESSION['isPublic'] === true)
                         $orgZoomLevel = $row['zoomLevel'];
                         $orgBroker = $row['broker'];
                         $orionIP = $row['orionIP'];
+                        $ghRouting = $row['ghRouting'];
                         $response['orgId'] = $orgId;
                         $response['orgName'] = $orgName;
                         $response['orgKbUrl'] = $orgKbUrl;
@@ -73,6 +74,7 @@ if(isset($_SESSION['loggedUsername']) || @$_SESSION['isPublic'] === true)
                         $response['orgZoomLevel'] = $orgZoomLevel;
                         $response['orgBroker'] = $orgBroker;
                         $response['orionIP'] = $orionIP;
+                        $response['ghRouting'] = $ghRouting;
                         $response['detail'] = 'GetOrganizationParameterOK';
                     } else {
                         $response['detail'] = 'GetOrganizationParameterEMPTY';
