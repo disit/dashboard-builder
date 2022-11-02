@@ -70,6 +70,8 @@
             chartSeriesObject, startAngle, endAngle, groupByAttr = null;
         var flipFlag, emptyLegendFlagFromWs = false;
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
+        var code, clickedVar, clickedVarType = null;
+        var selectedDataJson = [];
 		//////ADD CODE//////
 				//
         $(document).off('showPieChartFromExternalContent_' + widgetName);
@@ -840,7 +842,28 @@
                     text: ''
                 },
                 plotOptions: {
-                    pie: pieObj
+                    pie: pieObj,
+                    series: {
+                        cursor: 'pointer',
+                        point: {
+                            events: {
+                                click: function() {
+                                    clickedVar = this.options.name;
+                                    clickedVarType = this.series.name;
+                                    var dataString = "";
+                                    var vUnit = null;
+                                    if (clickedVarType == 'value name') {
+                                        for (var n = 0; n < seriesDataArray.length; n++) {
+                                            if (seriesDataArray[n].metricName == clickedVar) {
+                                                // selectedDataJson.push(seriesDataArray[n]);
+                                            }
+                                        }
+                                        alert(JSON.stringify(selectedDataJson));
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
                 series: seriesObj,
                 legend: {

@@ -77,6 +77,7 @@
         var expandedTimeRangeFlag = false;
         var currentTimeRange = null;
         var lastDateinDataArray = null;
+        var code, minX, maxX, selectedX = null
 		//////ADD CODE//////
 				//
 				$(document).off('showTimeTrendFromExternalContent_' + widgetName);
@@ -908,7 +909,34 @@
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartPlaneColorMenuItem").trigger('chartCreated');
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartLabelsColorMenuItem").trigger('chartCreated');
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartAxesColorMenuItem").trigger('chartCreated');
+                                },
+                                selection: function (event) {
+                                    if (event.xAxis) {
+                                        minX = event.xAxis[0].min;
+                                        maxX = event.xAxis[0].max;
+                                        // alert("Min: " + minX + ";\nMax: " + maxX + ";\nsURI: " + rowParameters + ";\nmetric name: " + this.series[0].name);
+                                    }
                                 }
+                            }
+                        },
+                        plotOptions: {
+                            series: {
+                                point: {
+                                    events: {
+                                        mouseOver: function(jqEvent){
+                                            if(code !== null) {
+                                                this.graphic.element.style.cursor = 'pointer';
+                                            }
+                                        },
+                                        click: function () {
+                                            selectedX = this.category;
+                                            // alert('Category: ' + this.category + ', value: ' + this.y);
+                                        }
+                                    }
+                                }
+                            },
+                            spline: {
+
                             }
                         },
                         exporting: {
@@ -1036,10 +1064,32 @@
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartPlaneColorMenuItem").trigger('chartCreated');
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartLabelsColorMenuItem").trigger('chartCreated');
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartAxesColorMenuItem").trigger('chartCreated');
+                                },
+                                selection: function (event) {
+                                    if (event.xAxis) {
+                                        minX = event.xAxis[0].min;
+                                        maxX = event.xAxis[0].max;
+                                        // alert("Min: " + minX + ";\nMax: " + maxX + ";\nsURI: " + rowParameters + ";\nmetric name: " + this.series[0].name);
+                                    }
                                 }
                             }
                         },
                         plotOptions: {
+                            series: {
+                                point: {
+                                    events: {
+                                        mouseOver: function(jqEvent){
+                                            if(code !== null) {
+                                                this.graphic.element.style.cursor = 'pointer';
+                                            }
+                                        },
+                                        click: function () {
+                                            selectedX = this.category;
+                                            // alert('Category: ' + this.category + ', value: ' + this.y);
+                                        }
+                                    }
+                                }
+                            },
                             spline: {
                                 
                             }
@@ -2584,6 +2634,7 @@
                 chartLabelsFontColor = widgetData.params.chartLabelsFontColor;
                 infoJson = widgetData.params.infoJson;
                 nrMetricType = widgetData.params.nrMetricType;
+                code = widgetData.params.code;
                 
                 sm_based = widgetData.params.sm_based;
 

@@ -63,7 +63,8 @@ if (isset($_SESSION['loggedRole'])) {
             $query = 'SELECT DISTINCT * FROM multilanguage ' . $lang_query . ' ' . $idquery . ';';
 //echo($query);
             $result = mysqli_query($link, $query);
-            $response = "";
+            //$response = "";
+            $response = array();
             $i = 0;
             if ($result) {
                 if (mysqli_num_rows($result) > 0) {

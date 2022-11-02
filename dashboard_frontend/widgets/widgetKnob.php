@@ -76,6 +76,10 @@
         var updatedEverFlag = false;
         var updatedFlag = false;
         var lastValueOk = null;
+		//
+		
+		
+		///
         if(Window.webSockets == undefined)
           Window.webSockets = {};
         
@@ -664,7 +668,6 @@
             var newValue = null;
             var clockCrossRotation = false;
             var anticlockCrossRotation = false;
-            
             if((evt === "plus")||(evt === "minus"))
             {
                 switch(evt)
@@ -980,8 +983,21 @@
                         }
 
                     }
+					console.log('newAngle: '+newAngle);
+					
+					//EVENTO//
+					if (widgetProperties.param.code != null && widgetProperties.param.code != '') {
+									//execute();
+							var displayVal = newAngle;
+							var functionName = "execute_" + "<?= $_REQUEST['name_w'] ?>";
+							console.log(functionName);
+							window[functionName](displayVal);
+					}
+					
+					//
                 }
             }
+
         }
         
         function handleMouseDown()
@@ -1718,6 +1734,7 @@
                     labelsFontColor = styleParameters.labelsFontColor;
                     labelsFontFamily= widgetProperties.param.fontFamily; 
                     actuatorTarget = widgetProperties.param.actuatorTarget;
+					code = widgetProperties.param.code;
                     
                     if(actuatorTarget === 'broker')
                     {
@@ -1769,7 +1786,23 @@
                     
                     $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').hide();
                     $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').show();
-                    
+					///////////////////////////////
+					if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
+                        let code = widgetProperties.param.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+						var displayVal  = $('#<?= $_REQUEST['name_w'] ?>_lastContainer span.displayVal').text();
+						var displayVal ="";
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+						
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    }
+                    ////////////////////////////
                     populateWidget(); 
                     
                     $('#<?= $_REQUEST['name_w'] ?>_knobIndicator').off("hover");
@@ -1985,6 +2018,19 @@
                     }
                 }
             }
+			//TEST INSERT
+			if (widgetProperties.param.code != null && widgetProperties.param.code != '') {
+                //execute();
+				///////////
+				console.log("execute_" + "<?= $_REQUEST['name_w'] ?>");
+				//var displayVal  = $('#<?= $_REQUEST['name_w'] ?>_lastContainer span.displayVal').text();
+				var displayVal  = 50;
+                var functionName = "execute_" + "<?= $_REQUEST['name_w'] ?>";
+				console.log(functionName);
+                window[functionName](displayVal);
+            }
+			
+			//
         };
         
         timeToReload=200;
@@ -2112,5 +2158,6 @@
                 </div>
             </div>
         </div>
-    </div>	
+    </div>
+		<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 

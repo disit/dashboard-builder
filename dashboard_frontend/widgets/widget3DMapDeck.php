@@ -119,7 +119,7 @@ if (!isset($_SESSION)) {
 
 <!-- Adreani deckgl -->
 <script src="../widgets/layers/deckgl.min.js"></script>
-<!-- <script src="../widgets/layers/deckgl-beta.min.js"></script> -->
+<!-- <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script> -->
 <script src="../widgets/layers/gif-frames.js"></script>
 <script src="../widgets/layers/webgl-utils.js"></script>
 <script src="../widgets/layers/m4.js"></script>
@@ -181,7 +181,7 @@ if (!isset($_SESSION)) {
         $roofedBuildingsPaths = scandir("../widgets/layers/edificato/roofBuildings");
         ?>
 
-        const version = '1.2.0';
+        const version = '1.3.0';
         const channel = 'stable';
 
         /** @type {MapManager} */
@@ -272,6 +272,7 @@ if (!isset($_SESSION)) {
         // Variabili deckgl
         var is3dOn = true;
         var lightsOn = false;
+        var skyOn = true;
         var shadowsOn = false;
         var map3d;
         var map3dGL;
@@ -286,6 +287,15 @@ if (!isset($_SESSION)) {
         var autoreloadFeatures = false;
         var terrainOn = false;
         var elevationUrl;
+        const elevationDecoder = {
+            rScaler: 7.97 / 3,
+            gScaler: 7.97 / 3,
+            bScaler: 7.97 / 3,
+            // offset di 47.79
+            offset: -50.97
+            // original
+            // offset: -3.18
+        };
         var sky;
         var popupCoord = [];
         var gifWmsTraffic = {
@@ -300,6 +310,17 @@ if (!isset($_SESSION)) {
         var justClicked = false;
         var manuallyControlled = false;
         var buildingColor = [255, 102, 0, 255];
+        const buildingMappingColor = {
+            "Cult": [255, 255, 255],
+            "Culture": [0, 255, 0],
+            "PublicSrv": [0, 0, 255],
+            "Shopping": [0, 255, 255],
+            "Station": [255, 0, 255],
+            "University": [255, 110, 243],
+            "HealthCare": [181, 0, 0],
+            "School": [110, 255, 156],
+            "Bank": [92, 92, 92],
+        }
         var currentViewState;
         var lastHoveredObject;
         var layers = {
@@ -312,6 +333,7 @@ if (!isset($_SESSION)) {
             bus: null,
             building: null,
             dynamicBuildings: [],
+            hiddenBuilding: null,
             hoverBuilding: null,
             selection: null,
             fixedPins: [],
@@ -337,7 +359,8 @@ if (!isset($_SESSION)) {
                 displayedName: 'Extruded Buildings',
                 id: 'menu-extruded-building',
                 action: () => {
-                    loadLightBuildings();
+                    // loadLightBuildings();
+                    loadAggregatedBuildings();
                 },
             },
             glb: {
@@ -384,6 +407,27 @@ if (!isset($_SESSION)) {
                     loadElevatedBuildings();
                 },
             },
+            grid_high_res: {
+                displayedName: 'Roof + Pattern (high resolution)',
+                id: 'menu-high-res-grid-building',
+                action: () => {
+                    loadHighResGridSystemBuildings();
+                },
+            },
+            grid_low_res: {
+                displayedName: 'Roof + Pattern (low resolution)',
+                id: 'menu-low-res-grid-building',
+                action: () => {
+                    loadLowResGridSystemBuildings();
+                },
+            },
+            grid_dynamic_res: {
+                displayedName: 'Roof + Pattern (dynamic resolution)',
+                id: 'menu-dyn-res-grid-building',
+                action: () => {
+                    loadDynResGridSystemBuildings();
+                },
+            },
         }
 
         const riccardoBuildingsProp = {
@@ -397,8 +441,15 @@ if (!isset($_SESSION)) {
             getOrientation: [0, 0, 0],
             getScale: [0.722, 0.722, 1],
         }
+        
+        const gridBuildingsProp = {
+            position: [11.249009513574402, 43.7736035620886, -46.79],
+            getOrientation: [0, 0, 0],
+            getScale: [0.722, 0.722, 1],
+        }
 
         console.log("entrato in widget3DMapDeck. WidgetName = " + widgetName);
+        console.log(`Widget3DMapDeck loaded\n↳Version: ${version}, Channel: ${channel}`);
 
         var current_page = 0;
         var current_page_traffic = 0;
@@ -5879,7 +5930,8 @@ if (!isset($_SESSION)) {
             if (styleParameters != null && styleParameters.buildingType != null) {
                 switch (styleParameters.buildingType) {
                     case 'default':
-                        loadLightBuildings();
+                        // loadLightBuildings();
+                        loadAggregatedBuildings();
                         break;
                     case 'mesh':
                         loadHighResBuildingsGLB();
@@ -5889,7 +5941,8 @@ if (!isset($_SESSION)) {
                         break;
                 }
             } else {
-                loadLightBuildings();
+                // loadLightBuildings();
+                loadAggregatedBuildings();
             }
 
             const height = $(`#${widgetName}_map3d`).height();
@@ -5914,7 +5967,8 @@ if (!isset($_SESSION)) {
                 maxZoom: 20,
                 minZoom: 1,
                 pitch: pitchInit,
-                maxPitch: 90,
+                // maxPitch: 65,
+                maxPitch: 85,
                 bearing: bearingInit,
                 height: height,
                 width: width,
@@ -5933,16 +5987,16 @@ if (!isset($_SESSION)) {
                 container: `${widgetName}_map3d`,
                 effects,
                 // _animate: true,
-                views: new deck.MapView({
-                    farZMultiplier: 1.5,
-                    altitude: 1,
-                }),
+                // views: new deck.MapView({
+                //     farZMultiplier: 1.5,
+                //     altitude: 1,
+                // }),
                 layers: [
                     defaultLayer,
                     layers.building,
                 ],
                 _customRender: (redrawReason) => {
-                    if (sky != undefined && map3d != undefined) {
+                    if (skyOn && sky != undefined && map3d != undefined) {
                         const {
                             bearing,
                             pitch,
@@ -5951,18 +6005,20 @@ if (!isset($_SESSION)) {
                         sky.draw(bearing, pitch, maxPitch);
                     }
                     map3d._drawLayers(redrawReason, {
-                        clearCanvas: false
+                        clearCanvas: !skyOn
                     });
                 },
                 onWebGLInitialized: (gl) => {
                     map3dGL = gl;
-                    sky = new Sky(gl);
-                    const {
-                        bearing,
-                        pitch,
-                        maxPitch
-                    } = currentViewState;
-                    sky.draw(bearing, pitch, maxPitch);
+                    if (skyOn) {
+                        sky = new Sky(gl);
+                        const {
+                            bearing,
+                            pitch,
+                            maxPitch
+                        } = currentViewState;
+                        sky.draw(bearing, pitch, maxPitch);
+                    }
                 },
                 onViewStateChange: ({
                     viewState
@@ -6009,6 +6065,17 @@ if (!isset($_SESSION)) {
                     // do not trigger with the mouse wheel
 
                     currentViewState = viewState;
+                    
+                    // sky
+                    // if (sky != undefined && map3d != undefined) {
+                    //     const {
+                    //         bearing,
+                    //         pitch,
+                    //         maxPitch
+                    //     } = currentViewState;
+                    //     sky.draw(bearing, pitch, maxPitch);
+                    // }
+
                     map3d.setProps({
                         viewState: viewState,
                     });
@@ -6017,9 +6084,8 @@ if (!isset($_SESSION)) {
                     return viewState;
                 },
                 getCursor: () => cursorType,
-                getTooltip: ({
-                    object
-                }) => {
+                getTooltip: (info) => {
+                    let {object} = info;
                     if (object == null)
                         return null;
                     var displayedText = "";
@@ -6030,6 +6096,8 @@ if (!isset($_SESSION)) {
                             displayedText += `Name: ${object.properties.name}</br>`;
                         if (object.properties.address != null)
                             displayedText += `Address: ${object.properties.address}</br>`;
+                    } else if (info.layer instanceof CrestLayer) {
+                        displayedText += `Traffic congestion: ${object.relativeDensity * 100}%`;
                     } else {
                         displayedText = object.toString();
                     }
@@ -6204,6 +6272,36 @@ if (!isset($_SESSION)) {
                     hideLightSection();
                 }
             });
+            $('#skyEnable').on('click', (event) => {
+                skyOn = event.currentTarget.checked;
+                if (skyOn) {
+                    currentViewState.maxPitch = 85;
+                    map3d.setProps({viewState: {...currentViewState}});
+                    map3d.setProps({viewState: {...currentViewState}});
+
+                    sky = new Sky(map3dGL);
+                    const {
+                        bearing,
+                        pitch,
+                        maxPitch
+                    } = currentViewState;
+                    sky.draw(bearing, pitch, maxPitch);
+
+                    map3d._drawLayers('viewState changed', {
+                        clearCanvas: !skyOn
+                    });
+                } else {
+                    currentViewState.maxPitch = 65;
+                    if (currentViewState.pitch > 65) {
+                        currentViewState.pitch = 65;
+                        map3d.setProps({viewState: {...currentViewState}});
+                        map3d.setProps({viewState: {...currentViewState}});
+                    }
+                    map3d._drawLayers('viewState changed', {
+                        clearCanvas: !skyOn
+                    });
+                }
+            });
             $('#shadowEnable').on('click', (event) => {
                 shadowsOn = event.currentTarget.checked;
                 reloadLight(); 
@@ -6261,6 +6359,16 @@ if (!isset($_SESSION)) {
                 menuItem.click(() => {
                     selectTickMenuBuilding(building.id);
                     hideMenu(mapMenuId);
+                    if (deckMode == 'selection') {
+                        if (layers.building.id == 'aggregated-building-layer') {
+                            layers.hiddenBuilding = createAggregatedBuildingLayer({
+                                data: '../widgets/layers/edificato/aggregated_buildings.geojson',
+                                hidden: true,
+                            });
+                        } else if (building.id == 'menu-extruded-building') {
+                            layers.hiddenBuilding = null;
+                        }
+                    }
                     clearBuildings();
                     building.action();
                     updateLayers();
@@ -8091,6 +8199,28 @@ if (!isset($_SESSION)) {
                                 };
 
                                 apiUrls3D[`${passedData.desc}`] = event;
+
+                                if (terrainOn) {
+                                    let remainingFeatures = fatherGeoJsonNode.features.length;
+                                    for (let feature of fatherGeoJsonNode.features) {
+                                        let lng = feature.geometry.coordinates[0];
+                                        let lat = feature.geometry.coordinates[1];
+                                        loadAltitude(lng, lat, (altitude) => {
+                                            feature.geometry.coordinates[2] = altitude;
+                                            remainingFeatures--;
+                                            if (remainingFeatures <= 0) {
+                                                removeLayerSet(passedData.desc, layers.pin);
+                                                updateLayers();
+                                                const sensorLayer = createSensorLayer({
+                                                    data: fatherGeoJsonNode.features,
+                                                    id: `${passedData.desc}-elevated`
+                                                });
+                                                layers.pin.push(sensorLayer);
+                                                updateLayers();
+                                            }
+                                        });
+                                    }
+                                }
 
                                 const sensorLayer = createSensorLayer({
                                     data: fatherGeoJsonNode.features,
@@ -13928,6 +14058,11 @@ if (!isset($_SESSION)) {
                     var time = 0;
 
                     loadRoads();
+                    const loadingDiv = new LoadingDiv({
+                        text: 'crest layer',
+                        color1: '#ffffff',
+                        color2: '#cccccc',
+                    });
 
                     function loadRoads() {
                         defaults = {
@@ -14091,9 +14226,72 @@ if (!isset($_SESSION)) {
                                     for (let road of roads) {
                                         allSegments.push(...road.segments);
                                     }
-                                    const trafficLayer = new CrestLayer({
+                                    loadingDiv.setStatus('ok');
+                                    if (terrainOn) {
+                                        const loadingElevationDiv = new LoadingDiv({
+                                            text: 'elevation data',
+                                            color1: '#ffffff',
+                                            color2: '#cccccc',
+                                        });
+                                        let positionRemaining = allSegments.length * 2;
+                                        for (let segment of allSegments) {
+                                            loadAltitude(segment.startPos[0], segment.startPos[1], (altitude) => {
+                                                segment.startPos.push(altitude);
+                                                if (segment.endPos.length == 3)
+                                                    segment.middlePos.push((segment.endPos[2] + altitude) / 2);
+                                                positionRemaining--;
+                                                if (positionRemaining <= 0) {
+                                                    loadingElevationDiv.setStatus('ok');
+                                                    removeLayerSet('crest-layer', layers.traffic);
+                                                    const crestLayer = new CrestLayer({
+                                                        id: 'crest-layer-elevated',
+                                                        data: allSegments,
+                                                        pickable: true,
+                                                        getStartPosition: (d) => d.startPos,
+                                                        getMiddlePosition: (d) => d.middlePos,
+                                                        getEndPosition: (d) => d.endPos,
+                                                        getStartDensity: (d) => d.prevRelativeDensity,
+                                                        getMiddleDensity: (d) => d.relativeDensity,
+                                                        getEndDensity: (d) => d.nextRelativeDensity,
+                                                        getStartColor: (d) => d.prevColor.map(x => x / 255),
+                                                        getMiddleColor: (d) => d.color.map(x => x / 255),
+                                                        getEndColor: (d) => d.nextColor.map(x => x / 255),
+                                                    });
+                                                    layers.traffic.push(crestLayer);
+                                                    updateLayers();
+                                                }
+                                            });
+                                            loadAltitude(segment.endPos[0], segment.endPos[1], (altitude) => {
+                                                segment.endPos.push(altitude);
+                                                if (segment.startPos.length == 3)
+                                                    segment.middlePos.push((segment.startPos[2] + altitude) / 2);
+                                                positionRemaining--;
+                                                if (positionRemaining <= 0) {
+                                                    loadingElevationDiv.setStatus('ok');
+                                                    removeLayerSet('crest-layer', layers.traffic);
+                                                    const crestLayer = new CrestLayer({
+                                                        id: 'crest-layer-elevated',
+                                                        data: allSegments,
+                                                        getStartPosition: (d) => d.startPos,
+                                                        getMiddlePosition: (d) => d.middlePos,
+                                                        getEndPosition: (d) => d.endPos,
+                                                        getStartDensity: (d) => d.prevRelativeDensity,
+                                                        getMiddleDensity: (d) => d.relativeDensity,
+                                                        getEndDensity: (d) => d.nextRelativeDensity,
+                                                        getStartColor: (d) => d.prevColor.map(x => x / 255),
+                                                        getMiddleColor: (d) => d.color.map(x => x / 255),
+                                                        getEndColor: (d) => d.nextColor.map(x => x / 255),
+                                                    });
+                                                    layers.traffic.push(crestLayer);
+                                                    updateLayers();
+                                                }
+                                            });
+                                        }
+                                    }
+                                    const crestLayer = new CrestLayer({
                                         id: 'crest-layer',
                                         data: allSegments,
+                                        pickable: true,
                                         getStartPosition: (d) => d.startPos,
                                         getMiddlePosition: (d) => d.middlePos,
                                         getEndPosition: (d) => d.endPos,
@@ -14104,7 +14302,7 @@ if (!isset($_SESSION)) {
                                         getMiddleColor: (d) => d.color.map(x => x / 255),
                                         getEndColor: (d) => d.nextColor.map(x => x / 255),
                                     });
-                                    layers.traffic.push(trafficLayer);
+                                    layers.traffic.push(crestLayer);
                                     layers.pin.push(createMockIcon());
                                     updateLayers();
                                     return;
@@ -14244,16 +14442,14 @@ if (!isset($_SESSION)) {
                     event.legend = legend;
                     map.eventsOnMap.push(event);
                 }
+                event.passedParams = {
+                    desc: "Crest"
+                }
                 eventMapManager.legacyTrigger(event, addTrafficRTDetailsToMap);
             });
 
             $(document).on('addHeatmap', function(event) {
-                if (event.target === map.mapName) {
-                    //   map.defaultMapRef.off('click', heatmapClick);
-                    //   window.addHeatmapToMap = function() {
-
-                    //Crea un layer per la heatmap (i dati gli verranno passati nell'evento)
-                    //heatmap configuration
+                function addHeatmapToMap() {
                     function initHeatmapLayer(heatmapRangeObject) {
 
                         var heatmapCfg = {};
@@ -14747,9 +14943,11 @@ if (!isset($_SESSION)) {
                                             const datasetName = oldProps.id;
                                             const wmsUrl = oldProps.wmsUrl;
                                             const tileSize = oldProps.tileSize;
-                                            const heatmapLayer = createHeatmapLayer({
+                                            const heatmapLayer = !terrainOn ? createHeatmapLayer({
                                                 ...oldProps,
-                                                type: "heatmap",
+                                                opacity
+                                            }) : createNewTerrainTileLayer({
+                                                ...oldProps,
                                                 opacity
                                             });
                                             layers.wms = heatmapLayer;
@@ -14895,9 +15093,11 @@ if (!isset($_SESSION)) {
                                             const datasetName = oldProps.id;
                                             const wmsUrl = oldProps.wmsUrl;
                                             const tileSize = oldProps.tileSize;
-                                            const trafficLayer = createHeatmapLayer({
+                                            const trafficLayer = !terrainOn ? createHeatmapLayer({
                                                 ...oldProps,
-                                                type: "traffic",
+                                                opacity
+                                            }) : createNewTerrainTileLayer({
+                                                ...oldProps,
                                                 opacity
                                             });
                                             layers.trafficWms = trafficLayer;
@@ -15554,10 +15754,15 @@ if (!isset($_SESSION)) {
                                                 "&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A4326";
                                             trafficWmsUrl += '&bbox={bbox}';
 
-                                            const trafficLayer = createHeatmapLayer({
+                                            const trafficLayer = !terrainOn ? createHeatmapLayer({
                                                 data: trafficWmsUrl,
                                                 id: datasetName,
-                                                type: "traffic",
+                                                tileSize: 256,
+                                                opacity: 1
+                                            }) : createNewTerrainTileLayer({
+                                                id: datasetName,
+                                                texture: trafficWmsUrl,
+                                                elevationUrl,
                                                 tileSize: 256,
                                                 opacity: 1
                                             });
@@ -15741,26 +15946,27 @@ if (!isset($_SESSION)) {
                                                             createNewTerrainTileLayer({
                                                                 elevationUrl,
                                                                 texture,
+                                                                id: wmsDatasetName
                                                             });
-                                                        // const terrainLayer =
-                                                        //     createTerrainTileLayer({
-                                                        //         elevationUrl,
-                                                        //         data: oldData,
-                                                        //         id: "elevation-terrain-layer"
-                                                        //     });
+                                                        // TODO: Reload old features
                                                         terrainOn = true;
                                                         layers.terrain = terrainLayer;
+                                                        updateLayers();
+                                                        // eventMapManager.reloadElevableEvents();
                                                     } else {
-                                                        const heatmapLayer =
+                                                        const heatmapLayer = !terrainOn ?
                                                             createHeatmapLayer({
                                                                 data: wmsUrl,
                                                                 id: wmsDatasetName
+                                                            }) : createNewTerrainTileLayer({
+                                                                elevationUrl,
+                                                                texture: wmsUrl,
+                                                                opacity: 0.25,
+                                                                id: wmsDatasetName
                                                             });
-                                                        layers.wms = null;
-                                                        updateLayers();
                                                         layers.wms = heatmapLayer;
+                                                        updateLayers();
                                                     }
-                                                    updateLayers();
                                                     //$("#heatmapLegend").css("visibility", "visible");
                                                 } else {
                                                     wmsLayer = L.tileLayer.wms(geoServerUrl +
@@ -15906,10 +16112,15 @@ if (!isset($_SESSION)) {
                                         "&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A4326";
                                     trafficWmsUrl += '&bbox={bbox}';
 
-                                    const trafficLayer = createHeatmapLayer({
+                                    const trafficLayer = !terrainOn ? createHeatmapLayer({
                                         data: trafficWmsUrl,
                                         id: datasetName,
-                                        type: "traffic",
+                                        tileSize: 256,
+                                        opacity: 1
+                                    }) : createNewTerrainTileLayer({
+                                        elevationUrl,
+                                        texture: trafficWmsUrl,
+                                        id: datasetName,
                                         tileSize: 256,
                                         opacity: 1
                                     });
@@ -16334,9 +16545,13 @@ if (!isset($_SESSION)) {
                                                             wmsUrl +=
                                                                 "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
                                                             wmsUrl += '&bbox={bbox}';
-                                                            const heatmapLayer =
+                                                            const heatmapLayer = !terrainOn ?
                                                                 createHeatmapLayer({
                                                                     data: wmsUrl,
+                                                                    id: wmsDatasetName
+                                                                }) : createNewTerrainTileLayer({
+                                                                    elevationUrl,
+                                                                    texture: wmsUrl,
                                                                     id: wmsDatasetName
                                                                 });
                                                             t
@@ -16562,8 +16777,12 @@ if (!isset($_SESSION)) {
                                                     wmsUrl +=
                                                         "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
                                                     wmsUrl += '&bbox={bbox}';
-                                                    const heatmapLayer = createHeatmapLayer({
+                                                    const heatmapLayer = !terrainOn ? createHeatmapLayer({
                                                         data: wmsUrl,
+                                                        id: wmsDatasetName
+                                                    }) : createNewTerrainTileLayer({
+                                                        elevationUrl,
+                                                        texture: wmsUrl,
                                                         id: wmsDatasetName
                                                     });
                                                     heatmapLayer.type = "heatmap";
@@ -16964,6 +17183,7 @@ if (!isset($_SESSION)) {
                         addHeatmapToMap();
                     }
                 }
+                eventMapManager.legacyTrigger(event, addHeatmapToMap);
             });
 
             $(document).on('removeAlarm', function(event) {
@@ -17022,8 +17242,10 @@ if (!isset($_SESSION)) {
 
                     if (is3dOn) {
                         delete apiUrls3D[`${passedData.desc}`];
-                        if (display == "undefined" || display.includes('pins'))
+                        if (display == "undefined" || display.includes('pins')) {
                             removeLayerSet(passedData.desc, layers.pin);
+                            removeLayerSet(`${passedData.desc}-elevated`, layers.pin);
+                        }
                         removeLayerSet(passedData.desc, layers.fixedPins);
                         removeLayerSet(`${passedData.desc}-RT`, layers.fixedPins);
                         if (display.includes('geometries'))
@@ -17224,7 +17446,6 @@ if (!isset($_SESSION)) {
             });
 
             $(document).on('removeHeatmap', function(event) {
-
                 function removeHeatmap(resetPageFlag) {
                     if (baseQuery.includes("heatmap.php")) { // OLD HEATMAP
                         if (resetPageFlag == true) {
@@ -17367,6 +17588,7 @@ if (!isset($_SESSION)) {
                         }
                     }
                 }
+                // eventMapManager._legacyTriggerRemove(event, removeHeatmapFromMap);
                 map.defaultMapRef.off('click', heatmapClick);
             });
 
@@ -17455,8 +17677,8 @@ if (!isset($_SESSION)) {
             var {
                 elevationUrl
             } = props;
-            elevationUrl = elevationUrl.replace('width=512', 'width=256');
-            elevationUrl = elevationUrl.replace('height=512', 'height=256');
+            // elevationUrl = elevationUrl.replace('width=512', 'width=256');
+            // elevationUrl = elevationUrl.replace('height=512', 'height=256');
             return new NewTerrainLayer({
                 id: 'terrain-layer',
 
@@ -17464,69 +17686,17 @@ if (!isset($_SESSION)) {
                 maxZoom: 18,
                 tileSize: 256,
                 opacity: 1,
-                elevationDecoder: {
-                    rScaler: 7.97 / 3,
-                    gScaler: 7.97 / 3,
-                    bScaler: 7.97 / 3,
-                    // offset di 47.79
-                    offset: -50.97
-                    // offset: -3.18
-                },
+                elevationDecoder,
                 loadOptions: {
                     terrain: {
                         tesselator: 'martini',
                         // tesselator: 'delatin',
-                        meshMaxError: 1,
+                        // meshMaxError: 20,
                     },
                 },
                 refinementStrategy: 'best-available',
                 color: [255, 255, 255],
                 elevationData: elevationUrl,
-                ...props,
-            });
-
-        }
-
-        function createTerrainTileLayer(props) {
-            var {
-                elevationUrl
-            } = props;
-            elevationUrl = elevationUrl.replace('width=512', 'width=256');
-            elevationUrl = elevationUrl.replace('height=512', 'height=256');
-            return new deck.TileLayer({
-                id: 'terrain-layer',
-
-                minZoom: 0,
-                maxZoom: 20,
-                tileSize: 256,
-                opacity: 1,
-
-                renderSubLayers: props => {
-                    const {
-                        bbox: {
-                            west,
-                            south,
-                            east,
-                            north
-                        }
-                    } = props.tile;
-
-                    return new deck.TerrainLayer({
-                        id: props.id,
-                        elevationDecoder: {
-                            rScaler: 7.97 / 3,
-                            gScaler: 7.97 / 3,
-                            bScaler: 7.97 / 3,
-                            offset: -50.97
-                            // offset: -3.18
-                        },
-                        refinementStrategy: 'best-available',
-                        color: [255, 255, 255],
-                        elevationData: elevationUrl + `&bbox=${west},${south},${east},${north}`,
-                        texture: props.data,
-                        bounds: [west, south, east, north],
-                    });
-                },
                 ...props,
             });
 
@@ -17578,7 +17748,7 @@ if (!isset($_SESSION)) {
 
         function createHeatmapLayer(props) {
             var {
-                type = "heatmap", url
+                type = "heatmap"
             } = props;
             if (type == "heatmap") {
                 gifWms.isAnimated = false;
@@ -17605,7 +17775,6 @@ if (!isset($_SESSION)) {
                 minZoom: 0,
                 maxZoom: 18,
                 pickable: false,
-                wmsUrl: url,
                 parameters: {
                     depthTest: false
                 },
@@ -17639,36 +17808,23 @@ if (!isset($_SESSION)) {
 
         }
 
-        function createGeoJSONLayer(data, id = "geojson-layer") {
+        function createGeoJSONLayer(props) {
             return new deck.GeoJsonLayer({
-                id: id,
-                data: data,
+                id: 'geojson-layer',
                 extruded: true,
-                // pickable: true,
+                pickable: true,
                 stroked: true,
                 filled: true,
                 lineWidthScale: 20,
-                lineWidthMinPixels: 2,
+                lineWidthMinPixels: 10,
                 getFillColor: [255, 0, 0, 200],
-                getLineColor: [0, 0, 255],
+                getLineColor: [0, 0, 0],
+                getElevation: f => f.properties.height,
+                autoHighlight: true,
+                highlightColor: [255, 0, 0, 200],
                 getRadius: 100,
-                getLineWidth: 1,
-            });
-        }
-
-        function createWktLayer(data, id = "wkt-layer") {
-            return new deck.GeoJsonLayer({
-                id: id,
-                data: data,
-                loaders: [WKTLoader],
-                stroked: true,
-                filled: true,
-                lineWidthScale: 20,
-                lineWidthMinPixels: 2,
-                getFillColor: [255, 0, 0, 200],
-                getLineColor: [0, 0, 255],
-                getRadius: 100,
-                getLineWidth: 1,
+                getLineWidth: 100,
+                ...props
             });
         }
 
@@ -17716,6 +17872,111 @@ if (!isset($_SESSION)) {
             });
         }
 
+        function createAggregatedBuildingLayer(props) {
+            hiddenProps = {};
+            if (props.hidden)
+                hiddenProps = {
+                    // opacity: 0.7,
+                    parameters: {
+                        depthTest: false
+                    },
+                    getFillColor: (d) => {
+                        var color = d.properties.type ? [...buildingMappingColor[d.properties.type], 255] : [...buildingColor];
+                        color[3] = 70;
+                        return color;
+                    },
+                };
+            return createGeoJSONLayer({
+                id: 'aggregated-building-layer',
+                pickable: deckMode == 'selection',
+				getFillColor: (d) => d.properties.type ? [...buildingMappingColor[d.properties.type], 255] : buildingColor,
+				// highlightColor: (d) => d.object.properties.type ? [...buildingMappingColor[d.object.properties.type], 255] : [255, 255, 0, 255],
+                autoHighlight: false,
+                opacity: props.hidden ? 0 : 1,
+				onHover: (info) => {
+                    if (deckMode == 'selection') {
+                        cursorType = 'pointer';
+                        const feature = info.object;
+                        if (feature) {
+                            const gjson = info.layer.props.data;
+                            const hoverFeatures = [];
+                            if (feature.properties.aggregations)
+                                for (let id of feature.properties.aggregations) {
+                                    for (let feat of gjson.features) {
+                                        if (feat.properties.OBJECTID == id) {
+                                            hoverFeatures.push(feat);
+                                            break;	
+                                        }
+                                    }
+                                }
+                            else
+                                hoverFeatures.push(feature);
+                            const hoverLayer = createGeoJSONLayer({
+                                id: 'hover-layer',
+                                pickable: false,
+                                data: hoverFeatures,
+
+                                getFillColor: (d) => d.properties.type ? [...buildingMappingColor[d.properties.type], 255] : buildingColor,
+                                material: {
+                                    ambient: 0.35,
+                                    diffuse: 0.6,
+                                    shininess: 0,
+                                    specularColor: [30, 30, 30]
+                                },
+                                ...hiddenProps,
+                            });
+                            layers.hoverBuilding = hoverLayer;
+                            updateLayers();
+                        } else {
+                            layers.hoverBuilding = null;
+                            updateLayers();
+                        }
+                    } else
+                        cursorType = 'grab';
+				},
+                onClick: (event) => {
+                    if (deckMode == 'selection') {
+                        const feature = event.object;
+                        if (feature) {
+                            const gjson = event.layer.props.data;
+                            const selectedFeatures = [];
+                            if (feature.properties.aggregations)
+                                for (let id of feature.properties.aggregations) {
+                                    for (let feat of gjson.features) {
+                                        if (feat.properties.OBJECTID == id) {
+                                            selectedFeatures.push(feat);
+                                            break;	
+                                        }
+                                    }
+                                }
+                            else
+                                selectedFeatures.push(feature);
+                            const selectionLayer = createGeoJSONLayer({
+                                id: 'selection-layer',
+                                getFillColor: (d) => d.properties.type ? [...buildingMappingColor[d.properties.type], 200] : buildingColor,
+                                pickable: false,
+                                data: selectedFeatures,
+                                material: {
+                                    ambient: 0.35,
+                                    diffuse: 0.6,
+                                    shininess: 0,
+                                    specularColor: [30, 30, 30]
+                                },
+                                ...hiddenProps,
+                            });
+                            layers.selection = selectionLayer;
+                            updateLayers();
+                            showBuildingPopup(event.object);
+                        } else {
+                            layers.hover = null;
+                            updateLayers();
+                        }
+                    }
+                },
+                ...props,
+			});
+        }
+
         function createMeshLayer(data, id, scenegraph, color = [255, 255, 255, 255], pickable = true) {
             return new deck.ScenegraphLayer({
                 id: id,
@@ -17747,6 +18008,86 @@ if (!isset($_SESSION)) {
             });
         }
 
+        function createHighResGridBuildingLayer(props) {
+            const {glb} = props;
+            return new deck.TileLayer({
+                id: 'grid-high-res-building-layer',
+                refinementStrategy: 'never',
+                tileSize: 256,
+                minZoom: 15,
+                maxZoom: 18,
+                maxCacheSize: 10,
+                pickable: false,
+                renderSubLayers: props => {
+                    const {x, y, z} = props.tile.index;
+                    if (parseInt(currentViewState.zoom) - z <= 0)
+                        return createSceneGraphLayer({
+                            id: `grid-high-res-building-system-${z}-${x}-${y}`,
+                            scenegraph: `../widgets/layers/edificato/grid_high_res/${z}/${x}/${y}/model.glb`,
+                            ...glb
+                        });
+                    return null;
+                },
+            });
+        }
+
+        function createLowResGridBuildingLayer(props) {
+            const {glb} = props;
+            return new deck.TileLayer({
+                id: 'grid-low-res-building-layer',
+                refinementStrategy: 'never',
+                // refinementStrategy: 'best-avaiable',
+                tileSize: 256,
+                minZoom: 14,
+                maxZoom: 18,
+                maxCacheSize: 20,
+                pickable: false,
+                renderSubLayers: props => {
+                    const {x, y, z} = props.tile.index;
+                    if (parseInt(currentViewState.zoom) - z <= 0)
+                        return createSceneGraphLayer({
+                            id: `grid-low-res-building-system-${z}-${x}-${y}`,
+                            scenegraph: `../widgets/layers/edificato/grid_low_res/${z}/${x}/${y}/model.glb`,
+                            ...glb
+                        });
+                    return null;
+                },
+            });
+        }
+
+        function createDynResGridBuildingLayer(props) {
+            const {glb} = props;
+            return new deck.TileLayer({
+                id: 'grid-dyn-res-building-layer',
+                refinementStrategy: 'never',
+                tileSize: 256,
+                minZoom: 14,
+                maxZoom: 18,
+                pickable: false,
+                maxCacheSize: 20,
+                renderSubLayers: props => {
+                    const {x, y, z} = props.tile.index;
+                    if (parseInt(currentViewState.zoom) - z <= 0) {
+                        if (z >= 18)
+                            return createSceneGraphLayer({
+                                id: `grid-dyn-res-building-system-${z}-${x}-${y}`,
+                                scenegraph: `../widgets/layers/edificato/grid_high_res/${z}/${x}/${y}/model.glb`,
+                                ...glb
+                            });
+                        else if (z >= 14)
+                            return createSceneGraphLayer({
+                                id: `grid-building-system-${z}-${x}-${y}`,
+                                scenegraph: `../widgets/layers/edificato/grid_low_res/${z}/${x}/${y}/model.glb`,
+                                ...glb
+                            });
+                        else
+                            return null;
+                    }
+                    return null;
+                },
+            });
+        }
+
         function clearBuildings() {
             layers.building = null;
             layers.dynamicBuildings = [];
@@ -17754,9 +18095,15 @@ if (!isset($_SESSION)) {
 
         function loadLightBuildings() {
             layers.building = createBuildingLayer({
-                data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
+                data: '../widgets/layers/edificato/aggregated_buildings.geojson',
                 getFillColor: buildingColor,
                 getLineColor: [255, 255, 255],
+            });
+        }
+
+        function loadAggregatedBuildings() {
+            layers.building = createAggregatedBuildingLayer({
+                data: '../widgets/layers/edificato/aggregated_buildings.geojson',
             });
         }
 
@@ -17840,6 +18187,24 @@ if (!isset($_SESSION)) {
                 scenegraph: "../widgets/layers/edificato/elevated-buildings-1.0.0/sangiorgio_textured.glb",
                 ...marcoBuildingsProp,
             }));
+        }
+
+        function loadHighResGridSystemBuildings() {
+            layers.building = createHighResGridBuildingLayer({
+                glb: gridBuildingsProp,
+            });
+        }
+
+        function loadLowResGridSystemBuildings() {
+            layers.building = createLowResGridBuildingLayer({
+                glb: gridBuildingsProp,
+            });
+        }
+
+        function loadDynResGridSystemBuildings() {
+            layers.building = createDynResGridBuildingLayer({
+                glb: gridBuildingsProp,
+            });
         }
 
         function createIconLayer(id = 'icon-layer') {
@@ -17963,9 +18328,9 @@ if (!isset($_SESSION)) {
                     }
                 },
 
-                sizeScale: 7,
+                sizeScale: 5,
                 getPosition: d => d.geometry.coordinates,
-                getSize: 5,
+                getSize: 7,
                 parameters: {
                     depthTest: false
                 },
@@ -18095,6 +18460,33 @@ if (!isset($_SESSION)) {
             return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
         }
 
+        function loadAltitude(lng, lat, callback) {
+            if (!terrainOn)
+                return;
+            let delta = 0.0001;
+            let elat = lat + delta;
+            let elng = lng + delta;
+            let bboxurl = `${lng},${lat},${elng},${elat}`;
+            let url = elevationUrl.replace('{bbox}', bboxurl);
+            url = url.replace('width=256', 'width=1');
+            url = url.replace('height=256', 'height=1');
+
+            let img = new Image();
+            img.onload = () => {
+                let canvas = document.createElement('canvas');
+                let ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                let imgData = ctx.getImageData(0, 0, 1, 1).data;
+                let altitude = elevationDecoder.offset;
+                altitude += imgData[0] * elevationDecoder.rScaler;
+                altitude += imgData[1] * elevationDecoder.gScaler;
+                altitude += imgData[2] * elevationDecoder.bScaler;
+                callback(altitude);
+            };
+            img.crossOrigin = "Anonymous";
+            img.src = url;
+        }
+
         function loadSVG(url) {
             var svg;
             $.ajax({
@@ -18217,6 +18609,7 @@ if (!isset($_SESSION)) {
             updateLayers();
         }
 
+        // deprecated using CrestLayer
         function updateTraffic(viewState) {
             const maxbb = getMaxBoundingBox(viewState);
             urlRoads =
@@ -18236,6 +18629,7 @@ if (!isset($_SESSION)) {
             });
         }
 
+        // deprecated using CrestLayer
         function addDensity(urlDensity, roads) {
             $.ajax({
                 url: urlDensity,
@@ -18362,50 +18756,24 @@ if (!isset($_SESSION)) {
         }
 
         function updateLayers() {
-            let usedLayers = [];
-            if (layers.terrain)
-                usedLayers.push(layers.terrain);
-            if (layers.orthomaps)
-                usedLayers.push(layers.orthomaps);
-            if (layers.wms)
-                usedLayers.push(layers.wms);
-            if (layers.trafficWms)
-                usedLayers.push(layers.trafficWms);
-            usedLayers.push(...layers.cycling);
-            if (layers.bus)
-                usedLayers.push(layers.bus);
-            if (layers.building)
-                usedLayers.push(layers.building);
-            usedLayers.push(...layers.dynamicBuildings);
-            if (layers.hoverBuilding)
-                usedLayers.push(layers.hoverBuilding);
-            if (layers.selection)
-                usedLayers.push(layers.selection);
-            usedLayers.push(...layers.fixedPins);
-            usedLayers.push(...layers.pin);
-            usedLayers.push(...layers.traffic);
             map3d.setProps({
                 layers: [
-                    ...usedLayers
+                    layers.terrain,
+                    layers.orthomaps,
+                    layers.wms,
+                    layers.trafficWms,
+                    ...layers.cycling,
+                    layers.bus,
+                    layers.building,
+                    ...layers.dynamicBuildings,
+                    layers.hiddenBuilding,
+                    layers.hoverBuilding,
+                    layers.selection,
+                    ...layers.fixedPins,
+                    ...layers.pin,
+                    ...layers.traffic,
                 ]
             })
-            // map3d.setProps({
-            //     layers: [
-            //         layers.terrain,
-            //         layers.orthomaps,
-            //         layers.wms,
-            //         layers.trafficWms,
-            //         ...layers.cycling,
-            //         layers.bus,
-            //         layers.building,
-            //         ...layers.dynamicBuildings,
-            //         layers.hoverBuilding,
-            //         layers.selection,
-            //         ...layers.fixedPins,
-            //         ...layers.pin,
-            //         ...layers.traffic,
-            //     ]
-            // })
         }
 
         function formatDatetime(timestamp) {
@@ -18612,52 +18980,6 @@ if (!isset($_SESSION)) {
         function getSelectionString(viewState) {
             const maxbb = getMaxBoundingBox(viewState);
             return `selection=${maxbb[0][1]};${maxbb[0][0]};${maxbb[1][1]};${maxbb[1][0]}`;
-        }
-
-        // function updateDensityTable()
-
-        function getOldDensityColor(segment) {
-            var green = 0.3;
-            var yellow = 0.6;
-            var orange = 0.9;
-            if (segment.Lanes == 2) {
-                green = 0.6;
-                yellow = 1.2;
-                orange = 1.8;
-            }
-            if (segment.FIPILI == 1) {
-                green = 0.25;
-                yellow = 0.5;
-                orange = 0.75;
-            }
-            if (segment.Lanes == 3) {
-                green = 0.9;
-                yellow = 1.5;
-                orange = 2;
-            }
-            if (segment.Lanes == 4) {
-                green = 1.2;
-                yellow = 1.6;
-                orange = 2;
-            }
-            if (segment.Lanes == 5) {
-                green = 1.6;
-                yellow = 2;
-                orange = 2.4;
-            }
-            if (segment.Lanes == 6) {
-                green = 2;
-                yellow = 2.4;
-                orange = 2.8;
-            }
-            if (segment.density <= green)
-                return [0, 255, 0];
-            else if (segment.density <= yellow)
-                return [255, 255, 0];
-            else if (segment.density <= orange)
-                return [255, 140, 0];
-            else
-                return [255, 0, 0];
         }
 
         function changeBuildingLayer() {
@@ -18901,16 +19223,19 @@ if (!isset($_SESSION)) {
             reverseColorButton('deck-movement-mode');
             reverseColorButton('deck-selection-mode');
 
-            if (mode == 'selection') {
-                const hoverLayer = createBuildingLayer({
-                    data: '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson',
-                    getFillColor: [0, 0, 0, 0],
-                    opacity: 0,
-                    getLineColor: [255, 255, 255],
+            if (mode == 'selection' && layers.building.id != 'aggregated-building-layer') {
+                layers.hiddenBuilding = createAggregatedBuildingLayer({
+                    data: '../widgets/layers/edificato/aggregated_buildings.geojson',
+                    hidden: true,
                 });
-                layers.hoverBuilding = hoverLayer;
+            }
+            else if (mode == 'selection') {
+                loadAggregatedBuildings();
             } else {
-                layers.hoverBuilding = null;
+                cursorType = 'grab';
+                if (layers.building.id == 'aggregated-building-layer')
+                    loadAggregatedBuildings();
+                layers.hiddenBuilding = null;
             }
             updateLayers();
         }
@@ -18955,10 +19280,6 @@ if (!isset($_SESSION)) {
             element.attr('style', `color: ${fg} !important; background-color: ${bg} !important;`);
             // element.css('color', `${fg}!important`);
             // element.css('background-color', `${bg}!important`);
-        }
-
-        function loadSensorData() {
-
         }
 
         function getURLFromTemplate(template, properties) {
@@ -19153,7 +19474,7 @@ if (!isset($_SESSION)) {
                     controller: true,
                     container: `${widgetName}_map3d`,
                     effects,
-                    //_animate: true,
+                    _animate: true,
                     views: new deck.MapView({
                         farZMultiplier: 1.5,
                         altitude: 1,
@@ -19350,12 +19671,12 @@ if (!isset($_SESSION)) {
                                 type
                             });
                 }
-                this.registeredEvents[`${event.type}-${event.desc}`] = event;
+                this.registeredEvents[`${event.type}-${event.passedData.desc || event.passedParams.desc}`] = event;
                 callback(event);
             }
 
             _legacyTriggerRemove(event, callback) {
-                delete this.registeredEvents[`${event.type}-${event.desc}`];
+                delete this.registeredEvents[`${event.type}-${event.passedData.desc || event.passedParams.desc}`];
                 callback(event);
             }
 
@@ -19374,6 +19695,12 @@ if (!isset($_SESSION)) {
                     return;
 
                 EventMapManager._triggerReload(EventMapManager.autoreloadEvents);
+            }
+
+            reloadElevableEvents() {
+                for (let key in this.registeredEvents)
+                    if (key != "addHeatmap-Terrain") 
+                        $.event.trigger(this.registeredEvents[key]);
             }
 
             reloadAllEvents() {
@@ -19473,6 +19800,7 @@ if (!isset($_SESSION)) {
                 var texture = gl.createTexture();
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                 const wheater = 'daylight';
+                // const wheater = 'night';
 
                 const faceInfos = [{
                         target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
@@ -19562,14 +19890,6 @@ if (!isset($_SESSION)) {
 
             draw(bearing = 0, pitch = 0, maxPitch = 75) {
                 var gl = this.gl;
-
-                webglUtils.resizeCanvasToDisplaySize(gl.canvas);
-
-                // Tell WebGL how to convert from clip space to pixels
-                gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-                gl.enable(gl.CULL_FACE);
-                gl.enable(gl.DEPTH_TEST);
 
                 // Clear the canvas AND the depth buffer.
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -19921,19 +20241,6 @@ if (!isset($_SESSION)) {
                 });
             }
 
-            // makeViewport(opts) {
-            // 	var { width, height, viewState } = opts;
-            // 	console.log("Making Viewport");
-            // 	console.log(opts);
-            // 	viewState = this.filterViewState(viewState);
-            // 	const viewportDimensions = this.getDimensions({ width, height });
-            // 	return new TerrainViewport({
-            // 		...viewState,
-            // 		...this.props,
-            // 		...viewportDimensions,
-            // 	});
-            // }
-
             get controller() {
                 return this._getControllerProps({
                     type: MapController,
@@ -20195,22 +20502,22 @@ if (!isset($_SESSION)) {
                 vColor = vec4(0.);
                 vColor.a = 0.2;
                 if (positions.x == -1.0) {
-                    usedPositions = vec3(startPositions.xy, 0.0);
+                    usedPositions = vec3(startPositions.xyz);
                     vColor.rgb = startColor.rgb;
                     if (positions.z > 0.0)
-                        usedPositions = vec3(usedPositions.xy, maxHeight * startDensity);
+                        usedPositions = vec3(usedPositions.xy, usedPositions.z + (maxHeight * startDensity));
                 }
                 if (positions.x == 0.0) {
-                    usedPositions = vec3(middlePositions.xy, 0.0);
+                    usedPositions = vec3(middlePositions.xyz);
                     vColor.rgb = middleColor.rgb;
                     if (positions.z > 0.0)
-                        usedPositions = vec3(usedPositions.xy, maxHeight * middleDensity);
+                        usedPositions = vec3(usedPositions.xy, usedPositions.z + (maxHeight * middleDensity));
                 }
                 if (positions.x == 1.0) {
-                    usedPositions = vec3(endPositions.xy, 0.0);
+                    usedPositions = vec3(endPositions.xyz);
                     vColor.rgb = endColor.rgb;
                     if (positions.z > 0.0)
-                        usedPositions = vec3(usedPositions.xy, maxHeight * endDensity);
+                        usedPositions = vec3(usedPositions.xy, usedPositions.z + (maxHeight * endDensity));
                 }
                 if (positions.z > 0.0)
                     vColor.a = 1.;
@@ -20367,48 +20674,11 @@ if (!isset($_SESSION)) {
                 3, 5, 4,
             ];
 
-            // not used
-            _getMesh() {
-                const {
-                    getStartPosition,
-                    getEndPosition
-                } = this.props;
-                const {
-                    density,
-                    startDensity,
-                    endDensity
-                } = this.props;
-                const deltaLng = this._getDelta(getStartPosition[0], getEndPosition[0]);
-                const deltaLat = this._getDelta(getStartPosition[1], getEndPosition[1]);
-                const middlePosition = [deltaLng, deltaLat, 0];
-
-                const positions = [
-                    ...getStartPosition,
-                    ...getStartPosition,
-                    ...middlePosition,
-                    ...middlePosition,
-                    ...getEndPosition,
-                    ...getEndPosition,
-                ];
-
-                const maxHeigth = 80;
-
-                positions[5] = maxHeigth * startDensity;
-                positions[11] = maxHeigth * density;
-                positions[17] = maxHeigth * endDensity;
-
-                return {
-                    vertexCount: 24,
-                    positions,
-                    indices: CrestLayer.INDICES,
-                }
-            }
-
             getShaders() {
                 return Object.assign({}, super.getShaders(), {
                     vs: CrestLayer.vs,
                     fs: CrestLayer.fs,
-                    modules: [deck.project32],
+                    modules: [deck.project32, deck.picking],
                 });
             }
 
@@ -20445,381 +20715,6 @@ if (!isset($_SESSION)) {
 
                 if (model)
                     model.draw();
-            }
-
-        }
-
-        class VerticalPlaneLayer extends deck.BitmapLayer {
-            static vs = `
-            #define SHADER_NAME plane-layer-vertex-shader;
-
-            attribute vec2 texCoords;
-            attribute vec3 positions;
-            attribute vec3 positions64Low;
-            attribute vec3 fromPositions;
-            // attribute vec3 fromPositions64Low;
-            attribute vec3 toPositions;
-            // attribute vec3 toPositions64Low;
-
-            uniform float coordinateConversion;
-            uniform bool isChart;
-            uniform float startDensity;
-            uniform float endDensity;
-            uniform vec3 fillColor;
-            uniform vec3 startColor;
-            uniform vec3 endColor;
-            // uniform vec3 fromPosition;
-            // uniform vec3 fromPosition64Low;
-            // uniform vec3 toPosition;
-            // uniform vec3 toPosition64Low;
-
-            varying vec4 vColor;
-
-            const vec3 pickingColor = vec3(1.0, 0.0, 0.0);
-
-            bool checkCoords(vec3 a, vec3 b) {
-                return a.x == b.x && a.y == b.y;
-            }
-
-            void main(void) {
-                geometry.worldPosition = positions;
-                geometry.uv = texCoords;
-                geometry.pickingColor = pickingColor;
-
-                gl_Position = project_position_to_clipspace(positions, positions64Low, vec3(0.0), geometry.position);
-
-
-                float isBase = positions.z;
-                if (checkCoords(positions, fromPositions)) {
-                    if (isBase == 0.0) {
-                        vColor = vec4(startColor, 0.0);
-                    } else {
-                        vColor = vec4(startColor, 1.0);
-                    }
-                } else if (checkCoords(positions, toPositions)) {
-                    if (isBase == 0.0) {
-                        vColor = vec4(endColor, 0.0);
-                    } else {
-                        vColor = vec4(endColor, 1.0);
-                    }
-                } else {
-                    vColor = vec4(0,0,0,1);
-                }
-                DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
-            }
-            `;
-            static fs = `
-            #define SHADER_NAME plane-layer-fragment-shader;
-
-            precision mediump float;
-
-            varying vec4 vColor;
-
-            void main(void) {
-                gl_FragColor = vColor;
-            }
-        `;
-
-            static defaultProps = {
-                fromPosition: {
-                    type: 'accessor',
-                    value: [0, 0, 0]
-                },
-                toPosition: {
-                    type: 'accessor',
-                    value: [0, 0, 0]
-                },
-                fillColor: {
-                    type: 'color',
-                    value: [255, 255, 255]
-                },
-                startColor: {
-                    type: 'color',
-                    value: [255, 255, 255]
-                },
-                endColor: {
-                    type: 'color',
-                    value: [255, 255, 255]
-                },
-                startDensity: {
-                    type: 'number',
-                    min: 0,
-                    max: 1,
-                    value: 0
-                },
-                endDensity: {
-                    type: 'number',
-                    min: 0,
-                    max: 1,
-                    value: 1
-                },
-                maxHeight: {
-                    type: 'number',
-                    min: 0,
-                    max: 100,
-                    value: 40
-                },
-                isChart: true,
-            };
-
-            initializeState() {
-                super.initializeState();
-                const {
-                    gl
-                } = this.context;
-                const attributeManager = this.getAttributeManager();
-                this.setState({
-                    model: this._getModel(gl)
-                });
-                attributeManager.addInstanced({
-                    fromPositions: {
-                        size: 3,
-                        type: gl.DOUBLE,
-                        // fp64: this.use64bitPositions(),
-                        accessor: 'fromPosition',
-                    },
-                    toPositions: {
-                        size: 3,
-                        type: gl.DOUBLE,
-                        // fp64: this.use64bitPositions(),
-                        accessor: 'toPosition',
-                    },
-                });
-            }
-
-            updateState({
-                props,
-                oldProps,
-                changeFlags
-            }) {
-                super.updateState({
-                    props,
-                    oldProps,
-                    changeFlags
-                });
-            }
-
-            getShaders() {
-                return Object.assign({}, super.getShaders(), {
-                    vs: VerticalPlaneLayer.vs,
-                    fs: VerticalPlaneLayer.fs,
-                });
-            }
-
-            _createMesh() {
-                const {
-                    fromPosition,
-                    toPosition
-                } = this.props;
-                var {
-                    startDensity,
-                    endDensity,
-                    maxHeight
-                } = this.props;
-                startDensity = startDensity > 1 ? 1 : startDensity;
-                endDensity = endDensity > 1 ? 1 : endDensity;
-
-                const normalizedBounds = [
-                    [fromPosition[0], fromPosition[1], 0],
-                    [fromPosition[0], fromPosition[1], maxHeight * startDensity],
-                    [toPosition[0], toPosition[1], maxHeight * endDensity],
-                    [toPosition[0], toPosition[1], 0],
-                ];
-                return this._createMeshNormalized(normalizedBounds, this.context.viewport.resolution);
-            }
-
-            // static DEFAULT_INDICES = new Uint16Array([0, 2, 1, 0, 3, 2]);
-            static DEFAULT_INDICES = new Uint16Array([0, 2, 1, 0, 3, 2, 0, 1, 2, 0, 2, 3]);
-            static DEFAULT_TEX_COORDS = new Float32Array([0, 1, 0, 0, 1, 0, 1, 1]);
-
-            _sanitizeColor(color) {
-                if (color.length < 3)
-                    return [255, 0, 0];
-                return color;
-            }
-
-            draw(opts) {
-                const {
-                    uniforms,
-                    moduleParameters
-                } = opts;
-                const {
-                    model,
-                    coordinateConversion,
-                    bounds,
-                    disablePicking
-                } = this.state;
-                const {
-                    image,
-                    desaturate,
-                    opacity,
-                    transparentColor,
-                    tintColor
-                } = this.props;
-                const {
-                    isChart,
-                    maxHeight,
-                    startDensity,
-                    endDensity
-                } = this.props;
-                const {
-                    fromPosition,
-                    toPosition
-                } = this.props;
-                var {
-                    fillColor,
-                    startColor,
-                    endColor
-                } = this.props;
-                fillColor = this._sanitizeColor(fillColor);
-                startColor = this._sanitizeColor(startColor);
-                endColor = this._sanitizeColor(endColor);
-
-                if (moduleParameters.pickingActive && disablePicking) {
-                    return;
-                }
-
-                // // TODO fix zFighting
-                // Render the image
-                if (!model)
-                    return;
-
-                if (image) {
-                    model
-                        .setUniforms(uniforms)
-                        .setUniforms({
-                            bitmapTexture: image,
-                            desaturate,
-                            transparentColor: transparentColor.map(x => x / 255),
-                            tintColor: tintColor.slice(0, 3).map(x => x / 255),
-                            fillColor: fillColor.map(x => x / 255),
-                            coordinateConversion,
-                            opacity,
-                            bounds
-                        })
-                        .draw();
-                } else {
-                    model
-                        .setUniforms(uniforms)
-                        .setUniforms({
-                            desaturate,
-                            isChart,
-                            opacity,
-                            maxHeight,
-                            transparentColor: transparentColor.map(x => x / 255),
-                            tintColor: tintColor.slice(0, 3).map(x => x / 255),
-                            fillColor: fillColor.map(x => x / 255),
-                            startColor: startColor.map(x => x / 255),
-                            endColor: endColor.map(x => x / 255),
-                            coordinateConversion,
-                            startDensity,
-                            endDensity,
-                            bounds
-                        })
-                        .draw();
-                }
-            }
-
-            /*
-            1 ---- 2
-            |      |
-            |      |
-            0 ---- 3
-            */
-            _createMeshNormalized(bounds, resolution) {
-                if (!resolution) {
-                    return this.createQuad(bounds);
-                }
-                const maxXSpan = Math.max(
-                    Math.abs(bounds[0][0] - bounds[3][0]),
-                    Math.abs(bounds[1][0] - bounds[2][0])
-                );
-                const maxYSpan = Math.max(
-                    Math.abs(bounds[1][1] - bounds[0][1]),
-                    Math.abs(bounds[2][1] - bounds[3][1])
-                );
-                const uCount = Math.ceil(maxXSpan / resolution) + 1;
-                const vCount = Math.ceil(maxYSpan / resolution) + 1;
-
-                const vertexCount = (uCount - 1) * (vCount - 1) * 6;
-                const indices = new Uint32Array(vertexCount);
-                const texCoords = new Float32Array(uCount * vCount * 2);
-                const positions = new Float64Array(uCount * vCount * 3);
-
-                // Tesselate
-                let vertex = 0;
-                let index = 0;
-                for (let u = 0; u < uCount; u++) {
-                    const ut = u / (uCount - 1);
-                    for (let v = 0; v < vCount; v++) {
-                        const vt = v / (vCount - 1);
-                        const p = this.interpolateQuad(bounds, ut, vt);
-
-                        positions[vertex * 3 + 0] = p[0];
-                        positions[vertex * 3 + 1] = p[1];
-                        positions[vertex * 3 + 2] = p[2] || 0;
-
-                        texCoords[vertex * 2 + 0] = ut;
-                        texCoords[vertex * 2 + 1] = 1 - vt;
-
-                        if (u > 0 && v > 0) {
-                            indices[index++] = vertex - vCount;
-                            indices[index++] = vertex - vCount - 1;
-                            indices[index++] = vertex - 1;
-                            indices[index++] = vertex - vCount;
-                            indices[index++] = vertex - 1;
-                            indices[index++] = vertex;
-                        }
-
-                        vertex++;
-                    }
-                }
-                return {
-                    vertexCount,
-                    positions,
-                    indices,
-                    texCoords
-                };
-            }
-
-            createQuad(bounds) {
-                const positions = new Float64Array(12);
-                // [[minX, minY], [minX, maxY], [maxX, maxY], [maxX, minY]]
-                for (let i = 0; i < bounds.length; i++) {
-                    positions[i * 3 + 0] = bounds[i][0];
-                    positions[i * 3 + 1] = bounds[i][1];
-                    positions[i * 3 + 2] = bounds[i][2] || 0;
-                }
-
-                return {
-                    vertexCount: 12,
-                    positions,
-                    indices: VerticalPlaneLayer.DEFAULT_INDICES,
-                    texCoords: VerticalPlaneLayer.DEFAULT_TEX_COORDS
-                };
-            }
-
-            interpolateQuad(quad, ut, vt) {
-                return lerp(lerp(quad[0], quad[1], vt), lerp(quad[3], quad[2], vt), ut);
-            }
-
-            _getModel(gl) {
-                if (!gl)
-                    return null;
-                /*
-                0,0 --- 1,0
-                |       |
-                0,1 --- 1,1
-                */
-                return new luma.Model(gl, {
-                    ...this.getShaders(),
-                    id: this.props.id,
-                    geometry: new luma.Geometry({
-                        drawMode: gl.TRIANGLES,
-                        vertexCount: 12
-                    }),
-                    isInstanced: false,
-                });
             }
 
         }
@@ -20905,15 +20800,6 @@ if (!isset($_SESSION)) {
             }
         }
 
-        class SVGLayer extends deck.IconLayer {
-            shouldUpdateState({
-                props,
-                oldProps
-            }) {
-                console.log('svg should update?');
-            }
-        }
-
         class NewTerrainLayer extends deck.TerrainLayer {
             updateState({
                 props,
@@ -20982,7 +20868,8 @@ if (!isset($_SESSION)) {
                     elevationData: dataUrl,
                     bounds,
                     elevationDecoder,
-                    meshMaxError: 9,
+                    // meshMaxError: 9,
+                    meshMaxError: 6,
                     signal
                 });
                 const surface = textureUrl ? // If surface image fails to load, the tile should still be displayed
@@ -25820,7 +25707,7 @@ if (!isset($_SESSION)) {
         padding: 0;
     }
 
-    #universal-map-controls, #universal-map-overlay {
+    #universal-map-controls, #universal-map-overlay, #universal-map-popups {
         position: absolute;
         top: 25px;
         left: 0px;
@@ -25933,6 +25820,15 @@ if (!isset($_SESSION)) {
         min-width: 150px;
     }
 
+    #universal-map-popups {
+        overflow: hidden;
+    }
+
+    #<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_deck_popup,
+    #deck-building-popup {
+        pointer-events: all;
+    }
+
 </style>
 
 <div class="widget" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div">
@@ -25976,23 +25872,26 @@ if (!isset($_SESSION)) {
                 <!-- Mappa 3D -->
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d" class="map3d"></div>
                 <!-- Controlli universali -->
-                <!-- TODO: da finire -->
+                <div id="universal-map-popups">
+                    <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_deck_popup" class="deck-popup"></div>
+                    <div id="deck-building-popup"></div>
+                </div>
                 <div id="universal-map-controls">
                     <div id="universal-top-left">
                         <div id="deck-controls">
                             <div class="deck-btn-set">
-                                <div>
-                                    <button id="deck-light-btn" class="btn btn-primary">
-                                        <i class="fa fa-sun-o" aria-hidden="true"></i>
-                                        <i class="fa-solid fa-sun"></i>
+                                <div class="dropdown mapOptions" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptions">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                        <i class="fa fa-spinner fa-spin hidden" id="loadingMenu"></i> Maps
                                         <i class="fa fa-caret-right" id="loadingMenu"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="deck-btn-set">
-                                <div class="dropdown mapOptions" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptions">
-                                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                                        <i class="fa fa-spinner fa-spin hidden" id="loadingMenu"></i> Maps
+                                <div>
+                                    <button id="deck-light-btn" class="btn btn-primary">
+                                        <i class="fa fa-sun-o" aria-hidden="true"></i>
+                                        <i class="fa-solid fa-sun"></i>
                                         <i class="fa fa-caret-right" id="loadingMenu"></i>
                                     </button>
                                 </div>
@@ -26048,6 +25947,10 @@ if (!isset($_SESSION)) {
                                     <label for="light-timestamp">Datetime: </label>
                                     <input type="datetime-local" name="light-timestamp" id="lightTimestamp" />
                                 </div>
+                                <!-- <div>
+                                    <label for="shadow-enable">Enable Sky</label>
+                                    <input type="checkbox" name="sky-enable" id="skyEnable" checked>
+                                </div> -->
                                 <div>
                                     <label for="shadow-enable">Enable dynamic shadows (experimental)</label>
                                     <input type="checkbox" name="shadow-enable" id="shadowEnable">
@@ -26083,8 +25986,6 @@ if (!isset($_SESSION)) {
                     </div>
                 </div>
                 <!-- Popups -->
-                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_deck_popup" class="deck-popup"></div>
-                <div id="deck-building-popup"></div>
             </div>
         </div>
     </div>

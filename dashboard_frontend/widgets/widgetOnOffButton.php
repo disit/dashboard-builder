@@ -81,6 +81,7 @@
           Window.webSockets = {};
         
         console.log("<?= $_REQUEST['name_w'] ?>");
+		
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
@@ -738,8 +739,31 @@
                     }
                 }
             }
-            $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+           
             updateRemoteValue();
+			 $('#<?= $_REQUEST['name_w'] ?>_display span').html(currentValue);
+			//
+			if (code != null && code != '') {
+                //execute();
+                var functionName = "execute_" + "<?= $_REQUEST['name_w'] ?>";
+				//parameters
+				if(currentValue === offValue)
+                        {
+							var param_status = offValue;
+						}
+				if(currentValue === onValue)
+                        {
+							var param_status = onValue;
+						}
+				//
+				console.log('param_status: ');
+				console.log(param_status);
+				console.log('currentValue: ');
+				console.log(currentValue);
+				//var param_status = 0;
+                window[functionName](param_status);
+            }
+			//
         }
         
         function updateRemoteValue()
@@ -1329,6 +1353,7 @@
                     onButtonColor = styleParameters.onColor;
                     fontFamily = widgetProperties.param.fontFamily;
                     actuatorTarget = widgetProperties.param.actuatorTarget;
+					code = widgetProperties.param.code;
                     if(actuatorTarget === 'broker')
                     {
                         entityJson = widgetProperties.param.entityJson;
@@ -1448,7 +1473,23 @@
                     }
                     $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv i.gisDriverPin').hide();
                     $('#<?= $_REQUEST['name_w'] ?>_infoButtonDiv a.info_source').show();
-                    
+                    if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
+						
+                        let code = widgetProperties.param.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
+                        // elem.src = newInfoDecoded;
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    }
                     populateWidget();
                 }
                 else
@@ -1645,8 +1686,10 @@
                         <span></span>
                     </div>
                     <div id="<?= $_REQUEST['name_w'] ?>_onOffButtonAfter" class="onOffButtonAfter"></div>
+					<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
                 </div>
             </div>
         </div>
-    </div>	
+    </div>
+		<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 

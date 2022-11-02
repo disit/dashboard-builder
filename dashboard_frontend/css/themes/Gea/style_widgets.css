@@ -493,6 +493,37 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     z-index: 500!important;
 }
 
+#universal-map-controls, #universal-map-overlay {
+    position: absolute!important;
+    top: 45px!important;
+    left: 20px!important;
+    margin: 10px!important;
+    height: calc(100% - 85px)!important;
+    width: calc(100% - 60px)!important;
+}
+
+#universal-map-overlay .map-menu {
+    left: 40px!important;
+    top: 0px!important;
+}
+
+#universal-map-overlay .map-ligth-menu {
+    top: -15px!important;
+}
+
+#universal-map-overlay .dropdown-menu {
+    background-color: var(--wdgt-bg-color)!important;
+}
+
+#universal-map-overlay .dropdown-header {
+    color: var(--acc-01-color)!important;
+    padding: 3px 10px!important;
+}
+
+#universal-map-overlay .dropdown-item {
+    color: var(--text-color)!important;
+}
+
 #deck-controls{
     top: 50px!important;
     left: 30px!important;
@@ -4203,4 +4234,209 @@ span.displayLabel, span.displayVal{
 
 .tooltipSuri:hover .tooltipSuriText {
     visibility: visible;
+}
+
+/* ::::::: Device Table ::::::: */
+
+ul.pagination {
+    display: flex;
+    justify-content: center;
+    border-radius: 0;
+}
+
+ul.pagination li a, .pagination > li:last-child > a, .pagination > li:last-child > span, .pagination > li:first-child > a, .pagination > li:first-child > span, .pagination > .disabled > span, .pagination > .disabled > span:hover, .pagination > .disabled > span:focus, .pagination > .disabled > a, .pagination > .disabled > a:hover, .pagination > .disabled > a:focus{
+  border: none;
+  color: var(--tab-text-color);
+  background: var(--tab-bg-color);
+  margin-top: 0px;
+  margin-bottom: 0px;
+  margin-right: 10px;
+  border-radius: 20px;
+  border: none;
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
+.pagination > li a.maintable_prev:before{
+  content: "\e5cb";
+  font-family: 'Material Icons';
+}
+
+.pagination > li a.maintable_next:after{
+  content: "\e5cc";
+  font-family: 'Material Icons';
+}
+
+.pagination > li a.maintable_prev, .pagination > li a.maintable_next{
+    display: flex;
+    align-items: center;
+}
+
+.pagination > li > a:hover, .pagination > li > span:hover, .pagination > li > a:focus, .pagination > li > span:focus{
+  color: var(--tab-text-color);
+  background: var(--tab-hover-color);
+  border: none;
+}
+
+.pagination > .active > a, .pagination > .active > span, .pagination > .active > a:hover, .pagination > .active > span:hover, .pagination > .active > a:focus, .pagination > .active > span:focus{
+  color: var(--tab-active-text-color);
+  background: var(--tab-active-bg-color);
+  border: none;
+}
+
+.mod2_filters_container{
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.col_filters {
+    flex-basis: 100%;
+}
+
+.mod2Show{
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex-basis: 40%;
+}
+
+.mod2Show select {
+      padding: 0 20px;
+      border-radius: 10px;
+      border: none;
+      background: var(--sec-04-color);
+      margin: 0 auto 0 10px;
+      display: block;
+      font-family: 'Roboto', sans-serif;
+      font-size: 1vw;
+      font-weight: 600;
+      line-height: 2.5rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      /* Hide original icon */
+      -webkit-appearance: none;
+    -moz-appearance: none;
+    -o-appearance: none;
+    appearance: none;
+    box-shadow: none;
+}
+
+.mod2Show:after{
+  content: "\e5cf";
+  font-family: 'Material Icons';
+    font-size: 1.8rem;
+    line-height: 1rem;
+    position: absolute;
+    width: 2.5vw;
+    height: 100%;
+    right: 1px;
+    top: 1px;
+    pointer-events: none;
+    align-items: center;
+    display: flex;
+}
+
+.mod2Search{
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex-basis: 40%;
+  float: none!important;
+}
+
+.mod2Search div.dataTables_filter label{
+  display: flex;
+  flex-direction: row;
+  align-items: center;  
+}
+
+.mod2Search div.dataTables_filter label input{
+  padding: 0 20px;
+  border-radius: 10px;
+  border: none;
+  margin: 0 auto 0 10px;
+  display: block;
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.8vw;
+  font-weight: 400;
+  line-height: 2.5rem;
+  box-shadow: none!important;
+  background: var(--sec-04-color);
+}
+
+.dataTables_scrollHeadInner table, .dataTables_scrollHeadInner table tr th{
+  border: 1px solid var(--wdgt-bg-color);
+}
+
+.dataTables_scrollHeadInner table tr th{
+  background: var(--dash-bg-color);
+  text-align: center;
+  color: var(--acc-02-color);
+}
+
+.dataTables_scrollHeadInner table tbody td{
+  border: 1px solid var(--wdgt-bg-color)!important;
+}
+
+table.dataTable.stripe tbody tr.odd, table.dataTable.display tbody tr.odd{
+  background: var(--selectore-bg-color)!important;
+}
+
+table.dataTable.display tbody tr.odd > .sorting_1, table.dataTable.order-column.stripe tbody tr.odd > .sorting_1{
+  background: var(--tab-bg-color)!important;
+}
+
+table.dataTable tbody tr{
+  background: var(--wdgt-bg-color)!important;
+}
+
+.table-bordered > thead > tr > th, .table-bordered > tbody > tr > th, .table-bordered > tfoot > tr > th, .table-bordered > thead > tr > td, .table-bordered > tbody > tr > td, .table-bordered > tfoot > tr > td{
+  border: 1px solid var(--wdgt-bg-color)!important;
+}
+
+.dataTables_wrapper.no-footer div.dataTables_scrollHead table.dataTable, .dataTables_wrapper.no-footer div.dataTables_scrollBody > table{
+  border: none!important;
+  font-size: 1.2rem;
+}
+
+table.dataTable.no-footer{
+  border-bottom: 1px solid var(--text-color)!important;
+}
+
+table.dataTable.dtr-inline.collapsed > tbody > tr[role="row"] > td:first-child:before, table.dataTable.dtr-inline.collapsed > tbody > tr[role="row"] > th:first-child:before{
+  top: auto!important;
+  left: 10px!important;
+  position: absolute;
+  font-family: "Material Icons"!important;
+  content: "\e147"!important;
+  color: var(--acc-02-color)!important;
+  box-shadow: none!important;
+  border: none!important;
+  background: transparent!important;
+  font-size: 2rem;
+}
+
+table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before, table.dataTable.dtr-inline.collapsed > tbody > tr.parent > th:first-child:before{
+  top: auto!important;
+  left: 10px!important;
+  position: absolute;
+  font-family: "Material Icons"!important;
+  content: "\e644"!important;
+  color: var(--rischio-Red-color)!important;
+  box-shadow: none!important;
+  border: none!important;
+  background: transparent!important;
+  font-size: 2rem;
+}
+
+.dataTables_scrollBody table tbody td button.btn{
+  background: transparent!important;
+  color: var(--text-color)!important;
+  font-size: 1.5rem!important;
+  padding: 0px!important;
+}
+
+.dataTables_scrollBody table tbody td button.btn i{
+  font-size: 1.5rem!important;
 }

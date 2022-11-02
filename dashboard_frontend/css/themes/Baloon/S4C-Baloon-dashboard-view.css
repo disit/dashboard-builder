@@ -183,7 +183,7 @@ overflow-x: auto;
 /* BASE-RESET */
 
 :focus{
-	outline-color: var(--acc-01-color);
+	outline-color: var(--acc-01-color)!important;
 }
 
 body{
@@ -566,7 +566,7 @@ nav#s4c-sidebar ul.secondary-menu li a{
 
 /* WIDGETS */
 
-#gridsterUl li:not(.nav_ul li):not([data-widgettype="widgetSeparator"]):not(ul.map-menu li){
+#gridsterUl li:not(.nav_ul li):not([data-widgettype="widgetSeparator"]):not(ul.map-menu li):not(ul.pagination li):not(ul.dtr-details li){
     padding: 20px;
     background-color: var(--wdgt-bg-color);
     box-shadow: 4px 0px 10px #00000019;

@@ -1,18 +1,18 @@
 <?php
 
 /* Dashboard Builder.
-  Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
 include '../config.php';
 require '../sso/autoload.php';
@@ -30,7 +30,7 @@ if (isset($_SESSION['loggedUsername'])) {
         $_SESSION['refreshToken'] = $tkn->refresh_token;
 
         //error_reporting(E_ERROR);
-        $link = mysqli_connect($host, $username, $password);
+$link = mysqli_connect($host, $username, $password);
         //error_reporting(E_ALL);
         //ini_set('display_errors', 1);
         //error_reporting(-1);
@@ -38,7 +38,7 @@ if (isset($_SESSION['loggedUsername'])) {
         if (isset($_SESSION['loggedRole'])) {
             $role_session_active = $_SESSION['loggedRole'];
 
-
+      
             if ($role_session_active == "RootAdmin") {
 
                 function hash_password($password) { // SSHA with random 4-character salt
@@ -53,12 +53,12 @@ if (isset($_SESSION['loggedUsername'])) {
                     $filter = "(mail=" . $mail . ")";
                     //$attr['mail'] =  $mail;
                     $resultldap = ldap_search($connection, $ldapBaseDN, $filter, $attr);
-                    $entries = ldap_get_entries($connection, $resultldap);
+    $entries = ldap_get_entries($connection, $resultldap);
                     $count = $entries["count"];
                     $control_mail = $count;
-
+    
                     return $control_mail;
-                }
+	}
 
                 $link = mysqli_connect($host, $username, $password);
 
@@ -131,7 +131,7 @@ if (isset($_SESSION['loggedUsername'])) {
                         $entries0 = ldap_get_entries($connection, $resultldap0);
                         if (isset($entries0[0]['mail'][0])) {
                             $pass = $entries0[0]['mail'][0];
-                        }
+        	}
                         //
                         //
                         $org = null;
@@ -144,7 +144,7 @@ if (isset($_SESSION['loggedUsername'])) {
                             $user_min = strtolower($user);
                             if (in_array($user, $array_ut)) {
                                 $org = $entriesOrg[$y]['ou'][0];
-                            }
+	}	
                         }
                         //
                         //RUOLO
@@ -202,11 +202,14 @@ if (isset($_SESSION['loggedUsername'])) {
                             $new_userType = "Manager";
                         }
                         //
+                        $uid = encryptOSSL($new_username, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
                         //$ldapBaseDN = $ldapBaseDN;
                         $data = array();
                         $data['objectClass'][0] = 'inetOrgPerson';
                         $data['sn'] = strtolower($new_username);
                         $data['userPassword'] = hash_password($newPassw);
+                        $data['uid']= $uid;
+                        $data['ou']=  $org;
 
                         $control_mail = control_mail($ldapServer, $ldapPort, $ldapBaseDN, $mail);
                         if ($control_mail == 0) {
@@ -261,6 +264,25 @@ if (isset($_SESSION['loggedUsername'])) {
                     //echo($new_username);
                     $dn = "cn=" . strtolower($new_username) . "," . $ldapBaseDN;
                     $dn_role = "cn=" . $new_username . "," . $ldapBaseDN;
+                    //
+                    //
+                    //MODIFY UID
+                    $new_uid = encryptOSSL($new_username, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                    $serverctrls['uid'] = $new_uid;
+                    if (isset($_POST['org'])) {
+                        $new_org = htmlspecialchars($_POST['org']);
+                        $serverctrls['ou'] = $new_org;
+                    }
+                    ///////////
+                    $del_uid = ldap_mod_replace($connection, $dn, $serverctrls);
+                     if ($del_uid) {
+                                        $result['uid'] = "OK";
+                                        $result['index'] = 1;
+                                } else {
+                                    $result['uid'] = "error during uid or ou attribute modifying";
+                                    $result['index'] = 0;
+                                }
+                    ////
                     //
                     //ROLE
                     if ((isset($_POST['role'])) && (isset($_POST['old_role']))) {
@@ -393,8 +415,8 @@ if (isset($_SESSION['loggedUsername'])) {
                     } else {
                         //echo('ERROR CAMBIO MAIL');
                     }
-
-                    echo json_encode($result);
+                    
+    echo json_encode($result);
                     //
                 } else if ($action == 'list_org') {
                     //
@@ -417,7 +439,7 @@ if (isset($_SESSION['loggedUsername'])) {
                         $org02 = explode(',dc=', $org01[1]);
                         $final = $org02[0];
                         $array_org[$i] = $org;
-                    }
+}
 
                     ////
                     echo json_encode($array_org);

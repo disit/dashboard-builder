@@ -53,6 +53,7 @@
         var metricLabels = [];
         var sortSeriesStr, sortedSeries = null;
         var followPointerFlag = false;
+        var code, clickedVar, clickedCat, selectedDataJson = null;
 
         console.log("Entrato in widgetBarSeries --> " + widgetName);
 
@@ -69,13 +70,13 @@
                 <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
 
                 rowParameters = newValue;
-                populateWidget();
+                populateWidget(true);
             }
         });
 
         //Definizioni di funzione specifiche del widget
 
-        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr) {
+        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode) {
 
             deviceLabels = [];
             metricLabels = [];
@@ -104,7 +105,7 @@
                 deviceLabels = auxLabels;
             }
             series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag);
-            if (editLabels != null && flipFlag === true) {
+            if (editLabels != null && flipFlag === true && !fromCode) {
                 if (deviceLabels[0] != editLabels[0]) {
                     metricLabels = editLabels;
                 }
@@ -583,6 +584,31 @@
                             enabled: true,
                         //    sortKey: 'y',
                         }*/
+                        point: {
+                            events: {
+                                mouseOver: function(jqEvent){
+                                    if(code !== null) {
+                                        this.graphic.element.style.cursor = 'pointer';
+                                    }
+                                },
+                                click: function() {
+                                    var dataString = "";
+                                    if (groupByAttr == "value name") {
+                                        clickedVar = this.category;
+                                        clickedCat = this.series.name;
+                                    } else {
+                                        clickedVar = this.series.name;
+                                        clickedCat = this.category;
+                                    }
+                                    for (var n = 0; n < seriesDataArray.length; n++) {
+                                        if (seriesDataArray[n].metricType == clickedCat && seriesDataArray[n].metricName == clickedVar) {
+                                            selectedDataJson = seriesDataArray[n];
+                                            // alert(JSON.stringify(selectedDataJson));
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     bar: {
                         events: {
@@ -661,7 +687,7 @@
             }
         }
 
-        function populateWidget() {
+        function populateWidget(fromCode) {
 
             seriesDataArray = [];
 
@@ -802,7 +828,7 @@
                                     // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
                                     if (rowParameters.length === seriesDataArray.length) {
                                         // DO FINAL SERIALIZATION
-                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode);
                                     }
 
                                 });
@@ -821,7 +847,7 @@
 
                                 if (rowParameters.length === seriesDataArray.length) {
                                     // DO FINAL SERIALIZATION
-                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode)
                                 }
 
                                 break;
@@ -848,7 +874,7 @@
                                     // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
                                     if (rowParameters.length === seriesDataArray.length) {
                                         // DO FINAL SERIALIZATION
-                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                        serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode)
                                     }
 
                                 });
@@ -1473,6 +1499,7 @@
                 nrMetricType = widgetData.params.nrMetricType;
                 serviceUri = widgetData.params.serviceUri;
                 idMetric = widgetData.params.id_metric;
+                code = widgetData.params.code;
 
                 if (nrMetricType != null) {
                     openWs();
