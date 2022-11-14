@@ -4246,3 +4246,18 @@ p.gisMapLoadingDivTextPar
 .tooltipSuri:hover .tooltipSuriText {
     visibility: visible;
 }
+
+.pagination > li a.maintable_prev:before{
+  content: "\e5cb";
+  font-family: 'Material Icons';
+}
+
+.pagination > li a.maintable_next:after{
+  content: "\e5cc";
+  font-family: 'Material Icons';
+}
+
+.pagination > li a.maintable_prev, .pagination > li a.maintable_next{
+    display: flex;
+    align-items: center;
+}

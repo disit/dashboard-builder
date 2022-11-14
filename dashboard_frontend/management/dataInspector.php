@@ -20,12 +20,17 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
+
     include('../config.php');
     include('process-form.php');
-    if(!isset($_SESSION))
-    {
+    /* if(!isset($_SESSION)) {
        session_start();
-    }
+    }   */
     
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
@@ -38,13 +43,25 @@
 
 
 <!DOCTYPE html>
-<html>
+<html class="dark">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title><?php include "mobMainMenuClaim.php" ?></title>
+        
+        <script type="text/javascript">
+           const setTheme = (theme) => {
+           document.documentElement.className = theme;
+           localStorage.setItem('theme', theme);
+           }
+           const getTheme = () => {
+           const theme = localStorage.getItem('theme');
+           theme && setTheme(theme);
+           }
+           getTheme();
+        </script>
         
         <!-- jQuery -->
         <script src="../js/jquery-1.10.1.min.js"></script>
@@ -53,7 +70,8 @@
         <script src="../js/jqueryUi/jquery-ui.js"></script>
         
         <!-- Bootstrap Core CSS -->
-        <link href="../css/bootstrap.css" rel="stylesheet">
+          <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+          <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
         <!-- Bootstrap Core JavaScript -->
         <script src="../js/bootstrap.min.js"></script>
         
@@ -105,15 +123,15 @@
         <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
 
        <!-- Font awesome icons -->
-        <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
-        
-        <!-- Custom CSS -->
-        <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/addWidgetWizard.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
+         <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+       
+         <!-- Custom CSS -->
+         <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
         
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
@@ -124,24 +142,31 @@
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?> 
             
-            <div class="row mainRow">
-                <?php include "mainMenu.php" ?>
+            <div class="mainContainer">
+                <div class="menuFooter-container">
+                   <?php include "mainMenu.php" ?>
+                   <?php include "footer.php" ?>
+                 </div>
                 <div class="col-xs-12 col-md-10" id="mainCnt">
-                    <div class="row hidden-md hidden-lg">
-                        <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            <?php include "mobMainMenuClaim.php" ?>
+                    <!-- MOBILE MENU -->
+                      <!-- <div class="row hidden-md hidden-lg">
+                          <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
+                              <?php include "mobMainMenuClaim.php" ?>
+                          </div>
+                      </div> -->
+                    <div class="row header-container">
+                        <div id="headerTitleCnt">DataInspector</div>
+                        <div class="user-menu-container">
+                          <?php include "loginPanel.php" ?>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">DataInspector</div>
                         <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
-                        <div class="col-xs-12" id="mainContentCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                        <div class="col-xs-12" id="mainContentCnt">
                             <div class="row mainContentRow" id="dashboardsListTableRow">
                                 <!--<div class="col-xs-12 mainContentRowDesc">List</div>-->
                                 
-                                <div class="col-xs-12 mainContentCellCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                                <div class="col-xs-12 mainContentCellCnt" >
                                     <div id="dashboardsListMenu" class="row">
                                         
                                         <div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-1 dashboardsListMenuItem">
@@ -208,7 +233,7 @@
                                                 New<br>dashboard
                                             </div>-->
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <button id="link_start_wizard" type="button" class="btn btn-warning">Neww dashboard</button>
+                                                <button id="link_start_wizard" type="button" class="btn btn-new-dash">Neww dashboard</button>
                                             </div>
                                         </div>
                                     </div>
@@ -262,8 +287,8 @@
                     </div>
                     
                     <div id="modalStartWizardFooter" class="modal-footer">
-                        <div class="row">
-                            <div class="col-xs-8 col-xs-offset-2 centerWithFlex">
+                        <div class="wizard_footer">
+                            <div>
                                 <button type="button" id="addWidgetWizardPrevBtn" name="addWidgetWizardPrevBtn" class="btn confirmBtn">Prev</button>
                                 <button type="button" id="addWidgetWizardNextBtn" name="addWidgetWizardNextBtn" class="btn confirmBtn">Next</button>
                             </div>    
@@ -341,7 +366,7 @@
                         </ul> 
                         <!-- Fine tabs -->
                         
-                        
+                        <div class="modal_wrapper">
                         <div id="delegationsModalLeftCnt" class="col-xs-12 col-sm-4">
                             <div class="col-xs-12 centerWithFlex delegationsModalTxt modalFirstLbl" id="delegationsDashboardTitle">
                             </div>
@@ -355,7 +380,7 @@
                                 <!-- Ownership cnt -->
                                 <div id="ownershipCnt" class="tab-pane fade in active">
                                     <div class="row" id="ownershipFormRow">
-                                        <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
+                                        <div class="col-xs-12 delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
                                             Change ownership
                                         </div>
                                         <div class="col-xs-12" id="newOwnershipCnt">
@@ -365,7 +390,7 @@
                                                   <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
                                                 </span>
                                             </div>
-                                            <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
+                                            <div class="col-xs-12 delegationsModalMsg" id="newOwnerMsg">
                                                 New owner username can't be empty
                                             </div>    
                                         </div>
@@ -380,7 +405,7 @@
                                 <!-- Visibility cnt -->
                                 <div id="visibilityCnt" class="tab-pane fade in">
                                     <div class="row" id="visibilityFormRow">
-                                        <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
+                                        <div class="col-xs-12 delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
                                             Change visibility
                                         </div>
                                         <div class="col-xs-12" id="newVisibilityCnt">
@@ -417,7 +442,7 @@
                                                   <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
                                                 </span>
                                             </div>
-                                            <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newDelegatedMsg">
+                                            <div class="col-xs-12 delegationsModalMsg" id="newDelegatedMsg">
                                                 Delegated username can't be empty
                                             </div>    
                                         </div>
@@ -443,6 +468,7 @@
                             <!-- Fine tab content -->
                             <input type="hidden" id="delegationsDashId">
                         </div><!-- Fine delegationsModalRightCnt-->
+                        </div>
                     </div>
                     <div id="delegationsModalFooter" class="modal-footer">
                       <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal">Close</button>
@@ -747,60 +773,59 @@
             var brokerLbl = record.brokerLbl;
             var iotLbl = record.iotLbl;
 
-             var cardDiv = '<div data-uniqueid="' + record.Id + '" data-screenshotFilename="' + record.screenshotFilename + '" data-deleted="' + record.deleted + '" data-dashTitle="' + record.title_header + '" data-headerColor = "' + headerColor + '" data-headerFontColor="' + record.headerFontColor + '"   class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
+             var cardDiv = '<div data-uniqueid="' + record.Id + '" data-screenshotFilename="' + record.screenshotFilename + '" data-deleted="' + record.deleted + '" data-dashTitle="' + record.title_header + '" data-headerColor = "' + headerColor + '" data-headerFontColor="' + record.headerFontColor + '"   class="dashboardsListCardDiv col-xs-12 col-sm-6">' + 
                                '<div class="dashboardsListCardInnerDiv">';
+                               cardDiv = cardDiv + '<div class="dashboardsListCardOverlayDiv"></div>' +
+                                '<div class="dashboardsListCardOverlayTxt"><i class="fa-solid fa-eye"></i>View</div>' +
+                                '<div class="dashboardsListCardImgDiv"></div>';
                                   
                                   if(brokerLbl&&iotLbl)
                                   {
-                                      cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">IOT apps & broker</span>' + '</div>';
+                                      cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">IOT apps & broker</span>' + '</div>';
                                   }
                                   else
                                   {
                                       if((!brokerLbl)&&iotLbl)
                                       {
-                                          cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">IOT apps</span>' + '</div>';
+                                          cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">IOT apps</span>' + '</div>';
                                       }
                                       else
                                       {
                                             if(brokerLbl&&(!iotLbl))
                                             {
-                                                cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false">Broker</span>' + '</div>';
+                                                cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false">Broker</span>' + '</div>';
                                             }
                                             else
                                             {
                                                 if((!brokerLbl)&&(!iotLbl))
                                                 {
-                                                    cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false">Passive</span>' + '</div>';
+                                                    cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false">Passive</span>' + '</div>';
                                                 }
                                             }
                                       }
                                   }
                           
-                          
-                                  cardDiv = cardDiv + '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
-                                  '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex">View</div>' +
-                                  '<div class="dashboardsListCardImgDiv"></div>';
                                   
                                   if(authorLbl === 'hide')
                                   {
-                                      cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv col-xs-12 centerWithFlex">' + visibility + '</div>';
+                                      cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv">' + visibility + '</div>';
                                   }
                                   else
                                   {
-                                      cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv col-xs-12 centerWithFlex">' + authorLbl + ": " + visibility + '</div>';
+                                      cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv">' + authorLbl + ": " + visibility + '</div>';
                                   }
                                   
-                                  cardDiv = cardDiv + '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">'; 
+                                  cardDiv = cardDiv + '<div class="dashboardsListCardClick2EditDiv">'; 
                                   
                                   if(editLbl === 'show')
                                   {
-                                      cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCard">Edit</button>';
+                                      cardDiv = cardDiv + '<span tooltip="<?php echo _("Edit"); ?>"><button type="button" class="dashBtnCard editDashBtnCard"><i class="fa-solid fa-pen"></i></button></span>';
                                   }
                                       
                                   switch(managementLbl)
                                   {
                                       case "show":
-                                          cardDiv = cardDiv + '<button type="button" class="dashBtnCard delegateDashBtnCard">Management</button>'; 
+                                          cardDiv = cardDiv + '<span tooltip="<?php echo _("Management"); ?>"><button type="button" class="dashBtnCard delegateDashBtnCard"><i class="fa-solid fa-gear"></i></button></span>'; 
                                           break;  
                                           
                                       default:
@@ -809,12 +834,12 @@
                                   
                                   if(cloneLbl === 'show')
                                   {
-                                      cardDiv = cardDiv + '<button type="button" class="dashBtnCard cloneDashBtnCard">Clone</button>'; 
+                                      cardDiv = cardDiv + '<span tooltip="<?php echo _("Clone"); ?>"><button type="button" class="dashBtnCard cloneDashBtnCard"><i class="fa-solid fa-clone"></i></button></span>'; 
                                   }
                                   
                                   if(deleteLbl === 'show')
                                   {
-                                      cardDiv = cardDiv + '<button type="button" class="dashBtnCard deleteDashBtnCard">Delete</button>';
+                                      cardDiv = cardDiv + '<span tooltip="<?php echo _("Delete"); ?>"><button type="button" class="dashBtnCard deleteDashBtnCard"><i class="fa-solid fa-trash"></i></button></span>';
                                   }
                                       
                                   cardDiv = cardDiv + '</div>' +  
@@ -953,9 +978,9 @@
 
                     $('#list_dashboard_cards div.dashboardsListCardDiv').each(function(i){
                         $(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/dashScr/dashboard" + $(this).attr('data-uniqueid') + "/" + $(this).attr('data-screenshotFilename') + ")");
-                        $(this).find('div.dashboardsListCardImgDiv').css("background-size", "100% auto");
-                        $(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
-                        $(this).find('div.dashboardsListCardImgDiv').css("background-position", "center top");
+                        //$(this).find('div.dashboardsListCardImgDiv').css("background-size", "100% auto");
+                        //$(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
+                        //$(this).find('div.dashboardsListCardImgDiv').css("background-position", "center top");
                         $(this).find('div.dashboardsListCardInnerDiv').css("width", "100%");
                         $(this).find('div.dashboardsListCardInnerDiv').css("height", $(this).height() + "px");
                         $(this).find('div.dashboardsListCardOverlayDiv').css("height", $(this).find('div.dashboardsListCardImgDiv').height() + "px");
@@ -2144,3 +2169,8 @@
         $('#chatIframeB').attr('src', 'https://chat.snap4city.org/home');
     });
 </script>  
+
+<?php } else {
+    include('../s4c-legacy-management/dataInspector.php');
+}
+?>

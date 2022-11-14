@@ -14,10 +14,16 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
+
 include('process-form.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
-session_start();
+// session_start();
 //checkSession('RootAdmin');
 //$_SESSION['loggedRole'] = "RootAdmin";
 
@@ -46,11 +52,23 @@ $lastUsedColors = null;
   } */
 ?>
 <!DOCTYPE HTML>
-<html>
+<html class="dark">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Bim Manager</title>
+    
+    <script type="text/javascript">
+      const setTheme = (theme) => {
+      document.documentElement.className = theme;
+      localStorage.setItem('theme', theme);
+      }
+      const getTheme = () => {
+      const theme = localStorage.getItem('theme');
+      theme && setTheme(theme);
+      }
+      getTheme();
+    </script>
 
     <!-- Bootstrap Core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
@@ -111,8 +129,6 @@ $lastUsedColors = null;
     <!-- JQUERY UI -->
     <!--<script src="../js/jqueryUi/jquery-ui.js"></script>
 
-    <!-- Font awesome icons -->
-    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
 
     <!-- Bootstrap colorpicker -->
     <script src="../js/bootstrap-colorpicker.min.js"></script>
@@ -180,26 +196,21 @@ $lastUsedColors = null;
     <link rel="stylesheet" href="../img/meteoIcons/singleColor/css/weather-icons.css?v=<?php
     echo time();
     ?>">
+    
+    <!-- Font awesome icons -->
+    <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
 
     <!-- Text fill -->
     <script src="../js/jquery.textfill.min.js"></script>
 
-    <!-- Custom CSS -->
-    <link href="../css/dashboard.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/dashboardView.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/addWidgetWizard2.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/addDashboardTab.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/dashboard_configdash.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
     <link href="../css/widgetCtxMenu_1.css?v=<?php
     echo time();
     ?>" rel="stylesheet">
@@ -743,3 +754,8 @@ $lastUsedColors = null;
 </script>
 </body>
 </html>
+
+<?php } else {
+    include('../s4c-legacy-management/bimmanager.php');
+}
+?>

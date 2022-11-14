@@ -2,22 +2,27 @@
 /* Dashboard Builder.
   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+  This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
 include('process-form.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
-session_start();
+//session_start();
 checkSession('RootAdmin');
 
 $link = mysqli_connect($host, $username, $password);
@@ -45,14 +50,27 @@ $lastUsedColors = null;
   } */
 ?>
 <!DOCTYPE HTML>
-<html>
+<html class="dark">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>MenuManager</title>
+    
+    <script type="text/javascript">
+      const setTheme = (theme) => {
+      document.documentElement.className = theme;
+      localStorage.setItem('theme', theme);
+      }
+      const getTheme = () => {
+      const theme = localStorage.getItem('theme');
+      theme && setTheme(theme);
+      }
+      getTheme();
+    </script>
 
     <!-- Bootstrap Core CSS -->
-    <link href="../css/bootstrap.css" rel="stylesheet">
+    <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+    <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles_gridster.css" type="text/css" />
     <link rel="stylesheet" href="../css/style_widgets.css?v=<?php
     echo time();
@@ -109,9 +127,6 @@ $lastUsedColors = null;
 
     <!-- JQUERY UI -->
     <!--<script src="../js/jqueryUi/jquery-ui.js"></script>
-
-    <!-- Font awesome icons -->
-    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
 
     <!-- Bootstrap colorpicker -->
     <script src="../js/bootstrap-colorpicker.min.js"></script>
@@ -183,22 +198,16 @@ $lastUsedColors = null;
     <!-- Text fill -->
     <script src="../js/jquery.textfill.min.js"></script>
 
+    <!-- Font awesome icons -->
+    <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+    
     <!-- Custom CSS -->
-    <link href="../css/dashboard.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/dashboardView.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/addWidgetWizard2.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/addDashboardTab.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/dashboard_configdash.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
     <link href="../css/widgetCtxMenu_1.css?v=<?php
     echo time();
     ?>" rel="stylesheet">
@@ -401,7 +410,7 @@ $lastUsedColors = null;
                     </div>
                 </div>
 
-                <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#copy_table" style="float:left; margin-left: 5px;" onclick="copyTable()">
+                <button type="button" class="btn btn-new-dash" data-toggle="modal" data-target="#copy_table" style="float:left; margin-left: 5px;" onclick="copyTable()">
                     <i class="fa fa-copy"></i> 
                     Copy Table
                 </button>
@@ -2032,3 +2041,8 @@ $lastUsedColors = null;
 </body>
 
 </html>
+
+<?php } else {
+    include('../s4c-legacy-management/editormenu.php');
+}
+?>

@@ -3,36 +3,54 @@
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
+
     include('../config.php');
     include('process-form.php');
-    session_start();
+    //session_start();
     
     checkSession('ToolAdmin');
 
 ?>
 
 <!DOCTYPE html>
-<html>
+<html class="dark">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title><?php include "mobMainMenuClaim.php" ?></title>
+        
+        <script type="text/javascript">
+           const setTheme = (theme) => {
+           document.documentElement.className = theme;
+           localStorage.setItem('theme', theme);
+           }
+           const getTheme = () => {
+           const theme = localStorage.getItem('theme');
+           theme && setTheme(theme);
+           }
+           getTheme();
+        </script>
 
-        <!-- Bootstrap Core CSS -->
-        <link href="../css/bootstrap.css" rel="stylesheet">
+       <!-- Bootstrap Core CSS -->
+         <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+         <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
 
         
         <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
@@ -60,13 +78,15 @@
        <script src="../boostrapTable/dist/locale/bootstrap-table-en-US.js"></script>
 
        <!-- Font awesome icons -->
-        <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
-
-        <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
-        
-        <!-- Custom CSS -->
-        <link href="../css/dashboard.css" rel="stylesheet">
-        <!--<link href="../css/pageTemplate.css" rel="stylesheet">-->
+         <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+       
+         <!-- Custom CSS -->
+         <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
         
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
@@ -77,16 +97,23 @@
     <body class="guiPageBody">
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?>
-            <div class="row mainRow">
-                <?php include "mainMenu.php" ?>
+            <div class="mainContainer">
+             <div class="menuFooter-container">
+               <?php include "mainMenu.php" ?>
+               <?php include "footer.php" ?>
+             </div>
                 <div class="col-xs-12 col-md-10" id="mainCnt">
-                    <div class="row hidden-md hidden-lg">
-                        <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            <?php include "mobMainMenuClaim.php" ?>
+                    <!-- MOBILE MENU -->
+                      <!-- <div class="row hidden-md hidden-lg">
+                          <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
+                              <?php include "mobMainMenuClaim.php" ?>
+                          </div>
+                      </div> -->
+                    <div class="row header-container">
+                        <div id="headerTitleCnt">Metrics</div>
+                        <div class="user-menu-container">
+                          <?php include "loginPanel.php" ?>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-10 col-md-12 centerWithFlex"  id="headerTitleCnt">Metrics</div>
                         <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
@@ -165,7 +192,7 @@
                         <li id="addMetricGeneralTabBtn" class="active"><a data-toggle="tab" href="#addMetricGeneralTab">General</a></li>
                         <li id="addMetricQueryTabBtn"><a data-toggle="tab" href="#addMetricQueryTab">Datasources & queries</a></li>
                     </ul>
-
+                  <div class="modal_wrapper">
                     <div class="tab-content">
                         <!-- General tab -->
                         <div id="addMetricGeneralTab" class="tab-pane fade in active">
@@ -472,6 +499,7 @@
                         <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                     </div>
                 </div>
+                </div>
                 <div id="addMetricModalFooter" class="modal-footer">
                   <button type="button" id="addMetricCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
                   <button type="button" id="addMetricConfirmBtn" name="addMetricConfirmBtn" class="btn confirmBtn internalLink">Confirm</button>
@@ -495,7 +523,7 @@
                         <li id="editMetricGeneralTabBtn" class="active"><a data-toggle="tab" href="#editMetricGeneralTab">General</a></li>
                         <li id="editMetricQueryTabBtn"><a data-toggle="tab" href="#editMetricQueryTab">Datasources & queries</a></li>
                     </ul>
-                    
+                    <div class="modal_wrapper">
                     <div class="tab-content">
                         <div id="editMetricGeneralTab" class="tab-pane fade in active">
                             <div class="row">
@@ -786,6 +814,7 @@
                         <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                     </div>
                 </div>
+                </div>
                 <div id="editMetricModalFooter" class="modal-footer">
                   <button type="button" id="editMetricCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
                   <button type="button" id="editMetricConfirmBtn" name="editMetricConfirmBtn" class="btn confirmBtn internalLink">Confirm</button>
@@ -805,6 +834,7 @@
             <form id="delMetricForm" name="delMetricForm" role="form" method="post" action="process-form.php" data-toggle="validator"> 
                 <input type="hidden" id="metricIdToDel" name="metricIdToDel" />
                 <input type="hidden" id="metricToDelActive" name="metricToDelActive" />
+                <div class="modal_wrapper">
                 <div id="delMetricModalBody" class="modal-body modalBody">
                     <div class="row">
                         <div id="delMetricNameMsg" class="col-xs-12 modalCell">
@@ -827,6 +857,7 @@
                         <div class="col-xs-12 centerWithFlex" id="errorIcon"><div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div></div>
                     </div>
                 </div>
+            </div>
                 <div id="delMetricModalFooter" class="modal-footer">
                   <button type="button" id="delMetricCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
                   <button type="button" id="delMetricBtn" name="delMetricBtn" class="btn confirmBtn internalLink">Confirm</button>
@@ -3150,41 +3181,41 @@
                                     } 
                                 }
                             },
-                             cellStyle: function(value, row, index, field) {
-                                var fontSize = "1em"; 
-                                if($(window).width() < 992)
-                                {
-                                    fontSize = "0.9em";
-                                } 
-                                 
-                                if(index%2 !== 0)
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "color": "rgba(51, 64, 69, 1)", 
-                                            "font-size": fontSize,
-                                            "font-weight": "bold",
-                                            "background-color": "rgb(230, 249, 255)",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                                else
-                                {
-                                    return {
-                                        classes: null,
-                                        css: {
-                                            "color": "rgba(51, 64, 69, 1)", 
-                                            "font-size": fontSize,
-                                            "font-weight": "bold",
-                                            "background-color": "white",
-                                            "border-top": "none"
-                                        }
-                                    };
-                                }
-                            }
-                        }, {
+                        //      cellStyle: function(value, row, index, field) {
+                        //         var fontSize = "1em"; 
+                        //         if($(window).width() < 992)
+                        //         {
+                        //             fontSize = "0.9em";
+                        //         } 
+                        //          
+                        //         if(index%2 !== 0)
+                        //         {
+                        //             return {
+                        //                 classes: null,
+                        //                 css: {
+                        //                     "color": "rgba(51, 64, 69, 1)", 
+                        //                     "font-size": fontSize,
+                        //                     "font-weight": "bold",
+                        //                     "background-color": "rgb(230, 249, 255)",
+                        //                     "border-top": "none"
+                        //                 }
+                        //             };
+                        //         }
+                        //         else
+                        //         {
+                        //             return {
+                        //                 classes: null,
+                        //                 css: {
+                        //                     "color": "rgba(51, 64, 69, 1)", 
+                        //                     "font-size": fontSize,
+                        //                     "font-weight": "bold",
+                        //                     "background-color": "white",
+                        //                     "border-top": "none"
+                        //                 }
+                        //             };
+                        //         }
+                        //     }
+                        // }, {
                             field: 'description_short',
                             title: 'Description',
                             sortable: true,
@@ -3210,9 +3241,9 @@
                                     if(index%2 !== 0)
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'blueRow',
                                             css: {
-                                                "background-color": "rgb(230, 249, 255)",
+                                                // "background-color": "rgb(230, 249, 255)",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3220,9 +3251,9 @@
                                     else
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'whiteRow',
                                             css: {
-                                                "background-color": "white",
+                                                //"background-color": "white",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3254,9 +3285,9 @@
                                     if(index%2 !== 0)
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'blueRow',
                                             css: {
-                                                "background-color": "rgb(230, 249, 255)",
+                                                // "background-color": "rgb(230, 249, 255)",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3264,9 +3295,9 @@
                                     else
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'whiteRow',
                                             css: {
-                                                "background-color": "white",
+                                                //"background-color": "white",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3299,9 +3330,9 @@
                                     if(index%2 !== 0)
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'blueRow',
                                             css: {
-                                                "background-color": "rgb(230, 249, 255)",
+                                                // "background-color": "rgb(230, 249, 255)",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3309,9 +3340,9 @@
                                     else
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'whiteRow',
                                             css: {
-                                                "background-color": "white",
+                                                // "background-color": "white",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3344,9 +3375,9 @@
                                     if(index%2 !== 0)
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'blueRow',
                                             css: {
-                                                "background-color": "rgb(230, 249, 255)",
+                                                // "background-color": "rgb(230, 249, 255)",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3354,9 +3385,9 @@
                                     else
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'whiteRow',
                                             css: {
-                                                "background-color": "white",
+                                                // "background-color": "white",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3387,9 +3418,9 @@
                                     if(index%2 !== 0)
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'blueRow',
                                             css: {
-                                                "background-color": "rgb(230, 249, 255)",
+                                                // "background-color": "rgb(230, 249, 255)",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3397,9 +3428,9 @@
                                     else
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'whiteRow',
                                             css: {
-                                                "background-color": "white",
+                                                // "background-color": "white",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3427,9 +3458,9 @@
                                 if(index%2 !== 0)
                                 {
                                     return {
-                                        classes: null,
+                                        classes: 'blueRow',
                                         css: {
-                                            "background-color": "rgb(230, 249, 255)",
+                                            // "background-color": "rgb(230, 249, 255)",
                                             "border-top": "none"
                                         }
                                     };
@@ -3437,9 +3468,9 @@
                                 else
                                 {
                                     return {
-                                        classes: null,
+                                        classes: 'whiteRow',
                                         css: {
-                                            "background-color": "white",
+                                            // "background-color": "white",
                                             "border-top": "none"
                                         }
                                     };
@@ -3467,9 +3498,9 @@
                                     if(index%2 !== 0)
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'blueRow',
                                             css: {
-                                                "background-color": "rgb(230, 249, 255)",
+                                                // "background-color": "rgb(230, 249, 255)",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3477,9 +3508,9 @@
                                     else
                                     {
                                         return {
-                                            classes: null,
+                                            classes: 'whiteRow',
                                             css: {
-                                                "background-color": "white",
+                                                // "background-color": "white",
                                                 "border-top": "none"
                                             }
                                         };
@@ -3495,14 +3526,14 @@
                         uniqueId: "id",
                         striped: false,
                         searchTimeOut: 60,
-                        classes: "table table-hover table-no-bordered",
+                        classes: "table table-no-bordered",
                         onPostBody: function()
                         {
                             if(tableFirstLoad)
                             {
                                 //Caso di primo caricamento della tabella
                                 tableFirstLoad = false;
-                                var addMetricDiv = $('<div class="pull-right"><i id="link_add_metric" data-toggle="modal" data-target="#modalAddMetric" class="fa fa-plus-square" style="font-size:36px; color: #ffcc00"></i></div>');
+                                var addMetricDiv = $('<div class="pull-right"><i id="link_add_metric" data-toggle="modal" data-target="#modalAddMetric" class="fa-solid fa-circle-plus"></i></div>');
                                 $('div.fixed-table-toolbar').append(addMetricDiv);
                                 addMetricDiv.css("margin-top", "10px");
                                 addMetricDiv.find('i.fa-plus-square').off('hover');
@@ -3511,13 +3542,13 @@
                                     $(this).css('cursor', 'pointer');
                                 }, 
                                 function(){
-                                    $(this).css('color', '#ffcc00');
+                                    $(this).css('color', 'var(--orange-)');
                                     $(this).css('cursor', 'normal');
                                 });
 
-                                $('#list_metrics thead').css("background", "rgba(0, 162, 211, 1)");
-                                $('#list_metrics thead').css("color", "white");
-                                $('#list_metrics thead').css("font-size", "1em");
+                                //$('#list_metrics thead').css("background", "rgba(0, 162, 211, 1)");
+                                //$('#list_metrics thead').css("color", "white");
+                                //$('#list_metrics thead').css("font-size", "1em");
                             }
                             else
                             {
@@ -3530,18 +3561,18 @@
 
                             $('#list_metrics button.editDashBtn').off('hover');
                             $('#list_metrics button.editDashBtn').hover(function(){
-                                $(this).css('background-color', '#ffcc00');
-                                $(this).parents('tr').find('td').eq(0).css('background', '#ffcc00');
+                                $(this).css('background-color', 'var(--orange-)');
+                                $(this).parents('tr').find('td').eq(0).css({'background' : 'var(--orange-)', 'color' : 'var(--text-color-)'});
                             }, 
                             function(){
-                                $(this).css('background-color', 'rgb(69, 183, 175)');
+                                $(this).css('background-color', 'var(--blue-)');
                                 $(this).parents('tr').find('td').eq(0).css('background', $(this).parents('td').css('background'));
                             });
 
                             $('#list_metrics button.delDashBtn').off('hover');
                             $('#list_metrics button.delDashBtn').hover(function(){
-                                $(this).css('background-color', '#ffcc00');
-                                $(this).parents('tr').find('td').eq(0).css('background', '#ffcc00');
+                                $(this).css('background-color', 'var(--orange-)');
+                                $(this).parents('tr').find('td').eq(0).css({'background' : 'var(--orange-)', 'color' : 'var(--text-color-)'});
                             }, 
                             function(){
                                 $(this).css('background-color', '#e37777');
@@ -3855,4 +3886,9 @@
         }
         
     });
-</script>  
+</script>
+
+<?php } else {
+    include('../s4c-legacy-management/metrics.php');
+}
+?>

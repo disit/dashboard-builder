@@ -4,13 +4,37 @@ To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
-<html>
+
+<?php
+
+use Jumbojett\OpenIDConnectClient;
+
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
+
+?>
+
+<html class="dark">
     <head>
         <meta charset="UTF-8">
+        <script type="text/javascript">
+            const setTheme = (theme) => {
+            document.documentElement.className = theme;
+            localStorage.setItem('theme', theme);
+            }
+            const getTheme = () => {
+            const theme = localStorage.getItem('theme');
+            theme && setTheme(theme);
+            }
+            getTheme();
+        </script>
         <link href="../css/chatIframe.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="../css/chat.css" type="text/css" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    </head>
+        <!-- Font awesome icons -->
+        <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">    </head>
     <body leftmargin="0" topmargin="0">
 
         <?php
@@ -22,9 +46,6 @@ and open the template in the editor.
         define('ROCKET_CHAT_INSTANCE', $chatBaseUrl);
         require '../sso/autoload.php';
 
-        use Jumbojett\OpenIDConnectClient;
-
-session_start();
         session_write_close();
 
         $nameChat = $_REQUEST['nameChat'];
@@ -192,3 +213,8 @@ session_start();
 
             </body>
             </html>
+
+<?php } else {
+    include('../s4c-legacy-management/chatFrameCreate.php');
+}
+?>

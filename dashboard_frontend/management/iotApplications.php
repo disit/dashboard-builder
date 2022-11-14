@@ -2,24 +2,27 @@
 /* Dashboard Builder.
   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+  This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+if(!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
 include('../config.php');
 include '../locale.php';
 include('process-form.php');
-if (!isset($_SESSION)) {
-  session_start();
-}
+
 
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
@@ -28,18 +31,29 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
 ?>
 
 <!DOCTYPE html>
-<html>
+<html class="dark">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title><?php include "mobMainMenuClaim.php" ?></title>
+    
+    <script type="text/javascript">
+      const setTheme = (theme) => {
+      document.documentElement.className = theme;
+      localStorage.setItem('theme', theme);
+      }
+      const getTheme = () => {
+      const theme = localStorage.getItem('theme');
+      theme && setTheme(theme);
+      }
+      getTheme();
+    </script>
 
     <!-- Bootstrap Core CSS -->
-    <link href="../css/bootstrap.css" rel="stylesheet">
-
-    <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+    <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
 
     <!-- jQuery -->
     <script src="../js/jquery-1.10.1.min.js"></script>
@@ -82,14 +96,18 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
     <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
 
     <!-- Font awesome icons -->
-    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
-
+    <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+    
     <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="../css/dashboard.css" rel="stylesheet">
-    <link href="../css/dashboardList.css" rel="stylesheet">
-    <link href="../css/iotApplications.css?v=a" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-iotApplications.css?v=a" rel="stylesheet">
 
     <!-- Custom scripts -->
     <script type="text/javascript" src="../js/dashboard_mng.js"></script>
@@ -101,20 +119,27 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
     <div class="container-fluid">
 <?php include "sessionExpiringPopup.php" ?> 
 
-      <div class="row mainRow">
-      <?php include "mainMenu.php" ?>
+      <div class="mainContainer">
+      <div class="menuFooter-container">
+        <?php include "mainMenu.php" ?>
+        <?php include "footer.php" ?>
+      </div>
         <div class="col-xs-12 col-md-10" id="mainCnt">
-          <div class="row hidden-md hidden-lg">
-            <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-              <?php include "mobMainMenuClaim.php" ?>
+          <!-- MOBILE MENU -->
+          <!-- <div class="row hidden-md hidden-lg">
+              <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
+                  <?php include "mobMainMenuClaim.php" ?>
+              </div>
+          </div> -->
+          <div class="row header-container">
+            <div id="headerTitleCnt"><?= _("IOT Applications")?></div>
+            <div class="user-menu-container">
+              <?php include "loginPanel.php" ?>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt"><?= _("IOT Applications")?></div>
             <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
           </div>
           <div class="row">
-            <div class="col-xs-12" id="mainContentCnt" style='background-color: rgba(138, 159, 168, 1)'>
+            <div class="col-xs-12" id="mainContentCnt">
               <div class="row mainContentRow" id="iotApplicationsIframeRow">
                 <div class="col-xs-12 mainContentCellCnt" id="iotApplicationsIframeCnt">
                   <iframe id="iotApplicationsIframe"></iframe>
@@ -123,7 +148,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
 
 
               <div class="row mainContentRow" id="iotAppsListTableRow">
-                <div class="col-xs-12 mainContentCellCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                <div class="col-xs-12 mainContentCellCnt" >
                   <div id="iotAppsListMenu" class="row">
                     <div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-2 iotAppsListMenuItem">
                         <?php
@@ -178,7 +203,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                           New<br>dashboard
                       </div>-->
                       <div class="iotAppsListMenuItemContent centerWithFlex col-xs-12">
-                        <button id="link_add_iotapp" data-toggle="modal" type="button" class="btn btn-warning"><?= _("Create new") ?></button>
+                        <button id="link_add_iotapp" data-toggle="modal" type="button" class="btn btn-new-dash"><?= _("Create new") ?></button>
                       </div>
                     </div>
                   </div>
@@ -215,12 +240,12 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
     <!-- Modale creazione app -->
     <div class="modal fade" id="modalAddIoTApp" tabindex="-1" role="dialog" aria-labelledby="modalAddIoTApp" aria-hidden="true">
       <div class="modal-dialog" role="document">
-        <div class="modal-content modalContentWizardForm" style="top:150px;">
-          <div class="modalHeader centerWithFlex" style="background-color: rgba(51, 64, 69, 1) !important">
+        <div class="modal-content modalContentWizardForm">
+          <div class="modalHeader centerWithFlex">
             <?= _("Create IoT Application")?>
           </div>
 
-          <div id="modalAddIoTAppBody" class="modal-body modalBody" style="background-color: rgba(108, 135, 147, 1) !important">   
+          <div id="modalAddIoTAppBody" class="modal-body modalBody">   
             <div class="row iotAppModalRow">
               <div class="col-xs-4 centerWithFlex iotAppModalLbl">
                  <?= _("Application name").":"?>
@@ -244,8 +269,8 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
             </div>  
 <?php endif; ?>
               <div class="row">
-                <div class="col-xs-12" style="font-weight: bold !important; margin-top: 25px !important; color: white;">
-                  By pressing the <b>Confirm</b> button you agree to the <a style="color:#aedaff" href="https://www.snap4city.org/drupal/node/47" target="_blank">Terms and Conditions</a> and <a href="https://www.snap4city.org/drupal/node/49" style="color:#aedaff" target="_blank">Privacy Policy</a>.
+                <div class="col-xs-12 IotDisclaimer">
+                  By pressing the <b>Confirm</b> button you agree to the <a href="https://www.snap4city.org/drupal/node/47" target="_blank">Terms and Conditions</a> and <a href="https://www.snap4city.org/drupal/node/49" target="_blank">Privacy Policy</a>.
                 </div>
               </div>                           
             </div>
@@ -259,12 +284,12 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
     <!-- Modale creazione app -->
     <div class="modal fade" id="modalEditIoTApp" tabindex="-1" role="dialog" aria-labelledby="modalEditIoTApp" aria-hidden="true">
       <div class="modal-dialog" role="document">
-        <div class="modal-content modalContentWizardForm" style="top:150px;">
-          <div class="modalHeader centerWithFlex" style="background-color: rgba(51, 64, 69, 1) !important">
+        <div class="modal-content modalContentWizardForm">
+          <div class="modalHeader centerWithFlex">
             <?= _("IoT Application Management")?>
           </div>
 
-          <div id="modalEditIoTAppBody" class="modal-body modalBody" style="background-color: rgba(108, 135, 147, 1) !important">   
+          <div id="modalEditIoTAppBody" class="modal-body modalBody">   
             <!-- Tabs -->
             <ul id="iotappTabsContainer" class="nav nav-tabs nav-justified">
                 <li id="propertiesTab" class="active"><a data-toggle="tab" href="#propertiesCnt"><?= _("Properties")?></a></li>
@@ -276,7 +301,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
               <!-- Ownership cnt -->
               <div id="ownershipCnt" class="tab-pane fade in">
                   <div class="row" id="ownershipFormRow">
-                      <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">      
+                      <div class="col-xs-12 delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">      
                           <?= _("Change ownership")?>
                       </div>
                       <div class="col-xs-12" id="newOwnershipCnt">
@@ -286,7 +311,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                                 <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                               </span>
                           </div>
-                          <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
+                          <div class="col-xs-12 delegationsModalMsg" id="newOwnerMsg">
                               <?= _("New owner username can't be empty")?>
                           </div>    
                       </div>
@@ -331,7 +356,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                   </div>     
                 </div>
                 <div class="row iotAppModalRow">
-                  <div class="col-xs-12 centerWithFlex">
+                  <div class="col-xs-12 IotUpdate">
                     <button type="button" id="modalEditIoTAppConfirmBtn" name="addDashboardWizardConfirmBtn" class="btn confirmBtn internalLink"><?= _("Update")?></button>
                   </div>     
                 </div>
@@ -631,14 +656,14 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
             }
 
             //title = title.replace(/&/g, '&amp;').replace(/>/g, '&gt;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-            var cardDiv = '<div id="iotapp_'+record.id+'" data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.url + '" data-type="' + record.type + '" data-icon="' + record.icon + '" data-iotapps="' + record.iotapps + '" data-privileges="' + record.privileges + '" data-created="' + record.created + '" data-username="' + record.username + '" data-edgetype="' + record.edgetype + '" class="iotAppsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
+            var cardDiv = '<div id="iotapp_'+record.id+'" data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.url + '" data-type="' + record.type + '" data-icon="' + record.icon + '" data-iotapps="' + record.iotapps + '" data-privileges="' + record.privileges + '" data-created="' + record.created + '" data-username="' + record.username + '" data-edgetype="' + record.edgetype + '" class="iotAppsListCardDiv col-xs-12 col-sm-6">' + 
                                '<div id="iotapp_'+record.id+'" class="iotAppsListCardInnerDiv">' +
-                                  '<div class="iotAppsListCardTitleDiv col-xs-12 centerWithFlex"><div id="chealth_'+record.id+'" class="iotAppHealth" style="background-color:'+healthStyle+'">&nbsp;</div>' + title + '</div>' + 
-                                  '<div class="iotAppsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
-                                  '<a href="'+record.url+'" class="iotAppsListCardOverlayTxt col-xs-12 centerWithFlex" style="opacity:1;" onclick="return false"></a>' +
+                                  '<div class="iotAppsListCardTitleDiv"><div id="chealth_'+record.id+'" class="iotAppHealth" style="background-color:'+healthStyle+'">&nbsp;</div>' + title + '</div>' + 
+                                  '<div class="iotAppsListCardOverlayDiv"></div>' +
+                                  '<a href="'+record.url+'" class="iotAppsListCardOverlayTxt" style="opacity:1;" onclick="return false"></a>' +
                                   '<div class="iotAppsListCardImgDiv" style="height:150px;margin-bottom:3px;"></div>' + 
-                                  '<div class="iotAppsListCardVisibilityDiv col-xs-12 centerWithFlex">'+owner+'</div>'+
-                                  '<div class="iotAppsListCardClick2EditDiv col-xs-12" style="background-color: inherit; color: inherit">' + 
+                                  '<div class="iotAppsListCardVisibilityDiv">'+owner+'</div>'+
+                                  '<div class="iotAppsListCardClick2EditDiv" style="background-color: inherit; color: inherit">' + 
                                   '<div style="float:left;width: 135px;height: 25px;overflow: auto;" id="dashboardsListCardDashs">'+dashboards+'</div>' +
                                   '<button type="button" class="dashBtnCard propertiesIoTAppBtnCard" style="float:right;" ><?= _("Management")?></button></div>' + 
                                   '</div>' +  
@@ -1069,8 +1094,8 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                           },
                         dataset: {
                           records: data.applications,
-                          perPageDefault: 12,
-                          perPageOptions: [4, 8, 12]
+                          perPageDefault: 10,
+                          perPageOptions: [5, 10, 15]
                         },
                         writers: {
                             _rowWriter: myCardsWriter
@@ -1186,4 +1211,9 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                 }
             });            
     });
-</script>  
+</script>
+
+<?php } else {
+    include('../s4c-legacy-management/iotApplications.php');
+}
+?>

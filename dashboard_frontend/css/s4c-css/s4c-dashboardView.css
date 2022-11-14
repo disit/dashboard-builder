@@ -1,0 +1,288 @@
+#dashboardViewMainContainer
+{
+    /*border: 1px solid red;*/
+}
+
+#dashboardViewHeaderContainer
+{
+    height: 80px;
+}
+
+#fullscreenBtnContainer
+{
+    float: left;
+    width: 15%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: left;
+    font-weight: bold;
+}
+#restorescreenButton
+{
+    display: none;
+}
+
+#toggleMenuButton
+{
+	font-size: 1.55em;
+}
+
+#toggleMenuButton:hover
+{
+    cursor: pointer;
+    text-shadow: 0px 0px 8px rgba(0, 0, 0, 1);
+}
+
+#dashboardViewTitleAndSubtitleContainer
+{
+    float: left;
+    width: 60%;
+    height: 100%;
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+#dashboardTitle
+{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#dashboardSubtitle
+{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#dashboardTitle span, #dashboardSubtitle span
+{
+    width: 100%;
+}
+
+#headerLogo
+{
+    float: left;
+    width: 10%;
+    height: 70%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#headerLogoImg
+{
+    height: 70%; 
+  /*  width: 100%;  */
+    width: 175px;
+    object-fit: contain;
+}
+
+#clock
+{
+    float: left;
+    width: 15%;
+    height: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-weight: bold;
+}
+
+#dashBckCnt
+{
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-position: center; 
+    background-size: cover;
+    z-index: -1;
+}
+
+#dashBckOverlay
+{
+    width: 100%;
+    height: 100%;
+}
+
+@media(min-width: 992px) 
+{   
+    #dashboardViewHeaderContainer
+    {
+        height: 95px;
+    }
+    
+    #fullscreenBtnContainer
+    {
+        float: left;
+        width: 7.5%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: left;
+        font-weight: bold;
+    }
+    
+    #dashboardViewTitleAndSubtitleContainer
+    {
+        float: left;
+        width: 75%;
+        height: 100%;
+        margin-left: 5%;
+        margin-right: 0%;
+    }
+    
+    #headerLogo
+    {
+        float: left;
+        width: 6%;
+        height: 70%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    #clock
+    {
+        float: left;
+        width: 12.5%;
+        height: 30%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        font-weight: bold;
+    }
+}
+
+#dashboardViewWidgetsContainer
+{
+    width: 98%;
+}
+
+#gridsterUl
+{
+    position: relative;
+}
+
+#gridTable
+{
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
+	z-index: 0;
+}
+
+#embedAutoLogoContainer
+{
+    display: none;
+    float: left;
+    height: 30px;
+    padding-top: 0px;
+    margin-right: 5px;
+}
+
+#embedAutoLogo
+{
+    float: left;
+    width: 232px;
+    height: 30px;
+}
+
+.footerLogos
+{
+    background-color: white;
+    float: right;
+    height: 45px;
+    font-size: 40px;
+}
+
+.footerLogo, .footerLogo:link, .footerLogo:visited, .footerLogo:active
+{
+    color: black;
+    display: block;
+    height: 100%;
+    float: left;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.footerLogo:hover
+{
+    background-color: #eeeeee;
+    text-decoration: none;
+    display: block;
+    height: 100%;
+    float: left;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.footerLogo img
+{
+    height: 100%;
+}
+
+.footerNavMenu
+{
+    display:inline-block !important
+}
+
+.footerNavTitle
+{
+    margin-top: -10px;
+    margin-bottom: 0px;
+    font-size: 20px;
+}
+
+#footNavMenu {
+    width:100%;
+}
+
+#leftFooterNavMenu {
+    float:left;
+}
+
+#centerFooterNavMenu {
+    margin:0 auto;
+}
+
+#rightFooterNavMenu {
+    float:right;
+}
+
+/* Three image containers (use 25% for four, and 50% for two, etc) */
+.footerNavColumn {
+    float: left;
+    width: 33.33%;
+    padding: 15px;
+}
+
+/* Clear floats after image containers */
+.footerNavRow::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+#orgMenu
+{
+    font-weight: normal !important;
+  /*  left:100px;*/
+}

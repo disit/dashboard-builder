@@ -3,23 +3,27 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
     include('../config.php');
-    if(!isset($_SESSION))
-    {
+    /* if(!isset($_SESSION)) {
        session_start();
-    }
+    }   */
     
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
@@ -28,24 +32,29 @@
 ?>
 
 <!DOCTYPE html>
-<html>
+<html class="dark">
     <head>
-        <style>
-            .dashboardsListCardOverlayDiv {
-                top:40px !important;
-                height: 165px !important;
-            }
-        </style>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title><?php include "mobMainMenuClaim.php" ?></title>
+		
+		<script type="text/javascript">
+			const setTheme = (theme) => {
+			document.documentElement.className = theme;
+			localStorage.setItem('theme', theme);
+			}
+			const getTheme = () => {
+			const theme = localStorage.getItem('theme');
+			theme && setTheme(theme);
+			}
+			getTheme();
+		</script>
 
         <!-- Bootstrap Core CSS -->
-        <link href="../css/bootstrap.css" rel="stylesheet">
-
-        <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
+		<link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+		<link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
 
         <!-- jQuery -->
         <script src="../js/jquery-1.10.1.min.js"></script>
@@ -88,15 +97,18 @@
         <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
 
        <!-- Font awesome icons -->
-        <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
-
+	   <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+	   
         <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
         
         <!-- Custom CSS -->
-        <link href="../css/dashboard.css" rel="stylesheet">
-        <link href="../css/dashboardList.css" rel="stylesheet">
-		<link href="../css/addWidgetWizard.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/iotApplications.css" rel="stylesheet">
+	   <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+	   <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+	   <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+	   <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+	   <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+	   <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
+	   <link href="../css/s4c-css/s4c-iotApplications.css?v=a" rel="stylesheet">
         
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
@@ -108,16 +120,20 @@
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?> 
             
-            <div class="row mainRow">
-                <?php include "mainMenu.php" ?>
+            <div class="mainContainer">
+			<div class="menuFooter-container">
+			  <?php include "mainMenu.php" ?>
+			  <?php include "footer.php" ?>
+			</div>
                 <div class="col-xs-12 col-md-10" id="mainCnt">
-                    <div class="row hidden-md hidden-lg">
-                        <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            <?php include "mobMainMenuClaim.php" ?>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">
+                    <!-- MOBILE MENU -->
+					<!-- <div class="row hidden-md hidden-lg">
+						<div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
+							<?php include "mobMainMenuClaim.php" ?>
+						</div>
+					</div> -->
+                    <div class="row header-container">
+                        <div id="headerTitleCnt">
                             <script type="text/javascript">
                                 <?php
                                 if(isset($_GET['pageTitle']))
@@ -128,10 +144,13 @@
                                 ?>
                             </script>
                         </div>
+						<div class="user-menu-container">
+						  <?php include "loginPanel.php" ?>
+						</div>
                         <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
-                        <div class="col-xs-12" id="mainContentCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                        <div class="col-xs-12" id="mainContentCnt">
                             <div class="row mainContentRow" id="iotApplicationsIframeRow">
                                 <div class="col-xs-12 mainContentCellCnt" id="iotApplicationsIframeCnt">
                                     <iframe id="iotApplicationsIframe" allow="geolocation"></iframe>
@@ -140,7 +159,7 @@
                             
                             
                             <div class="row mainContentRow" id="dashboardsListTableRow">
-                                <div class="col-xs-12 mainContentCellCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                                <div class="col-xs-12 mainContentCellCnt" >
                                     <div id="dashboardsListMenu" class="row">
                                         <!--<div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-2 dashboardsListMenuItem">
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
@@ -172,7 +191,7 @@
                                                 </div>
                                                 <div class="col-xs-3 centerWithFlex" <?=@$_SESSION['loggedRole'] === 'RootAdmin' ? 'style="display:none;"':''?>>
                                                     <div id="delegatedBtn" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Delegated synoptics">
-                                                        <i class="fa fa-handshake-o dashboardsListSort" data-active="false" ></i>
+                                                        <i class="fa-solid fa-handshake dashboardsListSort" data-active="false" ></i>
                                                     </div>
                                                 </div>
 <?php endif; ?> 												
@@ -224,7 +243,7 @@
                                                 New<br>dashboard
                                             </div>-->
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <button id="link_start_wizard" type="button" class="btn btn-warning" style="margin-right:30px; display:none;"><?= _("New synoptic")?></button>
+                                                <button id="link_start_wizard" type="button" class="btn btn-new-dash" style="margin-right:30px; display:none;"><?= _("New synoptic")?></button>
                                             </div>
                                         </div>
 										
@@ -280,7 +299,7 @@
                         </ul> 
                         <!-- Fine tabs -->
                         
-                        
+                        <div class="modal_wrapper">
                         <div id="delegationsModalLeftCnt" class="col-xs-12 col-sm-4">
                             <div class="col-xs-12 centerWithFlex delegationsModalTxt modalFirstLbl" id="delegationsDashboardTitle">
                             </div>
@@ -294,7 +313,7 @@
                                 <!-- Ownership cnt -->
                                 <div id="ownershipCnt" class="tab-pane fade in active">
                                     <div class="row" id="ownershipFormRow">
-                                        <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
+                                        <div class="col-xs-12 delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
                                             <?= _("Change ownership")?>
                                         </div>
                                         <div class="col-xs-12" id="newOwnershipCnt">
@@ -304,7 +323,7 @@
                                                   <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
-                                            <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
+                                            <div class="col-xs-12 delegationsModalMsg" id="newOwnerMsg">
                                                 <?= _("New owner username can't be empty")?>
                                             </div>    
                                         </div>
@@ -319,7 +338,7 @@
 								<!-- Organization cnt -->
                                 <div id="organizationCnt" class="tab-pane fade in">
                                     <div class="row" id="organizationFormRow">
-                                        <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOrganizationLbl">
+                                        <div class="col-xs-12 delegationsModalLbl modalFirstLbl" id="changeOrganizationLbl">
                                            <?= _("Change organization")?> 
                                         </div>
                                         <div class="col-xs-12" id="newOrganizationCnt">
@@ -342,7 +361,7 @@
                                 <!-- Visibility cnt -->
                                 <div id="visibilityCnt" class="tab-pane fade in">
                                     <div class="row" id="visibilityFormRow">
-                                        <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
+                                        <div class="col-xs-12 delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
                                             <?= _("Change visibility")?> 
                                         </div>
                                         <div class="col-xs-12" id="newVisibilityCnt">
@@ -379,7 +398,7 @@
                                                   <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                 </span>
                                             </div>
-                                            <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newDelegatedMsg">
+                                            <div class="col-xs-12 delegationsModalMsg" id="newDelegatedMsg">
                                                 <?= _("Delegated username can't be empty")?>
                                             </div>
                                         </div>
@@ -429,7 +448,7 @@
                                                   <button type="button" id="newGroupDelegationConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
                                                 </span>
                                             </div>  -->
-                                            <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newGroupDelegatedMsg">
+                                            <div class="col-xs-12 delegationsModalMsg" id="newGroupDelegatedMsg">
                                                <!-- Delegated group/organization name can't be empty    -->
                                             </div>
                                         </div>
@@ -473,7 +492,8 @@
                             <!-- Fine tab content -->
                             <input type="hidden" id="delegationsDashId">
                         </div><!-- Fine delegationsModalRightCnt-->
-                    </div>
+						</div>
+					</div>
                     <div id="delegationsModalFooter" class="modal-footer">
                       <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px"><?= _("Close")?></button>
                     </div>
@@ -702,24 +722,25 @@
 				if(!usrVars.includes(record["output"][tplOutput])) usrVars.push(record["output"][tplOutput]); 
 			 });
 			 
-             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" 	data-tpl="'+record.low_level_type+'" data-org="'+record.organizations+'" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
+             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" 	data-tpl="'+record.low_level_type+'" data-org="'+record.organizations+'" class="dashboardsListCardDiv col-xs-12 col-sm-6">' + 
 			   '<div class="dashboardsListCardInnerDiv">' +
+			   		'<div class="dashboardsListCardOverlayDiv"></div>' +
+						 '<div class="dashboardsListCardOverlayTxt"><a href="'+record.parameters+'" onclick="return false;" style="color:inherit; text-decoration:none; display:block; width:100%; height:100%; padding-top:60px;"><i class="fa-solid fa-eye"></i><?= _("View")?></a></div>' +
+						 '<div class="dashboardsListCardImgDiv" style="background-color:white;"></div>' +
 				  '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;"><a style=" color:inherit; text-decoration:none; " href="'+record.parameters+'" target="_blank" onclick="return false;"><?= _("New Tab")?></a></button></div>' +
 			   //   '<div id="cardLinkBtn" style="font-size:8px;float: right;">New Tab</div>' +
-				  '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">' +  record.low_level_type + ' (' + record.nature_label + ': ' + record.sub_nature_label + ')' + '</span></div>' +
-				  '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
-				  '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex"><a href="'+record.parameters+'" onclick="return false;" style="color:inherit; text-decoration:none; display:block; width:100%; height:100%; padding-top:60px;"><?= _("View")?></a></div>' +
-				  '<div class="dashboardsListCardImgDiv" style="background-color:white;"></div>' + 
-				  // '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTypeSpan">'+  usrVars.join(' ') + '</span></div>' +
+				  '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">' +  record.low_level_type + ' (' + record.nature_label + ': ' + record.sub_nature_label + ')' + '</span></div>' +
+				   
+				  // '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTypeSpan">'+  usrVars.join(' ') + '</span></div>' +
 				  '<div class="dashboardsListCardVisibilityDiv col-xs-12 centerWithFlex">' + (record.user?(record.user==usr?(record.ownership == 'public'?'My own: Public':'My own'):(loggedRole != 'RootAdmin' ? 'Delegated by '+(record.user && loggedRole == 'RootAdmin'?record.user:'') : (record.ownership == 'public'?record.user+": Public":record.user+": Private") )):(record.ownership == 'public' ? 'Public' : 'Delegated by '+(record.user && loggedRole == 'RootAdmin'?record.user:''))) + (loggedRole == 'RootAdmin' && record.user!=usr ?' - ':' (') + record.organizations + (loggedRole == 'RootAdmin' && record.user!=usr? '' : ')')+'</div>' +			  
-				  '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">' +
-						( usr == record.user  || loggedRole == 'RootAdmin'  ? '<button type="button" class="dashBtnCard editSynBtnCard"><?= _("Edit")?></button>' : '' ) +
-						( usr == record.user || loggedRole == 'RootAdmin' ? '<button type="button" class="dashBtnCard mgmtDashBtnCard"><?= _("Management")?></button>' : '' ) + 
-						( false && record.ownership == 'private' && usr == record.user ? '<button type="button" class="dashBtnCard delegateSynBtnCard"><?= _("Delegate")?></button>' : '' ) +
-						( false && record.ownership == 'private' && usr == record.user ? '<button type="button" class="dashBtnCard chownSynBtnCard" style="white-space:nowrap;"><?= _("Chg Owner")?></button>' : '' ) +
-						( usr == record.user || loggedRole == 'RootAdmin' ? '<button type="button" class="dashBtnCard delSynBtnCard"><?= _("Delete")?></button>' : '' ) +						
-						( false && record.ownership == 'public' && usr == record.user ? '<button type="button" class="dashBtnCard chownSynBtnCard" style="white-space:nowrap;"><?= _("Chg Owner")?></button>' : '' ) +
-						( false && record.ownership == 'public' && usr == record.user ? '<button type="button" class="dashBtnCard mkPvtSynBtnCard"><?= _("Make Private")?></button>' : '' ) +
+				  '<div class="dashboardsListCardClick2EditDiv">' +
+						( usr == record.user  || loggedRole == 'RootAdmin'  ? '<span tooltip="<?= _("Edit")?>"><button type="button" class="dashBtnCard editSynBtnCard"><i class="fa-solid fa-pen"></i></button></span>' : '' ) +
+						( usr == record.user || loggedRole == 'RootAdmin' ? '<span tooltip="<?= _("Management")?>"><button type="button" class="dashBtnCard mgmtDashBtnCard"><i class="fa-solid fa-gear"></i></button></span>' : '' ) + 
+						( false && record.ownership == 'private' && usr == record.user ? '<span tooltip="<?= _("Delegate")?>"><button type="button" class="dashBtnCard delegateSynBtnCard"><i class="fa-solid fa-right-from-bracket"></i></button></span>' : '' ) +
+						( false && record.ownership == 'private' && usr == record.user ? '<span tooltip="<?= _("Chg Owner")?>"><button type="button" class="dashBtnCard chownSynBtnCard" style="white-space:nowrap;"><i class="fa-solid fa-shuffle"></i></button></span>' : '' ) +
+						( usr == record.user || loggedRole == 'RootAdmin' ? '<span tooltip="<?= _("Delete")?>"><button type="button" class="dashBtnCard delSynBtnCard"><i class="fa-solid fa-trash"></i></button></span>' : '' ) +						
+						( false && record.ownership == 'public' && usr == record.user ? '<span tooltip="<?= _("Chg Owner")?>"><button type="button" class="dashBtnCard chownSynBtnCard" style="white-space:nowrap;"><i class="fa-solid fa-shuffle"></i></button></span>' : '' ) +
+						( false && record.ownership == 'public' && usr == record.user ? '<span tooltip="<?= _("Make Private")?>"><button type="button" class="dashBtnCard mkPvtSynBtnCard"><i class="fa-solid fa-lock"></i></button></span>' : '' ) +
 						
 				  '</div>' +
 			   '</div>' +
@@ -794,8 +815,8 @@
 						//$(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/synopticTemplates/" + $(this).attr('data-uniqueid') + "/" + $(this).attr('data-icon') + ")");
 						$(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/synoptics/" + $(this).attr('data-icon') + ")");
 						if(!$(this).attr('data-icon').endsWith(".svg")) $(this).find('div.dashboardsListCardImgDiv').css("background-size", "150px");
-						$(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
-						$(this).find('div.dashboardsListCardImgDiv').css("background-position", "center center");
+						//$(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
+						//$(this).find('div.dashboardsListCardImgDiv').css("background-position", "center center");
 						$(this).find('div.dashboardsListCardInnerDiv').css("width", "100%");
 						$(this).find('div.dashboardsListCardInnerDiv').css("height", $(this).height() + "px");
 						$(this).find('div.dashboardsListCardOverlayDiv').css("height", $(this).find('div.dashboardsListCardImgDiv').height() + "px");
@@ -859,8 +880,8 @@
 					  },
 					dataset: {
 					  records: data.applications,
-					  perPageDefault: 12,
-					  perPageOptions: [4, 8, 12]
+					  perPageDefault: 10,
+					  perPageOptions: [5, 10, 15]
 					},
 					writers: {
 						_rowWriter: myCardsWriter
@@ -2197,4 +2218,9 @@
 		});
 			
     });
-</script>  
+</script>
+
+<?php } else {
+    include('../s4c-legacy-management/synoptics.php');
+}
+?>

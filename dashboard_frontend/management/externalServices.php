@@ -3,23 +3,25 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+
+if(!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
     include('../config.php');
-    if(!isset($_SESSION))
-    {
-       session_start();
-    }
     
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
@@ -28,24 +30,31 @@
 ?>
 
 <!DOCTYPE html>
-<html>
+<html class="dark">
     <head>
-        <style>
-            .dashboardsListCardOverlayDiv {
-                top:40px !important;
-                height: 165px !important;
-            }
-        </style>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title><?php include "mobMainMenuClaim.php" ?></title>
+        
+        <script type="text/javascript">
+           const setTheme = (theme) => {
+           document.documentElement.className = theme;
+           localStorage.setItem('theme', theme);
+           }
+           const getTheme = () => {
+           const theme = localStorage.getItem('theme');
+           theme && setTheme(theme);
+           }
+           getTheme();
+        </script>
 
         <!-- Bootstrap Core CSS -->
-        <link href="../css/bootstrap.css" rel="stylesheet">
-
-        <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
+          <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+        
+          
+          <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
 
         <!-- jQuery -->
         <script src="../js/jquery-1.10.1.min.js"></script>
@@ -88,14 +97,16 @@
         <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
 
        <!-- Font awesome icons -->
-        <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
-
-        <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
-        
-        <!-- Custom CSS -->
-        <link href="../css/dashboard.css" rel="stylesheet">
-        <link href="../css/dashboardList.css" rel="stylesheet">
-        <link href="../css/iotApplications.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet"> 
+         <!-- Custom CSS -->
+         <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
+         <link href="../css/s4c-css/s4c-iotApplications.css?v=<?php echo time();?>" rel="stylesheet">
         
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
@@ -107,16 +118,20 @@
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?> 
             
-            <div class="row mainRow">
-                <?php include "mainMenu.php" ?>
+            <div class="mainContainer">
+                <div class="menuFooter-container">
+                   <?php include "mainMenu.php" ?>
+                   <?php include "footer.php" ?>
+                 </div>
                 <div class="col-xs-12 col-md-10" id="mainCnt">
-                    <div class="row hidden-md hidden-lg">
-                        <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
-                            <?php include "mobMainMenuClaim.php" ?>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">
+                    <!-- MOBILE MENU -->
+                      <!-- <div class="row hidden-md hidden-lg">
+                          <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
+                              <?php include "mobMainMenuClaim.php" ?>
+                          </div>
+                      </div> -->
+                    <div class="row header-container">
+                        <div id="headerTitleCnt">
                             <script type="text/javascript">
                                 <?php
                                 if(isset($_GET['pageTitle']))
@@ -127,10 +142,13 @@
                                 ?>
                             </script>
                         </div>
+                        <div class="user-menu-container">
+                          <?php include "loginPanel.php" ?>
+                        </div>
                         <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
-                        <div class="col-xs-12" id="mainContentCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                        <div class="col-xs-12" id="mainContentCnt">
                             <div class="row mainContentRow" id="iotApplicationsIframeRow">
                                 <div class="col-xs-12 mainContentCellCnt" id="iotApplicationsIframeCnt">
                                     <iframe id="iotApplicationsIframe" allow="geolocation"></iframe>
@@ -139,7 +157,7 @@
                             
                             
                             <div class="row mainContentRow" id="dashboardsListTableRow">
-                                <div class="col-xs-12 mainContentCellCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                                <div class="col-xs-12 mainContentCellCnt" >
                                     <div id="dashboardsListMenu" class="row">
                                         <!--<div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-2 dashboardsListMenuItem">
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
@@ -387,15 +405,15 @@
                title = title.substr(0, 100) + " ...";
             }
 
-             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' + 
+             var cardDiv = '<div data-uniqueid="' + record.id + '" data-title="' + title + '" data-url="' + record.parameters + '" data-icon="' + record.microAppExtServIcon + '" class="dashboardsListCardDiv col-xs-12 col-sm-6">' + 
                                '<div class="dashboardsListCardInnerDiv">' +
+                                 '<div class="dashboardsListCardOverlayDiv"></div>' +
+                                  '<div class="dashboardsListCardOverlayTxt"><i class="fa-solid fa-eye"></i><?=_("View")?></div>' +
+                                  '<div class="dashboardsListCardImgDiv"></div>' + 
                                   '<div class="cardLinkBtn"><button class="cardButton" style="font-size:8px;float: right;"><?=_("New Tab")?></button></div>' +
                                //   '<div id="cardLinkBtn" style="font-size:8px;float: right;">New Tab</div>' +
-                                  '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">' + record.nature + '</span></div>' +
-                                  '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
-                                  '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex"><?=_("View")?></div>' +
-                                  '<div class="dashboardsListCardImgDiv"></div>' + 
-                                  '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">' + 
+                                  '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="true">' + record.nature + '</span></div>' +
+                                  '<div class="dashboardsListCardClick2EditDiv">' + 
                                       //'<button type="button" class="editDashBtnCard">Edit</button>' + 
                                   '</div>' +  
                                '</div>' +
@@ -469,9 +487,9 @@
                         $('#list_dashboard_cards div.dashboardsListCardDiv').each(function(i){
                             //$(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/externalServices/" + $(this).attr('data-uniqueid') + "/" + $(this).attr('data-icon') + ")");
                             $(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/externalServices/" + $(this).attr('data-icon') + ")");
-                            $(this).find('div.dashboardsListCardImgDiv').css("background-size", "100% auto");
-                            $(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
-                            $(this).find('div.dashboardsListCardImgDiv').css("background-position", "center top");
+                            //$(this).find('div.dashboardsListCardImgDiv').css("background-size", "100% auto");
+                            //$(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
+                            //$(this).find('div.dashboardsListCardImgDiv').css("background-position", "center top");
                             $(this).find('div.dashboardsListCardInnerDiv').css("width", "100%");
                             $(this).find('div.dashboardsListCardInnerDiv').css("height", $(this).height() + "px");
                             $(this).find('div.dashboardsListCardOverlayDiv').css("height", $(this).find('div.dashboardsListCardImgDiv').height() + "px");
@@ -535,8 +553,8 @@
                           },
                         dataset: {
                           records: data.applications,
-                          perPageDefault: 12,
-                          perPageOptions: [4, 8, 12]
+                          perPageDefault: 10,
+                          perPageOptions: [5, 10, 15]
                         },
                         writers: {
                             _rowWriter: myCardsWriter
@@ -607,4 +625,9 @@
                 }
             });
     });
-</script>  
+</script>
+
+<?php } else {
+    include('../s4c-legacy-management/externalServices.php');
+}
+?>

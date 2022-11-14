@@ -13,13 +13,28 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+/*
+if (isset($_SESSION['newLayout'])) {
+    if ($_GET['switchNewLayout'] == "false") {
+        $_SESSION['newLayout'] = false;
+    } else {
+        $_SESSION['newLayout'] = true;
+    }
+} else {
+    $_SESSION['newLayout'] = true;
+}
+*/
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
+
 include('../config.php');
 include('process-form.php');
     include('../TourRepository.php');
     //include '../locale.php';
-if (!isset($_SESSION)) {
-    session_start();
-}
 
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
@@ -34,13 +49,25 @@ else
 ?>
 
 <!DOCTYPE html>
-<html>
+<html class="dark">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title><?php include "mobMainMenuClaim.php" ?></title>
+        
+        <script type="text/javascript">
+          const setTheme = (theme) => {
+          document.documentElement.className = theme;
+          localStorage.setItem('theme', theme);
+          }
+          const getTheme = () => {
+          const theme = localStorage.getItem('theme');
+          theme && setTheme(theme);
+          }
+          getTheme();
+        </script>
 
         <!-- jQuery -->
         <script src="../js/jquery-1.10.1.min.js"></script>
@@ -48,8 +75,6 @@ else
         <!-- JQUERY UI -->
         <script src="../js/jqueryUi/jquery-ui.js"></script>
 
-        <!-- Bootstrap Core CSS -->
-        <link href="../css/bootstrap.css" rel="stylesheet">
         <!-- Bootstrap Core JavaScript -->
         <script src="../js/bootstrap.min.js"></script>
 
@@ -100,16 +125,21 @@ else
         <!-- Filestyle -->
         <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
 
+        <!-- Bootstrap Core CSS -->
+        <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+        <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
+
         <!-- Font awesome icons -->
-        <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
+        <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
 
         <!-- Custom CSS -->
-        <link href="../css/dashboard.css?v=<?php echo time(); ?>" rel="stylesheet">
-        <link href="../css/dashboardList.css?v=<?php echo time(); ?>" rel="stylesheet">
-        <link href="../css/dashboardView.css?v=<?php echo time(); ?>" rel="stylesheet">
-        <link href="../css/addWidgetWizard.css?v=<?php echo time(); ?>" rel="stylesheet">
-        <link href="../css/addDashboardTab.css?v=<?php echo time(); ?>" rel="stylesheet">
-        <link href="../css/dashboard_configdash.css?v=<?php echo time(); ?>" rel="stylesheet">
+        <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
+        <link href="../css/s4c-css/s4c-iotApplications.css?v=a" rel="stylesheet">
 
         <!--Highchart -->
         <script src="https://code.highcharts.com/stock/highstock.js"></script>
@@ -121,7 +151,7 @@ else
         <!-- Chat CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/css/shepherd.min.css">
         <!--  <link rel="stylesheet" href="../css/shepherd.min.css">  -->
-    <link href="../css/snapTour.css" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-snapTour.css" rel="stylesheet">
 </head>
 
     <style type="text/css">
@@ -213,7 +243,7 @@ else
             border-radius: 50%;}
 
         /****************/
-        .previous {
+        /* .previous {
             background-color: #f1f1f1;
             color: black;
             padding: 5px;
@@ -227,7 +257,7 @@ else
             padding: 5px;
             margin: 5px;
             margin-top: 20px;
-        }
+        } */
 
         .control_list{
             margin: 10px;
@@ -290,16 +320,20 @@ else
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?> 
 
-            <div class="row mainRow">
-                <?php include "mainMenu.php" ?>
+            <div class="mainContainer">
+                <div class="menuFooter-container">
+                  <?php include "mainMenu.php" ?>
+                  <?php include "footer.php" ?>
+                </div>
                 <div class="col-xs-12 col-md-10" id="mainCnt">
-                    <div class="row hidden-md hidden-lg">
+                  <!-- MOBILE MENU -->
+                    <!-- <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
                             <?php include "mobMainMenuClaim.php" ?>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt">
+                    </div> -->
+                    <div class="row header-container">
+                        <div id="headerTitleCnt">
                             <script type="text/javascript">
 <?php
 if (isset($_GET['pageTitle'])) {
@@ -310,18 +344,21 @@ if (isset($_GET['pageTitle'])) {
 ?>
                             </script>
                         </div>
-                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
+                        <div class="user-menu-container">
+                          <?php include "loginPanel.php" ?>
+                        </div>
+                        <div class="col-xs-2 hidden-md hidden-lg" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <!--   <div class="row">
                            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerSubTitleCnt">(My Own Organization)</div>
                            <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" style="background-color:lightblue"></div>
                        </div>  -->
                     <div class="row">
-                        <div class="col-xs-12" id="mainContentCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                        <div id="mainContentCnt">
                             <div class="row mainContentRow" id="dashboardsListTableRow">
                                 <!--<div class="col-xs-12 mainContentRowDesc">List</div>-->
 
-                                <div class="col-xs-12 mainContentCellCnt" style='background-color: rgba(138, 159, 168, 1)'>
+                                <div class="col-xs-12 mainContentCellCnt">
                                     <div id="dashboardsListMenu" class="row">
 
                                         <div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-1 dashboardsListMenuItem">
@@ -361,7 +398,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                     </div>
                                                     <div class="col-xs-3 centerWithFlex">
                                                         <div id="delegatedBtn" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Delegated dashboards">
-                                                            <i class="fa fa-handshake-o dashboardsListSort" data-active="false" ></i>
+                                                            <i class="fa-solid fa-handshake dashboardsListSort" data-active="false" ></i>
                                                         </div>
                                                     </div>
 <?php endif; ?>                                              
@@ -409,7 +446,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                     New<br>dashboard
                                                 </div>-->
                                                 <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                    <button id="link_start_wizard" type="button" class="btn btn-warning"><?= _("New dashboard")?></button>
+                                                    <button id="link_start_wizard" type="button" class="btn btn-new-dash"><?= _("New dashboard")?></button>
                                                 </div>
                                             </div>
 <?php endif; ?>                                      
@@ -465,8 +502,8 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                         </div>
 
                         <div id="modalStartWizardFooter" class="modal-footer">
-                            <div class="row">
-                                <div class="col-xs-8 col-xs-offset-2 centerWithFlex">
+                            <div class="wizard_footer">
+                                <div>
                                     <button type="button" id="addWidgetWizardPrevBtn" name="addWidgetWizardPrevBtn" class="btn confirmBtn"><?= _("Prev")?></button>
                                     <button type="button" id="addWidgetWizardNextBtn" name="addWidgetWizardNextBtn" class="btn confirmBtn"><?= _("Next")?></button>
                                 </div>    
@@ -573,7 +610,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                 </ul> 
                                 <!-- Fine tabs -->
 
-
+                                <div class="modal_wrapper">
                                 <div id="delegationsModalLeftCnt" class="col-xs-12 col-sm-4">
                                     <div class="col-xs-12 centerWithFlex delegationsModalTxt modalFirstLbl" id="delegationsDashboardTitle">
                                     </div>
@@ -587,7 +624,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                         <!-- Ownership cnt -->
                                         <div id="ownershipCnt" class="tab-pane fade in active">
                                             <div class="row" id="ownershipFormRow">
-                                                <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
+                                                <div class="col-xs-12 delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
                                                     <?= _("Change ownership")?> 
                                                 </div>
                                                 <div class="col-xs-12" id="newOwnershipCnt">
@@ -597,7 +634,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                             <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                         </span>
                                                     </div>
-                                                    <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
+                                                    <div class="col-xs-12 delegationsModalMsg" id="newOwnerMsg">
                                                         <?= _("New owner username can't be empty")?>
                                                     </div>    
                                                 </div>
@@ -612,7 +649,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                         <!-- Visibility cnt -->
                                         <div id="visibilityCnt" class="tab-pane fade in">
                                             <div class="row" id="visibilityFormRow">
-                                                <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
+                                                <div class="col-xs-12 delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
                                                     <?= _("Change visibility")?>
                                                 </div>
                                                 <div class="col-xs-12" id="newVisibilityCnt">
@@ -636,7 +673,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                         <!--  ---->
                                         <div id="groupthumbnailCnt" class="tab-pane fade in">
                                             <div class="row" id="ThumbmailFormRow">
-                                                <div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="groupthumbnailCntLbl">
+                                                <div class="col-xs-12 delegationsModalLbl modalFirstLbl" id="groupthumbnailCntLbl">
                                                     <?= _("Thumbnail") ?>
                                                 </div>
                                                 <div class="col-xs-12" id="newgroupthumbnailCnt">
@@ -686,7 +723,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                             <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled"><?= _("Confirm")?></button>
                                                         </span>
                                                     </div>
-                                                    <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newDelegatedMsg">
+                                                    <div class="col-xs-12 delegationsModalMsg" id="newDelegatedMsg">
                                                         <?= _("Delegated username can't be empty")?>
                                                     </div>
                                                 </div>
@@ -736,7 +773,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                               <button type="button" id="newGroupDelegationConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
                                                             </span>
                                                         </div>  -->
-                                                    <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newGroupDelegatedMsg">
+                                                    <div class="col-xs-12 delegationsModalMsg" id="newGroupDelegatedMsg">
                                                         <!-- Delegated group/organization name can't be empty    -->
                                                     </div>
                                                 </div>
@@ -856,6 +893,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                     <!-- Fine Group Trend cnt -->
                                             <!-- -->
                                         </div>
+                            </div>
 
                             <div id="delegationsModalFooter" class="modal-footer">
                                 <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal" style="margin-top: 50px"><?= _("Close")?></button>
@@ -1191,36 +1229,36 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 
             var titleHTMLEscapedPre = record.title_header.replace(/\"/g, '&quot;');
             var titleHTMLEscaped = titleHTMLEscapedPre.replace(/\'/g, '&apos;');
-            var cardDiv = '<div data-uniqueid="' + record.Id + '" data-screenshotFilename="' + record.screenshotFilename + '" data-deleted="' + record.deleted + '" data-dashTitle="' + record.title_header + '" data-headerColor = "' + headerColor + '" data-headerFontColor="' + record.headerFontColor + '" data-org="' + record.organizations + '" class="dashboardsListCardDiv col-xs-12 col-sm-6 col-md-3">' +
+            var cardDiv = '<div data-uniqueid="' + record.Id + '" data-screenshotFilename="' + record.screenshotFilename + '" data-deleted="' + record.deleted + '" data-dashTitle="' + record.title_header + '" data-headerColor = "' + headerColor + '" data-headerFontColor="' + record.headerFontColor + '" data-org="' + record.organizations + '" class="dashboardsListCardDiv col-xs-12 col-sm-6">' +
                     '<div class="dashboardsListCardInnerDiv">';
 
+            cardDiv = cardDiv + '<div class="dashboardsListCardOverlayDiv"></div>' +
+            '<div class="dashboardsListCardOverlayTxt"><i class="fa-solid fa-eye"></i><?php echo _("View"); ?></div>' +
+            '<div class="dashboardsListCardImgDiv"></div>';
+            
             if (brokerLbl && iotLbl)
             {
-                cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="<?= !$_SESSION['isPublic'] ? 'true' : 'false' ?>"><?php echo _("IOT apps & broker"); ?></span>' + '</div>';
+                cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="<?= !$_SESSION['isPublic'] ? 'true' : 'false' ?>"><?php echo _("IOT apps & broker"); ?></span>' + '</div>';
             } else
             {
                 if ((!brokerLbl) && iotLbl)
                 {
-                    cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="<?= !$_SESSION['isPublic'] ? 'true' : 'false' ?>"><?php echo _("IOT apps"); ?></span>' + '</div>';
+                    cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="<?= !$_SESSION['isPublic'] ? 'true' : 'false' ?>"><?php echo _("IOT apps"); ?></span>' + '</div>';
                 } else
                 {
                     if (brokerLbl && (!iotLbl))
                     {
-                        cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false"><?php echo _("Broker"); ?></span>' + '</div>';
+                        cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false"><?php echo _("Broker"); ?></span>' + '</div>';
                     } else
                     {
                         if ((!brokerLbl) && (!iotLbl))
                         {
-                            cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv col-xs-12"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false"><?php echo _("Passive"); ?></span>' + '</div>';
+                            cardDiv = cardDiv + '<div class="dashboardsListCardTitleDiv"><span class="dashboardListCardTitleSpan">' + title + '</span><span class="dashboardListCardTypeSpan" data-hasIotModal="false"><?php echo _("Passive"); ?></span>' + '</div>';
                         }
                     }
                 }
             }
 
-
-            cardDiv = cardDiv + '<div class="dashboardsListCardOverlayDiv col-xs-12 centerWithFlex"></div>' +
-                    '<div class="dashboardsListCardOverlayTxt col-xs-12 centerWithFlex"><?php echo _("View"); ?></div>' +
-                    '<div class="dashboardsListCardImgDiv"></div>';
             var appendStr = "";
             var appendStr1 = "";
             var appendStr2 = "";
@@ -1236,12 +1274,12 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 if (visibility.includes("to Group")) {
                     var appendStr1 = visibility.split("to Group")[0] + "(" + organizations + ")";
                     var appendStr2 = "to Group" + visibility.split("to Group")[1];
-                    cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv col-xs-12 centerWithFlex">' + appendStr1 + '</div>';
-                    cardDiv = cardDiv + '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: white; font-size: 11px; font-weight: normal";>' + appendStr2;
+                    cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv">' + appendStr1 + '</div>';
+                    cardDiv = cardDiv + '<div class="dashboardsListCardClick2EditDiv" style="background-color: inherit; color: white; font-size: 11px; font-weight: normal";>' + appendStr2;
                 } else {
                     appendStr = visibility + " (" + organizations + ")";
-                    cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv col-xs-12 centerWithFlex">' + appendStr + '</div>';
-                    cardDiv = cardDiv + '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">';
+                    cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv">' + appendStr + '</div>';
+                    cardDiv = cardDiv + '<div class="dashboardsListCardClick2EditDiv">';
                 }
                 //  cardDiv = cardDiv + '<div class="dashboardsListCardOrganizationDiv col-xs-12 centerWithFlex">' + organizations + '</div>';
             } else
@@ -1253,21 +1291,21 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                         organizations = "Other";
                     }
                 }
-                cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv col-xs-12 centerWithFlex">' + authorLbl + ": " + visibility + " - " + organizations + '</div>';
+                cardDiv = cardDiv + '<div class="dashboardsListCardVisibilityDiv">' + authorLbl + ": " + visibility + " - " + organizations + '</div>';
                 //    cardDiv = cardDiv + '<div class="dashboardsListCardOrganizationDiv col-xs-12 centerWithFlex">' + authorLbl + ": " + visibility + '</div>';
-                cardDiv = cardDiv + '<div class="dashboardsListCardClick2EditDiv col-xs-12 centerWithFlex" style="background-color: inherit; color: inherit">';
+                cardDiv = cardDiv + '<div class="dashboardsListCardClick2EditDiv">';
             }
 
 <?php if (!$_SESSION['isPublic']) : ?>
                 if (editLbl === 'show')
                 {
-                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCard"><?php echo _("Edit"); ?></button>';
+                    cardDiv = cardDiv + '<span tooltip="<?php echo _("Edit"); ?>"><button type="button" class="dashBtnCard editDashBtnCard"><i class="fa-solid fa-pen"></i></button></span>';
                 }
 
                 switch (managementLbl)
                 {
                     case "show":
-                        cardDiv = cardDiv + '<button type="button" class="dashBtnCard delegateDashBtnCard"><?php echo _("Management"); ?></button>';
+                        cardDiv = cardDiv + '<span tooltip="<?php echo _("Management"); ?>"><button type="button" class="dashBtnCard delegateDashBtnCard"><i class="fa-solid fa-gear"></i></button></span>';
                         break;
 
                     default:
@@ -1276,12 +1314,12 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 
                 if (cloneLbl === 'show')
                 {
-                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard cloneDashBtnCard"><?php echo _("Clone"); ?></button>';
+                    cardDiv = cardDiv + '<span tooltip="<?php echo _("Clone"); ?>"><button type="button" class="dashBtnCard cloneDashBtnCard"><i class="fa-solid fa-clone"></i></button></span>';
                 }
 
                 if (deleteLbl === 'show')
                 {
-                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard deleteDashBtnCard"><?php echo _("Delete"); ?></button>';
+                    cardDiv = cardDiv + '<span tooltip="<?php echo _("Delete"); ?>"><button type="button" class="dashBtnCard deleteDashBtnCard"><i class="fa-solid fa-trash"></i></button></span>';
                 }
 <?php endif; ?>
             cardDiv = cardDiv + '</div>' +
@@ -1547,9 +1585,9 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
 
                     $('#list_dashboard_cards div.dashboardsListCardDiv').each(function (i) {
                         $(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/dashScr/dashboard" + $(this).attr('data-uniqueid') + "/" + $(this).attr('data-screenshotFilename') + ")");
-                        $(this).find('div.dashboardsListCardImgDiv').css("background-size", "100% auto");
-                        $(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
-                        $(this).find('div.dashboardsListCardImgDiv').css("background-position", "center top");
+                        //$(this).find('div.dashboardsListCardImgDiv').css("background-size", "100% auto");
+                        //$(this).find('div.dashboardsListCardImgDiv').css("background-repeat", "no-repeat");
+                        //$(this).find('div.dashboardsListCardImgDiv').css("background-position", "center top");
                         $(this).find('div.dashboardsListCardInnerDiv').css("width", "100%");
                         $(this).find('div.dashboardsListCardInnerDiv').css("height", $(this).height() + "px");
                         $(this).find('div.dashboardsListCardOverlayDiv').css("height", $(this).find('div.dashboardsListCardImgDiv').height() + "px");
@@ -2640,8 +2678,8 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                     },
                     dataset: {
                         records: data,
-                        perPageDefault: 12,
-                        perPageOptions: [4, 8, 12, 16, 20, 24, 28, 32]
+                        perPageDefault: 10,
+                        perPageOptions: [5, 10, 15, 20, 25, 30]
                     },
                     writers: {
                         _rowWriter: myCardsWriter
@@ -3679,8 +3717,8 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             $('#delegationsModalLeftCnt').show();
             $('#delegationsCancelBtn').css('margin-top','50px');
         });
-        
-        
+
+
         //
         $('#delegationsCancelBtn').click(function () {
             $('#container_accesses').empty();
@@ -4890,3 +4928,8 @@ $('#scrDashboardConfirmBtn').click(function () {
         });
     });
 </script>
+
+<?php } else {
+    include('../s4c-legacy-management/dashboards.php');
+}
+?>

@@ -3,28 +3,45 @@
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+if (!isset($_SESSION)) {
     session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
+
+    //session_start();
     
     checkSession('RootAdmin');
 ?>
 <!DOCTYPE html>
-<html>
+<html class="dark">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Dashboard Management System</title>
+        
+        <script type="text/javascript">
+           const setTheme = (theme) => {
+           document.documentElement.className = theme;
+           localStorage.setItem('theme', theme);
+           }
+           const getTheme = () => {
+           const theme = localStorage.getItem('theme');
+           theme && setTheme(theme);
+           }
+           getTheme();
+        </script>
         
         <!-- jQuery core JS-->
         <script src="../js/jquery-1.10.1.min.js"></script>
@@ -32,8 +49,9 @@
         <!-- Bootstrap core JS -->
         <script src="../js/bootstrap.min.js"></script>
 
-        <!-- Bootstrap core CSS -->
-        <link href="../css/bootstrap.css" rel="stylesheet">
+        <!-- Bootstrap Core CSS -->
+          <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+          <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
 
         <!-- Custom styles for this template -->
         <link href="../css/signin.css" rel="stylesheet">
@@ -43,7 +61,15 @@
         <script src="../js/jqueryUi/jquery-ui.js"></script>
         
         <!-- Font awesome icons -->
-        <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
+          <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+        
+          <!-- Custom CSS -->
+          <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+          <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+          <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+          <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
+          <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+          <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
     </head>
     <body>
         <?php
@@ -149,3 +175,8 @@
         </script>
     </body>
 </html>
+
+<?php } else {
+    include('../s4c-legacy-management/dashboard_register.php');
+}
+?>

@@ -2,22 +2,27 @@
 /* Dashboard Builder.
   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+  This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
 include('process-form.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
-session_start();
+//session_start();
 checkSession('Manager');
 
 $link = mysqli_connect($host, $username, $password);
@@ -45,14 +50,27 @@ $lastUsedColors = null;
   } */
 ?>
 <!DOCTYPE HTML>
-<html>
+<html class="dark">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>DataInspector</title>
+    
+    <script type="text/javascript">
+      const setTheme = (theme) => {
+      document.documentElement.className = theme;
+      localStorage.setItem('theme', theme);
+      }
+      const getTheme = () => {
+      const theme = localStorage.getItem('theme');
+      theme && setTheme(theme);
+      }
+      getTheme();
+    </script>
 
     <!-- Bootstrap Core CSS -->
-    <link href="../css/bootstrap.css" rel="stylesheet">
+    <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+    <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles_gridster.css" type="text/css" />
     <link rel="stylesheet" href="../css/style_widgets.css?v=<?php
     echo time();
@@ -110,8 +128,6 @@ $lastUsedColors = null;
     <!-- JQUERY UI -->
     <!--<script src="../js/jqueryUi/jquery-ui.js"></script>
 
-    <!-- Font awesome icons -->
-    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
 
     <!-- Bootstrap colorpicker -->
     <script src="../js/bootstrap-colorpicker.min.js"></script>
@@ -179,23 +195,18 @@ $lastUsedColors = null;
     <!-- Text fill -->
     <script src="../js/jquery.textfill.min.js"></script>
 
+    <!-- Font awesome icons -->
+    <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+    
     <!-- Custom CSS -->
-    <link href="../css/dashboard.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/dashboardView.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/addWidgetWizard2.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/addDashboardTab.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/dashboard_configdash.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-addWidgetWizardDataInspector.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
+    <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
     <link href="../css/widgetCtxMenu_1.css?v=<?php
+
     echo time();
     ?>" rel="stylesheet">
     <link href="../css/widgetDimControls_1.css?v=<?php
@@ -414,35 +425,36 @@ $lastUsedColors = null;
 //if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "Manager")) {
     if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
         echo ('<div class="modal fade bd-example-modal-lg" id="healthiness-modal" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
-                        <div class="modal-dialog modal-lg" style="background-color: rgba(108, 135, 147, 1);">
-                            <div class="modal-content modal-lg" style="background-color: rgba(108, 135, 147, 1);">
-                                <div class="modal-header" style="background-color: #576c75; color: white;"><b>Data sources Details</b></div>          
-                            <div role="tabpanel">
+                        <div class="modal-dialog modal-lg dataSourcesDetails">
+                            <div class="modal-content modal-lg">
+                                <div class="modal-header centerWithFlex"><b>Data sources Details</b></div>          
+                            <div class="modal-body modalBody" role="tabpanel">
                                     <!-- Nav tabs -->
-                                    <ul class="nav nav-tabs" role="tablist" style="background-color: rgba(108, 135, 147, 1);">
-                                        <li role="presentation" id="tab1" class="active"><a href="#uploadTab" aria-controls="uploadTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Device</a>
+                                    <ul id="datasourcesTabsContainer" class="nav nav-tabs nav-justified" role="tablist">
+                                        <li role="presentation" id="tab1" class="nav-item active"><a href="#uploadTab" aria-controls="uploadTab" role="tab" data-toggle="tab">Device</a>
                                         </li>
-                                        <li role="presentation" id="tab2"><a href="#browseTab" aria-controls="browseTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Values</a>
+                                        <li role="presentation" id="tab2" class="nav-item"><a href="#browseTab" aria-controls="browseTab" role="tab" data-toggle="tab">Values</a>
                                         </li>
-                                        <li role="presentation" id="tab6"><a href="#HealthinessTab" aria-controls="healthTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Healthiness</a>
+                                        <li role="presentation" id="tab6" class="nav-item"><a href="#HealthinessTab" aria-controls="healthTab" role="tab" data-toggle="tab">Healthiness</a>
                                         </li>
-                                        <li role="presentation" id="tab3"><a href="#processTab" aria-controls="processTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Process</a>
+                                        <li role="presentation" id="tab3" class="nav-item"><a href="#processTab" aria-controls="processTab" role="tab" data-toggle="tab">Process</a>
                                         </li>
-                                        <li role="presentation" id="tab4"><a href="#imageTab" aria-controls="imageTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Image</a>
+                                        <li role="presentation" id="tab4" class="nav-item"><a href="#imageTab" aria-controls="imageTab" role="tab" data-toggle="tab">Image</a>
                                         </li>
-                                        <li role="presentation" id="tab5"><a href="#ownerTab" aria-controls="ownerTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Licensing</a>
+                                        <li role="presentation" id="tab5" class="nav-item"><a href="#ownerTab" aria-controls="ownerTab" role="tab" data-toggle="tab">Licensing</a>
                                         </li>');
     }
     if (($_SESSION['loggedRole'] == "RootAdmin")) {
-        echo(' <li role="presentation" id="tab7"><a href="#userTab" aria-controls="userTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">User</a></li>');
+        echo(' <li role="presentation" id="tab7" class="nav-item"><a href="#userTab" aria-controls="userTab" role="tab" data-toggle="tab">User</a></li>');
     }
     if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
         echo(' 
             
-            <li role="presentation" id="tab8"><a href="#reportTab" aria-controls="reportTab" role="tab" data-toggle="tab" style="background-color: rgba(108, 135, 147, 1); color: white;">Report</a>
+            <li role="presentation" id="tab8" class="nav-item"><a href="#reportTab" aria-controls="reportTab" role="tab" data-toggle="tab">Report</a>
                                         </li>
                                         </ul>
                                     <!-- Tab panes -->
+                                    <div class="modal_wrapper">
                                     <div class="tab-content">
                                         <div role="tabpanel" class="tab-pane active" id="uploadTab">
                                                     <div class="modal-body">
@@ -598,7 +610,7 @@ $lastUsedColors = null;
                                                 </div>');
     }
     if (($_SESSION['loggedRole'] == "RootAdmin") || ($_SESSION['loggedRole'] == "ToolAdmin") || ($_SESSION['loggedRole'] == "AreaManager") || ($_SESSION['loggedRole'] == "Manager")) {
-        echo('</div>
+        echo('</div></div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn cancelBtn cancelView" id="close_healthiness_modal" data-dismiss="modal">Cancel</button>
                                     </div>
@@ -2495,3 +2507,8 @@ $(document).on('click', '#modify_report', function () {
 </body>
 
 </html>
+
+<?php } else {
+    include('../s4c-legacy-management/inspector.php');
+}
+?>

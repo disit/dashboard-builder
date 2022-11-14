@@ -1,0 +1,490 @@
+.mainTableHeader, .mainTableHeader thead tr, .mainTableHeader thead th
+{
+    background-color: var(--blue-);
+}
+
+.dashboardsTableHeader, .dashboardsTableHeader thead tr, .dashboardsTableHeader thead th
+{
+    background-color: var(--grey-blue02-);
+}
+
+#list_dashboard
+{
+    display: none;
+    margin-top: 10px;
+}
+
+#list_dashboard tbody, #list_metrics tbody{
+  font-size: 1.2rem;
+  color: var(--menu-color-);
+}
+
+#list_dashboard.table > thead > tr > th, #list_dashboard.table > tbody > tr > td
+{
+    border: none !important;
+    text-align: center !important;
+}
+
+
+.mainTableHeader th a , .dashboardsTableHeader th a, #list_metrics thead tr th
+{
+    color: var(--dark-grey03-);
+    font-size: 1.2rem;
+}
+
+.whiteRow
+{
+    background-color: var(--white-);
+    border: none !important;
+}
+
+.blueRow
+{
+    /* background-color: var(--grey-blue04-); */
+    border: none !important;
+}
+
+.light .blueRow
+{
+    background-color: var(--grey-blue05-);
+}
+
+#dashboardsListTableRow
+{
+    padding-left: 0px !important; 
+    padding-right: 0px !important;
+}
+
+#dashboardsListTableRow > div.col-xs-12
+{
+    padding-left: 0px !important; 
+    padding-right: 0px !important;
+}
+
+#dashboardsListMenu
+{
+
+}
+
+div.dashboardsListMenuItem
+{
+    height: 50px;
+    background-color: transparent;
+}
+
+div.dashboardsListCardOverlayDiv
+{
+    position: absolute;
+    top: 0px;
+    left: 0;
+    width: 100%;
+    background-color: var(--dark-grey01-);
+    opacity: 0.03;
+    -webkit-transition: opacity 0.15s ease-in-out;
+    -ms-transition: opacity 0.15s ease-in-out;
+    transition: opacity 0.15s ease-in-out;
+    border-radius: 10px 10px 0 0;
+}
+
+div.dashboardsListCardOverlayTxt
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    color: var(--grey-blue04-);
+    background-color: transparent;
+    font-size: 2rem;
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-transition: opacity 0.15s ease-in-out;
+    -ms-transition:     opacity 0.15s ease-in-out;
+    transition:         opacity 0.15s ease-in-out;
+}
+
+.light div.dashboardsListCardOverlayTxt{
+  color: var(--grey-blue04-);
+}
+
+div.dashboardsListCardOverlayTxt i{
+  padding-right: 5px;
+}
+
+div.dashboardsListMenuItemTitle
+{
+    color: var(--white-);
+    font-weight: bold;
+    height: 100%;
+}
+
+#list_dashboard_cards{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 10px;
+}
+
+div.dashboardsListCardDiv
+{
+    position: relative;
+    padding: 10px;
+    width: 20%;
+}
+
+/*div.dashboardsListCardDiv:hover
+{
+    cursor: pointer;
+}*/
+
+div.dashboardsListCardBtnDiv
+{
+    
+}
+
+div.dashboardsListCardInnerDiv
+{
+    position: relative;
+    background: var(--bg-color-);
+    border-radius: 10px;
+    box-shadow: var(--shadow02-);
+    height: auto!important;
+}
+
+div.dashboardsListCardTitleDiv
+{
+    background-color: transparent;
+    padding: 10px;
+}
+
+span.dashboardListCardTitleSpan
+{
+    display: flex;
+    width: 100%;
+    height: 4.5rem;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--dark-grey03-);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+span.dashboardListCardTypeSpan
+{
+    display: block;
+    width: 100%;
+    font-size: 11px;
+    font-weight: 500!important;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--grey-blue02-);
+    font-weight: normal;
+    color: var(--dark-grey03-);
+    text-align: center;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+div.dashboardsListCardImgDiv
+{
+    /* width: 100%;
+    height: 12.5rem; */
+    aspect-ratio: 16 / 9;
+    border-radius: 10px 10px 0 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: top;
+}
+
+.cardLinkBtn .cardButton{
+  float: none!important;
+  border: none;
+  width: 100%;
+  background: var(--menu-color-);
+  color: var(--white-);
+  font-size: 1rem!important;
+  font-weight: 700;
+  padding: 5px 0;
+}
+
+.cardLinkBtn .cardButton:hover{
+  background: var(--green-);
+  color: var(--white-);
+}
+
+div.dashboardsListCardClick2EditDiv
+{
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   justify-content: space-between;
+   background: var(--grey-blue03-);
+   border-radius: 0 0 10px 10px;
+   padding: 15px;
+}
+
+div.dashboardsListMenuItemContent
+{
+    padding-top: 5px;
+    padding-bottom: 5px;
+    height: 100%;
+}
+
+div.dashboardsListMenuItemHint
+{
+    font-size: 0.8em;
+    color: rgba(51, 64, 69, 1);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#link_add_dashboard
+{
+    background-color: var(--blue-);
+    border: none !important;
+    font-family: 'Montserrat';
+    font-weight: bold;
+}
+
+#link_add_dashboard:hover
+{
+    cursor: pointer;
+    background-color: var(--yellow-);
+}
+
+#searchDashboardBtn, #resetSearchDashboardBtn
+{
+    
+  background: transparent!important;
+  color: var(--text-color-)!important;
+  border: none!important;
+  border-radius: 0!important;
+  padding: 0 10px;
+  font-size: 2rem;
+}
+
+#searchDashboardBtn
+{
+    background-color: transparent;
+    color: var(--text-color-)!important;
+    border: none!important;
+    border-radius: 0!important;
+    padding: 0 10px;
+    font-size: 1.5rem;
+}
+
+.dynatable-active-page {
+background: transparent;
+color: var(--blue-)!important;
+font-size: 1.5rem;
+}
+
+#dashboardListsItemsPerPage
+{
+    display: none;
+}
+
+#dashboardListsCardsSort, #dashboardListsCardsSort div.dashboardsListMenuItemContent
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+div.dashboardsListSortBtnCnt i{
+  color: var(--dark-grey05-);
+}
+
+div.dashboardsListSortBtnCnt:hover i, div.dashboardsListSortBtnCnt i[data-active="true"]{
+  color: var(--blue-);
+}
+
+div.dashboardsListSortBtnCnt
+{
+  background: transparent!important;
+  padding: 4px 4px 4px 4px;
+}
+
+div.dashboardsListSortBtnCnt:hover
+{
+    cursor: pointer;
+}
+
+i.dashboardsListSort
+{
+    font-size: 1.65em;
+}
+
+div.dashboardsListSortOrgsBtnCnt
+{
+    background-color: var(--blue-);
+    padding: 4px 4px 4px 4px;
+    border-radius: 4px;
+}
+
+div.dashboardsListSortOrgsBtnCnt:hover
+{
+    background-color: var(--yellow-);
+    cursor: pointer;
+}
+
+
+/* START TOOLTIP STYLES */
+[tooltip] {
+  position: relative; /* opinion 1 */
+}
+
+/* Applies to all tooltips */
+[tooltip]::before,
+[tooltip]::after {
+  text-transform: none; /* opinion 2 */
+  font-size: .9em; /* opinion 3 */
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  position: absolute;
+  display: none;
+  opacity: 0;
+}
+[tooltip]::before {
+  content: '';
+  border: 5px solid transparent; /* opinion 4 */
+  z-index: 1001; /* absurdity 1 */
+}
+[tooltip]::after {
+  content: attr(tooltip); /* magic! */
+  
+  /* most of the rest of this is opinion */
+  font-family: Helvetica, sans-serif;
+  text-align: center;
+  
+  /* 
+    Let the content set the size of the tooltips 
+    but this will also keep them from being obnoxious
+    */
+  min-width: 3em;
+  max-width: 21em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 1ch 1.5ch;
+  border-radius: .3ch;
+  box-shadow: 0 1em 2em -.5em rgba(0, 0, 0, 0.35);
+  background: var(--blue-);
+  color: var(--white-);
+  z-index: 1000; /* absurdity 2 */
+}
+
+/* Make the tooltips respond to hover */
+[tooltip]:hover::before,
+[tooltip]:hover::after {
+  display: block;
+}
+
+/* don't show empty tooltips */
+[tooltip='']::before,
+[tooltip='']::after {
+  display: none !important;
+}
+
+/* FLOW: UP */
+[tooltip]:not([flow])::before,
+[tooltip][flow^="up"]::before {
+  bottom: 100%;
+  border-bottom-width: 0;
+  border-top-color: var(--blue-);
+}
+[tooltip]:not([flow])::after,
+[tooltip][flow^="up"]::after {
+  bottom: calc(100% + 5px);
+}
+[tooltip]:not([flow])::before,
+[tooltip]:not([flow])::after,
+[tooltip][flow^="up"]::before,
+[tooltip][flow^="up"]::after {
+  left: 50%;
+  transform: translate(-50%, -.5em);
+}
+
+/* FLOW: DOWN */
+[tooltip][flow^="down"]::before {
+  top: 100%;
+  border-top-width: 0;
+  border-bottom-color: var(--blue-);
+}
+[tooltip][flow^="down"]::after {
+  top: calc(100% + 5px);
+}
+[tooltip][flow^="down"]::before,
+[tooltip][flow^="down"]::after {
+  left: 50%;
+  transform: translate(-50%, .5em);
+}
+
+/* FLOW: LEFT */
+[tooltip][flow^="left"]::before {
+  top: 50%;
+  border-right-width: 0;
+  border-left-color: var(--blue-);
+  left: calc(0em - 5px);
+  transform: translate(-.5em, -50%);
+}
+[tooltip][flow^="left"]::after {
+  top: 50%;
+  right: calc(100% + 5px);
+  transform: translate(-.5em, -50%);
+}
+
+/* FLOW: RIGHT */
+[tooltip][flow^="right"]::before {
+  top: 50%;
+  border-left-width: 0;
+  border-right-color: var(--blue-);
+  right: calc(0em - 5px);
+  transform: translate(.5em, -50%);
+}
+[tooltip][flow^="right"]::after {
+  top: 50%;
+  left: calc(100% + 5px);
+  transform: translate(.5em, -50%);
+}
+
+/* KEYFRAMES */
+@keyframes tooltips-vert {
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes tooltips-horz {
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+/* FX All The Things */ 
+[tooltip]:not([flow]):hover::before,
+[tooltip]:not([flow]):hover::after,
+[tooltip][flow^="up"]:hover::before,
+[tooltip][flow^="up"]:hover::after,
+[tooltip][flow^="down"]:hover::before,
+[tooltip][flow^="down"]:hover::after {
+  animation: tooltips-vert 300ms ease-out forwards;
+}
+
+[tooltip][flow^="left"]:hover::before,
+[tooltip][flow^="left"]:hover::after,
+[tooltip][flow^="right"]:hover::before,
+[tooltip][flow^="right"]:hover::after {
+  animation: tooltips-horz 300ms ease-out forwards;
+}

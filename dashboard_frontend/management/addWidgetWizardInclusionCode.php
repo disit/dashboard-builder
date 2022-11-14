@@ -1,11 +1,17 @@
 <?php
+
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
+
     require_once '../common.php';
     include_once '../locale.php';
     error_reporting(E_ERROR);
-    if(!isset($_SESSION))
-    {
-       session_start();
-    }
+    /* if(!isset($_SESSION)) {
+        session_start();
+    }   */
     checkSession('Manager');
 ?>
 <link rel="stylesheet" href="../css/style_widgets.css?v=1563354439" type="text/css">
@@ -15,9 +21,9 @@
     <li id="cTab"><a href="#summary" data-toggle="no" class="dashboardWizardTabTxt"><?= _("Check and summary")?></a></li> <!-- data-toggle="tab" -->
 </ul> 
 
-<div class="tab-content">
+<div class="tab-content modal_wrapper_wizard">
     <div id="mainFeat" class="tab-pane fade in active">
-        <div class="col-xs-12 col-sm-6 col-sm-offset-3">
+        <div class="dash_title">
             <div class="row">
                 <div class="col-xs-12 centerWithFlex addWidgetWizardIconsCntLabelBig" style="margin-top: 6px;">
                     <?= _("Dashboard title")?>
@@ -27,14 +33,14 @@
                     <input type="hidden" id="inputTitleDashboardStatus" value="empty"/>
                 </div>
             </div>
-            <div id="modalAddDashboardWizardTitleAlreadyUsedMsg" class="row">
+            <div id="modalAddDashboardWizardTitleAlreadyUsedMsg">
                 <div class="col-xs-12 centerWithFlex">
                    <?= _("Dashboard title can't be empty")?> 
                 </div>
             </div>   
         </div> 
         
-        <div class="col-xs-12 col-sm-6" id="dashboardTemplatesContainer">
+        <div id="dashboardTemplatesContainer">
             <div class="row">
                 <div class="col-xs-12 addWidgetWizardIconsCntLabelBig centerWithFlex"><?= _("Dashboard template")?> </div>
                 <div class="col-xs-12 addWidgetWizardIconsCntSublabel centerWithFlex"><?= _("Click on a template to choose it, click on it again to unselect it")?> </div>
@@ -110,7 +116,7 @@
                             }
                         }
 
-                        $newItem = '<div class="col-xs-10 col-sm-4 col-md-3 modalAddDashboardWizardChoiceCnt" data-hasActuators="' . $hasActuators . '" data-highLevelTypeVisible = "' . $highLevelTypeVisible . '" data-natureVisible = "' . $natureVisible . '" data-subnatureVisible = "' . $subnatureVisible . '" data-valueTypeVisible = "' . $valueTypeVisible . '" data-valueNameVisible = "' . $valueNameVisible . '" data-dataTypeVisible = "' . $dataTypeVisible . '" data-lastDateVisible = "' . $lastDateVisible . '" data-lastValueVisible = "' . $lastValueVisible . '" data-healthinessVisible = "' . $healthinessVisible . '" data-lastCheckVisible = "' . $lastCheckVisible . '" data-ownershipVisible = "' . $ownershipVisible . '" data-valueUnitVisible = "' . $valueUnitVisible . '" data-brokerVisible = "' . $brokerVisible . '"  data-modelVisible = "' . $modelVisible . '" data-valueTypeNVisible = "' . $valueTypeNVisible . '" data-valueNameNVisible = "' . $valueNameNVisible . '" data-dataTypeSel="' . $dataTypeSelection . '" data-valueNameSel="' . $valueNameSelection . '" data-valueTypeSel="' . $valueTypeSelection . '" data-subnatureSel="' . $subnatureSelection . '" data-natureSel="' . $natureSelection . '" data-highLevelSel="' . $highLevelTypeSelection . '" data-healthinessSel="' . $healthinessSelection . '" data-ownershipSel="' . $ownershipSelection . '" data-valueUnitSel="' . $valueUnitSelection . '" data-brokerSel="' . $brokerSelection . '" data-modelSel="' . $modelSelection . '" data-modelSel="' . $modelSelection . '" data-available="' . $templateAvailable . '" data-selected="false" data-templateName="' . $templateName . '" data-widgetType="' . $widgetType . '">
+                        $newItem = '<div class="modalAddDashboardWizardChoiceCnt" data-hasActuators="' . $hasActuators . '" data-highLevelTypeVisible = "' . $highLevelTypeVisible . '" data-natureVisible = "' . $natureVisible . '" data-subnatureVisible = "' . $subnatureVisible . '" data-valueTypeVisible = "' . $valueTypeVisible . '" data-valueNameVisible = "' . $valueNameVisible . '" data-dataTypeVisible = "' . $dataTypeVisible . '" data-lastDateVisible = "' . $lastDateVisible . '" data-lastValueVisible = "' . $lastValueVisible . '" data-healthinessVisible = "' . $healthinessVisible . '" data-lastCheckVisible = "' . $lastCheckVisible . '" data-ownershipVisible = "' . $ownershipVisible . '" data-valueUnitVisible = "' . $valueUnitVisible . '" data-brokerVisible = "' . $brokerVisible . '"  data-modelVisible = "' . $modelVisible . '" data-valueTypeNVisible = "' . $valueTypeNVisible . '" data-valueNameNVisible = "' . $valueNameNVisible . '" data-dataTypeSel="' . $dataTypeSelection . '" data-valueNameSel="' . $valueNameSelection . '" data-valueTypeSel="' . $valueTypeSelection . '" data-subnatureSel="' . $subnatureSelection . '" data-natureSel="' . $natureSelection . '" data-highLevelSel="' . $highLevelTypeSelection . '" data-healthinessSel="' . $healthinessSelection . '" data-ownershipSel="' . $ownershipSelection . '" data-valueUnitSel="' . $valueUnitSelection . '" data-brokerSel="' . $brokerSelection . '" data-modelSel="' . $modelSelection . '" data-modelSel="' . $modelSelection . '" data-available="' . $templateAvailable . '" data-selected="false" data-templateName="' . $templateName . '" data-widgetType="' . $widgetType . '">
                                         <div class="col-xs-12 modalAddDashboardWizardChoicePic" style="background-image: url(' . $templateIcon . ')"> 
 
                                         </div>
@@ -1932,7 +1938,7 @@
                     }
                 }
                 
-                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex" style="margin-top: 25px !important"><i class="fa fa-thumbs-o-up validityConditionIcon" style="font-size: 100px !important; color: white !important"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl" style="color: white !important;"><?php echo _("Can proceed"); ?></span></div></div>');
+                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex" style="margin-top: 25px !important"><i class="fa fa-thumbs-o-up validityConditionIcon" style="font-size: 100px !important; color: white !important"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl"><?php echo _("Can proceed"); ?></span></div></div>');
             }
             else
             {
@@ -7210,4 +7216,8 @@
         });
         
     });
-</script>   
+</script>
+<?php } else {
+    include('../s4c-legacy-management/addWidgetWizardInclusionCode.php');
+}
+?>

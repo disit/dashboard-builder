@@ -1,11 +1,17 @@
 <?php
+
+if (!isset($_SESSION)) {
+    session_start();
+}
+
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
+
     require_once '../common.php';
     include_once '../locale.php';
     error_reporting(E_ERROR);
-    if(!isset($_SESSION))
-    {
+    /* if(!isset($_SESSION)) {
        session_start();
-    }
+    }   */
     checkSession('Manager');
         $valuename_filter = "";
     if (isset ($_GET['valuename'])){
@@ -41,7 +47,7 @@
                     <input type="hidden" id="inputTitleDashboardStatus" value="empty"/>
                 </div>
             </div>
-            <div id="modalAddDashboardWizardTitleAlreadyUsedMsg" class="row">
+            <div id="modalAddDashboardWizardTitleAlreadyUsedMsg">
                 <div class="col-xs-12 centerWithFlex">
                     <?= _("Dashboard title can't be empty")?>
                 </div>
@@ -1922,7 +1928,7 @@
                     }
                 }
                 
-                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex" style="margin-top: 25px !important"><i class="fa fa-thumbs-o-up validityConditionIcon" style="font-size: 100px !important; color: white !important"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl" style="color: white !important;">Can proceed</span></div></div>');
+                $('#wrongConditionsDiv').append('<div class="col-xs-12"><div class="col-xs-12 centerWithFlex" style="margin-top: 25px !important"><i class="fa fa-thumbs-o-up validityConditionIcon" style="font-size: 100px !important; color: white !important"></i></div><div class="col-xs-12 centerWithFlex"><span class="validityConditionLbl">Can proceed</span></div></div>');
             }
             else
             {
@@ -8079,4 +8085,8 @@
                   });
         
     });
-</script>   
+</script>
+<?php } else {
+    include('../s4c-legacy-management/addWidgetWizardInclusionCode2.php');
+}
+?>

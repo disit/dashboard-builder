@@ -2496,6 +2496,31 @@ a.moduleLink:hover
     }
 }
 
+#switchLayout
+{
+   padding: 10px;
+   background: linear-gradient(-45deg, #31708f, #199cdc, #3db0e8);
+   background-size: 400% 400%;
+   animation: gradient 6s ease infinite;
+   font-size: 1.2rem;
+   border: 0px;
+   border-radius: 8px;
+   font-weight: 800;
+   white-space: nowrap;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 #mainMenuUsrLogoutCnt
 {
     padding-top: 10px;

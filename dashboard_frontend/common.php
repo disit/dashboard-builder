@@ -13,7 +13,7 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-function buildMenuTag($linkUrl, $linkId, $parentLinkId, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, $isOpen)
+/*function buildMenuTagLegacy($linkUrl, $linkId, $parentLinkId, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, $isOpen)
 {
     $isIframe = $externalApp == 'yes' && $openMode == "iframe";
     $isNewTab = $openMode == "newTab";
@@ -71,6 +71,227 @@ function buildMenuTag($linkUrl, $linkId, $parentLinkId, $openMode, $pageTitle, $
     </div>
 </a>
 EOT;
+}   */
+
+function buildMenuTag($linkUrl, $linkId, $parentLinkId, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, $isOpen, $context)
+{
+    $isIframe = $externalApp == 'yes' && $openMode == "iframe";
+    $isNewTab = $openMode == "newTab";
+    $classes = "internalLink moduleLink";
+    $target = "_self";
+
+    $isSubmenu = $parentLinkId != null && trim($parentLinkId) != '';
+    if ($isSubmenu) {
+        $classes = "{$classes} mainMenuSubItemLink";
+    } else {
+        $classes = "{$classes} mainMenuLink";
+    }
+
+    $fromParent = $isSubmenu ? $parentLinkId : "false";
+    $url = addQueryParamsToUrl(
+        buildPlatformUrl($linkUrl, $pageTitle, $openMode),
+        [
+            "linkId" => $linkId,
+            "fromSubmenu" => $fromParent
+        ]
+    );
+    if ($isIframe == true) {
+        $classes = "{$classes} mainMenuIframeLink";
+    } elseif ($isNewTab) {
+        $target = "_blank";
+    }
+
+    if (strcmp($context, 'smallBtnMySnap') == 0 || strcmp($context, 'smallBtnTour') == 0 || strcmp($context, 'btnPublicDash') == 0) {
+        $prop = [
+            "href" => $url,
+            "id" => $linkId,
+            "data-externalApp" => $externalApp,
+            "data-openMode" => $openMode,
+            "data-linkUrl" => $linkUrl,
+            "data-pageTitle" => $pageTitle,
+            "data-submenuVisible" => "false",
+            "target" => $target
+        ];
+    } else {
+        $prop = [
+            "href" => $url,
+            "id" => $linkId,
+            "data-externalApp" => $externalApp,
+            "data-openMode" => $openMode,
+            "data-linkUrl" => $linkUrl,
+            "data-pageTitle" => $pageTitle,
+            "data-submenuVisible" => "false",
+            "class" => $classes,
+            "target" => $target
+        ];
+    }
+
+    if ($isSubmenu) {
+        $prop["data-fatherMenuId"] = $parentLinkId;
+    }
+
+    $attr = implode(" ", array_map(function ($k, $v) {
+        return "{$k}=\"{$v}\"";
+    }, array_keys($prop), $prop));
+
+    $containerClass = $isSubmenu ? "mainMenuSubItemCnt" : "mainMenuItemCnt";
+    $displayStyle = $isOpen ? "" : 'style="display: none"';
+    $subMenuCaret = $linkUrl == "submenu" ? '<i class="fa fa-chevron-down submenuIndicator"></i>' : "";
+    if (strcmp($context, 'menu') == 0)
+        return menuHeredoc($attr, $displayStyle, $containerClass, $iconColor, $icon, $text, $subMenuCaret);
+    if (strcmp($context, 'userProfile') == 0)
+        return userHeredoc($attr, $text, $subMenuCaret, $icon);
+    if (strcmp($context, 'smallBtnMySnap') == 0 || strcmp($context, 'smallBtnTour') == 0 || strcmp($context, 'btnPublicDash') == 0) {
+        return smallBtnHeredoc($attr, $text, $subMenuCaret, $context);
+    }
+}
+
+function menuHeredoc($attr, $displayStyle, $containerClass, $iconColor, $icon, $text, $subMenuCaret)  {
+    return <<<EOT
+<a $attr $displayStyle>
+    <div class="$containerClass" $displayStyle>
+        <div class="icon-cont" style="background: $iconColor">
+            <i class="$icon"></i>
+        </div>
+          <span>$text</span>$subMenuCaret
+    </div>
+</a>
+EOT;
+}
+
+function userHeredoc($attr, $text, $subMenuCaret, $icon) {
+    return <<<EOT
+        <a $attr>
+            <!-- <i class="$icon"></i   -->
+            <span>$text</span>$subMenuCaret
+        </a>
+EOT;
+}
+
+function smallBtnHeredoc($attr, $text, $subMenuCaret, $context) {
+    if (strcmp($context, 'smallBtnMySnap') == 0) {
+        $attr = $attr . ' class="myS4C-btn" alt="My Snap4City"';
+    }
+    if (strcmp($context, 'smallBtnTour') == 0) {
+        $attr = $attr . ' class="tour-btn" alt="My Snap4City"';
+    }
+    if (strcmp($context, 'btnPublicDash') == 0) {
+        $attr = $attr . ' class="dash-public-btn" alt="Public Dashboards"';
+    }
+    return <<<EOT
+        <a $attr>
+            <span>$text</span>$subMenuCaret
+        </a>
+EOT;
+}
+
+function buildMenu($link, $domainId, $linkId, $context, $curr_lang) {
+
+    if(isset($_SESSION['loggedOrganization'])) {
+        $organization = $_SESSION['loggedOrganization'];
+        $organizationSql = $organization;
+    } else {
+        $organization = "None";
+        $organizationSql = "Other";
+    }
+
+    if (!$link) {
+        $link = mysqli_connect($host, $username, $password);
+        mysqli_select_db($link, $dbname);
+        $this_mysql_conn = true;
+    }
+
+    $menuQuery = "SELECT * FROM Dashboard.MainMenu WHERE domain = $domainId AND linkId = '$linkId' ORDER BY menuOrder ASC";
+    $r = mysqli_query($link, $menuQuery);
+
+    if($r)
+    {
+        while($row = mysqli_fetch_assoc($r))
+        {
+            $menuItemId = $row['id'];
+            $linkUrl = $row['publicLinkUrl']!=null && $_SESSION['isPublic'] ? $row['publicLinkUrl']: $row['linkUrl'];
+            $linkId = $row['linkId'];
+            $icon = $row['icon'];
+            $text = $row['text'];
+            $privileges = $row['privileges'];
+            $userType = $row['userType'];
+            $externalApp = $row['externalApp'];
+            $openMode = $row['openMode'];
+            $iconColor = $row['iconColor'];
+            $pageTitle = $row['pageTitle'];
+            $externalApp = $row['externalApp'];
+            $allowedOrgs = $row['organizations'];
+
+            if (strcmp($linkId, "userprofileLink") != 0) {
+
+                if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                    $text =  translate_string($text, $curr_lang, $link);
+                    if (strcmp($linkId, "snap4cityPortalLink") == 0) {
+                        $newItem = buildMenuTag($linkUrl, $linkId, null, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, true, 'smallBtnMySnap');
+                    }
+                    if (strcmp($linkId, "resettour") == 0) {
+                        $newItem = buildMenuTag($linkUrl, $linkId, null, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, true, 'smallBtnTour');
+                    }
+                    if (strcmp($linkId, "dashboardsLink") == 0) {
+                        $newItem = buildMenuTag($linkUrl, $linkId, null, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, true, 'btnPublicDash');
+                    }
+                }
+
+                if ((strpos($privileges, "'" . ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false) && (($userType == 'any') || (($userType != 'any') && ($userType == $_SESSION['loggedType']))) && ($allowedOrgs == '*' || (strpos($allowedOrgs, "'" . $organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin')) {
+                    echo $newItem;
+                }
+
+            }
+
+            if (strcmp($linkId, "userprofileLink") == 0) {
+                $uname = isset($_SESSION['loggedUsername']) ? $_SESSION['loggedUsername'] : '';
+
+                $submenuQuery = "SELECT * FROM Dashboard.MainMenuSubmenus s LEFT JOIN Dashboard.MainMenuSubmenusUser u ON u.submenu=s.id WHERE menu = '$menuItemId' AND (user is NULL OR user='$uname') ORDER BY menuOrder ASC";
+                $r2 = mysqli_query($link, $submenuQuery);
+
+                if ($r2) {
+                    while ($row2 = mysqli_fetch_assoc($r2)) {
+                        $menuItemId2 = $row2['id'];
+                        $linkUrl2 = $row2['linkUrl'];
+
+                        if ($linkUrl2 == 'submenu') {
+                            $linkUrl2 = '#';
+                        }
+
+                        $linkId2 = $row2['linkId'];
+                        $icon2 = $row2['icon'];
+                        $text2 = $row2['text'];
+                        //
+                        $text2 = translate_string($text2, $curr_lang, $link);
+                        $text2 = "  " . $text2;
+                        //
+                        $privileges2 = $row2['privileges'];
+                        $userType2 = $row2['userType'];
+                        $externalApp2 = $row2['externalApp'];
+                        $openMode2 = $row2['openMode'];
+                        $iconColor2 = $row2['iconColor'];
+                        $pageTitle2 = $row2['pageTitle'];
+                        $externalApp2 = $row2['externalApp'];
+                        $allowedOrgs2 = $row2['organizations'];
+
+                        if ($allowedOrgs2 == '*' || strpos($allowedOrgs2, "'" . $organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                            $isOpen = $_REQUEST['fromSubmenu'] == true && $_REQUEST['fromSubmenu'] == $linkId;
+                            if (strcmp($context, "userProfile") == 0)
+                                $newItem = '<li>' . buildMenuTag($linkUrl2, $linkId2, $linkId, $openMode2, $pageTitle2, $externalApp2, $icon2, $iconColor2, $text2, $isOpen, 'userProfile') . '</li>';
+                        }
+
+                        if ((strpos($privileges2, "'" . ($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false) && (($userType == 'any') || (($userType != 'any') && ($userType == $_SESSION['loggedType']))) && ($allowedOrgs2 == '*' || (strpos($allowedOrgs2, "'" . $organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin')) {
+                            echo $newItem;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if ($link && $this_mysql_conn) {
+        mysqli_close($link);
+    }
+
 }
 
 function buildPlatformUrl($url, $pageTitle, $openMode)
@@ -611,7 +832,6 @@ function get_access_token($token_endpoint, $username, $password, $client_id){
 function redirect_on_login() {
     //$host='www.snap4city.org';
     $host=$_SERVER['HTTP_HOST'];
-    //$host=$host.'/dashboardSmartCity';
     if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
         $host=$_SERVER['HTTP_X_FORWARDED_HOST'];
     }
