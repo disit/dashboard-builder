@@ -603,7 +603,9 @@
                                     for (var n = 0; n < seriesDataArray.length; n++) {
                                         if (seriesDataArray[n].metricType == clickedCat && seriesDataArray[n].metricName == clickedVar) {
                                             selectedDataJson = seriesDataArray[n];
-                                            // alert(JSON.stringify(selectedDataJson));
+                                             //alert(JSON.stringify(selectedDataJson.value));
+											 var param1 = selectedDataJson.value;
+											execute_<?= $_REQUEST['name_w'] ?>(param1);
                                         }
                                     }
                                 }
@@ -1500,6 +1502,24 @@
                 serviceUri = widgetData.params.serviceUri;
                 idMetric = widgetData.params.id_metric;
                 code = widgetData.params.code;
+				////////////lettura code
+				if (widgetData.params.code != null && widgetData.params.code != "null") {
+                        let code = widgetData.params.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+						//
+						
+						//
+                    }
 
                 if (nrMetricType != null) {
                     openWs();
@@ -1786,5 +1806,6 @@
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>No Data Available</p>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>
-    </div>	
+    </div>
+	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div>

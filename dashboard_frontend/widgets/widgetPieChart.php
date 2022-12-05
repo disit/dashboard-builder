@@ -849,16 +849,26 @@
                             events: {
                                 click: function() {
                                     clickedVar = this.options.name;
+									console.log('clickedVar:');
+									console.log(this.options);
+									//
+									var param1 = this.options.y;
+									execute_<?= $_REQUEST['name_w'] ?>(param1);
+									//
                                     clickedVarType = this.series.name;
                                     var dataString = "";
                                     var vUnit = null;
                                     if (clickedVarType == 'value name') {
                                         for (var n = 0; n < seriesDataArray.length; n++) {
+											//
+											console.log('clickedVar: '+clickedVar);
+											//
                                             if (seriesDataArray[n].metricName == clickedVar) {
                                                 // selectedDataJson.push(seriesDataArray[n]);
+												//
                                             }
                                         }
-                                        alert(JSON.stringify(selectedDataJson));
+										//
                                     }
                                 }
                             }
@@ -1913,6 +1923,10 @@
                 chartAxesColor = widgetData.params.chartAxesColor;
                 serviceUri = widgetData.params.serviceUri;
 				code = widgetData.params.code;
+				//
+				//parameters = widgetData.params.parameters;
+				//
+				//
 				
                 if (nrMetricType != null) {
                     openWs();
@@ -1969,8 +1983,13 @@
                 {
                     if(widgetData.params.parameters.length > 0)
                     {
+						if (widgetData.params.parameters !=='{"mode": "ckeditor"}'){
                         widgetParameters = JSON.parse(widgetData.params.parameters);
                         thresholdsJson = widgetParameters;
+						}else{
+							console.log('CKEDITOR!!!');
+						}
+						
                     }
                 }
 
@@ -2019,11 +2038,23 @@
 
                 rowParameters = JSON.parse(rowParameters);
 				////////////lettura code
-				
-					
-				
-				
-				
+				if (widgetData.params.code != null && widgetData.params.code != "null") {
+                        let code = widgetData.params.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+						//
+						
+						//
+                    }
 				//////////////
                 populateWidget();
 
@@ -2175,6 +2206,7 @@
             <div id="<?= $_REQUEST['name_w'] ?>_legendContainer1" class="legendContainer1"></div>
             <div id="<?= $_REQUEST['name_w'] ?>_legendContainer2" class="legendContainer2"></div>
         </div>
-    </div>	
+    </div>
+		<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 
 
