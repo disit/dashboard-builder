@@ -166,7 +166,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                 <input id="dashboardListsViewModeInput" type="checkbox">
                                             </div>
                                         </div>-->
-                                        <div id="dashboardListsCardsSort" class="col-xs-12 col-sm-6 col-md-2 dashboardsListMenuItem">
+                                        <div id="dashboardListsCardsSort" class="dashboardsListMenuItem">
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
                                                 <div class="col-xs-3 centerWithFlex">
                                                     <div class="dashboardsListSortBtnCnt">
@@ -201,7 +201,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                         if((@$_SESSION['loggedRole']) === 'RootAdmin')
                                         {
                                         ?>
-                                        <div id="dashboardListsCardsOrgsSort" class="col-xs-6 col-sm-4 col-md-2 dashboardsListMenuItem">
+                                        <div id="dashboardListsCardsOrgsSort" class="dashboardsListMenuItem">
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12 col-md-6">
                                                 <div class="col-xs-6 centerWithFlex">
                                                     <script type="text/javascript">
@@ -215,7 +215,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                             </div>
                                         </div>
                                         <?php } ?>
-                                        <div id="dashboardListsPages" class="col-xs-12 col-sm-6 col-md-3 dashboardsListMenuItem">
+                                        <div id="dashboardListsPages" class="dashboardsListMenuItem">
                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 List<br>pages
                                             </div>-->
@@ -224,7 +224,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                             </div>
                                         </div>
                                         
-                                        <div id="dashboardListsSearchFilter" class="col-xs-12 col-sm-6 col-md-4 dashboardsListMenuItem">
+                                        <div id="dashboardListsSearchFilter" class="dashboardsListMenuItem">
                                             <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-3">
                                                 Search
                                             </div>-->
@@ -238,7 +238,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                             </div>
                                         </div>
 										
-										<div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-12 col-md-1 dashboardsListMenuItem">
+										<div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
                                             <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 New<br>dashboard
                                             </div>-->

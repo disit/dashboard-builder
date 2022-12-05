@@ -925,9 +925,11 @@
                                 point: {
                                     events: {
                                         mouseOver: function(jqEvent){
-                                            if(code !== null) {
-                                                this.graphic.element.style.cursor = 'pointer';
-                                            }
+                                        /*    if(code !== null) {
+                                                if (this.graphic) {
+                                                    this.graphic.element.style.cursor = 'pointer';
+                                                }
+                                            }   */
                                         },
                                         click: function () {
                                             selectedX = this.category;
@@ -971,6 +973,15 @@
                                     "textOutline": "1px 1px contrast"*/
                                 }
 
+                            },
+                            events: {
+                                setExtremes: function (e) {
+                                    if(typeof e.min == 'undefined' && typeof e.max == 'undefined'){
+                                    //    console.log('reset zoom clicked');
+                                    } else {
+                                    //    console.log('zoom-in');
+                                    }
+                                }
                             }
                         },
 
@@ -1071,28 +1082,40 @@
                                         minX = event.xAxis[0].min;
                                         maxX = event.xAxis[0].max;
                                          //alert("Min: " + minX + ";\nMax: " + maxX + ";\nsURI: " + rowParameters + ";\nmetric name: " + this.series[0].name);
-										 var data_list = this.series[0].processedXData;
-										 var data_list_n = data_list.length;
-										 var min_pos =0;
-										 var max_pos =data_list_n;
-										 for(var i =0; i< data_list_n-1; i++){
-											if ((minX > data_list[i])&&(minX < data_list[i+1])){
+                                        var data_list = this.series[0].processedXData;
+                                        var data_list_n = data_list.length;
+                                        var min_pos =0;
+                                        var max_pos =data_list_n;
+                                        for(var i =0; i< data_list_n-1; i++){
+                                            if ((minX > data_list[i])&&(minX < data_list[i+1])){
 												min_pos = i+1;
 											} 
 											
-										 }	 
-										 for(var i =data_list_n; i> 0; i--){
+                                        }
+                                        for (var i =data_list_n; i> 0; i--){
 											if ((maxX < data_list[i])&&(maxX > data_list[i-1])){
 												max_pos = i-1;
 											}
 											
-										 }
+                                        }
 										  
-										 //var min_date = Date(this.series[0].processedXData[min_pos]);
-										 //var max_date = Date(this.series[0].processedXData[max_pos]);
-										 //.toISOString();
-										 var param1 = "Min: " + this.series[0].processedYData[min_pos] + "<br>Max: " + this.series[0].processedYData[max_pos];
-										execute_<?= $_REQUEST['name_w'] ?>(param1);
+                                        //var min_date = Date(this.series[0].processedXData[min_pos]);
+                                        //var max_date = Date(this.series[0].processedXData[max_pos]);
+                                        //.toISOString();
+                                        var param1 = "Min: " + this.series[0].processedYData[min_pos] + "<br>Max: " + this.series[0].processedYData[max_pos];
+                                        // param = [t1, val_t1, t2, val_t2, serviceUri, metricName]
+                                        // param = [t1, t2, serviceUri, metricName]
+                                        var sUri = getServiceUri(rowParameters);
+                                        // var param = new Array(minX, maxX, sUri, this.series[0].name);
+                                        var param = {
+                                            "t1" : minX,
+                                            "t2" : maxX,
+                                            "sUri": sUri,
+                                            "metricName": this.series[0].name
+                                        }
+                                        if (code) {
+                                            execute_<?= $_REQUEST['name_w'] ?>(param);
+                                        }
                                     }
                                 }
                             }
@@ -1103,7 +1126,9 @@
                                     events: {
                                         mouseOver: function(jqEvent){
                                             if(code !== null) {
-                                                this.graphic.element.style.cursor = 'pointer';
+                                                if (this.graphic) {
+                                                    this.graphic.element.style.cursor = 'pointer';
+                                                }
                                             }
                                         },
                                         click: function () {
@@ -1111,7 +1136,15 @@
                                             //alert('Category: ' + this.category + ', value: ' + this.y);
 											//lettura code//
 											var param1 = this.y;
-											execute_<?= $_REQUEST['name_w'] ?>(param1);
+                                            var sUri = getServiceUri(rowParameters);
+                                            // var param = new Array(minX, maxX, sUri, this.series[0].name);
+                                            var param = {
+                                                "t1" : this.x,
+                                                "t2" : this.x,
+                                                "sUri": sUri,
+                                                "metricName": this.series.name
+                                            }
+											execute_<?= $_REQUEST['name_w'] ?>(param);
                                         }
                                     }
                                 }
@@ -1150,6 +1183,15 @@
                                     fontSize: fontSize + "px",
                                     /*"text-shadow": "1px 1px 1px rgba(0,0,0,0.12)",
                                     "textOutline": "1px 1px contrast"*/
+                                }
+                            },
+                            events: {
+                                setExtremes: function (e) {
+                                    if(typeof e.min == 'undefined' && typeof e.max == 'undefined'){
+                                        // console.log('reset zoom clicked');
+                                    } else {
+                                        // console.log('zoom-in');
+                                    }
                                 }
                             }
                         },
@@ -2733,7 +2775,11 @@
                     $("#" + widgetName + "_timeControlsContainer").show();
                     $("#" + widgetName + "_titleDiv").css("width", "95%");
                 }
-                rowParameters = widgetData.params.rowParameters;
+                if (fromGisExternalContentServiceUri) {
+                    rowParameters = fromGisExternalContentServiceUri;
+                } else {
+                    rowParameters = widgetData.params.rowParameters;
+                }
                 sm_field = widgetData.params.sm_field;
                 gridLineColor = widgetData.params.chartPlaneColor;
                 chartAxesColor = widgetData.params.chartAxesColor;
@@ -2782,14 +2828,14 @@
                 }
 
                 //Nuova versione
-                if(('<?= sanitizeJsonRelaxed2('styleParameters') ?>' !== "")&&('<?= sanitizeJsonRelaxed2('styleParameters') ?>' !== "null"))
+                if(('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "")&&('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>' !== "null"))
                 {
-                    styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2('styleParameters') ?>');
+                    styleParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['styleParameters']) ?>');
                 }
 
-                if('<?= sanitizeJsonRelaxed2('parameters') ?>'.length > 0)
+                if('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>'.length > 0)
                 {
-                    widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2('parameters') ?>');
+                    widgetParameters = JSON.parse('<?= sanitizeJsonRelaxed2($_REQUEST['parameters']) ?>');
                 }
 
                 if(widgetParameters !== null && widgetParameters !== undefined)

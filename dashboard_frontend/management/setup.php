@@ -218,7 +218,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                             <li><a data-toggle="tab" href="#testTab">Test</a></li>
                             <li><a data-toggle="tab" href="#prodTab">Production</a></li>
                         </ul>
-
+                        <div class="modal_wrapper">
                         <div class="tab-content">
                             <div id="devTab" class="tab-pane fade in active">
                                 <div class="row">
@@ -248,6 +248,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                             <div class="col-xs-12 centerWithFlex">Error while updating module</div>
                             <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                         </div>
+                    </div>
                     </div>
                     <div id="editModuleModalFooter" class="modal-footer">
                       <button type="button" id="editModuleCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
@@ -315,6 +316,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                   Delete setup module
                 </div>
                 <input type="hidden" id="moduleIdToDelete" />
+                <div class="modal_wrapper">
                 <div id="delModuleModalBody" class="modal-body modalBody">
                     <div class="row">
                         <div class="col-xs-12 modalCell">
@@ -336,6 +338,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                         <div class="col-xs-12 centerWithFlex">Error deleting setup module</div>
                         <div class="col-xs-12 centerWithFlex"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
                     </div>
+                </div>
                 </div>
                 <div id="delModuleModalFooter" class="modal-footer">
                   <button type="button" id="delModuleCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
@@ -722,27 +725,13 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                     if(index%2 !== 0)
                                     {
                                         return {
-                                            classes: null,
-                                            css: {
-                                                "color": "rgba(51, 64, 69, 1)", 
-                                                "font-size": fontSize,
-                                                "font-weight": "bold",
-                                                "background-color": "rgb(230, 249, 255)",
-                                                "border-top": "none"
-                                            }
+                                            classes: "blueRow"
                                         };
                                     }
                                     else
                                     {
                                         return {
-                                            classes: null,
-                                            css: {
-                                                "color": "rgba(51, 64, 69, 1)", 
-                                                "font-size": fontSize,
-                                                "font-weight": "bold",
-                                                "background-color": "white",
-                                                "border-top": "none"
-                                            }
+                                            classes: "whiteRow"
                                         };
                                     }
                                 }
@@ -757,21 +746,13 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                     if(index%2 !== 0)
                                     {
                                         return {
-                                            classes: null,
-                                            css: {
-                                                "background-color": "rgb(230, 249, 255)",
-                                                "border-top": "none"
-                                            }
+                                            classes: "blueRow"
                                         };
                                     }
                                     else
                                     {
                                         return {
-                                            classes: null,
-                                            css: {
-                                                "background-color": "white",
-                                                "border-top": "none"
-                                            }
+                                            classes: "whiteRow"
                                         };
                                     }
                                 },
@@ -790,21 +771,13 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                     if(index%2 !== 0)
                                     {
                                         return {
-                                            classes: null,
-                                            css: {
-                                                "background-color": "rgb(230, 249, 255)",
-                                                "border-top": "none"
-                                            }
+                                            classes: "blueRow"
                                         };
                                     }
                                     else
                                     {
                                         return {
-                                            classes: null,
-                                            css: {
-                                                "background-color": "white",
-                                                "border-top": "none"
-                                            }
+                                            classes: "whiteRow"
                                         };
                                     }
                                 },
@@ -829,7 +802,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                             uniqueId: "fileName",
                             striped: false,
                             searchTimeOut: 60,
-                            classes: "table table-hover table-no-bordered",
+                            classes: "table table-no-bordered",
                             rowAttributes: function(row, index){
                             return {
                                 "data-customForm": row.customForm
@@ -840,7 +813,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                 {
                                     //Caso di primo caricamento della tabella
                                     tableFirstLoad = false;
-                                    /*var addModuleDiv = $('<div class="pull-right"><i id="addModuleBtn" data-toggle="modal" data-target="#modalAddModuleType" class="fa fa-plus-square" style="font-size:36px; color: #ffcc00"></i></div>');
+                                    /*var addModuleDiv = $('<div class="pull-right"><i id="addModuleBtn" data-toggle="modal" data-target="#modalAddModuleType" class="fa fa-plus-square" style="font-size:36px; color: var(--orange-)"></i></div>');
                                     $('div.fixed-table-toolbar').append(addModuleDiv);
                                     addModuleDiv.css("margin-top", "10px");
                                     addModuleDiv.find('i.fa-plus-square').off('hover');
@@ -849,7 +822,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                         $(this).css('cursor', 'pointer');
                                     }, 
                                     function(){
-                                        $(this).css('color', '#ffcc00');
+                                        $(this).css('color', 'var(--orange-)');
                                         $(this).css('cursor', 'normal');
                                     });*/
                                     
@@ -867,8 +840,8 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                 $('span.pagination-info').hide();
                                 $('#filesTable button.editDashBtn').off('hover');
                                 $('#filesTable button.editDashBtn').hover(function(){
-                                    $(this).css('background', '#ffcc00');
-                                    $(this).parents('tr').find('td').eq(0).css('background', '#ffcc00');
+                                    $(this).css('background', 'var(--orange-)');
+                                    $(this).parents('tr').find('td').eq(0).css('background', 'var(--orange-)');
                                 }, 
                                 function(){
                                     $(this).css('background', 'rgb(69, 183, 175)');
@@ -1121,8 +1094,8 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 
                                 $('#filesTable button.delDashBtn').off('hover');
                                 $('#filesTable button.delDashBtn').hover(function(){
-                                    $(this).css('background', '#ffcc00');
-                                    $(this).parents('tr').find('td').eq(0).css('background', '#ffcc00');
+                                    $(this).css('background', 'var(--orange-)');
+                                    $(this).parents('tr').find('td').eq(0).css('background', 'var(--orange-)');
                                 }, 
                                 function(){
                                     $(this).css('background', '#e37777');

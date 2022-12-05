@@ -52,7 +52,7 @@
 		/////////////
 		$(document).off('showSingleContentFromExternalContent_' + widgetName);
         $(document).on('showSingleContentFromExternalContent_' + widgetName, function(event){
-		console.log('showSingleContentFromExternalContent_AddCode!-CORRECT');
+		        // console.log('showSingleContentFromExternalContent_AddCode!-CORRECT');
 				if(encodeURIComponent(metricName) === encodeURIComponent(metricName))
                     {
                        var newWsValue = event.passedData;
@@ -60,6 +60,7 @@
 						if (newWsValue.dataOperation){
 							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("display", "none");
 							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", "100%");
+                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").css("width", $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").width());
 							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(newWsValue.dataOperation);
 						}else{
 							if (udm != null) {
@@ -82,7 +83,10 @@
                                 udm = null;
                             }
                         }
-                        loadData();
+                            // clearInterval(countdownRef);
+                            // $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+                            // <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, null, /*event.randomSingleGeoJsonIndex,*/ event.marker, event.mapRef, event.fakeId);
+                            loadData();
 						}
 
                     }
@@ -637,7 +641,7 @@
                 } else {
                     rowParametersUrl = encodeServiceUri(rowParameters);
                 }
-	console.log('sm_based: '+sm_based);
+		// console.log('sm_based: '+sm_based);
                 switch (sm_based) {
                     case 'yes':
 					
@@ -741,8 +745,8 @@
                             async: true,
                             dataType: 'json',
                             success: function (data) {
-								console.log('data: ');
-								console.log(data);
+			    	// console.log('data: ');
+				// console.log(data);
                                 metricData = data;
                                 needWebSocket = metricData.data[0].needWebSocket;
                                 $("#" + widgetName + "_loading").css("display", "none");

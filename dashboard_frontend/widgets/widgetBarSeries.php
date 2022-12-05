@@ -65,10 +65,11 @@
 
                 var newValue = event.passedData;
 
-                clearInterval(countdownRef);
+            /*    clearInterval(countdownRef);
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
                 <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
-
+            */
+                setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
                 rowParameters = newValue;
                 populateWidget(true);
             }
@@ -134,7 +135,7 @@
                 $("#<?= $_REQUEST['name_w'] ?>_table").show();
             }
 
-          //  if (!serviceUri) {
+            if (!fromCode) {
                 $.ajax({
                     url: "../widgets/updateBarSeriesParameters.php",
                     type: "GET",
@@ -153,7 +154,7 @@
                      //   console.log(JSON.stringify(errorData));
                     }
                 });
-          //  }
+            }
             drawDiagram();
 
         }
@@ -592,6 +593,7 @@
                                     }
                                 },
                                 click: function() {
+                                    selectedDataJson = [];
                                     var dataString = "";
                                     if (groupByAttr == "value name") {
                                         clickedVar = this.category;
@@ -605,7 +607,7 @@
                                             selectedDataJson = seriesDataArray[n];
                                              //alert(JSON.stringify(selectedDataJson.value));
 											 var param1 = selectedDataJson.value;
-											execute_<?= $_REQUEST['name_w'] ?>(param1);
+											execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
                                         }
                                     }
                                 }

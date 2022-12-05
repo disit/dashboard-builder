@@ -93,7 +93,7 @@
 
 
                 rowParameters = newValue;
-                console.log(rowParameters);
+                // console.log(rowParameters);
 
                 emptyLegendFlagFromWs = true;
                 $("#" + widgetName + "_loading").css("display", "block");
@@ -848,28 +848,27 @@
                         point: {
                             events: {
                                 click: function() {
+                                    selectedDataJson = [];
                                     clickedVar = this.options.name;
-									console.log('clickedVar:');
-									console.log(this.options);
-									//
 									var param1 = this.options.y;
-									execute_<?= $_REQUEST['name_w'] ?>(param1);
-									//
+									// execute_<?= $_REQUEST['name_w'] ?>(param1);
                                     clickedVarType = this.series.name;
                                     var dataString = "";
                                     var vUnit = null;
                                     if (clickedVarType == 'value name') {
                                         for (var n = 0; n < seriesDataArray.length; n++) {
-											//
-											console.log('clickedVar: '+clickedVar);
-											//
                                             if (seriesDataArray[n].metricName == clickedVar) {
-                                                // selectedDataJson.push(seriesDataArray[n]);
-												//
+                                                selectedDataJson.push(seriesDataArray[n]);
                                             }
                                         }
-										//
+                                    } else if (clickedVarType == 'value type') {
+                                        for (var n = 0; n < seriesDataArray.length; n++) {
+                                            if (seriesDataArray[n].metricType == clickedVar && seriesDataArray[n].value == this.options.y) {
+                                                selectedDataJson.push(seriesDataArray[n]);
+                                            }
+                                        }
                                     }
+                                    execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
                                 }
                             }
                         }
@@ -1986,8 +1985,8 @@
 						if (widgetData.params.parameters !=='{"mode": "ckeditor"}'){
                         widgetParameters = JSON.parse(widgetData.params.parameters);
                         thresholdsJson = widgetParameters;
-						}else{
-							console.log('CKEDITOR!!!');
+						} else {
+							// console.log('CKEDITOR!!!');
 						}
 						
                     }

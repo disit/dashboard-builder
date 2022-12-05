@@ -14,7 +14,7 @@
     margin-top: 10px;
 }
 
-#list_dashboard tbody, #list_metrics tbody{
+#list_dashboard tbody, #list_metrics tbody, #filesTable tbody{
   font-size: 1.2rem;
   color: var(--menu-color-);
 }
@@ -26,7 +26,7 @@
 }
 
 
-.mainTableHeader th a , .dashboardsTableHeader th a, #list_metrics thead tr th
+.mainTableHeader th a , .dashboardsTableHeader th a, #list_metrics thead tr th, #filesTable thead tr th
 {
     color: var(--dark-grey03-);
     font-size: 1.2rem;
@@ -61,9 +61,11 @@
     padding-right: 0px !important;
 }
 
-#dashboardsListMenu
+#dashboardsListMenu, #iotAppsListMenu
 {
-
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 div.dashboardsListMenuItem
@@ -325,9 +327,10 @@ i.dashboardsListSort
 
 div.dashboardsListSortOrgsBtnCnt
 {
-    background-color: var(--blue-);
+    color: var(--blue-)!important;
     padding: 4px 4px 4px 4px;
     border-radius: 4px;
+    background: transparent!important;
 }
 
 div.dashboardsListSortOrgsBtnCnt:hover

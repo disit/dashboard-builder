@@ -2543,7 +2543,7 @@ a.moduleLink:hover
 .editDashBtn
 {
     height: 20px;
-    background-color: var(--orange-);
+    background-color: var(--orange-)!important;
     border: none;
     color: var(--white-);
     font-weight: 500;
@@ -3940,7 +3940,7 @@ div.modal-dialog
   padding: 20px;
 }
 
-ul#delegationsTabsContainer, #wizardTabsContainer, #datasourcesTabsContainer, #addMetricModalTabs, #editMetricModalTabs{
+ul#delegationsTabsContainer, #wizardTabsContainer, #datasourcesTabsContainer, #addMetricModalTabs, #editMetricModalTabs, #editModuleModalBody ul{
     padding: 0 20px;
     background: var(--modal-bg-); 
 }
@@ -3994,11 +3994,11 @@ ul#delegationsTabsContainer, #wizardTabsContainer, #datasourcesTabsContainer, #a
   border-radius: 10px;
 }
 
-.dataSourcesDetails .modal_wrapper, #addMetricModalBody .modal_wrapper, #delMetricForm .modal_wrapper{
+.dataSourcesDetails .modal_wrapper, #addMetricModalBody .modal_wrapper, #delMetricForm .modal_wrapper, #editModuleModalBody .modal_wrapper, #modalDelModule .modal_wrapper{
   flex-direction: column;
 }
 
-.dataSourcesDetails .modal-footer, #addMetricModalFooter, #editMetricModalFooter, #delMetricModalFooter{
+.dataSourcesDetails .modal-footer, #addMetricModalFooter, #editMetricModalFooter, #delMetricModalFooter, #editModuleModalFooter, #delModuleModalFooter{
   border-radius: 0 0 10px 10px!important;
   background: var(--modal-body-bg-)!important;
 }
@@ -4019,7 +4019,7 @@ ul#delegationsTabsContainer, #wizardTabsContainer, #datasourcesTabsContainer, #a
     height: calc(100% - 10vh);
 }
 
-#modalAddMetric .modal-content, #modalEditMetric .modal-content, #modalDelMetric .modal-content{
+#modalAddMetric .modal-content, #modalEditMetric .modal-content, #modalDelMetric .modal-content, #modalEditModuleStd .modal-content, #modalDelModule .modal-content{
   height: auto!important;
 }
 
@@ -4325,6 +4325,13 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
 
 .dynatable-disabled-page, .dynatable-disabled-page:hover{
   color: var(--dark-grey05-)!important;
+}
+
+.changeLanguage-modal {
+    width: 200px !important;
+    height: 200px !important;
+    position:absolute !important;
+    left:50% !important;
 }
 
 

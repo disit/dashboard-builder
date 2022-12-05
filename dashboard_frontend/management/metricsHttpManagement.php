@@ -116,12 +116,12 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                             <div class="row mainContentRow" id="dashboardsListTableRow" style="padding-top: 0px !important; padding-bottom: 0px !important">
                                 <div class="col-xs-12 mainContentCellCnt">
                                     <div id="dashboardsListMenu" class="row">
-                                        <div id="dashboardListsPages" class="col-xs-12 col-sm-6 col-md-3 dashboardsListMenuItem">
+                                        <div id="dashboardListsPages" class="dashboardsListMenuItem">
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
                                                 
                                             </div>
                                         </div>
-                                        <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-6 col-md-2 dashboardsListMenuItem">
+                                        <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
                                            <button type="button" class="btn btn-new-dash" id="addMetricBtn">New metric</button>
                                         </div>
                                     </div>

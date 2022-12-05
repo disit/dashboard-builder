@@ -182,7 +182,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                             ?>
                                         </div>
                                         
-                                        <div id="dashboardListsCardsSort" class="col-xs-12 col-sm-6 col-md-2 dashboardsListMenuItem">
+                                        <div id="dashboardListsCardsSort" class="dashboardsListMenuItem">
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
                                                 <div class="col-xs-3 centerWithFlex">
                                                     <div class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Sort ascending">
@@ -206,7 +206,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                 </div>
                                             </div>
                                         </div>
-                                        <div id="dashboardListsPages" class="col-xs-12 col-sm-6 col-md-3 dashboardsListMenuItem">
+                                        <div id="dashboardListsPages" class="dashboardsListMenuItem">
                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 List<br>pages
                                             </div>-->
@@ -215,7 +215,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                             </div>
                                         </div>
                                         
-                                        <div id="dashboardListsSearchFilter" class="col-xs-12 col-sm-6 col-md-4 dashboardsListMenuItem">
+                                        <div id="dashboardListsSearchFilter" class="dashboardsListMenuItem">
                                             <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-3">
                                                 Search
                                             </div>-->
@@ -228,7 +228,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                 </div>
                                             </div>
                                         </div>
-                                        <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-12 col-md-2 dashboardsListMenuItem">
+                                        <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
                                             <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 New<br>dashboard
                                             </div>-->

@@ -162,7 +162,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                             }
                         ?>
                     </div>
-                    <div id="dashboardListsCardsSort" class="col-xs-12 col-sm-6 col-md-1 iotAppsListMenuItem">
+                    <div id="dashboardListsCardsSort" class="iotAppsListMenuItem">
                       <div class="iotAppsListMenuItemContent centerWithFlex col-xs-12">
                         <div class="col-xs-6 centerWithFlex">
                           <div class="iotAppsListSortBtnCnt">
@@ -176,7 +176,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                         </div>
                       </div>
                     </div>
-                    <div id="dashboardListsPages" class="col-xs-12 col-sm-6 col-md-3 iotAppsListMenuItem">
+                    <div id="dashboardListsPages" class="iotAppsListMenuItem">
                       <!--<div class="iotAppsListMenuItemTitle centerWithFlex col-xs-4">
                            List<br>pages
                        </div>-->
@@ -185,7 +185,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                       </div>
                     </div>
 
-                    <div id="dashboardListsSearchFilter" class="col-xs-12 col-sm-6 col-md-4 iotAppsListMenuItem">
+                    <div id="dashboardListsSearchFilter" class="iotAppsListMenuItem">
                       <!--<div class="iotAppsListMenuItemTitle centerWithFlex col-xs-3">
                           Search
                       </div>-->
@@ -198,7 +198,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                         </div>
                       </div>
                     </div>
-                    <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-6 col-md-2 iotAppsListMenuItem">
+                    <div id="dashboardListsNewDashboard" class="iotAppsListMenuItem">
                       <!--<div class="iotAppsListMenuItemTitle centerWithFlex col-xs-4">
                           New<br>dashboard
                       </div>-->
