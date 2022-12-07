@@ -1659,3 +1659,156 @@ function getOrganizationParams(callback) {
     });
 
 }
+
+function getServiceUri(link) {
+    var sUri = null;
+    if (link) {
+        if (link.includes("serviceUri=") && link.includes("&format=json")) {
+            sUri = link.split("serviceUri=")[1].split("&format=json")[0];
+        } else if (link.includes("serviceUri=")) {
+            sUri = link.split("serviceUri=")[1];
+        } else if (link.includes("datamanager/api/v1/poidata/=")) {
+            sUri = link.spli("datamanager/api/v1/poidata/")[1];
+        } else {
+            sUri = link;
+        }
+        return sUri;
+    } else {
+        return "";
+    }
+}
+
+function getMeanOfAllMetrics(originalData)
+{
+    var singleOriginalData, singleData, convertedDate = null;
+    var convertedData = {
+        data: []
+    };
+
+    var originalDataWithNoTime = 0;
+    var originalDataNotNumeric = 0;
+    var meanDataObj = {};
+
+    if(originalData.hasOwnProperty("realtime"))
+    {
+        if(originalData.realtime.hasOwnProperty("results"))
+        {
+            if(originalData.realtime.results.hasOwnProperty("bindings"))
+            {
+                if(originalData.realtime.results.bindings.length > 0)
+                {
+                    let propertyJson = "";
+                    if(originalData.hasOwnProperty("BusStop"))
+                    {
+                        propertyJson = originalData.BusStop;
+                    }
+                    else
+                    {
+                        if(originalData.hasOwnProperty("Sensor"))
+                        {
+                            propertyJson = originalData.Sensor;
+                        }
+                        else
+                        {
+                            if(originalData.hasOwnProperty("Service"))
+                            {
+                                propertyJson = originalData.Service;
+                            }
+                            else
+                            {
+                                propertyJson = originalData.Services;
+                            }
+                        }
+                    }
+
+                    for(var j = 0; j < originalData.realtime.head.vars.length; j++) {
+                        var singleObj = {}
+                        var field = originalData.realtime.head.vars[j];
+                        var numericCount = 0;
+                        var sum = 0;
+                        var mean = 0;
+
+                        if (field == "updating" || field == "measuredTime" || field == "instantTime" || field == "dateObserved") {
+                            // convertedDate = singleOriginalData.updating.value;
+                            continue;
+                        }
+
+                        for (var i = 0; i < originalData.realtime.results.bindings.length; i++) {
+                            singleOriginalData = originalData.realtime.results.bindings[i];
+
+                            if (singleOriginalData[field] !== undefined) {
+                                if (!isNaN(parseFloat(singleOriginalData[field].value))) {
+                                    numericCount++;
+                                    sum = sum + parseFloat(singleOriginalData[field].value);
+                                }
+                            }
+
+                        }
+                        mean = sum / numericCount;
+                        meanDataObj[field] = mean;
+
+                    }
+
+                    return meanDataObj;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
+
+function buildDynamicPassedData(data, name) {
+    var passedJson = [];
+    for (const item in data) {
+        var singleJson = {};
+        singleJson["metricId"] = "";
+        singleJson["metricHighLevelType"] = "Dynamic";
+        singleJson["metricName"] = name;
+        singleJson["metricType"] = item;
+        singleJson["metricValueUnit"] = "";
+        singleJson["value"] = data[item];
+        passedJson.push(singleJson)
+    }
+    return passedJson;
+}
+
+function getParams(isIFrame = false){
+    let queryString = null;
+    if(isIFrame){
+        queryString = window.parent.location.search;
+    }else{
+        queryString = window.location.search;
+    }
+    out_obj = {};
+    const urlParams = new URLSearchParams(queryString);
+    const entries = urlParams.entries();
+    for(const entry of entries) {
+        console.log(`${entry[0]}: ${entry[1]}`);
+        out_obj[entry[0]] = entry[1];
+    }
+    console.log(out_obj);
+    return JSON.stringify(out_obj);
+}
+
+function openNewDashboard(url, target){
+    console.log(url)
+    let a =  document.createElement('a');
+    a.target = target;
+    a.href = url;
+    a.click();
+}

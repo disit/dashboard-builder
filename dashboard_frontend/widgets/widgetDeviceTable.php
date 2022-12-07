@@ -96,6 +96,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         var serviceUri = "";
         var flipFlag = false;
         var table = null;
+		var code = null;
         var dashboard_id = null;
         var isFirstLoad = 1;
         var missingFieldsDevices = {
@@ -135,6 +136,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 			$('#current_page_<?= $_REQUEST['name_w'] ?>').val(current);
 			$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
 			populateWidget(save_value_<?= $_REQUEST['name_w'] ?>_);
+			
 		}
 		
 		$('#searchlabel_<?= $_REQUEST['name_w'] ?>').on('keyup', function() {
@@ -145,6 +147,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
 					$('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
 					populateWidget(save_value_<?= $_REQUEST['name_w'] ?>_);
+					
 				});
 				
 	
@@ -158,6 +161,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					populateWidget(save_value_<?= $_REQUEST['name_w'] ?>_);
 					$('#page_<?= $_REQUEST['name_w'] ?>0').addClass('active');
 					current_page_<?= $_REQUEST['name_w'] ?> = 0;
+					
 				});
 				
 			
@@ -176,7 +180,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					if (columns_list_<?= $_REQUEST['name_w'] ?>.includes(k[i])){
 						class_n = '';
 					}
-					if (k[i] !== 'device'){
+					if ((k[i] !== 'device')&&(k[i] !== 'serviceUri')){
 					arr_col_<?= $_REQUEST['name_w'] ?>.push({title: k[i], "data": k[i], className: class_n});
 					}
 					
@@ -204,7 +208,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					order_sort = "desc";
 				}
 				//
-				console.log('order_column_n:'+order_column_n_<?= $_REQUEST['name_w'] ?>);
+				//console.log('order_column_n:'+order_column_n_<?= $_REQUEST['name_w'] ?>);
 				//
             table = $('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable({
                 data: dataSet_<?= $_REQUEST['name_w'] ?>,
@@ -221,11 +225,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 rowCallback: function (row, data, index) {
                     $('.dataTables_scrollBody').css('overflow-x', 'hidden');
                 }
-            });
+            }).columns.adjust();
 			//
-			console.log(table);
+			//console.log(table);
 			
 			$('#thead_<?= $_REQUEST['name_w'] ?> tr th').addClass('sorting_<?= $_REQUEST['name_w'] ?>');
+			
 	
 			//
 			 $('.actionButton_<?= $_REQUEST['name_w'] ?>').off('click');
@@ -233,7 +238,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 var data = table.row($(this).parents('tr')).data();
                 var order = table.order();
                 ordering = order[0][0];
-
+				
                 var dataToSend = {
                     device: data.device,
                     //prefix: prefix,
@@ -241,8 +246,14 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     ordering: (Object.keys(columnsToShow_<?= $_REQUEST['name_w'] ?>))[ordering],
                     action: this.id
                 };
-
+				///ACTIVE SCRIPT///
+				if((code !== null)&&(code !== '')){
+				//console.log('serviceUri: '+serviceUri);
+				execute_<?= $_REQUEST['name_w'] ?>(data);
+				}
+				//////////////////
                 stdSend(dataToSend);
+			
             });
 
 
@@ -288,6 +299,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 						populateWidget(save_value_<?= $_REQUEST['name_w'] ?>_);
 						$('#page_<?= $_REQUEST['name_w'] ?>0').addClass('active');
 						current_page_<?= $_REQUEST['name_w'] ?> = 0;
+						
 					});
 					
 				/////////
@@ -393,6 +405,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 										temp = data.features[i].properties.values;
 										specificData = "";
 										temp.device = data.features[i].properties.deviceName;
+										temp.serviceUri = data.features[i].properties.serviceUri;
 										dataSet_<?= $_REQUEST['name_w'] ?>.push(temp);
 										//
 
@@ -666,6 +679,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 nrInputId = widgetData.params.nrInputId;
                 nodeRedInputName = widgetData.params.name;
                 dashboard_id = widgetData.params.id_dashboard;
+				code = widgetData.params.code;
 
                 if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget === true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((embedWidget === false) && (showTitle === "no"))) {
                     showHeader = false;
@@ -719,6 +733,26 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 				///////
 				$('#current_page_<?= $_REQUEST['name_w'] ?>').val(0);
 				current_page_<?= $_REQUEST['name_w'] ?> = 0;
+				//////ATTUATORE/////////
+				if (code != null && code != "null") {
+					
+						
+                        //let code = widgetProperties.param.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
+                        // elem.src = newInfoDecoded;
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    }
+				////////////////
                 populateWidget(newValue_<?= $_REQUEST['name_w'] ?>);
             },
             error: function (errorData) {
@@ -1016,4 +1050,5 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 				   
         </div>
     </div>
+	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div>
