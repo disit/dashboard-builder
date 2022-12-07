@@ -13,8 +13,7 @@
                 
                 $domainId = null;
                 
-                $currDom = $_SERVER['HTTP_HOST'];
-                $currDom = 'www.snap4city.org';     // COMMENT CON CONF LOCALHOST
+                $currDom = $_SERVER['HTTP_HOST'];                
                 //echo ($currDom);
 
                 $domQ = "SELECT * FROM Dashboard.Domains WHERE domains LIKE '%$currDom%'";
