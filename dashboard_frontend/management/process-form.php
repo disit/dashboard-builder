@@ -680,6 +680,7 @@
                 $barsColorsSelect = NULL;
                 $barsColors = NULL;
                 $chartType = NULL;
+                $secondaryYAxis = NULL;
                 $dataLabelsDistance = NULL;
                 $dataLabelsDistance1 = NULL;
                 $dataLabelsDistance2 = NULL;
@@ -1141,6 +1142,11 @@
                         $chartType = mysqli_real_escape_string($link, sanitizePostString('chartType'));
                     }
 
+                    if(isset($_POST['secondaryYAxis'])&&($_POST['secondaryYAxis']!=""))
+                    {
+                        $secondaryYAxis = mysqli_real_escape_string($link, sanitizePostString('secondaryYAxis'));
+                    }
+
                     if(isset($_POST['dataLabels'])&&($_POST['dataLabels']!=""))
                     {
                         $dataLabels = mysqli_real_escape_string($link, sanitizePostString('dataLabels'));
@@ -1182,6 +1188,7 @@
                     $styleParametersArray['legendFontColor'] = $legendFontColor;
                     $styleParametersArray['barsColorsSelect'] = $barsColorsSelect;
                     $styleParametersArray['chartType'] = $chartType;
+                    $styleParametersArray['secondaryYAxis'] = $secondaryYAxis;
                     $styleParametersArray['dataLabels'] = $dataLabels;
                     $styleParametersArray['xAxisDataset'] = $xAxisDataset;
                     $styleParametersArray['lineWidth'] = $lineWidth;
@@ -2519,6 +2526,7 @@
         $dataLabelsFontColorM = NULL;
         $barsColorsSelectM  = NULL;
         $chartTypeM = NULL;
+        $secondaryYAxisM = NULL;
         $dataLabelsDistanceM = NULL;
         $dataLabelsDistance1M = NULL;
         $dataLabelsDistance2M = NULL;
@@ -2557,6 +2565,8 @@
         $yAxisLabel = NULL;
         $rowParameters = NULL;
         $defaultUnit = NULL;
+        $secondaryYAxisVuM = NULL;
+        $secondaryYAxisLab = NULL;
     //    $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
         if (sanitizePostString('inputFontFamilyWidgetM') === null) {       // New pentest
             $fontFamily = mysqli_real_escape_string($link, sanitizeGetString('inputFontFamilyWidgetM'));
@@ -3003,6 +3013,11 @@
                 $chartTypeM = mysqli_real_escape_string($link, sanitizePostString('chartTypeM'));
             }
 
+            if(isset($_POST['secondaryYAxisM'])&&($_POST['secondaryYAxisM']!=""))
+            {
+                $secondaryYAxisM = mysqli_real_escape_string($link, sanitizePostString('secondaryYAxisM'));
+            }
+
             if(isset($_POST['dataLabelsM'])&&($_POST['dataLabelsM']!=""))
             {
                 $dataLabelsM = mysqli_real_escape_string($link, sanitizePostString('dataLabelsM'));
@@ -3074,6 +3089,7 @@
             $styleParametersArrayM['legendFontColor'] = $legendFontColorM;
             $styleParametersArrayM['barsColorsSelect'] = $barsColorsSelectM;
             $styleParametersArrayM['chartType'] = $chartTypeM;
+            $styleParametersArrayM['secondaryYAxisM'] = $secondaryYAxisM;
             $styleParametersArrayM['dataLabels'] = $dataLabelsM;
             $styleParametersArrayM['xAxisDataset'] = $xAxisDatasetM;
             $styleParametersArrayM['lineWidth'] = $lineWidthM;
@@ -3128,6 +3144,16 @@
                 $yAxisLabel = sanitizePostString('yAxisLabel');
             }
             $styleParametersArrayM['yAxisLabel'] = $yAxisLabel;
+
+            if(isset($_POST['secondaryYAxisVuM'])&&($_POST['secondaryYAxisVuM']!="")) {
+                $secondaryYAxisVuM = sanitizePostString('secondaryYAxisVuM');
+            }
+            $styleParametersArrayM['secondaryYAxisVuM'] = $secondaryYAxisVuM;
+
+            if(isset($_POST['secondaryYAxisLab'])&&($_POST['secondaryYAxisLab']!="")) {
+                $secondaryYAxisLab = sanitizePostString('secondaryYAxisLab');
+            }
+            $styleParametersArrayM['secondaryYAxisLab'] = $secondaryYAxisLab;
 
             $styleParametersM = json_encode($styleParametersArrayM);
 
