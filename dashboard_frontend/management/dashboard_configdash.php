@@ -27467,7 +27467,7 @@
                                         newSelect.show();
 
                                         //Y-Axis Type
-                                        newLabel = $('<label for="yAxisType" class="col-md-1 control-label">Y-Axis type</label>');
+                                        newLabel = $('<label for="yAxisType" class="col-md-1 control-label"><?php echo _("Y-Axis type"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-2"></div>');
                                         newSelect = $('<select class="form-control" id="yAxisType" name="yAxisType"></select>');
                                         newSelect.append("<option value='linear'>Linear</option>");
@@ -27479,7 +27479,7 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
-                                        
+
                                         //Nuova riga
                                         //X-Axis labels font size
                                         newFormRow = $('<div class="row"></div>');
@@ -27541,7 +27541,7 @@
                                             //X-Axis Label
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="xAxisLabel" class="col-md-1 control-label">X-Axis Label</label>');
+                                            newLabel = $('<label for="xAxisLabel" class="col-md-1 control-label"><?php echo _("X-Axis Label"); ?></label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" class="form-control" id="xAxisLabel" name="xAxisLabel">');
                                             newInnerDiv.append(newInput);
@@ -27558,7 +27558,7 @@
                                             $("#specificParamsM").append(newFormRow);
                                         }
                                         // Y-Axis Label
-                                        newLabel = $('<label for="yAxisLabel" class="col-md-1 control-label">Y-Axis Label</label>');
+                                        newLabel = $('<label for="yAxisLabel" class="col-md-1 control-label"><?php echo _("Y-Axis Label"); ?></label>');
                                         newInnerDiv = $('<div class="col-md-4"></div>');
                                         newInput = $('<input type="text" class="form-control" id="yAxisLabel" name="yAxisLabel">');
                                         newInnerDiv.append(newInput);
@@ -27567,6 +27567,85 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newInput.show();
+
+                                        // Nuova Riga
+                                        //Secondary y-axis
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="secondaryYAxisM" class="col-md-1 control-label"><?php echo _("Secondary Y-Axis"); ?></label>');
+                                        newInnerDiv = $('<div class="col-md-1" id="secondaryYAxisMDiv"></div>');
+                                        newSelect = $('<select class="form-control" id="secondaryYAxisM" name="secondaryYAxisM"></select>');
+                                        newSelect.append("<option value='yes'>Yes</option>");
+                                        newSelect.append("<option value='no'>No</option>");
+                                        newSelect.val(styleParameters.secondaryYAxisM);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+                                        
+                                        newLabel = $('<div id="secondaryYAxisLabel"><label for="secondaryYAxisLab" class="col-md-1 control-label"><?php echo _("Secondary Y-Axis Label"); ?></label></div>');
+                                        newInnerDiv = $('<div id="secYAxisLabOpInnerDiv" class="col-md-2"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="secondaryYAxisLab" name="secondaryYAxisLab">');
+                                        newInput.val(styleParameters.secondaryYAxisLab);
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newInput.show();
+                                        if ($('#secondaryYAxisM').val() == "yes") {
+                                            $('#secondaryYAxisLabel').show();
+                                            $('#secYAxisLabOpInnerDiv').show();
+                                            $('#secondaryYAxisLab').show();
+                                        } else {
+                                            $('#secondaryYAxisLabel').hide();
+                                            $('#secYAxisLabOpInnerDiv').hide();
+                                            $('#secondaryYAxisLab').hide();
+                                        }
+
+                                    /*    newLabel = $('<div id="secondaryYAxisValueUnit"><label for="secondaryYAxisVuM" class="col-md-1 control-label"><?php echo _("Secondary Y-Axis Value Unit"); ?></label></div>');
+                                        newInnerDiv = $('<div id="secYAxisVUOpInnerDiv" class="col-md-2"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="secondaryYAxisVuM" name="secondaryYAxisVuM">');
+                                        newInput.val(styleParameters.secondaryYAxisVuM);
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newInput.show();
+                                        if ($('#secondaryYAxisM').val() == "yes") {
+                                            $('#secondaryYAxisValueUnit').show();
+                                            $('#secYAxisVUOpInnerDiv').show();
+                                            $('#secondaryYAxisVuM').show();
+                                        } else {
+                                            $('#secondaryYAxisValueUnit').hide();
+                                            $('#secYAxisVUOpInnerDiv').hide();
+                                            $('#secondaryYAxisVuM').hide();
+                                        }   */
+                                        
+                                        $('#secondaryYAxisM').change(function () {
+                                            if ($('#secondaryYAxisM').val() === "yes") {
+												// $('#secondaryYAxisValueUnit').show();
+                                                // $('#secYAxisVUOpInnerDiv').show();
+                                                // $('#secondaryYAxisVuM').show();
+												$('#secondaryYAxisLabel').show();
+												$('#secYAxisLabOpInnerDiv').show();
+												$('#secondaryYAxisLab').show();
+                                                $('#seconYAx').show();
+                                                $('.secYAxTd').show();
+                                            } else {
+                                                // $('#secondaryYAxisValueUnit').hide();
+                                                // $('#secYAxisVUOpInnerDiv').hide();
+                                                // $('#secondaryYAxisVuM').hide();
+												$('#secondaryYAxisLabel').hide();
+												$('#secYAxisLabOpInnerDiv').hide();
+												$('#secondaryYAxisLab').hide();
+                                                $('#seconYAx').hide();
+                                                $('.secYAxTd').hide();
+                                            }
+                                        });
 
                                         //Nuova riga
                                         //Data labels font size
@@ -27908,7 +27987,7 @@
                                             //Nuova riga
                                             //Contenitore per tabella delle query
                                             var editMultiSeriesQueryTableContainer = $('<div id="editMultiSeriesQueryTableContainer" class="row rowCenterContent"></div>');
-                                            var editMultiSeriesQueryTable = $("<table id='editMultiSeriesQueryTable' data-widgetType='curvedLineSeries' class='table table-bordered table-condensed thrRangeTable'><col style='width:100px'><col style='width:136px'><col style='width:50px'><col style='width:76px'><col style='width:25px'><tr><td><br>Labels</td><td>Query ID or URI <br>(Empty for Dynamic Data from IOT-Apps)</td><td>Value Type<br>(Mandatory only for MyKPI & Sensor)</td><td><br>Color</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
+                                            var editMultiSeriesQueryTable = $("<table id='editMultiSeriesQueryTable' data-widgetType='curvedLineSeries' class='table table-bordered table-condensed thrRangeTable'><col style='width:100px'><col style='width:136px'><col style='width:50px'><col style='width:76px'><col style='width:30px'><col style='width:25px'><tr><td><br>Labels</td><td>Query ID or URI <br>(Empty for Dynamic Data from IOT-Apps)</td><td>Value Type<br>(Mandatory only for MyKPI & Sensor)</td><td><br>Color</td><td id='seconYAx'><br>Y-Axis</td><td><a href='#'><i class='fa fa-plus' style='font-size:24px;color:#337ab7'></i></a></td></tr></table>");
                                             editMultiSeriesQueryTableContainer.append(editMultiSeriesQueryTable);
                                             $("#specificParamsM").append(editMultiSeriesQueryTableContainer);
 
@@ -28023,6 +28102,19 @@
 
                                                    newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
                                                    newTableRow.append(newTableCell);*/
+                                                
+                                                
+                                                // Secondary Y Axis Choice
+                                                newTableCell = $('<td class="secYAxTd"><select data-param="secYAxChoice" class="form-control"></select></td>');
+                                                newTableCell.find('select').append('<option value="primary">1 - Left</option>');
+                                                newTableCell.find('select').append('<option value="secondary">2 - Right</option>');
+                                                newTableRow.append(newTableCell);
+                                                if (rowParamsArray[i].secYAx) {
+                                                    newTableCell.find('select').val(rowParamsArray[i].secYAx);
+                                                } else {
+                                                    newTableCell.find('select').val("primary");
+                                                }
+                                                newTableCell.find('select').on('change', editMultiSeriesUpdateParams);
 
                                                 newTableCell = $('<td><a><i class="fa fa-close" style="font-size:24px;color:red"></i></a></td>');
                                                 newTableCell.find('i').click(delMultiSeriesQueryM);
@@ -28255,6 +28347,15 @@
                                                 }                                        
                                             });
                                         });
+
+                                        if ($('#secondaryYAxisM').val() == "yes") {
+                                            $('#seconYAx').show();
+                                            $('.secYAxTd').show();
+                                        } else {
+                                            $('#seconYAx').hide();
+                                            $('.secYAxTd').hide();
+                                        }
+
                                         break;
 
                                         case "widgetCalendar":

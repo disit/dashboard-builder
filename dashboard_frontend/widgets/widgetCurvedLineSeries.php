@@ -78,6 +78,8 @@
         var currWeekDay = null;
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
         var areaOpacity = null;
+        var chart = null;
+        var idYAxis = null;
 
         //var trendType = 'monthWeek';
         //var trendType = 'dayHour';
@@ -1014,15 +1016,23 @@
 
             if (chartSeriesObject != null) {
             //    if (chartSeriesObject[0].data.length > 0) {
-                    if (areaOpacity == null) {
-                        if (styleParameters.areaChartOpacityM) {
-                            areaOpacity = styleParameters.areaChartOpacityM;
-                        } else {
-                            areaOpacity = 0.75;
-                        }
+                if (areaOpacity == null) {
+                    if (styleParameters.areaChartOpacityM) {
+                        areaOpacity = styleParameters.areaChartOpacityM;
+                    } else {
+                        areaOpacity = 0.75;
                     }
+                }
 
-                    Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
+                if (styleParameters.secondaryYAxisM && styleParameters.secondaryYAxisM == 'yes') {
+                    // SECONDARY Y-AXIS
+                    var secondaryAxisLabel = null;
+                    if (styleParameters.secondaryYAxisLab) {
+                        secondaryAxisLabel = styleParameters.secondaryYAxisLab;
+                    } else {
+                        secondaryAxisLabel = "";
+                    }
+                    chart = Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
                         chart: {
                             zoomType: 'x',
                             type: highchartsChartType,
@@ -1040,43 +1050,342 @@
                             {
                                 enabled: false
                             },
-                    //Non cancellare sennò ci mette il titolo di default
-                    title: {
-                        text: ''
-                    },
-                    //Non cancellare sennò ci mette il sottotitolo di default
-                    subtitle: {
-                        text: subtitle
-                    },
-
-                    xAxis: {
-                        type: xAxisType,
-                        uniqueNames: false,
-                        //type: 'datetime',
-                        //tickAmount: 24,
-                        //tickInterval: 3600 * 1000,
-                        //minTickInterval: 3600 * 1000,
-                        //lineWidth: 1,
-                        //dateTimeLabelFormats: {
-                        //    day: '%H:%M'
-                        //},
-                        //type: 'datetime',
-                        //    units: unitsWidget,
-                        gridLineWidth: 0,
-                        lineColor: chartAxesColor,
-                        categories: xAxisCategories,
+                        //Non cancellare sennò ci mette il titolo di default
                         title: {
-                            align: 'high',
-                            offset: 20,
-                            text: xAxisTitle,
-                            rotation: 0,
-                            //y: 5,		// GP Questo non era commentato prima di TTT2
+                            text: ''
+                        },
+                        //Non cancellare sennò ci mette il sottotitolo di default
+                        subtitle: {
+                            text: subtitle
+                        },
+
+                        xAxis: {
+                            type: xAxisType,
+                            uniqueNames: false,
+                            //type: 'datetime',
+                            //tickAmount: 24,
+                            //tickInterval: 3600 * 1000,
+                            //minTickInterval: 3600 * 1000,
+                            //lineWidth: 1,
+                            //dateTimeLabelFormats: {
+                            //    day: '%H:%M'
+                            //},
+                            //type: 'datetime',
+                            //    units: unitsWidget,
+                            gridLineWidth: 0,
+                            lineColor: chartAxesColor,
+                            categories: xAxisCategories,
+                            title: {
+                                align: 'high',
+                                offset: 20,
+                                text: xAxisTitle,
+                                rotation: 0,
+                                //y: 5,		// GP Questo non era commentato prima di TTT2
+                                style: {
+                                    fontFamily: 'Montserrat',
+                                    fontSize: styleParameters.rowsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    fontStyle: 'italic',
+                                    //    color: chartLabelsFontColor,
+                                    color: styleParameters.rowsLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            },
+                            labels: {
+                                enabled: true,
+                                useHTML: false,
+                                style: {
+                                    fontFamily: 'Montserrat',
+                                    fontSize: styleParameters.rowsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    color: chartLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            }
+                        },
+                        yAxis: [{
+                            type: yAxisType,
+                            lineWidth: 1,
+                            lineColor: chartAxesColor,
+                            gridLineWidth: 1,
+                            gridLineColor: gridLineColor,
+                            gridZIndex: 0,
+                            title: {
+                                //text: null
+                                text: yAxisText,
+                                style: {
+                                    fontFamily: 'Montserrat',
+                                    fontSize: styleParameters.colsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    fontStyle: 'italic',
+                                    color: styleParameters.colsLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            },
+                            labels: {
+                                overflow: 'justify',
+                                style: {
+                                    fontFamily: 'Montserrat',
+                                    fontSize: styleParameters.colsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    color: chartLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            }
+                        },
+                        {
+                            type: yAxisType,
+                            lineWidth: 1,
+                            lineColor: chartAxesColor,
+                            gridLineWidth: 1,
+                            gridLineColor: gridLineColor,
+                            gridZIndex: 0,
+                            title: {
+                                //text: null
+                                text: secondaryAxisLabel,
+                                style: {
+                                    fontFamily: 'Montserrat',
+                                    fontSize: styleParameters.colsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    fontStyle: 'italic',
+                                    color: styleParameters.colsLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            },
+                            opposite: true,
+                        }],
+                        tooltip: {
                             style: {
                                 fontFamily: 'Montserrat',
-                                fontSize: styleParameters.rowsLabelsFontSize + "px",
-                                fontWeight: 'bold',
-                                fontStyle: 'italic',
-                                //    color: chartLabelsFontColor,
+                                fontSize: 12 + "px",
+                                color: 'black',
+                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.15)",
+                                "z-index": 5
+                            },
+                            backgroundColor: {
+                                linearGradient: [0, 0, 0, 60],
+                                stops: [
+                                    [0, '#FFFFFF'],
+                                    [1, '#E0E0E0']
+                                ]
+                            },
+                            //pointFormatter: function () {
+                            formatter: function () {
+                                var field = this.series.name_w;
+                                var thresholdObject, desc, min, max, color, label, index, target, message,
+                                    valueSource = null;
+                                var rangeOnThisField = false;
+
+                                if ((thresholdsJson !== null) && (thresholdsJson !== undefined) && (thresholdsJson !== 'undefined') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                    if (thresholdsJson.thresholdObject.firstAxis.desc === styleParameters.xAxisDataset) {
+                                        target = thresholdsJson.thresholdObject.firstAxis;
+                                        valueSource = this.y;
+                                    } else {
+                                        target = thresholdsJson.thresholdObject.secondAxis;
+                                        valueSource = this.y;
+                                    }
+
+                                    if (target.fields.length > 0) {
+                                        if (this.category.indexOf('thrLegend') > 0) {
+                                            label = this.category.substring(this.category.indexOf('<span class="inline">'));
+                                            label = label.replace('<span class="inline">', '');
+                                            label = label.replace('</span>', '');
+                                            label = label.replace('<b class="caret">', '');
+                                            label = label.replace('</b></a>', '');
+                                            label = label.replace('<ul class="dropdown-menu thrLegend">', '');//Lascialo così
+                                            label = label.replace('<ul class="dropdown-menu">', '');
+                                            label = label.replace('</ul></div>', '');
+                                        } else {
+                                            if (this.category.indexOf('<span>') > 0) {
+                                                label = this.category.substring(this.category.indexOf('<span>'));
+                                                label = label.replace("<span>", "");
+                                                label = label.replace("</span>", "");
+                                            } else {
+                                                label = this.category;
+                                            }
+                                        }
+
+                                        for (var i in target.fields) {
+                                            if (label === target.fields[i].fieldName) {
+                                                if (target.fields[i].thrSeries.length > 0) {
+                                                    for (var j in target.fields[i].thrSeries) {
+                                                        if ((parseFloat(valueSource) >= target.fields[i].thrSeries[j].min) && (parseFloat(valueSource) < target.fields[i].thrSeries[j].max)) {
+                                                            desc = target.fields[i].thrSeries[j].desc;
+                                                            //min = target.fields[i].thrSeries[j].min;
+                                                            max = target.fields[i].thrSeries[j].max;
+                                                            color = target.fields[i].thrSeries[j].color;
+                                                            rangeOnThisField = true;
+                                                        }
+                                                    }
+                                                } else {
+                                                    message = "This value doesn't belong to any of the defined ranges";
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        rangeOnThisField = false;
+                                        message = "No range defined on this field";
+                                    }
+                                } else {
+                                    rangeOnThisField = false;
+                                    message = "No range defined on this field";
+                                }
+
+                                var chartItemIdx = chartSeriesObject.findIndex(el => el.name === this.series.name);
+                                var dateLine = null;
+                                if (styleParameters.xAxisFormat == "numeric" && rowParameters[chartItemIdx].metricHighLevelType == "Dynamic") {
+                                    dateLine = "";
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton").hide();
+                                } else {
+                                    if (trendType == 'monthWeek') {
+                                        var arraydays = ['Monday of 1st Week', 'Tuesday of 1st Week', 'Wednesday of 1st Week', 'Thursday of 1st Week', 'Friday of 1st Week', 'Saturday of 1st Week', 'Sunday of 1st Week', 'Monday of 2nd Week', 'Tuesday of 2nd Week', 'Wednesday of 2nd Week', 'Thursday of 2nd Week', 'Friday of 2nd Week', 'Saturday of 2nd Week', 'Sunday of 2nd Week', 'Monday of 3rd Week', 'Tuesday of 3rd Week', 'Wednesday of 3rd Week', 'Thursday of 3rd Week', 'Friday of 3rd Week', 'Saturday of 3rd Week', 'Sunday of 3rd Week', 'Monday of 4th Week', 'Tuesday of 4th Week', 'Wednesday of 4th Week', 'Thursday of 4th Week', 'Friday of 4th Week', 'Saturday of 4th Week', 'Sunday of 4th Week'];
+                                        dateLine = arraydays[this.x];
+
+                                    } else {
+                                        if (trendType == 'dayHour' && dayhourview == 'dayview') {
+                                            //dateLine='';
+                                            dateLine = new Date(this.x).toString().substring(4, 31);
+                                        } else {
+                                            dateLine = '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>';
+                                        }
+                                    }
+                                }
+
+                                if (rangeOnThisField) {
+                                    if ((desc !== null) && (desc !== '')) {
+                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                            dateLine +
+                                            '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
+                                            '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';
+                                    } else {
+                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                            dateLine +
+                                            '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
+                                    }
+                                } else {
+                                    //  return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                    //      dateLine +
+                                    //      '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>';
+                                    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                        dateLine;
+                                }
+                            }
+                        },
+                        plotOptions: {
+                            series: {
+                                fillOpacity: areaOpacity,
+                                connectNulls: true,
+                                groupPadding: 0.1,
+                                pointPadding: 0,
+                                stacking: stackingOption,
+                                states: {
+                                    hover: {
+                                        enabled: false
+                                    },
+                                    inactive: {
+                                        lineWidth: 1
+                                    }
+                                }
+                            },
+                            spline: {
+                                events: {
+                                    //legendItemClick: function(){ return false;}//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
+                                },
+                                lineWidth: lineWidth
+                            },
+                            areaspline: {
+                                events: {
+                                    //legendItemClick: function(){ return false;}//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
+                                },
+                                lineWidth: lineWidth
+                            }
+                        },
+                        legend: {
+                            useHTML: false,
+                            labelFormatter: function () {
+                                return this.name;
+                            },
+                            layout: 'horizontal',
+                            align: 'center',
+                            verticalAlign: 'bottom',
+                            floating: false,
+                            borderWidth: 0,
+                            itemDistance: 24,
+                            backgroundColor: 'transparent',
+                            shadow: false,
+                            symbolPadding: 5,
+                            symbolWidth: 5,
+                            itemStyle: {
+                                fontFamily: 'Montserrat',
+                                fontSize: styleParameters.legendFontSize + "px",
+                                color: chartLabelsFontColor,
+                                "text-align": "center",
+                                "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                            }
+                        },
+                        credits: {
+                            enabled: false
+                        },
+                        series: chartSeriesObject
+                    });
+                } else {
+                    // NO SECONDARY Y-AXIS
+                    chart = Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
+                        chart: {
+                            zoomType: 'x',
+                            type: highchartsChartType,
+                            backgroundColor: 'transparent',
+                            //Funzione di applicazione delle soglie
+                            events: {
+                                load: onDraw
+                            }
+                        },
+                        time: {
+                            useUTC: utcOption
+                        },
+                        //Per disabilitare il menu in alto a destra
+                        exporting:
+                            {
+                                enabled: false
+                            },
+                        //Non cancellare sennò ci mette il titolo di default
+                        title: {
+                            text: ''
+                        },
+                        //Non cancellare sennò ci mette il sottotitolo di default
+                        subtitle: {
+                            text: subtitle
+                        },
+
+                        xAxis: {
+                            type: xAxisType,
+                            uniqueNames: false,
+                            //type: 'datetime',
+                            //tickAmount: 24,
+                            //tickInterval: 3600 * 1000,
+                            //minTickInterval: 3600 * 1000,
+                            //lineWidth: 1,
+                            //dateTimeLabelFormats: {
+                            //    day: '%H:%M'
+                            //},
+                            //type: 'datetime',
+                            //    units: unitsWidget,
+                            gridLineWidth: 0,
+                            lineColor: chartAxesColor,
+                            categories: xAxisCategories,
+                            title: {
+                                align: 'high',
+                                offset: 20,
+                                text: xAxisTitle,
+                                rotation: 0,
+                                //y: 5,		// GP Questo non era commentato prima di TTT2
+                                style: {
+                                    fontFamily: 'Montserrat',
+                                    fontSize: styleParameters.rowsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    fontStyle: 'italic',
+                                    //    color: chartLabelsFontColor,
                                     color: styleParameters.rowsLabelsFontColor,
                                     "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
                                 }
@@ -1200,25 +1509,25 @@
                                     message = "No range defined on this field";
                                 }
 
-                            	var chartItemIdx = chartSeriesObject.findIndex(el => el.name === this.series.name);
-                            	var dateLine = null;
-                            	if (styleParameters.xAxisFormat == "numeric" && rowParameters[chartItemIdx].metricHighLevelType == "Dynamic") {
-                                	dateLine = "";
-                                	$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
-                                	$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton").hide();
-                            	} else {
-                                	if (trendType == 'monthWeek') {
-                                    		var arraydays = ['Monday of 1st Week', 'Tuesday of 1st Week', 'Wednesday of 1st Week', 'Thursday of 1st Week', 'Friday of 1st Week', 'Saturday of 1st Week', 'Sunday of 1st Week', 'Monday of 2nd Week', 'Tuesday of 2nd Week', 'Wednesday of 2nd Week', 'Thursday of 2nd Week', 'Friday of 2nd Week', 'Saturday of 2nd Week', 'Sunday of 2nd Week', 'Monday of 3rd Week', 'Tuesday of 3rd Week', 'Wednesday of 3rd Week', 'Thursday of 3rd Week', 'Friday of 3rd Week', 'Saturday of 3rd Week', 'Sunday of 3rd Week', 'Monday of 4th Week', 'Tuesday of 4th Week', 'Wednesday of 4th Week', 'Thursday of 4th Week', 'Friday of 4th Week', 'Saturday of 4th Week', 'Sunday of 4th Week'];
-                                    		dateLine = arraydays[this.x];
+                                var chartItemIdx = chartSeriesObject.findIndex(el => el.name === this.series.name);
+                                var dateLine = null;
+                                if (styleParameters.xAxisFormat == "numeric" && rowParameters[chartItemIdx].metricHighLevelType == "Dynamic") {
+                                    dateLine = "";
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton").hide();
+                                } else {
+                                    if (trendType == 'monthWeek') {
+                                        var arraydays = ['Monday of 1st Week', 'Tuesday of 1st Week', 'Wednesday of 1st Week', 'Thursday of 1st Week', 'Friday of 1st Week', 'Saturday of 1st Week', 'Sunday of 1st Week', 'Monday of 2nd Week', 'Tuesday of 2nd Week', 'Wednesday of 2nd Week', 'Thursday of 2nd Week', 'Friday of 2nd Week', 'Saturday of 2nd Week', 'Sunday of 2nd Week', 'Monday of 3rd Week', 'Tuesday of 3rd Week', 'Wednesday of 3rd Week', 'Thursday of 3rd Week', 'Friday of 3rd Week', 'Saturday of 3rd Week', 'Sunday of 3rd Week', 'Monday of 4th Week', 'Tuesday of 4th Week', 'Wednesday of 4th Week', 'Thursday of 4th Week', 'Friday of 4th Week', 'Saturday of 4th Week', 'Sunday of 4th Week'];
+                                        dateLine = arraydays[this.x];
 
-	                                } else {
-	                                    if(trendType == 'dayHour' && dayhourview == 'dayview') {
-	                                       //dateLine='';
-	                                       dateLine=new Date(this.x).toString().substring(4, 31);
-	                                   }else{
-	                                       dateLine = '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>';
-	                                   }  
-	                                }
+                                    } else {
+                                        if (trendType == 'dayHour' && dayhourview == 'dayview') {
+                                            //dateLine='';
+                                            dateLine = new Date(this.x).toString().substring(4, 31);
+                                        } else {
+                                            dateLine = '<span style="color:' + this.color + '">\u25CF</span><b> ' + new Date(this.x).toString().substring(0, 31) + '</b><br/>';
+                                        }
+                                    }
                                 }
 
                                 if (rangeOnThisField) {
@@ -1233,9 +1542,9 @@
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
                                     }
                                 } else {
-                                  //  return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
-                                  //      dateLine +
-                                  //      '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>';
+                                    //  return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                    //      dateLine +
+                                    //      '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>';
                                     return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
                                         dateLine;
                                 }
@@ -1298,6 +1607,38 @@
                         },
                         series: chartSeriesObject
                     });
+                }
+
+            /*        if (styleParameters.secondaryYAxisM && styleParameters.secondaryYAxisM == 'yes') {
+                        var secondaryAxisLabel = null;
+                        if (styleParameters.secondaryYAxisLab) {
+                            secondaryAxisLabel = styleParameters.secondaryYAxisLab;
+                        } else {
+                            secondaryAxisLabel = "";
+                        }
+                        chart.addAxis({
+                            id: 2,
+                            type: yAxisType,
+                            lineWidth: 1,
+                            lineColor: chartAxesColor,
+                            gridLineWidth: 1,
+                            gridLineColor: gridLineColor,
+                            gridZIndex: 0,
+                            title: {
+                                //text: null
+                                text: secondaryAxisLabel,
+                                style: {
+                                    fontFamily: 'Montserrat',
+                                    fontSize: styleParameters.colsLabelsFontSize + "px",
+                                    fontWeight: 'bold',
+                                    fontStyle: 'italic',
+                                    color: styleParameters.colsLabelsFontColor,
+                                    "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            },
+                            opposite: true,
+                        }, false);
+                    }   */
 
              /*   } else {
 
@@ -1542,6 +1883,13 @@
             for (var i = 0; i < aggregationGetData.length; i++)
             {
                 singleSeriesData = [];
+
+            //    if (styleParameters.secondaryYAxisM && styleParameters.secondaryYAxisM == 'yes') {
+                if (styleParameters.secondaryYAxisM && styleParameters.secondaryYAxisM == 'yes' && (rowParameters[i].secYAx && rowParameters[i].secYAx == "secondary")) {
+                    idYAxis = 1;
+                } else {
+                    idYAxis = 0;
+                }
                 
                  switch(aggregationGetData[i].metricHighLevelType)
                  {
@@ -1597,6 +1945,7 @@
                             name: aggregationGetData[i].metricShortDesc,
                             data: singleSeriesData,
                             color: styleParameters.barsColors[i],
+                            yAxis: idYAxis,
                             dataLabels: {
                                 useHTML: false,
                                 enabled: false,
@@ -1721,6 +2070,7 @@
                                  //    data: extractedData.values,
                                  data: timeSlicedData,
                                  color: styleParameters.barsColors[i],
+                                 yAxis: idYAxis,
                                  dataLabels: {
                                      useHTML: false,
                                      enabled: false,
@@ -1808,6 +2158,7 @@
                                 name: objName,
                                 data: singleSeriesData,
                                 color: styleParameters.barsColors[i],
+                                yAxis: idYAxis,
                                 dataLabels: {
                                     useHTML: false,
                                     enabled: false,
@@ -1904,6 +2255,7 @@
                                 name: objName,
                                 data: singleSeriesData,
                                 color: styleParameters.barsColors[i],
+                                yAxis: idYAxis,
                                 dataLabels: {
                                     useHTML: false,
                                     enabled: false,
@@ -1988,6 +2340,7 @@
                                         name: objName,
                                         data: singleSeriesData,
                                         color: styleParameters.barsColors[i],
+                                        yAxis: idYAxis,
                                         dataLabels: {
                                             useHTML: false,
                                             enabled: false,
@@ -2211,6 +2564,7 @@
                                         name: objName,
                                         data: singleSeriesData,
                                         color: styleParameters.barsColors[i],
+                                        yAxis: idYAxis,
                                         dataLabels: {
                                             useHTML: false,
                                             enabled: false,

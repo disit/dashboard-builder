@@ -1251,6 +1251,11 @@ function editMultiSeriesUpdateParams(e, params)
 
             break;
 
+        case 'secYAxChoice':
+            newValue = $(this).val();
+            editMultiSeriesParametersLocal[rowIndex].secYAx = newValue;
+            break;
+
     /*    case 'display':
             newValue = $(this).val();
             editMultiSeriesParametersLocal.queries[rowIndex].display = newValue;
