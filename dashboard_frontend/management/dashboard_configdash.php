@@ -26848,6 +26848,163 @@
                                         }
                                         
                                         removeWidgetProcessGeneralFields("editWidget");
+										//INSERT CKEDITOR RADARSERIES
+										console.log('currentParams: ');
+									  console.log(currentParams);
+															$.ajax({
+                                                url: "../controllers/getTrustedUsers.php",
+                                                data: {
+
+                                                },
+                                                type: "POST",
+                                                async: true,
+                                                dataType: 'json',
+                                                success: function (data) {
+                                                    if (data['detail'] == "Ok" && data['trustedUsers'].includes("<?= $dashboardEditorName ?>")) {
+                                                        //Nuova riga
+														console.log('TRUSTED PIECHART');
+                                                        //Source Selection
+                                                        newFormRow = $('<div class="row"></div>');
+                                                        $("#specificParamsMRight").append(newFormRow);
+                                                        newLabel = $('<label for="enableCKEditor" class="col-md-2 control-label"><?php echo _("Enable CK Editor"); ?></label>');
+                                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                                        newSelect = $('<select class="form-control" id="enableCKEditor" name="enableCKEditor"></select>');
+                                                        newSelect.append('<option value="no">no</option>');
+                                                        newSelect.append('<option value="ckeditor">yes</option>');
+                                                        newInnerDiv.append(newSelect);
+                                                        newFormRow.append(newLabel);
+                                                        newFormRow.append(newInnerDiv);
+                                                        newLabel.show();
+                                                        newInnerDiv.show();
+                                                        newSelect.show();
+
+                                                        //Nuova riga Tab Destro: CKEDITOR
+                                                        //Modalità del widget (none, map, gis, link esterno)
+                                                        newFormRow = $('<div class="row" id="ck_editor"></div>');
+                                                        $("#specificParamsMRight").append(newFormRow);
+                                                        newLabel = $('<label for="widgetCkEditor" class="col-md-2 control-label"><?php echo _("Widget CKEditor"); ?></label>');
+                                                        newInnerDiv = $('<div class="col-md-12"></div>');
+                                                        newBox = $('<div id="widgetEditor">');
+                                                        newBox.append('<div class="row">');
+                                                        newBox.append('<div class="col-xs-12 centerWithFlex" style="font-weight: bold; color: white; margin-bottom: 15px;">');
+                                                        newBox.append('<?= _("Here you can insert Javascript code to be executed in the widget. Please save your script by clicking on the save button on the bottom.")?>');
+                                                        newBox.append('</div></div>');
+                                                        newBox.append('<div class="row">');
+                                                        newBox.append('<div class="col-xs-12" style="padding-left: 0px !important; padding-right: 0px !important;">');
+                                                        newBox.append('<textarea id ="widgetInfoEditorExtCont" name="widgetInfoEditorExtCont" rows="20"></textarea>');
+                                                        newBox.append('<div class="compactMenuBtns"><button type="button" class="compactMenuConfirmBtn" id="sourceSelectionSaveBtn"><i class="fa fa-floppy-o" aria-hidden="true"></i></button> </div>')
+                                                        newBox.append('</div></div></div>');
+                                                        newInnerDiv.append(newBox);
+                                                        //newFormRow.append(newLabel);
+                                                        newFormRow.append(newInnerDiv);
+                                                        //newLabel.show();
+                                                        newInnerDiv.show();
+                                                        //newInput.show();
+                                                        $('#ck_editor').hide();
+
+                                                        var editor = CKEDITOR.replace('widgetInfoEditorExtCont', {
+                                                            allowedContent: true,
+                                                            language: 'en',
+                                                            contentsCss: 'body {font-family: "Montserrat", sans-serif, Arial, Verdana, "Trebuchet MS";font-size: 13px;color: black;background-color: white;margin: 20px;}',
+                                                            width: '100%'
+                                                        });
+														//alert(code);
+														//console.log(code);
+														if (code != null && code != "null") {
+															$('#ck_editor').show();
+                                                                $('#enableCKEditor').val("ckeditor");
+                                                                // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
+                                                                if (code != null && code != "null") {
+                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                                    text_ck_area.innerHTML = codeForCKEditor;
+                                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                }
+														}
+
+                                                        let par = (JSON.stringify(currentParams));
+														console.log('JSON.stringify(currentParams):');
+														console.log(currentParams);
+                                                        if (par && !par.includes("latLng") && !par.includes("null")) {
+                                                            $("#parametersM").val(JSON.stringify(currentParams));
+                                                            if ((currentParams['mode'] == "ckeditor")||(code != null && code != "")) {
+															//if (code != null && code != "null") {
+                                                                $('#ck_editor').show();
+                                                                $('#enableCKEditor').val("ckeditor");
+                                                                // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
+                                                                if (code != null && code != "null") {
+                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                                    text_ck_area.innerHTML = codeForCKEditor;
+                                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                }
+                                                            }
+                                                        }
+
+                                                        $('#enableCKEditor').change(function () {
+															
+                                                            if ($('#enableCKEditor').val() === "ckeditor") {
+                                                                $('#ck_editor').show();
+                                                                //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
+                                                                if (code != null && code != "null") {
+                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                                    text_ck_area.innerHTML = codeForCKEditor;
+                                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                }
+                                                                //$("#parametersM").val('{"mode": "ckeditor"}');
+                                                            } else {
+                                                                $('#ck_editor').hide();
+                                                                $("#parametersM").val('');
+                                                            }
+                                                        });
+
+                                                        $('#sourceSelectionSaveBtn').click(function () {
+                                                            var button = $(this);
+                                                            $('#widgetInfoModalFooter div.compactMenuMsg').show();
+                                                            $('#widgetInfoModalFooter div.compactMenuMsg').html('Saving&nbsp;<i class="fa fa-circle-o-notch fa-spin" style="font-size:14px"></i>');
+
+                                                            var newInfo = CKEDITOR.instances['widgetInfoEditorExtCont'].getData();
+                                                            /*if (newInfo.trim() === '') {
+                                                                newInfo = null;
+                                                            }   */
+
+                                                            $.ajax({
+                                                                url: "../controllers/updateWidget.php",
+                                                                data: {
+                                                                    action: "updateCkEditor",
+                                                                    widgetName: name_widget_m,
+                                                                    //    newText: newInfoDecoded
+                                                                    newText: newInfo
+                                                                },
+                                                                type: "POST",
+                                                                async: true,
+                                                                dataType: 'json',
+                                                                success: function (data) {
+                                                                    if (data.detail === 'Ok') {
+                                                                        alert('Saved!');
+                                                                    } else {
+                                                                        alert('Error');
+                                                                    }
+                                                                },
+                                                                error: function (errorData) {
+                                                                    alert('Error');
+                                                                }
+                                                            });
+                                                        });
+                                                    }
+                                                },
+                                                error: function (errorData) {
+                                                    console.log('Error in retrieving Trusted Users.');
+                                                }
+                                            });
+										///	
+										///
                                         break;
 
                                     case "widgetDataCube":
@@ -27479,7 +27636,7 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
-
+                                        
                                         //Nuova riga
                                         //X-Axis labels font size
                                         newFormRow = $('<div class="row"></div>');
@@ -27541,7 +27698,7 @@
                                             //X-Axis Label
                                             newFormRow = $('<div class="row"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="xAxisLabel" class="col-md-1 control-label"><?php echo _("X-Axis Label"); ?></label>');
+                                            newLabel = $('<label for="xAxisLabel" class="col-md-1 control-label">X-Axis Label</label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newInput = $('<input type="text" class="form-control" id="xAxisLabel" name="xAxisLabel">');
                                             newInnerDiv.append(newInput);
@@ -28102,7 +28259,7 @@
 
                                                    newTableCell = $('<td><select data-param="targets" class="form-control" multiple></select></td>');
                                                    newTableRow.append(newTableCell);*/
-                                                
+												                                                   
                                                 
                                                 // Secondary Y Axis Choice
                                                 newTableCell = $('<td class="secYAxTd"><select data-param="secYAxChoice" class="form-control"></select></td>');
@@ -33889,8 +34046,155 @@
                                                     });
                                                 }, 900);
                                             }
+											///////////CK EDITOR SERVICE MAP///////////
+											$.ajax({
+                                                url: "../controllers/getTrustedUsers.php",
+                                                data: {
 
+                                                },
+                                                type: "POST",
+                                                async: true,
+                                                dataType: 'json',
+                                                success: function (data) {
+                                                    if (data['detail'] == "Ok" && data['trustedUsers'].includes("<?= $dashboardEditorName ?>")) {
+                                                        //Nuova riga
+														console.log('TRUSTED');
+                                                        //Source Selection
+                                                        newFormRow = $('<div class="row"></div>');
+                                                        $("#specificParamsMRight").append(newFormRow);
+                                                        newLabel = $('<label for="enableCKEditor" class="col-md-2 control-label"><?php echo _("Enable CK Editor"); ?></label>');
+                                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                                        newSelect = $('<select class="form-control" id="enableCKEditor" name="enableCKEditor"></select>');
+                                                        newSelect.append('<option value="no">no</option>');
+                                                        newSelect.append('<option value="ckeditor">yes</option>');
+                                                        newInnerDiv.append(newSelect);
+                                                        newFormRow.append(newLabel);
+                                                        newFormRow.append(newInnerDiv);
+                                                        newLabel.show();
+                                                        newInnerDiv.show();
+                                                        newSelect.show();
 
+                                                        //Nuova riga Tab Destro: CKEDITOR
+                                                        //Modalità del widget (none, map, gis, link esterno)
+                                                        newFormRow = $('<div class="row" id="ck_editor"></div>');
+                                                        $("#specificParamsMRight").append(newFormRow);
+                                                        newLabel = $('<label for="widgetCkEditor" class="col-md-2 control-label"><?php echo _("Widget CKEditor"); ?></label>');
+                                                        newInnerDiv = $('<div class="col-md-12"></div>');
+                                                        newBox = $('<div id="widgetEditor">');
+                                                        newBox.append('<div class="row">');
+                                                        newBox.append('<div class="col-xs-12 centerWithFlex" style="font-weight: bold; color: white; margin-bottom: 15px;">');
+                                                        newBox.append('<?= _("Here you can insert Javascript code to be executed in the widget. Please save your script by clicking on the save button on the bottom.")?>');
+                                                        newBox.append('</div></div>');
+                                                        newBox.append('<div class="row">');
+                                                        newBox.append('<div class="col-xs-12" style="padding-left: 0px !important; padding-right: 0px !important;">');
+                                                        newBox.append('<textarea id ="widgetInfoEditorExtCont" name="widgetInfoEditorExtCont" rows="20"></textarea>');
+                                                        newBox.append('<div class="compactMenuBtns"><button type="button" class="compactMenuConfirmBtn" id="sourceSelectionSaveBtn"><i class="fa fa-floppy-o" aria-hidden="true"></i></button> </div>')
+                                                        newBox.append('</div></div></div>');
+                                                        newInnerDiv.append(newBox);
+                                                        //newFormRow.append(newLabel);
+                                                        newFormRow.append(newInnerDiv);
+                                                        //newLabel.show();
+                                                        newInnerDiv.show();
+                                                        //newInput.show();
+                                                        $('#ck_editor').hide();
+
+                                                        var editor = CKEDITOR.replace('widgetInfoEditorExtCont', {
+                                                            allowedContent: true,
+                                                            language: 'en',
+                                                            contentsCss: 'body {font-family: "Montserrat", sans-serif, Arial, Verdana, "Trebuchet MS";font-size: 13px;color: black;background-color: white;margin: 20px;}',
+                                                            width: '100%'
+                                                        });
+														
+														if (code != null && code != "null") {
+															$('#ck_editor').show();
+                                                                $('#enableCKEditor').val("ckeditor");
+                                                                // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
+                                                                if (code != null && code != "null") {
+                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                                    text_ck_area.innerHTML = codeForCKEditor;
+                                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                }
+														}
+
+                                                        let par = (JSON.stringify(currentParams));
+                                                        if (par && !par.includes("latLng") && !par.includes("null")) {
+                                                            $("#parametersM").val(JSON.stringify(currentParams));
+                                                            if ((currentParams['mode'] == "ckeditor")||(code !== null)) {
+                                                                $('#ck_editor').show();
+                                                                $('#enableCKEditor').val("ckeditor");
+                                                                // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
+                                                                if (code != null && code != "null") {
+                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                                    text_ck_area.innerHTML = codeForCKEditor;
+                                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                }
+                                                            }
+                                                        }
+
+                                                        $('#enableCKEditor').change(function () {
+                                                            if ($('#enableCKEditor').val() === "ckeditor") {
+                                                                $('#ck_editor').show();
+                                                                //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
+                                                                if (code != null && code != "null") {
+                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                                    text_ck_area.innerHTML = codeForCKEditor;
+                                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                }
+                                                                $("#parametersM").val('{"mode": "ckeditor"}');
+                                                            } else {
+                                                                $('#ck_editor').hide();
+                                                                $("#parametersM").val('');
+                                                            }
+                                                        });
+
+                                                        $('#sourceSelectionSaveBtn').click(function () {
+                                                            var button = $(this);
+                                                            $('#widgetInfoModalFooter div.compactMenuMsg').show();
+                                                            $('#widgetInfoModalFooter div.compactMenuMsg').html('Saving&nbsp;<i class="fa fa-circle-o-notch fa-spin" style="font-size:14px"></i>');
+
+                                                            var newInfo = CKEDITOR.instances['widgetInfoEditorExtCont'].getData();
+                                                            /*if (newInfo.trim() === '') {
+                                                                newInfo = null;
+                                                            }   */
+
+                                                            $.ajax({
+                                                                url: "../controllers/updateWidget.php",
+                                                                data: {
+                                                                    action: "updateCkEditor",
+                                                                    widgetName: name_widget_m,
+                                                                    //    newText: newInfoDecoded
+                                                                    newText: newInfo
+                                                                },
+                                                                type: "POST",
+                                                                async: true,
+                                                                dataType: 'json',
+                                                                success: function (data) {
+                                                                    if (data.detail === 'Ok') {
+                                                                        alert('Saved!');
+                                                                    } else {
+                                                                        alert('Error');
+                                                                    }
+                                                                },
+                                                                error: function (errorData) {
+                                                                    alert('Error');
+                                                                }
+                                                            });
+                                                        });
+                                                    }
+                                                },
+                                                error: function (errorData) {
+                                                    console.log('Error in retrieving Trusted Users.');
+                                                }
+                                            });
+										//////////////////////////////////	
                                             break;
 
                                         case "widget3DMapDeck":

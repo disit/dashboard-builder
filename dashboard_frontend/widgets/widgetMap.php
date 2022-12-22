@@ -777,7 +777,8 @@ if (!isset($_SESSION)) {
                     var popupText, realTimeData, measuredTime, rtDataAgeSec, targetWidgets, color1, color2 = null;
                     var urlToCall, fake, fakeId = null;
 
-                //    alert("CLICK!");
+                    //alert("CLICK!");
+					
                     
                     if (feature.properties.fake === 'true') {
                         urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + feature.id;
@@ -2193,6 +2194,7 @@ if (!isset($_SESSION)) {
                             }).openPopup();
                         }
                     });
+					
                 });
 
                 return marker;
@@ -12941,6 +12943,7 @@ if (!isset($_SESSION)) {
                     heatmapUrl = widgetData.heatmapUrl;
                     nodeRedInputName = widgetData.params.name;
                     nrInputId = widgetData.params.nrInputId;
+					code = widgetData.params.code;
 
                     getOrganizationParams(function(params) {
                         orgParams = params[0];
@@ -12983,6 +12986,24 @@ if (!isset($_SESSION)) {
 
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+					
+					if (widgetData.params.code != null && widgetData.params.code != "null") {
+                        let code = widgetData.params.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
+                        // elem.src = newInfoDecoded;
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    }
+				////////////////////////////////////
 
                     $("#" + widgetName + "_buttonsDiv").css("height", "100%");
                     $("#" + widgetName + "_buttonsDiv").css("float", "left");
@@ -16583,4 +16604,5 @@ if (!isset($_SESSION)) {
             </div>
         </div>
     </div>
+	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div>

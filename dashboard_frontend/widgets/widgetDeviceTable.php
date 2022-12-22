@@ -23,7 +23,6 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 <script src="../js/DataTables/dataTables.bootstrap.min.js" type="text/javascript"></script>
 <link rel="stylesheet" href="../js/DataTables/datatables.min.css">
 <link rel="stylesheet" href="../js/DataTables/datatables.css">
-
 <script type='text/javascript'>
     var dataSet_<?= $_REQUEST['name_w'] ?> = [];
     var devices_<?= $_REQUEST['name_w'] ?> = [];
@@ -55,6 +54,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
     var columnsToShow_<?= $_REQUEST['name_w'] ?> = {}
 	var columns_list_<?= $_REQUEST['name_w'] ?> = [];
 	//url_<?= $_REQUEST['name_w'] ?>
+	var responsive_table_<?= $_REQUEST['name_w'] ?> = true;
+	var columnTitles_<?= $_REQUEST['name_w'] ?>= [];
+	var rowsToShow_<?= $_REQUEST['name_w'] ?> = [5,10,20];
 	
 	
 
@@ -103,6 +105,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             error: "Missing minimum fields in one or more devices",
             missingFieldsPerDevice: null
         };
+		
 		//
 		$(document).off('showDeviceTableFromExternalContent_' + widgetName);
 			$(document).on('showDeviceTableFromExternalContent_' + widgetName, function(event){
@@ -114,7 +117,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 							current_page_<?= $_REQUEST['name_w'] ?> = 0;
 							$('#current_page_<?= $_REQUEST['name_w'] ?>').val(0);
 							$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
-							//
+							//						
 							populateWidget(newValue_<?= $_REQUEST['name_w'] ?>);
 
 						}
@@ -172,8 +175,19 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 			//
 			var l = Object.keys(columnsToShow_<?= $_REQUEST['name_w'] ?>);
 			var k = Object.keys(dataSet_<?= $_REQUEST['name_w'] ?>[0]);
-			
-			var arr_col_<?= $_REQUEST['name_w'] ?> = [{"data": "device", className: "expand-content all dt-center", orderable: true, title: "device" }];
+			var arr_c = columnTitles_<?= $_REQUEST['name_w'] ?>;
+			//console.log(arr_c[1]);
+			//
+			var title_dv = "device";
+			if (arr_c.length > 0){
+					for(var y=0; y<arr_c.length; y++){
+						if (arr_c[y].value == 'device'){
+							title_dv = arr_c[y].name;
+						}
+					}
+			}
+			//
+			var arr_col_<?= $_REQUEST['name_w'] ?> = [{"data": "device", className: "expand-content all dt-center", orderable: true, title: title_dv}];
 				
 				for (var i=0; i<k.length; i++){
 					var class_n = 'none';
@@ -181,12 +195,32 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 						class_n = '';
 					}
 					if ((k[i] !== 'device')&&(k[i] !== 'serviceUri')){
-					arr_col_<?= $_REQUEST['name_w'] ?>.push({title: k[i], "data": k[i], className: class_n});
+						var title = k[i];
+					//arr_col_<?= $_REQUEST['name_w'] ?>.push({title: k[i], "data": k[i], className: class_n});
+					//
+					if (arr_c.length > 0){
+					for(var y=0; y<arr_c.length; y++){
+						if (arr_c[y].value == k[i]){
+							title = arr_c[y].name;
+						}
+					}
+					}
+						arr_col_<?= $_REQUEST['name_w'] ?>.push({"title": title, "data": k[i], "className": class_n });
+					
+					//
 					}
 					
 				}
+				var title_act = "Actions";
+				if (arr_c.length > 0){
+						for(var y=0; y<arr_c.length; y++){
+							if (arr_c[y].value == 'Actions'){
+								title_act = arr_c[y].name;
+							}
+						}
+				}
 				arr_col_<?= $_REQUEST['name_w'] ?>.push({
-                        "data": null, className: "all dt-center", orderable: false, title: "Actions",
+                        "data": null, className: "all dt-center", orderable: false, title: title_act,
                         "render": function (data, type, row, meta) {
                             var body = "";
                             for (let key in actions) {
@@ -208,29 +242,34 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					order_sort = "desc";
 				}
 				//
-				//console.log('order_column_n:'+order_column_n_<?= $_REQUEST['name_w'] ?>);
 				//
             table = $('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable({
                 data: dataSet_<?= $_REQUEST['name_w'] ?>,
-                scrollResize: true,
-                scrollY: 400,
+               scrollResize: true,
+               scrollY: '100px',
+			    //sScrollY: '400px',
+				//scrollX: true,
                 scrollCollapse: true,
                 paging: false,
 				info: false,
 				searching: false,
+				responsive: {
+					details: responsive_table_<?= $_REQUEST['name_w'] ?>
+				},
 				ordering: true,
 				order: [[order_column_n_<?= $_REQUEST['name_w'] ?>, order_sort]],
                columns: arr_col_<?= $_REQUEST['name_w'] ?>,
-				//columnDefs: [	{ padding: "10px", targets: "_all" } ],			   
+				//columnDefs: [	{ width: "200px", targets: "_all" } ],	
                 rowCallback: function (row, data, index) {
                     $('.dataTables_scrollBody').css('overflow-x', 'hidden');
                 }
             }).columns.adjust();
-			//
-			//console.log(table);
+
 			
 			$('#thead_<?= $_REQUEST['name_w'] ?> tr th').addClass('sorting_<?= $_REQUEST['name_w'] ?>');
-			
+			//$('#container').css( 'display', 'block' );
+	
+			//table.columns.adjust().draw();
 	
 			//
 			 $('.actionButton_<?= $_REQUEST['name_w'] ?>').off('click');
@@ -248,8 +287,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 };
 				///ACTIVE SCRIPT///
 				if((code !== null)&&(code !== '')){
-				//console.log('serviceUri: '+serviceUri);
-				execute_<?= $_REQUEST['name_w'] ?>(data);
+					//console.log('serviceUri: '+serviceUri);
+					
+					data.action = this.id;
+					execute_<?= $_REQUEST['name_w'] ?>(data);
 				}
 				//////////////////
                 stdSend(dataToSend);
@@ -263,9 +304,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             }
 
             showWidgetContent(widgetName);
-            table.columns.adjust();
+            table.columns.adjust().draw();
             $("#maintable_<?= $_REQUEST['name_w'] ?>_filter").find("label").css("color", "black");
-			console.log('current_page: '+current_page_<?= $_REQUEST['name_w'] ?>);
+			//console.log('current_page: '+current_page_<?= $_REQUEST['name_w'] ?>);
 			$('#current_page_<?= $_REQUEST['name_w'] ?>').val(current_page_<?= $_REQUEST['name_w'] ?>);
 			
 			////////
@@ -273,14 +314,23 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					$('.sorting_<?= $_REQUEST['name_w'] ?>').click(function (){
 						console.log('click sorting');
 						action_<?= $_REQUEST['name_w'] ?> = 'changedOrdering';
-						//alert('click sorting');
 						var text = $(this).text();
+						//CHECK_COLUMN_TITLE
+						if (columnTitles_<?= $_REQUEST['name_w'] ?>.length > 0){
+							var text0 = text;
+							for(var r=0; r<columnTitles_<?= $_REQUEST['name_w'] ?>.length; r++){
+								if (columnTitles_<?= $_REQUEST['name_w'] ?>[r].name == text0){
+									text = columnTitles_<?= $_REQUEST['name_w'] ?>[r].value;
+								}
+							}
+						}
+						//
 						order_column_n = column_list_<?= $_REQUEST['name_w'] ?>.indexOf(text);
+						
 						$('#num_column_<?= $_REQUEST['name_w'] ?>').val(order_column_n);
 						if ((text == 'device')||(text == 'deviceName')){
 							$('#num_column_<?= $_REQUEST['name_w'] ?>').val(0);
 						}
-						//alert('text: '+text);
 						$('#current_page_<?= $_REQUEST['name_w'] ?>').val(0);
 						$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
 						$('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
@@ -309,12 +359,19 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 			//////
         function populateWidget(newValue_<?= $_REQUEST['name_w'] ?>) {
 			//
+			
 			$('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
-			//$("#tbody_<?= $_REQUEST['name_w'] ?>").empty();
-			//
 			save_value_<?= $_REQUEST['name_w'] ?>_ = newValue_<?= $_REQUEST['name_w'] ?>;
 			
-			
+			if (newValue_<?= $_REQUEST['name_w'] ?>.searching){
+				if (newValue_<?= $_REQUEST['name_w'] ?>.searching == 'false'){
+					$(".dataTables_filter").hide();
+				}else{
+					$(".dataTables_filter").show();
+				}
+			}else{
+				$(".dataTables_filter").show();
+			}
 			
 			$('#url_<?= $_REQUEST['name_w'] ?>').val(newValue_<?= $_REQUEST['name_w'] ?>.query);
 			var query1=  newValue_<?= $_REQUEST['name_w'] ?>.query;
@@ -327,8 +384,12 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 				var order_column = newValue_<?= $_REQUEST['name_w'] ?>.ordering;
 				$('#order_column_<?= $_REQUEST['name_w'] ?>').val(order_column);
 			}
-			//
-			//add_filter_start
+			
+			if (newValue_<?= $_REQUEST['name_w'] ?>.columnTitles){
+				columnTitles_<?= $_REQUEST['name_w'] ?> = newValue_<?= $_REQUEST['name_w'] ?>.columnTitles;
+				
+			}
+			
 			
 			var start_value = $('#start_value_<?= $_REQUEST['name_w'] ?>').val();
 			if (start_value ==""){
@@ -348,6 +409,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 			maintable_length = parseInt($('#n_rows_<?= $_REQUEST['name_w'] ?>').val());
 			//
 			var ordering_data = '';
+			
 			if ($('#order_column_<?= $_REQUEST['name_w'] ?>').val() !==""){
 				ordering_data = '&sortOnValue='+$('#order_column_<?= $_REQUEST['name_w'] ?>').val()+':'+$('#order_<?= $_REQUEST['name_w'] ?>').val();
 				if ($('#order_column_<?= $_REQUEST['name_w'] ?>').val() =="device"){
@@ -392,6 +454,19 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 							$("#maintable_<?= $_REQUEST['name_w'] ?> thead").empty();
 							
 							//
+							if (newValue_<?= $_REQUEST['name_w'] ?>.responsive){
+											if ((newValue_<?= $_REQUEST['name_w'] ?>.responsive == 'false')||(newValue_<?= $_REQUEST['name_w'] ?>.responsive == false)){
+												//
+												responsive_table_<?= $_REQUEST['name_w'] ?> = false;
+												//
+											}else{
+												//dataSet_<?= $_REQUEST['name_w'] ?>.push(temp);
+												responsive_table_<?= $_REQUEST['name_w'] ?> = true;
+											}
+										}else{
+											responsive_table_<?= $_REQUEST['name_w'] ?> = true;
+										}
+							//
 							var features = data.features;
 							var values = features[0].properties.values;
 							var keys = Object.keys(values);
@@ -406,8 +481,30 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 										specificData = "";
 										temp.device = data.features[i].properties.deviceName;
 										temp.serviceUri = data.features[i].properties.serviceUri;
-										dataSet_<?= $_REQUEST['name_w'] ?>.push(temp);
+										//CHECK FORMAT//
+										if(columnTitles_<?= $_REQUEST['name_w'] ?>.length > 0){
+											for(var z=0; z<columnTitles_<?= $_REQUEST['name_w'] ?>.length; z++){
+												var col_val= columnTitles_<?= $_REQUEST['name_w'] ?>[z].value;
+												if (temp.hasOwnProperty(col_val)){
+													var content_column = temp[col_val];
+													if(columnTitles_<?= $_REQUEST['name_w'] ?>[z].format){
+														var colformat= columnTitles_<?= $_REQUEST['name_w'] ?>[z].format;
+														//console.log('content_column: '+content_column);
+														//console.log('colformat: '+colformat);
+														var d = new Date(content_column);
+														//var d2 = d.toLocaleFormat('%d-%b-%Y');
+														var d2 = moment(d).format(colformat);
+														temp[col_val] = d2;
+														//console.log(d2);
+														
+													}
+												}
+											}
+										}
+										//console.log(temp);
 										//
+										
+										dataSet_<?= $_REQUEST['name_w'] ?>.push(temp);
 
 									}
 									//
@@ -422,17 +519,20 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 														var first_int = 0;
 														var end_int = 0;
 														//
-														
+														list_links = list_links + '<li class="paginate_button pag_hidden1"></li>';
 														//
 														for (var i=0;i<n_page; i++){
 															var n = i+1;
 															var active ='';
+															var hidden = '';
 															//
 															first_int = (i * maintable_length);
 															end_int= first_int + maintable_length;
-															//
-															list_links = list_links + '<li class="paginate_button pag_<?= $_REQUEST['name_w'] ?>" id="page_<?= $_REQUEST['name_w'] ?>'+i+'" start="'+first_int+'" end="'+end_int+'"current='+i+'><a href="#"  id="page_<?= $_REQUEST['name_w'] ?>link_<?= $_REQUEST['name_w'] ?>_'+i+'" aria-controls="maintable" data-dt-idx="2" tabindex="0" start="'+first_int+'" end="'+end_int+'">'+n+'</a></li>';
+															
+															list_links = list_links + '<li class="paginate_button n_lnk pag_<?= $_REQUEST['name_w'] ?>" id="page_<?= $_REQUEST['name_w'] ?>'+i+'" start="'+first_int+'" end="'+end_int+'"current='+i+'><a href="#"  id="page_<?= $_REQUEST['name_w'] ?>link_<?= $_REQUEST['name_w'] ?>_'+i+'" aria-controls="maintable" data-dt-idx="2" tabindex="0" start="'+first_int+'" end="'+end_int+'">'+n+'</a></li>';
 														}
+														list_links = list_links + '<li class="paginate_button pag_hidden2"></li>';
+														
 														var dis_next = "";
 														if (current_page_<?= $_REQUEST['name_w'] ?> == i-1){dis_next = "disabled";}else{dis_next = "";}
 														var dis_prev = "";
@@ -441,7 +541,26 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 														var prev = current_page_<?= $_REQUEST['name_w'] ?>-1;
 														$('#paging_table_<?= $_REQUEST['name_w'] ?>').html('<ul class="pagination"><li class="paginate_button '+dis_prev+' first '+dis_prev+' first_<?= $_REQUEST['name_w'] ?>" id="maintable_first" tabindex="0" start="0" end="'+maintable_length+'" current="0"><a href="#" aria-controls="maintable" data-dt-idx="0" tabindex="0" start="0" end="'+maintable_length+'">First</a></li><li class="paginate_button '+dis_prev+' previous '+dis_prev+' previous_<?= $_REQUEST['name_w'] ?>" id="maintable_previous" start="'+first_int+'" end="'+end_int+'" current='+(prev-1)+'><a href="#" aria-controls="maintable" data-dt-idx="1" tabindex="0">&lt;&lt; Prev</a></li>'+list_links+'<li class="paginate_button'+dis_next+' next_<?= $_REQUEST['name_w'] ?> '+dis_next+' " id="maintable_next_<?= $_REQUEST['name_w'] ?>" start="'+first_int+'" end="'+end_int+'"current="'+(next+1)+'"><a href="#" aria-controls="maintable" data-dt-idx="3" tabindex="0">Next &gt;&gt;</a></li><li class="paginate_button'+dis_next+' last '+dis_next+' last_<?= $_REQUEST['name_w'] ?>" id="maintable_last" start="'+first_int+'" end="'+maintable_length+'"current='+(n_page-1)+'><a href="#" aria-controls="maintable" data-dt-idx="4" tabindex="0" start="'+first_int+'" end="'+end_int+'">Last</a></li></ul>');
 														$('#page_<?= $_REQUEST['name_w'] ?>'+prev).addClass('active');
-										
+														////
+														//console.log('CURRENT PAGE:	'+current_page_<?= $_REQUEST['name_w'] ?>);
+														//
+														$('.n_lnk').each(function() {
+															//console.log($(this).text());
+															if(isNaN($(this).text())){
+															}else{
+																var cont = $(this).text();
+																if ((cont > current_page_<?= $_REQUEST['name_w'] ?> + 2)||(cont < current_page_<?= $_REQUEST['name_w'] ?> - 2)){
+																	$(this).hide();
+																	if (cont < current_page_<?= $_REQUEST['name_w'] ?> - 2){
+																		$('.pag_hidden1').html('<a>...</a>');
+																	}
+																	if (cont > current_page_<?= $_REQUEST['name_w'] ?> + 2){
+																		$('.pag_hidden2').html('<a>...</a>');
+																	}
+																}
+																
+															}
+														});
 														////
 														$('.pag_<?= $_REQUEST['name_w'] ?>').off('click');
 														$('.pag_<?= $_REQUEST['name_w'] ?>').click(function () {
@@ -917,8 +1036,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         };
 
         var stdSend = function (newValue_<?= $_REQUEST['name_w'] ?>) {
-			console.log('New Value:		');
-			console.log(newValue_<?= $_REQUEST['name_w'] ?>);
+			//console.log('New Value:		');
+			//console.log(newValue_<?= $_REQUEST['name_w'] ?>);
             var data = {
                 "msgType": "SendToEmitter",
                 "widgetUniqueName": widgetName,
@@ -1032,22 +1151,23 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>No
                 Data Available</p>
-			<div style="display:none">
+			<div style='display:none'>
 				Order Column name:<input type="text" id="order_column_<?= $_REQUEST['name_w'] ?>" /><br />
 				Sorting Order: <input type="text" id="order_<?= $_REQUEST['name_w'] ?>" /><br />
 				Current page: <input type="text" id="current_page_<?= $_REQUEST['name_w'] ?>" /><br />
 				Column number:<input type="text" id="num_column_<?= $_REQUEST['name_w'] ?>" /><br />
 				start_value:<input type="text" id="start_value_<?= $_REQUEST['name_w'] ?>" />
 				url:<input type="text" id="url_<?= $_REQUEST['name_w'] ?>" />
-			</div>	
+			</div>
 			<label class="mod2">Show	<select id="n_rows_<?= $_REQUEST['name_w'] ?>" aria-controls="maintable" class="form-control input-sm"><option value=5>5</option><option value=10>10</option><option value=20>20</option></select> </label>
 			<div class="pull-right mod2"><div id="maintable_filter_<?= $_REQUEST['name_w'] ?>" class="dataTables_filter"><label style="color: rgb(0, 0, 0);">Search:<input type="search" class="form-control input-sm" placeholder="" aria-controls="maintable" id="searchlabel_<?= $_REQUEST['name_w'] ?>"></label></div></div>
 			<div id="paging_table_<?= $_REQUEST['name_w'] ?>" class="mod2"></div>
+
             <table id="maintable_<?= $_REQUEST['name_w'] ?>" class="table table-striped table-bordered display responsive" cellspacing="0" style="width:100%">
-					<thead id="thead_<?= $_REQUEST['name_w'] ?>"></thead>
-				   <tbody id="tbody_<?= $_REQUEST['name_w'] ?>"></tbody>
+					<thead id="thead_<?= $_REQUEST['name_w'] ?>" ></thead>
+					<tbody id="tbody_<?= $_REQUEST['name_w'] ?>" ></tbody>
 				   </table>
-				   
+
         </div>
     </div>
 	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>

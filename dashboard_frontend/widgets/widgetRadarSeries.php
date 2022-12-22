@@ -991,7 +991,7 @@
                                     '<span style="color:' + this.color + '">\u25CF</span> ' + 'Date: <b>' + dataStringInPopup + '</b><br/>';
                             }
                         }
-                    }
+                    }				
                 },
                 plotOptions: {
                     line: {
@@ -1011,7 +1011,18 @@
                             inactive: {
                                 lineWidth: 1
                             }
-                        }
+                        },
+						cursor: 'pointer',
+						 point: {
+							 events: {
+								click: function() {
+									if (code != null && code != "null") {
+											execute_<?= $_REQUEST['name_w'] ?>(this.y);
+									}
+									//alert ('Category: '+ this.category +', value: '+ this.y);
+								}
+							}
+						}
                     }
                 },
                 legend: {
@@ -1448,6 +1459,24 @@
                 gridLineColor = widgetData.params.chartPlaneColor;
                 chartAxesColor = widgetData.params.chartAxesColor;
                 serviceUri = widgetData.params.serviceUri;
+				code = widgetData.params.code;
+				
+				if (widgetData.params.code != null && widgetData.params.code != "null") {
+                        let code = widgetData.params.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
+                        // elem.src = newInfoDecoded;
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    }
 
                 if (nrMetricType != null) {
                     openWs();
@@ -1702,5 +1731,6 @@
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>
-    </div>	
+    </div>
+	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 
