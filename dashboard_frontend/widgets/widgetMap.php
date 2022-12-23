@@ -15938,9 +15938,9 @@ if (!isset($_SESSION)) {
              try {
                  if (socket == null) {
                      subscribedWsDevices = [];
-                     socket = io.connect("https://www.snap4city.org/", {"path": "/synoptics/socket.io"});
-                     //socket = io.connect("https://www.snap4city.org/", {"path": "/synopticsdev/socket.io"});
-                     //    socket = io.connect('https://www.snap4city.org/synoptics/socket.io/socket.io.js');
+                     socket = io.connect("<?= $ssoEndpoint ?>", {"path": "/synoptics/socket.io"});
+                     //socket = io.connect("https://www.snap4city.org/", {"path": "/synoptics/socket.io"});
+		            //socket = io.connect("https://www.snap4city.org/", {"path": "/synopticsdev/socket.io"});
 
                      socket.on('connect', () => {
                          try {
