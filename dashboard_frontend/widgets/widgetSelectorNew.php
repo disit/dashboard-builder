@@ -1292,7 +1292,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         }
 
-                        if ((($(this).attr("data-query").includes("scenario")) !== true) && (($(this).attr("data-query").includes("whatif")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl)) !== true) && (($(this).attr("data-query").includes("<?= $od_hostname ?>")) !== true) && (widgetTargetList.length > 0)) {
+                        if ((($(this).attr("data-query").includes("scenario")) !== true) && (($(this).attr("data-query").includes("whatif")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) !== true) && (($(this).attr("data-query").includes("<?= $od_hostname ?>")) !== true) && (widgetTargetList.length > 0)) {
 
                             if ($(this).attr("data-onMap") === "false") {
                                 $(this).attr("data-onMap", "true");
