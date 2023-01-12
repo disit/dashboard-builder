@@ -214,6 +214,13 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 };
 
                 stdSend(dataToSend);
+				///ACTIVE SCRIPT///
+				if((code !== null)&&(code !== '')){
+					console.log('dataToSend');
+					
+					data = dataToSend;
+					execute_<?= $_REQUEST['name_w'] ?>(data);
+				}
             });
 
 
@@ -433,6 +440,25 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                 nrInputId = widgetData.params.nrInputId;
                 nodeRedInputName = widgetData.params.name;
                 dashboard_id = widgetData.params.id_dashboard;
+				code = widgetData.params.code;
+				//////lettura code
+				if (widgetData.params.code != null && widgetData.params.code != "null") {
+                        let code = widgetData.params.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+						//
+						
+						//
+                    }
 
                 if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget === true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((embedWidget === false) && (showTitle === "no"))) {
                     showHeader = false;
@@ -755,4 +781,5 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                    style="width:100%"></table>
         </div>
     </div>
+	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div>

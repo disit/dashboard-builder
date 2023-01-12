@@ -80,6 +80,7 @@
         var areaOpacity = null;
         var chart = null;
         var idYAxis = null;
+        var code = null;
 
         //var trendType = 'monthWeek';
         //var trendType = 'dayHour';
@@ -1039,7 +1040,41 @@
                             backgroundColor: 'transparent',
                             //Funzione di applicazione delle soglie
                             events: {
-                                load: onDraw
+                                load: onDraw,
+                                selection: function (event) {
+                                    if (event.xAxis && code) {
+                                        minX = event.xAxis[0].min;
+                                        maxX = event.xAxis[0].max;
+                                        //alert("Min: " + minX + ";\nMax: " + maxX + ";\nsURI: " + rowParameters + ";\nmetric name: " + this.series[0].name);
+                                        var data_list = this.series[0].processedXData;
+                                        var data_list_n = data_list.length;
+                                        var min_pos =0;
+                                        var max_pos =data_list_n;
+                                        for(var i =0; i< data_list_n-1; i++){
+                                            if ((minX > data_list[i])&&(minX < data_list[i+1])){
+                                                min_pos = i+1;
+                                            }
+
+                                        }
+                                        for (var i =data_list_n; i> 0; i--){
+                                            if ((maxX < data_list[i])&&(maxX > data_list[i-1])){
+                                                max_pos = i-1;
+                                            }
+
+                                        }
+
+                                        var param1 = "Min: " + this.series[0].processedYData[min_pos] + "<br>Max: " + this.series[0].processedYData[max_pos];
+                                        // var sUri = getServiceUri(rowParameters);
+                                        var param = {
+                                            "t1" : minX,
+                                            "t2" : maxX,
+                                            "series": rowParameters,
+                                        //    "metricName": this.series[0].name
+                                        }
+
+                                        execute_<?= $_REQUEST['name_w'] ?>(param);
+                                    }
+                                }
                             }
                         },
                         time: {
@@ -1286,6 +1321,34 @@
                                     inactive: {
                                         lineWidth: 1
                                     }
+                                },
+                                point: {
+                                    events: {
+                                        mouseOver: function(jqEvent){
+                                            if(code !== null) {
+                                                if (this.graphic) {
+                                                    this.graphic.element.style.cursor = 'pointer';
+                                                }
+                                            }
+                                        },
+                                        click: function () {
+                                            selectedX = this.category;
+                                            //alert('Category: ' + this.category + ', value: ' + this.y);
+                                            //lettura code//
+                                            var param1 = this.y;
+                                            // var sUri = getServiceUri(rowParameters);
+                                            // var param = new Array(minX, maxX, sUri, this.series[0].name);
+                                            var param = {
+                                                "t1" : this.x,
+                                                "t2" : this.y,
+                                                "series": rowParameters,
+                                                //    "metricName": this.series.name
+                                            }
+                                            if (code) {
+                                                execute_<?= $_REQUEST['name_w'] ?>(param);
+                                            }
+                                        }
+                                    }
                                 }
                             },
                             spline: {
@@ -1338,7 +1401,41 @@
                             backgroundColor: 'transparent',
                             //Funzione di applicazione delle soglie
                             events: {
-                                load: onDraw
+                                load: onDraw,
+                                selection: function (event) {
+                                    if (event.xAxis && code) {
+                                        minX = event.xAxis[0].min;
+                                        maxX = event.xAxis[0].max;
+                                        //alert("Min: " + minX + ";\nMax: " + maxX + ";\nsURI: " + rowParameters + ";\nmetric name: " + this.series[0].name);
+                                        var data_list = this.series[0].processedXData;
+                                        var data_list_n = data_list.length;
+                                        var min_pos =0;
+                                        var max_pos =data_list_n;
+                                        for(var i =0; i< data_list_n-1; i++){
+                                            if ((minX > data_list[i])&&(minX < data_list[i+1])){
+                                                min_pos = i+1;
+                                            }
+
+                                        }
+                                        for (var i =data_list_n; i> 0; i--){
+                                            if ((maxX < data_list[i])&&(maxX > data_list[i-1])){
+                                                max_pos = i-1;
+                                            }
+
+                                        }
+
+                                        var param1 = "Min: " + this.series[0].processedYData[min_pos] + "<br>Max: " + this.series[0].processedYData[max_pos];
+                                        // var sUri = getServiceUri(rowParameters);
+                                        var param = {
+                                            "t1" : minX,
+                                            "t2" : maxX,
+                                            "series": rowParameters,
+                                        //    "metricName": this.series[0].name
+                                        }
+
+                                        execute_<?= $_REQUEST['name_w'] ?>(param);
+                                    }
+                                }
                             }
                         },
                         time: {
@@ -1564,7 +1661,36 @@
                                     inactive: {
                                         lineWidth: 1
                                     }
+                                },
+								point: {
+                                    events: {
+                                        mouseOver: function(jqEvent){
+                                            if(code !== null) {
+                                                if (this.graphic) {
+                                                    this.graphic.element.style.cursor = 'pointer';
+                                                }
+                                            }
+                                        },
+                                        click: function () {
+                                            selectedX = this.category;
+                                            //alert('Category: ' + this.category + ', value: ' + this.y);
+											//lettura code//
+											var param1 = this.y;
+                                            // var sUri = getServiceUri(rowParameters);
+                                            // var param = new Array(minX, maxX, sUri, this.series[0].name);
+                                            var param = {
+                                                "t1" : this.x,
+                                                "t2" : this.y,
+                                                "series": rowParameters,
+                                            //    "metricName": this.series.name
+                                            }
+                                            if (code) {
+                                                execute_<?= $_REQUEST['name_w'] ?>(param);
+                                            }
+                                        }
+                                    }
                                 }
+								
                             },
                             spline: {
                                 events: {
@@ -3236,6 +3362,25 @@
                 TTTDate = widgetData.params.TTTDate;
                 dayhourview = widgetData.params.dayhourview;
                 computationType = widgetData.params.computationType;
+				code = widgetData.params.code;
+				//////lettura code
+				if (widgetData.params.code != null && widgetData.params.code != "null") {
+                        let code = widgetData.params.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+						//
+						
+						//
+                    }
 
                 if (nrMetricType != null) {
                     openWs();
@@ -3716,5 +3861,6 @@
         <!--    <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>    -->
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>
-    </div>	
+    </div>
+	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 
