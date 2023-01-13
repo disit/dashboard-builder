@@ -1,0 +1,1 @@
+ALTER TABLE `Dashboard`.`Config_dashboard` ADD COLUMN `theme` VARCHAR(64) NULL DEFAULT NULL AFTER `infoMsgText`;
