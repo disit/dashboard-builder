@@ -2565,8 +2565,12 @@
         $yAxisLabel = NULL;
         $rowParameters = NULL;
         $defaultUnit = NULL;
+        $yAxisMin = NULL;
+        $yAxisMax = NULL;
         $secondaryYAxisVuM = NULL;
         $secondaryYAxisLab = NULL;
+        $secondaryYAxisMin = NULL;
+        $secondaryYAxisMax = NULL;
     //    $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
         if (sanitizePostString('inputFontFamilyWidgetM') === null) {       // New pentest
             $fontFamily = mysqli_real_escape_string($link, sanitizeGetString('inputFontFamilyWidgetM'));
@@ -3145,6 +3149,16 @@
             }
             $styleParametersArrayM['yAxisLabel'] = $yAxisLabel;
 
+            if(isset($_POST['yAxisMin'])&&($_POST['yAxisMin']!="")) {
+                $yAxisMin = sanitizePostString('yAxisMin');
+            }
+            $styleParametersArrayM['yAxisMin'] = $yAxisMin;
+
+            if(isset($_POST['yAxisMax'])&&($_POST['yAxisMax']!="")) {
+                $yAxisMax = sanitizePostString('yAxisMax');
+            }
+            $styleParametersArrayM['yAxisMax'] = $yAxisMax;
+
             if(isset($_POST['secondaryYAxisVuM'])&&($_POST['secondaryYAxisVuM']!="")) {
                 $secondaryYAxisVuM = sanitizePostString('secondaryYAxisVuM');
             }
@@ -3154,6 +3168,16 @@
                 $secondaryYAxisLab = sanitizePostString('secondaryYAxisLab');
             }
             $styleParametersArrayM['secondaryYAxisLab'] = $secondaryYAxisLab;
+
+            if(isset($_POST['secondaryYAxisMin'])&&($_POST['secondaryYAxisMin']!="")) {
+                $secondaryYAxisMin = sanitizePostString('secondaryYAxisMin');
+            }
+            $styleParametersArrayM['secondaryYAxisMin'] = $secondaryYAxisMin;
+
+            if(isset($_POST['secondaryYAxisMax'])&&($_POST['secondaryYAxisMax']!="")) {
+                $secondaryYAxisMax = sanitizePostString('secondaryYAxisMax');
+            }
+            $styleParametersArrayM['secondaryYAxisMax'] = $secondaryYAxisMax;
 
             $styleParametersM = json_encode($styleParametersArrayM);
 

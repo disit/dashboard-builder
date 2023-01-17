@@ -81,6 +81,7 @@
         var chart = null;
         var idYAxis = null;
         var code = null;
+        var yAxisMin, yAxisMax, secondaryYAxisMin, secondaryYAxisMax = null;
 
         //var trendType = 'monthWeek';
         //var trendType = 'dayHour';
@@ -1033,6 +1034,18 @@
                     } else {
                         secondaryAxisLabel = "";
                     }
+                    if  (styleParameters.secondaryYAxisMin) {
+                        secondaryYAxisMin = styleParameters.secondaryYAxisMin;
+                    }
+                    if  (styleParameters.secondaryYAxisMax) {
+                        secondaryYAxisMax = styleParameters.secondaryYAxisMax;
+                    }
+                    if  (styleParameters.yAxisMin) {
+                        yAxisMin = styleParameters.yAxisMin;
+                    }
+                    if  (styleParameters.yAxisMax) {
+                        yAxisMax = styleParameters.yAxisMax;
+                    }
                     chart = Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
                         chart: {
                             zoomType: 'x',
@@ -1139,6 +1152,8 @@
                             }
                         },
                         yAxis: [{
+                            min: yAxisMin,
+                            max: yAxisMax,
                             type: yAxisType,
                             lineWidth: 1,
                             lineColor: chartAxesColor,
@@ -1169,6 +1184,8 @@
                             }
                         },
                         {
+                            min: secondaryYAxisMin,
+                            max: secondaryYAxisMax,
                             type: yAxisType,
                             lineWidth: 1,
                             lineColor: chartAxesColor,
@@ -1394,6 +1411,12 @@
                     });
                 } else {
                     // NO SECONDARY Y-AXIS
+                    if  (styleParameters.yAxisMin) {
+                        yAxisMin = styleParameters.yAxisMin;
+                    }
+                    if  (styleParameters.yAxisMax) {
+                        yAxisMax = styleParameters.yAxisMax;
+                    }
                     chart = Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
                         chart: {
                             zoomType: 'x',
@@ -1500,6 +1523,8 @@
                             }
                         },
                         yAxis: {
+                            min: yAxisMin,
+                            max: yAxisMax,
                             type: yAxisType,
                             lineWidth: 1,
                             lineColor: chartAxesColor,

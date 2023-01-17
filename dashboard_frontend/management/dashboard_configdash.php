@@ -27895,6 +27895,30 @@
                                         newInnerDiv.show();
                                         newSelect.show();
                                         
+                                        //Y-Axis Min
+                                        newLabel = $('<div id="yAxisMinVal"><label for="yAxisMinVal" class="col-md-1 control-label"><?php echo _("Y-Axis Min"); ?></label></div>');
+                                        newInnerDiv = $('<div id="yAxisMinInnerDiv" class="col-md-1"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="yAxisMin" name="yAxisMin">');
+                                        newInput.val(styleParameters.yAxisMin);
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newInput.show();
+                                        
+                                        //Y-Axis Max
+                                        newLabel = $('<div id="yAxisMaxVal"><label for="yAxisMaxVal" class="col-md-1 control-label"><?php echo _("Y-Axis Max"); ?></label></div>');
+                                        newInnerDiv = $('<div id="yAxisMaxInnerDiv" class="col-md-1"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="yAxisMax" name="yAxisMax">');
+                                        newInput.val(styleParameters.yAxisMax);
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newInput.show();
+                                        
                                         //Nuova riga
                                         //X-Axis labels font size
                                         newFormRow = $('<div class="row"></div>');
@@ -28019,6 +28043,46 @@
                                             $('#secYAxisLabOpInnerDiv').hide();
                                             $('#secondaryYAxisLab').hide();
                                         }
+                                        
+                                        newLabel = $('<div id="secondaryYAxisMinVal"><label for="secondaryYAxisMinVal" class="col-md-1 control-label"><?php echo _("Secondary Y-Axis Min"); ?></label></div>');
+                                        newInnerDiv = $('<div id="secYAxisMinInnerDiv" class="col-md-1"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="secondaryYAxisMin" name="secondaryYAxisMin">');
+                                        newInput.val(styleParameters.secondaryYAxisMin);
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newInput.show();
+                                        if ($('#secondaryYAxisM').val() == "yes") {
+                                            $('#secondaryYAxisMinVal').show();
+                                            $('#secYAxisMinInnerDiv').show();
+                                            $('#secondaryYAxisMin').show();
+                                        } else {
+                                            $('#secondaryYAxisMinVal').hide();
+                                            $('#secYAxisMinInnerDiv').hide();
+                                            $('#secondaryYAxisMin').hide();
+                                        }
+                                        
+                                        newLabel = $('<div id="secondaryYAxisMaxVal"><label for="secondaryYAxisMaxVal" class="col-md-1 control-label"><?php echo _("Secondary Y-Axis Max"); ?></label></div>');
+                                        newInnerDiv = $('<div id="secYAxisMaxInnerDiv" class="col-md-1"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="secondaryYAxisMax" name="secondaryYAxisMax">');
+                                        newInput.val(styleParameters.secondaryYAxisMax);
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newInput.show();
+                                        if ($('#secondaryYAxisM').val() == "yes") {
+                                            $('#secondaryYAxisMaxVal').show();
+                                            $('#secYAxisMaxInnerDiv').show();
+                                            $('#secondaryYAxisMax').show();
+                                        } else {
+                                            $('#secondaryYAxisMaxVal').hide();
+                                            $('#secYAxisMaxInnerDiv').hide();
+                                            $('#secondaryYAxisMax').hide();
+                                        }
 
                                     /*    newLabel = $('<div id="secondaryYAxisValueUnit"><label for="secondaryYAxisVuM" class="col-md-1 control-label"><?php echo _("Secondary Y-Axis Value Unit"); ?></label></div>');
                                         newInnerDiv = $('<div id="secYAxisVUOpInnerDiv" class="col-md-2"></div>');
@@ -28048,6 +28112,12 @@
 												$('#secondaryYAxisLabel').show();
 												$('#secYAxisLabOpInnerDiv').show();
 												$('#secondaryYAxisLab').show();
+                                                $('#secondaryYAxisMinVal').show();
+                                                $('#secYAxisMinInnerDiv').show();
+                                                $('#secondaryYAxisMin').show();
+                                                $('#secondaryYAxisMaxVal').show();
+                                                $('#secYAxisMaxInnerDiv').show();
+                                                $('#secondaryYAxisMax').show();
                                                 $('#seconYAx').show();
                                                 $('.secYAxTd').show();
                                             } else {
@@ -28057,6 +28127,12 @@
 												$('#secondaryYAxisLabel').hide();
 												$('#secYAxisLabOpInnerDiv').hide();
 												$('#secondaryYAxisLab').hide();
+                                                $('#secondaryYAxisMinVal').hide();
+                                                $('#secYAxisMinInnerDiv').hide();
+                                                $('#secondaryYAxisMin').hide();
+                                                $('#secondaryYAxisMaxVal').hide();
+                                                $('#secYAxisMaxInnerDiv').hide();
+                                                $('#secondaryYAxisMax').hide();
                                                 $('#seconYAx').hide();
                                                 $('.secYAxTd').hide();
                                             }
