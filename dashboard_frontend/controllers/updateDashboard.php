@@ -216,10 +216,17 @@
                 $nameGroup = str_replace('ç', 'c', $nameGroup);
                 $nameGroup = str_replace('ÿ', 'y', $nameGroup);
                 $nameGroup=preg_replace("/[^a-zA-Z0-9_-]/", "", $nameGroup);
-                $admin = new \RocketChat\User();
-                $admin->login();
-                $channelArc = new \RocketChat\Channel('N');
-                $infoChannel=$channelArc->infoByName($nameGroup);
+                try
+                {
+                    $admin = new \RocketChat\User();
+                    $admin->login();
+                    $channelArc = new \RocketChat\Channel('N');
+                    $infoChannel=$channelArc->infoByName($nameGroup);
+                }
+                catch (Exception $ex)
+                {
+                    
+                }
                 $newName=urldecode ($newName);
                 $newName=strtolower(str_replace(" ", "", str_replace('%2520','',str_replace('%20', '', $newTitle."-".$dashboardId))));
                 $newName = str_replace('à', 'a', $newName);
