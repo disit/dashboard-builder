@@ -1955,7 +1955,8 @@
                     {
                         entityJson = widgetProperties.param.entityJson;
                         attributeName = widgetProperties.param.attributeName;
-                        dataType = JSON.parse(entityJson)[attributeName].type;
+                        if (entityJson && attributeName)
+                            dataType = JSON.parse(entityJson)[attributeName].type;
                         targetEntity = widgetParameters.targetEntity;
                         targetEntityAttribute = widgetParameters.targetEntityAttribute;
                         impulseValue = widgetParameters.impulseValue;
