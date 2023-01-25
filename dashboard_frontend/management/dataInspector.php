@@ -155,11 +155,12 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                           </div>
                       </div> -->
                     <div class="row header-container">
+                       <div id="mobLogo"><?php include "logoS4cSVG.php"; ?></div>
                         <div id="headerTitleCnt">DataInspector</div>
                         <div class="user-menu-container">
                           <?php include "loginPanel.php" ?>
                         </div>
-                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
+                        <div class="col-lg-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
                         <div class="col-xs-12" id="mainContentCnt">
@@ -167,6 +168,17 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                 <!--<div class="col-xs-12 mainContentRowDesc">List</div>-->
                                 
                                 <div class="col-xs-12 mainContentCellCnt" >
+                                   <div class="filterListBar">
+                                      <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
+                                           <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
+                                               New<br>dashboard
+                                           </div>-->
+                                           <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                               <button id="link_start_wizard" type="button" class="btn btn-new-dash">Neww dashboard</button>
+                                           </div>
+                                       </div>
+                                       <button type="button" class="collapsible"><span></span></button>
+                                       <div class="content">
                                     <div id="dashboardsListMenu" class="row">
                                         
                                         <div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-1 dashboardsListMenuItem">
@@ -228,15 +240,9 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                 </div>
                                             </div>
                                         </div>
-                                        <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
-                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
-                                                New<br>dashboard
-                                            </div>-->
-                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <button id="link_start_wizard" type="button" class="btn btn-new-dash">Neww dashboard</button>
-                                            </div>
-                                        </div>
                                     </div>
+                                   </div>
+                                   </div>
                                     
                                     <?php
                                         if($_SESSION['loggedRole'] === 'RootAdmin')
@@ -2168,6 +2174,22 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
         $('#chatIframeB').attr('style', 'height: 0px');
         $('#chatIframeB').attr('src', 'https://chat.snap4city.org/home');
     });
+</script>
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
 </script>  
 
 <?php } else {

@@ -333,6 +333,7 @@ else
                         </div>
                     </div> -->
                     <div class="row header-container">
+                      <div id="mobLogo"><?php include "logoS4cSVG.php"; ?></div>
                         <div id="headerTitleCnt">
                             <script type="text/javascript">
 <?php
@@ -347,7 +348,7 @@ if (isset($_GET['pageTitle'])) {
                         <div class="user-menu-container">
                           <?php include "loginPanel.php" ?>
                         </div>
-                        <div class="col-xs-2 hidden-md hidden-lg" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
+                        <div class="col-lg-2 hidden-md hidden-lg" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <!--   <div class="row">
                            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerSubTitleCnt">(My Own Organization)</div>
@@ -359,98 +360,107 @@ if (isset($_GET['pageTitle'])) {
                                 <!--<div class="col-xs-12 mainContentRowDesc">List</div>-->
 
                                 <div class="col-xs-12 mainContentCellCnt">
-                                    <div id="dashboardsListMenu" class="row">
-
-                                        <div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-1 dashboardsListMenuItem">
-<?php
-if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin') {
-    ?>
-                                                <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                    <input id="dashboardListsViewModeInput" type="checkbox">
-                                                </div>
-    <?php
-}
-?>
-                                        </div>
-
-                                        <div id="dashboardListsCardsSort" class="dashboardsListMenuItem">
-                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <div class="col-xs-3 centerWithFlex">
-                                                    <div class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Sort ascending">
-                                                        <i class="fa fa-sort-alpha-asc dashboardsListSort"></i>
-                                                    </div> 
-                                                </div>
-                                                <div class="col-xs-3 centerWithFlex">
-                                                    <div class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Sort descending">
-                                                        <i class="fa fa-sort-alpha-desc dashboardsListSort"></i>
-                                                    </div>    
-                                                </div>
-<?php if (!$_SESSION['isPublic']) : ?>                                              
-                                                    <div class="col-xs-3 centerWithFlex">
-                                                        <div id="mySort" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My own dashboards">
-                                                            <i id="myIcon" class="fa fa-user-secret dashboardsListSort" data-active="false"></i>
-                                                        </div>    
-                                                    </div>
-                                                    <div class="col-xs-3 centerWithFlex">
-                                                        <div id="publicSort" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Public dashboards">
-                                                            <i id="publicIcon" class="fa fa-globe dashboardsListSort" data-active="false" ></i>
-                                                        </div>    
-                                                    </div>
-                                                    <div class="col-xs-3 centerWithFlex">
-                                                        <div id="delegatedBtn" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Delegated dashboards">
-                                                            <i class="fa-solid fa-handshake dashboardsListSort" data-active="false" ></i>
-                                                        </div>
-                                                    </div>
-<?php endif; ?>                                              
-                                            </div>
-                                        </div>
-                                        <!--    <div id="dashboardListsCardsOrgsSort" class="col-xs-6 col-sm-4 col-md-2 dashboardsListMenuItem">
-                                                <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12 col-md-6">
-                                                    <div class="col-xs-6 centerWithFlex">
-                                                        <div class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My Own / All Organizations">
-                                                            <i class="fa fa-cube dashboardsListSort" data-active="false" ></i>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>  -->
-                                        <div id="dashboardListsPages" class="dashboardsListMenuItem">
-                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
-                                                 List<br>pages
-                                             </div>-->
-                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-
-                                            </div>
-                                        </div>
-                                        <!--    <div id="dashboardShowAllOrgsButton" class="col-xs-12 col-sm-6 col-md-1 dashboardsListMenuItem">
-                                                <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                    <button id="all_organizations_public_dashboards" type="button" class="btn btn-warning">All Orgs</button>
-                                                </div>
-                                            </div>  -->
-
-                                        <div id="dashboardListsSearchFilter" class="dashboardsListMenuItem">
-                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-3">
-                                                Search
-                                            </div>-->
-                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <div class="input-group">
-                                                    <div class="input-group-btn">
-                                                        <button type="button" id="searchDashboardBtn" class="btn"><i class="fa fa-search"></i></button>
-                                                        <button type="button" id="resetSearchDashboardBtn" class="btn"><i class="fa fa-close"></i></button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-<?php if (!$_SESSION['isPublic']) : ?>                                      
-                                            <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
-                                                <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
-                                                    New<br>dashboard
-                                                </div>-->
-                                                <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                    <button id="link_start_wizard" type="button" class="btn btn-new-dash"><?= _("New dashboard")?></button>
-                                                </div>
-                                            </div>
-<?php endif; ?>                                      
+                                  <div class="filterListBar">
+                                    <?php if (!$_SESSION['isPublic']) : ?>                                      
+                                    <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
+                                      <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                        <button id="link_start_wizard" type="button" class="btn btn-new-dash"><?= _("New dashboard")?></button>
+                                      </div>
                                     </div>
+                                    <?php else : ?>
+                                    <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
+                                      <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                        <span>&nbsp;</span>
+                                      </div>
+                                    </div>
+                                    <?php endif; ?>  
+                                    <button type="button" class="collapsible"><span></span></button>
+                                  <div class="content">
+                                                                        <div id="dashboardsListMenu" class="row">
+                                  
+                                                                          <div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-1 dashboardsListMenuItem">
+                                  <?php
+                                  if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin') {
+                                      ?>
+                                                                                  <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                                                      <input id="dashboardListsViewModeInput" type="checkbox">
+                                                                                  </div>
+                                      <?php
+                                  }
+                                  ?>
+                                                                          </div>
+                                  
+                                                                          <div id="dashboardListsCardsSort" class="dashboardsListMenuItem">
+                                                                              <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                                                  <div class="col-xs-3 centerWithFlex">
+                                                                                      <div class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Sort ascending">
+                                                                                          <i class="fa fa-sort-alpha-asc dashboardsListSort"></i>
+                                                                                      </div> 
+                                                                                  </div>
+                                                                                  <div class="col-xs-3 centerWithFlex">
+                                                                                      <div class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Sort descending">
+                                                                                          <i class="fa fa-sort-alpha-desc dashboardsListSort"></i>
+                                                                                      </div>    
+                                                                                  </div>
+                                  <?php if (!$_SESSION['isPublic']) : ?>                                              
+                                                                                      <div class="col-xs-3 centerWithFlex">
+                                                                                          <div id="mySort" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My own dashboards">
+                                                                                              <i id="myIcon" class="fa fa-user-secret dashboardsListSort" data-active="false"></i>
+                                                                                          </div>    
+                                                                                      </div>
+                                                                                      <div class="col-xs-3 centerWithFlex">
+                                                                                          <div id="publicSort" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Public dashboards">
+                                                                                              <i id="publicIcon" class="fa fa-globe dashboardsListSort" data-active="false" ></i>
+                                                                                          </div>    
+                                                                                      </div>
+                                                                                      <div class="col-xs-3 centerWithFlex">
+                                                                                          <div id="delegatedBtn" class="dashboardsListSortBtnCnt" data-toggle="tooltip" data-placement="bottom" title="Delegated dashboards">
+                                                                                              <i class="fa-solid fa-handshake dashboardsListSort" data-active="false" ></i>
+                                                                                          </div>
+                                                                                      </div>
+                                  <?php endif; ?>                                              
+                                                                              </div>
+                                                                          </div>
+                                                                          <!--    <div id="dashboardListsCardsOrgsSort" class="col-xs-6 col-sm-4 col-md-2 dashboardsListMenuItem">
+                                                                                  <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12 col-md-6">
+                                                                                      <div class="col-xs-6 centerWithFlex">
+                                                                                          <div class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My Own / All Organizations">
+                                                                                              <i class="fa fa-cube dashboardsListSort" data-active="false" ></i>
+                                                                                          </div>
+                                                                                      </div>
+                                                                                  </div>
+                                                                              </div>  -->
+                                                                          <div id="dashboardListsPages" class="dashboardsListMenuItem">
+                                                                              <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
+                                                                                   List<br>pages
+                                                                               </div>-->
+                                                                              <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                  
+                                                                              </div>
+                                                                          </div>
+                                                                          <!--    <div id="dashboardShowAllOrgsButton" class="col-xs-12 col-sm-6 col-md-1 dashboardsListMenuItem">
+                                                                                  <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                                                      <button id="all_organizations_public_dashboards" type="button" class="btn btn-warning">All Orgs</button>
+                                                                                  </div>
+                                                                              </div>  -->
+                                  
+                                                                          <div id="dashboardListsSearchFilter" class="dashboardsListMenuItem">
+                                                                              <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-3">
+                                                                                  Search
+                                                                              </div>-->
+                                                                              <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                                                  <div class="input-group">
+                                                                                      <div class="input-group-btn">
+                                                                                          <button type="button" id="searchDashboardBtn" class="btn"><i class="fa fa-search"></i></button>
+                                                                                          <button type="button" id="resetSearchDashboardBtn" class="btn"><i class="fa fa-close"></i></button>
+                                                                                      </div>
+                                                                                  </div>
+                                                                              </div>
+                                                                          </div>                                   
+                                                                      </div>
+                                                                    </div>
+                                  </div>
+                                   
 
                                         <?php
                                         if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin') {
@@ -4927,6 +4937,23 @@ $('#scrDashboardConfirmBtn').click(function () {
             resetTimeout: 1000 * 60 * 5
         });
     });
+</script>
+
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
 </script>
 
 <?php } else {

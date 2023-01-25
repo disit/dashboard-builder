@@ -79,7 +79,7 @@ $tourRepo = new TourRepository($host, $username, $password, $dbname);
                         Snap4City Dashboards Examples
                     </div>
                     <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt">
-                        <?php include "mobMainMenu.php" ?>
+                        <?php include "../s4c-legacy-management/mobMainMenu.php" ?>
                     </div>
                 </div>
                 <div class="row">

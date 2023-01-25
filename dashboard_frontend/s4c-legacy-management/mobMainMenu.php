@@ -1,4 +1,4 @@
-<i id="mobMainMenuBtn" data-shown="false"></i>
+<i id="mobMainMenuBtn" data-shown="false" class="fa fa-navicon"></i>
 
 <?php
     $currDom = $_SERVER['HTTP_HOST'];
@@ -54,27 +54,27 @@
                 <i class="fa fa-lock" style="font-size: 20px; color: rgba(0, 162, 211, 1)"></i>&nbsp;<?php echo "Role: " . $_SESSION['loggedRole'] . ", Level: " . $_SESSION['loggedUserLevel']; ?>
             </div>
             <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrLogoutCnt">
-                <button type="button" id="mobMainMenuUsrLogoutBtn" class="editDashBtn">logout</button>
+                <button type="button" id="mobMainMenuUsrLogoutBtn" class="editDashBtn">logout</button>  
             </div>
-                                                    <?php
+                                                    <?php 
   if ((strpos($localizationsRoles, $_SESSION['loggedRole']))) {
     echo('<a href="#" id="mobMainMenuSelectLanguageBtn" style="font-size: 10px;"><img src="'.$flagicon.'" id="flagicon" alt="'.$_SESSION['lang'].'" style="padding:5px; height: 24px;  width: 31px;"></a>');
 }
 ?>
-
+   
 <?php else : ?>
             <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrLogoutCnt">
                 <button type="button" id="mobMainMenuUsrLoginBtn" class="editDashBtn">login</button>
-                                                                <?php
+                                                                <?php 
   if ((strpos($localizationsRoles, 'Public'))) {
     echo('<a href="#" id="mobMainMenuSelectLanguageBtn" style="font-size: 10px;"><img src="'.$flagicon.'" id="flagicon" alt="'.$curr_lang.'" style="padding:5px; height: 24px;  width: 31px;"></a>');
 }
 ?>
             </div>
-<?php endif; ?>
+<?php endif; ?>         
         </div>
         <hr id="porHr">
-
+        
         <?php
         //    include 'config.php';
             if(!$_SESSION['isPublic']) {
@@ -113,16 +113,16 @@
                 {
                     $addFiller = false;
                 }
-
+                
                 while($row = mysqli_fetch_assoc($r))
                 {
                     $menuItemId = $row['id'];
                     $linkUrl = ($_SESSION['isPublic'] && $row['publicLinkUrl']!=null && $row['publicLinkUrl']!='NULL' ? $row['publicLinkUrl'] : $row['linkUrl']);
                     $linkId = $row['linkId'];
-                    $icon = $row['icon'];
+                    $icon = $row['icon'];  
                     $text = $row['text'];
-                    $privileges = $row['privileges'];
-                    $userType = $row['userType'];
+                    $privileges = $row['privileges'];      
+                    $userType = $row['userType']; 
                     $externalApp = $row['externalApp'];
                     $openMode = $row['openMode'];
                     $iconColor = $row['iconColor'];
@@ -134,7 +134,7 @@
                     //
 
                     if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
-                    /*    if($externalApp == 'yes')
+                        if($externalApp == 'yes')
                         {
                             if($openMode == 'newTab')
                             {
@@ -194,35 +194,26 @@
                                                 '</div>' .
                                             '</a>';
                             }
-                        } */
-
-                        $text =  translate_string($text, $curr_lang, $link);
-                        //echo($text);
-                        $icon = checkFAIcon($icon);
-                        $newItem = buildMenuTag($linkUrl, $linkId, null, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, true, 'menu');
-
+                        }
                     }
 
                     if((strpos($privileges, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false)&&(($userType == 'any')||(($userType != 'any') && ($userType == $_SESSION['loggedType']))) && ($allowedOrgs=='*' || (strpos($allowedOrgs, "'".$organizationSql) !== false) || $_SESSION['loggedRole'] == 'RootAdmin'))
                     {
                         echo $newItem;
                     }
-
-
-            /*    if($addFiller)
+                }//Fine popolamento main menu
+                
+                if($addFiller)
                 {
                     $newItem = '<div class="col-xs-6 mainMenuItemCnt"></div>';
                     echo $newItem;
                     //Comment
-                }   */
+                }
+                
+                $uname = isset($_SESSION['loggedUsername']) ? $_SESSION['loggedUsername'] : '';
 
-                    $uname = isset($_SESSION['loggedUsername']) ? $_SESSION['loggedUsername'] : '';
-
-                    // $submenuQuery = "SELECT * FROM Dashboard.MobMainMenuSubmenus s LEFT JOIN Dashboard.MainMenuSubmenusUser u ON u.submenu=s.id WHERE menu IN (SELECT id FROM Dashboard.MobMainMenu WHERE domain = $domainId) AND (user is NULL OR user='$uname') ORDER BY menu, menuOrder ASC";
-
-                    $submenuQuery = "SELECT * FROM Dashboard.MobMainMenuSubmenus s LEFT JOIN Dashboard.MainMenuSubmenusUser u ON u.submenu=s.id WHERE menu = '$menuItemId' AND (user is NULL OR user='$uname') ORDER BY menuOrder ASC";
-
-                    $r2 = mysqli_query($link, $submenuQuery);
+                $submenuQuery = "SELECT * FROM Dashboard.MobMainMenuSubmenus s LEFT JOIN Dashboard.MainMenuSubmenusUser u ON u.submenu=s.id WHERE menu IN (SELECT id FROM Dashboard.MobMainMenu WHERE domain = $domainId) AND (user is NULL OR user='$uname') ORDER BY menu, menuOrder ASC";
+                $r2 = mysqli_query($link, $submenuQuery);
 
                 if($r2)
                 {
@@ -236,21 +227,19 @@
                         {
                             $linkUrl2 = '#';
                         }
-
-                        /*    $q3 = "SELECT * FROM Dashboard.MobMainMenu WHERE id = $fatherMenuDbId LIMIT 1";
-                            $r3 = mysqli_query($link, $q3);
-
-                            $row3 = mysqli_fetch_assoc($r3);
-                            $fatherMenuId = $row3['linkId'];    */
-
-                            $fatherMenuId = $linkId;
-
+                        
+                        $q3 = "SELECT * FROM Dashboard.MobMainMenu WHERE id = $fatherMenuDbId LIMIT 1";
+                        $r3 = mysqli_query($link, $q3);
+                        
+                        $row3 = mysqli_fetch_assoc($r3);
+                        $fatherMenuId = $row3['linkId']; 
+                        
                         $linkId2 = $row2['linkId'];
-                        $icon2 = $row2['icon'];
+                        $icon2 = $row2['icon'];  
                         $text2 = $row2['text'];
                          $text2 = translate_string($text2, $curr_lang, $link);
-                        $privileges2 = $row2['privileges'];
-                        $userType2 = $row2['userType'];
+                        $privileges2 = $row2['privileges'];      
+                        $userType2 = $row2['userType']; 
                         $externalApp2 = $row2['externalApp'];
                         $openMode2 = $row2['openMode'];
                         $iconColor2 = $row2['iconColor'];
@@ -262,7 +251,7 @@
                         }
 
                         if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
-                        /*    if($externalApp2 == 'yes')
+                            if($externalApp2 == 'yes')
                             {
                                 if($openMode2 == 'newTab')
                                 {
@@ -289,12 +278,7 @@
                                                     '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
                                                 '</div>' .
                                             '</a>';
-                            } */
-
-                            $isOpen = $_REQUEST['fromSubmenu'] == true && $_REQUEST['fromSubmenu'] == $linkId;
-                            $icon2 = checkFAIcon($icon2);
-                            $newItem = buildMenuTag($linkUrl2, $linkId2, $linkId, $openMode2, $pageTitle2, $externalApp2, $icon2, $iconColor2, $text2, $isOpen, 'menu');
-
+                            }
                         }
 
                         if((strpos($privileges2, "'".@($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']."'")) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs2=='*' || (strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin')))
@@ -302,16 +286,14 @@
                             echo $newItem;
                         }
                     }
-
-
-                    }
-
-                }//Fine popolamento main menu
+                    
+                    
+                }
             }
         ?>
-
+        
     </div><!-- Fine portrait container -->
-
+ 
     <div id="mobMainMenuLandCnt">
          <div class="row">
 <?php if(!$_SESSION['isPublic']) : ?>
@@ -328,10 +310,10 @@
             <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrLogoutCnt">
                 <button type="button" id="mobMainMenuUsrLoginBtn" class="editDashBtn">login</button>
             </div>
-<?php endif; ?>
+<?php endif; ?>         
        </div>
         <hr id="landHr">
-
+        
         <?php
             include 'config.php';
 
@@ -373,16 +355,16 @@
                 {
                     $addFiller = false;
                 }
-
+                
                 while($row = mysqli_fetch_assoc($r))
                 {
                     $menuItemId = $row['id'];
                     $linkUrl = ($_SESSION['isPublic'] && $row['publicLinkUrl']!=null && $row['publicLinkUrl']!='NULL' ? $row['publicLinkUrl'] : $row['linkUrl']);
                     $linkId = $row['linkId'];
-                    $icon = $row['icon'];
+                    $icon = $row['icon'];  
                     $text = $row['text'];
-                    $privileges = $row['privileges'];
-                    $userType = $row['userType'];
+                    $privileges = $row['privileges'];      
+                    $userType = $row['userType']; 
                     $externalApp = $row['externalApp'];
                     $openMode = $row['openMode'];
                     $iconColor = $row['iconColor'];
@@ -392,19 +374,19 @@
                     $text =  translate_string($text, $curr_lang, $link);
                     // if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false) {
                     if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
-                    /*    if ($externalApp == 'yes') {
+                        if ($externalApp == 'yes') {
                             if ($openMode == 'newTab') {
                                 if ($linkUrl == 'submenu') {
                                     $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink" target="_blank">' .
                                         '<div class="col-xs-4 mainMenuItemCnt">' .
-                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i><span>' . $text . '</span><i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' .
+                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text . '&nbsp;&nbsp;&nbsp;<i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' .
                                         '</div>' .
                                         '</a>';
                                 } else {
                                     $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink" target="_blank">' .
                                         '<div class="col-xs-4 mainMenuItemCnt">' .
-                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i><span>' . $text .
-                                        '</span></div>' .
+                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                        '</div>' .
                                         '</a>';
                                 }
                             } else {
@@ -412,14 +394,14 @@
                                 if ($linkUrl == 'submenu') {
                                     $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink mainMenuIframeLink">' .
                                         '<div class="col-xs-4 mainMenuItemCnt">' .
-                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i><span>' . $text . '</span><i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' .
+                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text . '&nbsp;&nbsp;&nbsp;<i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' .
                                         '</div>' .
                                         '</a>';
                                 } else {
                                     $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink mainMenuIframeLink">' .
                                         '<div class="col-xs-4 mainMenuItemCnt">' .
-                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i><span>' . $text .
-                                        '</span></div>' .
+                                        '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                        '</div>' .
                                         '</a>';
                                 }
                             }
@@ -427,23 +409,17 @@
                             if ($linkUrl == 'submenu') {
                                 $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink">' .
                                     '<div class="col-xs-4 mainMenuItemCnt">' .
-                                    '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i><span>' . $text . '</span><i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' .
+                                    '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text . '&nbsp;&nbsp;&nbsp;<i class="fa fa-caret-down submenuIndicator" style="color: white"></i>' .
                                     '</div>' .
                                     '</a>';
                             } else {
                                 $newItem = '<a href="' . $linkUrl . '" id="' . $linkId . '" data-externalApp="' . $externalApp . '" data-openMode="' . $openMode . '" data-linkUrl="' . $linkUrl . '" data-pageTitle="' . $pageTitle . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuLink">' .
                                     '<div class="col-xs-4 mainMenuItemCnt">' .
-                                    '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i><span>' . $text .
-                                    '</span></div>' .
+                                    '<i class="' . $icon . '" style="color: ' . $iconColor . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                    '</div>' .
                                     '</a>';
                             }
-                        } */
-
-                        $text =  translate_string($text, $curr_lang, $link);
-                        //echo($text);
-                        $icon = checkFAIcon($icon);
-                        $newItem = buildMenuTag($linkUrl, $linkId, null, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, true, 'menu');
-
+                        }
                     }
 
                     // if((strpos($privileges, "'".$_SESSION['loggedRole']) !== false)&&(($userType == 'any')||(($userType != 'any') && ($userType == $_SESSION['loggedType'])))  && ($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false))
@@ -451,98 +427,89 @@
                     {
                         echo $newItem;
                     }
+                }//Fine popolamento main menu
+                
+                if($addFiller)
+                {
+                    $newItem = '<div class="col-xs-4 mainMenuItemCnt"></div>';
+                    echo $newItem;     
+                }
 
-                    /* if($addFiller)
+                // $submenuQuery = "SELECT * FROM Dashboard.MobMainMenuSubmenus ORDER BY id, menu ASC";
+                $uname = isset($_SESSION['loggedUsername']) ? $_SESSION['loggedUsername'] : '';
+
+                $submenuQuery = "SELECT * FROM Dashboard.MobMainMenuSubmenus s LEFT JOIN Dashboard.MainMenuSubmenusUser u ON u.submenu=s.id WHERE menu IN (SELECT id FROM Dashboard.MobMainMenu WHERE domain = $domainId) AND (user is NULL OR user='$uname') ORDER BY menu, menuOrder ASC";
+                $r2 = mysqli_query($link, $submenuQuery);
+
+                if($r2)
+                {
+                    while($row2 = mysqli_fetch_assoc($r2))
                     {
-                        $newItem = '<div class="col-xs-4 mainMenuItemCnt"></div>';
-                        echo $newItem;
-                    }   */
+                        $menuItemId2 = $row2['id'];
+                        $linkUrl2 = $row2['linkUrl'];
+                        $fatherMenuDbId = $row2['menu'];
 
-                    // $submenuQuery = "SELECT * FROM Dashboard.MobMainMenuSubmenus ORDER BY id, menu ASC";
-                    $uname = isset($_SESSION['loggedUsername']) ? $_SESSION['loggedUsername'] : '';
-
-                    $submenuQuery = "SELECT * FROM Dashboard.MobMainMenuSubmenus s LEFT JOIN Dashboard.MainMenuSubmenusUser u ON u.submenu=s.id WHERE menu = '$menuItemId' AND (user is NULL OR user='$uname') ORDER BY menuOrder ASC";
-
-                    $r2 = mysqli_query($link, $submenuQuery);
-
-                    if($r2)
-                    {
-                        while($row2 = mysqli_fetch_assoc($r2))
+                        if($linkUrl2 == 'submenu')
                         {
-                            $menuItemId2 = $row2['id'];
-                            $linkUrl2 = $row2['linkUrl'];
-                            $fatherMenuDbId = $row2['menu'];
+                            $linkUrl2 = '#';
+                        }
+                        
+                        $q3 = "SELECT * FROM Dashboard.MobMainMenu WHERE id = $fatherMenuDbId LIMIT 1";
+                        $r3 = mysqli_query($link, $q3);
+                        
+                        $row3 = mysqli_fetch_assoc($r3);
+                        $fatherMenuId = $row3['linkId']; 
+                        
+                        $linkId2 = $row2['linkId'];
+                        $icon2 = $row2['icon'];  
+                        $text2 = $row2['text'];
+                        $privileges2 = $row2['privileges'];      
+                        $userType2 = $row2['userType']; 
+                        $externalApp2 = $row2['externalApp'];
+                        $openMode2 = $row2['openMode'];
+                        $iconColor2 = $row2['iconColor'];
+                        $pageTitle2 = $row2['pageTitle'];
+                        $externalApp2 = $row2['externalApp'];
+                        $allowedOrgs2 = $row2['organizations'];
+                        //
+                        $text2 = translate_string($text2, $curr_lang, $link);
 
-                            if($linkUrl2 == 'submenu')
-                            {
-                                $linkUrl2 = '#';
-                            }
-
-                        /*    $q3 = "SELECT * FROM Dashboard.MobMainMenu WHERE id = $fatherMenuDbId LIMIT 1";
-                            $r3 = mysqli_query($link, $q3);
-
-                            $row3 = mysqli_fetch_assoc($r3);
-                            $fatherMenuId = $row3['linkId'];    */
-
-                            $fatherMenuId = $linkId;
-
-                            $linkId2 = $row2['linkId'];
-                            $icon2 = $row2['icon'];
-                            $text2 = $row2['text'];
-                            $privileges2 = $row2['privileges'];
-                            $userType2 = $row2['userType'];
-                            $externalApp2 = $row2['externalApp'];
-                            $openMode2 = $row2['openMode'];
-                            $iconColor2 = $row2['iconColor'];
-                            $pageTitle2 = $row2['pageTitle'];
-                            $externalApp2 = $row2['externalApp'];
-                            $allowedOrgs2 = $row2['organizations'];
-                            //
-                            $text2 = translate_string($text2, $curr_lang, $link);
-
-                            // if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false) {
-                            if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
-                            /*    if ($externalApp2 == 'yes') {
-                                    if ($openMode2 == 'newTab') {
-                                        $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $fatherMenuId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink" target="_blank">' .
-                                            '<div class="col-xs-4 mainMenuSubItemCnt">' .
-                                            '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i><span>' . $text .
-                                            '</span></div>' .
-                                            '</a>';
-                                    } else {
-                                        //CASO IFRAME
-                                        $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $fatherMenuId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink mainMenuIframeLink">' .
-                                            '<div class="col-xs-4 mainMenuSubItemCnt">' .
-                                            '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i><span>' . $text2 .
-                                            '</span></div>' .
-                                            '</a>';
-                                    }
-                                } else {
-                                    $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $fatherMenuId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink">' .
+                        // if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false) {
+                        if($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
+                            if ($externalApp2 == 'yes') {
+                                if ($openMode2 == 'newTab') {
+                                    $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $fatherMenuId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink" target="_blank">' .
                                         '<div class="col-xs-4 mainMenuSubItemCnt">' .
-                                        '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i><span>' . $text2 .
-                                        '</span></div>' .
+                                        '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text .
+                                        '</div>' .
                                         '</a>';
-                                }   */
-
-                                $isOpen = $_REQUEST['fromSubmenu'] == true && $_REQUEST['fromSubmenu'] == $linkId;
-                                $icon2 = checkFAIcon($icon2);
-                                $newItem = buildMenuTag($linkUrl2, $linkId2, $linkId, $openMode2, $pageTitle2, $externalApp2, $icon2, $iconColor2, $text2, $isOpen, 'menu');
-
-                            }
-
-                            // if((strpos($privileges2, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType'])))  && ($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false))
-                            if((strpos($privileges2, "'".@($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']."'")) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs2=='*' || (strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin')))
-                            {
-                                echo $newItem;
+                                } else {
+                                    //CASO IFRAME
+                                    $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $fatherMenuId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink mainMenuIframeLink">' .
+                                        '<div class="col-xs-4 mainMenuSubItemCnt">' .
+                                        '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                        '</div>' .
+                                        '</a>';
+                                }
+                            } else {
+                                $newItem = '<a href="' . $linkUrl2 . '" id="' . $linkId2 . '" data-fatherMenuId="' . $fatherMenuId . '" data-externalApp="' . $externalApp2 . '" data-openMode="' . $openMode2 . '" data-linkUrl="' . $linkUrl2 . '" data-pageTitle="' . $pageTitle2 . '" data-submenuVisible="false" class="internalLink moduleLink mainMenuSubItemLink">' .
+                                    '<div class="col-xs-4 mainMenuSubItemCnt">' .
+                                    '<i class="' . $icon2 . '" style="color: ' . $iconColor2 . '"></i>&nbsp;&nbsp;&nbsp;' . $text2 .
+                                    '</div>' .
+                                    '</a>';
                             }
                         }
-                    }
 
-                }//Fine popolamento main menu
+                        // if((strpos($privileges2, "'".($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole'])) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType'])))  && ($allowedOrgs2=='*' || strpos($allowedOrgs2, "'".$organizationSql) !== false))
+                        if((strpos($privileges2, "'".@($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']."'")) !== false) && (($userType == 'any')||(($userType != 'any')&&($userType == $_SESSION['loggedType']))) && ($allowedOrgs2=='*' || (strpos($allowedOrgs2, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin')))
+                        {
+                            echo $newItem;
+                        }
+                    }
+                }
             }
         ?>
-    </div>
+    </div>  
 </div>
 
 <script type='text/javascript'>

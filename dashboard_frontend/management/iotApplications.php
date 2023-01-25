@@ -132,11 +132,12 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
               </div>
           </div> -->
           <div class="row header-container">
+            <div id="mobLogo"><?php include "logoS4cSVG.php"; ?></div>
             <div id="headerTitleCnt"><?= _("IOT Applications")?></div>
             <div class="user-menu-container">
               <?php include "loginPanel.php" ?>
             </div>
-            <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
+            <div class="col-lg-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
           </div>
           <div class="row">
             <div class="col-xs-12" id="mainContentCnt">
@@ -148,7 +149,18 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
 
 
               <div class="row mainContentRow" id="iotAppsListTableRow">
-                <div class="col-xs-12 mainContentCellCnt" >
+                <div class="col-xs-12 mainContentCellCnt">
+                  <div class="filterListBar">
+                  <div id="dashboardListsNewDashboard" class="iotAppsListMenuItem">
+                    <!--<div class="iotAppsListMenuItemTitle centerWithFlex col-xs-4">
+                        New<br>dashboard
+                    </div>-->
+                    <div class="iotAppsListMenuItemContent centerWithFlex col-xs-12">
+                      <button id="link_add_iotapp" data-toggle="modal" type="button" class="btn btn-new-dash"><?= _("Create new") ?></button>
+                    </div>
+                  </div>
+                  <button type="button" class="collapsible"><span></span></button>
+                  <div class="content">
                   <div id="iotAppsListMenu" class="row">
                     <div id="dashboardListsViewMode" class="hidden-xs col-sm-6 col-md-2 iotAppsListMenuItem">
                         <?php
@@ -198,15 +210,9 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                         </div>
                       </div>
                     </div>
-                    <div id="dashboardListsNewDashboard" class="iotAppsListMenuItem">
-                      <!--<div class="iotAppsListMenuItemTitle centerWithFlex col-xs-4">
-                          New<br>dashboard
-                      </div>-->
-                      <div class="iotAppsListMenuItemContent centerWithFlex col-xs-12">
-                        <button id="link_add_iotapp" data-toggle="modal" type="button" class="btn btn-new-dash"><?= _("Create new") ?></button>
-                      </div>
-                    </div>
                   </div>
+                </div>
+                </div>
 
 
                   <table id="list_dashboard" class="table">
@@ -1211,6 +1217,22 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                 }
             });            
     });
+</script>
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
 </script>
 
 <?php } else {

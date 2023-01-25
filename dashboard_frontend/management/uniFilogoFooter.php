@@ -1,4 +1,4 @@
-<a href="https://www.disit.org/" target="_blank">
+<a href="https://www.disit.org/" target="_blank" class="unifiLogoWrap">
 <svg version="1.1" id="unifiLogo" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 300 50.9" style="enable-background:new 0 0 300 50.9;" xml:space="preserve">
 <style type="text/css">

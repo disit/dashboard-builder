@@ -110,7 +110,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
           </div>
           <div class="row">
             <div class="col-xs-10 col-md-12 centerWithFlex" id="headerTitleCnt"><?= _("IOT Applications")?></div>
-            <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
+            <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "../s4c-legacy-management/mobMainMenu.php" ?></div>
           </div>
           <div class="row">
             <div class="col-xs-12" id="mainContentCnt" style='background-color: rgba(138, 159, 168, 1)'>
@@ -422,7 +422,6 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
         $('#sessionExpiringPopup').css("top", parseInt($('body').height() - $('#sessionExpiringPopup').height()) + "px");
         $('#sessionExpiringPopup').css("left", parseInt($('body').width() - $('#sessionExpiringPopup').width()) + "px");
-        console.log("iotApplications.");
         setInterval(function(){
             var now = parseInt(new Date().getTime() / 1000);
             var difference = sessionEndTime - now;

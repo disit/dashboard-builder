@@ -842,3 +842,17 @@ function redirect_on_login() {
     }
     exit();
 }
+
+function checkFAIcon($ico) {
+    if ($ico == "fa fa-file-code-o") {
+        $ico = "fa-regular fa-file-code";
+    }
+    if ($ico == "fa fa-hdd-o") {
+        $ico = "fa-regular fa-hard-drive";
+    }
+    //    if (strpos($ico, "fa-sticky-note-o") !== false) {
+    if ($ico == "\tfa fa-sticky-note-o" || $ico == "fa fa-sticky-note-o") {
+        $ico = "fa-solid fa-note-sticky";
+    }
+    return $ico;
+}

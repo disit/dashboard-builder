@@ -131,6 +131,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                           </div>
                       </div> -->
                     <div class="row header-container">
+                       <div id="mobLogo"><?php include "logoS4cSVG.php"; ?></div>
                         <div id="headerTitleCnt">
                             <script type="text/javascript">
                                 <?php
@@ -145,7 +146,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                         <div class="user-menu-container">
                           <?php include "loginPanel.php" ?>
                         </div>
-                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
+                        <div class="col-lg-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
                         <div class="col-xs-12" id="mainContentCnt">
@@ -164,6 +165,28 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                 <input id="dashboardListsViewModeInput" type="checkbox">
                                             </div>
                                         </div>-->
+                                        <div class="filterListBar">
+                                       
+                                       <button type="button" class="collapsible"><span></span></button>
+                                       <div class="content">
+                                          <?php
+                                           if((@$_SESSION['loggedRole']) === 'RootAdmin')
+                                           {
+                                           ?>
+                                           <div id="dashboardListsCardsOrgsSort" class="dashboardsListMenuItem">
+                                               <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12 col-md-6">
+                                                   <div class="col-xs-6 centerWithFlex">
+                                                       <script type="text/javascript">
+                                                           if(location.href.includes("AllOrgs") != false) {
+                                                               document.write('<div id="extServiceList" class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="All Organizations"></div>');
+                                                           } else {
+                                                               document.write('<div id="extServiceList" class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My Organizations"></div>');
+                                                           }
+                                                       </script>
+                                                   </div>
+                                               </div>
+                                           </div>
+                                           <?php } ?>
                                         <div id="dashboardListsCardsSort" class="dashboardsListMenuItem">
                                             <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
                                                 <div class="col-xs-6 centerWithFlex">
@@ -178,24 +201,6 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                 </div>
                                             </div>
                                         </div>
-                                        <?php
-                                        if((@$_SESSION['loggedRole']) === 'RootAdmin')
-                                        {
-                                        ?>
-                                        <div id="dashboardListsCardsOrgsSort" class="dashboardsListMenuItem">
-                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12 col-md-6">
-                                                <div class="col-xs-6 centerWithFlex">
-                                                    <script type="text/javascript">
-                                                        if(location.href.includes("AllOrgs") != false) {
-                                                            document.write('<div id="extServiceList" class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="All Organizations"></div>');
-                                                        } else {
-                                                            document.write('<div id="extServiceList" class="dashboardsListSortOrgsBtnCnt" data-toggle="tooltip" data-placement="bottom" title="My Organizations"></div>');
-                                                        }
-                                                    </script>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <?php } ?>
                                         <div id="dashboardListsPages" class="dashboardsListMenuItem">
                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                 List<br>pages
@@ -218,7 +223,10 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>                                    
+                                       </div>
+                                    </div>
+                                    </div>
+                                 </div>                                    
                                     
                                     <table id="list_dashboard" class="table">
                                         <thead class="dashboardsTableHeader">
@@ -625,6 +633,22 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                 }
             });
     });
+</script>
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
 </script>
 
 <?php } else {

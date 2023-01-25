@@ -106,11 +106,12 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                           </div>
                       </div> -->
                     <div class="row header-container">
+                       <div id="mobLogo"><?php include "logoS4cSVG.php"; ?></div>
                         <div id="headerTitleCnt">Data sources</div>
                         <div class="user-menu-container">
                           <?php include "loginPanel.php" ?>
                         </div>
-                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
+                        <div class="col-lg-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
                         <div class="col-xs-12" id="mainContentCnt">

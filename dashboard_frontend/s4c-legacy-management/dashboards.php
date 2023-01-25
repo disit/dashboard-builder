@@ -310,7 +310,7 @@ if (isset($_GET['pageTitle'])) {
 ?>
                             </script>
                         </div>
-                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
+                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "../s4c-legacy-management/mobMainMenu.php" ?></div>
                     </div>
                     <!--   <div class="row">
                            <div class="col-xs-10 col-md-12 centerWithFlex" id="headerSubTitleCnt">(My Own Organization)</div>

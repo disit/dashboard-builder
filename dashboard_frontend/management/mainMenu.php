@@ -75,7 +75,7 @@
             <div id="mainMenuScrollableCnt">
                  <?php
 
-                    function checkFAIcon($ico) {
+                 /*   function checkFAIcon($ico) {
                         if ($ico == "fa fa-file-code-o") {
                             $ico = "fa-regular fa-file-code";
                         }
@@ -87,7 +87,7 @@
                             $ico = "fa-solid fa-note-sticky";
                         }
                         return $ico;
-                    }
+                    }   */
 
                     if(isset($_SESSION['loggedOrganization'])) {
                       $organization = $_SESSION['loggedOrganization'];

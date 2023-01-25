@@ -74,6 +74,8 @@
   --modal-tab-link-active-: #5B6368;
   --btn-color-: #EDEFF2;
   --dash-icon-color-:#5b6368;
+  --mob-menu-bg-: #f7f8fa;
+  --mob-user-menu-bg-: #ffffff;
 }
 
 /* DARK MODE */
@@ -112,6 +114,8 @@
   --modal-tab-link-active-: #EDEFF2;
   --btn-color-: #EDEFF2;
   --dash-icon-color-:#5b6368;
+  --mob-menu-bg-: #4E4E4E;
+  --mob-user-menu-bg-: #292929;
 }
 
 .theme-btn{
@@ -720,6 +724,10 @@ label[for='alrThrFlagM'], label[for='alrAxisSelM'], label[for='alrRangeMinM'], l
     {
         padding-left: 225px;
     }
+}
+
+.dynatable-pagination-links{
+  display: flex;
 }
 
 /* Top Navigation */
@@ -2068,10 +2076,8 @@ body.dashboardViewBodyAuth
 
 #headerMenuCnt
 {
-    height: 75px;
-    background: #eebb11;
     font-size: 2em;
-    color: var(--white-);
+    color: var(--text-color-);
 }
 
 #mainContainer
@@ -2091,6 +2097,10 @@ body.dashboardViewBodyAuth
 
 #snapLogoImg svg{
   width: 80%;
+}
+
+#mobLogo{
+  display: none;
 }
 
 .mainContainer{
@@ -2330,7 +2340,18 @@ div.mainMenuItemCnt
     border-radius: 10px; 
 }
 
-div.mainMenuItemCnt span{
+#mobMainMenuCnt {
+    display: flex;
+    align-items: center; 
+    justify-content: space-between;
+    border: none;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 10px 5px;
+}
+
+div.mainMenuItemCnt span, #mobMainMenuCnt span{
     font-size: 1.1rem;
     color: var(--menu-color-);
     font-weight: 500;
@@ -2431,7 +2452,27 @@ div.mobMainMenuItemCnt
 
 #mobMainMenuBtn
 {
-    font-size: 36px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#mobMainMenuBtn[data-shown="false"]:before{
+  content: "\f0c9";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-style: normal;
+  font-size: 3rem;
+}
+
+#mobMainMenuBtn[data-shown="true"]:before{
+  content: "\f00d";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-style: normal;
+  font-size: 3.3rem;
 }
 
 #porHr
@@ -2445,8 +2486,8 @@ div.mobMainMenuItemCnt
     margin-bottom: 0px !important;
 }
 
-.mainMenuItemCnt i{
-    color: var(--dark-grey03-);
+i.submenuIndicator {
+    color: var(--dark-grey03-)!important;
 }
 
 .dark .mainMenuItemCnt i{
@@ -3188,7 +3229,10 @@ input[type="text"]:disabled
     position: fixed;
     left: 0px;
     width: 100vw;
-    background: rgba(51, 64, 69, 1);
+    height: calc(100vh - 160px);
+    overflow-y: auto;
+    top: 160px!important;
+    background: var(--mob-menu-bg-);
     z-index: 999999 !important;
 }
 
@@ -3235,7 +3279,7 @@ input[type="text"]:disabled
     }
 }
 
-@media(orientation: portrait)
+/* @media(orientation: portrait)
 {
     #mobMainMenuUsrCnt
     {
@@ -3253,7 +3297,7 @@ input[type="text"]:disabled
         border-top: 1px solid #595959;
         border-bottom: 1px solid #333333;
     }
-}
+} */
 
 #editModuleOkMsg, #editModuleLoadingMsg, #editModuleKoMsg
 {
@@ -4327,11 +4371,293 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
   color: var(--dark-grey05-)!important;
 }
 
+/* MOBILE */
+
+@media (max-width: 991px) {
+  
+  #mainMenuCnt{
+    display: none;
+  }
+  
+  .menuFooter-container{
+    display: flex;
+    flex-direction: row;
+    position: fixed;
+    bottom: 0;
+    z-index: 100000;
+    width: 100vw;
+    left: 0;
+    margin: 0 auto;
+  }
+  
+  #footer{
+    margin: 0;
+    width: 100%;
+    height: 70px;
+    flex-wrap: wrap;
+    flex-direction: row-reverse;
+  }
+  
+  .footer-links, .unifiLogoWrap{
+    width: 40%;
+  }
+  
+  .footer-links{
+    margin: 0 20px;
+  }
+  
+  .unifiLogoWrap{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .unifiLogoWrap #unifiLogo{
+    width: 80%;
+  }
+  
+  #mainContentCnt, #iframeApp{
+    height: calc(100vh - 210px)!important;
+    width: 100%;
+    margin: 0;
+    border-radius: 0!important;
+  }
+  
+  .mainContainer{
+    margin-top: 60px;
+  }
+  
+  #iframePagemainContentCnt{
+    padding: 0!important;
+  }
+  
+  .switchLegacy{
+    display: none;
+  }
+  
+  #headerTitleCnt{
+    font-size: 2rem;
+  }
+  
+  .theme-toggler{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+  
+  .user-menu{
+    top: 60px;
+    width: 100%;
+    border-radius: 0;
+    right: -100%;
+  }
+  
+  .login-panel{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: var(--mob-user-menu-bg-);
+    height: 60px;
+    justify-content: space-between;
+  }
+  
+  .login-container{
+    flex: 1;
+  }
+  
+  #mainMenuUsrLog, #mainMenuUsrDetCnt, #mainMenuUsrLogoutBtn{
+    font-size: 1rem;
+  }
+  
+  div.mainMenuItemCnt{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    width: 98vw;
+    padding: 10px 20px;
+  }
+  
+  div.mainMenuSubItemCnt{
+    width: 98vw;
+  }
+  
+  .icon-cont i{
+    font-size: 2rem;
+  }
+  
+  #mobMainMenuLandCnt .row, #mobMainMenuPortraitCnt .row{
+    display: none;
+  }
+  
+  #mobLogo{
+    display: block;
+    flex: 1;
+  }
+  
+  #mobLogo #snapLogoImg svg{
+    width: 60%;
+  }
+  
+  div.dashboardsListCardDiv{
+    width: 33.333%!important;
+  }
+  
+  div.modal-dialog{
+    margin-left: auto;
+    margin-right: auto;
+    width: 95vw;
+  }
+  
+  .user-menu.show{
+    right: 0;
+    opacity: 1;
+    z-index: 1000000;
+  }
+  
+}
+
+@media (max-width: 768px) and (min-width: 575px){
+  .modal-content ul.nav-tabs.nav-justified > li{
+    float: left!important;
+  }
+}
+
+
+/* PHONE ONLY */
+
+@media (max-width: 575px) {
+  
+  div.mainMenuItemCnt{
+    width: 98vw;
+  }
+  
+  div.mainMenuSubItemCnt{
+    width: 98vw;
+  }
+  
+  #headerTitleCnt{
+    display: none;
+  } 
+  
+  .header-container{
+    justify-content: space-between;
+  }
+  
+  div.dashboardsListCardDiv{
+    width: 50%!important;
+  }
+  
+  #dashboardsListMenu, #iotAppsListMenu{
+    flex-direction: column!important;
+    align-items: center!important;
+  }
+
+  .modalAddDashboardWizardChoiceCnt{
+    flex-basis: 50%;
+  }
+  
+  ul#delegationsTabsContainer, #wizardTabsContainer, #datasourcesTabsContainer, #addMetricModalTabs, #editMetricModalTabs, #editModuleModalBody ul{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    /* overflow-y: hidden; */
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+    padding: 0!important;
+  }
+  
+  ul#delegationsTabsContainer::-webkit-scrollbar, #wizardTabsContainer::-webkit-scrollbar, #datasourcesTabsContainer::-webkit-scrollbar, #addMetricModalTabs::-webkit-scrollbar, #editMetricModalTabs::-webkit-scrollbar, #editModuleModalBody ul::-webkit-scrollbar {
+  display: none; 
+  }
+  
+  .modal-content ul.nav-tabs.nav-justified > li{
+    border-radius: 0;
+    width: inherit;
+  }
+  
+  .modal-content ul.nav-tabs.nav-justified > li > a{
+    border-radius: 0;
+  }
+  
+}
+
+/* FILTER BAR */
+
+.collapsible {
+  cursor: pointer;
+  padding: 18px;
+  width: 50%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  background: none;
+  color: var(--text-color-);
+}
+
+.collapsible span:before{
+  content: "\f0b0";
+  font-size: 2rem;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+}
+
+.collapsible.active span:before{
+  content: "\f00d";
+  font-size: 3rem;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  color: var(--blue-);
+}
+
+.content {
+  padding: 0 18px;
+  display: none;
+  overflow: hidden;
+  background:transparent!important;
+  box-shadow: none!important;
+  border: none!important;
+  border-radius: 0!important;
+  flex-basis: 100%;
+}
+
+.filterListBar{
+  display: flex;
+  flex-direction: row-reverse;
+  flex-wrap: wrap;
+}
+
+#dashboardListsNewDashboard{
+  width: 50%;
+}
+
+#dashboardListsNewDashboard .centerWithFlex{
+  justify-content: right!important;
+}
+
+
+@media (min-width: 992px){
+  
+  .collapsible{
+    display: none;
+  }
+  
+  .content{
+    display: flex!important;
+    justify-content: center;
+  }
+  
+}
+
 .changeLanguage-modal {
+    border-radius: 10px!important;
+    background: var(--modal-bg-);
+    border: none;
     width: 200px !important;
     height: 200px !important;
     position:absolute !important;
     left:50% !important;
 }
-
-
