@@ -175,6 +175,7 @@ function getHltFromGeneric($hlt_gen) {
 }
 
 include '../config.php';
+
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 error_reporting(E_ERROR);
@@ -297,6 +298,10 @@ $imp = "";
 $s = "";
 $a = "";
 $dt = "";
+$sparqlErrorFlag = false;
+$sparqlBatchCounter = 0;
+$sparqlLimit = 50000;
+$sparqlOffset = 0;
 
 $queryOrg = "SELECT * FROM Dashboard.Organizations;";
 $rsOrg = mysqli_query($link, $queryOrg);
@@ -320,265 +325,282 @@ if($rsIP) {
 
         echo("\n--------- Ingestion IOT for kbIP: " . $kbHostIp . "\n");
 
-        $queryIotSensorDecoded = "select distinct ?s ?n ?a ?avn ?avt ?dt ?u ?serviceType ?org ?imp ?brokerName ?model ?mobile ?lat ?lon { " .
-            "?s a sosa:Sensor option (inference \"urn:ontology\"). " .
-            "?s schema:name ?n. " .
-            "?s km4c:hasAttribute ?a. " .
-            "?s <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker. " .
-            "?broker <http://schema.org/name> ?brokerName. " .
-            "?a km4c:data_type ?dt. " .
-            "OPTIONAL {?a km4c:value_name ?avn.} " .
-            "OPTIONAL {?a km4c:value_type ?avt.} " .
-            "OPTIONAL {?a km4c:value_unit ?u.} " .
-            "OPTIONAL {?s km4c:organization ?org.} " .
-            "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat.} " .
-            "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#long> ?lon.} " .
-            "OPTIONAL {?s km4c:model ?model.} " .
-            "OPTIONAL {?s km4c:isMobile ?mobile.} " .
-            "OPTIONAL {?s <http://www.w3.org/ns/ssn/implements> ?imp.} " .
-            "?s a ?sType. " .
-            "?sType rdfs:subClassOf* ?sCategory. " .
-            "?sCategory rdfs:subClassOf km4c:Service. " .
-            "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)}";
+        while ($sparqlErrorFlag === false) {
+            $sparqlOffset = ($sparqlLimit * $sparqlBatchCounter) + 1;
+            $queryIotSensorDecoded = "select distinct ?s ?n ?a ?avn ?avt ?dt ?u ?serviceType ?org ?imp ?brokerName ?model ?mobile ?lat ?lon { " .
+                "?s a sosa:Sensor option (inference \"urn:ontology\"). " .
+                "?s schema:name ?n. " .
+                "?s km4c:hasAttribute ?a. " .
+                "?s <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker. " .
+                "?broker <http://schema.org/name> ?brokerName. " .
+                "?a km4c:data_type ?dt. " .
+                "OPTIONAL {?a km4c:value_name ?avn.} " .
+                "OPTIONAL {?a km4c:value_type ?avt.} " .
+                "OPTIONAL {?a km4c:value_unit ?u.} " .
+                "OPTIONAL {?s km4c:organization ?org.} " .
+                "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat.} " .
+                "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#long> ?lon.} " .
+                "OPTIONAL {?s km4c:model ?model.} " .
+                "OPTIONAL {?s km4c:isMobile ?mobile.} " .
+                "OPTIONAL {?s <http://www.w3.org/ns/ssn/implements> ?imp.} " .
+                "?s a ?sType. " .
+                "?sType rdfs:subClassOf* ?sCategory. " .
+                "?sCategory rdfs:subClassOf km4c:Service. " .
+                "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)} " .
+                "OFFSET " . $sparqlOffset .
+                " LIMIT " . $sparqlLimit;
 
-        $queryIotSensor = $kbHostIp . "/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+            $queryIotSensor = $kbHostIp . "/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
-        $queryIotSensorRresults = file_get_contents($queryIotSensor);
-        $resArray = json_decode($queryIotSensorRresults, true);
-        $serviceChangeBuffer = array(
-            "last" => "",
-            "current" => "",
-        );
+            try {
+                $queryIotSensorRresults = file_get_contents($queryIotSensor);
+            } catch (Exception $e) {
+                echo ("ERRORE SPARQL QUERY: " . $e->getMessage() . "\n");
+                $sparqlErrorFlag = true;
+            }
+            $resArray = json_decode($queryIotSensorRresults, true);
 
-        $count = 0;
+            if (sizeof($resArray['results']['bindings']) == 0) {
+                $sparqlErrorFlag = true;
+            }
 
-        foreach ($resArray['results']['bindings'] as $key => $val) {
+            $serviceChangeBuffer = array(
+                "last" => "",
+                "current" => "",
+            );
 
-            $count++;
-            $totCount++;
-            $owner = null;
-            $cryptedOwner = null;
-            $decryptedOwner = null;
-            $ownerCheck = null;
-            $delegatedUsers = [];
-            $delegatedUsersStr = "";
-            $delegatedGroups = [];
-            $delegatedGroupStr = "";
-            $s = $resArray['results']['bindings'][$key]['s']['value'];   // $s --> serviceUri
-            $n = $resArray['results']['bindings'][$key]['n']['value'];   // $n --> service name
-            $a = $resArray['results']['bindings'][$key]['a']['value'];   // $a --> attribute
-            echo($totCount . " (" . $count . ") - IOT DEVICE: " . $s . ", MEASURE: " . $a . "\n");
-            $value_name = $resArray['results']['bindings'][$key]['avn']['value'];
-            $value_type = $resArray['results']['bindings'][$key]['avt']['value'];
-            $value_type = explode("value_type/", $value_type)[1];
-            $dt = $resArray['results']['bindings'][$key]['dt']['value'];   // $dt --> data type
-            $u = $resArray['results']['bindings'][$key]['u']['value'];
-            $serviceType = $resArray['results']['bindings'][$key]['serviceType']['value'];
-            $availability = $resArray['results']['bindings'][$key]['av']['value'];
-            //  $ownShip = $resArray['results']['bindings'][$key]['ow']['value'];
-            $brokerName = $resArray['results']['bindings'][$key]['brokerName']['value'];
-            $latitude = $resArray['results']['bindings'][$key]['lat']['value'];
-            $longitude = $resArray['results']['bindings'][$key]['lon']['value'];
-            $imp = $resArray['results']['bindings'][$key]['imp']['value'];
-            $is_mobile = $resArray['results']['bindings'][$key]['mobile']['value'];
+            $count = 0;
 
-            $low_level_type = explode($s . "/", $a)[1];
+            foreach ($resArray['results']['bindings'] as $key => $val) {
 
-            $organizationFromKb = $resArray['results']['bindings'][$key]['org']['value']; // $org --> organization NEW 10 GENNAIO 2019 !!
-            //  if (strcmp($organizationFromKb, $organizations) == 0) {
-            if (isset($organizationFromKb) && $organizationFromKb != '') {
-                $organizations = $organizationFromKb;
-                if (isset($orgArray[$organizations])) {
+                $count++;
+                $totCount++;
+                $owner = null;
+                $cryptedOwner = null;
+                $decryptedOwner = null;
+                $ownerCheck = null;
+                $delegatedUsers = [];
+                $delegatedUsersStr = "";
+                $delegatedGroups = [];
+                $delegatedGroupStr = "";
+                $s = $resArray['results']['bindings'][$key]['s']['value'];   // $s --> serviceUri
+                $n = $resArray['results']['bindings'][$key]['n']['value'];   // $n --> service name
+                $a = $resArray['results']['bindings'][$key]['a']['value'];   // $a --> attribute
+                echo($totCount . " (" . $count . ") - IOT DEVICE: " . $s . ", MEASURE: " . $a . "\n");
+                $value_name = $resArray['results']['bindings'][$key]['avn']['value'];
+                $value_type = $resArray['results']['bindings'][$key]['avt']['value'];
+                $value_type = explode("value_type/", $value_type)[1];
+                $dt = $resArray['results']['bindings'][$key]['dt']['value'];   // $dt --> data type
+                $u = $resArray['results']['bindings'][$key]['u']['value'];
+                $serviceType = $resArray['results']['bindings'][$key]['serviceType']['value'];
+                $availability = $resArray['results']['bindings'][$key]['av']['value'];
+                //  $ownShip = $resArray['results']['bindings'][$key]['ow']['value'];
+                $brokerName = $resArray['results']['bindings'][$key]['brokerName']['value'];
+                $latitude = $resArray['results']['bindings'][$key]['lat']['value'];
+                $longitude = $resArray['results']['bindings'][$key]['lon']['value'];
+                $imp = $resArray['results']['bindings'][$key]['imp']['value'];
+                $is_mobile = $resArray['results']['bindings'][$key]['mobile']['value'];
+
+                $low_level_type = explode($s . "/", $a)[1];
+
+                $organizationFromKb = $resArray['results']['bindings'][$key]['org']['value']; // $org --> organization NEW 10 GENNAIO 2019 !!
+                //  if (strcmp($organizationFromKb, $organizations) == 0) {
+                if (isset($organizationFromKb) && $organizationFromKb != '') {
+                    $organizations = $organizationFromKb;
+                    if (isset($orgArray[$organizations])) {
+                        $kbUrl = $orgArray[$organizations]->getKbUrl();
+                    } else {
+                        $stopFlag = 1;
+                    }
+                } else if ($kbHostIp == 'http://192.168.0.206:8890') {
+                    $organizations = "DISIT";
                     $kbUrl = $orgArray[$organizations]->getKbUrl();
+                    /*  } else if ($kbHostIp == 'http://192.168.0.205:8890') {
+                          if ($brokerName == 'orionFinland')
+                          $organizations = "Helsinki";
+                          $kbUrl = $orgArray[$organizations]->getKbUrl();*/
                 } else {
-                    $stopFlag = 1;
+                    $organizations = "Other";
+                    $kbUrl = $kbUrlSuperServiceMap;
                 }
-            } else if ($kbHostIp == 'http://192.168.0.206:8890') {
-                $organizations = "DISIT";
-                $kbUrl = $orgArray[$organizations]->getKbUrl();
-                /*  } else if ($kbHostIp == 'http://192.168.0.205:8890') {
-                      if ($brokerName == 'orionFinland')
-                      $organizations = "Helsinki";
-                      $kbUrl = $orgArray[$organizations]->getKbUrl();*/
-            } else {
-                $organizations = "Other";
-                $kbUrl = $kbUrlSuperServiceMap;
-            }
 
-            $unique_name_id = $organizations . ":" . $brokerName . ":" . $n;
-            $device_model_name = $n;
+                $unique_name_id = $organizations . ":" . $brokerName . ":" . $n;
+                $device_model_name = $n;
 
-            foreach ($ownedIOT as $struct) {
-                if ($unique_name_id == $struct->elementId) {
-                    $owner = strtolower($struct->username);     // MOD OWN-DEL
-                    break;
+                foreach ($ownedIOT as $struct) {
+                    if ($unique_name_id == $struct->elementId) {
+                        $owner = strtolower($struct->username);     // MOD OWN-DEL
+                        break;
+                    }
                 }
-            }
 
-            //  if (!in_array($owner, $encrCpls)) {
-            if (!array_key_exists($owner, $encrCpls)) {
-                $cryptedOwner = encryptOSSL($owner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
-                $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);  // MOD OWN-DEL
-                $encrCpls[$owner] = $cryptedOwner;
-            } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
-                $cryptedOwner = $encrCpls[$owner];
-            }
+                //  if (!in_array($owner, $encrCpls)) {
+                if (!array_key_exists($owner, $encrCpls)) {
+                    $cryptedOwner = encryptOSSL($owner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL
+                    $decryptedOwner = decryptOSSL($cryptedOwner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);  // MOD OWN-DEL
+                    $encrCpls[$owner] = $cryptedOwner;
+                } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                    $cryptedOwner = $encrCpls[$owner];
+                }
 
-            if (in_array($unique_name_id, $allowedElementIDs)) {
-                $ownership = "public";
-            } else {
-                $ownership = "private";
+                if (in_array($unique_name_id, $allowedElementIDs)) {
+                    $ownership = "public";
+                } else {
+                    $ownership = "private";
 
-                // MOD OWN-DEL
-                foreach ($delegatedIOT as $delStruct) {
-                    $userDelegated = null;
-                    if ($unique_name_id == $delStruct['elementId']) {
-                        $userDelegated = strtolower($delStruct['usernameDelegated']);
-                        $cryptedDelegatedUsr = null;
-                        $ownerCheck = $delStruct['usernameDelegator'];
-                        if (!in_array($userDelegated, $delegatedUsers)) {
-                            if (strcmp($userDelegated, '') != 0) {
-                                array_push($delegatedUsers, $userDelegated);
-                                if (!array_key_exists($userDelegated, $encrDelCpls)) {
-                                    $cryptedDelegatedUsr = encryptOSSL($userDelegated, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
-                                    $encrDelCpls[$userDelegated] = $cryptedDelegatedUsr;
-                                } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
-                                    $cryptedDelegatedUsr = $encrDelCpls[$userDelegated];
+                    // MOD OWN-DEL
+                    foreach ($delegatedIOT as $delStruct) {
+                        $userDelegated = null;
+                        if ($unique_name_id == $delStruct['elementId']) {
+                            $userDelegated = strtolower($delStruct['usernameDelegated']);
+                            $cryptedDelegatedUsr = null;
+                            $ownerCheck = $delStruct['usernameDelegator'];
+                            if (!in_array($userDelegated, $delegatedUsers)) {
+                                if (strcmp($userDelegated, '') != 0) {
+                                    array_push($delegatedUsers, $userDelegated);
+                                    if (!array_key_exists($userDelegated, $encrDelCpls)) {
+                                        $cryptedDelegatedUsr = encryptOSSL($userDelegated, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+                                        $encrDelCpls[$userDelegated] = $cryptedDelegatedUsr;
+                                    } else {    // DO NOT ENCRYPT IF ALREADY CRYPTED USER
+                                        $cryptedDelegatedUsr = $encrDelCpls[$userDelegated];
+                                    }
+                                    if ($delegatedUsersStr == null || $delegatedUsersStr === "") {
+                                        $delegatedUsersStr = $cryptedDelegatedUsr;
+                                    } else {
+                                        $delegatedUsersStr = $delegatedUsersStr . ", " . $cryptedDelegatedUsr;
+                                    }
                                 }
-                                if ($delegatedUsersStr == null || $delegatedUsersStr === "") {
-                                    $delegatedUsersStr = $cryptedDelegatedUsr;
+                            }
+
+                            if (isset($delStruct['groupnameDelegated'])) {
+                                //    $cryptedDelegatedGroup = null;
+                                if (!in_array($delStruct['groupnameDelegated'], $delegatedGroups)) {
+                                    if (!is_null($delStruct['groupnameDelegated'])) {
+                                        $delegatedGroupsItem = $delStruct['groupnameDelegated'];
+                                        if (isset(explode(",ou", $delegatedGroupsItem)[1])) {
+                                            $delegatedGroupsItem = explode(",ou", explode("cn=", $delegatedGroupsItem)[1])[0];
+                                            /*    if (!isset($delegatedGroupsItem) || trim($delegatedGroupsItem) === '') {
+                                                    $delegatedGroupsItem = explode(",dc", explode("ou=", $delegatedGroupsItem)[1])[0];
+                                                }*/
+                                        } else {
+                                            $delegatedGroupsItem = explode(",dc=", explode("ou=", $delegatedGroupsItem)[1])[0];
+                                        }
+                                        array_push($delegatedGroups, $delegatedGroupsItem);
+
+                                        if ($delegatedGroupStr == null || $delegatedGroupStr === "") {
+                                            $delegatedGroupStr = $delegatedGroupsItem;
+                                        } else {
+                                            $delegatedGroupStr = $delegatedGroupStr . ", " . $delegatedGroupsItem;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                $serviceChangeBuffer["current"] = $unique_name_id;
+
+                if ($processId == 0) {      // UPDATE
+                    $high_level_type = "Sensor";
+                    $nature = "From IOT Device to KB";
+                    $sub_nature = "IoTSensor";
+
+                } else {                    // UPSERT
+                    list($high_level_type, $nature, $sub_nature) = prepareElements($resArray['results']['bindings'][$key]['model']['value'], $imp, $is_mobile, $serviceType, $organizations, $resArray['results']['bindings'][$key]['brokerName']['value']);
+                /*    $model = $resArray['results']['bindings'][$key]['model']['value'];
+                    if ($imp == "http://www.disit.org/km4city/resource/iot/DataTable") {
+                        $high_level_type = "Data Table Device";
+                        $modelObj = New Model($model, "Data Table Model", $organizations, $nature, $sub_nature);
+                    } else {
+                        $high_level_type = "IoT Device";
+                        $modelObj = New Model($model, "IoT Device Model", $organizations, $nature, $sub_nature);
+                    }
+                    $sub_nature_array = explode("_", $serviceType);
+                    //  if (sizeof($sub_nature_array) > 2) {
+                    $nature = explode("_", $serviceType)[0];
+                    $sub_nature = explode($nature . "_", $serviceType)[1];
+
+                    if (!isset($modelArray[$modelObj->getModelName()])) {
+                        push_array($modelArray, $modelObj);
+                    } else {
+                        // check and eventually add organization to model
+                        if (!in_array($organizations, $modelObj->getModelOrganizations())) {
+                            array_push($modelObj->getModelOrganizations(), $organizations);
+                        }
+                    }*/
+                }
+
+                $instance_uri = 'single_marker';
+                $unit = $dt;
+                $get_instances = $s;
+                $metric = "no";
+                $saved_direct = "direct";
+                $kb_based = "yes";
+                $sm_based = "yes";
+                $parameters = $kbUrl . "?serviceUri=" . $s . "&format=json";
+
+                if ($serviceChangeBuffer["current"] != $serviceChangeBuffer["last"]) {
+                    if ($processId == 0) {
+                        $generalServiceQuery = "SELECT * FROM DashboardWizard WHERE high_level_type = '". $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND unit = 'sensor_map' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+                        $resGeneralServiceQuery = mysqli_query($link, $generalServiceQuery);
+                        $result = [];
+                        if($resGeneralServiceQuery) {
+                            if ($row = mysqli_fetch_assoc($resGeneralServiceQuery)) {
+                                list($high_level_type_new, $nature_new, $sub_nature_new) = prepareElements($resArray['results']['bindings'][$key]['model']['value'], $imp, $is_mobile, $serviceType, $organizations, $resArray['results']['bindings'][$key]['brokerName']['value']);
+                                /*if ($imp == "http://www.disit.org/km4city/resource/iot/DataTable") {
+                                    $high_level_type_new = "Data Table Device";
                                 } else {
-                                    $delegatedUsersStr = $delegatedUsersStr . ", " . $cryptedDelegatedUsr;
+                                    $high_level_type_new = "IoT Device";
                                 }
+                                $sub_nature_array_new = explode("_", $serviceType);
+                                //  if (sizeof($sub_nature_array) > 2) {
+                                $nature_new = explode("_", $serviceType)[0];
+                                $sub_nature_new = explode($nature_new . "_", $serviceType)[1];*/
+
+                                $updateGeneralServiceQuery = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_new . "', nature = '" . $nature_new . "', sub_nature = '" . $sub_nature_new . "', unique_name_id = '" . $unique_name_id . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "' AND unit = 'sensor_map';";
+                                mysqli_query($link, $updateGeneralServiceQuery);
                             }
                         }
+                    } else {
 
-                        if (isset($delStruct['groupnameDelegated'])) {
-                            //    $cryptedDelegatedGroup = null;
-                            if (!in_array($delStruct['groupnameDelegated'], $delegatedGroups)) {
-                                if (!is_null($delStruct['groupnameDelegated'])) {
-                                    $delegatedGroupsItem = $delStruct['groupnameDelegated'];
-                                    if (isset(explode(",ou", $delegatedGroupsItem)[1])) {
-                                        $delegatedGroupsItem = explode(",ou", explode("cn=", $delegatedGroupsItem)[1])[0];
-                                        /*    if (!isset($delegatedGroupsItem) || trim($delegatedGroupsItem) === '') {
-                                                $delegatedGroupsItem = explode(",dc", explode("ou=", $delegatedGroupsItem)[1])[0];
-                                            }*/
-                                    } else {
-                                        $delegatedGroupsItem = explode(",dc=", explode("ou=", $delegatedGroupsItem)[1])[0];
-                                    }
-                                    array_push($delegatedGroups, $delegatedGroupsItem);
-
-                                    if ($delegatedGroupStr == null || $delegatedGroupStr === "") {
-                                        $delegatedGroupStr = $delegatedGroupsItem;
-                                    } else {
-                                        $delegatedGroupStr = $delegatedGroupStr . ", " . $delegatedGroupsItem;
-                                    }
-                                }
-                            }
-                        }
+                        $insertGeneralServiceQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, ownerHash, delegatedHash, delegatedGroupHash, device_model_name, broker_name) VALUES ('$nature','$high_level_type','$sub_nature','', '$unique_name_id', '$instance_uri', '$get_instances', 'sensor_map', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', 'true', '$ownership', '$organizations', '$latitude', '$longitude', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr', '$device_model_name', '$brokerName') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "';";
+                        mysqli_query($link, $insertGeneralServiceQuery);
                     }
                 }
 
-            }
-
-            $serviceChangeBuffer["current"] = $unique_name_id;
-
-            if ($processId == 0) {      // UPDATE
-                $high_level_type = "Sensor";
-                $nature = "From IOT Device to KB";
-                $sub_nature = "IoTSensor";
-
-            } else {                    // UPSERT
-                list($high_level_type, $nature, $sub_nature) = prepareElements($resArray['results']['bindings'][$key]['model']['value'], $imp, $is_mobile, $serviceType, $organizations, $resArray['results']['bindings'][$key]['brokerName']['value']);
-            /*    $model = $resArray['results']['bindings'][$key]['model']['value'];
-                if ($imp == "http://www.disit.org/km4city/resource/iot/DataTable") {
-                    $high_level_type = "Data Table Device";
-                    $modelObj = New Model($model, "Data Table Model", $organizations, $nature, $sub_nature);
-                } else {
-                    $high_level_type = "IoT Device";
-                    $modelObj = New Model($model, "IoT Device Model", $organizations, $nature, $sub_nature);
-                }
-                $sub_nature_array = explode("_", $serviceType);
-                //  if (sizeof($sub_nature_array) > 2) {
-                $nature = explode("_", $serviceType)[0];
-                $sub_nature = explode($nature . "_", $serviceType)[1];
-
-                if (!isset($modelArray[$modelObj->getModelName()])) {
-                    push_array($modelArray, $modelObj);
-                } else {
-                    // check and eventually add organization to model
-                    if (!in_array($organizations, $modelObj->getModelOrganizations())) {
-                        array_push($modelObj->getModelOrganizations(), $organizations);
-                    }
-                }*/
-            }
-
-            $instance_uri = 'single_marker';
-            $unit = $dt;
-            $get_instances = $s;
-            $metric = "no";
-            $saved_direct = "direct";
-            $kb_based = "yes";
-            $sm_based = "yes";
-            $parameters = $kbUrl . "?serviceUri=" . $s . "&format=json";
-
-            if ($serviceChangeBuffer["current"] != $serviceChangeBuffer["last"]) {
                 if ($processId == 0) {
-                    $generalServiceQuery = "SELECT * FROM DashboardWizard WHERE high_level_type = '". $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND unit = 'sensor_map' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
-                    $resGeneralServiceQuery = mysqli_query($link, $generalServiceQuery);
+                    $serviceQuery = "SELECT * FROM DashboardWizard WHERE high_level_type = '". $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+                    $resServiceQuery = mysqli_query($link, $serviceQuery);
                     $result = [];
-                    if($resGeneralServiceQuery) {
-                        if ($row = mysqli_fetch_assoc($resGeneralServiceQuery)) {
+                    if($resServiceQuery) {
+                        if ($row = mysqli_fetch_assoc($resServiceQuery)) {
                             list($high_level_type_new, $nature_new, $sub_nature_new) = prepareElements($resArray['results']['bindings'][$key]['model']['value'], $imp, $is_mobile, $serviceType, $organizations, $resArray['results']['bindings'][$key]['brokerName']['value']);
-                            /*if ($imp == "http://www.disit.org/km4city/resource/iot/DataTable") {
-                                $high_level_type_new = "Data Table Device";
-                            } else {
-                                $high_level_type_new = "IoT Device";
-                            }
-                            $sub_nature_array_new = explode("_", $serviceType);
-                            //  if (sizeof($sub_nature_array) > 2) {
-                            $nature_new = explode("_", $serviceType)[0];
-                            $sub_nature_new = explode($nature_new . "_", $serviceType)[1];*/
-
-                            $updateGeneralServiceQuery = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_new . "', nature = '" . $nature_new . "', sub_nature = '" . $sub_nature_new . "', unique_name_id = '" . $unique_name_id . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "' AND unit = 'sensor_map';";
-                            mysqli_query($link, $updateGeneralServiceQuery);
+                            /*    if ($imp == "http://www.disit.org/km4city/resource/iot/DataTable") {
+                                    $high_level_type_new = "Data Table Device";
+                                } else {
+                                    $high_level_type_new = "IoT Device";
+                                }
+                                $sub_nature_array_new = explode("_", $serviceType);
+                                //  if (sizeof($sub_nature_array) > 2) {
+                                $nature_new = explode("_", $serviceType)[0];
+                                $sub_nature_new = explode($nature . "_", $serviceType)[1];*/
+                            $high_level_type_new_v = getHltFromGeneric($high_level_type_new);
+                            $updateServiceQuery = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_new_v . "', nature = '" . $nature_new . "', sub_nature = '" . $sub_nature_new . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
+                            mysqli_query($link, $updateServiceQuery);
                         }
                     }
                 } else {
-
-                    $insertGeneralServiceQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, ownerHash, delegatedHash, delegatedGroupHash, device_model_name, broker_name) VALUES ('$nature','$high_level_type','$sub_nature','', '$unique_name_id', '$instance_uri', '$get_instances', 'sensor_map', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', 'true', '$ownership', '$organizations', '$latitude', '$longitude', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr', '$device_model_name', '$brokerName') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "',  get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "';";
-                    mysqli_query($link, $insertGeneralServiceQuery);
+                    $high_level_type_v = getHltFromGeneric($high_level_type);
+                    $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, value_unit, ownerHash, delegatedHash, delegatedGroupHash, value_name, value_type, device_model_name, broker_name) VALUES ('$nature','$high_level_type_v','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$u', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr', '$value_name', '$value_type', '$device_model_name', '$brokerName') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_v . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', value_unit = '" . $u . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "';";
+                    mysqli_query($link, $insertQuery);
                 }
-            }
 
-            if ($processId == 0) {
-                $serviceQuery = "SELECT * FROM DashboardWizard WHERE high_level_type = '". $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
-                $resServiceQuery = mysqli_query($link, $serviceQuery);
-                $result = [];
-                if($resServiceQuery) {
-                    if ($row = mysqli_fetch_assoc($resServiceQuery)) {
-                        list($high_level_type_new, $nature_new, $sub_nature_new) = prepareElements($resArray['results']['bindings'][$key]['model']['value'], $imp, $is_mobile, $serviceType, $organizations, $resArray['results']['bindings'][$key]['brokerName']['value']);
-                        /*    if ($imp == "http://www.disit.org/km4city/resource/iot/DataTable") {
-                                $high_level_type_new = "Data Table Device";
-                            } else {
-                                $high_level_type_new = "IoT Device";
-                            }
-                            $sub_nature_array_new = explode("_", $serviceType);
-                            //  if (sizeof($sub_nature_array) > 2) {
-                            $nature_new = explode("_", $serviceType)[0];
-                            $sub_nature_new = explode($nature . "_", $serviceType)[1];*/
-                        $high_level_type_new_v = getHltFromGeneric($high_level_type_new);
-                        $updateServiceQuery = "UPDATE DashboardWizard SET high_level_type = '" . $high_level_type_new_v . "', nature = '" . $nature_new . "', sub_nature = '" . $sub_nature_new . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "' WHERE high_level_type = '" . $high_level_type . "' AND sub_nature = '" . $sub_nature . "' AND low_level_type = '" . $low_level_type . "' AND unique_name_id = '" . $unique_name_id . "' AND instance_uri = '" . $instance_uri . "' AND get_instances = '" . $get_instances . "';";
-                        mysqli_query($link, $updateServiceQuery);
-                    }
-                }
-            } else {
-                $high_level_type_v = getHltFromGeneric($high_level_type);
-                $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, value_unit, ownerHash, delegatedHash, delegatedGroupHash, value_name, value_type, device_model_name, broker_name) VALUES ('$nature','$high_level_type_v','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$u', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr', '$value_name', '$value_type', '$device_model_name', '$brokerName') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_v . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', value_unit = '" . $u . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "';";
-                mysqli_query($link, $insertQuery);
-            }
+                $serviceChangeBuffer["last"] = $unique_name_id;
 
-            $serviceChangeBuffer["last"] = $unique_name_id;
+            }
+            $sparqlBatchCounter++;
 
         }
         //  }
