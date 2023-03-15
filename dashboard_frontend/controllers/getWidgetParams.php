@@ -55,7 +55,10 @@
 
 	// MS> Use defaults for geo server and heatmap URLs if necessary
 	if($response['geoServerUrl'] == null) $response['geoServerUrl'] = "https://wmsserver.snap4city.org/";
-  if($response['heatmapUrl'] == null) $response['heatmapUrl'] = "https://heatmap.snap4city.org/";
-	// <MS
+    if($response['heatmapUrl'] == null) $response['heatmapUrl'] = "https://heatmap.snap4city.org/";
+    if(isset($_REQUEST['t1']) && isset($_REQUEST['t2'])){
+        $response['t1'] = $_REQUEST['t1'];
+        $response['t2'] = $_REQUEST['t2'];
+    }	// <MS
 
     echo json_encode($response);

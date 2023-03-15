@@ -496,30 +496,39 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     z-index: 500!important;
 }
 
-#universal-map-controls, #universal-map-overlay {
+#deck-controls{
+    top: 50px!important;
+    left: 30px!important;
+}
+
+#universal-map-controls, #universal-map-overlay, #universal-map-popup {
     position: absolute!important;
-    top: 45px!important;
-    left: 20px!important;
+    top: 55px!important;
     margin: 10px!important;
-    height: calc(100% - 85px)!important;
-    width: calc(100% - 60px)!important;
+    height: calc(100% - 70px)!important;
+    width: calc(100% - 20px)!important;
 }
 
-#universal-map-overlay .map-menu {
-    left: 40px!important;
-    top: 0px!important;
+#universal-top-right {
+    background-color: var(--dash-bg-color)!important;
+    border-radius: 10px!important;
 }
 
-#universal-map-overlay .map-ligth-menu {
-    top: -15px!important;
+#universal-top-right div#heatmapLegend, #universal-top-right div#trafficHeatmapLegend {
+    margin: 0!important;
 }
 
-#universal-map-overlay .dropdown-menu {
-    background-color: var(--wdgt-bg-color)!important;
+.dropdown-menu a:hover, .dropdown-menu a:focus {
+    background-color: var(--dash-bg-color)!important;
+}
+
+#deck-menu-header a {
+    color: var(--acc-02-color)!important;
+    border-radius: 10px;
 }
 
 #universal-map-overlay .dropdown-header {
-    color: var(--acc-01-color)!important;
+    color: var(--acc-02-color)!important;
     padding: 3px 10px!important;
 }
 
@@ -527,9 +536,35 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     color: var(--text-color)!important;
 }
 
-#deck-controls{
-    top: 50px!important;
-    left: 30px!important;
+#universal-map-controls #dropdownMenu1 {
+    width: 65px!important;
+}
+
+#deck-menu-content .appendable {
+    margin-bottom: 10px;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 15px 20px;
+    text-align: center;
+    font-size: 20px;
+}
+
+#deck-info-tab a {
+    color: var(--acc-02-color)!important;
+    border-radius: 30px;
+}
+
+.deck-btn {
+    box-shadow: 0px 10px rgba(0, 0, 0, 0.1)!important;
+}
+
+.deck-btn:hover {
+    box-shadow: 0px 8px rgba(0, 0, 0, 0.1)!important;
+    transform: translate(0px, 2px);
+}
+
+.deck-btn-active {
+    box-shadow: 0px 5px rgba(0, 0, 0, 0.1)!important;
+    transform: translate(0px, 5px);
 }
 
 .deck-btn-set > button, #deck-zoom-box {

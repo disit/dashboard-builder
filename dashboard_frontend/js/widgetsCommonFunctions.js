@@ -703,7 +703,7 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
                                 fatherNode = originalData.Service;
                             }
 
-                            if (fatherNode.features[0].properties.realtimeAttributes[metric[i]] != null) {
+                            if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType] != null) {
                                 if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
                                     tmpData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
                                 }
@@ -729,7 +729,7 @@ function getSmartCitySensorValues(metric, i, smUrl, timeRange, syncFlag, callbac
                             fatherNode = originalData.Service;
                         }
 
-                        if (fatherNode.features[0].properties.realtimeAttributes[metric[i]] != null) {
+                        if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType] != null) {
                             if (fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit != null) {
                                 extractedData.metricValueUnit = fatherNode.features[0].properties.realtimeAttributes[metric[i].metricType].value_unit;
                             }
@@ -1811,4 +1811,54 @@ function openNewDashboard(url, target){
     a.target = target;
     a.href = url;
     a.click();
+}
+
+function checkManualLabels(rowParams) {
+    for (let k in rowParams) {
+        if (rowParams[k].label) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function findBarLabels(rowParams, origLabels, ref) {
+    var labels = [];
+    var target = "";
+    var targetLab = "";
+    if (ref == "value name") {
+        target = "metricType";
+    } else {
+        target = "metricName"
+    }
+    for (var n in origLabels) {
+        targetLab = origLabels[n];
+        for (let k in rowParams) {
+            if (rowParams[k][target] == targetLab && rowParams[k].label) {
+                labels[n] = rowParams[k].label;
+                break;
+            }
+        }
+    }
+    return labels;
+}
+
+function findBarSingleLabel(rowParams, targetLab, ref) {
+    var res = null;
+    var target = "";
+    if (ref == "value name") {
+        target = "metricType";
+    } else {
+        target = "metricName"
+    }
+    for (let k in rowParams) {
+        if (rowParams[k][target] == targetLab) {
+            if (rowParams[k].label && rowParams[k].label != "" && rowParams[k].label.trim().length != 0) {
+                return rowParams[k].label;
+            } else {
+                return targetLab;
+            }
+        }
+    }
+    return res;
 }

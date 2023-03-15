@@ -366,6 +366,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             var infoMsgPopupFlag = false;
             var infoMsgText = null;
 
+            $('#open_BIMenu').hide();
             $('#orgMenu').hide();
             $('#orgMenuCnt a.mainMenuLink').attr('data-submenuVisible', 'false');
             $('#orgMenuCnt a.orgMenuSubItemLink').hide();
@@ -903,6 +904,15 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             });
             
             //Definizioni di funzione
+
+            function checkBIDash(widgets) {
+                for (let widgetId in widgets) {
+                    if (widgets[widgetId].code != null && widgets[widgetId].code != '') {
+                        return true;
+                    }
+                }
+            }
+
             function loadDashboard(dashboardParams, dashboardWidgets)
             {
                 var minEmbedDim, autofitAlertFontSize;
@@ -1688,6 +1698,9 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                     dataType: 'json',
                     success: function (response) 
                     {
+                        if (checkBIDash(response.dashboardWidgets)) {
+                            $('#open_BIMenu').show();
+                        }
                         scaleFactorFlag = response.dashboardParams.scaleFactor;
                         if (scaleFactorFlag == "yes") {
                             scaleFactorW = 78 / newScaledGridsterCellW;
@@ -1856,7 +1869,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     <div id="dashboardViewMainContainer" class="container-fluid">
         <nav id="dashboardViewHeaderContainer" class="navbar navbar-fixed-top" role="navigation">
             <div id="fullscreenBtnContainer" data-status="normal">
-                <span>
+                <span id="spanCnt">
                     <i id="fullscreenButton" class="fa fa-window-maximize"></i>
                     <i id="restorescreenButton" class="fa fa-window-restore"></i>
                             <?php
@@ -2191,6 +2204,22 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                             </div>
                         </div>
                     </div>
+                    <i id="open_BIMenu" class="fa fa-history"></i>
+                    <script  type="text/javascript">
+
+                        $('#spanCnt').append('<div id="BIMenuCnt" class="applicationCtxMenu fullCtxMenu container-fluid dashboardCtxMenu" style="display: block;"></div>');
+                        $('#BIMenuCnt').hide();
+                        $('#open_BIMenu').on("click", function(){
+                            $('#BIMenuCnt').show();
+                        });
+                        $('#BIMenuCnt').append('<div id="quit" class="col-md-12 orgMenuSubItemCnt">Quit</div>');
+                        $( "#quit" ).mouseover(function() {
+                            $('#quit').css('cursor', 'pointer');
+                        });
+                        $('#quit').on("click", function(){
+                            $('#BIMenuCnt').hide();
+                        });
+                    </script>
                 </span>
             </div>
             <div id="dashboardViewTitleAndSubtitleContainer">

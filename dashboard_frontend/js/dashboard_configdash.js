@@ -69,6 +69,22 @@ function setEditMultiSeriesParameters(editMultiSeriesParametersAtt)
     editMultiSeriesParametersLocal = editMultiSeriesParametersAtt;
 }
 
+function addToEditMultiSeriesParameters(param)
+{
+    for (k = 0; k < editMultiSeriesParametersLocal.length; k++) {
+        if (editMultiSeriesParametersLocal[k].mode) {
+            if (editMultiSeriesParametersLocal[k].mode == "ckeditor") {
+                editMultiSeriesParametersLocal[k].mode == "no";
+            }
+            if (editMultiSeriesParametersLocal[k].mode == "no") {
+                editMultiSeriesParametersLocal[k].mode == "ckeditor";
+            }
+            return;
+        }
+    }
+    editMultiSeriesParametersLocal.push(param);
+}
+
 function addGisQuery()
 {
    var newTableRow, newTableCell, newQueryObj, widgetId, widgetTitle = null;
@@ -801,7 +817,14 @@ function addMultiSeriesQueryM()
         lineColor: gisDefaultColors[($("#editMultiSeriesQueryTable tr").length - 1)%7].color1,
     };
 
-    editMultiSeriesParametersLocal.push(newQueryObj);
+    if (editMultiSeriesParametersLocal[editMultiSeriesParametersLocal.length - 1].mode) {
+        let finalParam = editMultiSeriesParametersLocal[editMultiSeriesParametersLocal.length - 1];
+        editMultiSeriesParametersLocal[editMultiSeriesParametersLocal.length - 1] = newQueryObj;
+        editMultiSeriesParametersLocal.push(finalParam);
+    } else {
+        editMultiSeriesParametersLocal.push(newQueryObj);;
+    }
+    // editMultiSeriesParametersLocal.push(newQueryObj);
 
     //Aggiunta record alla tabella GUI delle query
     newTableRow = $('<tr></tr>');
@@ -1216,8 +1239,36 @@ function editMultiSeriesUpdateParams(e, params)
     {
         case 'labels':
             newValue = params.newValue;
+            /* if (editMultiSeriesParametersLocal[rowIndex].mode) {
+                let finalParam = editMultiSeriesParametersLocal[rowIndex].mode;
+                editMultiSeriesParametersLocal[rowIndex] = {};
+                editMultiSeriesParametersLocal[rowIndex].label = newValue;
+                editMultiSeriesParametersLocal[rowIndex+1].mode = finalParam;
+            } else {
+                editMultiSeriesParametersLocal[rowIndex].label = newValue;
+            }   */
             editMultiSeriesParametersLocal[rowIndex].label = newValue;
-        //    editMultiSeriesParametersLocal[rowIndex].metricName = newValue;
+            break;
+
+        case 'barLabels':
+            var groupByAttribute = $(this).attr('data-groupattribute');
+            newValue = params.newValue;
+            var targetObj = "";
+            var labelNum = null;
+            if (groupByAttribute == "value name") {
+                targetObj = "metricType";
+                labelNum = "label1"
+            } else if (groupByAttribute == "value type") {
+                targetObj = "metricName";
+                labelNum = "label1"
+            }
+            var target = $(this).parents("tr")[0].childNodes[0].innerText;
+            // var target = editMultiSeriesParametersLocal[rowIndex][targetObj];
+            for (let i = 0; i < editMultiSeriesParametersLocal.length; i++) {
+                if (editMultiSeriesParametersLocal[i][targetObj] == target) {
+                    editMultiSeriesParametersLocal[i].label = newValue;
+                }
+            }
             break;
 
         case 'queryIDUrl':

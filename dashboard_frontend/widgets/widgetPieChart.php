@@ -15,9 +15,9 @@
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
-
+<script src="../datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
 <script type="text/javascript">
-    
+ var <?= $_REQUEST['name_w'] ?>_loaded = false;   
     var colors = {
       GREEN: '#008800',
       ORANGE: '#FF9933',
@@ -72,14 +72,16 @@
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
         var code, clickedVar, clickedVarType = null;
         var selectedDataJson = [];
+        var fromCode = null;
+        var showLegendFlag = false;
 		//////ADD CODE//////
 				//
         $(document).off('showPieChartFromExternalContent_' + widgetName);
         $(document).on('showPieChartFromExternalContent_' + widgetName, function(event){
 
             clearInterval(countdownRef);
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
-            <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
+            //$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+            //<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
             if(encodeURIComponent(metricName) === encodeURIComponent(metricName))
             {
                 //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromGisFakeId);
@@ -97,12 +99,19 @@
 
                 emptyLegendFlagFromWs = true;
                 $("#" + widgetName + "_loading").css("display", "block");
-                populateWidget();
+                populateWidget(null, true);
 
             }
 
         });
     /////
+	$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
+            showTodayButton: true,
+            widgetPositioning:{
+                horizontal: 'auto',
+                vertical: 'bottom'
+            }
+        })
 		
 		
 
@@ -161,7 +170,7 @@
             return thresholdsJson;
         }
 
-        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr) {
+        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode) {
 
             var deviceLabels = [];
             var metricLabels = [];
@@ -208,7 +217,7 @@
 
             widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
 
-            chartSeriesObject = getChartSeriesObject(series, editLabels);
+            chartSeriesObject = getChartSeriesObject(series, editLabels, fromCode);
             legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
             //    xAxisCategories = getXAxisCategories(series, widgetHeight);
 
@@ -244,7 +253,7 @@
                 }
             });
             //    }
-            drawDiagram("#<?= $_REQUEST['name_w'] ?>_chartContainer", chartSeriesObject, pieObj);
+            drawDiagram("#<?= $_REQUEST['name_w'] ?>_chartContainer", chartSeriesObject, pieObj, fromCode);
 
         }
 
@@ -314,9 +323,32 @@
             return finalLabels;
         }
 
-        function populateWidget() {
+        function populateWidget(fromAggregate, fromCode) {
 
             seriesDataArray = [];
+			var fromDate = null;
+			if ((fromAggregate != null)&&(fromAggregate != '')){
+				date = new Date(fromAggregate);
+				 var y = date.getFullYear();
+				 var m = date.getMonth() + 1; 
+					if (m < 10){
+						m = '0' +m;
+					}				 
+				 var d = date.getDate();
+				 if (d < 10){
+						d = '0' +d;
+					}	
+				 var h = date.getHours();
+				 if (h < 10){
+						h = '0' +h;
+					}
+				 var s = date.getMinutes();
+				 if (s < 10){
+						s = '0' +s;
+					}
+				 fromDate = y +'-'+m+'-'+d+'T'+h+':'+s+':00';
+				 // console.log(fromDate);
+			}
 
             let aggregationFlag = false;
             if (rowParameters != null) {
@@ -345,10 +377,13 @@
 
                 var centerY = 100 - parseInt(styleParameters.centerY);
 
+            /*    if (fromCode) {
+                    showLegendFlag = true;
+                }   */
                 pieObj = {
                     allowPointSelect: true,
                     cursor: 'pointer',
-                    showInLegend: false,
+                    showInLegend: showLegendFlag,
                     startAngle: startAngle,
                     endAngle: endAngle,
                     center: ['50%', centerY + '%']
@@ -418,10 +453,14 @@
                             var urlToCall = "";
                             var xlabels = [];
                             let smUrl = "";
+							var fromDate_url = '';
+							if (fromDate != null){
+								fromDate_url = '&toTime='+fromDate;
+							}
                             if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
-                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1]+fromDate_url;
                             } else {
-                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId+fromDate_url;
                             }
                             //    metricType = "Float";
 
@@ -473,7 +512,7 @@
                                 // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
                                 if (rowParameters.length === seriesDataArray.length) {
                                     // DO FINAL SERIALIZATION
-                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode);
                                 }
 
                             });
@@ -492,7 +531,7 @@
 
                             if (rowParameters.length === seriesDataArray.length) {
                                 // DO FINAL SERIALIZATION
-                                serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode)
                             }
 
                             break;
@@ -500,6 +539,11 @@
                         case "MyKPI":
 
                             //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
+							var fromDate_url = null;
+							if (fromDate != null){
+								fromDate_url = '&to='+fromDate;
+							}
+							//
                             let aggregationCell = [];
                             var xlabels = [];
                             let kpiMetricName = rowParameters[i].metricName;
@@ -507,10 +551,15 @@
                             if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
                                 rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
                             }
-                            getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
-
+                            //getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
+							getMyKPIValues(rowParameters, i, fromDate_url, 1, function (extractedData) {
+                                let countEmpty = 0;
                                 if (extractedData) {
-                                    seriesDataArray.push(extractedData);
+                                    if (Object.keys(extractedData).length > 0) {
+                                        seriesDataArray.push(extractedData);
+                                    } else {
+                                        countEmpty++;
+                                    }
                                 } else {
                                     console.log("Dati Smart City non presenti");
                                     seriesDataArray.push(undefined);
@@ -519,7 +568,7 @@
                                 // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
                                 if (rowParameters.length === seriesDataArray.length) {
                                     // DO FINAL SERIALIZATION
-                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode)
                                 }
 
                             });
@@ -776,9 +825,16 @@
                             seriesObj = getChartSeriesObject(series);
 
                             pieObj = {
+                                point: {
+                                    events: {
+                                        legendItemClick: function () {
+                                        //    alert("click");
+                                        }
+                                    }
+                                },
                                 allowPointSelect: true,
                                 cursor: 'pointer',
-                                showInLegend: false,
+                                showInLegend: true,
                                 startAngle: startAngle,
                                 endAngle: endAngle,
                                 center: ['50%', centerY + '%']
@@ -820,7 +876,7 @@
             }
         }
 
-        function drawDiagram (id, seriesObj, pieObj){
+        function drawDiagram (id, seriesObj, pieObj, fromCode){
 			//
             $(id).highcharts({
                 chart: {
@@ -835,7 +891,7 @@
                         beta: 0
                     },
                     events: {
-                        load: onDraw
+                        load: onDraw(fromCode)
                     }
                 },
                 title: {
@@ -848,27 +904,80 @@
                         point: {
                             events: {
                                 click: function() {
-                                    selectedDataJson = [];
-                                    clickedVar = this.options.name;
-									var param1 = this.options.y;
-									// execute_<?= $_REQUEST['name_w'] ?>(param1);
-                                    clickedVarType = this.series.name;
-                                    var dataString = "";
-                                    var vUnit = null;
-                                    if (clickedVarType == 'value name') {
-                                        for (var n = 0; n < seriesDataArray.length; n++) {
-                                            if (seriesDataArray[n].metricName == clickedVar) {
-                                                selectedDataJson.push(seriesDataArray[n]);
+                                    if(code){
+                                        selectedDataJson = [];
+                                        selectedDataJson.event = "click";
+                                        clickedVar = this.options.name;
+                                        var param1 = this.options.y;
+                                        clickedVarType = this.series.name;
+                                        var dataString = "";
+                                        var vUnit = null;
+                                        if (clickedVarType == 'value name') {
+                                            for (var n = 0; n < seriesDataArray.length; n++) {
+                                                if (seriesDataArray[n].metricName == clickedVar) {
+                                                    selectedDataJson.push(seriesDataArray[n]);
+                                                }
+                                            }
+                                        } else if (clickedVarType == 'value type') {
+                                            for (var n = 0; n < seriesDataArray.length; n++) {
+                                                if (seriesDataArray[n].metricType == clickedVar && Math.floor(seriesDataArray[n].value) == Math.floor(this.y)) {   
+                                                    selectedDataJson.push(seriesDataArray[n]);
+                                                }
                                             }
                                         }
-                                    } else if (clickedVarType == 'value type') {
-                                        for (var n = 0; n < seriesDataArray.length; n++) {
-                                            if (seriesDataArray[n].metricType == clickedVar && seriesDataArray[n].value == this.options.y) {
-                                                selectedDataJson.push(seriesDataArray[n]);
+                                        let j=1;
+                                        if(localStorage.getItem("events") == null){
+
+                                            var events = [];
+                                            events.push("PieChartClick1");
+                                            localStorage.setItem("events", JSON.stringify(events));
+                                        }
+                                        else{
+                                            var events = JSON.parse(localStorage.getItem("events"));
+                                            for(var e in events){
+                                                if(events[e].slice(0,13) == "PieChartClick")
+                                                    j = j+1;
+                                            }
+                                            events.push("PieChartClick" + j);
+                                            localStorage.setItem("events", JSON.stringify(events));
+                                        }
+
+                                        if(localStorage.getItem("passedData") == null){
+                                            var init = [];
+                                            init.push(selectedDataJson);
+                                            localStorage.setItem("passedData", JSON.stringify(init));
+                                        }
+                                        else{
+                                            var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                            newElement.push(selectedDataJson);
+                                            localStorage.setItem("passedData", JSON.stringify(newElement));
+                                        }
+
+                                        let newId = "PieChartClick"+j;
+                                        $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                        $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                        $('#'+newId).on( "click", function() {
+
+                                            let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                            var selectedDataJson = JSON.parse(localStorage.passedData)[eventIndex];
+                                            try {
+                                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                            } catch(e) {
+                                                console.log("Error in JS function from pie click on " + widgetName);
+                                            }
+                                                
+                                        });
+                                        $( '#'+newId ).mouseover(function() {
+                                            $('#'+newId).css('cursor', 'pointer');
+                                        });
+                                        if(code) {
+                                            try {
+                                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                            } catch (e) {
+                                                console.log("Error in JS function from pie click on " + widgetName);
                                             }
                                         }
                                     }
-                                    execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
                                 }
                             }
                         }
@@ -885,7 +994,7 @@
                     enabled: false
                 }
             });
-        };
+        }
 
         function labelsFormat()
         {
@@ -913,7 +1022,7 @@
             return format;
         }
 
-        function getChartSeriesObject(series, xAxisLabelsEdit)
+        function getChartSeriesObject(series, xAxisLabelsEdit, fromCode)
         {
             var totals, chartSeriesObject, singleObject, seriesName, seriesValue, seriesValues, seriesArray, zonesObject, zonesArray, inf, sup, i, innerSize, outerSize, numberOfCircs, chartWidth, increment, color = null;
 
@@ -954,7 +1063,7 @@
                     let seriesValuesName = "";
                     if (xAxisLabelsEdit != null) {
                         if (!flipFlag) {
-                            if (xAxisLabelsEdit.length == series.secondAxis.labels.length) {
+                            if (xAxisLabelsEdit.length == series.secondAxis.labels.length && !fromCode) {
                                 seriesValuesName = xAxisLabelsEdit[i];
                             } else {
                                 seriesValuesName = series.secondAxis.labels[i];
@@ -1001,7 +1110,7 @@
                     data: seriesValues,
                     size: outerSize,
                     innerSize: innerSize,
-                    showInLegend: false,
+                    showInLegend: showLegendFlag,
                     borderWidth: 1,
                     tooltip: {
                         headerFormat: null,
@@ -1045,7 +1154,7 @@
                 };
 
                 //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
-                if(seriesValues.length > 1)
+                if(seriesValues.length > 0)
                 {
                     chartSeriesObject.push(singleObject);
                 }
@@ -1102,7 +1211,7 @@
                     data: seriesValues,
                     size: outerSize,
                     innerSize: innerSize,
-                    showInLegend: false,
+                    showInLegend: showLegendFlag,
                     tooltip: {
                         style: {
                             fontFamily: 'Verdana',
@@ -1301,47 +1410,115 @@
         }
 
         //Disegno ad hoc della legenda, con inserimento dei pulsanti info e dei menu a comparsa delle legende sulle soglie nel caso delle serie.
-        function onDraw() {
-            var colorContainer, labelContainer, infoContainer, infoIcon, label, id, singleInfo, item, thresholdObject,
-                dropDownElement = null;
+        function onDraw(fromCode) {
+        //    if (!fromCode) {
+                var colorContainer, labelContainer, infoContainer, infoIcon, label, id, singleInfo, item,
+                    thresholdObject,
+                    dropDownElement = null;
 
-            if ((thresholdsJson !== null) && (thresholdsJson !== 'undefined')) {
-                thresholdObject = JSON.parse(thresholdsJson);
-            }
+                if ((thresholdsJson !== null) && (thresholdsJson !== 'undefined')) {
+                    thresholdObject = JSON.parse(thresholdsJson);
+                }
 
-            if (emptyLegendFlagFromWs == true) {
-                $("#" + widgetName + "_legendContainer1").empty();
-                $("#" + widgetName + "_legendContainer2").empty();
-                emptyLegendFlagFromWs = false;
-            }
+                if (emptyLegendFlagFromWs == true) {
+                    $("#" + widgetName + "_legendContainer1").empty();
+                    $("#" + widgetName + "_legendContainer2").empty();
+                    emptyLegendFlagFromWs = false;
+                }
 
-            if (metricType != null) {
-                if (metricType.indexOf('Percentuale') >= 0) {
-                    for (var i = 0; i < descriptions.length; i++) {
-                        label = descriptions[i];
+                if (metricType != null) {
+                    if (metricType.indexOf('Percentuale') >= 0) {
+                        for (var i = 0; i < descriptions.length; i++) {
+                            label = descriptions[i];
 
-                        if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
-                            colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors1[i] + '"></div>');
-                        } else {
-                            colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
+                            if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                                colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors1[i] + '"></div>');
+                            } else {
+                                colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
+                            }
+
+                            //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie
+                            if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                if (thresholdObject.thresholdObject.fields[i] !== undefined) {
+                                    if (thresholdObject.thresholdObject.fields[i].thrSeries.length > 0) {
+                                        labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
+                                            '<a href="#" data-toggle="dropdown" style="text-decoration: none;" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
+                                            '<ul class="dropdown-menu thrLegend">' +
+                                            '</ul>' +
+                                            '</div>');
+
+                                        thresholdObject.thresholdObject.fields[i].thrSeries.forEach(function (range) {
+                                            if (range.desc !== '') {
+                                                dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '&nbsp;&nbsp;<b>' + range.desc + '</b></a></li>');
+                                            } else {
+                                                dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '</a></li>');
+                                            }
+                                        });
+                                    } else {
+                                        labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
+                                    }
+                                } else {
+                                    labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
+                                }
+                            } else {
+                                labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
+                            }
+                            labelContainer.css("font-size", styleParameters.legendFontSize + "px");
+                            item = $('<div class="legendSingleContainer"></div>');
+                            item.append(colorContainer);
+                            item.append(labelContainer);
+                            item.css("color", styleParameters.legendFontColor);
+                            item.find('a').css("color", styleParameters.legendFontColor);
+                            item.find('a.thrLegendElement').css("color", "black");
+                            if (i < shownValues.length - 1) {
+                                item.css("margin-right", "10px");
+                            }
+
+                            item.css("display", "block");
+                            $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').append(item);
+
+                            var parentLegendElement = $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').find("div.legendSingleContainer").eq(i);
+                            var elementLeftPosition = parentLegendElement.position().left;
+                            var widgetWidth = $("#<?= $_REQUEST['name_w'] ?>_div").width();
+                            var legendMargin = null;
+
+                            if (elementLeftPosition > (widgetWidth / 2)) {
+                                legendMargin = 200;
+                            } else {
+                                legendMargin = 0;
+                            }
+
+                            $("#<?= $_REQUEST['name_w'] ?>_legendContainer1 .legendSingleContainer").eq(i).find("div.thrLegend ul").css("left", "-" + legendMargin + "%");
+
                         }
+                    } else if (metricType === 'Series') {
+                        for (var i = 0; i < series.secondAxis.labels.length; i++) {
+                            label = series.secondAxis.labels[i];
 
-                        //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie
-                        if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
-                            if (thresholdObject.thresholdObject.fields[i] !== undefined) {
-                                if (thresholdObject.thresholdObject.fields[i].thrSeries.length > 0) {
+                            if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                                colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors1[i] + '"></div>');
+                            } else {
+                                colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
+                            }
+
+                            //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
+                            if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                if (thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.length > 0) {
                                     labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
                                         '<a href="#" data-toggle="dropdown" style="text-decoration: none;" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
                                         '<ul class="dropdown-menu thrLegend">' +
                                         '</ul>' +
                                         '</div>');
 
-                                    thresholdObject.thresholdObject.fields[i].thrSeries.forEach(function (range) {
+                                    thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.forEach(function (range) {
                                         if (range.desc !== '') {
                                             dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '&nbsp;&nbsp;<b>' + range.desc + '</b></a></li>');
                                         } else {
                                             dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '</a></li>');
                                         }
+                                        dropDownElement.css("font", "bold 10px Verdana");
+                                        dropDownElement.find("i").css("font-size", "12px");
+                                        labelContainer.find("ul").append(dropDownElement);
                                     });
                                 } else {
                                     labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
@@ -1349,45 +1526,174 @@
                             } else {
                                 labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
                             }
-                        } else {
-                            labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
+
+                            item = $('<div class="legendSingleContainer"></div>');
+
+                            if (('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== 'null') && ('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== '')) {
+                                id = label.replace(/\s/g, '_');
+                                singleInfo = infoJson.secondAxis[id];
+
+                                if ((singleInfo !== '') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                    infoIcon = $('<i class="fa fa-info-circle handPointer" data-axis="y" data-label="' + label + '" style="font-size: 12px; margin-left: 3px"></i>');
+                                    infoIcon.css("color", styleParameters.legendFontColor);
+                                    infoContainer = $('<div class="legendInfoContainer"></div>');
+                                    infoContainer.append(infoIcon);
+                                    item.append(colorContainer);
+                                    item.append(infoContainer);
+                                    item.append(labelContainer);
+                                    infoIcon.on("click", showModalFieldsInfoSecondAxis);
+                                } else {
+                                    item.append(colorContainer);
+                                    item.append(labelContainer);
+                                }
+                            } else {
+                                item.append(colorContainer);
+                                item.append(labelContainer);
+                            }
+
+                            item.css("color", styleParameters.legendFontColor);
+                            item.find('a').css("color", styleParameters.legendFontColor);
+                            item.find('a.thrLegendElement').css("color", "black");
+                            item.find('i.fa-info-circl').css("color", styleParameters.legendFontColor);
+
+                            if (i < series.secondAxis.labels.length - 1) {
+                                item.css("margin-right", "10px");
+                            }
+
+                            item.css("display", "block");
+
+                            //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
+                            if (series.secondAxis.labels.length > 0) {
+                                $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').append(item);
+
+                                var parentLegendElement = $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').find("div.legendSingleContainer").eq(i);
+                                var elementLeftPosition = parentLegendElement.position().left;
+                                var widgetWidth = $("#<?= $_REQUEST['name_w'] ?>_div").width();
+                                var legendMargin = null;
+
+                                if (elementLeftPosition > (widgetWidth / 2)) {
+                                    legendMargin = 200;
+                                } else {
+                                    legendMargin = 0;
+                                }
+
+                                $("#<?= $_REQUEST['name_w'] ?>_legendContainer1 .legendSingleContainer").eq(i).find("div.thrLegend ul").css("left", "-" + legendMargin + "%");
+                            } else {
+                                $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').hide();
+                                $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("height", "93%");
+                            }
                         }
-                        labelContainer.css("font-size", styleParameters.legendFontSize + "px");
-                        item = $('<div class="legendSingleContainer"></div>');
-                        item.append(colorContainer);
-                        item.append(labelContainer);
-                        item.css("color", styleParameters.legendFontColor);
-                        item.find('a').css("color", styleParameters.legendFontColor);
-                        item.find('a.thrLegendElement').css("color", "black");
-                        if (i < shownValues.length - 1) {
-                            item.css("margin-right", "10px");
+
+                        for (var i = 0; i < series.firstAxis.labels.length; i++) {
+                            label = series.firstAxis.labels[i];
+
+                            if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                                colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors2[i] + '"></div>');
+                            } else {
+                                colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
+                            }
+
+                            //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie
+                            if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                if (thresholdObject.thresholdObject.firstAxis.fields[i].thrSeries.length > 0) {
+                                    labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
+                                        '<a href="#" data-toggle="dropdown" style="text-decoration: none;" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
+                                        '<ul class="dropdown-menu thrLegend">' +
+                                        '</ul>' +
+                                        '</div>');
+
+                                    thresholdObject.thresholdObject.firstAxis.fields[i].thrSeries.forEach(function (range) {
+                                        if (range.desc !== '') {
+                                            dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '&nbsp;&nbsp;<b>' + range.desc + '</b></a></li>');
+                                        } else {
+                                            dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '</a></li>');
+                                        }
+                                        dropDownElement.css("font", "bold 10px Verdana");
+                                        dropDownElement.find("i").css("font-size", "12px");
+                                        labelContainer.find("ul").append(dropDownElement);
+                                    });
+                                } else {
+                                    labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
+                                }
+                            } else {
+                                labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
+                            }
+
+                            item = $('<div class="legendSingleContainer"></div>');
+
+                            if (('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== 'null') && ('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== '')) {
+                                id = label.replace(/\s/g, '_');
+                                singleInfo = infoJson.firstAxis[id];
+
+                                if ((singleInfo !== '') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
+                                    infoIcon = $('<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: 12px; color: black; margin-left: 3px"></i>'); //data-axis="y" data-label="' + $(this).html() + '" vanno rimessi?
+                                    infoIcon.css("color", styleParameters.legendFontColor);
+                                    infoContainer = $('<div class="legendInfoContainer"></div>');
+                                    infoContainer.append(infoIcon);
+                                    item.append(colorContainer);
+                                    item.append(infoContainer);
+                                    item.append(labelContainer);
+                                    infoIcon.on("click", showModalFieldsInfoFirstAxis);
+                                } else {
+                                    item.append(colorContainer);
+                                    item.append(labelContainer);
+                                }
+                            } else {
+                                item.append(colorContainer);
+                                item.append(labelContainer);
+                            }
+
+                            item.css("color", styleParameters.legendFontColor);
+                            item.find('a').css("color", styleParameters.legendFontColor);
+                            item.find('a.thrLegendElement').css("color", "black");
+                            item.find('i.fa-info-circle').css("color", styleParameters.legendFontColor);
+
+                            if (i < series.secondAxis.labels.length - 1) {
+                                item.css("margin-right", "10px");
+                            }
+
+                            item.css("display", "block");
+
+                            $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').append(item);
+
+                            var parentLegendElement = $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').find("div.legendSingleContainer").eq(i);
+                            var elementLeftPosition = parentLegendElement.position().left;
+                            var widgetWidth = $("#<?= $_REQUEST['name_w'] ?>_div").width();
+                            var legendMargin = null;
+
+                            if (elementLeftPosition > (widgetWidth / 2)) {
+                                legendMargin = 200;
+                            } else {
+                                legendMargin = 0;
+                            }
+
+                            $("#<?= $_REQUEST['name_w'] ?>_legendContainer2 .legendSingleContainer").eq(i).find("div.thrLegend ul").css("left", "-" + legendMargin + "%");
                         }
-
-                        item.css("display", "block");
-                        $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').append(item);
-
-                        var parentLegendElement = $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').find("div.legendSingleContainer").eq(i);
-                        var elementLeftPosition = parentLegendElement.position().left;
-                        var widgetWidth = $("#<?= $_REQUEST['name_w'] ?>_div").width();
-                        var legendMargin = null;
-
-                        if (elementLeftPosition > (widgetWidth / 2)) {
-                            legendMargin = 200;
-                        } else {
-                            legendMargin = 0;
-                        }
-
-                        $("#<?= $_REQUEST['name_w'] ?>_legendContainer1 .legendSingleContainer").eq(i).find("div.thrLegend ul").css("left", "-" + legendMargin + "%");
-
                     }
-                } else if (metricType === 'Series') {
+                } else {
                     for (var i = 0; i < series.secondAxis.labels.length; i++) {
-                        label = series.secondAxis.labels[i];
 
-                        if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                        if (editLabels != null) {
+                            if (!flipFlag) {
+                                if (editLabels.length == series.secondAxis.labels.length && !fromCode) {
+                                    label = editLabels[i];
+                                } else {
+                                    label = series.secondAxis.labels[i];
+                                }
+                            } else {
+                                // flipped case
+                                label = series.secondAxis.labels[i];
+                            }
+                        } else {
+                            label = series.secondAxis.labels[i];
+                        }
+
+                        //    label = series.secondAxis.labels[i];
+
+                        if (((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) && styleParameters.colorsSelect1 == "manual") {
                             colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors1[i] + '"></div>');
                         } else {
-                            colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
+                            colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i % 10] + '"></div>');
                         }
 
                         //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
@@ -1452,8 +1758,18 @@
                         item.css("display", "block");
 
                         //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
-                        if (series.secondAxis.labels.length > 1) {
-                            $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').append(item);
+                        if (series.secondAxis.labels.length > 0) {
+
+                            let legendSameItemFlag = false;
+                            for (let n = 0; n < $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').children().length; n++) {
+                                if ($('#<?= $_REQUEST['name_w'] ?>_legendContainer1').children()[n].textContent == item[0].textContent) {
+                                    legendSameItemFlag = true;
+                                }
+                            }
+
+                            if (!legendSameItemFlag) {
+                                $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').append(item);
+                            }
 
                             var parentLegendElement = $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').find("div.legendSingleContainer").eq(i);
                             var elementLeftPosition = parentLegendElement.position().left;
@@ -1474,12 +1790,24 @@
                     }
 
                     for (var i = 0; i < series.firstAxis.labels.length; i++) {
-                        label = series.firstAxis.labels[i];
+                        if (series.firstAxis.desc == "value name") {
+                            if (editLabels != null) {
+                                if (editLabels[i] != series.firstAxis.labels[i]) {
+                                    label = editLabels[i];
+                                } else {
+                                    label = series.firstAxis.labels[i];
+                                }
+                            } else {
+                                label = series.firstAxis.labels[i];
+                            }
+                        } else {
+                            label = series.firstAxis.labels[i];
+                        }
 
-                        if ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) {
+                        if (((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) && styleParameters.colorsSelect2 == "manual") {
                             colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors2[i] + '"></div>');
                         } else {
-                            colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
+                            colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray2[i % 5] + '"></div>');
                         }
 
                         //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie
@@ -1541,9 +1869,18 @@
                             item.css("margin-right", "10px");
                         }
 
-                        item.css("display", "block");
+                        //item.css("display", "block");	// Comment after BI
 
-                        $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').append(item);
+                        let legendSameItemFlag = false;
+                        for (let n = 0; n < $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').children().length; n++) {
+                            if ($('#<?= $_REQUEST['name_w'] ?>_legendContainer2').children()[n].textContent == item[0].textContent) {
+                                legendSameItemFlag = true;
+                            }
+                        }
+
+                        if (!legendSameItemFlag) {
+                            $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').append(item);
+                        }
 
                         var parentLegendElement = $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').find("div.legendSingleContainer").eq(i);
                         var elementLeftPosition = parentLegendElement.position().left;
@@ -1559,232 +1896,10 @@
                         $("#<?= $_REQUEST['name_w'] ?>_legendContainer2 .legendSingleContainer").eq(i).find("div.thrLegend ul").css("left", "-" + legendMargin + "%");
                     }
                 }
-            } else {
-                for (var i = 0; i < series.secondAxis.labels.length; i++) {
-
-                    if (editLabels != null) {
-                        if (!flipFlag) {
-                            if (editLabels.length == series.secondAxis.labels.length) {
-                                label = editLabels[i];
-                            } else {
-                                label = series.secondAxis.labels[i];
-                            }
-                        } else {
-                            // flipped case
-                            label = series.secondAxis.labels[i];
-                        }
-                    } else {
-                        label = series.secondAxis.labels[i];
-                    }
-
-                //    label = series.secondAxis.labels[i];
-
-                    if (((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) && styleParameters.colorsSelect1 == "manual") {
-                        colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors1[i] + '"></div>');
-                    } else {
-                        colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i%10] + '"></div>');
-                    }
-
-                    //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
-                    if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
-                        if (thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.length > 0) {
-                            labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
-                                '<a href="#" data-toggle="dropdown" style="text-decoration: none;" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
-                                '<ul class="dropdown-menu thrLegend">' +
-                                '</ul>' +
-                                '</div>');
-
-                            thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.forEach(function (range) {
-                                if (range.desc !== '') {
-                                    dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '&nbsp;&nbsp;<b>' + range.desc + '</b></a></li>');
-                                } else {
-                                    dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '</a></li>');
-                                }
-                                dropDownElement.css("font", "bold 10px Verdana");
-                                dropDownElement.find("i").css("font-size", "12px");
-                                labelContainer.find("ul").append(dropDownElement);
-                            });
-                        } else {
-                            labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
-                        }
-                    } else {
-                        labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
-                    }
-
-                    item = $('<div class="legendSingleContainer"></div>');
-
-                    if (('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== 'null') && ('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== '')) {
-                        id = label.replace(/\s/g, '_');
-                        singleInfo = infoJson.secondAxis[id];
-
-                        if ((singleInfo !== '') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
-                            infoIcon = $('<i class="fa fa-info-circle handPointer" data-axis="y" data-label="' + label + '" style="font-size: 12px; margin-left: 3px"></i>');
-                            infoIcon.css("color", styleParameters.legendFontColor);
-                            infoContainer = $('<div class="legendInfoContainer"></div>');
-                            infoContainer.append(infoIcon);
-                            item.append(colorContainer);
-                            item.append(infoContainer);
-                            item.append(labelContainer);
-                            infoIcon.on("click", showModalFieldsInfoSecondAxis);
-                        } else {
-                            item.append(colorContainer);
-                            item.append(labelContainer);
-                        }
-                    } else {
-                        item.append(colorContainer);
-                        item.append(labelContainer);
-                    }
-
-                    item.css("color", styleParameters.legendFontColor);
-                    item.find('a').css("color", styleParameters.legendFontColor);
-                    item.find('a.thrLegendElement').css("color", "black");
-                    item.find('i.fa-info-circl').css("color", styleParameters.legendFontColor);
-
-                    if (i < series.secondAxis.labels.length - 1) {
-                        item.css("margin-right", "10px");
-                    }
-
-                    item.css("display", "block");
-
-                    //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
-                    if (series.secondAxis.labels.length > 1) {
-
-                        let legendSameItemFlag = false;
-                        for (let n= 0; n < $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').children().length; n++) {
-                            if ($('#<?= $_REQUEST['name_w'] ?>_legendContainer1').children()[n].textContent == item[0].textContent) {
-                                legendSameItemFlag = true;
-                            }
-                        }
-
-                        if (!legendSameItemFlag) {
-                            $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').append(item);
-                        }
-
-                        var parentLegendElement = $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').find("div.legendSingleContainer").eq(i);
-                        var elementLeftPosition = parentLegendElement.position().left;
-                        var widgetWidth = $("#<?= $_REQUEST['name_w'] ?>_div").width();
-                        var legendMargin = null;
-
-                        if (elementLeftPosition > (widgetWidth / 2)) {
-                            legendMargin = 200;
-                        } else {
-                            legendMargin = 0;
-                        }
-
-                        $("#<?= $_REQUEST['name_w'] ?>_legendContainer1 .legendSingleContainer").eq(i).find("div.thrLegend ul").css("left", "-" + legendMargin + "%");
-                    } else {
-                        $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').hide();
-                        $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("height", "93%");
-                    }
-                }
-
-                for (var i = 0; i < series.firstAxis.labels.length; i++) {
-                    if (series.firstAxis.desc == "value name") {
-                        if (editLabels != null) {
-                            if (editLabels[i] != series.firstAxis.labels[i]) {
-                                label = editLabels[i];
-                            } else {
-                                label = series.firstAxis.labels[i];
-                            }
-                        } else {
-                            label = series.firstAxis.labels[i];
-                        }
-                    } else {
-                        label = series.firstAxis.labels[i];
-                    }
-
-                    if (((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null)) && styleParameters.colorsSelect2 == "manual") {
-                        colorContainer = $('<div class="legendColorContainer" style="background-color: ' + styleParameters.colors2[i] + '"></div>');
-                    } else {
-                        colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray2[i%5] + '"></div>');
-                    }
-
-                    //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie
-                    if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
-                        if (thresholdObject.thresholdObject.firstAxis.fields[i].thrSeries.length > 0) {
-                            labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
-                                '<a href="#" data-toggle="dropdown" style="text-decoration: none;" class="dropdown-toggle"><span class="inline">' + label + '</span><b class="caret"></b></a>' +
-                                '<ul class="dropdown-menu thrLegend">' +
-                                '</ul>' +
-                                '</div>');
-
-                            thresholdObject.thresholdObject.firstAxis.fields[i].thrSeries.forEach(function (range) {
-                                if (range.desc !== '') {
-                                    dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '&nbsp;&nbsp;<b>' + range.desc + '</b></a></li>');
-                                } else {
-                                    dropDownElement = $('<li><a href="#" class="thrLegendElement"><div style="width: 15px; height: 15px; border: none; float: left; background-color: ' + range.color + '"></div>&nbsp;&nbsp;' + range.min + ' <i class="fa fa-arrows-h"></i> ' + range.max + '</a></li>');
-                                }
-                                dropDownElement.css("font", "bold 10px Verdana");
-                                dropDownElement.find("i").css("font-size", "12px");
-                                labelContainer.find("ul").append(dropDownElement);
-                            });
-                        } else {
-                            labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
-                        }
-                    } else {
-                        labelContainer = $('<div class="legendLabelContainer">' + label + '</div>');
-                    }
-
-                    item = $('<div class="legendSingleContainer"></div>');
-
-                    if (('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== 'null') && ('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== '')) {
-                        id = label.replace(/\s/g, '_');
-                        singleInfo = infoJson.firstAxis[id];
-
-                        if ((singleInfo !== '') && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
-                            infoIcon = $('<i class="fa fa-info-circle handPointer" data-axis="x" data-label="' + label + '" style="font-size: 12px; color: black; margin-left: 3px"></i>'); //data-axis="y" data-label="' + $(this).html() + '" vanno rimessi?
-                            infoIcon.css("color", styleParameters.legendFontColor);
-                            infoContainer = $('<div class="legendInfoContainer"></div>');
-                            infoContainer.append(infoIcon);
-                            item.append(colorContainer);
-                            item.append(infoContainer);
-                            item.append(labelContainer);
-                            infoIcon.on("click", showModalFieldsInfoFirstAxis);
-                        } else {
-                            item.append(colorContainer);
-                            item.append(labelContainer);
-                        }
-                    } else {
-                        item.append(colorContainer);
-                        item.append(labelContainer);
-                    }
-
-                    item.css("color", styleParameters.legendFontColor);
-                    item.find('a').css("color", styleParameters.legendFontColor);
-                    item.find('a.thrLegendElement').css("color", "black");
-                    item.find('i.fa-info-circle').css("color", styleParameters.legendFontColor);
-
-                    if (i < series.secondAxis.labels.length - 1) {
-                        item.css("margin-right", "10px");
-                    }
-
-                    item.css("display", "block");
-
-                    let legendSameItemFlag = false;
-                    for (let n= 0; n < $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').children().length; n++) {
-                        if ($('#<?= $_REQUEST['name_w'] ?>_legendContainer2').children()[n].textContent == item[0].textContent) {
-                            legendSameItemFlag = true;
-                        }
-                    }
-
-                    if (!legendSameItemFlag) {
-                        $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').append(item);
-                    }
-
-                    var parentLegendElement = $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').find("div.legendSingleContainer").eq(i);
-                    var elementLeftPosition = parentLegendElement.position().left;
-                    var widgetWidth = $("#<?= $_REQUEST['name_w'] ?>_div").width();
-                    var legendMargin = null;
-
-                    if (elementLeftPosition > (widgetWidth / 2)) {
-                        legendMargin = 200;
-                    } else {
-                        legendMargin = 0;
-                    }
-
-                    $("#<?= $_REQUEST['name_w'] ?>_legendContainer2 .legendSingleContainer").eq(i).find("div.thrLegend ul").css("left", "-" + legendMargin + "%");
-                }
-            }
+        /*    } else {
+                $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').hide();
+                $('#<?= $_REQUEST['name_w'] ?>_legendContainer2').hide();
+            }   */
         }
 
         function buildSeriesFromAggregationData()
@@ -2047,15 +2162,19 @@
                         var elem = document.createElement('script');
                         elem.type = 'text/javascript';
                         elem.innerHTML = newInfoDecoded;
-                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+                        try {
+                            $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
 
-                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                            $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                        } catch(e) {
+                            console.log("Error in appending JS function to DOM on " + widgetName);
+                        }
 						//
 						
 						//
                     }
 				//////////////
-                populateWidget();
+                populateWidget(null);
 
             },
             error: function(errorData)
@@ -2122,7 +2241,7 @@
 
                         rowParameters = newValue;
                         emptyLegendFlagFromWs = true;
-                        populateWidget();
+                        populateWidget(null);
 
                     }
                     break;
@@ -2180,7 +2299,49 @@
         });
         
         countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
-    });//Fine document ready
+    function clear(){
+                dateChoice = null;
+                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').val='';
+            }
+
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.show',function(){
+                $('.media').css({'overflow':'visible', 'z-index':'1000000'});
+            }).on('dp.hide',function(){
+                $('.media').css({'overflow':'hidden'});
+            })
+
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.change', function (e) {  
+                var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                dateChoice = date;
+                timeNavCount = 0;
+                    //populateWidget(true, timeRange, null, 0);
+					var timeRange = dateChoice;
+					populateWidget(date);
+                    //loadHyperCube();
+                    //drawDiagram(true, xAxisFormat, yAxisType);
+            });
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").clear()
+
+                if (<?= $_REQUEST['name_w'] ?>_loaded==false){
+
+                document.getElementById('<?= $_REQUEST['name_w'] ?>_droptitle').addEventListener('click', function (e) {
+                  const dropdown = e.currentTarget.parentNode;
+                  const menu = dropdown.querySelector('.menu');
+
+                  toggleClass(menu,'hide');
+               });
+
+                document.getElementById('<?= $_REQUEST['name_w'] ?>_droptitle').addEventListener('change', function (e) {
+                    <?= $_REQUEST['name_w'] ?>_select = e.target.textContent.trimEnd();
+                    //populateWidget(true, timeRange, "minus", timeNavCount);
+                    //loadHyperCube();
+                    //drawDiagram(true, xAxisFormat, yAxisType);
+                });
+                <?= $_REQUEST['name_w'] ?>_loaded = true;
+            }
+
+		///////////////////
+	});//Fine document ready
 
 </script>
 
@@ -2205,6 +2366,33 @@
             <div id="<?= $_REQUEST['name_w'] ?>_legendContainer1" class="legendContainer1"></div>
             <div id="<?= $_REQUEST['name_w'] ?>_legendContainer2" class="legendContainer2"></div>
         </div>
+		<!-- -->
+		<div style="position: relative;">
+		 <div class="widget-dropbdown" style="position: absolute;">
+                                <div class='dropdown' style="float: left;width: 20%; padding-left: 5%">
+                            
+                            <div id='<?= $_REQUEST['name_w'] ?>_droptitle' class='dropdown-title title pointerCursor'></div>
+                            
+                            <div id='<?= $_REQUEST['name_w'] ?>_options' class='menu pointerCursor hide'></div>
+
+                        </div>
+                                <div class ="form-group" style="float: left;width:30%; ">  
+                                <div class ='input-group date' id='<?= $_REQUEST['name_w'] ?>_datetimepicker'>  
+                                  <input type ='text' class="form-control" /> 
+                                  <span class ="input-group-addon">  
+                                    <span class ="glyphicon glyphicon-calendar"></span>  
+                                  </span>  
+                                </div> 
+                              </div>
+                              
+                         <!--
+                            <button id='<?= $_REQUEST['name_w'] ?>_cut' style="float: left;width:25%; padding:0.6em 0em;">Toggle Time Slice</button>
+                            <button id='<?= $_REQUEST['name_w'] ?>_stream' style="float: left;width:25%; padding:0.6em 0em;">Toggle Stream Graph</button>
+							-->
+                        
+                 </div>
+			</div>
+		<!-- -->
     </div>
 		<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 

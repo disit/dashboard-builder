@@ -712,6 +712,7 @@
                 $clockData = NULL;
                 $clockFont = NULL;
                 $rectDim = NULL;
+		        $calendarM = NULL;
                 $enableFullscreenTab = 'no';
                 $enableFullscreenModal = 'no'; 
              //   $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidget']);
@@ -1306,6 +1307,7 @@
                     $styleParametersArray['chartType'] = $chartType;
                     $styleParametersArray['dataLabels'] = $dataLabels;
                     $styleParametersArray['dataLabelsRotation'] = $dataLabelsRotation;
+		            $styleParametersArray['calendarM'] = $calendarM;
 
                     if(isset($_POST['barsColors'])&&($_POST['barsColors']!=""))
                     {
@@ -2571,6 +2573,8 @@
         $secondaryYAxisLab = NULL;
         $secondaryYAxisMin = NULL;
         $secondaryYAxisMax = NULL;
+		$calendarM = 'no';
+        $enableCKEditor = NULL;
     //    $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidgetM']);
         if (sanitizePostString('inputFontFamilyWidgetM') === null) {       // New pentest
             $fontFamily = mysqli_real_escape_string($link, sanitizeGetString('inputFontFamilyWidgetM'));
@@ -3016,6 +3020,11 @@
             {
                 $chartTypeM = mysqli_real_escape_string($link, sanitizePostString('chartTypeM'));
             }
+			//calendarM
+			if(isset($_POST['calendarM'])&&($_POST['calendarM']!=""))
+            {
+                $calendarM = mysqli_real_escape_string($link, sanitizePostString('calendarM'));
+            }
 
             if(isset($_POST['secondaryYAxisM'])&&($_POST['secondaryYAxisM']!=""))
             {
@@ -3099,6 +3108,7 @@
             $styleParametersArrayM['lineWidth'] = $lineWidthM;
             $styleParametersArrayM['alrLook'] = $alrLookM;
             $styleParametersArrayM['areaChartOpacityM'] = $areaChartOpacityM;
+			$styleParametersArrayM['calendarM'] = $calendarM;
 
             if(isset($_POST['deviceLabelsM_0'])&&($_POST['deviceLabelsM_0']!=""))
             {
@@ -3179,21 +3189,30 @@
             }
             $styleParametersArrayM['secondaryYAxisMax'] = $secondaryYAxisMax;
 
+            if(isset($_POST['enableCKEditor'])&&($_POST['enableCKEditor']!="")) {
+                $enableCKEditor = mysqli_real_escape_string($link, sanitizePostString('enableCKEditor'));
+            }
+            $styleParametersArrayM['enableCKEditor'] = $enableCKEditor;
+
             $styleParametersM = json_encode($styleParametersArrayM);
 
             if(isset($_POST['parametersM'])&&($_POST['parametersM']!="")) {
                 $rowParameters = sanitizeJsonRelaxed($_POST['parametersM']);
                 $parametersArray = json_decode($rowParameters, false);
-                for($i = (sizeof($parametersArray)) - 1; $i >= 0; $i--) {
-                    if (isset($parametersArray[$i]->deleted)) {
-                        if ($parametersArray[$i]->deleted == true) {
-                         //   array_map('unlink', glob("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/*"));
-                            unset($parametersArray[$i]);
+                if (is_array($parametersArray)) {
+                    for ($i = (sizeof($parametersArray)) - 1; $i >= 0; $i--) {
+                        if (isset($parametersArray[$i]->deleted)) {
+                            if ($parametersArray[$i]->deleted == true) {
+                                //   array_map('unlink', glob("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/*"));
+                                unset($parametersArray[$i]);
+                            }
                         }
                     }
+                    $rowParameters = json_encode(array_values($parametersArray));
+                } else if (is_object($parametersArray)) {
+                    $rowParameters = json_encode($parametersArray);
                 }
 
-                $rowParameters = json_encode(array_values($parametersArray));
                 $_POST['parametersM'] = NULL;
             }
 
@@ -3295,6 +3314,17 @@
             {
                 $chartTypeM = mysqli_real_escape_string($link, sanitizePostString('chartTypeM'));    // New pentest
             }
+			
+			if(isset($_POST['calendarM'])&&($_POST['calendarM']!=""))
+            {
+                $calendarM = mysqli_real_escape_string($link, sanitizePostString('calendarM'));    // New pentest
+            }
+			
+			
+			if(isset($_POST['calendarM'])&&($_POST['calendarM']!=""))
+            {
+                $calendarM = mysqli_real_escape_string($link, sanitizePostString('calendarM'));    // New pentest
+            }
 
             if(isset($_POST['dataLabelsM'])&&($_POST['dataLabelsM']!=""))
             {
@@ -3329,6 +3359,11 @@
                 $sortBarValuesM = mysqli_real_escape_string($link, sanitizePostString('sortBarValuesM'));      // New pentest
             }
 
+            if(isset($_POST['enableCKEditor'])&&($_POST['enableCKEditor']!=""))
+            {
+                $enableCKEditor = mysqli_real_escape_string($link, sanitizePostString('enableCKEditor'));
+            }
+
             $styleParametersArrayM = array();
             $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
             $styleParametersArrayM['rowsLabelsFontColor'] = $rowsLabelsFontColorM;
@@ -3343,6 +3378,8 @@
             $styleParametersArrayM['dataLabels'] = $dataLabelsM;
             $styleParametersArrayM['dataLabelsRotation'] = $dataLabelsRotationM;
             $styleParametersArrayM['editDeviceLabels'] = $deviceLabels;
+			$styleParametersArrayM['calendarM'] = $calendarM;
+            $styleParametersArrayM['enableCKEditor'] = $enableCKEditor;
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {
@@ -3358,6 +3395,22 @@
             $styleParametersArrayM['groupByAttr'] = $groupByAttrM;
             $styleParametersArrayM['sortBarValuesM'] = $sortBarValuesM;
             $styleParametersM = json_encode($styleParametersArrayM);
+
+            if(isset($_POST['parametersM'])&&($_POST['parametersM']!="")) {
+                $rowParameters = sanitizeJsonRelaxed($_POST['parametersM']);
+                $parametersArray = json_decode($rowParameters, false);
+                for($i = (sizeof($parametersArray)) - 1; $i >= 0; $i--) {
+                    if (isset($parametersArray[$i]->deleted)) {
+                        if ($parametersArray[$i]->deleted == true) {
+                            //   array_map('unlink', glob("../img/widgetSelectorImages/" . $name_widget_m . "/q" . $i . "/*"));
+                            unset($parametersArray[$i]);
+                        }
+                    }
+                }
+                $rowParameters = json_encode(array_values($parametersArray));
+                $_POST['parametersM'] = NULL;
+            }
+
         }
 
         if($type_widget_m == "widgetRadarSeries")
@@ -3450,6 +3503,11 @@
                 }
             }
 
+            if(isset($_POST['enableCKEditor'])&&($_POST['enableCKEditor']!=""))
+            {
+                $enableCKEditor = mysqli_real_escape_string($link, sanitizePostString('enableCKEditor'));
+            }
+
             $styleParametersArrayM = array();
             $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
             $styleParametersArrayM['rowsLabelsFontColor'] = $rowsLabelsFontColorM;
@@ -3467,6 +3525,7 @@
             $styleParametersArrayM['dataLabels'] = $dataLabelsM;
             $styleParametersArrayM['dataLabelsRotation'] = $dataLabelsRotationM;
             $styleParametersArrayM['editDeviceLabels'] = $deviceLabels;
+            $styleParametersArrayM['enableCKEditor'] = $enableCKEditor;
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {
@@ -3853,116 +3912,112 @@
             }
 
             if ($type_widget_m == "widget3DMapDeck") {
-                if(isset($_POST['showOrthomapsM'])&&($_POST['showOrthomapsM']!="")) {
-
-                    $showOrthomapsM = mysqli_real_escape_string($link, sanitizePostString('showOrthomapsM'));
-                    if ($showOrthomapsM == "yes") {
-                        eventLog('[process-form]: processing without orthomap');
-                        $queryOrthomaps = "SELECT orthomapJson FROM Dashboard.Organizations Orgs INNER JOIN Dashboard.Config_dashboard Dash ON Dash.id = " . mysqli_real_escape_string($link, $id_dashboard2) . " AND Dash.organizations = Orgs.organizationName;";
-                        $resOrthomaps = mysqli_query($link, $queryOrthomaps);
-                        if($resOrthomaps)
-                        {
-                            $currRow = mysqli_fetch_assoc($resOrthomaps);
-                            if (sizeof($currRow) > 0) {
-                                $orthomapJsonM = $currRow['orthomapJson'];
-                            }
-                        }
-                        $infoJsonM = "yes";
-                        // $parametersM = json_encode($orthomapJsonM);
-                        //   $parametersM = $orthomapJsonM;
-                        $orthomapJsonArray = json_decode($orthomapJsonM, true);
-                        if(isset($_POST['parametersM']) && ($_POST['parametersM']!="")) {
-                            $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
-                            $parametersArray = json_decode($parametersM);
-                            $tempParametersArray = json_decode($parametersM);
-                            if ($parametersArray->dropdownMenu) {
-                                // if an orthomap json already exists, update only latLng and zoom
-                                $latLngCenterMap = $parametersArray->latLng;
-                                $zoomMap = (int)$parametersArray->zoom;
-                                $pitchMap = $tempParametersArray->pitch;
-                                $bearingMap = $tempParametersArray->bearing;
-                                $mapType = $tempParametersArray->mapType;
-
-                                $parametersArray->latLng = $latLngCenterMap;
-                                $parametersArray->zoom = $zoomMap;
-                                $parametersArray->pitch = $pitchMap;
-                                $parametersArray->bearing = $bearingMap;
-                                $parametersArray->mapType = $mapType;
-                                $parametersM = json_encode($parametersArray);
-                            } else {
-                                // if there isn't any orthomap json, create it using the organization template
-                                $tempParametersArray = $parametersArray;
-                                $latLngCenterMap = $tempParametersArray->latLng;
-                                $zoomMap = $tempParametersArray->zoom;
-                                $pitchMap = $tempParametersArray->pitch;
-                                $bearingMap = $tempParametersArray->bearing;
-                                $mapType = $tempParametersArray->mapType;
-
-                                $orthomapJsonArray['latLng'] = $latLngCenterMap;
-                                $orthomapJsonArray['zoom'] = $zoomMap;
-                                $orthomapJsonArray['pitch'] = $pitchMap;
-                                $orthomapJsonArray['bearing'] = $bearingMap;
-                                $orthomapJsonArray['type'] = $mapType;
-
-                                $parametersM = json_encode($orthomapJsonArray);
-                            }
-                        }
-
-                    } else if ($showOrthomapsM == "no") {
-                        eventLog('[process-form]: processing with orthomap');
-                        if(isset($_POST['parametersM']) && ($_POST['parametersM']!="")) {
-                            $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
-                            $tempParametersArray = json_decode($parametersM);
-                            $latLngCenterMap = $tempParametersArray->latLng;
-                            $zoomMap = $tempParametersArray->zoom;
-                            $pitchMap = $tempParametersArray->pitch;
-                            $bearingMap = $tempParametersArray->bearing;
-                            $mapType = $tempParametersArray->mapType;
-                            $parametersArray = array('latLng' => $latLngCenterMap, 'zoom' => $zoomMap, 'pitch' => $pitchMap, 'bearing' => $bearingMap, 'mapType' => $mapType);
-                            $parametersM = json_encode($parametersArray);
-                            $infoJsonM = "no";
-                        }
+                // orthomaps section
+                $queryOrthomaps = "SELECT orthomapJson FROM Dashboard.Organizations Orgs INNER JOIN Dashboard.Config_dashboard Dash ON Dash.id = " . mysqli_real_escape_string($link, $id_dashboard2) . " AND Dash.organizations = Orgs.organizationName;";
+                $resOrthomaps = mysqli_query($link, $queryOrthomaps);
+                if($resOrthomaps)
+                {
+                    $currRow = mysqli_fetch_assoc($resOrthomaps);
+                    if (sizeof($currRow) > 0) {
+                        $orthomapJsonM = $currRow['orthomapJson'];
                     }
+                }
+                $infoJsonM = "yes";
+                $orthomapJsonArray = json_decode($orthomapJsonM, true);
+                if(isset($_POST['parametersM']) && ($_POST['parametersM']!="")) {
+                    $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
+                    $parametersArray = json_decode($parametersM);
+                    $tempParametersArray = json_decode($parametersM);
+                    if ($parametersArray->dropdownMenu) {
+                        // if an orthomap json already exists, update only latLng and zoom
+                        $latLngCenterMap = $parametersArray->latLng;
+                        $zoomMap = (int)$parametersArray->zoom;
+                        $pitchMap = $tempParametersArray->pitch;
+                        $bearingMap = $tempParametersArray->bearing;
+                        $mapType = $tempParametersArray->mapType;
 
-                    if(isset($_POST['defaultOrthomapM'])&&($_POST['defaultOrthomapM']!="")) {
-                        $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'), 'defaultOrthomap' => sanitizePostString('defaultOrthomapM'));
+                        $parametersArray->latLng = $latLngCenterMap;
+                        $parametersArray->zoom = $zoomMap;
+                        $parametersArray->pitch = $pitchMap;
+                        $parametersArray->bearing = $bearingMap;
+                        $parametersArray->mapType = $mapType;
+                        $parametersM = json_encode($parametersArray);
                     } else {
-                        $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'));
+                        // if there isn't any orthomap json, create it using the organization template
+                        $tempParametersArray = $parametersArray;
+                        $latLngCenterMap = $tempParametersArray->latLng;
+                        $zoomMap = $tempParametersArray->zoom;
+                        $pitchMap = $tempParametersArray->pitch;
+                        $bearingMap = $tempParametersArray->bearing;
+                        $mapType = $tempParametersArray->mapType;
+
+                        $orthomapJsonArray['latLng'] = $latLngCenterMap;
+                        $orthomapJsonArray['zoom'] = $zoomMap;
+                        $orthomapJsonArray['pitch'] = $pitchMap;
+                        $orthomapJsonArray['bearing'] = $bearingMap;
+                        $orthomapJsonArray['type'] = $mapType;
+
+                        $parametersM = json_encode($orthomapJsonArray);
                     }
-
-                    // building section
-                    $buildingColor = $_POST['gisTargetBuildingColorM'];
-                    $buildingType = $_POST['buildingTypeM'];
-
-                    //$buildingArray = array('buildingColor' => sanitizePostString($buildingColor), 'buildingType' => sanitizePostString($buildingType));
-                    $styleParametersM['buildingColor'] = $buildingColor;
-                    $styleParametersM['buildingType'] = $buildingType;
-                    //array_push($styleParametersM, ...$buildingArray);
-
-                    // light section
-                    if(isset($_POST['useLigthingM']) && $_POST['useLigthingM'] == "yes") {
-                        $lightTimestamp = $_POST['lightTimestampM'];
-                        $lightColor = $_POST['lightColorM'];
-                        $lightIntensity = $_POST['intensityColorM'];
-
-                        $styleParametersM['useLighting'] = 'yes';
-                        $styleParametersM['lightTimestamp'] = $lightTimestamp;
-                        $styleParametersM['lightColor'] = $lightColor;
-                        $styleParametersM['lightIntensity'] = $lightIntensity;
-                        //array_push($styleParametersM, 'useLighting' => true, 'lightTimestamp' => sanitizePostString($lightTimestamp),
-                        //'lightColor' => sanitizePostString($lightColor), 'lightIntensity' => sanitizePostString($lightIntensity));
-                    } else {
-                        $styleParametersM['useLighting'] = 'no';
-                        //array_push($styleParametersM, 'useLighting' => false);
-                        //eventLog('light not set');
-                    }
-                /*    foreach($styleParametersM as $key => $value) {
-                        eventLog('[' . $key . '] => ' . $value);
-                    }   */
-
-                    $styleParametersM = json_encode($styleParametersM);
+                }
+                if(isset($_POST['defaultOrthomapM'])&&($_POST['defaultOrthomapM']!="")) {
+                    $styleParametersM =  array('showOrthomaps' => 'yes', 'defaultOrthomap' => sanitizePostString('defaultOrthomapM'));
+                } else {
+                    $styleParametersM =  array('showOrthomaps' => 'yes');
                 }
 
+                // terrain section
+                $index = 1;
+                while (true) {
+                    if (isset($_POST['gisTargetTerrainQueryTP'.$index])) {
+                        if (!isset($styleParametersM['terrains'])) {
+                            $styleParametersM['terrains'] = [];
+                        }
+                        $styleParametersM['terrains']['TP'.$index]['query'] = sanitizePostString('gisTargetTerrainQueryTP'.$index);
+                        $styleParametersM['terrains']['TP'.$index]['elevationDecoder']['rScaler'] = sanitizePostFloat('gisTargetRedEncodingTP'.$index);
+                        $styleParametersM['terrains']['TP'.$index]['elevationDecoder']['gScaler'] = sanitizePostFloat('gisTargetGreenEncodingTP'.$index);
+                        $styleParametersM['terrains']['TP'.$index]['elevationDecoder']['bScaler'] = sanitizePostFloat('gisTargetBlueEncodingTP'.$index);
+                        $styleParametersM['terrains']['TP'.$index]['elevationDecoder']['offset'] = sanitizePostFloat('gisTargetOffsetEncodingTP'.$index);
+                        if (isset($_POST['terrainHasBBTP'.$index])&&$_POST['terrainHasBBTP'.$index] == 'on') {
+                            $styleParametersM['terrains']['TP'.$index]['bbox']['north'] = sanitizePostFloat('gisTargetNorthBBTP'.$index);
+                            $styleParametersM['terrains']['TP'.$index]['bbox']['east'] = sanitizePostFloat('gisTargetEastBBTP'.$index);
+                            $styleParametersM['terrains']['TP'.$index]['bbox']['south'] = sanitizePostFloat('gisTargetSouthBBTP'.$index);
+                            $styleParametersM['terrains']['TP'.$index]['bbox']['west'] = sanitizePostFloat('gisTargetWestBBTP'.$index);
+                        }
+                        $index++;
+                    } else {
+                        break;
+                    }
+                }
+
+                // building section
+                $styleParametersM['buildingType'] = sanitizePostString('buildingTypeM');
+                $styleParametersM['buildingColors'] = [];
+                $styleParametersM['buildingColors']['Default'] = sanitizePostString('gisTargetBuildingDefaultColorM');
+                $styleParametersM['buildingColors']['Cult'] = sanitizePostString('gisTargetBuildingCultColorM');
+                $styleParametersM['buildingColors']['Culture'] = sanitizePostString('gisTargetBuildingCultureColorM');
+                $styleParametersM['buildingColors']['PublicService'] = sanitizePostString('gisTargetBuildingPublicServiceColorM');
+                $styleParametersM['buildingColors']['Shopping'] = sanitizePostString('gisTargetBuildingShoppingColorM');
+                $styleParametersM['buildingColors']['Station'] = sanitizePostString('gisTargetBuildingStationColorM');
+                $styleParametersM['buildingColors']['University'] = sanitizePostString('gisTargetBuildingUniversityColorM');
+                $styleParametersM['buildingColors']['HealthCare'] = sanitizePostString('gisTargetBuildingHealthCareColorM');
+                $styleParametersM['buildingColors']['School'] = sanitizePostString('gisTargetBuildingSchoolColorM');
+                $styleParametersM['buildingColors']['Bank'] = sanitizePostString('gisTargetBuildingBankColorM');
+
+                // light section
+                if(isset($_POST['useLightingM']) && $_POST['useLightingM'] == "yes") {
+                    $styleParametersM['useLighting'] = 'yes';
+                    $styleParametersM['lightTimestamp'] = sanitizePostString('lightTimestampM');
+                    $styleParametersM['directionalLightColor'] = sanitizePostString('directionalLightColorM');
+                    $styleParametersM['directionalLightIntensity'] = sanitizePostInt('directionalLightIntensityM');
+                    $styleParametersM['ambientLightColor'] = sanitizePostString('ambientLightColorM');
+                    $styleParametersM['ambientLightIntensity'] = sanitizePostInt('ambientLightIntensityM');
+                } else {
+                    $styleParametersM['useLighting'] = 'no';
+                }
+
+                $styleParametersM = json_encode($styleParametersM);
+                eventLog('Updating style parameters for widget3DMapDeck' . $styleParametersM);
             }
 
         }

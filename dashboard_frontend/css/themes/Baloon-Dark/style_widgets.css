@@ -494,7 +494,7 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     z-index: 500!important;
 }
 
-#universal-map-controls, #universal-map-overlay {
+#universal-map-controls, #universal-map-overlay, #universal-map-popup {
     position: absolute!important;
     top: 45px!important;
     left: 20px!important;
@@ -504,7 +504,7 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
 }
 
 #universal-map-overlay .map-menu {
-    left: 40px!important;
+    left: 80px!important;
     top: 0px!important;
 }
 
@@ -525,9 +525,26 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     color: var(--text-color)!important;
 }
 
-#deck-controls{
-    top: 50px!important;
-    left: 30px!important;
+#universal-top-right {
+    background-color: var(--wdgt-bg-color)!important;
+    border-radius: 30px;
+}
+
+#deck-info-content #heatmapLegend, #deck-info-content #trafficHeatmapLegend {
+    color: var(--text-color);
+}
+
+#deck-info-content input[type=button] {
+    color: black;
+}
+
+#deck-map-menu li.appendable {
+    box-shadow: 0px 15px 20px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+#universal-map-controls #dropdownMenu1 {
+    width: 65px!important;
 }
 
 .deck-btn-set > button, #deck-zoom-box {
@@ -546,6 +563,13 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     width: 70px;
 }
 
+#deck-map-menu {
+    background-color: var(--wdgt-bg-color)!important;
+    left: 80px !important;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    box-shadow: rgb(0 0 0 / 54%) 0px 5px;
+}
+
 #deck-controls input, #light-dropdown input{
     background-color: var(--acc-01-color)!important;
     color: #000!important;
@@ -559,7 +583,46 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
 }
 
 .dropdown-menu a:hover, .dropdown-menu a:focus {
-    background-color: var(--dash-bg-color)!important;
+    background-color: var(--wdgt-bg-color)!important;
+}
+
+#deck-menu-header a {
+    color: var(--acc-01-color)!important;
+}
+
+#deck-menu-content .appendable {
+    margin-bottom: 10px;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 15px 20px;
+    text-align: center;
+    font-size: 20px;
+}
+
+#deck-menu-content .appendable a{
+    text-decoration: none;
+}
+
+#deck-info-tab {
+    height: 42px;
+}
+
+#deck-info-tab a {
+    color: var(--acc-01-color)!important;
+    border-radius: 30px;
+}
+
+.deck-btn {
+    box-shadow: 0px 10px rgba(0, 0, 0, 0.1)!important;
+}
+
+.deck-btn:hover {
+    box-shadow: 0px 8px rgba(0, 0, 0, 0.1)!important;
+    transform: translate(0px, 2px);
+}
+
+.deck-btn-active {
+    box-shadow: 0px 5px rgba(0, 0, 0, 0.1)!important;
+    transform: translate(0px, 5px);
 }
 
 .map3d {

@@ -19,8 +19,9 @@
 <!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css"> -->
 <link rel="stylesheet" href="../js/jqueryUi/jquery-ui.css">
 <!-- <link rel="stylesheet" href="../css/datePickerStyle.css"> -->
-
+<script src="../datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
 <script type='text/javascript'>
+var <?= $_REQUEST['name_w'] ?>_loaded = false;
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
@@ -30,6 +31,7 @@
                 exit();
             }
         ?>  
+		var dateChoice = null;
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
     //    console.log("CurvedLineSeries: " + widgetName);
@@ -82,6 +84,7 @@
         var idYAxis = null;
         var code = null;
         var yAxisMin, yAxisMax, secondaryYAxisMin, secondaryYAxisMax = null;
+        var timeNavigationButtonClick = null;
 
         //var trendType = 'monthWeek';
         //var trendType = 'dayHour';
@@ -93,8 +96,8 @@
             {
 
                 clearInterval(countdownRef);
-                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
-                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
+            //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+            //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
 
                 var newValue = event.passedData;
                 //    var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
@@ -127,15 +130,23 @@
                     }
 
                     //    timeRange = widgetData.params.temporal_range_w;
-                    populateWidget(true, timeRange, null, timeNavCount);
+                    populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
                 }
                 else
                 {
-                    populateWidget(false, null, null, timeNavCount);
+                    populateWidget(false, null, null, timeNavCount, null, event.t1, event.t2);
                 }
 
             }
         });
+		
+		$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
+            showTodayButton: true,
+            widgetPositioning:{
+                horizontal: 'auto',
+                vertical: 'bottom'
+            }
+        })
 
         var pattern = /Percentuale\//;
         console.log("Entrato in widgetCurvedLineSeries --> " + widgetName); 
@@ -1055,7 +1066,7 @@
                             events: {
                                 load: onDraw,
                                 selection: function (event) {
-                                    if (event.xAxis && code) {
+                                    if (event.xAxis && styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
                                         minX = event.xAxis[0].min;
                                         maxX = event.xAxis[0].max;
                                         //alert("Min: " + minX + ";\nMax: " + maxX + ";\nsURI: " + rowParameters + ";\nmetric name: " + this.series[0].name);
@@ -1079,13 +1090,18 @@
                                         var param1 = "Min: " + this.series[0].processedYData[min_pos] + "<br>Max: " + this.series[0].processedYData[max_pos];
                                         // var sUri = getServiceUri(rowParameters);
                                         var param = {
+                                            "event" : "click",
                                             "t1" : minX,
                                             "t2" : maxX,
                                             "series": rowParameters,
                                         //    "metricName": this.series[0].name
                                         }
 
-                                        execute_<?= $_REQUEST['name_w'] ?>(param);
+                                        try {
+                                            execute_<?= $_REQUEST['name_w'] ?>(param);
+                                        } catch(e) {
+                                            console.log("Error in JS function from time zoom on " + widgetName);
+                                        }
                                     }
                                 }
                             }
@@ -1342,7 +1358,7 @@
                                 point: {
                                     events: {
                                         mouseOver: function(jqEvent){
-                                            if(code !== null) {
+                                            if(styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code !== null) {
                                                 if (this.graphic) {
                                                     this.graphic.element.style.cursor = 'pointer';
                                                 }
@@ -1356,13 +1372,18 @@
                                             // var sUri = getServiceUri(rowParameters);
                                             // var param = new Array(minX, maxX, sUri, this.series[0].name);
                                             var param = {
+                                                "event" : "click",
                                                 "t1" : this.x,
                                                 "t2" : this.y,
                                                 "series": rowParameters,
                                                 //    "metricName": this.series.name
                                             }
-                                            if (code) {
-                                                execute_<?= $_REQUEST['name_w'] ?>(param);
+                                            if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
+                                                try {
+                                                    execute_<?= $_REQUEST['name_w'] ?>(param);
+                                                } catch(e) {
+                                                    console.log("Error in JS function from time zoom on " + widgetName);
+                                                }
                                             }
                                         }
                                     }
@@ -1370,7 +1391,82 @@
                             },
                             spline: {
                                 events: {
-                                    //legendItemClick: function(){ return false;}//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
+                                    legendItemClick: function(){
+                                        var len_rowParameters= rowParameters.length;
+                                        var leg = this.chart.legend.allItems;
+                                        var currname = this.name;
+                                        ////////////////
+                                        var selectedData = {};
+                                        selectedData.event = "legendItemClick";
+                                        selectedData.layers = [];
+                                        selectedData.metrics = [];
+                                        let selected = this.data[0].series.name;
+                                        for (var m in this.data) {
+                                            selectedData.metrics[m] = this.data[m].category;
+                                        }
+
+                                        for (var it in this.chart.legend.allItems) {
+                                            selectedData.layers[it] = {};
+                                            selectedData.layers[it].name = this.chart.legend.allItems[it].name;
+                                            selectedData.layers[it].visible = this.chart.legend.allItems[it].visible;
+                                            if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == true) {   //FIX ME
+                                                selectedData.layers[it].visible = false;
+                                            }
+                                            if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == false) {
+                                                selectedData.layers[it].visible = true;
+                                            }
+                                        }
+                                        /////////
+                                        if(localStorage.getItem("passedData") == null){
+                                            var init = [];
+                                            init.push(selectedData);
+                                            localStorage.setItem("passedData", JSON.stringify(init));
+                                        }
+                                        else{
+                                            var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                            newElement.push(selectedData);
+                                            localStorage.setItem("passedData", JSON.stringify(newElement));
+                                        }
+
+                                        let j=1;
+                                        if(localStorage.getItem("events") == null){
+
+                                            var events = [];
+                                            events.push("CurvedLineLegendClick1");
+                                            localStorage.setItem("events", JSON.stringify(events));
+                                        }
+                                        else{
+                                            var events = JSON.parse(localStorage.getItem("events"));
+                                            for(var e in events){
+                                                //console.log(events[e]);
+                                                if(events[e].slice(0,14) == "CurvedLineLegendClick")
+                                                    j = j+1;
+                                            }
+                                            events.push("CurvedLineLegendClick" + j);
+                                            localStorage.setItem("events", JSON.stringify(events));
+                                        }
+                                        let newId = "CurvedLineLegendClick"+j;
+                                        $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                        $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                        $('#'+newId).on( "click", function() {
+                                            let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                            var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                        });
+                                        $( '#'+newId ).mouseover(function() {
+                                            $('#'+newId).css('cursor', 'pointer');
+                                        });
+									    selectedDataJson = JSON.stringify(selectedData);
+                                    
+										if (styleParameters.enableCKEditor == "ckeditor" && code) {
+                                            try {
+                                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                            } catch(e) {
+                                                console.log("Error in JS function from click on " + widgetName);
+                                            }
+                                        }
+									
+									}//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
                                 },
                                 lineWidth: lineWidth
                             },
@@ -1426,7 +1522,7 @@
                             events: {
                                 load: onDraw,
                                 selection: function (event) {
-                                    if (event.xAxis && code) {
+                                    if (event.xAxis && styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
                                         minX = event.xAxis[0].min;
                                         maxX = event.xAxis[0].max;
                                         //alert("Min: " + minX + ";\nMax: " + maxX + ";\nsURI: " + rowParameters + ";\nmetric name: " + this.series[0].name);
@@ -1455,8 +1551,52 @@
                                             "series": rowParameters,
                                         //    "metricName": this.series[0].name
                                         }
+                                        if(styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code){
+                                            let j=1;
+                                            if(localStorage.getItem("events") == null){
 
-                                        execute_<?= $_REQUEST['name_w'] ?>(param);
+                                                var events = [];
+                                                events.push("CurvedLinesZoom1");
+                                                localStorage.setItem("events", JSON.stringify(events));
+                                            }
+                                            else{
+                                                var events = JSON.parse(localStorage.getItem("events"));
+                                                for(var e in events){
+                                                    if(events[e].slice(0,15) == "CurvedLinesZoom")
+                                                        j = j+1;
+                                                }
+                                                events.push("CurvedLinesZoom" + j);
+                                                localStorage.setItem("events", JSON.stringify(events));
+                                            }
+                                            if(localStorage.getItem("passedData") == null){
+                                                var init = [];
+                                                init.push(param);
+                                                localStorage.setItem("passedData", JSON.stringify(init));
+                                            }
+                                            else{
+                                                var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                                newElement.push(param);
+                                                localStorage.setItem("passedData", JSON.stringify(newElement));
+                                            }
+                                            
+                                            let newId = "CurvedLinesZoom"+j;
+                                            $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                            $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                            $('#'+newId).on( "click", function() {
+                                                let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                                var selectedData = JSON.parse(localStorage.passedData)[eventIndex];
+                                                execute_<?= $_REQUEST['name_w'] ?>(selectedData);
+                                            });
+                                            $( '#'+newId ).mouseover(function() {
+                                                $('#'+newId).css('cursor', 'pointer');
+                                            });
+
+                                            try {
+                                            	execute_<?= $_REQUEST['name_w'] ?>(param);
+                                            } catch(e) {
+                                            	console.log("Error in JS function from time zoom on " + widgetName);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1690,7 +1830,7 @@
 								point: {
                                     events: {
                                         mouseOver: function(jqEvent){
-                                            if(code !== null) {
+                                            if(styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code !== null) {
                                                 if (this.graphic) {
                                                     this.graphic.element.style.cursor = 'pointer';
                                                 }
@@ -1704,13 +1844,18 @@
                                             // var sUri = getServiceUri(rowParameters);
                                             // var param = new Array(minX, maxX, sUri, this.series[0].name);
                                             var param = {
+                                                "event": "click",
                                                 "t1" : this.x,
                                                 "t2" : this.y,
                                                 "series": rowParameters,
                                             //    "metricName": this.series.name
                                             }
-                                            if (code) {
-                                                execute_<?= $_REQUEST['name_w'] ?>(param);
+                                            if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
+                                                try {
+                                                    execute_<?= $_REQUEST['name_w'] ?>(param);
+                                                } catch(e) {
+                                                    console.log("Error in JS function from click on " + widgetName);
+                                                }
                                             }
                                         }
                                     }
@@ -1719,7 +1864,82 @@
                             },
                             spline: {
                                 events: {
-                                    //legendItemClick: function(){ return false;}//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
+                                    legendItemClick: function(){
+                                        var len_rowParameters= rowParameters.length;
+                                        var leg = this.chart.legend.allItems;
+                                        var currname = this.name;
+                                        ////////////////
+                                        var selectedData = {};
+                                        selectedData.event = "legendItemClick";
+                                        selectedData.layers = [];
+                                        selectedData.metrics = [];
+                                        let selected = this.data[0].series.name;
+                                        for (var m in this.data) {
+                                            selectedData.metrics[m] = this.data[m].category;
+                                        }
+
+                                        for (var it in this.chart.legend.allItems) {
+                                            selectedData.layers[it] = {};
+                                            selectedData.layers[it].name = this.chart.legend.allItems[it].name;
+                                            selectedData.layers[it].visible = this.chart.legend.allItems[it].visible;
+                                            if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == true) {   //FIX ME
+                                                selectedData.layers[it].visible = false;
+                                            }
+                                            if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == false) {
+                                                selectedData.layers[it].visible = true;
+                                            }
+                                        }
+                                        /////////
+                                        if(localStorage.getItem("passedData") == null){
+                                            var init = [];
+                                            init.push(selectedData);
+                                            localStorage.setItem("passedData", JSON.stringify(init));
+                                        }
+                                        else{
+                                            var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                            newElement.push(selectedData);
+                                            localStorage.setItem("passedData", JSON.stringify(newElement));
+                                        }
+
+                                        let j=1;
+                                        if(localStorage.getItem("events") == null){
+
+                                            var events = [];
+                                            events.push("CurvedLineLegendClick1");
+                                            localStorage.setItem("events", JSON.stringify(events));
+                                        }
+                                        else{
+                                            var events = JSON.parse(localStorage.getItem("events"));
+                                            for(var e in events){
+                                                //console.log(events[e]);
+                                                if(events[e].slice(0,21) == "CurvedLineLegendClick")
+                                                    j = j+1;
+                                            }
+                                            events.push("CurvedLineLegendClick" + j);
+                                            localStorage.setItem("events", JSON.stringify(events));
+                                        }
+                                        let newId = "CurvedLineLegendClick"+j;
+                                        $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                        $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                        $('#'+newId).on( "click", function() {
+                                            let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                            var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                        });
+                                        $( '#'+newId ).mouseover(function() {
+                                            $('#'+newId).css('cursor', 'pointer');
+                                        });
+                                        selectedDataJson = JSON.stringify(selectedData);
+
+                                        if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
+                                            try {
+                                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                            } catch(e) {
+                                                console.log("Error in JS function from click on " + widgetName);
+                                            }
+                                        }
+									
+									}//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
                                 },
                                 lineWidth: lineWidth
                             },
@@ -1808,6 +2028,48 @@
 
             }
 
+        }
+
+        function getChoiceTimeNavCount(dateChoice, timeRange) {
+            let hours = 0;
+            switch(timeRange) {
+                case "10 Anni":
+                    hours = 10*365*24;
+                    break;
+
+                case "2 Anni":
+                    hours = 2*365*24;
+                    break;
+
+                case "Annuale":
+                    hours = 365*24;
+                    break;
+
+                case "Semestrale":
+                    hours = 180*24;
+                    break;
+
+                case "Mensile":
+                    hours = 30*24;
+                    break;
+
+                case "Settimanale":
+                    hours = 7*24;
+                    break;
+
+                case "Giornaliera":
+                    hours = 24;
+                    break;
+
+                case "12 Ore":
+                    hours = 12;
+                    break;
+
+                case "4 Ore":
+                    hours = 4;
+                    break;
+            }
+            return Math.floor((moment.duration(moment().diff(dateChoice)).asHours())/hours);
         }
 
         function getUpperTimeLimit(timeRange, timeCount) {
@@ -2772,9 +3034,13 @@
             return null; 
         }
         
-        function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture)
+        function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture, t1, t2)
         {
-
+			//console.log('fromAggregate: '+fromAggregate);
+			//console.log('localTimeRange:'+localTimeRange);
+			//console.log('timeCount: '+timeCount);
+			var limit_data = "";
+			//console.log(dateChoice);
             // Reset Time Navigation
             /*    if (fromGisExternalContentRangePrevious !== fromGisExternalContentRange || fromGisExternalContentFieldPrevious != fromGisExternalContentField || fromGisExternalContentServiceUriPrevious != fromGisExternalContentServiceUri) {
              timeNavCount = 0;
@@ -2787,71 +3053,72 @@
              }*/
             errorsLog = null;
 
-            if (fromAggregate)
-            {
+            if (fromAggregate) {
                 setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-                
+
                 aggregationGetData = [];
                 getDataFinishCount = 0;
-
-                if (rowParameters.length == null) {
-                    rowParamLength = 0;
-                } else {
-                    rowParamLength = rowParameters.length;
-                }
-
-                for(var i = 0; i < rowParamLength; i++)
-                {
-                    aggregationGetData[i] = false;
-                }
-
-                for(var i = 0; i < rowParamLength; i++)
-                {
-                    upperTime = getUpperTimeLimit(localTimeRange, timeCount);
-                    if (rowParamLength >= 1) {
-                        dataOriginV = JSON.stringify(rowParameters[i]);
+                if (rowParameters != undefined) {
+                    if (rowParameters.length == null) {
+                        rowParamLength = 0;
                     } else {
-                        dataOriginV = JSON.stringify(rowParameters);
+                        rowParamLength = rowParameters.length;
                     }
-                    index = i;
-                    if (typicaltrend == "Yes" && (typicaltrend == null || typicaltrend == '' || trendDate == null || trendDate == '')){
-                        typicaltrend = ' ';
+                }
+
+                if (t1 != null && t2 != null) {
+                    rowParameters = JSON.parse(localStorage.getItem(widgetName));
+                    if (rowParameters.length == undefined) rowParamLength = 1;
+                    else rowParamLength = rowParameters.length;
+                    for (var i = 0; i < rowParamLength; i++) {
+                        aggregationGetData[i] = false;
                     }
-                    $.ajax({
-                        url: "../controllers/aggregationSeriesProxy.php",
-                        type: "POST",
-                        data:
+                    let hour1 = parseInt(t1.slice(11, 13)) + 1;
+                    let hour2 = parseInt(t2.slice(11, 13)) + 1;
+                    if (hour1 > 9) {
+                        t1 = t1.slice(0, 11) + hour1.toString() + t1.slice(13, 19);
+                    } else {
+                        t1 = t1.slice(0, 12) + hour1.toString() + t1.slice(13, 19);
+                    }
+                    if (hour2 > 9) {
+                        t2 = t2.slice(0, 11) + hour2.toString() + t2.slice(13, 19);
+                    } else {
+                        t2 = t2.slice(0, 12) + hour2.toString() + t2.slice(13, 19);
+                    }
+                    for (var i = 0; i < rowParamLength; i++) {
+                        if (rowParameters.length >= 1) {
+                            dataOriginV = JSON.stringify(rowParameters[i]);
+                        } else {
+                            dataOriginV = JSON.stringify(rowParameters);
+                        }
+                        index = i;
+                        if (typicaltrend == "Yes" && (typicaltrend == null || typicaltrend == '' || trendDate == null || trendDate == '')) {
+                            typicaltrend = ' ';
+                        }
+                        $.ajax({
+                            url: "../controllers/aggregationSeriesProxy.php",
+                            type: "POST",
+                            data:
                                 {
                                     dataOrigin: dataOriginV,
+                                    upperTime: t2,
+                                    lowerTime: t1,
                                     index: i,
-                                    timeRange: localTimeRange,
-                                    field: rowParameters[i].smField,
-                                    upperTime: upperTime,
-                                    typicaltrend: typicaltrend,
                                     trendtype: trendType,
                                     trenddate: trendDate,
                                     tttdate: TTTDate,
-                                    computationType: computationType
+                                    computationType: computationType,
+                                    field: dataOriginV.smField,
+                                    timeRange: localTimeRange,
+                                    typicaltrend: typicaltrend
                                 },
-                        async: true,
-                        dataType: 'json',
-                        success: function(data) 
-                        {
-                            if (data.index != null) {
-                                aggregationGetData[data.index] = data;
-                                if (data.metricHighLevelType == "Sensor" || data.metricHighLevelType == "IoT Device Variable" || data.metricHighLevelType == "Data Table Variable" || data.metricHighLevelType == "Mobile Device Variable") {
-                                    if (data.data == null || JSON.parse(data.data).realtime == null || JSON.parse(data.data).realtime.results == null) {
-                                        if (errorsLog != null) {
-                                            errorsLog = errorsLog + "No Data Available in the Selected Time-Range for: " + data.label + "; ";
-                                        } else {
-                                            errorsLog = "No Data Available in the Selected Time-Range for: " + data.label + "; ";
-                                        }
-                                    } else {
-                                        errorsLog = data.result + "; ";
-                                    }
-                                } else if (data.metricHighLevelType == "MyKPI") {
-                                    if (data.data != null) {
-                                        if (JSON.parse(data.data).length == 0) {
+                            async: true,
+                            dataType: 'json',
+                            success: function (data) {
+                                if (data.index != null) {
+                                    aggregationGetData[data.index] = data;
+                                    if (data.metricHighLevelType == "Sensor" || data.metricHighLevelType == "IoT Device Variable" || data.metricHighLevelType == "Data Table Variable" || data.metricHighLevelType == "Mobile Device Variable") {
+                                        if (data.data == null || JSON.parse(data.data).realtime == null || JSON.parse(data.data).realtime.results == null) {
                                             if (errorsLog != null) {
                                                 errorsLog = errorsLog + "No Data Available in the Selected Time-Range for: " + data.label + "; ";
                                             } else {
@@ -2860,29 +3127,278 @@
                                         } else {
                                             errorsLog = data.result + "; ";
                                         }
+                                    } else if (data.metricHighLevelType == "MyKPI") {
+                                        if (data.data != null) {
+                                            if (JSON.parse(data.data).length == 0) {
+                                                if (errorsLog != null) {
+                                                    errorsLog = errorsLog + "No Data Available in the Selected Time-Range for: " + data.label + "; ";
+                                                } else {
+                                                    errorsLog = "No Data Available in the Selected Time-Range for: " + data.label + "; ";
+                                                }
+                                            } else {
+                                                errorsLog = data.result + "; ";
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (errorsLog != null) {
+                                        errorsLog = errorsLog + " " + data.result + "; ";
+                                    } else {
+                                        errorsLog = data.result + "; ";
                                     }
                                 }
-                            } else {
-                                if (errorsLog != null) {
-                                    errorsLog = errorsLog + " " + data.result + "; ";
-                                } else {
-                                    errorsLog = data.result + "; ";
-                                }
-                            }
-                            getDataFinishCount++;
-                            var deviceLabels = [];
-                            var metricLabels = [];
-                            var LabelInterval = null;
-                                    
-                        //    if (JSON.parse(data.data).length !== 0) {
+                                getDataFinishCount++;
+                                var deviceLabels = [];
+                                var metricLabels = [];
+                                var LabelInterval = null;
+
+                                //    if (JSON.parse(data.data).length !== 0) {
                                 if (typicaltrend == 'Yes') {
                                     if (JSON.parse(data.data).length !== 0) {
                                         LabelInterval = JSON.parse(data.data)[0].deviceName + " - " + JSON.parse(data.data)[0].valueName + " - " + trendType + ':  ' + JSON.parse(data.data)[0].from + ' --> ' + JSON.parse(data.data)[0].to + '(' + JSON.parse(data.data)[0].computationType + ')';
                                     }
                                 }
                                 //Popoliamo il widget quando sono arrivati tutti i dati
-                                if (getDataFinishCount === rowParamLength)
+                                if (getDataFinishCount === rowParamLength) {
+                                    widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
+                                    legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
+                                    editLabels = styleParameters.editDeviceLabels;
+                                    buildSeriesFromAggregationData(localTimeRange);
+
+                                    metricLabels = getMetricLabelsForBarSeries(rowParameters);
+                                    //    deviceLabels = getDeviceLabelsForBarSeries(rowParameters);
+                                    for (let n = 0; n < chartSeriesObject.length; n++) {
+                                        if (chartSeriesObject[n] != null) {
+                                            deviceLabels[n] = chartSeriesObject[n].name;
+                                        }
+                                    }
+                                    //    let mappedSeriesDataArray = buildBarSeriesArrayMap(seriesDataArray);
+                                    /*    if (editLabels) {
+                                    series = serializeDataForSeries(metricLabels, deviceLabels, editLabels);
+                                    } else {*/
+                                    series = serializeDataForSeries(metricLabels, deviceLabels);
+                                    //   }
+
+                                    if (styleParameters.xAxisLabel != null) {
+                                        xAxisTitle = styleParameters.xAxisLabel;
+                                    }
+                                    /*   if (xAxisFormat) {
+                                    if (xAxisFormat == "timestamp") {
+                                    xAxisTitle = "DateTime";
+                                    } else if (xAxisFormat == "numeric") {
+                                    xAxisTitle = "Numeric Values";
+                                    }
+                                    } else {
+                                    xAxisTitle = "DateTime";
+                                    }*/
+
+                                    //  if(firstLoad !== false || timeNavCount != 0)
+                                    //  {
+                                    showWidgetContent(widgetName);
+                                    //   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                    //  }
+                                    /*  else
+                                    {
+                                    elToEmpty.empty();
+                                    //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                    }*/
+
+                                    //    if (!serviceUri) {
+                                    $.ajax({
+                                        url: "../widgets/updateBarSeriesParameters.php",
+                                        type: "GET",
+                                        data: {
+                                            widgetName: "<?= $_REQUEST['name_w'] ?>",
+                                            series: series
+                                        },
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function (widgetData) {
+                                            var stopFlag = 1;
+                                        },
+                                        error: function (errorData) {
+                                            /*  metricData = null;
+                                            console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
+                                            console.log(JSON.stringify(errorData)); */
+                                        }
+                                    });
+                                    //    }
+
+                                    let drawFlag = false;
+                                    for (let n = 0; n < chartSeriesObject.length; n++) {
+                                        if (chartSeriesObject[n] != null) {
+                                            if (chartSeriesObject[n].data.length > 0) {
+                                                drawFlag = true;
+                                            }
+                                        }
+                                    }
+                                    if (drawFlag === true) {
+                                        drawDiagram(true, xAxisFormat, yAxisType, LabelInterval);
+                                    } else {
+                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                        $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                        //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                        if (errorsLog != null) {
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text(errorsLog);
+                                        } else {
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available in the Selected Time-Range.");
+                                        }
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                    }
+                                    if (timeNavCount < 0) {
+                                        if (moment(upperTime).isBefore(moment(dataFut))) {
+
+                                        } else {
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                        }
+                                    }
+                                    if (typicaltrend == 'Yes') {
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_prevButton").hide();
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton").show();
+                                    }
+                                }
+                                /*  } else{
+                                    showWidgetContent(widgetName);
+                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                //   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                            }*/
+                            },
+                            error: function (errorData) {
+                                console.log(errorData);
+                                metricData = null;
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
+                                showWidgetContent(widgetName);
+                                $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                            }
+                        });
+                    }
+
+                } else {
+                    localStorage.setItem(widgetName, JSON.stringify(rowParameters));
+
+                    for (var i = 0; i < rowParamLength; i++) {
+                        aggregationGetData[i] = false;
+                    }
+                    var metridId = '';
+                    var fromDate = '';
+                    for (var i = 0; i < rowParamLength; i++) {
+                        //yyyy-mm-ddThh:mm:ss
+                        metridId = rowParameters[i].metricId;
+
+                        if ((dateChoice != null) && (dateChoice != '') && !timeNavigationButtonClick) {
+                            fromDate = '';
+                            var date = new Date(dateChoice);
+                            var y = date.getFullYear();
+                            var m = date.getMonth() + 1;
+                            if (m < 10) {
+                                m = '0' + m;
+                            }
+                            var d = date.getDate();
+                            if (d < 10) {
+                                d = '0' + d;
+                            }
+                            var h = date.getHours();
+                            if (h < 10) {
+                                h = '0' + h;
+                            }
+                            var s = date.getMinutes();
+                            if (s < 10) {
+                                s = '0' + s;
+                            }
+                            upperTime = y + '-' + m + '-' + d + 'T' + h + ':' + s + ':00';
+                            //console.log('fromDate: '+fromDate);
+                            //rowParameters[i].metricId = metridId +'&toTime='+fromDate;
+                        } else {
+                            upperTime = getUpperTimeLimit(localTimeRange, timeCount);
+                        }
+
+                        if (rowParamLength >= 1) {
+                            dataOriginV = JSON.stringify(rowParameters[i]);
+                        } else {
+                            dataOriginV = JSON.stringify(rowParameters);
+                        }
+                        index = i;
+                        if (typicaltrend == "Yes" && (typicaltrend == null || typicaltrend == '' || trendDate == null || trendDate == '')) {
+                            typicaltrend = ' ';
+                        }
+                        $.ajax({
+                            url: "../controllers/aggregationSeriesProxy.php",
+                            type: "POST",
+                            data:
                                 {
+                                    dataOrigin: dataOriginV,
+                                    index: i,
+                                    timeRange: localTimeRange,
+                                    field: rowParameters[i].smField,
+                                    upperTime: upperTime,
+                                    // lowerTime: t1,
+                                    typicaltrend: typicaltrend,
+                                    trendtype: trendType,
+                                    trenddate: trendDate,
+                                    tttdate: TTTDate,
+                                    computationType: computationType
+                                },
+                            async: true,
+                            dataType: 'json',
+                            success: function (data) {
+                                if (data.index != null) {
+                                    aggregationGetData[data.index] = data;
+                                    if (data.metricHighLevelType == "Sensor" || data.metricHighLevelType == "IoT Device Variable" || data.metricHighLevelType == "Data Table Variable" || data.metricHighLevelType == "Mobile Device Variable") {
+                                        if (data.data == null || JSON.parse(data.data).realtime == null || JSON.parse(data.data).realtime.results == null) {
+                                            if (errorsLog != null) {
+                                                errorsLog = errorsLog + "No Data Available in the Selected Time-Range for: " + data.label + "; ";
+                                            } else {
+                                                errorsLog = "No Data Available in the Selected Time-Range for: " + data.label + "; ";
+                                            }
+                                        } else {
+                                            errorsLog = data.result + "; ";
+                                        }
+                                    } else if (data.metricHighLevelType == "MyKPI") {
+                                        if (data.data != null) {
+                                            if (JSON.parse(data.data).length == 0) {
+                                                if (errorsLog != null) {
+                                                    errorsLog = errorsLog + "No Data Available in the Selected Time-Range for: " + data.label + "; ";
+                                                } else {
+                                                    errorsLog = "No Data Available in the Selected Time-Range for: " + data.label + "; ";
+                                                }
+                                            } else {
+                                                errorsLog = data.result + "; ";
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    if (errorsLog != null) {
+                                        errorsLog = errorsLog + " " + data.result + "; ";
+                                    } else {
+                                        errorsLog = data.result + "; ";
+                                    }
+                                }
+                                getDataFinishCount++;
+                                var deviceLabels = [];
+                                var metricLabels = [];
+                                var LabelInterval = null;
+
+                                //    if (JSON.parse(data.data).length !== 0) {
+                                if (typicaltrend == 'Yes') {
+                                    if (JSON.parse(data.data).length !== 0) {
+                                        LabelInterval = JSON.parse(data.data)[0].deviceName + " - " + JSON.parse(data.data)[0].valueName + " - " + trendType + ':  ' + JSON.parse(data.data)[0].from + ' --> ' + JSON.parse(data.data)[0].to + '(' + JSON.parse(data.data)[0].computationType + ')';
+                                    }
+                                }
+                                //Popoliamo il widget quando sono arrivati tutti i dati
+                                if (getDataFinishCount === rowParamLength) {
                                     widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
                                     legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
                                     editLabels = styleParameters.editDeviceLabels;
@@ -2899,6 +3415,7 @@
                                     /*    if (editLabels) {
                                      series = serializeDataForSeries(metricLabels, deviceLabels, editLabels);
                                      } else {*/
+                                    //
                                     series = serializeDataForSeries(metricLabels, deviceLabels);
                                     //   }
 
@@ -2927,11 +3444,10 @@
                                      {
                                      elToEmpty.empty();
                                      //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
-                                     $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
-                                     $("#<?= $_REQUEST['name_w'] ?>_table").show();
-                                     }*/
-
+                                         $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').hide();
+                                         $("#<?= $_REQUEST['name_w'] ?>_chartContainer").show();
+                                         $("#<?= $_REQUEST['name_w'] ?>_table").show();
+                                         }*/
                                     //    if (!serviceUri) {
                                     $.ajax({
                                         url: "../widgets/updateBarSeriesParameters.php",
@@ -2948,34 +3464,34 @@
                                         error: function (errorData) {
                                             /*  metricData = null;
                                              console.log("Error in updating widgetBarSeries: <?= $_REQUEST['name_w'] ?>");
-                                             console.log(JSON.stringify(errorData)); */
+                                                 console.log(JSON.stringify(errorData)); */
                                         }
                                     });
                                     //    }
 
-                                let drawFlag = false;
-                                for (let n = 0; n< chartSeriesObject.length; n++) {
-                                    if (chartSeriesObject[n] != null) {
-                                        if (chartSeriesObject[n].data.length > 0) {
-                                            drawFlag = true;
+                                    let drawFlag = false;
+                                    for (let n = 0; n < chartSeriesObject.length; n++) {
+                                        if (chartSeriesObject[n] != null) {
+                                            if (chartSeriesObject[n].data.length > 0) {
+                                                drawFlag = true;
+                                            }
                                         }
                                     }
-                                }
-                                if (drawFlag === true) {
-                                    drawDiagram(true, xAxisFormat, yAxisType, LabelInterval);
-                                } else {
-                                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                                    $("#<?= $_REQUEST['name_w'] ?>_table").hide();
-                                    //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                                    if (errorsLog != null) {
-                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text(errorsLog);
+                                    if (drawFlag === true) {
+                                        drawDiagram(true, xAxisFormat, yAxisType, LabelInterval);
                                     } else {
-                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available in the Selected Time-Range.");
+                                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                        $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                        //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                        if (errorsLog != null) {
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text(errorsLog);
+                                        } else {
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available in the Selected Time-Range.");
+                                        }
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                     }
-                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                                }
-                                if (timeNavCount < 0) {
-                                    if (moment(upperTime).isBefore(moment(dataFut))) {
+                                    if (timeNavCount < 0) {
+                                        if (moment(upperTime).isBefore(moment(dataFut))) {
 
                                         } else {
                                             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
@@ -2987,26 +3503,26 @@
                                         $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton").show();
                                     }
                                 }
-                          /*  } else{
+                                /*  } else{
+                                      showWidgetContent(widgetName);
+                                      $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                                    $("#<?= $_REQUEST['name_w'] ?>_table").hide();
+                                    //   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                }*/
+                            },
+                            error: function (errorData) {
+                                metricData = null;
+                                console.log("Error in data retrieval");
+                                console.log(JSON.stringify(errorData));
                                 showWidgetContent(widgetName);
                                 $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
                                 $("#<?= $_REQUEST['name_w'] ?>_table").hide();
-                                //   $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                                //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                            }*/
-                        },
-                        error: function(errorData)
-                        {
-                            metricData = null;
-                            console.log("Error in data retrieval");
-                            console.log(JSON.stringify(errorData));
-                            showWidgetContent(widgetName);
-                            $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
-                            $("#<?= $_REQUEST['name_w'] ?>_table").hide();
-                            //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
-                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
-                        }
-                    });
+                            }
+                        });
+                    }
                 }
             }
             else
@@ -3094,8 +3610,10 @@
             }
         }
 
+        // $("#" + widgetName + "_timeTrendPrevBtn").off("click");
         $("#" + widgetName + "_timeTrendPrevBtn").on("click").click(function () {
             //  alert("PREV Clicked!");
+            timeNavigationButtonClick = true;
             timeNavCount++;
             errorsLog = null;
             if(timeNavCount == 0) {
@@ -3192,10 +3710,13 @@
                     populateWidget(false, null, "minus", timeNavCount);
                 }
             }
+            timeNavigationButtonClick = false;
         });
 
+        //$("#" + widgetName + "_timeTrendNextBtn").off("click");
         $("#" + widgetName + "_timeTrendNextBtn").on("click").click(function () {
             //   alert("NEXT Clicked!");
+            timeNavigationButtonClick = true;
             timeNavCount--;
             errorsLog = null;
             if(timeNavCount == 0) {
@@ -3286,6 +3807,7 @@
                     populateWidget(false, null, "plus", timeNavCount);
                 }
             }
+            timeNavigationButtonClick = false;
         });
 
         $("#" + widgetName + "_datepicker").hide();
@@ -3388,24 +3910,6 @@
                 dayhourview = widgetData.params.dayhourview;
                 computationType = widgetData.params.computationType;
 				code = widgetData.params.code;
-				//////lettura code
-				if (widgetData.params.code != null && widgetData.params.code != "null") {
-                        let code = widgetData.params.code;
-                        var text_ck_area = document.createElement("text_ck_area");
-                        text_ck_area.innerHTML = code;
-                        var newInfoDecoded = text_ck_area.innerText;
-                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
-
-                        var elem = document.createElement('script');
-                        elem.type = 'text/javascript';
-                        elem.innerHTML = newInfoDecoded;
-                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
-
-                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
-						//
-						
-						//
-                    }
 
                 if (nrMetricType != null) {
                     openWs();
@@ -3472,7 +3976,29 @@
                     xAxisFormat = styleParameters.xAxisFormat;
                     yAxisType = styleParameters.yAxisType;
                 }
-                
+
+                //////lettura code
+                if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code != null && code != "null") {
+                    var text_ck_area = document.createElement("text_ck_area");
+                    text_ck_area.innerHTML = code;
+                    var newInfoDecoded = text_ck_area.innerText;
+                    newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                    var elem = document.createElement('script');
+                    elem.type = 'text/javascript';
+                    elem.innerHTML = newInfoDecoded;
+                    try {
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    } catch(e) {
+                        console.log("Error in appending JS function to DOM on " + widgetName);
+                    }
+                    //
+
+                    //
+                }
+
                 if(widgetData.params.parameters !== null)
                 {
                     if(widgetData.params.parameters.length > 0)
@@ -3694,6 +4220,17 @@
                     $("#" + widgetName + "_calendarContainer").css("width", "7%");
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 }
+								///////////
+				if (styleParameters.calendarM){
+					if (styleParameters.calendarM == 'yes'){
+					$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').show();
+					}else{
+						$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').hide();
+					}		
+				}else{
+					$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').hide();					
+				}
+				////////////////
 
             },
             error: function(errorData)
@@ -3856,6 +4393,49 @@
 		
         countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
+		function clear(){
+                dateChoice = null;
+                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').val='';
+            }
+
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.show',function(){
+                $('.media').css({'overflow':'visible', 'z-index':'1000000'});
+            }).on('dp.hide',function(){
+                $('.media').css({'overflow':'hidden'});
+            })
+
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.change', function (e) { 
+				var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                dateChoice = date;
+				//dateChoice = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').val();
+                //timeNavCount = 0;
+                timeNavCount = getChoiceTimeNavCount(dateChoice, timeRange);
+                if(timeNavCount != 0) {
+                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                }
+                populateWidget(true, timeRange, null, timeNavCount);
+            });
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").clear()
+
+                if (<?= $_REQUEST['name_w'] ?>_loaded==false){
+
+                document.getElementById('<?= $_REQUEST['name_w'] ?>_droptitle').addEventListener('click', function (e) {
+                  const dropdown = e.currentTarget.parentNode;
+                  const menu = dropdown.querySelector('.menu');
+
+                  toggleClass(menu,'hide');
+               });
+
+                document.getElementById('<?= $_REQUEST['name_w'] ?>_droptitle').addEventListener('change', function (e) {
+                    <?= $_REQUEST['name_w'] ?>_select = e.target.textContent.trimEnd();
+                    //populateWidget(true, timeRange, "minus", timeNavCount);
+                    //loadHyperCube();
+                    //drawDiagram(true, xAxisFormat, yAxisType);
+                });
+                <?= $_REQUEST['name_w'] ?>_loaded = true;
+            }
+
+		///////////////////
     });
 </script>
 
@@ -3886,6 +4466,33 @@
         <!--    <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>    -->
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>
+		<!-- -->
+		<div style="position: relative;">
+		 <div class="widget-dropbdown" style="position: absolute; max-width: 33%; width: auto">
+                                <div style="float: left;width: 20%; padding-left: 5%">
+                            
+                            <div id='<?= $_REQUEST['name_w'] ?>_droptitle' class='dropdown-title title pointerCursor'></div>
+                            
+                            <div id='<?= $_REQUEST['name_w'] ?>_options' class='menu pointerCursor hide'></div>
+
+                        </div>
+								<div id='<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer' class ="form-group" style="float: left;width:100%;" hidden>  
+                                <div class ='input-group date' id='<?= $_REQUEST['name_w'] ?>_datetimepicker' data-date-container='#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer'>
+                                  <input type ='text' class="form-control" />
+                                  <span class ="input-group-addon">
+                                    <span class ="glyphicon glyphicon-calendar"></span>
+                                  </span>
+                                </div>
+								</div>
+                              
+                         <!--
+                            <button id='<?= $_REQUEST['name_w'] ?>_cut' style="float: left;width:25%; padding:0.6em 0em;">Toggle Time Slice</button>
+                            <button id='<?= $_REQUEST['name_w'] ?>_stream' style="float: left;width:25%; padding:0.6em 0em;">Toggle Stream Graph</button>
+							-->
+
+                 </div>
+			</div>
+		<!-- -->
     </div>
 	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 

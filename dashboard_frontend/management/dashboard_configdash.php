@@ -404,6 +404,41 @@
              color: #000000;
              background: rgba(0, 162, 211, 1);
         }
+
+        .vertical-slider {
+            width: 300px!important;
+            margin-top: 150px;
+            margin-left: 75px;
+            transform: rotate(-90deg);
+            -webkit-appearance: none;
+            height: 25px;
+            background: #d3d3d3;
+            background-image: linear-gradient(90deg, goldenrod 50%, #d3d3d3 50%);
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .vertical-slider:hover {
+        opacity: 1;
+        }
+
+        .vertical-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 75px;
+        background: #04AA6D;
+        cursor: pointer;
+        }
+
+        .vertical-slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        background: #04AA6D;
+        cursor: pointer;
+        }
     </style>
 
 <body> 
@@ -11984,6 +12019,7 @@
                                     newLabel.show();
                                     newInnerDiv.show();
                                     newSelect.show();
+									
 
                                     //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
                                     $('#alrThrSel').change(alrThrSelListener);
@@ -17849,7 +17885,7 @@
                                 var entityJson = JSON.parse(data.entityJson);
                                 var attributeName = data.attributeName;
                                 var widgetTypeM = data.type_widget;
-                                if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb" || widgetTypeM == "widgetSelectorTech" || widgetTypeM == "widgetCurvedLineSeries" || widgetTypeM == "widgetCalendar" || widgetTypeM == "widgetDataCube") {
+                                if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb" || widgetTypeM == "widgetSelectorTech" || widgetTypeM == "widgetCurvedLineSeries" || widgetTypeM == "widgetCalendar" || widgetTypeM == "widgetDataCube" || widgetTypeM == "widgetBarSeries") {
                                     $("#specificParamsM").css("width", "100%");
                                 }
                                 var paramsRaw = data['param_w'];
@@ -26991,7 +27027,7 @@
                                                 success: function (data) {
                                                     if (data['detail'] == "Ok" && data['trustedUsers'].includes("<?= $dashboardEditorName ?>")) {
                                                         //Nuova riga
-														console.log('TRUSTED PIECHART');
+														//console.log('TRUSTED PIECHART');
                                                         //Source Selection
                                                         newFormRow = $('<div class="row"></div>');
                                                         $("#specificParamsMRight").append(newFormRow);
@@ -27006,6 +27042,7 @@
                                                         newLabel.show();
                                                         newInnerDiv.show();
                                                         newSelect.show();
+                                                        $('#enableCKEditor').val(styleParameters.enableCKEditor);
 
                                                         //Nuova riga Tab Destro: CKEDITOR
                                                         //Modalità del widget (none, map, gis, link esterno)
@@ -27039,40 +27076,19 @@
                                                         });
 														//alert(code);
 														//console.log(code);
-														if (code != null && code != "null") {
+														if ($('#enableCKEditor') != null && $('#enableCKEditor').val() == "ckeditor") {
 															$('#ck_editor').show();
-                                                                $('#enableCKEditor').val("ckeditor");
+                                                                //$('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
-                                                                if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
-                                                                    var text_ck_area = document.createElement("text_ck_area");
-                                                                    text_ck_area.innerHTML = codeForCKEditor;
-                                                                    var newInfoDecoded = text_ck_area.innerText;
-                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
-                                                                }
-														}
-
-                                                        let par = (JSON.stringify(currentParams));
-														console.log('JSON.stringify(currentParams):');
-														console.log(currentParams);
-                                                        if (par && !par.includes("latLng") && !par.includes("null")) {
-                                                            $("#parametersM").val(JSON.stringify(currentParams));
-                                                            if ((currentParams['mode'] == "ckeditor")||(code != null && code != "")) {
-															//if (code != null && code != "null") {
-                                                                $('#ck_editor').show();
-                                                                $('#enableCKEditor').val("ckeditor");
-                                                                // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
-                                                                if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
-                                                                    var text_ck_area = document.createElement("text_ck_area");
-                                                                    text_ck_area.innerHTML = codeForCKEditor;
-                                                                    var newInfoDecoded = text_ck_area.innerText;
-                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
-                                                                }
+                                                            if (code != null && code != "null") {
+                                                                var codeForCKEditor = $('<div>').text(code).html();
+                                                                var text_ck_area = document.createElement("text_ck_area");
+                                                                text_ck_area.innerHTML = codeForCKEditor;
+                                                                var newInfoDecoded = text_ck_area.innerText;
+                                                                //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                                CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
                                                             }
-                                                        }
+														}
 
                                                         $('#enableCKEditor').change(function () {
 															
@@ -28637,7 +28653,24 @@
                                             newInnerDiv.show();
                                             newInput.show();
                                         }*/
-
+										//Nuova Riga - CalendarM
+										newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="calendarM" class="col-md-1 control-label"><?php echo _("Show Calendar Button"); ?></label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
+                                        newSelect = $('<select class="form-control" id="calendarM" name="calendarM">');
+                                        newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                        newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
+                                        newSelect.val("value");
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+										//console.log('CalendarM: '+styleParameters.calendarM);
+										$("#calendarM").val(styleParameters.calendarM);
+										//
                                         //Codice di creazione soglie
                                         //Nuova riga
                                         //Set thresholds
@@ -28857,7 +28890,7 @@
                                                 success: function (data) {
                                                     if (data['detail'] == "Ok" && data['trustedUsers'].includes("<?= $dashboardEditorName ?>")) {
                                                         //Nuova riga
-														console.log('TRUSTED');
+														//console.log('TRUSTED');
                                                         //Source Selection
                                                         newFormRow = $('<div class="row"></div>');
                                                         $("#specificParamsMRight").append(newFormRow);
@@ -28872,6 +28905,7 @@
                                                         newLabel.show();
                                                         newInnerDiv.show();
                                                         newSelect.show();
+                                                        $('#enableCKEditor').val(styleParameters.enableCKEditor);
 
                                                         //Nuova riga Tab Destro: CKEDITOR
                                                         //Modalità del widget (none, map, gis, link esterno)
@@ -28904,37 +28938,18 @@
                                                             width: '100%'
                                                         });
 														
-														if (code != null && code != "null") {
+														if ($('#enableCKEditor') != null && $('#enableCKEditor').val() == "ckeditor") {
 															$('#ck_editor').show();
-                                                                $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
-                                                                if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
-                                                                    var text_ck_area = document.createElement("text_ck_area");
-                                                                    text_ck_area.innerHTML = codeForCKEditor;
-                                                                    var newInfoDecoded = text_ck_area.innerText;
-                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
-                                                                }
-														}
-
-                                                        let par = (JSON.stringify(currentParams));
-                                                        if (par && !par.includes("latLng") && !par.includes("null")) {
-                                                            $("#parametersM").val(JSON.stringify(currentParams));
-                                                            if ((currentParams['mode'] == "ckeditor")||(code !== null)) {
-                                                                $('#ck_editor').show();
-                                                                $('#enableCKEditor').val("ckeditor");
-                                                                // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
-                                                                if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
-                                                                    var text_ck_area = document.createElement("text_ck_area");
-                                                                    text_ck_area.innerHTML = codeForCKEditor;
-                                                                    var newInfoDecoded = text_ck_area.innerText;
-                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
-                                                                }
+                                                            if (code != null && code != "null") {
+                                                                var codeForCKEditor = $('<div>').text(code).html();
+                                                                var text_ck_area = document.createElement("text_ck_area");
+                                                                text_ck_area.innerHTML = codeForCKEditor;
+                                                                var newInfoDecoded = text_ck_area.innerText;
+                                                                //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                                CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
                                                             }
-                                                        }
+														}
 
                                                         $('#enableCKEditor').change(function () {
                                                             if ($('#enableCKEditor').val() === "ckeditor") {
@@ -28947,10 +28962,12 @@
                                                                     var newInfoDecoded = text_ck_area.innerText;
                                                                     CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
                                                                 }
-                                                                $("#parametersM").val('{"mode": "ckeditor"}');
+                                                                //$("#parametersM").val('{"mode": "ckeditor"}');
+                                                                
                                                             } else {
                                                                 $('#ck_editor').hide();
-                                                                $("#parametersM").val('');
+                                                                // $("#parametersM").val('');
+                                                                
                                                             }
                                                         });
 
@@ -29892,7 +29909,7 @@
                                         //Bars colors
                                         newFormRow = $('<div class="row"></div>');
                                         $("#specificParamsM").append(newFormRow);
-                                        newLabel = $('<label for="barsColorsSelectM" class="col-md-2 control-label">Bars colors</label>');
+                                        newLabel = $('<label for="barsColorsSelectM" class="col-md-2 control-label">Bars colors and labels</label>');
                                         newInnerDiv = $('<div class="col-md-3"></div>');
                                         newSelect = $('<select class="form-control" id="barsColorsSelectM" name="barsColorsSelectM"></select>');
                                         newSelect.append('<option value="manual">Manual</option>');
@@ -30024,20 +30041,64 @@
                                             $("#barsColorsM").val(JSON.stringify(colorsArray));
                                         }
                                         
-                                        colorsTable = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
+                                        function findLabel(arr, targetLab, ref) {
+                                            var res = null;
+                                            var target = "";
+                                            if (ref == "value name") {
+                                                target = "metricType";
+                                            } else {
+                                                target = "metricName"
+                                            }
+                                            for (let k in arr) {
+                                                if (arr[k][target] == targetLab) {
+                                                    return arr[k].label;
+                                                }
+                                            }
+                                            return res;
+                                        }
+                                        
+                                        setEditMultiSeriesParameters(rowParamsArray);
+                                        if (document.getElementById("groupByAttrM").value == "value name") {
+                                            colorsTable = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Labels (in Chart Legend)</td><td>Color</td></tr></table>");
+                                        } else {
+                                            colorsTable = $("<table class='table table-bordered table-condensed thrRangeTable'><tr><td>Series</td><td>Color</td></tr></table>");
+                                        }
                                         if (series) {
                                             for (var i in series.secondAxis.labels) {
                                                 newRow = $('<tr></tr>');
                                                 if (styleParameters.editDeviceLabels != null) {
+                                                    let placeholderStr = "";
                                                     if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value != "value name") {
+                                                        placeholderStr = styleParameters.editDeviceLabels[i];
                                                         newCell = $('<td>' + styleParameters.editDeviceLabels[i] + '</td>');
                                                     } else {
+                                                        placeholderStr =series.secondAxis.labels[i];
                                                         newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
                                                     }
                                                 } else {
+                                                    placeholderStr =series.secondAxis.labels[i];
                                                     newCell = $('<td>' + series.secondAxis.labels[i] + '</td>');
                                                 }
                                                 newRow.append(newCell);
+                                                
+                                                if (document.getElementById("groupByAttrM").value == "value name") {
+                                                    var barPlaceholderStr = null;
+                                                    barPlaceholderStr = findLabel(rowParamsArray, series.secondAxis.labels[i], document.getElementById("groupByAttrM").value);
+                                                    newTableCell = $('<td><a href="#" class="toBeEdited" data-type="text" data-mode="popup" data-param="barLabels" data-groupattribute="' + document.getElementById("groupByAttrM").value + '"></a></td>');
+                                                    newTableCell.find('a').editable({
+                                                        emptytext: "Empty",
+                                                        display: function (value, response) {
+                                                            if (value.length > 50) {
+                                                                $(this).html(value.substring(0, 50) + "...");
+                                                            } else {
+                                                                $(this).html(value);
+                                                            }
+                                                        },
+                                                        value: barPlaceholderStr
+                                                    });
+                                                    newRow.append(newTableCell);
+                                                }
+                                                
                                                 newCell = $('<td><div class="input-group colorPicker"><input type="text" class="form-control"><span class="input-group-addon"><i class="thePicker"></i></span></div></td>');
                                                 newRow.append(newCell);
                                                 //Se l'attuale impostazione è per colori automatici, costruiamo JSON e tabella GUI con impostazioni di default, altrimenti con colori da DB
@@ -30056,6 +30117,7 @@
                                                 }
 
                                                 newRow.find('div.colorPicker').on('changeColor', updateWidgetBarSeriesColorsM);
+                                                newRow.find('a.toBeEdited').on('save', editMultiSeriesUpdateParams);
                                                 colorsTable.append(newRow);
                                             }
                                         }
@@ -30077,7 +30139,7 @@
                                         for (var n = 0; n < deviceLabels.length; n++) {
                                             newFormRow = $('<div class="row deviceLab"></div>');
                                             $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Value Name #' + (n + 1).toString() + ' Label</label>');
+                                            newLabel = $('<label for="deviceLabelsM" class="col-md-2 control-label">Device/Entity #' + (n + 1).toString() + ' Label</label>');
                                             newInnerDiv = $('<div class="col-md-7"></div>');
                                             var placeholderStr = "";
                                             if (styleParameters.editDeviceLabels != null) {
@@ -30113,7 +30175,25 @@
                                             });
                                         }
 
-                                        //Codice di creazione soglie
+                                        
+										//Nuova Riga - CalendarM
+										newFormRow = $('<div class="row deviceLab"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="calendarM" class="col-md-2 control-label">Show Calendar Button</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="calendarM" name="calendarM">');
+                                        newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                        newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
+                                        newSelect.val("value");
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+										$("#calendarM").val(styleParameters.calendarM);
+										//console.log("#calendarM: "+styleParameters.calendarM);
+										//Codice di creazione soglie
                                         //Nuova riga
                                         //Set thresholds
                                         newFormRow = $('<div class="row"></div>');
@@ -30209,7 +30289,7 @@
                                                 success: function (data) {
                                                     if (data['detail'] == "Ok" && data['trustedUsers'].includes("<?= $dashboardEditorName ?>")) {
                                                         //Nuova riga
-														console.log('TRUSTED');
+														//console.log('TRUSTED');
                                                         //Source Selection
                                                         newFormRow = $('<div class="row"></div>');
                                                         $("#specificParamsMRight").append(newFormRow);
@@ -30224,6 +30304,7 @@
                                                         newLabel.show();
                                                         newInnerDiv.show();
                                                         newSelect.show();
+                                                        $('#enableCKEditor').val(styleParameters.enableCKEditor);
 
                                                         //Nuova riga Tab Destro: CKEDITOR
                                                         //Modalità del widget (none, map, gis, link esterno)
@@ -30256,21 +30337,21 @@
                                                             width: '100%'
                                                         });
 														
-														if (code != null && code != "null") {
+														if ($('#enableCKEditor') != null && $('#enableCKEditor').val() == "ckeditor") {
 															$('#ck_editor').show();
-                                                                $('#enableCKEditor').val("ckeditor");
+                                                                //$('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
-                                                                if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
-                                                                    var text_ck_area = document.createElement("text_ck_area");
-                                                                    text_ck_area.innerHTML = codeForCKEditor;
-                                                                    var newInfoDecoded = text_ck_area.innerText;
-                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
-                                                                }
+                                                            if (code != null && code != "null") {
+                                                                var codeForCKEditor = $('<div>').text(code).html();
+                                                                var text_ck_area = document.createElement("text_ck_area");
+                                                                text_ck_area.innerHTML = codeForCKEditor;
+                                                                var newInfoDecoded = text_ck_area.innerText;
+                                                                //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                                CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                            }
 														}
 
-                                                        let par = (JSON.stringify(currentParams));
+                                                    /*    let par = (JSON.stringify(currentParams));
                                                         if (par && !par.includes("latLng") && !par.includes("null")) {
                                                             $("#parametersM").val(JSON.stringify(currentParams));
                                                             if ((currentParams['mode'] == "ckeditor")||(code !== null)) {
@@ -30286,7 +30367,7 @@
                                                                     CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
                                                                 }
                                                             }
-                                                        }
+                                                        }   */
 														
 
                                                         $('#enableCKEditor').change(function () {
@@ -30304,7 +30385,7 @@
 																
                                                             } else {
                                                                 $('#ck_editor').hide();
-                                                                $("#parametersM").val('');
+                                                            //    $("#parametersM").val('');
                                                             }
                                                         });
 
@@ -34456,8 +34537,8 @@
                                             $("#widgetModeM").val(data.url);
                                             $("#urlWidgetM").parents("div.row").hide();
 
-                                            gisTargetCenterParametersM = currentParams;
-                                            $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
+                                            //gisTargetCenterParametersM = currentParams;
+                                            //$("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
                                             $("#inputShowTitleM").val("yes");
                                             $("#enableFullscreenTabM").val("yes");
 
@@ -34587,24 +34668,26 @@
                                                             width: '100%'
                                                         });
 														
-														if (code != null && code != "null") {
-															$('#ck_editor').show();
-                                                                $('#enableCKEditor').val("ckeditor");
-                                                                // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
-                                                                if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
-                                                                    var text_ck_area = document.createElement("text_ck_area");
-                                                                    text_ck_area.innerHTML = codeForCKEditor;
-                                                                    var newInfoDecoded = text_ck_area.innerText;
-                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
-                                                                }
-														}
+                                                    //if (code != null && code != "null") {
+                                                    if (gisTargetCenterParametersM.mode == "ckeditor") {
+                                                        $('#ck_editor').show();
+                                                            $('#enableCKEditor').val("ckeditor");
+                                                            // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
+                                                            if (code != null && code != "null") {
+                                                                var codeForCKEditor = $('<div>').text(code).html();
+                                                                var text_ck_area = document.createElement("text_ck_area");
+                                                                text_ck_area.innerHTML = codeForCKEditor;
+                                                                var newInfoDecoded = text_ck_area.innerText;
+                                                                //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                                CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                            }
+                                                    }
 
                                                         let par = (JSON.stringify(currentParams));
                                                         if (par && !par.includes("latLng") && !par.includes("null")) {
-                                                            $("#parametersM").val(JSON.stringify(currentParams));
-                                                            if ((currentParams['mode'] == "ckeditor")||(code !== null)) {
+                                                            //$("#parametersM").val(JSON.stringify(currentParams));
+                                                            //if ((currentParams['mode'] == "ckeditor")||(code !== null)) {
+                                                            if (gisTargetCenterParametersM.mode == "ckeditor") {
                                                                 $('#ck_editor').show();
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
@@ -34630,10 +34713,14 @@
                                                                     var newInfoDecoded = text_ck_area.innerText;
                                                                     CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
                                                                 }
-                                                                $("#parametersM").val('{"mode": "ckeditor"}');
+                                                                //$("#parametersM").val('{"mode": "ckeditor"}');
+                                                                gisTargetCenterParametersM.mode = "ckeditor";
+                                                                $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
                                                             } else {
                                                                 $('#ck_editor').hide();
-                                                                $("#parametersM").val('');
+                                                                //$("#parametersM").val('');
+                                                                gisTargetCenterParametersM.mode = "";
+                                                                $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
                                                             }
                                                         });
 
@@ -34688,6 +34775,12 @@
                                             removeWidgetProcessGeneralFields("editWidget");
 
                                             var gisTargetCenterParametersM = null;
+                                            $('div.modalContentWidgetForm').css("width", "135%");
+                                            $('div.modalContentWidgetForm').css("left", "50%");
+                                            $('div.modalContentWidgetForm').css("margin-left", "-65%");
+                                            $('div.wellCustomFooter').css("width", "100%");
+                                            $('div.wellCustom2right').css("width", $('div.wellCustom2right').width() * 1.5);
+                                            $('#specificParamsM').css('width', '100%');
                                             $('#urlWidgetM').attr('disabled', false);
                                             //$('#urlWidgetM').prop('required', true);
                                             $("#titleLabelM").html("Title");
@@ -34725,8 +34818,20 @@
 
                                             //Nuova riga
                                             //Centro della mappa per modalitÃ  GIS target
+                                            const leftDiv = $('<div></div>');
+                                            leftDiv.css('width', '40%');
+                                            leftDiv.css('float', 'left');
+                                            $('#specificParamsM').append(leftDiv);
+                                            const rightDiv = $('<div></div>');
+                                            rightDiv.css('width', '60%');
+                                            rightDiv.css('float', 'left');
+                                            $('#specificParamsM').append(rightDiv);
+
+                                            rightDiv.css('padding', '0px 20px');
+                                            
+                                            // left div
                                             newFormRow = $('<div class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
+                                            leftDiv.append(newFormRow);
                                             newLabel = $('<label class="col-md-2 control-label">Latitude</label>');
                                             newInnerDiv = $('<div class="col-md-2">' +
                                                 '<input type="text" id="gisTargetCenterLatM" class="form-control"/>' +
@@ -34752,7 +34857,7 @@
                                             newFormRow.append(newInnerDiv);
 
                                             newFormRow = $('<div class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
+                                            leftDiv.append(newFormRow);
                                             newLabel = $('<label class="col-md-2 control-label">Tilt</label>');
                                             newInnerDiv = $('<div class="col-md-2">' +
                                                 '<input type="text" id="gisTargetCenterPitchM" class="form-control"/>' +
@@ -34787,183 +34892,70 @@
                                             });
 
                                             newFormRow = $('<div class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
+                                            leftDiv.append(newFormRow);
                                             newInnerDiv = $('<div id="gisTargetCenter3DMapDeckDivM" class="col-md-12"></div>');
                                             newInnerDiv.css('height', '175px');
                                             //newInnerDiv.css('margin-top', '10px');
                                             newFormRow.append(newInnerDiv);
 
+                                            var deck = snap4deck.deck;
                                             var map3d;
+                                            var layers = {
+                                                orthomaps: null,
+                                                building: null,
+                                                crest: null,
+                                            };
                                             var lightData = {};
-                                            const defaultBuildingData = '../widgets/layers/edificato/AltezzeEdificiFirenze.geojson';
-                                            newFormRow = $('<div class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label class="col-md-2 control-label">Building color</label>');
-                                            newInnerDiv = $('<div class="col-md-4"><div class="input-group">' +
-                                                '<input type="text" id="gisTargetBuildingColorM" name="gisTargetBuildingColorM" class="form-control"/>' +
-                                                '<span class="input-group-addon"><i id="widgetBuildingColorM"></i></span>' +
-                                                '</div></div>');
-                                            if (styleParameters != null && styleParameters.buildingColor != null) {
-                                                newInnerDiv.colorpicker({color: styleParameters.buildingColor, format: 'rgba'});
-                                            } else {
-                                                newInnerDiv.colorpicker({color: 'rgba(255, 102, 0, 1)', format: 'rgba'});
-                                            }
-                                            newInnerDiv.on('changeColor', function() {
-                                                if (map3d != null) {
-                                                    var input = $('#gisTargetBuildingColorM').val();
-                                                    const rgba = input.replace(/[^\d,.]/g, '').split(',');
-                                                    for (var i = 0; i < rgba.length; i++)
-                                                        rgba[i] = parseFloat(rgba[i]);
-                                                    rgba[3] = parseInt(rgba[3] * 255);
-                                                    var oldLayers = map3d.props.layers;
-                                                    const newBuildingLayer = createBuildingLayer(defaultBuildingData, rgba);
-                                                    map3d.setProps({
-                                                        layers: [
-                                                            oldLayers[0],
-                                                            newBuildingLayer,
-                                                        ],
-                                                    });
-                                                }
-                                            });
-                                            //newLabel.css("padding-left", "8px");
-                                            //newLabel.css("padding-right", "8px");
-                                            //newInnerDiv.css("padding-left", "0px");
-                                            //newInnerDiv.css("padding-right", "0px");
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
 
-                                            newLabel = $('<label class="col-md-2 control-label">Building Type</label>');
-                                            newInnerDiv = $('<div class="col-md-4"></div>');
-                                            newSelect = $('<select class="form-control" id="buildingTypeM" name="buildingTypeM"></select>');
-                                            newSelect.append('<option value="default">Building Light</option>');
-                                            newSelect.append('<option value="mesh">Building Meshed</option>');
-                                            newSelect.append('<option value="mesh-notext">Building Meshed No Texture</option>');
-                                            newInnerDiv.append(newSelect);
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
-                                            if (styleParameters != null && styleParameters.buildingType != null) {
-                                                newSelect.val(styleParameters.buildingType);
+                                            //right div
+                                            // navigation
+                                            const nav = $('<nav class="nav"></nav>');
+                                            rightDiv.append(nav);
+                                            nav.css('height', '50px');
+                                            function createNavLinkMenu(name) {
+                                                const link = $(`<a class="nav-link">${name}</a>`);
+                                                link.css('font-size', '1.5em');
+                                                link.css('margin-right', '20px');
+                                                link.css('cursor', 'pointer');
+                                                link.css('text-decoration', 'none');
+                                                const linkDiv = $(`<div id="${name.toLowerCase()}LinkDiv"></div>`);
+                                                linkDiv.css('display', 'none');
+                                                link.on('click', () => {
+                                                    for (let div of rightDiv.children().toArray()) {
+                                                        if ($(div).is('nav') == false) {
+                                                            $(div).css('display', 'none');
+                                                        }
+                                                    } 
+                                                    linkDiv.css('display', 'block');
+                                                });
+                                                nav.append(link);
+                                                rightDiv.append(linkDiv);
+                                                return [link, linkDiv];
                                             }
+
+                                            const [orthomapsLink, orthomapsDiv] = createNavLinkMenu("Orhtomaps");
+                                            const [terrainLink, terrainDiv] = createNavLinkMenu("Terrain");
+                                            const [buildingsLink, buildingsDiv] = createNavLinkMenu("Buildings");
+                                            const [lightsLink, lightsDiv] = createNavLinkMenu("Lights");
+                                            // const [crestLink, crestDiv] = createNavLinkMenu("Crest");
+                                            // const [skyLink, skyDiv] = createNavLinkMenu("Sky");
+
+                                            orthomapsDiv.css('display', 'block');
+
+                                            // orthomaps
+                                            // show menu Orthomap
+                                            newFormRow = $('<div class="row"></div>');
+                                            orthomapsDiv.append(newFormRow);
+                                            newLabel = $('<label for="showMenuOrthomapM" class="col-md-3 control-label">Show Orthomaps Menu</label>');
+                                            const showMenuOrthomapCheck = $('<input id="showMenuOrthomapM" style="margin: 8px 0 0 15px;" type="checkbox"/>');
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(showMenuOrthomapCheck);
 
                                             newFormRow = $('<div class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label class="col-md-2 control-label">Use light (experimental)</label>');
-                                            newInnerDiv = $('<div class="col-md-4"></div>');
-                                            newSelect = $('<select class="form-control" id="useLigthingM" name="useLigthingM"></select>');
-                                            newSelect.append('<option value="no">No</option>');
-                                            newSelect.append('<option value="yes">Yes</option>');
-                                            newInnerDiv.append(newSelect);
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
-
-                                            newLabel = $('<label id="lightTimestampLabelM" class="col-md-2 control-label">Timestamp</label>');
-                                            newInnerDiv = $('<div class="col-md-4">' +
-                                                '<input type="datetime-local" id="lightTimestampM" name="lightTimestampM" class="datetime-control"/>' +
-                                                '</div>');
-                                            //newInnerDiv.css("padding-left", "8px");
-                                            //newInnerDiv.css("padding-right", "8px");
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
-
-                                            newFormRow = $('<div id="lightOptions" class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label class="col-md-2 control-label">Light color</label>');
-                                            newInnerDiv = $('<div class="col-md-4"><div class="input-group">' +
-                                                '<input type="text" id="lightColorM" name="lightColorM" class="form-control"/>' +
-                                                '<span class="input-group-addon"><i id="widgetLightColorM"></i></span>' +
-                                                '</div></div>');
-                                            newInnerDiv.colorpicker({color: 'rgb(255, 255, 255)', format: 'rgb'});
-                                            newInnerDiv.on('changeColor', function() {
-                                                reloadLight(true);
-                                            });
-                                            //newLabel.css("padding-left", "8px");
-                                            //newLabel.css("padding-right", "8px");
-                                            //newInnerDiv.css("padding-left", "0px");
-                                            //newInnerDiv.css("padding-right", "0px");
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
-
-                                            newLabel = $('<label class="col-md-2 control-label">Light intensity</label>');
-                                            newInnerDiv = $('<div class="col-md-4">' +
-                                                '<input type="text" id="intensityColorM" name="intensityColorM" class="form-control"/>' +
-                                                '</div>');
-                                            newInnerDiv.on('input', function() {
-                                                reloadLight(true);
-                                            });
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
-
-                                            if (styleParameters != null && styleParameters.lightIntensity != null) {
-                                                $('#intensityColorM').val(styleParameters.lightIntensity);
-                                            } else {
-                                                $('#intensityColorM').val(1);
-                                            }
-
-
-                                            if (styleParameters != null && styleParameters.useLighting != null && styleParameters.useLighting == 'yes') {
-                                                $('#useLigthingM').val(styleParameters.useLighting);
-                                                $('#lightTimestampM').val(styleParameters.lightTimestamp);
-                                                $('#lightColorM').val(styleParameters.lightColor);
-                                                $('#intensityColorM').val(styleParameters.lightIntensity);
-                                            } else {
-                                                $('#useLigthingM').val('no');
-                                                $('#lightTimestampM').hide();
-                                                $('#lightTimestampLabelM').hide();
-                                                $('#lightOptions').hide();
-                                                $('#lightTimestampM').val(formatDatetime(Date.now()));
-                                            }
-
-                                            $('#lightTimestampM').on('input', function() {
-                                                reloadLight(true);
-                                            });
-
-                                            $('#useLigthingM').change(function() {
-                                                const value = $('#useLigthingM').val();
-                                                if (value == 'yes') {
-                                                    $('#lightTimestampM').show();
-                                                    $('#lightTimestampLabelM').show();
-                                                    $('#lightOptions').show();
-                                                    
-                                                    reloadLight(true);
-                                                } else {
-                                                    $('#lightTimestampM').hide();
-                                                    $('#lightTimestampLabelM').hide();
-                                                    $('#lightOptions').hide();
-
-                                                    reloadLight(false);
-                                                }
-                                            });
-
-                                            
-                                            //Nuova riga
-                                            //Show Orthomaps
-                                            newFormRow = $('<div class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="showOrthomapsM" class="col-md-2 control-label">Show Othomaps Controls</label>');
-                                            newInnerDiv = $('<div class="col-md-4"></div>');
-                                            newSelect = $('<select class="form-control" id="showOrthomapsM" name="showOrthomapsM"></select>');
-                                            newSelect.append('<option style="display:none">');
-                                            newSelect.append('<option value="yes">Yes</option>');
-                                            newSelect.append('<option value="no">No</option>');
-                                            if (styleParameters != null) {
-                                                if (styleParameters.showOrthomaps) {
-                                                    newSelect.val(styleParameters.showOrthomaps);
-                                                }
-                                            }
-                                            newInnerDiv.append(newSelect);
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
-
-
-                                            //Default Orthomap
-                                            newFormRow = $('<div class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="defaultOrthomapM" id="defaultOrthomapLabelM" class="col-md-2 control-label">Default Orthomap</label>');
+                                            orthomapsDiv.append(newFormRow);
+                                            newLabel = $('<label for="defaultOrthomapM" id="defaultOrthomapLabelM" class="col-md-3 control-label">Default Orthomap</label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
                                             newSelect = $('<select class="form-control" id="defaultOrthomapM" name="defaultOrthomapM"></select>');
-                                            newSelect.append('<option style="display:none">');
-                                         //   newSelect.append('<option value="yes">Yes</option>');
-                                         //   newSelect.append('<option value="no">No</option>');
                                             var jsonOrthomaps = null;
                                             if (styleParameters != null) {
                                                if (styleParameters.showOrthomaps && currentParams.dropdownMenu) {
@@ -34977,59 +34969,470 @@
                                                     newSelect.val(styleParameters.defaultOrthomap);
                                                 }
                                             }
+                                            // const orthomapsMenu = styleParameters.dropdownMenu;
+                                            newSelect.on('change', () => {
+                                                const select = $('#defaultOrthomapM')[0];
+                                                const value = select.value;
+                                                let url = '';
+                                                for (let orthomap of currentParams.dropdownMenu) {
+                                                    if (value === orthomap.id) {
+                                                        url = orthomap.linkUrl;
+                                                        break;
+                                                    }
+                                                }
+                                                layers.orthomaps = createTileLayer(url.replace('{s}', 'a'));
+                                                updateLayers();
+                                            });
                                             newInnerDiv.append(newSelect);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
-                                            if ($('#showOrthomapsM').val() === "yes") {
-                                                $('#defaultOrthomapM').show();
-                                                $('#defaultOrthomapLabelM').show();
+
+                                            if (currentParams.dropdownMenu) {
+                                                for (let j = 0; j < currentParams.dropdownMenu.length; j++) {
+                                                    newSelect.append('<option value="' + currentParams.dropdownMenu[j].id + '">' + currentParams.dropdownMenu[j].label + '</option>');
+                                                }
                                             } else {
-                                                $('#defaultOrthomapM').hide();
-                                                $('#defaultOrthomapLabelM').hide();
+                                                getOrthomaps(data.name_widget, function(extractedOrthomaps) {
+                                                    for (let j = 0; j < extractedOrthomaps[0].length; j++) {
+                                                        for (var key in extractedOrthomaps[0][j]) {
+                                                            // check if the property/key is defined in the object itself, not in parent
+                                                            if (extractedOrthomaps[0][j].hasOwnProperty(key)) {
+                                                                $('#defaultOrthomapM').append('<option value="' + key + '">' + extractedOrthomaps[0][j][key] + '</option>');
+                                                            }
+                                                        }
+                                                    }
+                                                });
                                             }
 
-                                            $('#showOrthomapsM').change(function()
-                                            {
-                                                if($('#showOrthomapsM').val() === "yes")
-                                                {
-                                                    $('#defaultOrthomapM').show();
-                                                    $('#defaultOrthomapLabelM').show();
-                                                    if (currentParams.dropdownMenu) {
-                                                        for (let j = 0; j < currentParams.dropdownMenu.length; j++) {
-                                                            newSelect.append('<option value="' + currentParams.dropdownMenu[j].id + '">' + currentParams.dropdownMenu[j].label + '</option>');
-                                                        }
-                                                    } else {
-                                                        getOrthomaps(data.name_widget, function(extractedOrthomaps) {
-                                                            for (let j = 0; j < extractedOrthomaps[0].length; j++) {
-                                                                for (var key in extractedOrthomaps[0][j]) {
-                                                                    // check if the property/key is defined in the object itself, not in parent
-                                                                    if (extractedOrthomaps[0][j].hasOwnProperty(key)) {
-                                                                        $('#defaultOrthomapM').append('<option value="' + key + '">' + extractedOrthomaps[0][j][key] + '</option>');
-                                                                    }
-                                                                }
-                                                            }
-                                                        });
+                                            // TODO: add dynamic orthomaps
+
+                                            // Terrain
+                                            newFormRow = $('<div class="row" style="text-align: right;" ></div>');
+                                            addBtn = $('<button type="button" class="btn btn-outline-success"><i style="color: green;" class="fa fa-plus"></i></button>');
+                                            addBtn.on('click', () => {
+                                                createNewTerrainQueryLine();
+                                            });
+                                            newFormRow.append(addBtn);
+                                            terrainDiv.append(newFormRow);
+
+                                            listTerrainDiv = $('<div id="listTerrainDiv" style="overflow-y: scroll; height: 390px;"></div>');
+                                            terrainDiv.append(listTerrainDiv);
+                                            var terrainCount = 0;
+                                            function expandBB({target}) {
+                                                let display = target.checked ? "block" : "none";
+                                                $(`#showBBTP${target.id.split('TP')[1]}`).css('display', display);
+                                            }
+                                            function removeTerrain(terrainItem) {
+                                                terrainItem.remove();
+                                                terrainCount--;
+                                                let terrainPriority = parseInt(terrainItem[0].id.split('TP')[1]);
+                                                let terrainItems = $('#listTerrainDiv').children();
+                                                for (let i = terrainPriority - 1; i < terrainItems.length; i++) {
+                                                    let itemToModify = terrainItems[i];
+                                                    itemToModify.id = `terrainItemTP${terrainPriority}`;
+                                                    let inputs = $(`#${itemToModify.id} input`);
+                                                    for (let i = 0; i < inputs.length; i++) {
+                                                        let input = inputs[i];
+                                                        input.id = input.id.replace(`TP${terrainPriority + 1}`, `TP${terrainPriority}`);
+                                                        input.name = input.name.replace(`TP${terrainPriority + 1}`, `TP${terrainPriority}`);
+                                                    }
+                                                    inputs = $(`#${itemToModify.id} button`);
+                                                    for (let i = 0; i < inputs.length; i++) {
+                                                        let input = inputs[i];
+                                                        input.id = input.id.replace(`TP${terrainPriority + 1}`, `TP${terrainPriority}`);
+                                                    }
+                                                    $(`#terrainLabelTP${terrainPriority + 1}`).attr('id', `terrainLabelTP${terrainPriority}`);
+                                                    $(`#terrainLabelTP${terrainPriority}`).text(`Terrain Priority TP${terrainPriority}`);
+                                                    $(`#showBBTP${terrainPriority + 1}`).attr('id', `showBBTP${terrainPriority}`);
+
+                                                    terrainPriority++;
+                                                }
+                                            }
+                                            function createNewTerrainQueryLine(terrainItemValue) {
+                                                terrainCount++;
+                                                // TODO: finish this
+                                                let terrainId = `TP${terrainCount}`;
+                                                if (terrainItemValue) 
+                                                    terrainId = terrainItemValue.id;
+                                                let terrainItem = $(`<div id="terrainItem${terrainId}"></div>`);
+                                                newFormRow = $('<div class="row"></div>');
+                                                newLabel = $(`<label id="terrainLabel${terrainId}" class="col-md-2 control-label" for="">Terrain Priority ${terrainId}</label>`);  
+                                                removeBtn = $(`<button id="remove${terrainId}" type="button" class="btn btn-outline-danger" style="float: right;"><i style="color: red;" class="fa fa-minus"></i></button>`);
+                                                removeBtn.on('click', () => {
+                                                    removeTerrain(terrainItem);
+                                                });
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(removeBtn);
+                                                terrainItem.append(newFormRow);
+                                                
+                                                newFormRow = $('<div class="row"></div>');
+                                                newLabel = $(`<label class="col-md-1 control-label" for="gisTargetTerrainQuery${terrainId}">Query</label>`);  
+                                                newInput = $(`<div class="col-md-8" style="width: 91%; padding: 0;"><input type="text" style="width: 100%;" id="gisTargetTerrainQuery${terrainId}" name="gisTargetTerrainQuery${terrainId}" /></div>`)
+                                                if (terrainItemValue) 
+                                                    newInput.children().val(terrainItemValue.query);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInput);
+                                                terrainItem.append(newFormRow);
+
+                                                newFormRow = $('<div class="row"></div>');
+                                                newLabel = $(`<label class="col-md-1 control-label" for="gisTargetRedEncoding${terrainId}">Red</label>`);  
+                                                newInput = $(`<div class="col-md-2"><input type="text" style="width: 100%;" id="gisTargetRedEncoding${terrainId}" name="gisTargetRedEncoding${terrainId}" /></div>`)
+                                                if (terrainItemValue) 
+                                                    newInput.children().val(terrainItemValue.elevationDecoder.rScaler);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInput);
+                                                newLabel = $(`<label class="col-md-1 control-label" for="gisTargetGreenEncoding${terrainId}">Green</label>`);  
+                                                newInput = $(`<div class="col-md-2"><input type="text" style="width: 100%;" id="gisTargetGreenEncoding${terrainId}" name="gisTargetGreenEncoding${terrainId}" /></div>`)
+                                                if (terrainItemValue) 
+                                                    newInput.children().val(terrainItemValue.elevationDecoder.gScaler);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInput);
+                                                newLabel = $(`<label class="col-md-1 control-label" for="gisTargetBlueEncoding${terrainId}">Blue</label>`);  
+                                                newInput = $(`<div class="col-md-2"><input type="text" style="width: 100%;" id="gisTargetBlueEncoding${terrainId}" name="gisTargetBlueEncoding${terrainId}" /></div>`)
+                                                if (terrainItemValue) 
+                                                    newInput.children().val(terrainItemValue.elevationDecoder.bScaler);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInput);
+                                                newLabel = $(`<label class="col-md-1 control-label" for="gisTargetOffsetEncoding${terrainId}">Offset</label>`);  
+                                                newInput = $(`<div class="col-md-2"><input type="text" style="width: 100%;" id="gisTargetOffsetEncoding${terrainId}" name="gisTargetOffsetEncoding${terrainId}" /></div>`)
+                                                if (terrainItemValue) 
+                                                    newInput.children().val(terrainItemValue.elevationDecoder.offset);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInput);
+                                                terrainItem.append(newFormRow);
+
+                                                newFormRow = $('<div class="row"></div>');
+                                                newLabel = $(`<label for="terrainHasBB${terrainId}" class="col-md-2 control-label">Has bounding box</label>`);
+                                                const terrainHasBBCheck = $(`<input id="terrainHasBB${terrainId}" name="terrainHasBB${terrainId}" style="margin: 8px 0 0 15px;" type="checkbox"/>`);
+                                                // terrainHasBBCheck.on("change", expandBB);
+                                                terrainHasBBCheck.on("change", (event) => {
+                                                    expandBB(event);
+                                                });
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(terrainHasBBCheck);
+                                                terrainItem.append(newFormRow);
+                                                newFormRow = $(`<div class="row" id="showBB${terrainId}" style="display: none;"></div>`);
+                                                newLabel = $(`<label class="col-md-1 control-label" for="gisTargetNorthBB${terrainId}">North</label>`);  
+                                                newInput = $(`<div class="col-md-2"><input type="text" style="width: 100%;" id="gisTargetNorthBB${terrainId}" name="gisTargetNorthBB${terrainId}" /></div>`)
+                                                if (terrainItemValue && terrainItemValue.bbox)
+                                                    newInput.children().val(terrainItemValue.bbox.north);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInput);
+                                                newLabel = $(`<label class="col-md-1 control-label" for="gisTargetEastBB${terrainId}">East</label>`);  
+                                                newInput = $(`<div class="col-md-2"><input type="text" style="width: 100%;" id="gisTargetEastBB${terrainId}" name="gisTargetEastBB${terrainId}" /></div>`)
+                                                if (terrainItemValue && terrainItemValue.bbox)
+                                                    newInput.children().val(terrainItemValue.bbox.east);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInput);
+                                                newLabel = $(`<label class="col-md-1 control-label" for="gisTargetSouthBB${terrainId}">South</label>`);  
+                                                newInput = $(`<div class="col-md-2"><input type="text" style="width: 100%;" id="gisTargetSouthBB${terrainId}" name="gisTargetSouthBB${terrainId}" /></div>`)
+                                                if (terrainItemValue && terrainItemValue.bbox)
+                                                    newInput.children().val(terrainItemValue.bbox.south);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInput);
+                                                newLabel = $(`<label class="col-md-1 control-label" for="gisTargetWestBB${terrainId}">West</label>`);  
+                                                newInput = $(`<div class="col-md-2"><input type="text" style="width: 100%;" id="gisTargetWestBB${terrainId}" name="gisTargetWestBB${terrainId}" /></div>`)
+                                                if (terrainItemValue && terrainItemValue.bbox)
+                                                    newInput.children().val(terrainItemValue.bbox.west);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInput);
+                                                terrainItem.append(newFormRow);
+                                                listTerrainDiv.append(terrainItem);
+                                                if (terrainItemValue && terrainItemValue.bbox) {
+                                                    terrainHasBBCheck.click();
+                                                    $(`#showBB${terrainId}`).css('display', 'block');
+                                                }
+                                            }
+
+                                            for (let key in styleParameters.terrains) {
+                                                let terrainItem = styleParameters.terrains[key];
+                                                createNewTerrainQueryLine({
+                                                    id: key,
+                                                    ...terrainItem
+                                                });
+                                            }
+
+                                            // buildings
+                                            function rgbaToArray(rgba) {
+                                                var array = rgba.replace(/[^\d,.]/g, '').split(',');
+                                                for (var i = 0; i < array.length; i++)
+                                                    array[i] = parseFloat(array[i]);
+                                                array[3] = parseInt(array[3] * 255);
+                                                return array;
+                                            }
+
+                                            const defaultBuildingData = '../widgets/layers/edificato/aggregated_buildings.geojson';
+                                            var buildingColor = [255, 102, 0, 255];
+                                            const buildingMappingColor = {
+                                                "Default": [255, 102, 0, 255],
+                                                "Cult": [255, 255, 255, 255],
+                                                "Culture": [0, 255, 0, 255],
+                                                "PublicService": [0, 0, 255, 255],
+                                                "Shopping": [0, 255, 255, 255],
+                                                "Station": [255, 0, 255, 255],
+                                                "University": [255, 110, 243, 255],
+                                                "HealthCare": [181, 0, 0, 255],
+                                                "School": [110, 255, 156, 255],
+                                                "Bank": [92, 92, 92, 255],
+                                            }
+                                            if (styleParameters && styleParameters.buildingColors) {
+                                                for (let key in styleParameters.buildingColors) {
+                                                    let rgba = styleParameters.buildingColors[key];
+                                                    if (rgba) {
+                                                        let array = rgbaToArray(rgba);
+                                                        buildingMappingColor[key] = array;
                                                     }
                                                 }
-                                                else
-                                                {
-                                                    $('#defaultOrthomapM').hide();
-                                                    $('#defaultOrthomapLabelM').hide();
+                                            }
+                                            const supportedBuildings = {
+                                                none: {
+                                                    displayedName: 'No Buildings',
+                                                    id: 'menu-no-building',
+                                                    action: () => {}
+                                                },
+                                                extruded: {
+                                                    displayedName: 'Extruded Buildings',
+                                                    id: 'menu-extruded-building',
+                                                    action: () => {
+                                                        loadAggregatedBuildings();
+                                                    },
+                                                },
+                                                glb: {
+                                                    displayedName: 'Meshed GLB Buildings',
+                                                    id: 'menu-glb-building',
+                                                    action: () => {
+                                                        loadHighResBuildingsGLB();
+                                                    }
+                                                },
+                                                gltf: {
+                                                    displayedName: 'Meshed GLTF Buildings',
+                                                    id: 'menu-gltf-building',
+                                                    action: () => {
+                                                        loadHighResBuildingsGltf();
+                                                    },
+                                                },
+                                                splitted: {
+                                                    displayedName: 'Meshed GLB Splitted',
+                                                    id: 'menu-glb-splitted-building',
+                                                    action: () => {
+                                                        loadHighResBuildingsCutted();
+                                                        loadHighValueBuildings();
+                                                    },
+                                                },
+                                                no_text: {
+                                                    displayedName: 'Meshed Not Textured',
+                                                    id: 'menu-no-text-building',
+                                                    action: () => {
+                                                        loadNotTexturedBuildings();
+                                                    },
+                                                },
+                                                elevated: {
+                                                    displayedName: 'Meshed with San Giorgio',
+                                                    id: 'menu-combo-building',
+                                                    action: () => {
+                                                        loadElevatedBuildings();
+                                                        loadHighResElevatedBuildingsGLB();
+                                                    },
+                                                },
+                                                sgiorgio: {
+                                                    displayedName: 'San Giorgio',
+                                                    id: 'menu-sgiorgio-building',
+                                                    action: () => {
+                                                        loadElevatedBuildings();
+                                                    },
+                                                },
+                                                grid_high_res: {
+                                                    displayedName: 'Roof + Pattern (high resolution)',
+                                                    id: 'menu-high-res-grid-building',
+                                                    action: () => {
+                                                        loadHighResGridSystemBuildings();
+                                                    },
+                                                },
+                                                grid_low_res: {
+                                                    displayedName: 'Roof + Pattern (low resolution)',
+                                                    id: 'menu-low-res-grid-building',
+                                                    action: () => {
+                                                        loadLowResGridSystemBuildings();
+                                                    },
+                                                },
+                                            }
+
+                                            function updateBuildingColor(querySelector, buildingColorValue) {
+                                                if (map3d != null) {
+                                                    var input = $(querySelector).val();
+                                                    const rgba = input.replace(/[^\d,.]/g, '').split(',');
+                                                    for (var i = 0; i < rgba.length; i++)
+                                                        rgba[i] = parseFloat(rgba[i]);
+                                                    rgba[3] = parseInt(rgba[3] * 255);
+                                                    return rgba
                                                 }
-                                            });
-                                            
-                                            //Nuova riga
-                                            //Full screen controls
+                                            }
+
+                                            function createAggregationColorInput(name) {
+                                                newLabel = $(`<label class="col-md-2 control-label">${name} color</label>`);
+                                                newInnerDiv = $(`<div class="col-md-4"><div class="input-group">` +
+                                                    `<input type="text" id="gisTargetBuilding${name}ColorM" name="gisTargetBuilding${name}ColorM" class="form-control"/>` +
+                                                    `<span class="input-group-addon"><i id="widgetBuilding${name}ColorM"></i></span>` +
+                                                    '</div></div>');
+                                                newInnerDiv.colorpicker({color: `rgba(${buildingMappingColor[name][0]}, ${buildingMappingColor[name][1]}, ${buildingMappingColor[name][2]}, ${buildingMappingColor[name][3]/255})`, format: 'rgba'});
+                                                newInnerDiv.on('changeColor', function() {
+                                                    buildingMappingColor[name] = updateBuildingColor(`#gisTargetBuilding${name}ColorM`);
+                                                    layers.building = createAggregatedBuildingLayer({
+                                                        data: '../widgets/layers/edificato/aggregated_buildings.geojson',
+                                                    });
+                                                    updateLayers();
+                                                });
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                            }
+
                                             newFormRow = $('<div class="row"></div>');
-                                            $("#specificParamsM").append(newFormRow);
-                                            newLabel = $('<label for="enableFullscreenModalM" class="col-md-2 control-label">Enable fullscreen in a popup</label>');
+                                            buildingsDiv.append(newFormRow);
+                                            newLabel = $('<label class="col-md-2 control-label">Building Type</label>');
                                             newInnerDiv = $('<div class="col-md-4"></div>');
-                                            newSelect = $('<select class="form-control" id="enableFullscreenModalM" name="enableFullscreenModalM"></select>');
+                                            newSelect = $('<select class="form-control" id="buildingTypeM" name="buildingTypeM"></select>');
+                                            for (let buildingType in supportedBuildings) {
+                                                newSelect.append(`<option value="${buildingType}">${supportedBuildings[buildingType].displayedName}</option>`);
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            if (styleParameters != null && styleParameters.buildingType != null) {
+                                                newSelect.val(styleParameters.buildingType);
+                                            }
+                                            createAggregationColorInput('Default');
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            buildingsDiv.append(newFormRow);
+                                            createAggregationColorInput('Cult');
+                                            createAggregationColorInput('Culture');
+                                            newFormRow = $('<div class="row"></div>');
+                                            buildingsDiv.append(newFormRow);
+                                            createAggregationColorInput('PublicService');
+                                            createAggregationColorInput('Shopping');
+                                            newFormRow = $('<div class="row"></div>');
+                                            buildingsDiv.append(newFormRow);
+                                            createAggregationColorInput('Station');
+                                            createAggregationColorInput('University');
+                                            newFormRow = $('<div class="row"></div>');
+                                            buildingsDiv.append(newFormRow);
+                                            createAggregationColorInput('HealthCare');
+                                            createAggregationColorInput('School');
+                                            newFormRow = $('<div class="row"></div>');
+                                            buildingsDiv.append(newFormRow);
+                                            createAggregationColorInput('Bank');
+
+                                            // Lights
+                                            var lightOn = true;
+                                            var directionalLightIntensity = 1;
+                                            var directionalLigthRGB = [255, 255, 255];
+                                            var ambientLightIntensity = 1;
+                                            var ambientLigthRGB = [255, 255, 255];
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            lightsDiv.append(newFormRow);
+                                            newLabel = $('<label class="col-md-2 control-label">Use dynamic light</label>');
+                                            newInnerDiv = $('<div class="col-md-4"></div>');
+                                            newSelect = $('<select class="form-control" id="useLightingM" name="useLightingM"></select>');
                                             newSelect.append('<option value="yes">Yes</option>');
                                             newSelect.append('<option value="no">No</option>');
                                             newInnerDiv.append(newSelect);
+                                            newInnerDiv.on('change', () => {
+                                                lightOn = $('#useLightingM').val() == 'yes' ? true : false;
+                                                reloadLight();
+                                            });
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label id="lightTimestampLabelM" class="col-md-2 control-label">Timestamp</label>');
+                                            newInnerDiv = $('<div class="col-md-4">' +
+                                                '<input type="datetime-local" id="lightTimestampM" name="lightTimestampM" class="datetime-control"/>' +
+                                                '</div>');
+                                            newInnerDiv.on('input', () => {
+                                                reloadLight();
+                                            });
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newFormRow = $('<div id="lightOptions" class="row"></div>');
+                                            lightsDiv.append(newFormRow);
+                                            newLabel = $('<label class="col-md-2 control-label">Directional light color</label>');
+                                            newInnerDiv = $('<div class="col-md-4"><div class="input-group">' +
+                                                '<input type="text" id="directionalLightColorM" name="directionalLightColorM" class="form-control"/>' +
+                                                '<span class="input-group-addon"><i id="widgetDirectionalLightColorM"></i></span>' +
+                                                '</div></div>');
+                                            newInnerDiv.colorpicker({color: 'rgb(255, 255, 255)', format: 'rgb'});
+                                            newInnerDiv.on('changeColor', () => {
+                                                var input = $('#directionalLightColorM').val();
+                                                const rgb = input.replace(/[^\d,.]/g, '').split(',');
+                                                for (var i = 0; i < rgb.length; i++)
+                                                    rgb[i] = parseInt(rgb[i]);
+                                                directionalLigthRGB = rgb
+                                                reloadLight();
+                                            });
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label class="col-md-2 control-label">Ambient light color</label>');
+                                            newInnerDiv = $('<div class="col-md-4"><div class="input-group">' +
+                                                '<input type="text" id="ambientLightColorM" name="ambientLightColorM" class="form-control"/>' +
+                                                '<span class="input-group-addon"><i id="widgetAmbientLightColorM"></i></span>' +
+                                                '</div></div>');
+                                            newInnerDiv.colorpicker({color: 'rgb(255, 255, 255)', format: 'rgb'});
+                                            newInnerDiv.on('changeColor', function() {
+                                                var input = $('#ambientLightColorM').val();
+                                                const rgb = input.replace(/[^\d,.]/g, '').split(',');
+                                                for (var i = 0; i < rgb.length; i++)
+                                                    rgb[i] = parseInt(rgb[i]);
+                                                ambientLigthRGB = rgb
+                                                reloadLight();
+                                            });
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            lightsDiv.append(newFormRow);
+                                            newInnerDiv = $('<div class="col-md-6"><div class="input-group">' +
+                                                '<input id="directionalLightIntensityM" name="directionalLightIntensityM" type="range" class="vertical-slider">' +
+                                                '</div></div>');
+                                            newInnerDiv.on('input', () => {
+                                                const selectedSlider = $('#directionalLightIntensityM')[0];
+                                                const value = parseFloat(selectedSlider.value);
+                                                $(selectedSlider).css('background-image', `linear-gradient(90deg, goldenrod ${value}%, #d3d3d3 ${value}%)`);
+                                                // directionalLightIntensity = (value / 100) * 3 + 0.5;
+                                                directionalLightIntensity = (value / 100) * 2;
+                                                reloadLight();
+                                            });
+                                            newFormRow.append(newInnerDiv);
+
+                                            newInnerDiv = $('<div class="col-md-6"><div class="input-group">' +
+                                                '<input id="ambientLightIntensityM" name="ambientLightIntensityM" type="range" class="vertical-slider">' +
+                                                '</div></div>');
+                                            newInnerDiv.on('input', () => {
+                                                const selectedSlider = $('#ambientLightIntensityM')[0];
+                                                const value = parseFloat(selectedSlider.value);
+                                                $(selectedSlider).css('background-image', `linear-gradient(90deg, goldenrod ${value}%, #d3d3d3 ${value}%)`);
+                                                // ambientLightIntensity = (value / 100) * 3 + 0.5;
+                                                ambientLightIntensity = (value / 100) * 2;
+                                                reloadLight();
+                                            });
+                                            newFormRow.append(newInnerDiv);
+
+                                            if (styleParameters && styleParameters.useLighting && styleParameters.useLighting == 'yes') {
+                                                $('#useLightingM').val('yes');
+                                                $('#lightTimestampM').val(styleParameters.lightTimestamp);
+                                                $('#directionalLightColorM').val(styleParameters.directionalLightColor);
+                                                let dli = parseInt(styleParameters.directionalLightIntensity);
+                                                $('#directionalLightIntensityM').val(dli);
+                                                $('#directionalLightIntensityM').css('background-image', `linear-gradient(90deg, goldenrod ${dli}%, #d3d3d3 ${dli}%)`);
+                                                $('#ambientLightColorM').val(styleParameters.ambientLightColor);
+                                                let ali = parseInt(styleParameters.ambientLightIntensity);
+                                                $('#ambientLightIntensityM').val(ali);
+                                                $('#ambientLightIntensityM').css('background-image', `linear-gradient(90deg, goldenrod ${ali}%, #d3d3d3 ${ali}%)`);
+                                            } else {
+                                                $('#useLightingM').val('no');
+                                            }
 
                                             gisTargetCenterParametersM = currentParams;
                                             if (gisTargetCenterParametersM.mapType == null || gisTargetCenterParametersM.mapType == '') {
@@ -35054,33 +35457,39 @@
                                             $("#mapType").val(gisTargetCenterParametersM.mapType);
                                             $('#coordsCollectionUriM').parents("div.row").show();
 
+                                            function createLights() {
+                                                const input = $('#lightTimestampM')[0].value;
+                                                const h24toSeconds = 86400;
+
+                                                var now;
+                                                if (input == '')
+                                                    now = Date.now();
+                                                else
+                                                    now = Date.parse(input);
+
+                                                const sunLight = new deck._SunLight({
+                                                    timestamp: now,
+                                                    color: directionalLigthRGB,
+                                                    intensity: directionalLightIntensity,
+                                                    // _shadow: shadowsOn,
+                                                });
+                                                const ambientLight = new deck.AmbientLight({
+                                                    color: ambientLigthRGB,
+                                                    intensity: ambientLightIntensity
+                                                });
+
+                                                return new deck.LightingEffect({
+                                                    ambientLight,
+                                                    sunLight,
+                                                });
+                                            }
+
                                             function reloadLight(effectsOn) {
-                                                if (effectsOn) {
-                                                    const input = $('#lightTimestampM').val();
-
-                                                    var now;
-                                                    if (input == '')
-                                                        now = Date.now();
-                                                    else 
-                                                        now = Date.parse(input);
-
-                                                    var inputColor = $('#lightColorM').val();
-                                                    const rgb = inputColor.replace(/[^\d,.]/g, '').split(',');
-                                                    for (var i = 0; i < rgb.length; i++)
-                                                        rgb[i] = parseFloat(rgb[i]);
-
-                                                    var intensity = $('#intensityColorM').val();
-                                                    intensity = intensity == '' ? 1 : parseFloat(intensity);
-
-                                                    const sunLight = new deck._SunLight({
-                                                        timestamp: now, 
-                                                        color: rgb,
-                                                        intensity: intensity,
-                                                    });
-
-                                                    const lightEffect = new deck.LightingEffect({sunLight});
+                                                if (lightOn) {
+                                                    const lights = createLights();
                                                     map3d.setProps({
-                                                        effects: [lightEffect],
+                                                        effects: [lights],
+                                                        // _animate: shadowsOn,
                                                     });
                                                 } else {
                                                     map3d.setProps({
@@ -35134,95 +35543,104 @@
                                                 });
                                             }
 
-                                            function createBuildingLayer(data, color, id = 'building-layer') {
-                                                return new deck.GeoJsonLayer({
-                                                    id: id,
-                                                    data: data,
-                                                    extruded: true,
-                                                    // pickable: true,
-                                                    stroked: false,
-                                                    filled: true,
-                                                    lineWidthScale: 20,
-                                                    lineWidthMinPixels: 2,
-                                                    //getFillColor: [255, 102, 0, 255],
-                                                    getFillColor: color,
-                                                    getLineColor: [255, 255, 255],
-                                                    getElevation: f => f.properties.height,
-                                                    getRadius: 100,
-                                                    getLineWidth: 1,
+                                            function updateLayers() {
+                                                map3d.setProps({
+                                                    layers: [
+                                                        layers.orthomaps,
+                                                        layers.building,
+                                                        layers.crest
+                                                    ],
                                                 });
                                             }
 
+                                            function createGeoJSONLayer(props) {
+                                                return new deck.GeoJsonLayer({
+                                                    id: 'geojson-layer',
+                                                    extruded: true,
+                                                    pickable: true,
+                                                    stroked: true,
+                                                    filled: true,
+                                                    lineWidthScale: 20,
+                                                    lineWidthMinPixels: 10,
+                                                    getFillColor: [255, 0, 0, 200],
+                                                    getLineColor: [0, 0, 0],
+                                                    getElevation: f => f.properties.height,
+                                                    autoHighlight: true,
+                                                    highlightColor: [255, 0, 0, 200],
+                                                    getPointRadius: 100,
+                                                    getLineWidth: 100,
+                                                    ...props
+                                                });
+                                            }
+
+                                            function createAggregatedBuildingLayer(props) {
+                                                return createGeoJSONLayer({
+                                                    id: 'aggregated-building-layer',
+                                                    getFillColor: (d) => d.properties.type ? buildingMappingColor[d.properties.type] : buildingMappingColor['Default'],
+                                                    autoHighlight: false,
+                                                    updateTriggers: {
+                                                        getFillColor: {
+                                                            b1: buildingMappingColor["Default"],
+                                                            b2: buildingMappingColor["Cult"],
+                                                            b3: buildingMappingColor["Culture"], 
+                                                            b4: buildingMappingColor["PublicService"], 
+                                                            b5: buildingMappingColor["Shopping"], 
+                                                            b6: buildingMappingColor["Station"], 
+                                                            b7: buildingMappingColor["University"], 
+                                                            b8: buildingMappingColor["HealthCare"], 
+                                                            b9: buildingMappingColor["School"], 
+                                                            b10: buildingMappingColor["Bank"], 
+                                                        }
+                                                    },
+                                                    ...props,
+                                                });
+                                            }
 
                                             if (gisTargetCenterMapDivRefM === null) {
                                                 $("#gisTargetCenterLatM").parents("div.row").show();
                                                 $("#gisTargetCenterMapDivM").parents("div.row").show();
-
-                                                //Bisogna aspettare che il modale sia completamente in posizione e visibile, sennÃ² il load della mappa dÃ  problemi di visualizzazione dei tiles
-                                                setTimeout(function () {
                                                     gisTargetCenter3DMapDeckDivM = "gisTargetCenter3DMapDeckDivM";
                                                     const lightTileData = 'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png';
-                                                    const defaultLayer = createTileLayer(lightTileData);
-
-                                                    var buildingColor = [255, 102, 0, 255];
-                                                    console.log('styleParameters');
-                                                    console.log(styleParameters);
-                                                    if (styleParameters != null && styleParameters.buildingColor != null) {
-                                                        const input = styleParameters.buildingColor;
-                                                        const rgba = input.replace(/[^\d,.]/g, '').split(',');
-                                                        for (var i = 0; i < rgba.length; i++)
-                                                            rgba[i] = parseFloat(rgba[i]);
-                                                        rgba[3] = parseInt(rgba[3] * 255);
-                                                        buildingColor = rgba;
+                                                    layers.orthomaps = createTileLayer(lightTileData);
+                                                    if (styleParameters && styleParameters.defaultOrthomap && currentParams && currentParams.dropdownMenu) {
+                                                        for (let key in currentParams.dropdownMenu) {
+                                                            if (currentParams.dropdownMenu[key].id == styleParameters.defaultOrthomap) {
+                                                                layers.orthomaps = createTileLayer(currentParams.dropdownMenu[key].linkUrl.replace('{s}', 'c'));
+                                                            }
+                                                        }
                                                     }
-                                                    const buildingLayer = createBuildingLayer('../widgets/layers/edificato/AltezzeEdificiFirenze.geojson', buildingColor);
-
+                                                    layers.building = createAggregatedBuildingLayer({
+                                                        data: '../widgets/layers/edificato/aggregated_buildings.geojson',
+                                                    });
                                                     const height = $("#" + gisTargetCenter3DMapDeckDivM).height();
                                                     const width = $("#" + gisTargetCenter3DMapDeckDivM).width();
 
-                                                    const now = Date.now();
-
+                                                    const latitude = gisTargetCenterParametersM.latLng[0] || 43.769562;
+                                                    const longitude = gisTargetCenterParametersM.latLng[1] || 11.255814;
+                                                    const zoom = gisTargetCenterParametersM.zoom || 15;
+                                                    const pitch = gisTargetCenterParametersM.pitch || 30;
+                                                    const bearing = gisTargetCenterParametersM.bearing || 0;
                                                     var currentViewState = {
                                                             altitude: 1.5,
-                                                            latitude: gisTargetCenterParametersM.latLng[0],
-                                                            longitude: gisTargetCenterParametersM.latLng[1],
-                                                            zoom: gisTargetCenterParametersM.zoom,
+                                                            latitude,
+                                                            longitude, 
+                                                            zoom,
                                                             maxZoom: 18,
                                                             minZoom: 1,
-                                                            pitch: gisTargetCenterParametersM.pitch || 30,
+                                                            pitch,
                                                             maxPitch: 75,
-                                                            bearing: gisTargetCenterParametersM.bearing || 0,
+                                                            bearing,
                                                             height: height,
                                                             width: width,
                                                     };
-                                                    var effects = [];
-                                                    if (styleParameters != null && styleParameters.useLighting != null && styleParameters.useLighting == 'yes' ) {
-                                                        var inputColor = styleParameters.lightColor;
-                                                        const rgb = inputColor.replace(/[^\d,.]/g, '').split(',');
-                                                        for (var i = 0; i < rgb.length; i++)
-                                                            rgb[i] = parseFloat(rgb[i]);
-
-                                                        console.log(Date.parse(styleParameters.lightTimestamp));
-                                                        console.log(rgb);
-                                                        console.log(styleParameters.lightIntensity);
-                                                        const sunLight = new deck._SunLight({
-                                                            timestamp: Date.parse(styleParameters.lightTimestamp), 
-                                                            color: rgb,
-                                                            intensity: parseInt(styleParameters.lightIntensity),
-                                                        });
-
-                                                        const lightEffect = new deck.LightingEffect({sunLight});
-                                                        effects = [lightEffect];
-                                                    } 
-                                                    map3d = new deck.DeckGL({
+                                                    map3d = new deck.Deck({
                                                         mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
                                                         viewState: currentViewState,
                                                         controller: true,
-                                                        container: gisTargetCenter3DMapDeckDivM,
-                                                        effects,
+                                                        parent: document.getElementById(gisTargetCenter3DMapDeckDivM),
                                                         layers: [
-                                                            defaultLayer,
-                                                            buildingLayer,
+                                                            layers.orthomaps,
+                                                            layers.building,
                                                         ],
                                                         onViewStateChange: ({ viewState }) => {
                                                             $("#gisTargetCenterZoomM").val(viewState.zoom);
@@ -35243,12 +35661,17 @@
                                                             });
                                                             return viewState;
                                                         },
-                                                        //onDragEnd: ({ viewport }) => cursorType = 'grab',
-                                                        //onDragStart: ({ viewport }) => {
-                                                            //manuallyControlled = false;
-                                                            //cursorType = 'grabbing'
-                                                        //},
                                                     });
+                                                    reloadLight();
+                                                    
+                                                    // appling styling
+                                                    leftDiv.css("height", "490px");
+                                                    rightDiv.css("height", "490px");
+                                                    $(`#${gisTargetCenter3DMapDeckDivM}`).parent().css("height", "calc(100% - 98px");
+                                                    $(`#${gisTargetCenter3DMapDeckDivM}`).parent().css("padding", "0");
+
+                                                    $(`#${gisTargetCenter3DMapDeckDivM}`).css("height", "100%");
+                                                    $(`#${gisTargetCenter3DMapDeckDivM}`).css("padding", "0");
 
                                                     function createTileLayer(data, id = 'map-layer') {
                                                         return new deck.TileLayer({
@@ -35384,7 +35807,7 @@
                                                         gisTargetCenterParametersM.coordsCollectionUri = $(this).val();
                                                         $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
                                                     });
-                                                }, 700);
+                                                // }, 700);
                                             }
                                                 
                                             break;

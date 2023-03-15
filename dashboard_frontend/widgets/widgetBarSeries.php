@@ -15,8 +15,9 @@
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
-
+<script src="../datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
 <script type='text/javascript'>
+var <?= $_REQUEST['name_w'] ?>_loaded = false;
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef)   
     {
         <?php
@@ -51,6 +52,7 @@
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
         var deviceLabels = [];
         var metricLabels = [];
+        var manualLabels = [];
         var sortSeriesStr, sortedSeries = null;
         var followPointerFlag = false;
         var code, clickedVar, clickedCat, selectedDataJson = null;
@@ -60,18 +62,51 @@
         $(document).off('showBarSeriesFromExternalContent_' + widgetName);
         $(document).on('showBarSeriesFromExternalContent_' + widgetName, function(event)
         {
-            if(event.targetWidget === widgetName)
-            {
-
-                var newValue = event.passedData;
+	    if(event.targetWidget === widgetName) {
+            //console.log(event);
+	            if(localStorage.getItem("widgets") == null){
+	                var widgets = [];
+	                widgets.push(widgetName);
+	                localStorage.setItem("widgets", JSON.stringify(widgets));
+	            }
+	            else{
+	                var widgets = JSON.parse(localStorage.getItem("widgets"));
+	                if(!widgets.includes(widgetName)){
+	                    widgets.push(widgetName);
+	                    localStorage.setItem("widgets", JSON.stringify(widgets));
+	                }
+	            }
+            
+	            if(localStorage.getItem(widgetName) == null){
+	                var init = [];
+	                init.push(event.passedData);
+	                localStorage.setItem(widgetName, JSON.stringify(init));
+	            }
+	            else{
+	                var newElement = JSON.parse(localStorage.getItem(widgetName));
+	                newElement.push(event.passedData);
+	                localStorage.setItem(widgetName, JSON.stringify(newElement));
+	            }
+	            var newValue = event.passedData;
+	            rowParameters = newValue;
 
             /*    clearInterval(countdownRef);
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
                 <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
             */
                 setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-                rowParameters = newValue;
                 populateWidget(true);
+            }
+        });
+		
+		$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
+            showTodayButton: true,
+            widgetPositioning:{
+                horizontal: 'auto',
+                vertical: 'bottom',
+				autoSize: true
+				//container: '#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer',
+				//container: '#<?= $_REQUEST['name_w'] ?>_div'
             }
         });
 
@@ -105,6 +140,7 @@
                 metricLabels = deviceLabels;
                 deviceLabels = auxLabels;
             }
+
             series = serializeSensorDataForBarSeries(mappedSeriesDataArray, metricLabels, deviceLabels, flipFlag);
             if (editLabels != null && flipFlag === true && !fromCode) {
                 if (deviceLabels[0] != editLabels[0]) {
@@ -116,7 +152,7 @@
 
             widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
 
-            chartSeriesObject = getChartSeriesObject(series, editLabels);
+            chartSeriesObject = getChartSeriesObject(series, editLabels, fromCode);
             legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
             //    xAxisCategories = getXAxisCategories(series, widgetHeight);
 
@@ -221,7 +257,7 @@
             return format;
         }
         
-        function getChartSeriesObject(series, xAxisLabelsEdit)
+        function getChartSeriesObject(series, xAxisLabelsEdit, fromCode)
         {
             var chartSeriesObject, singleObject, seriesName, seriesValue, seriesValues, zonesObject, zonesArray, inf, sup, i = null;
             
@@ -236,10 +272,10 @@
                         if (xAxisLabelsEdit != null) {
                         //    if (xAxisLabelsEdit.length == series.secondAxis.labels.length) {
                             if (!flipFlag) {
-                                if (xAxisLabelsEdit.length == series.secondAxis.labels.length) {
-                                    if (rowParameters[0].metricHighLevelType != "Dynamic") {        // TMP Fix GP
+                                if (xAxisLabelsEdit.length == series.secondAxis.labels.length && !fromCode) {
+                                    if (rowParameters[0].metricHighLevelType != "Dynamic") {
                                         seriesName = xAxisLabelsEdit[i];
-                                    } else {                                                        // TMP Fix GP
+                                    } else {
                                         seriesName = series.secondAxis.labels[i];
                                     }
                                 } else {
@@ -346,6 +382,7 @@
             if (sortSeriesStr != null && sortSeriesStr != "no") {
                 followPointerFlag = true;
             }
+
             chartRef = Highcharts.chart('<?= $_REQUEST['name_w'] ?>_chartContainer', {
                 chart: {
                     type: highchartsChartType,
@@ -588,47 +625,236 @@
                         point: {
                             events: {
                                 mouseOver: function(jqEvent){
-                                    if(code !== null) {
+                                    if(styleParameters.enableCKEditor == "ckeditor" && code !== null) {
                                         this.graphic.element.style.cursor = 'pointer';
                                     }
                                 },
                                 click: function() {
-                                    selectedDataJson = [];
-                                    var dataString = "";
-                                    if (groupByAttr == "value name") {
-                                        clickedVar = this.category;
-                                        clickedCat = this.series.name;
-                                    } else {
-                                        clickedVar = this.series.name;
-                                        clickedCat = this.category;
-                                    }
-                                    for (var n = 0; n < seriesDataArray.length; n++) {
-                                        if (seriesDataArray[n].metricType == clickedCat && seriesDataArray[n].metricName == clickedVar) {
-                                            selectedDataJson = seriesDataArray[n];
-                                             //alert(JSON.stringify(selectedDataJson.value));
-											 var param1 = selectedDataJson.value;
-											execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                    if (styleParameters.enableCKEditor == "ckeditor" && code) {
+                                        selectedData = {};
+                                        selectedData.event = "click";
+                                        var dataString = "";
+                                        if (groupByAttr == "value name") {
+                                            clickedVar = this.category;
+                                            clickedCat = this.series.name;
+                                        } else {
+                                            clickedVar = this.series.name;
+                                            clickedCat = this.category;
                                         }
+                                        for (var n = 0; n < seriesDataArray.length; n++) {
+                                            if (seriesDataArray[n].metricType == clickedCat && seriesDataArray[n].metricName == clickedVar) {
+                                                selectedData.value = seriesDataArray[n];
+                                                selectedDataJson = JSON.stringify(selectedData);
+                                                try {
+						                            if(selectedData.value.metricName != "")
+                                                    	execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                                } catch(e) {
+                                                    console.log("Error in JS function from bar click on " + widgetName);
+                                                }
+                                            }
+                                        }
+
+                                        if(localStorage.getItem("passedData") == null){
+                                            var init = [];
+                                            init.push(selectedData);
+                                            localStorage.setItem("passedData", JSON.stringify(init));
+                                        }
+                                        else{
+                                            var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                            newElement.push(selectedData);
+                                            localStorage.setItem("passedData", JSON.stringify(newElement));
+                                        }
+
+                                        let j=1;
+                                        if(localStorage.getItem("events") == null){
+
+                                            var events = [];
+                                            events.push("BarClick1");
+                                            localStorage.setItem("events", JSON.stringify(events));
+                                        }
+                                        else{
+                                            var events = JSON.parse(localStorage.getItem("events"));
+                                            for(var e in events){
+                                                if(events[e].slice(0,8) == "BarClick")
+                                                    j = j+1;
+                                            }
+                                            events.push("BarClick" + j);
+                                            localStorage.setItem("events", JSON.stringify(events));
+                                            console.log(selectedDataJson);
+                                        }
+
                                     }
+
+                                    let newId = "BarClick"+j;
+                                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                    $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                    $('#'+newId).on( "click", function() {
+                                        let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                        var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                    });
+                                    $( '#'+newId ).mouseover(function() {
+                                        $('#'+newId).css('cursor', 'pointer');
+                                    });
+
                                 }
                             }
                         }
                     },
                     bar: {
                         events: {
-                            //legendItemClick: function(){ return false;/*legendItemClickValue;*/}//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
+                            legendItemClick: function(){
+                                if (styleParameters.enableCKEditor == "ckeditor" && code) {
+                                    var selectedData = {};
+                                    selectedData.event = "legendItemClick";
+                                    selectedData.layers = [];
+                                    selectedData.metrics = [];
+                                    let selected = this.data[0].series.name;
+                                    for (var m in this.data) {
+                                        selectedData.metrics[m] = this.data[m].category;
+                                    }
+                                    for (var it in this.chart.legend.allItems) {
+                                        selectedData.layers[it] = {};
+                                        selectedData.layers[it].name = this.chart.legend.allItems[it].name;
+                                        selectedData.layers[it].visible = this.chart.legend.allItems[it].visible;
+                                        if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == true) {   //FIX ME
+                                            selectedData.layers[it].visible = false;
+                                        }
+                                        if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == false) {
+                                            selectedData.layers[it].visible = true;
+                                        }
+                                    }
+				    if(localStorage.getItem("passedData") == null){
+                                        var init = [];
+                                        init.push(selectedData);
+                                        localStorage.setItem("passedData", JSON.stringify(init));
+                                    }
+                                    else{
+                                        var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                        newElement.push(selectedData);
+                                        localStorage.setItem("passedData", JSON.stringify(newElement));
+                                    }
+
+                                    let j=1;
+                                    if(localStorage.getItem("events") == null){
+
+                                        var events = [];
+                                        events.push("BarLegendClick1");
+                                        localStorage.setItem("events", JSON.stringify(events));
+                                    }
+                                    else{
+                                        var events = JSON.parse(localStorage.getItem("events"));
+                                        for(var e in events){
+                                            if(events[e].slice(0,14) == "BarLegendClick")
+                                                j = j+1;
+                                        }
+                                        events.push("BarLegendClick" + j);
+                                        localStorage.setItem("events", JSON.stringify(events));
+                                    }
+
+                                    let newId = "BarLegendClick"+j;
+                                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                    $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                    $('#'+newId).on( "click", function() {
+                                        let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                        var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                    });
+                                    $( '#'+newId ).mouseover(function() {
+                                        $('#'+newId).css('cursor', 'pointer');
+                                    });
+				    	
+                                    selectedDataJson = JSON.stringify(selectedData);
+                                    try {
+                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                    } catch(e) {
+                                        console.log("Error in JS function from legend bar click on " + widgetName);
+                                    }
+                                }
+                            }
                         }
                     },
                     column: {
                         events: {
-                            //legendItemClick: function(){ return false; /*legendItemClickValue;*/}//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
+                            legendItemClick: function(){
+                                if (styleParameters.enableCKEditor == "ckeditor" && code) {
+                                    var selectedData = {};
+                                    selectedData.event = "legendItemClick";
+                                    selectedData.layers = [];
+                                    selectedData.metrics = [];
+                                    let selected = this.data[0].series.name;
+                                    for (var m in this.data) {
+                                        selectedData.metrics[m] = this.data[m].category;
+                                    }
+                                    for (var it in this.chart.legend.allItems) {
+                                        selectedData.layers[it] = {};
+                                        selectedData.layers[it].name = this.chart.legend.allItems[it].name;
+                                        selectedData.layers[it].visible = this.chart.legend.allItems[it].visible;
+                                        if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == true) {   //FIX ME
+                                            selectedData.layers[it].visible = false;
+                                        }
+                                        if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == false) {
+                                            selectedData.layers[it].visible = true;
+                                        }
+                                    }
+                                    if(localStorage.getItem("passedData") == null){
+                                        var init = [];
+                                        init.push(selectedData);
+                                        localStorage.setItem("passedData", JSON.stringify(init));
+                                    }
+                                    else{
+                                        var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                        newElement.push(selectedData);
+                                        localStorage.setItem("passedData", JSON.stringify(newElement));
+                                    }
+
+                                    let j=1;
+                                    if(localStorage.getItem("events") == null){
+
+                                        var events = [];
+                                        events.push("BarLegendClick1");
+                                        localStorage.setItem("events", JSON.stringify(events));
+                                    }
+                                    else{
+                                        var events = JSON.parse(localStorage.getItem("events"));
+                                        for(var e in events){
+                                            if(events[e].slice(0,14) == "BarLegendClick")
+                                                j = j+1;
+                                        }
+                                        events.push("BarLegendClick" + j);
+                                        localStorage.setItem("events", JSON.stringify(events));
+                                    }
+
+                                    let newId = "BarLegendClick"+j;
+                                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                    $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                    $('#'+newId).on( "click", function() {
+                                        let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                        var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                    });
+                                    $( '#'+newId ).mouseover(function() {
+                                        $('#'+newId).css('cursor', 'pointer');
+                                    });
+                                    selectedDataJson = JSON.stringify(selectedData);
+                                    try {
+                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                    } catch(e) {
+                                        console.log("Error in JS function from legend bar click on " + widgetName);
+                                    }
+                                }
+                            }
                         }
                     }
                 },
                 legend: {
                     useHTML: false,
                     labelFormatter: function () {
-                        return this.name;
+                        if (checkManualLabels(rowParameters) && styleParameters.groupByAttr == "value name") {
+                            return findBarSingleLabel(rowParameters, this.name, styleParameters.groupByAttr)
+                        } else {
+                            return this.name;
+                        }
                     },
                     layout: 'horizontal',
                     align: 'center',
@@ -691,7 +917,32 @@
             }
         }
 
-        function populateWidget(fromCode) {
+        function populateWidget(fromCode, dateChoice) {
+			// console.log('fromCode: '+fromCode);
+			var fromDate = null;
+			//if ((fromCode != null)&&(fromCode != '')){
+            if (styleParameters.calendarM == 'yes' && dateChoice && dateChoice != ''){
+				date = new Date(dateChoice);
+				 var y = date.getFullYear();
+				 var m = date.getMonth() + 1; 
+					if (m < 10){
+						m = '0' +m;
+					}				 
+				 var d = date.getDate();
+				 if (d < 10){
+						d = '0' +d;
+					}	
+				 var h = date.getHours();
+				 if (h < 10){
+						h = '0' +h;
+					}
+				 var s = date.getMinutes();
+				 if (s < 10){
+						s = '0' +s;
+					}
+				 fromDate = y +'-'+m+'-'+d+'T'+h+':'+s+':00';
+				 //console.log(fromDate);
+			}
 
             seriesDataArray = [];
 
@@ -777,10 +1028,14 @@
                                 var urlToCall = "";
                                 var xlabels = [];
                                 let smUrl = "";
+								var fromDate_url = '';
+								if (fromDate != null){
+									fromDate_url = '&toTime='+fromDate;
+								}
                                 if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
-                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1]+fromDate_url;
                                 } else {
-                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                                    smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId+fromDate_url;
                                 }
                                 //    metricType = "Float";
 
@@ -857,7 +1112,11 @@
                                 break;
 
                             case "MyKPI":
-
+							
+								var fromDate_url = null;
+								if (fromDate != null){
+									fromDate_url = '&to='+fromDate;
+								}
                                 //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
                                 let aggregationCell = [];
                                 var xlabels = [];
@@ -866,7 +1125,7 @@
                                 if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
                                     rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
                                 }
-                                getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
+                                getMyKPIValues(rowParameters, i, fromDate_url, 1, function (extractedData) {
 
                                     if (extractedData) {
                                         seriesDataArray.push(extractedData);
@@ -1504,24 +1763,6 @@
                 serviceUri = widgetData.params.serviceUri;
                 idMetric = widgetData.params.id_metric;
                 code = widgetData.params.code;
-				////////////lettura code
-				if (widgetData.params.code != null && widgetData.params.code != "null") {
-                        let code = widgetData.params.code;
-                        var text_ck_area = document.createElement("text_ck_area");
-                        text_ck_area.innerHTML = code;
-                        var newInfoDecoded = text_ck_area.innerText;
-                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
-
-                        var elem = document.createElement('script');
-                        elem.type = 'text/javascript';
-                        elem.innerHTML = newInfoDecoded;
-                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
-
-                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
-						//
-						
-						//
-                    }
 
                 if (nrMetricType != null) {
                     openWs();
@@ -1573,6 +1814,28 @@
                 {
                     styleParameters = JSON.parse(widgetData.params.styleParameters);
                     groupByAttr = styleParameters['groupByAttr'];
+                }
+
+                ////////////lettura code
+                if (styleParameters.enableCKEditor == "ckeditor" && code != null && code != "null") {
+                    var text_ck_area = document.createElement("text_ck_area");
+                    text_ck_area.innerHTML = code;
+                    var newInfoDecoded = text_ck_area.innerText;
+                    newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                    var elem = document.createElement('script');
+                    elem.type = 'text/javascript';
+                    elem.innerHTML = newInfoDecoded;
+                    try {
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    } catch(e) {
+                        console.log("Error in appending JS function to DOM on " + widgetName);
+                    }
+                    //
+
+                    //
                 }
 
                 if(widgetData.params.parameters !== null)
@@ -1657,7 +1920,17 @@
                 if (rowParameters) {
                     rowParameters = JSON.parse(rowParameters);
                 }
-
+				//
+				if (styleParameters.calendarM){
+					if (styleParameters.calendarM == 'yes'){
+					$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').show();
+					}else{
+						$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').hide();
+					}		
+				}else{
+					$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').hide();					
+				}
+				//
                 populateWidget();
 
 
@@ -1786,6 +2059,48 @@
         
         countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
+		function clear(){
+                dateChoice = null;
+                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').val='';
+            }
+
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.show',function(){
+                $('.media').css({'overflow':'visible', 'z-index':'1000000 !important'});
+				$('.widget').css({'position':'relative','overflow':'visible', 'z-index':'1000000 !important','width': '100%' });
+            }).on('dp.hide',function(){
+                $('.media').css({'overflow':'hidden', 'z-index':1});
+				$('.widget').css({'overflow':'hidden', 'z-index':1});
+            })
+
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.change', function (e) {  
+                var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                dateChoice = date;
+                timeNavCount = 0;
+                    //populateWidget(true, timeRange, null, 0);
+					var timeRange = dateChoice;
+					populateWidget(null, date);
+                    //loadHyperCube();
+                    //drawDiagram(true, xAxisFormat, yAxisType);
+            });
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").clear()
+
+                if (<?= $_REQUEST['name_w'] ?>_loaded==false){
+
+                document.getElementById('<?= $_REQUEST['name_w'] ?>_droptitle').addEventListener('click', function (e) {
+                  const dropdown = e.currentTarget.parentNode;
+                  const menu = dropdown.querySelector('.menu');
+
+                  toggleClass(menu,'hide');
+               });
+
+                document.getElementById('<?= $_REQUEST['name_w'] ?>_droptitle').addEventListener('change', function (e) {
+                    <?= $_REQUEST['name_w'] ?>_select = e.target.textContent.trimEnd();
+                    //populateWidget(true, timeRange, "minus", timeNavCount);
+                    //loadHyperCube();
+                    //drawDiagram(true, xAxisFormat, yAxisType);
+                });
+                <?= $_REQUEST['name_w'] ?>_loaded = true;
+            }
     });
 </script>
 
@@ -1808,6 +2123,32 @@
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>No Data Available</p>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>
+		<!-- -->
+		<div style="position: relative;">
+		 <div class="widget-dropbdown" style="position: absolute;">
+                                <div class='dropdown' style="float: left;width: 20%; padding-left: 5%">
+                            
+                            <div id='<?= $_REQUEST['name_w'] ?>_droptitle' class='dropdown-title title pointerCursor'></div>
+                            
+                            <div id='<?= $_REQUEST['name_w'] ?>_options' class='menu pointerCursor hide'></div>
+
+                        </div>
+                                <div id='<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer' class ="form-group" style="float: left;width:30%;" hidden>  
+                                <div class ='input-group date' id='<?= $_REQUEST['name_w'] ?>_datetimepicker' data-date-container='#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer' >
+                                  <input type ='text' class="form-control" />
+                                  <span class ="input-group-addon">
+                                    <span class ="glyphicon glyphicon-calendar"></span>
+                                  </span>
+                                </div>
+                              </div>
+                              
+                         <!--
+                            <button id='<?= $_REQUEST['name_w'] ?>_cut' style="float: left;width:25%; padding:0.6em 0em;">Toggle Time Slice</button>
+                            <button id='<?= $_REQUEST['name_w'] ?>_stream' style="float: left;width:25%; padding:0.6em 0em;">Toggle Stream Graph</button>
+							-->
+                 </div>
+			</div>
+		<!-- -->
     </div>
 	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div>

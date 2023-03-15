@@ -306,6 +306,8 @@ if (!isset($_SESSION)) {
             var altViewMode = null;
             var orgParams = null;
             var serviceUrl = null;
+            var code = null;
+            var selectedData = {};
 
             function haversineDistance(lat1,lon1,lat2,lon2) {
                 function toRad(x) {
@@ -771,6 +773,58 @@ if (!isset($_SESSION)) {
 
                 marker.on('click', function (event) {
                 //    map.defaultMapRef.off('moveend');
+                    if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code){
+                        let i=1;
+                        if(localStorage.getItem("events") == null){
+
+                            var events = [];
+                            events.push("MapMarkerClick1");
+                            localStorage.setItem("events", JSON.stringify(events));
+                        }
+                        else{
+                            var events = JSON.parse(localStorage.getItem("events"));
+                            for(var e in events){
+                                if(events[e].slice(0,9) == "MapMarker")
+                                    i = i+1;
+                            }
+                            events.push("MapMarkerClick" + i);
+                            localStorage.setItem("events", JSON.stringify(events));
+                        }
+                        let newId = "MapMarkerClick"+i;
+                        $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                        $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                        $('#'+newId).on( "click", function() {
+                            let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                            var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                            if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code)
+                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                        });
+                        $( '#'+newId ).mouseover(function() {
+                            $('#'+newId).css('cursor', 'pointer');
+                        });
+
+                        var selectedData = {};
+                        selectedData.event = "click";
+                        selectedData.layers = [];
+                        selectedData.layers[0] = marker.feature.properties;
+                        selectedDataJson = JSON.stringify(selectedData);
+			            if(localStorage.getItem("passedData") == null){
+                            var init = [];
+                            init.push(selectedData);
+                            localStorage.setItem("passedData", JSON.stringify(init));
+                        }
+                        else{
+                            var newElement = JSON.parse(localStorage.getItem("passedData"));
+                            newElement.push(selectedData);
+                            localStorage.setItem("passedData", JSON.stringify(newElement));
+                        }
+			
+                        try {
+                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                        } catch(e) {
+                            console.log("Error in JS function from marker click on " + widgetName);
+                        }
+                    }
 
                     event.target.unbindPopup();
                     newpopup = null;
@@ -3451,6 +3505,111 @@ if (!isset($_SESSION)) {
                     lngInit = widgetParameters.latLng[1];
                 }
                 map.defaultMapRef = L.map(mapDivLocal).setView([latInit, lngInit], widgetParameters.zoom);
+                
+                //Inserimento button per drill down
+                if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
+                    var customControl = L.Control.extend({
+
+                        options: {
+                            position: 'topleft'
+                            //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
+                        },
+
+                        onAdd: function (map) {
+                            var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+
+                            container.style.backgroundColor = 'white';
+                            //container.style.backgroundImage = "url('../img/filter-icon.png')";
+                            container.style.width = '26px';
+                            container.style.height = '26px';
+                            container.id = "customLeafletControlDiv";
+
+                            container.onclick = function () {
+                                
+                                var selectedData = {};
+                                selectedData.event = "zoom";
+                                selectedData.layers = {};
+                                selectedData.bounds = map.getBounds();
+                                let i=0, lat, lng;
+                                for(var type in gisLayersOnMap){
+                                    for(var l in gisLayersOnMap[type]._layers){
+                                        lng = gisLayersOnMap[type]._layers[l].feature.geometry.coordinates[0];
+                                        lat = gisLayersOnMap[type]._layers[l].feature.geometry.coordinates[1];
+                                        if(lng <= selectedData.bounds._northEast.lng && lng >= selectedData.bounds._southWest.lng && lat <= selectedData.bounds._northEast.lat && lat >= selectedData.bounds._southWest.lat){
+                                            selectedData.layers[i] = gisLayersOnMap[type]._layers[l].feature.properties;
+                                            i++;
+                                        }
+                                    }
+                                }
+                                if(localStorage.getItem("passedData") == null){
+                                    var init = [];
+                                    init.push(selectedData);
+                                    localStorage.setItem("passedData", JSON.stringify(init));
+                                }
+                                else{
+                                    var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                    newElement.push(selectedData);
+                                    localStorage.setItem("passedData", JSON.stringify(newElement));
+                                }
+
+                                let boxCoord = map.getBounds();
+                                selectedDataJson = JSON.stringify(selectedData);
+
+                                let j=1;
+                                if(localStorage.getItem("events") == null){
+
+                                    var events = [];
+                                    events.push("MapZoom1");
+                                    localStorage.setItem("events", JSON.stringify(events));
+                                }
+                                else{
+                                    var events = JSON.parse(localStorage.getItem("events"));
+                                    for(var e in events){
+                                        if(events[e].slice(0,7) == "MapZoom")
+                                            j = j+1;
+                                    }
+                                    events.push("MapZoom" + j);
+                                    localStorage.setItem("events", JSON.stringify(events));
+                                }
+
+                                let newId = "MapZoom"+j;
+                                $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                $('#'+newId).on( "click", function() {
+                                    let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                    var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                                    if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
+                                        try {
+                                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                        } catch(e) {
+                                            console.log("Error in JS function from marker click on " + widgetName);
+                                        }
+                                    }
+                                });
+                                $( '#'+newId ).mouseover(function() {
+                                    $('#'+newId).css('cursor', 'pointer');
+                                });
+                                if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
+                                    try {
+                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                    } catch(e) {
+                                        console.log("Error in JS function from marker click on " + widgetName);
+                                    }
+                                }
+                            }
+                            return container;
+                        },
+
+                    });
+
+                    map.defaultMapRef.addControl(new customControl());
+                    $("#customLeafletControlDiv").html(" Drill ");
+                    $("#customLeafletControlDiv").on("mouseover", function () {
+                        $(this).css('cursor', 'pointer');
+                        console.log("Mouse Over");
+                    });
+                }
+                //
                 map.eventsOnMap = eventsOnMap;
 
                 oms = new OverlappingMarkerSpiderfier(map.defaultMapRef, {keepSpiderfied : true});
@@ -4389,7 +4548,7 @@ if (!isset($_SESSION)) {
                                                 } else {
                                                     fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = 0;
                                                     //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
-                                                    fatherGeoJsonNode.features.splice(i, 1);
+                                                    //fatherGeoJsonNode.features.splice(i, 1);
                                                     continue;
                                                 }
 
@@ -12987,8 +13146,8 @@ if (!isset($_SESSION)) {
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
 					
-					if (widgetData.params.code != null && widgetData.params.code != "null") {
-                        let code = widgetData.params.code;
+					if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && widgetData.params.code != null && widgetData.params.code != "null") {
+                        code = widgetData.params.code;
                         var text_ck_area = document.createElement("text_ck_area");
                         text_ck_area.innerHTML = code;
                         var newInfoDecoded = text_ck_area.innerText;
@@ -12999,7 +13158,11 @@ if (!isset($_SESSION)) {
                         // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
                         // elem.src = newInfoDecoded;
                         elem.innerHTML = newInfoDecoded;
-                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+                        try {
+                            $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+                        } catch(e) {
+                            console.log("Error in appending JS function to DOM on " + widgetName);
+                        }
 
                         $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
                     }
@@ -13115,6 +13278,24 @@ if (!isset($_SESSION)) {
                     }
                     if (metricName != 'Map' && nodeId != null) {
                         map.defaultMapRef.on('click', nodeRedClick)
+                    }
+		    
+		            if (widgetData.params.code != null && widgetData.params.code != "null") {
+                            let code = widgetData.params.code;
+                            var text_ck_area = document.createElement("text_ck_area");
+                            text_ck_area.innerHTML = code;
+                            var newInfoDecoded = text_ck_area.innerText;
+                            newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                            var elem = document.createElement('script');
+                            elem.type = 'text/javascript';
+                            elem.innerHTML = newInfoDecoded;
+                            try {
+                                $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+                                $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                            } catch(e) {
+                                console.log("Error in appending JS function to DOM on " + widgetName);
+                            }
                     }
 
                     // parte mappa 3D - CORTI

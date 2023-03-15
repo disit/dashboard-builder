@@ -1144,7 +1144,8 @@
                                                 "sUri": sUri,
                                                 "metricName": this.series.name
                                             }
-											execute_<?= $_REQUEST['name_w'] ?>(param);
+                                            if (code)
+											    execute_<?= $_REQUEST['name_w'] ?>(param);
                                         }
                                     }
                                 }

@@ -259,7 +259,7 @@
                 $smUrl = $kbUrlSuperServiceMap . "?serviceUri=" . rawurlencode($dataOrigin->serviceUri) . "&format=json";
                 $metricType = "Float";
 
-                if (isset($_REQUEST['timeRange'])) {
+                if (isset($_REQUEST['timeRange']) && !isset($_REQUEST['lowerTime'])) {
                     if (!empty($_REQUEST['timeRange'])) {
                         if ($_REQUEST['timeRange'] != 'last') {
                             switch ($_REQUEST['timeRange']) {
@@ -311,6 +311,11 @@
                     $urlToCall = $smUrl;
                 }
 
+                
+                if(isset($_REQUEST['lowerTime'])){
+                    $urlToCall = $urlToCall . "&fromTime=" . $_REQUEST['lowerTime'];
+                }
+                
                 if (isset($_REQUEST['upperTime'])) {
                     $urlToCall = $urlToCall . "&toTime=" . $_REQUEST['upperTime'];
                 }
@@ -320,6 +325,8 @@
                     $urlToCall = $urlToCall . "&valueName=" . $dataOrigin->smField;
                     //  }
                 }
+                $response["url"] = $urlToCall;
+                
             }
 
             if(isset($urlToCall)) {

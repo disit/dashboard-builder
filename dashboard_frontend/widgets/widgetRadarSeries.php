@@ -15,8 +15,10 @@
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
-
+<!-- <script src ="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.7.14/js/bootstrap-datetimepicker.min.js"></script> -->
+<script src="../datetimepicker/build/js/bootstrap-datetimepicker.min.js"></script>
 <script type='text/javascript'>
+var <?= $_REQUEST['name_w'] ?>_loaded = false;
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) 
     {
         <?php
@@ -53,6 +55,7 @@
         var seriesDataArray = [];
         var serviceUri = "";
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
+        var code = null;
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
@@ -65,19 +68,54 @@
         //////
 		$(document).off('showRadarSeriesFromExternalContent_' + widgetName);
         $(document).on('showRadarSeriesFromExternalContent_' + widgetName, function(event){
-            clearInterval(countdownRef);
-            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
-            <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
-            if(encodeURIComponent(metricName) === encodeURIComponent(metricName)) {
+
+            if(localStorage.getItem("widgets") == null){
+                var widgets = [];
+                widgets.push(widgetName);
+                localStorage.setItem("widgets", JSON.stringify(widgets));
+            }
+            else{
+                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                if(!widgets.includes(widgetName)){
+                    widgets.push(widgetName);
+                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                }
+            }
+
+            if(event.event != "drill-up"){
+                if(localStorage.getItem(widgetName) == null){
+                    var init = [];
+                    init.push(event.passedData);
+                    localStorage.setItem(widgetName, JSON.stringify(init));
+                    }
+                else{
+                    var newElement = JSON.parse(localStorage.getItem(widgetName));
+                    newElement.push(event.passedData);
+                    localStorage.setItem(widgetName, JSON.stringify(newElement));
+                }
                 var newValue = event.passedData;
                 rowParameters = newValue;
+            }
+
+            clearInterval(countdownRef);
+            //$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+            //<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
+            if(encodeURIComponent(metricName) === encodeURIComponent(metricName)) {
                 $("#" + widgetName + "_loading").css("display", "block");
-                populateWidget();
+                populateWidget(null, true);
 
             }
 		});
 		
 		
+		
+		$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
+            showTodayButton: true,
+            widgetPositioning:{
+                horizontal: 'auto',
+                vertical: 'bottom'
+            }
+        })
 		/////
         //Definizioni di funzione specifiche del widget
         //Restituisce il JSON delle soglie se presente, altrimenti NULL
@@ -96,7 +134,7 @@
 
         console.log("Entrato in widgetRadarSeries --> " + widgetName);
 
-        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr) {
+        function serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode) {
 
             var deviceLabels = [];
             var metricLabels = [];
@@ -130,7 +168,7 @@
 
             widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
 
-            chartSeriesObject = getChartSeriesObject(series, editLabels);
+            chartSeriesObject = getChartSeriesObject(series, editLabels, fromCode);
             legendWidth = $("#<?= $_REQUEST['name_w'] ?>_content").width();
             //    xAxisCategories = getXAxisCategories(series, widgetHeight);
 
@@ -233,7 +271,7 @@
             return format;
         }
         
-        function getChartSeriesObject(series, xAxisLabelsEdit)
+        function getChartSeriesObject(series, xAxisLabelsEdit, fromCode)
         {
             var chartSeriesObject, singleObject, seriesName, seriesValue, seriesValues, zonesObject, zonesArray, inf, sup, i = null;
             
@@ -246,7 +284,7 @@
                     for (var i in series.secondAxis.series) 
                     {
                         if (xAxisLabelsEdit != null) {
-                            if (xAxisLabelsEdit.length == series.secondAxis.labels.length) {
+                            if (xAxisLabelsEdit.length == series.secondAxis.labels.length && !fromCode) {
                                 seriesName = xAxisLabelsEdit[i];
                             } else {
                                 // flipped case
@@ -1003,6 +1041,76 @@
                         },
                     },
                     series: {
+                        events: {
+                            legendItemClick: function () {
+                                if(styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
+                                    var selectedData = {};
+                                    selectedData.event = "legendItemClick";
+                                    selectedData.layers = [];
+                                    selectedData.metrics = [];
+                                    let selected = this.data[0].series.name;
+                                    for (var m in this.data) {
+                                        selectedData.metrics[m] = this.data[m].category;
+                                    }
+                                    for (var it in this.chart.legend.allItems) {
+                                        selectedData.layers[it] = {};
+                                        selectedData.layers[it].name = this.chart.legend.allItems[it].name;
+                                        selectedData.layers[it].visible = this.chart.legend.allItems[it].visible;
+                                        if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == true) {   //FIX ME
+                                            selectedData.layers[it].visible = false;
+                                        }
+                                        if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == false) {
+                                            selectedData.layers[it].visible = true;
+                                        }
+                                    }
+                                    if(localStorage.getItem("passedData") == null){
+                                        var init = [];
+                                        init.push(selectedData);
+                                        localStorage.setItem("passedData", JSON.stringify(init));
+                                    }
+                                    else{
+                                        var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                        newElement.push(selectedData);
+                                        localStorage.setItem("passedData", JSON.stringify(newElement));
+                                    }
+
+                                    let j=1;
+                                    if(localStorage.getItem("events") == null){
+
+                                        var events = [];
+                                        events.push("RadarLegendClick1");
+                                        localStorage.setItem("events", JSON.stringify(events));
+                                    }
+                                    else{
+                                        var events = JSON.parse(localStorage.getItem("events"));
+                                        for(var e in events){
+                                            if(events[e].slice(0,16) == "RadarLegendClick")
+                                                j = j+1;
+                                        }
+                                        events.push("RadarLegendClick" + j);
+                                        localStorage.setItem("events", JSON.stringify(events));
+                                    }
+
+                                    let newId = "RadarLegendClick"+j;
+                                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                    $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>');
+                                    $('#'+newId).on( "click", function() {
+                                        let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                        var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                    });
+                                    $( '#'+newId ).mouseover(function() {
+                                        $('#'+newId).css('cursor', 'pointer');
+                                    });
+                                    selectedDataJson = JSON.stringify(selectedData);
+                                    try {
+                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                    } catch(e) {
+                                        console.log("Error in JS function from legend click on " + widgetName);
+                                    }
+                                }
+                            }
+                        },
                         states: {
                             hover: {
                              //   enabled: false
@@ -1016,8 +1124,68 @@
 						 point: {
 							 events: {
 								click: function() {
-									if (code != null && code != "null") {
-											execute_<?= $_REQUEST['name_w'] ?>(this.y);
+									if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code != null && code != "null") {
+										//console.log(this);
+										//
+										//
+										/*var data_execute =[];
+										data_execute['value'] = this.y;
+										data_execute['metricname']=this.series.name;
+										data_execute['metricType']=this.category;
+										data_execute['date']=seriesDataArray[0].measuredTime;   */
+
+										selectedData = {};
+                                        selectedData.event = "click";
+                                        selectedData.value = {};
+                                        selectedData.value.metricType = this.category;
+                                        selectedData.value.metricName = this.series.name;
+                                        selectedDataJson = JSON.stringify(selectedData);
+                                        try {
+                                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                            let j=1;
+                                            if(localStorage.getItem("events") == null){
+
+                                                var events = [];
+                                                events.push("RadarClick1");
+                                                localStorage.setItem("events", JSON.stringify(events));
+                                            }
+                                            else{
+                                                var events = JSON.parse(localStorage.getItem("events"));
+                                                for(var e in events){
+                                                    if(events[e].slice(0,10) == "RadarClick")
+                                                        j = j+1;
+                                                }
+                                                events.push("RadarClick" + j);
+                                                localStorage.setItem("events", JSON.stringify(events));
+                                            }
+
+                                            if(localStorage.getItem("passedData") == null){
+                                                var init = [];
+                                                init.push(selectedDataJson);
+                                                localStorage.setItem("passedData", JSON.stringify(init));
+                                            }
+                                            else{
+                                                var newElement = JSON.parse(localStorage.getItem("passedData"));
+                                                newElement.push(selectedDataJson);
+                                                localStorage.setItem("passedData", JSON.stringify(newElement));
+                                            }
+
+                                            let newId = "RadarClick"+j;
+                                            $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                            $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                            $('#'+newId).on( "click", function() {
+
+                                                let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                                var selectedDataJson = JSON.parse(localStorage.passedData)[eventIndex];
+                                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+
+                                            });
+                                            $( '#'+newId ).mouseover(function() {
+                                                $('#'+newId).css('cursor', 'pointer');
+                                            });
+                                        } catch(e) {
+                                            console.log("Error in JS function from click on " + widgetName);
+                                        }
 									}
 									//alert ('Category: '+ this.category +', value: '+ this.y);
 								}
@@ -1057,9 +1225,31 @@
 
         }
 
-        function populateWidget() {
-
+        function populateWidget(fromAggregate, fromCode) {
             seriesDataArray = [];
+			var fromDate = null;
+			if ((fromAggregate != null)&&(fromAggregate != '')){
+				date = new Date(fromAggregate);
+				 var y = date.getFullYear();
+				 var m = date.getMonth() + 1; 
+					if (m < 10){
+						m = '0' +m;
+					}				 
+				 var d = date.getDate();
+				 if (d < 10){
+						d = '0' +d;
+					}	
+				 var h = date.getHours();
+				 if (h < 10){
+						h = '0' +h;
+					}
+				 var s = date.getMinutes();
+				 if (s < 10){
+						s = '0' +s;
+					}
+				 fromDate = y +'-'+m+'-'+d+'T'+h+':'+s+':00';
+				 //console.log(fromDate);
+			}
 
             let aggregationFlag = false;
             if (rowParameters != null) {
@@ -1068,14 +1258,13 @@
                 }
             }
 
-            //    if (widgetData.params.id_metric === 'AggregationSeries' || aggregationFlag === true || widgetData.params.id_metric.includes("NR_"))
+            //    if (widgetData.params.id_metric === 'AggregationSeries' || aggregationFlag === true || widgetData.params.id_metric.includes("NR_"))				
             if (metricName === 'AggregationSeries' || aggregationFlag === true || nrMetricType != null) {
             //    rowParameters = JSON.parse(rowParameters);
                 aggregationGetData = [];
                 getDataFinishCount = 0;
                 //     var editLabels = (JSON.parse(widgetData.params.styleParameters)).editDeviceLabels;
                 var editLabels = styleParameters.editDeviceLabels;
-
                 for (var i = 0; i < rowParameters.length; i++) {
                     aggregationGetData[i] = false;
                 }
@@ -1098,11 +1287,9 @@
                                 success: function (data) {
                                     aggregationGetData[data.index] = data;
                                     getDataFinishCount++;
-
                                     //Popoliamo il widget quando sono arrivati tutti i dati
                                     if (getDataFinishCount === rowParameters.length) {
                                         series = buildSeriesFromAggregationData();
-
                                         widgetHeight = parseInt($("#<?= $_REQUEST['name_w'] ?>_chartContainer").height() + 25);
 
                                         chartSeriesObject = getChartSeriesObject(series);
@@ -1144,13 +1331,17 @@
                             var urlToCall = "";
                             var xlabels = [];
                             let smUrl = "";
+							var fromDate_url = '';
+							if (fromDate != null){
+								fromDate_url = '&toTime='+fromDate;
+							}
                             if (rowParameters[i].metricId.split("serviceUri=").length > 1) {
-                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1];
+                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId.split("serviceUri=")[1]+fromDate_url;
                             } else {
-                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId;
+                                smUrl = "<?= $superServiceMapProxy ?>/api/v1/?serviceUri=" + rowParameters[i].metricId+fromDate_url;
                             }
                             //    metricType = "Float";
-
+							
                             if ("<?= $_REQUEST['timeRange']?>") {
                                 if ("<?= $_REQUEST['timeRange'] ?>" != 'last' && "<?= $_REQUEST['timeRange'] ?>" != "") {
                                     /*  switch("<?= $_REQUEST['timeRange'] ?>") {
@@ -1199,7 +1390,7 @@
                                 // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
                                 if (rowParameters.length === seriesDataArray.length) {
                                     // DO FINAL SERIALIZATION
-                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr);
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode);
                                 }
 
                             });
@@ -1218,7 +1409,7 @@
 
                             if (rowParameters.length === seriesDataArray.length) {
                                 // DO FINAL SERIALIZATION
-                                serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode)
                             }
 
                             break;
@@ -1226,6 +1417,10 @@
                         case "MyKPI":
 
                             //    var convertedData = getMyKPIValues(rowParameters[i].metricId);
+							var fromDate_url = null;
+							if (fromDate != null){
+								fromDate_url = '&to='+fromDate;
+							}
                             let aggregationCell = [];
                             var xlabels = [];
                             let kpiMetricName = rowParameters[i].metricName;
@@ -1233,19 +1428,25 @@
                             if (rowParameters[i].metricId.includes("datamanager/api/v1/poidata/")) {
                                 rowParameters[i].metricId = rowParameters[i].metricId.split("datamanager/api/v1/poidata/")[1];
                             }
-                            getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
 
+                            //getMyKPIValues(rowParameters, i, null, 1, function (extractedData) {
+							getMyKPIValues(rowParameters, i, fromDate_url, 1, function (extractedData) {
+							    let countEmpty = 0;
                                 if (extractedData) {
-                                    seriesDataArray.push(extractedData);
+                                    if (Object.keys(extractedData).length > 0) {
+                                        seriesDataArray.push(extractedData);
+                                    } else {
+                                        countEmpty++;
+                                    }
                                 } else {
                                     console.log("Dati Smart City non presenti");
                                     seriesDataArray.push(undefined);
                                 }
                                 //if (endFlag === true) {
                                 // Alla fine quando si arriva all'ultimo record ottenuto dalle varie chiamate asincrone
-                                if (rowParameters.length === seriesDataArray.length) {
+                                if (rowParameters.length === seriesDataArray.length - countEmpty) {
                                     // DO FINAL SERIALIZATION
-                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr)
+                                    serializeAndDisplay(rowParameters, seriesDataArray, editLabels, groupByAttr, fromCode)
                                 }
 
                             });
@@ -1460,23 +1661,6 @@
                 chartAxesColor = widgetData.params.chartAxesColor;
                 serviceUri = widgetData.params.serviceUri;
 				code = widgetData.params.code;
-				
-				if (widgetData.params.code != null && widgetData.params.code != "null") {
-                        let code = widgetData.params.code;
-                        var text_ck_area = document.createElement("text_ck_area");
-                        text_ck_area.innerHTML = code;
-                        var newInfoDecoded = text_ck_area.innerText;
-                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
-
-                        var elem = document.createElement('script');
-                        elem.type = 'text/javascript';
-                        // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
-                        // elem.src = newInfoDecoded;
-                        elem.innerHTML = newInfoDecoded;
-                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
-
-                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
-                    }
 
                 if (nrMetricType != null) {
                     openWs();
@@ -1527,6 +1711,26 @@
                 {
                     styleParameters = JSON.parse(widgetData.params.styleParameters);
                     groupByAttr = styleParameters['groupByAttr'];
+                }
+
+                if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code != null && code != "null") {
+                    var text_ck_area = document.createElement("text_ck_area");
+                    text_ck_area.innerHTML = code;
+                    var newInfoDecoded = text_ck_area.innerText;
+                    newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                    var elem = document.createElement('script');
+                    elem.type = 'text/javascript';
+                    // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
+                    // elem.src = newInfoDecoded;
+                    elem.innerHTML = newInfoDecoded;
+                    try {
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    } catch(e) {
+                        console.log("Error in appending JS function on " + widgetName);
+                    }
                 }
 
                 if(widgetData.params.parameters !== null)
@@ -1583,7 +1787,7 @@
 
                 rowParameters = JSON.parse(rowParameters);
 
-                populateWidget();
+                populateWidget(null);
 
             // GP FINE SECONDA SOLUZIONE ------------------------------------------------------------
             },
@@ -1650,7 +1854,7 @@
                     //    point.update(newValue);
 
                         rowParameters = newValue;
-                        populateWidget();
+                        populateWidget(null);
 
                     }
                     break;
@@ -1709,14 +1913,56 @@
         
         countdownRef = startCountdown(widgetName, timeToReload, <?= $_REQUEST['name_w'] ?>, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef);
         //Fine del codice core del widget
+		function clear(){
+                dateChoice = null;
+                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').val='';
+            }
+
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.show',function(){
+                $('.media').css({'overflow':'visible', 'z-index':'1000000'});
+            }).on('dp.hide',function(){
+                $('.media').css({'overflow':'hidden'});
+            })
+
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.change', function (e) {  
+                var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                dateChoice = date;
+                timeNavCount = 0;
+                    //populateWidget(true, timeRange, null, 0);
+					var timeRange = dateChoice;
+					populateWidget(date);
+                    //loadHyperCube();
+                    //drawDiagram(true, xAxisFormat, yAxisType);
+            });
+            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").clear()
+
+                if (<?= $_REQUEST['name_w'] ?>_loaded==false){
+
+                document.getElementById('<?= $_REQUEST['name_w'] ?>_droptitle').addEventListener('click', function (e) {
+                  const dropdown = e.currentTarget.parentNode;
+                  const menu = dropdown.querySelector('.menu');
+
+                  toggleClass(menu,'hide');
+               });
+
+                document.getElementById('<?= $_REQUEST['name_w'] ?>_droptitle').addEventListener('change', function (e) {
+                    <?= $_REQUEST['name_w'] ?>_select = e.target.textContent.trimEnd();
+                    //populateWidget(true, timeRange, "minus", timeNavCount);
+                    //loadHyperCube();
+                    //drawDiagram(true, xAxisFormat, yAxisType);
+                });
+                <?= $_REQUEST['name_w'] ?>_loaded = true;
+            }
+
+		///////////////////
     });
 </script>
 
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
+        
         <?php include '../widgets/widgetHeader.php'; ?>
         <?php include '../widgets/widgetCtxMenu.php'; ?>
-        
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
                 <p>Loading data, please wait</p>
@@ -1725,12 +1971,39 @@
                 <i class='fa fa-spinner fa-spin'></i>
             </div>
         </div>
-        
+       
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
             <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>Nessun dato disponibile</p>
             <div id="<?= $_REQUEST['name_w'] ?>_chartContainer" class="chartContainer"></div>
         </div>
+		<!-- -->
+		<div style="position: relative;">
+		 <div class="widget-dropbdown" style="position: absolute;">
+                                <div class='dropdown' style="float: left;width: 20%; padding-left: 5%">
+                            
+                            <div id='<?= $_REQUEST['name_w'] ?>_droptitle' class='dropdown-title title pointerCursor'></div>
+                            
+                            <div id='<?= $_REQUEST['name_w'] ?>_options' class='menu pointerCursor hide'></div>
+
+                        </div>
+                                <div class ="form-group" style="float: left;width:30%; ">  
+                                <div class ='input-group date' id='<?= $_REQUEST['name_w'] ?>_datetimepicker'>
+                                  <input type ='text' class="form-control" />
+                                  <span class ="input-group-addon">
+                                    <span class ="glyphicon glyphicon-calendar"></span>
+                                  </span>
+                                </div>
+                              </div>
+                              
+                         <!--
+                            <button id='<?= $_REQUEST['name_w'] ?>_cut' style="float: left;width:25%; padding:0.6em 0em;">Toggle Time Slice</button>
+                            <button id='<?= $_REQUEST['name_w'] ?>_stream' style="float: left;width:25%; padding:0.6em 0em;">Toggle Stream Graph</button>
+							-->
+
+                 </div>
+			</div>
+		<!-- -->
     </div>
 	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 

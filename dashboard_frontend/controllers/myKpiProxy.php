@@ -21,6 +21,7 @@ if (!isset($_SESSION)) {
     session_write_close();
 }
 
+
 function udate($format = 'u', $microT) {
 
     $timestamp = floor($microT);
@@ -113,11 +114,18 @@ if(isset($_SESSION['refreshToken'])) {
             )
         );
 
+
         $contextUnit = stream_context_create($optionsUnit);
         $myKpiUnitJson = file_get_contents($apiUrlUnit, false, $contextUnit);
 
         $myKpiUnit = json_decode($myKpiUnitJson);
-        $myKpiData[0]->valueUnit = $myKpiUnit->valueUnit;
+
+
+		if (array_key_exists('valueUnit', $myKpiUnit)) {
+			$myKpiData[0]->valueUnit = $myKpiUnit->valueUnit;
+		}else{
+			//$myKpiData[0]->valueUnit = null;
+		}
         $myKpiDataJson = json_encode($myKpiData);
     }
 
@@ -151,13 +159,23 @@ if(isset($_SESSION['refreshToken'])) {
     $env = $genFileContent['environment']['value'];
 
     $personalDataApiBaseUrl = $ownershipFileContent["personalDataApiBaseUrl"][$env];
+		/***/
+		$fromdata = '';
+				if (isset($_GET['timeRange'])){
+					if (($_GET['timeRange'] !=="")&&($_GET['timeRange'] !==null)){
+					$str1 = explode('T',$_GET['timeRange']);
+					$fromdata = "&to=". (strtotime($str1[0]) * 1000 ) ."&last=1";
+					//$apiUrlUnit = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values/?sourceRequest=dashboardmanager".$fromdata."&accessToken=" . $accessToken;
 
+					}
+				}
+		/***/
     $myKpiDataArray = [];
     if ($action == "getDistinctDays") {
-        $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKpiId . "/values/dates?sourceRequest=dashboardmanager";
+        $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKpiId . "/values/dates?sourceRequest=dashboardmanager".$fromdata;
     } else {
         //    $apiUrl = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager&accessToken=" . $accessToken . urlencode($myKpiTimeRange) . urlencode($lastValueString);
-        $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager" . $myKpiTimeRange . $lastValueString;
+        $apiUrl = $personalDataApiBaseUrl . "/v1/public/kpidata/" . $myKpiId . "/values?sourceRequest=dashboardmanager" . $myKpiTimeRange . $lastValueString.$fromdata;
     }
 
     $options = array(
@@ -173,7 +191,6 @@ if(isset($_SESSION['refreshToken'])) {
     $myKpiDataJson = file_get_contents($apiUrl, false, $context);
 
     $myKpiData = json_decode($myKpiDataJson);
-
     echo $myKpiDataJson;
 
 
