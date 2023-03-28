@@ -77,6 +77,85 @@
         var lastValueOk = null;
         var code = null;
 		//
+		$(document).off('showKnobFromExternalContent_' + widgetName);
+        $(document).on('showKnobFromExternalContent_' + widgetName, function(event){
+		        // console.log('showSingleContentFromExternalContent_AddCode!-CORRECT');
+				if(encodeURIComponent(metricName) === encodeURIComponent(metricName))
+                    {
+						console.log(event);
+                       var newWsValue = event.passedData;
+						if (newWsValue.dataOperation){
+							console.log('lastValueOk:' +lastValueOk);
+							lastValueOk = newWsValue.dataOperation;
+							if (lastValueOk !== null) {
+								currentValue = lastValueOk;
+								lastValueOk = null;
+								showUpdateResult("Device OK");
+										//   currentValue = currentNormAngle*convFactor + minValue;
+										currentNormAngle = (currentValue - minValue)/convFactor;
+										var newAngle = currentNormAngle;
+										if ((currentNormAngle >= 0) && (currentNormAngle <= 360 - startAngle)) {
+											newAngle = currentNormAngle + startAngle;
+										} else if ((currentNormAngle >= 360 - startAngle) && (currentNormAngle <= 360 + endAngle - startAngle)) {
+											newAngle = currentNormAngle + startAngle - 360;
+										}
+
+										switch(dataType)
+										{
+											case "Float": case "float":
+											currentValue = parseFloat(currentValue).toFixed(dataPrecision);
+											break;
+
+											case "Integer": case "integer":
+											currentValue = parseInt(currentValue);
+											break;
+										}
+										$('#<?= $_REQUEST['name_w'] ?>_knob').css('-webkit-transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+										$('#<?= $_REQUEST['name_w'] ?>_knob').css('-moz-transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+										$('#<?= $_REQUEST['name_w'] ?>_knob').css('-o-transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+										$('#<?= $_REQUEST['name_w'] ?>_knob').css('-ms-transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+										$('#<?= $_REQUEST['name_w'] ?>_knob').css('transform', 'rotate3d(0, 0, 1, ' + newAngle + 'deg)');
+										$('#<?= $_REQUEST['name_w'] ?>_innerCircle span').html(currentValue);
+										$('#<?= $_REQUEST['name_w'] ?>_innerCircle').textfill({ maxFontPixels: -20});
+
+										if(fontSize < parseInt($('#<?= $_REQUEST['name_w'] ?>_innerCircle span').css('font-size').replace('px', '')))
+										{
+											$("#<?= $_REQUEST['name_w'] ?>_innerCircle span").css('font-size', fontSize + 'px');
+										}
+
+										if(domainType === 'continuous')
+										{
+											if(continuousRanges !== null)
+											{
+												for(var i in continuousRanges)
+												{
+													if((currentValue >= parseFloat(continuousRanges[i].min))&&(currentValue <= parseFloat(continuousRanges[i].max)))
+													{
+														$('#<?= $_REQUEST['name_w'] ?>_innerCircle').css("-moz-box-shadow", "2px 2px 4px " + continuousRanges[i].color + ", 2px -2px 4px " + continuousRanges[i].color + ", -2px 2px 4px " + continuousRanges[i].color + ", -2px -2px 4px " + continuousRanges[i].color);
+														$('#<?= $_REQUEST['name_w'] ?>_innerCircle').css("-webkit-box-shadow", "2px 2px 4px " + continuousRanges[i].color + ", 2px -2px 4px " + continuousRanges[i].color + ", -2px 2px 4px " + continuousRanges[i].color + ", -2px -2px 4px " + continuousRanges[i].color);
+														$('#<?= $_REQUEST['name_w'] ?>_innerCircle').css("box-shadow", "2px 2px 4px " + continuousRanges[i].color + ", 2px -2px 4px " + continuousRanges[i].color + ", -2px 2px 4px " + continuousRanges[i].color + ", -2px -2px 4px " + continuousRanges[i].color);
+														hoverRotationColor = continuousRanges[i].color;
+													}
+												}
+											}
+											else
+											{
+												hoverRotationColor = "rgba(51, 204, 255, 1)";
+											}
+
+											$('#<?= $_REQUEST['name_w'] ?>_knobIndicator').off("hover");
+											$('#<?= $_REQUEST['name_w'] ?>_knobIndicator').css("-moz-box-shadow", "0px 0px 2px 2px " + hoverRotationColor);
+											$('#<?= $_REQUEST['name_w'] ?>_knobIndicator').css("-webkit-box-shadow", "0px 0px 2px 2px " + hoverRotationColor);
+											$('#<?= $_REQUEST['name_w'] ?>_knobIndicator').css("box-shadow", "0px 0px 2px 2px " + hoverRotationColor);
+										}
+										stopFlag = 1;
+							}
+							//////////////////////////////////////
+						}else{
+
+						}
+                    }
+		});
 		
 		
 		///

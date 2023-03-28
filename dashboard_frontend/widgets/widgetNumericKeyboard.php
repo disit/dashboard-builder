@@ -68,6 +68,20 @@
         var useWebSocket = <?= $useActuatorWS ?>;
         if(Window.webSockets == undefined)
           Window.webSockets = {};
+	  
+	  /////////////
+		$(document).off('showNumericKeyboardFromExternalContent_' + widgetName);
+        $(document).on('showNumericKeyboardFromExternalContent_' + widgetName, function(event){
+		        // console.log('showSingleContentFromExternalContent_AddCode!-CORRECT');
+				if(encodeURIComponent(metricName) === encodeURIComponent(metricName))
+                    {
+                       var newWsValue = event.passedData;
+						if (newWsValue.dataOperation){
+							$('#<?= $_REQUEST['name_w'] ?>_lastContainer span.displayVal').text(newWsValue.dataOperation);
+						}
+
+                    }
+		});
         
         console.log("<?= $_REQUEST['name_w'] ?>");        
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))

@@ -81,6 +81,14 @@
           Window.webSockets = {};
         
         console.log("<?= $_REQUEST['name_w'] ?>");
+		$(document).off('showOnOffButtonFromExternalContent_' + widgetName);
+        $(document).on('showOnOffButtonFromExternalContent_' + widgetName, function(event){
+		        // console.log('showSingleContentFromExternalContent_AddCode!-CORRECT');
+				var newWsValue = event.passedData;
+					if (currentValue !== newWsValue.dataOperation){
+						updateRemoteValue();						
+					}
+			});
 		
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
@@ -1687,7 +1695,7 @@
                         <span></span>
                     </div>
                     <div id="<?= $_REQUEST['name_w'] ?>_onOffButtonAfter" class="onOffButtonAfter"></div>
-					<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
+					<!--<div id="<?= $_REQUEST['name_w'] ?>_code"></div>-->
                 </div>
             </div>
         </div>
