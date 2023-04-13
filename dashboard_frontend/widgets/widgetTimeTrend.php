@@ -1189,9 +1189,23 @@
                             events: {
                                 setExtremes: function (e) {
                                     if(typeof e.min == 'undefined' && typeof e.max == 'undefined'){
-                                        // console.log('reset zoom clicked');
+                                         //console.log('reset zoom clicked');
+										 var sUri = getServiceUri(rowParameters);
+										 var param = {
+											"event": "reset zoom",
+                                            "t1" : e.target.dataMin,
+                                            "t2" : e.target.dataMax,
+											"sUri":sUri,
+											"metricName":metricName
+                                        }
+										//
+										try {
+                                            	execute_<?= $_REQUEST['name_w'] ?>(param);
+                                            } catch(e) {
+                                            	console.log("Error in JS function from time zoom on " + widgetName);
+                                            }
                                     } else {
-                                        // console.log('zoom-in');
+                                         console.log('zoom-in');
                                     }
                                 }
                             }

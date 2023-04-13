@@ -501,9 +501,14 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     left: 30px!important;
 }
 
-#universal-map-controls, #universal-map-overlay, #universal-map-popup {
+#universal-map-controls, #universal-map-overlay, #universal-map-popups {
     position: absolute!important;
     top: 55px!important;
+    height: calc(100% - 55px)!important;
+    width: calc(100% - 0px)!important;
+}
+
+#universal-map-controls, #universal-map-overlay {
     margin: 10px!important;
     height: calc(100% - 70px)!important;
     width: calc(100% - 20px)!important;
@@ -551,6 +556,18 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
 #deck-info-tab a {
     color: var(--acc-02-color)!important;
     border-radius: 30px;
+}
+
+
+#deck-info-content #selection {
+    border: none;
+    background: none!important;
+    color: var(--text-color)!important;
+}
+
+#deck-info-content .leaflet-routing-container {
+    box-shadow: none;
+    background: none;
 }
 
 .deck-btn {
@@ -617,6 +634,26 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     border: none;
     background-color: var(--dash-bg-color)!important;
     color: var(--text-color)!important;
+}
+
+#deck-whatif-popup {
+    background-color: var(--dash-bg-color)!important;
+    color: var(--text-color);
+}
+
+#deck-whatif-popup > button {
+    color: var(--text-color);
+    border-radius: 5px;
+    border: 1px solid var(--text-color);
+    background: none;
+}
+
+#deck-whatif-popup > button:hover {
+    color: var(--acc-02-color);
+}
+
+#close-whatif-btn:hover {
+    color: red!important;
 }
 
 #FIRENZE

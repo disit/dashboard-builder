@@ -1660,7 +1660,26 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     color: chartLabelsFontColor,
                                     "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
                                 }
-                            }
+                            },
+							events: {
+									setExtremes: function(event) {
+									  if (!event.min && !event.max) {
+										var param = {
+											"event": "reset zoom",
+                                            "t1" : event.target.dataMin,
+                                            "t2" : event.target.dataMax,
+											"series":rowParameters
+                                        }
+										//
+										try {
+                                            	execute_<?= $_REQUEST['name_w'] ?>(param);
+                                            } catch(e) {
+                                            	console.log("Error in JS function from time zoom on " + widgetName);
+                                            }
+										//
+									  }
+									}
+								  }
                         },
                         yAxis: {
                             min: yAxisMin,
@@ -1939,7 +1958,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             }
                                         }
 									
-									}//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
+									}
+									//Per ora disabilitiamo la funzione show/hide perché interferisce con gli handler dei tasti info
                                 },
                                 lineWidth: lineWidth
                             },

@@ -36626,6 +36626,12 @@
                                                 async: true,
                                                 dataType: 'json',
                                                 success: function (data) {
+                                                    if (!currentParams || currentParams.length == 0) {
+                                                        currentParams = {
+                                                            mode: '',
+                                                            svgCKEditor: ''
+                                                        };
+                                                    }
                                                     if (data['detail'] == "Ok" && data['trustedUsers'].includes("<?= $dashboardEditorName ?>")) {
                                                         //Nuova riga
                                                         //Source Selection
@@ -36636,12 +36642,28 @@
                                                         newSelect = $('<select class="form-control" id="enableCKEditor" name="enableCKEditor"></select>');
                                                         newSelect.append('<option value="no">no</option>');
                                                         newSelect.append('<option value="ckeditor">yes</option>');
+                                                        if (currentParams && currentParams['mode']) {
+                                                            newSelect.val(currentParams['mode']);
+                                                        }
                                                         newInnerDiv.append(newSelect);
                                                         newFormRow.append(newLabel);
                                                         newFormRow.append(newInnerDiv);
                                                         newLabel.show();
                                                         newInnerDiv.show();
                                                         newSelect.show();
+
+                                                        newLabel = $('<label for="svgCKEditor" class="col-md-2 control-label"><?php echo _("SVG Mode"); ?></label>');
+                                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                                        newSelect = $('<select class="form-control" id="svgCKEditor" name="svgCKEditor"></select>');
+                                                        newSelect.append('<option value="no">no</option>');
+                                                        newSelect.append('<option value="svgMode">yes</option>');
+                                                        if (currentParams && currentParams['svgCKEditor']) {
+                                                            newSelect.val(currentParams['svgCKEditor']);
+                                                        }
+                                                        newInnerDiv.append(newSelect);
+                                                        newFormRow.append(newLabel);
+                                                        newFormRow.append(newInnerDiv);
+                                                        
 
                                                         //Nuova riga Tab Destro: CKEDITOR
                                                         //Modalità del widget (none, map, gis, link esterno)
@@ -36688,6 +36710,7 @@
                                                                     //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(rowParamsForCKEditor);
                                                                     CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
                                                                 //}
+                                                                $('#svgCKEditor').show();
                                                             }
                                                         }
 
@@ -36701,11 +36724,23 @@
                                                                     var newInfoDecoded = text_ck_area.innerText;
                                                                     CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
                                                                 //}
-                                                                $("#parametersM").val('{"mode": "ckeditor"}');
+                                                                // $("#parametersM").val('{"mode": "ckeditor"}');
+                                                                currentParams['mode'] = "ckeditor";
                                                             } else {
                                                                 $('#ck_editor').hide();
-                                                                $("#parametersM").val('');
+                                                                //$("#parametersM").val('');
+                                                                currentParams['mode'] = '';
                                                             }
+                                                            $("#parametersM").val(JSON.stringify(currentParams));
+                                                        });
+                                                        
+                                                        $('#svgCKEditor').change(function () {
+                                                            if ($('#svgCKEditor').val() === "svgMode") {
+                                                                currentParams['svgCKEditor'] = "svgMode";
+                                                            } else {
+                                                                currentParams['svgCKEditor'] = 'no';
+                                                            }
+                                                            $("#parametersM").val(JSON.stringify(currentParams));
                                                         });
 
                                                         $('#sourceSelectionSaveBtn').click(function () {

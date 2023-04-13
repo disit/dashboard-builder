@@ -4058,7 +4058,7 @@ ul#delegationsTabsContainer, #wizardTabsContainer, #datasourcesTabsContainer, #a
 .modal-content form#delegationsForm {
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: space-between;
     height: calc(100% - 10vh);
 }
@@ -4499,8 +4499,16 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
     width: 60%;
   }
   
-  div.dashboardsListCardDiv{
+  div.dashboardsListCardDiv, div.iotAppsListCardDiv{
     width: 33.333%!important;
+  }
+  
+  .modal_wrapper{
+    flex-direction: column;
+  }
+  
+  .modal_wrapper .input-group-btn {
+      padding-left: 10px;
   }
   
   div.modal-dialog{
@@ -4513,6 +4521,10 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
     right: 0;
     opacity: 1;
     z-index: 1000000;
+  }
+  
+  .modal{
+    z-index: 100001;
   }
   
 }
@@ -4544,7 +4556,7 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
     justify-content: space-between;
   }
   
-  div.dashboardsListCardDiv{
+  div.dashboardsListCardDiv, div.iotAppsListCardDiv{
     width: 50%!important;
   }
   
@@ -4557,7 +4569,7 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
     flex-basis: 50%;
   }
   
-  ul#delegationsTabsContainer, #wizardTabsContainer, #datasourcesTabsContainer, #addMetricModalTabs, #editMetricModalTabs, #editModuleModalBody ul{
+  ul#delegationsTabsContainer, #wizardTabsContainer, #datasourcesTabsContainer, #addMetricModalTabs, #editMetricModalTabs, #editModuleModalBody ul, #modalEditIoTAppBody ul{
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -4569,7 +4581,7 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
     padding: 0!important;
   }
   
-  ul#delegationsTabsContainer::-webkit-scrollbar, #wizardTabsContainer::-webkit-scrollbar, #datasourcesTabsContainer::-webkit-scrollbar, #addMetricModalTabs::-webkit-scrollbar, #editMetricModalTabs::-webkit-scrollbar, #editModuleModalBody ul::-webkit-scrollbar {
+  ul#delegationsTabsContainer::-webkit-scrollbar, #wizardTabsContainer::-webkit-scrollbar, #datasourcesTabsContainer::-webkit-scrollbar, #addMetricModalTabs::-webkit-scrollbar, #editMetricModalTabs::-webkit-scrollbar, #editModuleModalBody ul::-webkit-scrollbar, #modalEditIoTAppBody ul::-webkit-scrollbar{
   display: none; 
   }
   
@@ -4580,6 +4592,11 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
   
   .modal-content ul.nav-tabs.nav-justified > li > a{
     border-radius: 0;
+  }
+  
+  .dash_title .row{
+      flex-direction: column;
+      flex-basis: 100%;
   }
   
 }
