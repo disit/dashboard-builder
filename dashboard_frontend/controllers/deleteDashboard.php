@@ -83,7 +83,7 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
     }
     else
     {
-        eventLog("Delete DAshboard KO");
+        eventLog("Delete Dashboard KO");
         $response = "Ko";
     }
     
@@ -106,15 +106,18 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
         $nameGroup = str_replace('ç', 'c', $nameGroup);
         $nameGroup = str_replace('ÿ', 'y', $nameGroup);
         $nameGroup=preg_replace("/[^a-zA-Z0-9_-]/", "", $nameGroup);
-        $admin = new \RocketChat\User();
-        $admin->login();
-        $channelArc = new \RocketChat\Channel('N');
-        $infoChannel=$channelArc->infoByName($nameGroup);
-        if(isset($infoChannel->channel->_id)){
-        $channelArc->archive($infoChannel->channel->_id);
+        try {
+            $admin = new \RocketChat\User();
+            $admin->login();
+            $channelArc = new \RocketChat\Channel('N');
+            $infoChannel=$channelArc->infoByName($nameGroup);
+            if(isset($infoChannel->channel->_id)){
+                $channelArc->archive($infoChannel->channel->_id);
+            }
+            $admin->logout();
+        } catch (Exception $e) {
+            
         }
-       $admin->logout();
-       
         
     }
     //Se cancellazione dashboard fallisce, non cancelliamo la chat

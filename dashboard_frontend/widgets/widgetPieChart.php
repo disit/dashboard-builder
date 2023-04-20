@@ -78,7 +78,22 @@
 				//
         $(document).off('showPieChartFromExternalContent_' + widgetName);
         $(document).on('showPieChartFromExternalContent_' + widgetName, function(event){
-
+            
+            var newValue = event.passedData;
+            rowParameters = newValue;
+            
+            if(localStorage.getItem("widgets") == null){
+                var widgets = [];
+                widgets.push(widgetName);
+                localStorage.setItem("widgets", JSON.stringify(widgets));
+            }
+            else{
+                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                if(!widgets.includes(widgetName)){
+                    widgets.push(widgetName);
+                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                }
+            }
             clearInterval(countdownRef);
             //$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
             //<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
@@ -99,12 +114,53 @@
 
                 emptyLegendFlagFromWs = true;
                 $("#" + widgetName + "_loading").css("display", "block");
-                populateWidget(null, true);
-
+                
+                var test = localStorage.getItem("passedData");
+                if(localStorage.getItem("passedData") == null || localStorage.getItem("passedData") == "[object Object]"){
+                    var init = [];
+                    var firstEl = {};
+                    firstEl.passedData = event.passedData;
+                    firstEl.name = widgetName;
+                    firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    init.push(firstEl);
+                    localStorage.setItem("passedData", JSON.stringify(init));
+                }
+                else{
+                    var newEl = {};
+                    newEl.passedData = event.passedData;
+                    newEl.name = widgetName;
+                    newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                    oldElement.push(newEl);
+                    localStorage.setItem("passedData", JSON.stringify(oldElement));
+                }
+                populateWidget();
             }
 
         });
     /////
+    	 $(document).off('reloadPreviousContent_' + widgetName);
+        $(document).on('reloadPreviousContent_' + widgetName, function(event){
+            var passedData = JSON.parse(localStorage.getItem("passedData"));
+            var j = 0;
+            var t = -1;
+            while(passedData[j].eventIndex <= event.index && j < passedData.length - 1){
+                if(passedData[j].name === widgetName){
+                    t = j;
+                }
+                j = j+1;
+            }
+            if(t == -1){
+                $('body').trigger({
+                    type: "resetContent_"+widgetName
+                });
+            }
+            else{
+                rowParameters = passedData[t].passedData;
+                populateWidget();
+            }
+        });
+	
 	$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
             showTodayButton: true,
             widgetPositioning:{
@@ -942,28 +998,19 @@
                                             localStorage.setItem("events", JSON.stringify(events));
                                         }
 
-                                        if(localStorage.getItem("passedData") == null){
-                                            var init = [];
-                                            init.push(selectedDataJson);
-                                            localStorage.setItem("passedData", JSON.stringify(init));
-                                        }
-                                        else{
-                                            var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                            newElement.push(selectedDataJson);
-                                            localStorage.setItem("passedData", JSON.stringify(newElement));
-                                        }
-
                                         let newId = "PieChartClick"+j;
                                         $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                         $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                         $('#'+newId).on( "click", function() {
-
-                                            let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                            var selectedDataJson = JSON.parse(localStorage.passedData)[eventIndex];
-                                            try {
-                                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
-                                            } catch(e) {
-                                                console.log("Error in JS function from pie click on " + widgetName);
+                                            var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                            var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                            for(var w in widgets){
+                                                if(widgets[w] != null){
+                                                    $('body').trigger({
+                                                        type: "reloadPreviousContent_"+widgets[w],
+                                                        index: index
+                                                    });
+                                                }
                                             }
                                                 
                                         });
@@ -1153,7 +1200,7 @@
                     }
                 };
 
-                //Workaround temporaneo per far vedere pie tradizionali con piÃ¹ di 3 fette
+                //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
                 if(seriesValues.length > 0)
                 {
                     chartSeriesObject.push(singleObject);
@@ -1501,7 +1548,7 @@
                                 colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
                             }
 
-                            //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora Ã¨ inutile, non esistono soglie sull'anello piÃ¹ interno
+                            //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
                             if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
                                 if (thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.length > 0) {
                                     labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
@@ -1562,7 +1609,7 @@
 
                             item.css("display", "block");
 
-                            //Workaround temporaneo per far vedere pie tradizionali con piÃ¹ di 3 fette
+                            //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
                             if (series.secondAxis.labels.length > 0) {
                                 $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').append(item);
 
@@ -1696,7 +1743,7 @@
                             colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i % 10] + '"></div>');
                         }
 
-                        //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora Ã¨ inutile, non esistono soglie sull'anello piÃ¹ interno
+                        //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
                         if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
                             if (thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.length > 0) {
                                 labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
@@ -1757,7 +1804,7 @@
 
                         item.css("display", "block");
 
-                        //Workaround temporaneo per far vedere pie tradizionali con piÃ¹ di 3 fette
+                        //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
                         if (series.secondAxis.labels.length > 0) {
 
                             let legendSameItemFlag = false;
@@ -2150,7 +2197,8 @@
                              break;
                      }*/
 
-                rowParameters = JSON.parse(rowParameters);
+                if(typeof rowParameters === 'string')
+                    rowParameters = JSON.parse(rowParameters);
 				////////////lettura code
 				if (widgetData.params.code != null && widgetData.params.code != "null") {
                         let code = widgetData.params.code;
@@ -2286,6 +2334,33 @@
         {
 
         };
+		$(document).off('resetContent_' + widgetName);
+        $(document).on('resetContent_' + widgetName, function(){
+            $.ajax({
+                url: "../controllers/getWidgetParams.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
+                async: true,
+                dataType: 'json',
+                success: function(widgetData)
+                {
+                    rowParameters = JSON.parse(widgetData.params.rowParameters);
+                    populateWidget();
+                    
+                },
+                error: function(errorData)
+                {
+                    console.log("Error in widget params retrieval");
+                    console.log(JSON.stringify(errorData));
+                    showWidgetContent(widgetName);
+                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                    $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                }
+            });
+        });
         
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
             resizeWidget();

@@ -238,7 +238,7 @@ if($result1)
                                      $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
                                  } else {
                                  //    $newQueryFields = $newQueryFields . ", " . $key;
-                                     if ($key == "title_w") {
+                                     if ($key == "title_w" || $key == "parameters") {
                                          $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
                                      } else {
                                          $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
@@ -311,6 +311,22 @@ if($result1)
 
                          if (is_dir($uploadFolder)) {
                              $clonedScr = "../img/dashScr/dashboard" . $clonedDashId . "/lastDashboardScr.png";
+                             copy($originalScr, $clonedScr);
+                         }
+                     } else if (file_exists("../img/dashScr/dashboard" . $sourceDashId . "/lastDashboardScr.jpg")) {
+                         $originalScr = "../img/dashScr/dashboard" . $sourceDashId . "/lastDashboardScr.jpg";
+                         $uploadFolder = "../img/dashScr/dashboard" . $clonedDashId . "/";
+
+                         if (!file_exists("../img/dashScr/")) {
+                             mkdir("../img/dashScr/");
+                         }
+
+                         if (!file_exists($uploadFolder)) {
+                             mkdir($uploadFolder);
+                         }
+
+                         if (is_dir($uploadFolder)) {
+                             $clonedScr = "../img/dashScr/dashboard" . $clonedDashId . "/lastDashboardScr.jpg";
                              copy($originalScr, $clonedScr);
                          }
                      }

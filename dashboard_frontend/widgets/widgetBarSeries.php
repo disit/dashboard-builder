@@ -64,38 +64,62 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         {
 	    if(event.targetWidget === widgetName) {
             //console.log(event);
-	            if(localStorage.getItem("widgets") == null){
-	                var widgets = [];
-	                widgets.push(widgetName);
-	                localStorage.setItem("widgets", JSON.stringify(widgets));
-	            }
-	            else{
-	                var widgets = JSON.parse(localStorage.getItem("widgets"));
-	                if(!widgets.includes(widgetName)){
-	                    widgets.push(widgetName);
-	                    localStorage.setItem("widgets", JSON.stringify(widgets));
-	                }
-	            }
-            
-	            if(localStorage.getItem(widgetName) == null){
-	                var init = [];
-	                init.push(event.passedData);
-	                localStorage.setItem(widgetName, JSON.stringify(init));
-	            }
-	            else{
-	                var newElement = JSON.parse(localStorage.getItem(widgetName));
-	                newElement.push(event.passedData);
-	                localStorage.setItem(widgetName, JSON.stringify(newElement));
-	            }
-	            var newValue = event.passedData;
-	            rowParameters = newValue;
+            if (localStorage.getItem("widgets") == null) {
+                var widgets = [];
+                widgets.push(widgetName);
+                localStorage.setItem("widgets", JSON.stringify(widgets));
+            } else {
+                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                if (!widgets.includes(widgetName)) {
+                    widgets.push(widgetName);
+                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                }
+            }
 
-            /*    clearInterval(countdownRef);
-                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
-                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
-            */
-                setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
-                populateWidget(true);
+            if (localStorage.getItem("passedData") == null || localStorage.getItem("passedData") == "[object Object]") {
+                var init = [];
+                var firstEl = {};
+                firstEl.passedData = event.passedData;
+                firstEl.name = widgetName;
+                firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                init.push(firstEl);
+                localStorage.setItem("passedData", JSON.stringify(init));
+            } else {
+                var newEl = {};
+                newEl.passedData = event.passedData;
+                newEl.name = widgetName;
+                newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                oldElement.push(newEl);
+                localStorage.setItem("passedData", JSON.stringify(oldElement));
+                console.log(localStorage)
+            }
+            var newValue = event.passedData;
+            rowParameters = newValue;
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+            populateWidget(true);
+        }
+            
+        });
+	$(document).off('reloadPreviousContent_' + widgetName);
+        $(document).on('reloadPreviousContent_' + widgetName, function(event){
+            var passedData = JSON.parse(localStorage.getItem("passedData"));
+            var j = 0;
+            var t = -1;
+            while(passedData[j].eventIndex <= event.index && j < passedData.length - 1){
+                if(passedData[j].name === widgetName){
+                    t = j;
+                }
+                j = j+1;
+            }
+            if(t == -1){
+                $('body').trigger({
+                    type: "resetContent_"+widgetName
+                });
+            }
+            else{
+                rowParameters = passedData[t].passedData;
+                populateWidget();
             }
         });
 		
@@ -625,12 +649,13 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         point: {
                             events: {
                                 mouseOver: function(jqEvent){
-                                    if(styleParameters.enableCKEditor == "ckeditor" && code !== null) {
+                                    if(styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code !== null) {
                                         this.graphic.element.style.cursor = 'pointer';
                                     }
                                 },
                                 click: function() {
-                                    if (styleParameters.enableCKEditor == "ckeditor" && code) {
+				    let newId;	
+                                    if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
                                         selectedData = {};
                                         selectedData.event = "click";
                                         var dataString = "";
@@ -654,20 +679,10 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             }
                                         }
 
-                                        if(localStorage.getItem("passedData") == null){
-                                            var init = [];
-                                            init.push(selectedData);
-                                            localStorage.setItem("passedData", JSON.stringify(init));
-                                        }
-                                        else{
-                                            var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                            newElement.push(selectedData);
-                                            localStorage.setItem("passedData", JSON.stringify(newElement));
-                                        }
-
                                         let j=1;
                                         if(localStorage.getItem("events") == null){
 
+                                            newId = "BarClick1";
                                             var events = [];
                                             events.push("BarClick1");
                                             localStorage.setItem("events", JSON.stringify(events));
@@ -678,20 +693,27 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                 if(events[e].slice(0,8) == "BarClick")
                                                     j = j+1;
                                             }
+                                            newId = "BarClick"+j;
                                             events.push("BarClick" + j);
                                             localStorage.setItem("events", JSON.stringify(events));
-                                            console.log(selectedDataJson);
+                                            //console.log(selectedDataJson);
                                         }
 
                                     }
 
-                                    let newId = "BarClick"+j;
                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                     $('#'+newId).on( "click", function() {
-                                        let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                        var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
-                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                        for(var w in widgets){
+                                            if(widgets[w] != null){
+                                                $('body').trigger({
+                                                    type: "reloadPreviousContent_"+widgets[w],
+                                                    index: index
+                                                });
+                                            }
+                                        }
                                     });
                                     $( '#'+newId ).mouseover(function() {
                                         $('#'+newId).css('cursor', 'pointer');
@@ -704,7 +726,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     bar: {
                         events: {
                             legendItemClick: function(){
-                                if (styleParameters.enableCKEditor == "ckeditor" && code) {
+                                if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
                                     var selectedData = {};
                                     selectedData.event = "legendItemClick";
                                     selectedData.layers = [];
@@ -724,17 +746,6 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             selectedData.layers[it].visible = true;
                                         }
                                     }
-				    if(localStorage.getItem("passedData") == null){
-                                        var init = [];
-                                        init.push(selectedData);
-                                        localStorage.setItem("passedData", JSON.stringify(init));
-                                    }
-                                    else{
-                                        var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                        newElement.push(selectedData);
-                                        localStorage.setItem("passedData", JSON.stringify(newElement));
-                                    }
-
                                     let j=1;
                                     if(localStorage.getItem("events") == null){
 
@@ -756,9 +767,16 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                     $('#'+newId).on( "click", function() {
-                                        let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                        var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
-                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                        for(var w in widgets){
+                                            if(widgets[w] != null){
+                                                $('body').trigger({
+                                                    type: "reloadPreviousContent_"+widgets[w],
+                                                    index: index
+                                                });
+                                            }
+                                        }
                                     });
                                     $( '#'+newId ).mouseover(function() {
                                         $('#'+newId).css('cursor', 'pointer');
@@ -777,7 +795,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     column: {
                         events: {
                             legendItemClick: function(){
-                                if (styleParameters.enableCKEditor == "ckeditor" && code) {
+                                if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
                                     var selectedData = {};
                                     selectedData.event = "legendItemClick";
                                     selectedData.layers = [];
@@ -796,17 +814,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         if (this.chart.legend.allItems[it].name == selected && this.chart.legend.allItems[it].visible == false) {
                                             selectedData.layers[it].visible = true;
                                         }
-                                    }
-                                    if(localStorage.getItem("passedData") == null){
-                                        var init = [];
-                                        init.push(selectedData);
-                                        localStorage.setItem("passedData", JSON.stringify(init));
-                                    }
-                                    else{
-                                        var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                        newElement.push(selectedData);
-                                        localStorage.setItem("passedData", JSON.stringify(newElement));
-                                    }
+                                    }                                    
 
                                     let j=1;
                                     if(localStorage.getItem("events") == null){
@@ -829,9 +837,16 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                     $('#'+newId).on( "click", function() {
-                                        let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                        var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
-                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                        for(var w in widgets){
+                                            if(widgets[w] != null){
+                                                $('body').trigger({
+                                                    type: "reloadPreviousContent_"+widgets[w],
+                                                    index: index
+                                                });
+                                            }
+                                        }
                                     });
                                     $( '#'+newId ).mouseover(function() {
                                         $('#'+newId).css('cursor', 'pointer');
@@ -1716,7 +1731,32 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         }
 
         //Fine definizioni di funzione  
-        
+		$(document).off('resetContent_' + widgetName);
+        $(document).on('resetContent_' + widgetName, function(){
+            $.ajax({
+                url: "../controllers/getWidgetParams.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
+                async: true,
+                dataType: 'json',
+                success: function(widgetData)
+                {
+                    rowParameters = JSON.parse(widgetData.params.rowParameters);
+                    populateWidget();
+                },
+                error: function(errorData)
+                {
+                    console.log("Error in widget params retrieval");
+                    console.log(JSON.stringify(errorData));
+                    showWidgetContent(widgetName);
+                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                    $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                }
+            });
+        });
         $(document).off('changeMetricFromButton_' + widgetName);
         $(document).on('changeMetricFromButton_' + widgetName, function(event) 
         {
@@ -1817,7 +1857,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 }
 
                 ////////////lettura code
-                if (styleParameters.enableCKEditor == "ckeditor" && code != null && code != "null") {
+                if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code != null && code != "null") {
                     var text_ck_area = document.createElement("text_ck_area");
                     text_ck_area.innerHTML = code;
                     var newInfoDecoded = text_ck_area.innerText;

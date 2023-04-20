@@ -149,6 +149,44 @@ if (!isset($_SESSION)) {
 
     //Ogni "main" lato client di un widget è semple incluso nel risponditore ad evento ready del documento, così siamo sicuri di operare sulla pagina già caricata
     $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w']))?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId) {
+            
+            if(localStorage.getItem("widgets") == null){
+                var widgets = [];
+                widgets.push(widgetName);
+                localStorage.setItem("widgets", JSON.stringify(widgets));
+            }
+            else{
+                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                if(!widgets.includes(widgetName)){
+                    widgets.push(widgetName);
+                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                }
+            }
+            $(document).on('resetContent_' + widgetName, function(){
+                $.ajax({
+                    url: "../controllers/getWidgetParams.php",
+                    type: "GET",
+                    data: {
+                        widgetName: "<?= $_REQUEST['name_w'] ?>"
+                    },
+                    async: true,
+                    dataType: 'json',
+                    success: function(widgetData)
+                    {
+                        rowParameters = JSON.parse(widgetData.params.rowParameters);
+                        populateWidget();
+                    },
+                    error: function(errorData)
+                    {
+                        console.log("Error in widget params retrieval");
+                        console.log(JSON.stringify(errorData));
+                        showWidgetContent(widgetName);
+                        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                        $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                        $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                    }
+                });
+            });
             <?php
             $titlePatterns = array();
             $titlePatterns[0] = '/_/';
@@ -794,10 +832,16 @@ if (!isset($_SESSION)) {
                         $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                         $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                         $('#'+newId).on( "click", function() {
-                            let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                            var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
-                            if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code)
-                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                            var widgets = JSON.parse(localStorage.getItem("widgets"));
+                            var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                            for(var w in widgets){
+                                if(widgets[w] != null){
+                                    $('body').trigger({
+                                        type: "reloadPreviousContent_"+widgets[w],
+                                        index: index
+                                    });
+                                }
+                            }
                         });
                         $( '#'+newId ).mouseover(function() {
                             $('#'+newId).css('cursor', 'pointer');
@@ -808,16 +852,6 @@ if (!isset($_SESSION)) {
                         selectedData.layers = [];
                         selectedData.layers[0] = marker.feature.properties;
                         selectedDataJson = JSON.stringify(selectedData);
-			            if(localStorage.getItem("passedData") == null){
-                            var init = [];
-                            init.push(selectedData);
-                            localStorage.setItem("passedData", JSON.stringify(init));
-                        }
-                        else{
-                            var newElement = JSON.parse(localStorage.getItem("passedData"));
-                            newElement.push(selectedData);
-                            localStorage.setItem("passedData", JSON.stringify(newElement));
-                        }
 			
                         try {
                             execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
@@ -3541,17 +3575,6 @@ if (!isset($_SESSION)) {
                                         }
                                     }
                                 }
-                                if(localStorage.getItem("passedData") == null){
-                                    var init = [];
-                                    init.push(selectedData);
-                                    localStorage.setItem("passedData", JSON.stringify(init));
-                                }
-                                else{
-                                    var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                    newElement.push(selectedData);
-                                    localStorage.setItem("passedData", JSON.stringify(newElement));
-                                }
-
                                 let boxCoord = map.getBounds();
                                 selectedDataJson = JSON.stringify(selectedData);
 
@@ -3576,13 +3599,14 @@ if (!isset($_SESSION)) {
                                 $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                 $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                 $('#'+newId).on( "click", function() {
-                                    let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                    var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
-                                    if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
-                                        try {
-                                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
-                                        } catch(e) {
-                                            console.log("Error in JS function from marker click on " + widgetName);
+                                    var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                    var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                    for(var w in widgets){
+                                        if(widgets[w] != null){
+                                            $('body').trigger({
+                                                type: "reloadPreviousContent_"+widgets[w],
+                                                index: index
+                                            });
                                         }
                                     }
                                 });

@@ -374,6 +374,7 @@
             var infoMsgPopupFlag = false;
             var infoMsgText = null;
 
+            $('#open_BIMenu').hide();
             $('#orgMenu').hide();
             $('#orgMenuCnt a.mainMenuLink').attr('data-submenuVisible', 'false');
             $('#orgMenuCnt a.orgMenuSubItemLink').hide();
@@ -1326,7 +1327,7 @@
                         };
                     }
                 }).data('gridster').disable();//Fine creazione Gridster
-                
+                localStorage.clear();
                 for(var i = 0; i < dashboardWidgets.length; i++)
                 {
                     var time = 0;
@@ -1385,7 +1386,7 @@
                     dashboardWidgets[i].embedWidgetPolicy = embedWidgetPolicy;
                     dashboardWidgets[i].hostFile = 'index';
                     //$("li#" + dashboardWidgets[i]['name_w']).css('border', '1px solid ' + dashboardWidgets[i].borderColor);
-                    
+
                     $("#gridsterUl").find("li#" + dashboardWidgets[i]['name_w']).load("../widgets/" + encodeURIComponent(dashboardWidgets[i]['type_w']) + ".php", dashboardWidgets[i]);
 
                 }//Fine del secondo for
@@ -1704,6 +1705,9 @@
                     dataType: 'json',
                     success: function (response) 
                     {
+                        if (checkBIDash(response.dashboardWidgets)) {
+                            $('#open_BIMenu').show();
+                        }
                         scaleFactorFlag = response.dashboardParams.scaleFactor;
                         if (scaleFactorFlag == "yes") {
                             scaleFactorW = 78 / newScaledGridsterCellW;
@@ -1882,9 +1886,39 @@
                 <!--<i class="fas fa-bullhorn" style="font-size:48px;display: none" id="chatBtnNew" data-status="closed"></i>-->
             </div>
             <div id="fullscreenBtnContainer" data-status="normal">
-                <span>
+                <span id="spanCnt">
                     <i id="fullscreenButton" class="fa fa-window-maximize"></i>
                     <i id="restorescreenButton" class="fa fa-window-restore"></i>
+                    <i id="open_BIMenu" class="fa fa-history"></i>
+            <script  type="text/javascript">
+
+                $('#spanCnt').append('<div id="BIMenuCnt" class="applicationCtxMenu fullCtxMenu container-fluid dashboardCtxMenu" style="display: block; margin-left: -70px;"></div>');
+                $('#BIMenuCnt').hide();
+                $('#open_BIMenu').on("click", function(){
+                    $('#BIMenuCnt').show();
+                });
+                $('#BIMenuCnt').append('<div id="quit" class="col-md-12 orgMenuSubItemCnt">Quit</div>');
+                $( "#quit" ).mouseover(function() {
+                    $('#quit').css('cursor', 'pointer');
+                });
+                $('#quit').on("click", function(){
+                    $('#BIMenuCnt').hide();
+                });
+                $('#BIMenuCnt').append('<div id="start" class="col-md-12 orgMenuSubItemCnt">Start</div>');
+                $( "#start" ).mouseover(function() {
+                    $('#start').css('cursor', 'pointer');
+                });
+                $('#start').on("click", function(){
+                    var widgets = JSON.parse(localStorage.getItem("widgets"));
+                    for(var w in widgets){
+                        if(widgets[w] != null){
+                            $('body').trigger({
+                                type: "resetContent_"+widgets[w]
+                            });
+                        }
+                    }
+                });
+            </script>
                 </span>
             </div>
             <div id="clock">

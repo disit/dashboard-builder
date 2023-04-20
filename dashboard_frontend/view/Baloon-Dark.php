@@ -1382,7 +1382,7 @@
                     dashboardWidgets[i].time = time;
                     dashboardWidgets[i].embedWidget = embedWidget;
                     dashboardWidgets[i].embedWidgetPolicy = embedWidgetPolicy;
-                    dashboardWidgets[i].hostFile = 'index';
+                    dashboardWidgets[i].hostFile = 'baloon-dark';
                     //$("li#" + dashboardWidgets[i]['name_w']).css('border', '1px solid ' + dashboardWidgets[i].borderColor);
                     
                     $("#gridsterUl").find("li#" + dashboardWidgets[i]['name_w']).load("../widgets/" + encodeURIComponent(dashboardWidgets[i]['type_w']) + ".php", dashboardWidgets[i]);

@@ -1862,3 +1862,11 @@ function findBarSingleLabel(rowParams, targetLab, ref) {
     }
     return res;
 }
+
+function checkBIDash(widgets) {
+    for (let widgetId in widgets) {
+        if (widgets[widgetId].code != null && widgets[widgetId].code != '') {
+            return true;
+        }
+    }
+}

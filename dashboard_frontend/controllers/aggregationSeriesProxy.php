@@ -390,6 +390,10 @@
                 $upperTime = $_REQUEST['upperTime'];
             } else {
                 $upperTime = null;
+            }if(isset($_REQUEST['lowerTime'])) {
+                $upperTime = $_REQUEST['lowerTime'];
+            } else {
+                $upperTime = null;
             }
             switch($_REQUEST['timeRange'])
             {

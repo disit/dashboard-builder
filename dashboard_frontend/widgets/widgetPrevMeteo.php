@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    include('../config.php');
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
@@ -33,7 +32,7 @@
                 exit();
             }
         ?> 
-                
+
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var divContainer = $("#<?= $_REQUEST['name_w'] ?>_content");
@@ -44,7 +43,7 @@
         var fontSize = "<?= escapeForJS($_REQUEST['fontSize']) ?>";
         var fontColor = "<?= escapeForJS($_REQUEST['fontColor']) ?>";
         var timeToReload = <?= sanitizeInt('frequency_w') ?>;
-        var widgetProperties, infoJson, styleParameters, meteoData, showHeader, orientation, widgetParameters, countdownRef, serviceUri, city,
+        var widgetProperties, infoJson, styleParameters, meteoData, showHeader, orientation, widgetParameters, countdownRef, serviceUri, city, cityAux,
             updateDateTimeInterval, language, todayDescAndIcon, otherDaysQt, otherDaysCellWidth, otherDayCell, otherDayDateContainer, 
             otherDayIconContainer, otherDayTempContainer, otherDayDate, otherDayDescAndIcon, todayDim,
             dateContainerSize, otherDaysCellHeight, otherDayDescContainer, timeToClearScroll, backgroundMode, sizeRows, iconSet, sizeColumns = null;
@@ -55,7 +54,7 @@
         var headerHeight = 25;
         var showTitle = '<?= escapeForJS($_REQUEST['showTitle']) ?>';
 
-        console.log("PrevMeteo Widget loaded: " + widgetName);
+        console.log("Entrato in widgetPrevMeteo --> " + widgetName);
         
         var monthsNames = [
             {
@@ -1325,6 +1324,10 @@
                     sizeRows = parseInt(widgetProperties.param.size_rows);
                     sizeColumns = parseInt(widgetProperties.param.size_columns);
                     city = widgetProperties.param.municipality_w;
+                    if (city == "Kavala") {
+                        cityAux = "Kavala";
+                        city = "LIVORNO";
+                    }
                     
                     $.ajax({
                         url: '<?=$serviceMapUrlPrefix?>sparql?query=select+distinct+%3Fs+%7B+%3Fs+a+km4c%3AMunicipality.%3Fs+foaf%3Aname+"' + city + '".%7D&format=json',
@@ -1386,7 +1389,11 @@
                                                 }
 
                                                 $('#<?= $_REQUEST['name_w'] ?>_chartContainer').css("color", fontColor);
-                                                $('#<?= $_REQUEST['name_w'] ?>_cityContainer').html('<span style="display:block;">' + '<?= escapeForJS($_REQUEST['municipality_w']) ?>'.charAt(0) + '<?= $_REQUEST['municipality_w'] ?>'.slice(1).toLowerCase() + '</span>');
+                                                if (cityAux == "Kavala") {
+                                                    $('#<?= $_REQUEST['name_w'] ?>_cityContainer').html('<span style="display:block;">Kavala</span>');
+                                                } else {
+                                                    $('#<?= $_REQUEST['name_w'] ?>_cityContainer').html('<span style="display:block;">' + '<?= escapeForJS($_REQUEST['municipality_w']) ?>'.charAt(0) + '<?= $_REQUEST['municipality_w'] ?>'.slice(1).toLowerCase() + '</span>');
+                                                }
 
                                                 todayDescAndIcon = getDescAndIcon(meteoData.results.bindings[0].description.value);
                                                 $('#<?= $_REQUEST['name_w'] ?>_descContainer').html('<span style="display:block;">' + todayDescAndIcon.desc + '</span>');
@@ -1906,7 +1913,11 @@
                                                     } 
                                                 }
 
-                                                dateContainerSize = setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
+                                                if (hostFile != "baloon" && hostFile != "baloon-dark") {
+                                                    dateContainerSize = setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
+                                                } else {
+                                                    dateContainerSize = 18;
+                                                }
                                                 
                                                 clearInterval(updateDateTimeInterval);
                                                 
@@ -1923,14 +1934,20 @@
                                                             $('#<?= $_REQUEST['name_w'] ?>_dateContainer').html('<span style="display:block;">' + daysOfWeek[dateTime.getDay()].italian + ' ' + dateTime.getDate() + ' ' + monthsNames[dateTime.getMonth()].italian + '</span>');
                                                         } 
                                                     }
-                                                    
-                                                    dateContainerSize = setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
+
+                                                    if (hostFile != "baloon" && hostFile != "baloon-dark") {
+                                                        dateContainerSize = setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
+                                                    } else {
+                                                        dateContainerSize = 18;
+                                                    }
                                                 }, 600000);
 
-                                                setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_cityContainer'));
-                                                setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_descContainer'));
-                                                setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_lammaContainer'));
-                                                setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_tempContainer'));
+                                                if (hostFile != "baloon" && hostFile != "baloon-dark") {
+                                                    setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_cityContainer'));
+                                                    setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_descContainer'));
+                                                    setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_lammaContainer'));
+                                                    setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_tempContainer'));
+                                                }
                                                 if(iconSet === 'multiColor')
                                                 {
                                                     $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("background-image", "url(" + todayDescAndIcon.icon + ")");
@@ -1943,7 +1960,9 @@
                                                     $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("background-color", "transparent");
                                                     $('#<?= $_REQUEST['name_w'] ?>_iconContainer').addClass("centerWithFlex");
                                                     $('#<?= $_REQUEST['name_w'] ?>_iconContainer').html('<span style="display:block; color:' + fontColor + '"><i class="wi ' + todayDescAndIcon.icon + '"></i></span>');
-                                                    setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_iconContainer'));
+                                                    if (hostFile != "baloon" && hostFile != "baloon-dark") {
+                                                        setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_iconContainer'));
+                                                    }
                                                 }
 
                                                 timeToClearScroll = (timeToReload - 0.5) * 1000;

@@ -905,14 +905,6 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
             
             //Definizioni di funzione
 
-            function checkBIDash(widgets) {
-                for (let widgetId in widgets) {
-                    if (widgets[widgetId].code != null && widgets[widgetId].code != '') {
-                        return true;
-                    }
-                }
-            }
-
             function loadDashboard(dashboardParams, dashboardWidgets)
             {
                 var minEmbedDim, autofitAlertFontSize;
@@ -1320,7 +1312,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                         };
                     }
                 }).data('gridster').disable();//Fine creazione Gridster
-                
+                localStorage.clear();
                 for(var i = 0; i < dashboardWidgets.length; i++)
                 {
                     var time = 0;
@@ -1379,7 +1371,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                     dashboardWidgets[i].embedWidgetPolicy = embedWidgetPolicy;
                     dashboardWidgets[i].hostFile = 'index';
                     $("li#" + dashboardWidgets[i]['name_w']).css('border', '1px solid ' + dashboardWidgets[i].borderColor);
-                    
+
                     $("#gridsterUl").find("li#" + dashboardWidgets[i]['name_w']).load("../widgets/" + encodeURIComponent(dashboardWidgets[i]['type_w']) + ".php", dashboardWidgets[i]);
 
                 }//Fine del secondo for
@@ -2218,6 +2210,20 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
                         });
                         $('#quit').on("click", function(){
                             $('#BIMenuCnt').hide();
+                        });
+                        $('#BIMenuCnt').append('<div id="start" class="col-md-12 orgMenuSubItemCnt">Start</div>');
+                        $( "#start" ).mouseover(function() {
+                            $('#start').css('cursor', 'pointer');
+                        });
+                        $('#start').on("click", function(){
+                            var widgets = JSON.parse(localStorage.getItem("widgets"));
+                            for(var w in widgets){
+                                if(widgets[w] != null){
+                                    $('body').trigger({
+                                        type: "resetContent_"+widgets[w]
+                                    });
+                                }
+                            }
                         });
                     </script>
                 </span>

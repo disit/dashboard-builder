@@ -82,40 +82,68 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 }
             }
 
-            if(event.event != "drill-up"){
-                if(localStorage.getItem(widgetName) == null){
-                    var init = [];
-                    init.push(event.passedData);
-                    localStorage.setItem(widgetName, JSON.stringify(init));
-                    }
-                else{
-                    var newElement = JSON.parse(localStorage.getItem(widgetName));
-                    newElement.push(event.passedData);
-                    localStorage.setItem(widgetName, JSON.stringify(newElement));
-                }
-                var newValue = event.passedData;
-                rowParameters = newValue;
-            }
 
             clearInterval(countdownRef);
             //$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
             //<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
             if(encodeURIComponent(metricName) === encodeURIComponent(metricName)) {
                 $("#" + widgetName + "_loading").css("display", "block");
+            
+            
+                if(localStorage.getItem("passedData") == null || localStorage.getItem("passedData") == "[object Object]"){
+                    var init = [];
+                    var firstEl = {};
+                    firstEl.passedData = event.passedData;
+                    firstEl.name = widgetName;
+                    firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    init.push(firstEl);
+                    localStorage.setItem("passedData", JSON.stringify(init));
+                }
+                else{
+                    var newEl = {};
+                    newEl.passedData = event.passedData;
+                    newEl.name = widgetName;
+                    newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                    oldElement.push(newEl);
+                    localStorage.setItem("passedData", JSON.stringify(oldElement));
+                    console.log(localStorage)
+                }
+                rowParameters = event.passedData;
                 populateWidget(null, true);
-
             }
 		});
 		
-		
-		
-		$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
+        $(document).off('reloadPreviousContent_' + widgetName);
+        $(document).on('reloadPreviousContent_' + widgetName, function(event){
+            var passedData = JSON.parse(localStorage.getItem("passedData"));
+            var j = 0;
+            var t = -1;
+            while(passedData[j].eventIndex <= event.index && j < passedData.length - 1){
+                if(passedData[j].name === widgetName){
+                    t = j;
+                }
+                j = j+1;
+            }
+            if(t == -1){
+                $('body').trigger({
+                    type: "resetContent_"+widgetName
+                });
+            }
+            else{
+                rowParameters = passedData[t].passedData;
+                populateWidget();
+            }
+        })
+
+        $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
             showTodayButton: true,
             widgetPositioning:{
                 horizontal: 'auto',
                 vertical: 'bottom'
             }
         })
+
 		/////
         //Definizioni di funzione specifiche del widget
         //Restituisce il JSON delle soglie se presente, altrimenti NULL
@@ -1063,16 +1091,6 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             selectedData.layers[it].visible = true;
                                         }
                                     }
-                                    if(localStorage.getItem("passedData") == null){
-                                        var init = [];
-                                        init.push(selectedData);
-                                        localStorage.setItem("passedData", JSON.stringify(init));
-                                    }
-                                    else{
-                                        var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                        newElement.push(selectedData);
-                                        localStorage.setItem("passedData", JSON.stringify(newElement));
-                                    }
 
                                     let j=1;
                                     if(localStorage.getItem("events") == null){
@@ -1095,9 +1113,16 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>');
                                     $('#'+newId).on( "click", function() {
-                                        let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                        var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
-                                        execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                        for(var w in widgets){
+                                            if(widgets[w] != null){
+                                                $('body').trigger({
+                                                    type: "reloadPreviousContent_"+widgets[w],
+                                                    index: index
+                                                });
+                                            }
+                                        }
                                     });
                                     $( '#'+newId ).mouseover(function() {
                                         $('#'+newId).css('cursor', 'pointer');
@@ -1159,26 +1184,20 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                 localStorage.setItem("events", JSON.stringify(events));
                                             }
 
-                                            if(localStorage.getItem("passedData") == null){
-                                                var init = [];
-                                                init.push(selectedDataJson);
-                                                localStorage.setItem("passedData", JSON.stringify(init));
-                                            }
-                                            else{
-                                                var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                                newElement.push(selectedDataJson);
-                                                localStorage.setItem("passedData", JSON.stringify(newElement));
-                                            }
-
                                             let newId = "RadarClick"+j;
                                             $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                             $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                             $('#'+newId).on( "click", function() {
-
-                                                let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                                var selectedDataJson = JSON.parse(localStorage.passedData)[eventIndex];
-                                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
-
+                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                for(var w in widgets){
+                                                    if(widgets[w] != null){
+                                                        $('body').trigger({
+                                                            type: "reloadPreviousContent_"+widgets[w],
+                                                            index: index
+                                                        });
+                                                    }
+                                                }
                                             });
                                             $( '#'+newId ).mouseover(function() {
                                                 $('#'+newId).css('cursor', 'pointer');
@@ -1265,6 +1284,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 getDataFinishCount = 0;
                 //     var editLabels = (JSON.parse(widgetData.params.styleParameters)).editDeviceLabels;
                 var editLabels = styleParameters.editDeviceLabels;
+		// var editLabels = undefined;				// MORGANTI 
                 for (var i = 0; i < rowParameters.length; i++) {
                     aggregationGetData[i] = false;
                 }
@@ -1784,8 +1804,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         dataLabelsAlign = 'center';
                         break;
                 }*/
-
-                rowParameters = JSON.parse(rowParameters);
+                rowParameters = widgetData.params.rowParameters;	// MORGANTI
+                if(typeof rowParameters == 'string')			// MORGANTI
+                	rowParameters = JSON.parse(rowParameters);
 
                 populateWidget(null);
 
@@ -1899,6 +1920,32 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         {
 
         };
+		$(document).off('resetContent_' + widgetName);
+        $(document).on('resetContent_' + widgetName, function(){
+            $.ajax({
+                url: "../controllers/getWidgetParams.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
+                async: true,
+                dataType: 'json',
+                success: function(widgetData)
+                {
+                    rowParameters = JSON.parse(widgetData.params.rowParameters);
+                    populateWidget();
+                },
+                error: function(errorData)
+                {
+                    console.log("Error in widget params retrieval");
+                    console.log(JSON.stringify(errorData));
+                    showWidgetContent(widgetName);
+                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                    $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                }
+            });
+        });
 
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function(event){
             resizeWidget();

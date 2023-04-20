@@ -1336,7 +1336,8 @@
                              break;
                      }*/
 
-                rowParameters = JSON.parse(rowParameters);
+                if(typeof rowParameters === 'string')
+                    rowParameters = JSON.parse(rowParameters);
                 loadData();
 
             },

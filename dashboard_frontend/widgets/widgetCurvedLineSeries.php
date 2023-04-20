@@ -88,10 +88,52 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
         //var trendType = 'monthWeek';
         //var trendType = 'dayHour';
-
+		$(document).off('resetContent_' + widgetName);
+        $(document).on('resetContent_' + widgetName, function(){
+            $.ajax({
+                url: "../controllers/getWidgetParams.php",
+                type: "GET",
+                data: {
+                    widgetName: "<?= $_REQUEST['name_w'] ?>"
+                },
+                async: true,
+                dataType: 'json',
+                success: function(widgetData)
+                {
+                    rowParameters = JSON.parse(widgetData.params.rowParameters);
+                    populateWidget(true, timeRange, null, timeNavCount, null);
+                },
+                error: function(errorData)
+                {
+                    console.log("Error in widget params retrieval");
+                    console.log(JSON.stringify(errorData));
+                    showWidgetContent(widgetName);
+                    $("#<?= $_REQUEST['name_w'] ?>_chartContainer").hide();
+                    $("#<?= $_REQUEST['name_w'] ?>_table").hide(); 
+                    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+                }
+            });
+        });
         $(document).off('showCurvedLinesFromExternalContent_' + widgetName);
         $(document).on('showCurvedLinesFromExternalContent_' + widgetName, function(event)
         {
+            if(event.passedData != null && event.t1 == null && event.t2 == null){     //nuovi valori da mostrare da memorizzare nel localstorage
+                if(event.passedData[0].metricHighLevelType == 'Dynamic'){
+                    localStorage.setItem(widgetName, JSON.stringify(event.passedData));
+                }
+            }
+            if(localStorage.getItem("widgets") == null){
+                var widgets = [];
+                widgets.push(widgetName);
+                localStorage.setItem("widgets", JSON.stringify(widgets));
+            }
+            else{
+                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                if(!widgets.includes(widgetName)){
+                    widgets.push(widgetName);
+                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                }
+            }
             if(event.targetWidget === widgetName)
             {
 
@@ -103,7 +145,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 //    var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
                 //    point.update(newValue);
 
-                rowParameters = newValue;
+                if(event.command != "resize")
+                    rowParameters = newValue;
+
                 if(idMetric === 'AggregationSeries' || nrMetricType != null)
                 {
                     //    rowParameters = JSON.parse(rowParameters);
@@ -128,9 +172,81 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             }
                         }
                     }
+                    if(event.t1 != null && event.t2 != null){      //zoom nel caso dynamic, si popola il widget solo con i valori interni alla finestra temporale
+                        var oldRowParam = JSON.parse(localStorage.getItem(widgetName))
+                        if(oldRowParam[0].metricHighLevelType == "Dynamic"){
+                            var newRowParam = [];
+                            for(var p in oldRowParam){
+                                newRowParam[p] = {};
+                                newRowParam[p].metricName = oldRowParam[p].metricName;
+                                newRowParam[p].metricHighLevelType = oldRowParam[p].metricHighLevelType;
+                                newRowParam[p].metricId = oldRowParam[p].metricId;
+                                newRowParam[p].metricType = oldRowParam[p].metricType;
+                                newRowParam[p].metricValueUnit = oldRowParam[p].metricValueUnit;
+                                newRowParam[p].smField = oldRowParam[p].smField;
+                                newRowParam[p].values = [];
+                                for(var el in oldRowParam[p].values){
+                                    var firstDate = new Date(event.t1)
+                                    var secondDate = new Date(event.t2)
+                                    var lower = firstDate.getTime()
+                                    var upper = secondDate.getTime()
+                                    if(oldRowParam[p].values[el][0] >= lower && oldRowParam[p].values[el][0] <= upper) 
+                                    newRowParam[p].values.push(oldRowParam[p].values[el]);
+                                }
+                            }
+                            event.t1 = null;
+                            event.t2 = null;
+                            rowParameters = newRowParam;
+                        }
+                                
+                        if(localStorage.getItem("passedData") == null || localStorage.getItem("passedData") == "[object Object]"){
+                            var init = [];
+                            var firstEl = {};
+                            firstEl.passedData = JSON.parse(localStorage.getItem(widgetName));
+                            firstEl.name = widgetName;
+                            firstEl.t1 = event.t1;
+                            firstEl.t2 = event.t2;
+                            firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                            init.push(firstEl);
+                            localStorage.setItem("passedData", JSON.stringify(init));
+                        }
+                        else{
+                            var newEl = {};
+                            newEl.passedData = JSON.parse(localStorage.getItem(widgetName));
+                            newEl.name = widgetName;
+                            newEl.t1 = event.t1;
+                            newEl.t2 = event.t2;
+                            newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                            var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                            oldElement.push(newEl);
+                            localStorage.setItem("passedData", JSON.stringify(oldElement));
+                        }
+                        populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
+                    }
+                    else{
+                        if(localStorage.getItem("passedData") == null){
+                            var init = [];
+                            var firstEl = {};
+                            firstEl.passedData = event.passedData;
+                            firstEl.name = widgetName;
+                            firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length;
+                            init.push(firstEl);
+                            localStorage.setItem("passedData", JSON.stringify(init));
+                        }
+                        else{
+                            var newEl = {};
+                            newEl.passedData = event.passedData;
+                            newEl.name = widgetName;
+                            newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length;
+                            var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                            oldElement.push(newEl);
+                            localStorage.setItem("passedData", JSON.stringify(oldElement));
+                        }
+                        populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
+                    }
 
                     //    timeRange = widgetData.params.temporal_range_w;
-                    populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
+                    
                 }
                 else
                 {
@@ -139,7 +255,30 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
             }
         });
-		
+	
+	$(document).off('reloadPreviousContent_' + widgetName);
+        $(document).on('reloadPreviousContent_' + widgetName, function(event){
+            var passedData = JSON.parse(localStorage.getItem("passedData"));
+            var j = 0;
+            var t = -1;
+            console.log(passedData, event);
+            console.log(JSON.parse(localStorage.getItem("passedData")));
+            while(passedData[j].eventIndex <= event.index && j < passedData.length - 1){
+                if(passedData[j].name === widgetName){
+                    t = j;
+                }
+                j = j+1;
+            }
+            if(t == -1){
+                $('body').trigger({
+                    type: "resetContent_"+widgetName
+                });
+            }
+            else{
+                rowParameters = passedData[t].passedData;
+                populateWidget(true, timeRange, null, timeNavCount, null, passedData[t].t1, passedData[t].t2);
+            }
+        });	
 		$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
             showTodayButton: true,
             widgetPositioning:{
@@ -1416,17 +1555,6 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                 selectedData.layers[it].visible = true;
                                             }
                                         }
-                                        /////////
-                                        if(localStorage.getItem("passedData") == null){
-                                            var init = [];
-                                            init.push(selectedData);
-                                            localStorage.setItem("passedData", JSON.stringify(init));
-                                        }
-                                        else{
-                                            var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                            newElement.push(selectedData);
-                                            localStorage.setItem("passedData", JSON.stringify(newElement));
-                                        }
 
                                         let j=1;
                                         if(localStorage.getItem("events") == null){
@@ -1449,9 +1577,19 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                         $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                         $('#'+newId).on( "click", function() {
-                                            let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                        /*    let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
                                             var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
-                                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson); */
+					    var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                for(var w in widgets){
+                                                    if(widgets[w] != null){
+                                                        $('body').trigger({
+                                                            type: "reloadPreviousContent_"+widgets[w],
+                                                            index: index
+                                                        });
+                                                    }
+                                                }
                                         });
                                         $( '#'+newId ).mouseover(function() {
                                             $('#'+newId).css('cursor', 'pointer');
@@ -1568,24 +1706,21 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                 events.push("CurvedLinesZoom" + j);
                                                 localStorage.setItem("events", JSON.stringify(events));
                                             }
-                                            if(localStorage.getItem("passedData") == null){
-                                                var init = [];
-                                                init.push(param);
-                                                localStorage.setItem("passedData", JSON.stringify(init));
-                                            }
-                                            else{
-                                                var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                                newElement.push(param);
-                                                localStorage.setItem("passedData", JSON.stringify(newElement));
-                                            }
                                             
                                             let newId = "CurvedLinesZoom"+j;
                                             $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                             $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                             $('#'+newId).on( "click", function() {
-                                                let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                                var selectedData = JSON.parse(localStorage.passedData)[eventIndex];
-                                                execute_<?= $_REQUEST['name_w'] ?>(selectedData);
+                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                for(var w in widgets){
+                                                    if(widgets[w] != null){
+                                                        $('body').trigger({
+                                                            type: "reloadPreviousContent_"+widgets[w],
+                                                            index: index
+                                                        });
+                                                    }
+                                                }
                                             });
                                             $( '#'+newId ).mouseover(function() {
                                                 $('#'+newId).css('cursor', 'pointer');
@@ -1908,17 +2043,6 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                 selectedData.layers[it].visible = true;
                                             }
                                         }
-                                        /////////
-                                        if(localStorage.getItem("passedData") == null){
-                                            var init = [];
-                                            init.push(selectedData);
-                                            localStorage.setItem("passedData", JSON.stringify(init));
-                                        }
-                                        else{
-                                            var newElement = JSON.parse(localStorage.getItem("passedData"));
-                                            newElement.push(selectedData);
-                                            localStorage.setItem("passedData", JSON.stringify(newElement));
-                                        }
 
                                         let j=1;
                                         if(localStorage.getItem("events") == null){
@@ -1941,9 +2065,19 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                         $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                         $('#'+newId).on( "click", function() {
-                                            let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
+                                        /*    let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
                                             var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
-                                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson); */
+					    var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                for(var w in widgets){
+                                                    if(widgets[w] != null){
+                                                        $('body').trigger({
+                                                            type: "reloadPreviousContent_"+widgets[w],
+                                                            index: index
+                                                        });
+                                                    }
+                                                }
                                         });
                                         $( '#'+newId ).mouseover(function() {
                                             $('#'+newId).css('cursor', 'pointer');
@@ -3085,12 +3219,14 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         rowParamLength = rowParameters.length;
                     }
                 }
-
-                if (t1 != null && t2 != null) {
+                if(t1 != null && t2 != null && JSON.parse(localStorage.getItem(widgetName))[0].metricHighLevelType != "Dynamic"){
                     rowParameters = JSON.parse(localStorage.getItem(widgetName));
-                    if (rowParameters.length == undefined) rowParamLength = 1;
-                    else rowParamLength = rowParameters.length;
-                    for (var i = 0; i < rowParamLength; i++) {
+                    
+                    if(rowParameters.length == undefined)   
+                        rowParamLength = 1;
+                    else 
+                        rowParamLength = rowParameters.length;
+                    for(var i = 0; i < rowParamLength; i++){
                         aggregationGetData[i] = false;
                     }
                     let hour1 = parseInt(t1.slice(11, 13)) + 1;
@@ -4078,7 +4214,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 if(idMetric === 'AggregationSeries' || nrMetricType != null)
                 {
                     if (rowParameters) {
-                        rowParameters = JSON.parse(rowParameters);
+                        if(typeof rowParameters == 'string')
+                            rowParameters = JSON.parse(rowParameters);
                         if (typicaltrend == 'Yes') {
                             if (rowParameters != null && rowParameters.length > 1) {
                                 rowParameters.splice(1, rowParameters.length - 1);
