@@ -117,6 +117,36 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         $(document).off('showCurvedLinesFromExternalContent_' + widgetName);
         $(document).on('showCurvedLinesFromExternalContent_' + widgetName, function(event)
         {
+            //
+            if (event.event == "reset zoom"){
+                //event.t2 = Date.now();
+                var d = new Date;
+                var month = (d.getMonth() + 1 );
+                if (month < 10){
+                    month = '0'+month;
+                }
+                var date = d.getDate();
+                if (date < 10){
+                    date = '0'+date;
+                }
+                var hour = d.getHours();
+                if (hour < 10){
+                    hour = '0'+hour;
+                }
+                var min = d.getMinutes();
+                if (min < 10){
+                    min = '0'+min;
+                }
+                var second = d.getSeconds();
+                if (second < 10){
+                    second = '0'+second;
+                }
+                //
+                var current_date = d.getFullYear()+'-'+month+'-'+ date +'T'+hour+':'+min+':'+second;
+                event.t2 = current_date;
+                populateWidget(true, timeRange, null, timeNavCount, null, null, null);                 
+             }
+            //
             if(event.passedData != null && event.t1 == null && event.t2 == null){     //nuovi valori da mostrare da memorizzare nel localstorage
                 if(event.passedData[0].metricHighLevelType == 'Dynamic'){
                     localStorage.setItem(widgetName, JSON.stringify(event.passedData));
@@ -172,7 +202,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             }
                         }
                     }
-                    if(event.t1 != null && event.t2 != null){      //zoom nel caso dynamic, si popola il widget solo con i valori interni alla finestra temporale
+                    if((event.t1 != null && event.t2 != null)&&((event.event !== "reset zoom"))){      //zoom nel caso dynamic, si popola il widget solo con i valori interni alla finestra temporale
                         var oldRowParam = JSON.parse(localStorage.getItem(widgetName))
                         if(oldRowParam[0].metricHighLevelType == "Dynamic"){
                             var newRowParam = [];
@@ -206,7 +236,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             firstEl.name = widgetName;
                             firstEl.t1 = event.t1;
                             firstEl.t2 = event.t2;
-                            firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                            if (localStorage.getItem("events") == null) {
+                                firstEl.eventIndex = 0;
+                            } else {
+                                firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                            }
                             init.push(firstEl);
                             localStorage.setItem("passedData", JSON.stringify(init));
                         }
@@ -216,12 +250,18 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             newEl.name = widgetName;
                             newEl.t1 = event.t1;
                             newEl.t2 = event.t2;
-                            newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                            if (localStorage.getItem("events") == null) {
+                                newEl.eventIndex = 0;
+                            } else {
+                                newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                            }
                             var oldElement = JSON.parse(localStorage.getItem("passedData"));
                             oldElement.push(newEl);
                             localStorage.setItem("passedData", JSON.stringify(oldElement));
                         }
+                        if (event.event !== "reset zoom"){
                         populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
+                        }
                     }
                     else{
                         if(localStorage.getItem("passedData") == null){
@@ -229,7 +269,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             var firstEl = {};
                             firstEl.passedData = event.passedData;
                             firstEl.name = widgetName;
-                            firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length;
+                            if (localStorage.getItem("events") == null) {
+                                firstEl.eventIndex = 0;
+                            } else {
+                                firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length;
+                            }
                             init.push(firstEl);
                             localStorage.setItem("passedData", JSON.stringify(init));
                         }
@@ -237,7 +281,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             var newEl = {};
                             newEl.passedData = event.passedData;
                             newEl.name = widgetName;
-                            newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length;
+                            if (localStorage.getItem("events") == null) {
+                                newEl.eventIndex = 0;
+                            } else {
+                                newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length;
+                            }
                             var oldElement = JSON.parse(localStorage.getItem("passedData"));
                             oldElement.push(newEl);
                             localStorage.setItem("passedData", JSON.stringify(oldElement));
@@ -1229,17 +1277,54 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         var param1 = "Min: " + this.series[0].processedYData[min_pos] + "<br>Max: " + this.series[0].processedYData[max_pos];
                                         // var sUri = getServiceUri(rowParameters);
                                         var param = {
-                                            "event" : "click",
+                                            "event" : "zoom",
                                             "t1" : minX,
                                             "t2" : maxX,
                                             "series": rowParameters,
                                         //    "metricName": this.series[0].name
                                         }
+                                        if(styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code){
+                                            let j=1;
+                                            if(localStorage.getItem("events") == null){
 
-                                        try {
-                                            execute_<?= $_REQUEST['name_w'] ?>(param);
-                                        } catch(e) {
-                                            console.log("Error in JS function from time zoom on " + widgetName);
+                                                var events = [];
+                                                events.push("CurvedLinesZoom1");
+                                                localStorage.setItem("events", JSON.stringify(events));
+                                            }
+                                            else{
+                                                var events = JSON.parse(localStorage.getItem("events"));
+                                                for(var e in events){
+                                                    if(events[e].slice(0,15) == "CurvedLinesZoom")
+                                                        j = j+1;
+                                                }
+                                                events.push("CurvedLinesZoom" + j);
+                                                localStorage.setItem("events", JSON.stringify(events));
+                                            }
+
+                                            let newId = "CurvedLinesZoom"+j;
+                                            $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                            $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                            $('#'+newId).on( "click", function() {
+                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                for(var w in widgets){
+                                                    if(widgets[w] != null){
+                                                        $('body').trigger({
+                                                            type: "reloadPreviousContent_"+widgets[w],
+                                                            index: index
+                                                        });
+                                                    }
+                                                }
+                                            });
+                                            $( '#'+newId ).mouseover(function() {
+                                                $('#'+newId).css('cursor', 'pointer');
+                                            });
+
+                                            try {
+                                                execute_<?= $_REQUEST['name_w'] ?>(param);
+                                            } catch(e) {
+                                                console.log("Error in JS function from time zoom on " + widgetName);
+                                            }
                                         }
                                     }
                                 }
@@ -1303,6 +1388,27 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     fontWeight: 'bold',
                                     color: chartLabelsFontColor,
                                     "text-shadow": "1px 1px 1px rgba(0,0,0,0.25)"
+                                }
+                            },
+                            events: {
+                                setExtremes: function(event) {
+                                    if (!event.min && !event.max) {
+                                        var param = {
+                                            "event": "reset zoom",
+                                            //"t1" : event.target.dataMin,
+                                            //"t2" : event.target.dataMax,
+                                            "t1": null,
+                                            "t2": null,
+                                            "series":rowParameters
+                                        }
+                                        //
+                                        try {
+                                            execute_<?= $_REQUEST['name_w'] ?>(param);
+                                        } catch(e) {
+                                            console.log("Error in JS function from time zoom on " + widgetName);
+                                        }
+                                        //
+                                    }
                                 }
                             }
                         },
@@ -1801,8 +1907,10 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 									  if (!event.min && !event.max) {
 										var param = {
 											"event": "reset zoom",
-                                            "t1" : event.target.dataMin,
-                                            "t2" : event.target.dataMax,
+                                            //"t1" : event.target.dataMin,
+                                            //"t2" : event.target.dataMax,
+                                            "t1": null,
+                                            "t2": null,
 											"series":rowParameters
                                         }
 										//
