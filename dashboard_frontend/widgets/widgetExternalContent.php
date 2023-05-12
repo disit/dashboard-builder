@@ -65,6 +65,37 @@
         var checkTankInterval = null;
         var myPOIId, myPOIlat, myPOIlng = "";
         console.log("External Content: " + widgetName);
+        //
+        //READ_START
+        $(document).off('showExternalContentFromExternalContent_' + widgetName);
+        $(document).on('showExternalContentFromExternalContent_' + widgetName, function(event) {
+            //INSERT CONTROL OVER 
+            var passedData = event.passedData; 
+            //console.log(passedData);   
+           // $('#inputsvg_'+widgetName).val(passedData.dataOperation);
+            var link_svg = $('#svg_object_'+ widgetName).attr('data');
+               
+           // var dest_d = $('#tspan2829-2').attr('width');
+            var a = document.getElementById('svg_object_'+ widgetName);
+            var svgDoc = a.contentDocument;
+            console.log(a);     
+            var array_svg = passedData.dataOperation;
+            var l = array_svg.length;
+            for(var i=0; i<l; i++){
+            //$('#tspan2829-2').attr('width', 150);
+            console.log(svgDoc);
+            var delta = svgDoc.getElementById(passedData.dataOperation[i].target);
+            console.log(passedData.dataOperation[i].attributes[0]);
+            if (passedData.dataOperation[i].attributes[0].actions[0].target == 'textContent'){
+            delta.textContent = passedData.dataOperation[i].attributes[0].actions[0].input;
+            var data_siow=JSON.stringify(passedData.dataOperation[i].attributes);
+            delta.setAttribute('data-siow', data_siow);
+            }
+            console.log(delta);
+            }
+        });
+        //READ_END
+        //
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
@@ -3998,7 +4029,7 @@
                        $("#<?= $_REQUEST['name_w'] ?>_gisMapDiv").hide();
                        $("#<?= $_REQUEST['name_w'] ?>_wrapper").show();
                        widgetParameters = JSON.parse(widgetProperties.param.parameters);
-                       if (widgetParameters && widgetParameters['mode'] == "ckeditor") {
+                       if (widgetParameters && widgetParameters['mode'] == "ckeditor" && widgetParameters['svgCKEditor'] !=="svgMode") {
                            if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
                                let code = widgetProperties.param.code;
                                var text_ck_area = document.createElement("text_ck_area");
@@ -4014,6 +4045,33 @@
                                $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", htmlData);
                                $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + htmlData);
                            }
+                        } else if(widgetParameters && widgetParameters['svgCKEditor'] == "svgMode"){
+                                       $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
+                                      $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", url);
+                                    //
+                                    var $iframe ='';
+                                    var d1 = url.split('?id=');
+                                    var svg_id= d1[1];
+                                    var url_svg = "../img/synoptics/" + svg_id+".svg";
+                                       var content_svg_html = '<object type="image/svg+xml" id="svg_object_<?= $_REQUEST['name_w'] ?>" data="'+url_svg+'?param1=param_data"><param id="inputsvg_<?= $_REQUEST['name_w'] ?>" name="param_data" value="" /></object>';
+                                       
+                                     $('#<?= $_REQUEST['name_w'] ?>_svgcontent').html(content_svg_html);
+                                      $('#<?= $_REQUEST['name_w'] ?>_iFrame').css("display", "none");
+                                      
+                                                
+                                       if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
+                                                                let code = widgetProperties.param.code;
+                                                                var text_ck_area = document.createElement("text_ck_area");
+                                                                text_ck_area.innerHTML = code;
+                                                                var newInfoDecoded = text_ck_area.innerText;
+                                                                var elem = document.createElement('script');
+                                                                elem.type = 'text/javascript';
+                                                                elem.innerHTML = newInfoDecoded;
+                                                                $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+                                                                $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                                                                //
+                                         }
+                                    //
                        } else {
                            $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
                            $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", url);
@@ -5090,6 +5148,7 @@
                 </div>-->
                 <div id="<?= $_REQUEST['name_w'] ?>_zoomDisplay" class="zoomDisplay"></div>
                 <iframe id="<?= $_REQUEST['name_w'] ?>_iFrame" class="iFrame"></iframe>
+                <div id="<?= $_REQUEST['name_w'] ?>_svgcontent" class="svgcontent"></div>
             </div>
             <div id="<?= $_REQUEST['name_w'] ?>_defaultMapDiv" class="defaultMapDiv"></div>
             <div id="<?= $_REQUEST['name_w'] ?>_defaultMapPicDiv" class="defaultMapPic"></div>
@@ -5098,5 +5157,6 @@
             <input type="hidden" id="<?= $_REQUEST['name_w'] ?>_buttonUrl" val=""/>
             <input type="hidden" id="<?= $_REQUEST['name_w'] ?>_recreativeEventsUrl" val=""/>
         </div>
+        <div id="<?= $_REQUEST['name_w'] ?>_code"></div>
     </div>	
 </div>

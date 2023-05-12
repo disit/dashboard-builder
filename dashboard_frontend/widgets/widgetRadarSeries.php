@@ -95,7 +95,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     var firstEl = {};
                     firstEl.passedData = event.passedData;
                     firstEl.name = widgetName;
-                    firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    if (localStorage.getItem("events") == null) {
+                        firstEl.eventIndex = 0;
+                    } else {
+                        firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    }
                     init.push(firstEl);
                     localStorage.setItem("passedData", JSON.stringify(init));
                 }
@@ -103,7 +107,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     var newEl = {};
                     newEl.passedData = event.passedData;
                     newEl.name = widgetName;
-                    newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    if (localStorage.getItem("events") == null) {
+                        newEl.eventIndex = 0;
+                    } else {
+                        newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    }
                     var oldElement = JSON.parse(localStorage.getItem("passedData"));
                     oldElement.push(newEl);
                     localStorage.setItem("passedData", JSON.stringify(oldElement));
