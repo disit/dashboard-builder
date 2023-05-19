@@ -1,6 +1,6 @@
 <?php
 function translate_string($string, $lenguage, $link) {
-include '../config.php';
+include_once '../config.php';
 //require '../sso/autoload.php';
 //use Jumbojett\OpenIDConnectClient;
 

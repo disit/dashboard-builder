@@ -13,6 +13,8 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+   include_once('../config.php');
+
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -358,6 +360,7 @@ $lastUsedColors = null;
 </style>
 
 <body style="overflow-y: hidden !important">
+  <?php include "../cookie_banner/cookie-banner.php"; ?>
 
     <!-- Inizio dei modali -->
     <!-- Modale wizard -->

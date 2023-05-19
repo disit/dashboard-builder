@@ -13,6 +13,7 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+   include('../config.php');
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -31,7 +32,6 @@ if (isset($_SESSION['newLayout'])) {
 
 if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
-include('../config.php');
 include('process-form.php');
     include('../TourRepository.php');
     //include '../locale.php';
@@ -317,6 +317,7 @@ else
     </style>
 
     <body class="guiPageBody">
+      <?php include "../cookie_banner/cookie-banner.php"; ?>
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?> 
 
@@ -1523,7 +1524,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
     <?php
 }
 ?>
-
+                    $('#link_start_wizard').off('click');
                     $('#link_start_wizard').click(function () {
                         authorizedPages = [];
                         //$('#modalCreateDashboard').modal('show');
@@ -1538,12 +1539,12 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                             success: function (data) {
                                 if (data.detail === 'DashboardLimitsOk') {
                                     var allDashList = [];
-                                    allDashList = getAllDash(function (allDashList) {
+                                /*    allDashList = getAllDash(function (allDashList) {
                                         //   loadWizardModal(allDashList);
                                         $('#addWidgetWizard').modal('show');
                                     }
-                                    );
-
+                                    );  */
+                                    $('#addWidgetWizard').modal('show');
                                     //  choosenWidgetIconName = null;
                                     //  widgetWizardSelectedRows = {};
                                     //  widgetWizardSelectedRowsTable.clear().draw(false);

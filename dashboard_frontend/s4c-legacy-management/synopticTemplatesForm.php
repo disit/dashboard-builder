@@ -90,6 +90,7 @@ checkSession('Manager');
     <script type="text/javascript" src="../js/dashboard_mng.js"></script>
   </head>
   <body class="guiPageBody">
+    <?php include "../cookie_banner/cookie-banner.php"; ?>
     <div class="container-fluid">
     <?php include "sessionExpiringPopup.php" ?> 
 

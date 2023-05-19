@@ -364,6 +364,7 @@ $lastUsedColors = null;
 </style>
 
 <body style="overflow-y: hidden !important">
+  <?php include "../cookie_banner/cookie-banner.php"; ?>
 
     <!-- Inizio dei modali -->
     <!-- Modale wizard -->

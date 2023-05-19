@@ -13,6 +13,8 @@
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+  
+  include_once('../config.php');
 
 if (!isset($_SESSION)) {
     session_start();
@@ -375,6 +377,7 @@ $lastUsedColors = null;
 </style>
 
 <body style="overflow-y: hidden !important">
+  <?php include "../cookie_banner/cookie-banner.php"; ?>
 
     <!-- Inizio dei modali -->
     <!-- Modale wizard -->

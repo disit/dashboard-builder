@@ -12,6 +12,7 @@ and open the template in the editor.
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
     <body>
+        <?php include "../cookie_banner/cookie-banner.php"; ?>
 
         <?php
         $error = $_REQUEST['error'];

@@ -13,15 +13,15 @@
    GNU Affero General Public License for more details.
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+   include('../config.php');
 if (!isset($_SESSION)) {
     session_start();
 }
 
 if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
-    include('../config.php');
     include('../TourRepository.php');
-    // session_start();
 
     checkSession('Public');
 
@@ -85,6 +85,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 </head>
 
 <body class="guiPageBody">
+   <?php include "../cookie_banner/cookie-banner.php"; ?>
     <div class="container-fluid">
         <?php include "sessionExpiringPopup.php" ?>
 

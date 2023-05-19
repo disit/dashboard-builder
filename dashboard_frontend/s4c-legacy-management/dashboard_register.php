@@ -45,6 +45,7 @@
         <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
     </head>
     <body>
+       <?php include "../cookie_banner/cookie-banner.php"; ?>
         <?php
             if(!isset($_SESSION['loggedRole']))
             {

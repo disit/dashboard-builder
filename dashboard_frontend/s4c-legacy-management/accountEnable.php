@@ -45,6 +45,7 @@
         <script src="../js/accountManagement.js"></script>
     </head>
     <body class="dashboardViewBodyAuth">
+       <?php include "../cookie_banner/cookie-banner.php"; ?>
         <?php
             if((!isset($_REQUEST['user']))||(!isset($_REQUEST['email']))||(!isset($_REQUEST['hash'])))
             {

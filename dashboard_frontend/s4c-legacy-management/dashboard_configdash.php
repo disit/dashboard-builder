@@ -407,6 +407,7 @@
     </style>
 
 <body> 
+	<?php include "../cookie_banner/cookie-banner.php"; ?>
     <?php include "sessionExpiringPopup.php" ?>
    
     <input type="hidden" id="draggingWidget" value="false">

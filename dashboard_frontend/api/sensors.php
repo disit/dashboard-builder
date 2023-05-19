@@ -13,8 +13,8 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 	
-session_start();
 include '../config.php';
+session_start();
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 header('Access-Control-Allow-Origin: *');

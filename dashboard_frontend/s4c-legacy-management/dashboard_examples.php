@@ -63,6 +63,7 @@ $tourRepo = new TourRepository($host, $username, $password, $dbname);
 </head>
 
 <body class="guiPageBody">
+   <?php include "../cookie_banner/cookie-banner.php"; ?>
     <div class="container-fluid">
         <?php include "sessionExpiringPopup.php" ?>
 

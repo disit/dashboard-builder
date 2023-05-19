@@ -32,7 +32,11 @@
                     if(is_array($value))
                     {
                         $varName = $key;
-                        $$varName = $fileContent[$key][$activeEnv];
+                        $env = getenv("DBB_".strtoupper($key));
+                        if($env===FALSE)
+                          $$varName = $fileContent[$key][$activeEnv];
+                        else
+                          $$varName = $env;
                     }
                 }
             }
@@ -72,3 +76,7 @@
       $ssoEndSessionEndpoint = "https://www.$http_domain/auth/realms/master/protocol/openid-connect/logout";
     }
     require_once 'common.php';
+
+    include_once('management/session_handler.php');
+    $session_handler = new DBSessionHandler($host, $username, $password, $dbname);
+    session_set_save_handler($session_handler, true);

@@ -74,6 +74,7 @@
         <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">-->
     </head>
     <body class="guiPageBody">
+       <?php include "../cookie_banner/cookie-banner.php"; ?>
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?>
             <div class="row mainRow">

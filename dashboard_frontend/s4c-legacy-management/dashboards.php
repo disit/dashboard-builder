@@ -287,6 +287,7 @@ else
     </style>
 
     <body class="guiPageBody">
+      <?php include "../cookie_banner/cookie-banner.php"; ?>
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?> 
 
@@ -1475,7 +1476,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
     <?php
 }
 ?>
-
+                    $('#link_start_wizard').off('click');
                     $('#link_start_wizard').click(function () {
                         authorizedPages = [];
                         //$('#modalCreateDashboard').modal('show');
@@ -1490,12 +1491,12 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                             success: function (data) {
                                 if (data.detail === 'DashboardLimitsOk') {
                                     var allDashList = [];
-                                    allDashList = getAllDash(function (allDashList) {
+                                /*    allDashList = getAllDash(function (allDashList) {
                                         //   loadWizardModal(allDashList);
                                         $('#addWidgetWizard').modal('show');
                                     }
-                                    );
-
+                                    );  */
+                                    $('#addWidgetWizard').modal('show');
                                     //  choosenWidgetIconName = null;
                                     //  widgetWizardSelectedRows = {};
                                     //  widgetWizardSelectedRowsTable.clear().draw(false);

@@ -1,5 +1,4 @@
 <?php
-    session_start();
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
@@ -13,6 +12,9 @@
    GNU Affero General Public License for more details.
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+   
+   include_once('../config.php');
+
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -72,6 +74,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
           <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
     </head>
     <body>
+       <?php include "../cookie_banner/cookie-banner.php"; ?>
         <?php
             if(!isset($_SESSION['loggedRole']))
             {

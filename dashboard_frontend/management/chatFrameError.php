@@ -7,6 +7,8 @@ and open the template in the editor.
 
 <?php
 
+include_once('../config.php');
+
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -35,7 +37,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
         <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
     </head>
     <body>
-
+        <?php include "../cookie_banner/cookie-banner.php"; ?>
         <?php
         $error = $_REQUEST['error'];
 

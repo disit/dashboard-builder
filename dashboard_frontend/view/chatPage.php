@@ -10,6 +10,7 @@ and open the template in the editor.
          <link href="../css/chatIframe.css" rel="stylesheet" type="text/css">
     </head>
     <body>
+        <?php include "../cookie_banner/cookie-banner.php"; ?>
         
          <?php
                     include '../config.php';           

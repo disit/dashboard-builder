@@ -121,6 +121,7 @@
         <link rel="stylesheet" href="../css/chat.css" type="text/css" />
     </head>
     <body class="guiPageBody">
+       <?php include "../cookie_banner/cookie-banner.php"; ?>
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?> 
             

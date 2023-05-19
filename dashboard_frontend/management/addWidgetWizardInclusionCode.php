@@ -1,5 +1,5 @@
 <?php
-
+include('../config.php');
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -9,9 +9,6 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
     require_once '../common.php';
     include_once '../locale.php';
     error_reporting(E_ERROR);
-    /* if(!isset($_SESSION)) {
-        session_start();
-    }   */
     checkSession('Manager');
 ?>
 <link rel="stylesheet" href="../css/style_widgets.css?v=1563354439" type="text/css">

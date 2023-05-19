@@ -15,17 +15,14 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
+  include('../config.php');
 if (!isset($_SESSION)) {
     session_start();
 }
 
 if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
-include '../config.php';
 require '../sso/autoload.php';
-
-//session_start();
-//checkSession('RootAdmin');
 
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);

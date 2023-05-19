@@ -1863,6 +1863,7 @@
     </script>
 </head>
 <body>
+  <?php include "../cookie_banner/cookie-banner.php"; ?>
     <?php include "../management/sessionExpiringPopup.php" ?>
     <div id="dashBckCnt">
        <div id="dashBckOverlay">

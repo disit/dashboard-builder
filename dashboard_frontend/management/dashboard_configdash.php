@@ -14,6 +14,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    
    include('process-form.php');
+   include('../config.php');
   include '../locale.php';
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
    
@@ -442,6 +443,7 @@
     </style>
 
 <body> 
+	<?php include "../cookie_banner/cookie-banner.php"; ?>
     <?php include "sessionExpiringPopup.php" ?>
    
     <input type="hidden" id="draggingWidget" value="false">

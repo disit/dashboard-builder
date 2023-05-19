@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 
 <?php
-
+include('../config.php');
 use Jumbojett\OpenIDConnectClient;
 
 if (!isset($_SESSION)) {
@@ -37,6 +37,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
         <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
     </head>
     <body>
+        <?php include "../cookie_banner/cookie-banner.php"; ?>
 
         <?php
         include '../config.php';

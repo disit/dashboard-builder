@@ -108,6 +108,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
     <script src="../js/dashboard_configdash.js" type="text/javascript" charset="utf-8"></script>
 </head>     
 <body> 
+   <?php include "../cookie_banner/cookie-banner.php"; ?> 
     <div id="wrapper">
         <!-- Navigation -->
         <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">

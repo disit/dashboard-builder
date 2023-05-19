@@ -15,8 +15,8 @@
 
 try {
 	
-	session_start();	
 	include '../config.php'; 
+	session_start();	
     error_reporting(E_ERROR | E_NOTICE);
     date_default_timezone_set('Europe/Rome');
 	
