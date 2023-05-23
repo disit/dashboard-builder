@@ -20,6 +20,7 @@ and open the template in the editor.
                     include "../rocket-chat-rest-client/RocketChatUser.php";
                     include "../rocket-chat-rest-client/RocketChatChannel.php";
                     session_start();
+                    session_write_close();
             
             function talklogin() {
                                         include '../config.php';  
