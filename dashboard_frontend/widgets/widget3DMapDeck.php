@@ -185,8 +185,8 @@ if (!isset($_SESSION)) {
         $roofedBuildingsPaths = scandir("../widgets/layers/edificato/roofBuildings");
         ?>
 
-        const version = '1.6.0';
-        const channel = 'stable';
+        const version = '1.8.1';
+        const channel = 'alpha';
 
         /** @type {MapManager} */
         var mapManger;
@@ -277,6 +277,7 @@ if (!isset($_SESSION)) {
         var deck = snap4deck.deck;
         var is3dOn = true;
         var lightsOn = false;
+        var effects = [];
         var skyOn = true;
         var shadowsOn = false;
         var map3d;
@@ -351,24 +352,59 @@ if (!isset($_SESSION)) {
             dynamicBuildings: [],
             hiddenBuilding: null,
             hoverBuilding: null,
+            vehicle: [],
             whatif: [],
             selection: null,
             tree: null,
             fixedPins: [],
             mockIcon: [],
             traffic: [],
+            crest: null,
             pin: [],
         };
+        var allSegments = [];
         let fullscreenParams = {
             fullLastTopPad: 0,
             controlLastTop: 0,
             controlLastHeight: 0,
+        };
+        var settingOptions = {
+            maxTiles: {
+                text: "Max number of tiles",
+                type: "Number",
+                default: 300,
+                value: 300,
+                min: 10,
+                max: 10000,
+            },
+            animationEnabled: {
+                text: "Traffic Animation Enabled",
+                type: "bool",
+                default: true,
+                value: true,
+            },
+            arrowSize: {
+                text: "Arrow size for traffic (m)",
+                type: "Number",
+                default: 20,
+                value: 20,
+                min: 1,
+                max: 1000,
+            },
+            realisticDecoration: {
+                text: "Realistic decorations",
+                type: "bool",
+                default: false,
+                value: false,
+            },
         };
         var deltaTimestamp = 0;
         var apiUrls3D = {};
         var updateTimeout;
         var eventsGenerated = {};
         var deckMode = 'movement';
+        var animationEnabled = true;
+        var animationTime = 0;
         var preventClickEvent = false;
         var whatifOn = false;
         var lastWhatifCoord;
@@ -437,6 +473,13 @@ if (!isset($_SESSION)) {
                     loadElevatedBuildings();
                 },
             },
+            test_meta: {
+                displayedName: 'Test Meta Building',
+                id: 'menu-meta-building',
+                action: () => {
+                    loadMetaBuildings();
+                },
+            },
             grid_high_res: {
                 displayedName: 'Roof + Pattern (high resolution)',
                 id: 'menu-high-res-grid-building',
@@ -451,13 +494,13 @@ if (!isset($_SESSION)) {
                     loadLowResGridSystemBuildings();
                 },
             },
-            /* grid_dynamic_res: {
-                displayedName: 'Roof + Pattern (dynamic resolution)',
-                id: 'menu-dyn-res-grid-building',
-                action: () => {
-                    loadDynResGridSystemBuildings();
-                },
-            },	*/
+            // grid_dynamic_res: {
+            //     displayedName: 'Grid System (dynamic resolution)',
+            //     id: 'menu-dyn-res-grid-building',
+            //     action: () => {
+            //         loadDynResGridSystemBuildings();
+            //     },
+            // },
         }
 
         const riccardoBuildingsProp = {
@@ -4217,92 +4260,6 @@ if (!isset($_SESSION)) {
             });
         }
 
-        // deprecated we'll we use 2 different function depending on the type of map
-        //calcolo automatico del rettangolo di dimensioni minime per mostrare tutti e soli i pin col massimo grado di zoom possibile
-        function resizeMapView(mapRef) {
-
-            let minLat = +90;
-            let minLng = +180;
-            let maxLat = -90;
-            let maxLng = -180;
-
-
-            for (let i = 0; i < map.eventsOnMap.length; i++) {
-                if (map.eventsOnMap[i].eventType !== 'heatmap') {
-                    if (map.eventsOnMap[i].eventType === 'evacuationPlan') {
-                        if (map.eventsOnMap[i].polyGroup.minLng < minLng) {
-                            minLng = map.eventsOnMap[i].polyGroup.minLng;
-                        }
-
-                        if (map.eventsOnMap[i].polyGroup.maxLng > maxLng) {
-                            maxLng = map.eventsOnMap[i].polyGroup.maxLng;
-                        }
-
-                        if (map.eventsOnMap[i].polyGroup.minLat < minLat) {
-                            minLat = map.eventsOnMap[i].polyGroup.minLat;
-                        }
-
-                        if (map.eventsOnMap[i].polyGroup.maxLat > maxLat) {
-                            maxLat = map.eventsOnMap[i].polyGroup.maxLat;
-                        }
-                    }
-                    if (map.eventsOnMap[i].eventType === 'trafficRealTimeDetails') {
-                        if (map.eventsOnMap[i].minLng < minLng) {
-                            minLng = map.eventsOnMap[i].minLng;
-                        }
-
-                        if (map.eventsOnMap[i].maxLng > maxLng) {
-                            maxLng = map.eventsOnMap[i].maxLng;
-                        }
-
-                        if (map.eventsOnMap[i].minLat < minLat) {
-                            minLat = map.eventsOnMap[i].minLat;
-                        }
-
-                        if (map.eventsOnMap[i].maxLat > maxLat) {
-                            maxLat = map.eventsOnMap[i].maxLat;
-                        }
-                    } else {
-                        if (map.eventsOnMap[i].lng < minLng) {
-                            minLng = map.eventsOnMap[i].lng;
-                        }
-
-                        if (map.eventsOnMap[i].lng > maxLng) {
-                            maxLng = map.eventsOnMap[i].lng;
-                        }
-
-                        if (map.eventsOnMap[i].lat < minLat) {
-                            minLat = map.eventsOnMap[i].lat;
-                        }
-
-                        if (map.eventsOnMap[i].lat > maxLat) {
-                            maxLat = map.eventsOnMap[i].lat;
-                        }
-                    }
-
-                }
-            }
-
-            if (map.eventsOnMap.length > 0) {
-                mapRef.fitBounds([
-                    [minLat, minLng],
-                    [maxLat, maxLng]
-                ]);
-            } else {
-                var latInit = 43.769789;
-                var lngInit = 11.255694;
-                //    map.defaultMapRef.setView([43.769789, 11.255694], 11);
-                //   map.defaultMapRef.setView([43.769789, 11.255694], widgetParameters.zoom);
-                if (widgetParameters.latLng[0] != null && widgetParameters.latLng[0] != '') {
-                    latInit = widgetParameters.latLng[0];
-                }
-                if (widgetParameters.latLng[1] != null && widgetParameters.latLng[1] != '') {
-                    lngInit = widgetParameters.latLng[1];
-                }
-                map.defaultMapRef.setView([latInit, lngInit], widgetParameters.zoom);
-            }
-        }
-
         // move to 2d
         function addDefaultBaseMap(map) {
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -4346,115 +4303,106 @@ if (!isset($_SESSION)) {
             var zoomInit = 14;
             var pitchInit = 30;
             var bearingInit = 0;
-
-            if (widgetParameters.latLng[0] != null && widgetParameters.latLng[0] != '') {
-                latInit = widgetParameters.latLng[0];
-            }
-            if (widgetParameters.latLng[1] != null && widgetParameters.latLng[1] != '') {
-                lngInit = widgetParameters.latLng[1];
-            }
-            if (widgetParameters.zoom != null && widgetParameters.zoom != '') {
-                zoomInit = parseFloat(widgetParameters.zoom);
-            }
-            if (widgetParameters.pitch != null && widgetParameters.pitch != '') {
-                pitchInit = widgetParameters.pitch;
-            }
-            if (widgetParameters.bearing != null && widgetParameters.bearing != '') {
-                bearingInit = widgetParameters.bearing;
-            }
-            if (widgetParameters.mapType != null && widgetParameters.mapType != '') {
-                is3dOn = widgetParameters.mapType == '2D' ? false : true;
-            }
-            if (styleParameters != null && styleParameters.buildingColors) {
-                for (let key in styleParameters.buildingColors) {
-                    let rgba = styleParameters.buildingColors[key];
-                    let array = rgbaToArray(rgba);
-                    buildingMappingColor[key] = array;
-                }
-            }
             var defaultTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
             var tileUrls = [];
             tileUrls.push(defaultTileUrl.replace('{s}', 'a'));
             tileUrls.push(defaultTileUrl.replace('{s}', 'b'));
             tileUrls.push(defaultTileUrl.replace('{s}', 'c'));
-            if (styleParameters != null && styleParameters.defaultOrthomap != null) {
-                const menu = widgetParameters.dropdownMenu;
-                for (var i = 0; i < menu.length; i++) {
-                    if (menu[i].id == styleParameters.defaultOrthomap) {
-                        tileUrls = [];
-                        tileUrls.push(menu[i].linkUrl.replace('{s}', 'a'));
-                        tileUrls.push(menu[i].linkUrl.replace('{s}', 'b'));
-                        tileUrls.push(menu[i].linkUrl.replace('{s}', 'c'));
-                        break;
-                    }
-                }
-            }
-            console.log('tentative to display 3d map');
-            if (styleParameters.terrains) {
-                terrainOn = true;
-                let index = 1;
-                let elevations = [];
-                while (true) {
-                    let elevation = styleParameters.terrains[`TP${index}`];
-                    if (elevation) {
-                        elevation.elevationDecoder.rScaler = parseFloat(elevation.elevationDecoder.rScaler);
-                        elevation.elevationDecoder.gScaler = parseFloat(elevation.elevationDecoder.gScaler);
-                        elevation.elevationDecoder.bScaler = parseFloat(elevation.elevationDecoder.bScaler);
-                        elevation.elevationDecoder.offset = parseFloat(elevation.elevationDecoder.offset) - 46.79;
-                        if (elevation.bbox) {
-                            elevation.bbox.north = parseFloat(elevation.bbox.north);
-                            elevation.bbox.east = parseFloat(elevation.bbox.east);
-                            elevation.bbox.south = parseFloat(elevation.bbox.south);
-                            elevation.bbox.west = parseFloat(elevation.bbox.west);
-                        }
-                        elevations.push(elevation);
-                        elevationUrl = elevation.query;
-                        elevationDecoder = elevation.elevationDecoder;
-                        index++;
-                    } else
-                        break;
-                }
-                layers.terrain = createManagedTerrainLayer({
-                    id: 'terrain-layer',
-                    elevations,
-                    texture: tileUrls,
-                    tileSize: 256,
-                    opacity: 1
-                });
-            } else {
-                layers.terrain = createTileLayer(tileUrls);
+
+            // setting widget parameters
+            if (widgetParameters) {
+                console.log('loading widget parameters', widgetParameters);
+                latInit = widgetParameters.latLng[0] || latInit;
+                lngInit = widgetParameters.latLng[1] || lngInit;
+                zoomInit = parseFloat(widgetParameters.zoom) || zoomInit;
+                pitchInit = widgetParameters.pitch || pitchInit;
+                bearingInit = widgetParameters.bearing || bearingInit;
+                const mapType = widgetParameters.mapType || '3D';
+                is3dOn = mapType == '2D' ? false : true;
             }
 
-            if (styleParameters != null && styleParameters.buildingType != null) {
-                try {
+            // setting style parameters
+            if (styleParameters) {
+                if (styleParameters.buildingColors) {
+                    for (let key in styleParameters.buildingColors) {
+                        let rgba = styleParameters.buildingColors[key];
+                        let array = rgbaToArray(rgba);
+                        buildingMappingColor[key] = array || buildingMappingColor[key];
+                    }
+                }
+                if (styleParameters.defaultOrthomap) {
+                    const menu = widgetParameters.dropdownMenu;
+                    for (var i = 0; i < menu.length; i++) {
+                        if (menu[i].id == styleParameters.defaultOrthomap) {
+                            tileUrls = [];
+                            tileUrls.push(menu[i].linkUrl.replace('{s}', 'a'));
+                            tileUrls.push(menu[i].linkUrl.replace('{s}', 'b'));
+                            tileUrls.push(menu[i].linkUrl.replace('{s}', 'c'));
+                            break;
+                        }
+                    }
+                }
+                if (styleParameters.terrains) {
+                    terrainOn = true;
+                    let index = 1;
+                    let elevations = [];
+                    while (true) {
+                        let elevation = styleParameters.terrains[`TP${index}`];
+                        if (elevation) {
+                            elevation.elevationDecoder.rScaler = parseFloat(elevation.elevationDecoder.rScaler);
+                            elevation.elevationDecoder.gScaler = parseFloat(elevation.elevationDecoder.gScaler);
+                            elevation.elevationDecoder.bScaler = parseFloat(elevation.elevationDecoder.bScaler);
+                            elevation.elevationDecoder.offset = parseFloat(elevation.elevationDecoder.offset) - 46.79;
+                            if (elevation.bbox) {
+                                elevation.bbox.north = parseFloat(elevation.bbox.north);
+                                elevation.bbox.east = parseFloat(elevation.bbox.east);
+                                elevation.bbox.south = parseFloat(elevation.bbox.south);
+                                elevation.bbox.west = parseFloat(elevation.bbox.west);
+                            }
+                            elevations.push(elevation);
+                            elevationUrl = elevation.query;
+                            elevationDecoder = elevation.elevationDecoder;
+                            index++;
+                        } else
+                            break;
+                    }
+                    layers.terrain = createManagedTerrainLayer({
+                        id: 'terrain-layer',
+                        elevations,
+                        texture: tileUrls,
+                        tileSize: 256,
+                        opacity: 1
+                    });
+                } else {
+                    layers.terrain = createTileLayer(tileUrls);
+                }
+                if (styleParameters.buildingType && supportedBuildings.hasOwnProperty(styleParameters.buildingType)) {
                     supportedBuildings[styleParameters.buildingType].action();
-                } catch {
+                } else {
                     loadAggregatedBuildings();
                 }
-            } else {
-                loadAggregatedBuildings();
+                if (styleParameters.useLighting != null && styleParameters.useLighting == 'yes') {
+                    lightsOn = true;
+                    effects = [createLights({
+                        timestamp: styleParameters.lightTimestamp,
+                        ambientLightColor: rgbToArray(styleParameters.ambientLightColor),
+                        directionalLightColor: rgbToArray(styleParameters.directionalLightColor),
+                        ambientLightIntensity: parseInt(styleParameters.ambientLightIntensity),
+                        directionalLightIntensity: parseInt(styleParameters.directionalLightIntensity)
+                    })];
+                    showLightSection();
+                } else {
+                    lightsOn = false;
+                    hideLightSection();
+                }
             }
+
+            console.log('tentative to display 3d map');
 
             const height = $(`#${widgetName}_map3d`).height();
             const width = $(`#${widgetName}_map3d`).width();
 
-            var effects = [];
             $('#lightTimestamp').val(formatDatetime(Date.now()));
-            if (styleParameters != null && styleParameters.useLighting != null && styleParameters.useLighting ==
-                'yes') {
-                lightsOn = true;
-                effects = [createLights({
-                    timestamp: styleParameters.lightTimestamp,
-                    ambientLightColor: rgbToArray(styleParameters.ambientLightColor),
-                    directionalLightColor: rgbToArray(styleParameters.directionalLightColor),
-                    ambientLightIntensity: parseInt(styleParameters.ambientLightIntensity),
-                    directionalLightIntensity: parseInt(styleParameters.directionalLightIntensity)
-                })];
-                showLightSection();
-            } else {
-                lightsOn = false;
-                hideLightSection();
-            }
             $('#lightEnable').prop('checked', lightsOn);
             currentViewState = {
                 latitude: latInit,
@@ -4463,7 +4411,6 @@ if (!isset($_SESSION)) {
                 maxZoom: 20,
                 minZoom: 1,
                 pitch: pitchInit,
-                // maxPitch: 65,
                 maxPitch: 85,
                 bearing: bearingInit,
                 height: height,
@@ -4471,6 +4418,9 @@ if (!isset($_SESSION)) {
             };
             updateListGridBuilding();
 
+            const settings = getCookie('settings');
+            if (settings && settings != "")
+                settingOptions = JSON.parse(settings);
             $.ajax({
                 url: '../widgets/layers/decorations/trees/alberi_firenze.geojson',
                 success: (data) => {
@@ -4479,6 +4429,7 @@ if (!isset($_SESSION)) {
                         minZoom: 18,
                         maxZoom: 18,
                         pickable: false,
+                        maxTiles: settingOptions.maxTiles.value || 200,
                         model: '../widgets/layers/decorations/trees/tree_low_1.glb',
                         data: JSON.parse(data),
                         getElevation: (d) => {
@@ -4489,11 +4440,25 @@ if (!isset($_SESSION)) {
                 }
             });
 
-            // layers.tree = new snap4deck.TreeLayer({
-            //     id: 'tree-layer',
-            //     model: '../widgets/layers/decorations/trees/base_tree.glb',
-            //     data: '../widgets/layers/decorations/trees/alberi_firenze.geojson',
-            // });
+            layers.vehicle.push(new deck.ScenegraphLayer({
+                id: 'airplane-layer',
+                data: [
+                    {positions: [11.199664049797294, 43.802922897309, -10], rotation: 0,},
+                    {positions: [11.198907706148423, 43.803451457011874, -10], rotation: -30,},
+                    {positions: [11.200817114302204, 43.80321975648056, -10], rotation: 40,},
+                    {positions: [11.201332283214695, 43.80477050629828, -10], rotation: 50,},
+                    {positions: [11.200375340660075, 43.80484798194954, -10], rotation: -140,},
+                    {positions: [11.196612079522039, 43.80809041845304, -10], rotation: -70,},
+                    {positions: [11.196745364113017, 43.80715239609039, -10], rotation: 90,},
+                    {positions: [11.197337839154171, 43.80756254251544, -10], rotation: -90,},
+                ],
+                scenegraph: '../widgets/layers/decorations/vehicles/a319.glb',
+                getPosition: d => d.positions,
+                getOrientation: d => [0, d.rotation, 90],
+                getScale: [0.07, 0.07, 0.07],
+                // sizeScale: 0.07,
+                _lighting: 'pbr'
+            }));
 
             map3d = new deck.Deck({
                 mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
@@ -4506,91 +4471,56 @@ if (!isset($_SESSION)) {
                     }
                 },
                 parent: document.getElementById(`${widgetName}_map3d`),
-                // container: `${widgetName}_map3d`,
                 effects,
-                // _animate: true,
                 views: new deck.MapView({
                     // farZMultiplier: 3,
-                    // fovy: 50
-                    // altitude: 5,
+                    // fovy: 20,
+                    // altitude: 1.9,
+                    // nearZMultiplier: 0.001,
+                    farZMultiplier: 2.21,
                 }),
+
                 layers: [
                     layers.terrain,
                     layers.building,
+                    ...layers.vehicle,
                     layers.tree,
                 ],
                 // /* uncomment for sky
-                // _customRender: (redrawReason) => {
-                //     if (skyOn && sky != undefined && map3d != undefined) {
-                //         const {
-                //             bearing,
-                //             pitch,
-                //             maxPitch
-                //         } = currentViewState;
-                //         sky.draw(bearing, pitch, maxPitch);
-                //     }
-                //     map3d._drawLayers(redrawReason, {
-                //         clearCanvas: !skyOn
-                //     });
-                // },
+                _customRender: (redrawReason) => {
+                    if (skyOn && sky != undefined && map3d != undefined) {
+                        const {
+                            bearing,
+                            pitch,
+                            maxPitch
+                        } = currentViewState;
+                        sky.draw(bearing, pitch, maxPitch);
+                    }
+                    map3d._drawLayers(redrawReason, {
+                        clearCanvas: !skyOn
+                    });
+                },
+                
+                onWebGLInitialized: (gl) => {
+                    map3dGL = gl;
+                    var dbgRenderInfo = gl.getExtension("WEBGL_debug_renderer_info");
+                    console.log(gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL));
+                    console.log(gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL));
 
-                // */
-                // onWebGLInitialized: (gl) => {
-                //     map3dGL = gl;
-                //     if (skyOn) {
-                //         sky = new Sky(gl);
-                //         const {
-                //             bearing,
-                //             pitch,
-                //             maxPitch
-                //         } = currentViewState;
-                //         sky.draw(bearing, pitch, maxPitch);
-                //     }
-                // },
+                    if (skyOn) {
+                        sky = new Sky(gl);
+                        const {
+                            bearing,
+                            pitch,
+                            maxPitch
+                        } = currentViewState;
+                        sky.draw(bearing, pitch, maxPitch);
+                    }
+                },
                 onViewStateChange: ({
                     viewState
                 }) => {
                     clearTimeout(updateTimeout);
-                    if (autoreloadFeatures)
-                        updateTimeout = setTimeout(function() {
-                            for (let key in apiUrls3D) {
-                                const event = apiUrls3D[key];
-                                switch (key) {
-                                    case "traffic":
-                                        layers.traffic = [];
-                                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                            if (map.eventsOnMap[i] == undefined)
-                                                map.eventsOnMap.splice(i, 1);
-                                            else if (map.eventsOnMap[i].eventType && map
-                                                .eventsOnMap[i].eventType ===
-                                                "trafficRealTimeDetails") {
-                                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]
-                                                    .marker);
-                                                map.defaultMapRef.removeControl(map.eventsOnMap[i]
-                                                    .legend);
-                                                map.defaultMapRef.removeLayer(map.eventsOnMap[i]
-                                                    .trafficLayer);
-                                                map.eventsOnMap.splice(i, 1);
-                                            }
-                                        }
-                                        break;
-                                    default:
-                                        const display = event.passedData.display;
-                                        if (display == "undefined" || display.includes('pins'))
-                                            removeLayerSet(key, layers.pin);
-                                        if (display.includes('geometries'))
-                                            removeLayerSet(key, layers.cycling);
-                                        break;
-                                }
-
-                                $.event.trigger(event);
-                            }
-
-                        }, 2000);
-                    // need too calc the delta distance inside the controller
-                    // last tested formula -> deltaDistance <= tollerance / (2 ^ zoom)
-                    // do not trigger with the mouse wheel
-
                     currentViewState = viewState;
                     
                     // sky
@@ -4602,23 +4532,10 @@ if (!isset($_SESSION)) {
                     //     } = currentViewState;
                     //     sky.draw(bearing, pitch, maxPitch);
                     // }
-
-                    // first person mode (Experimental)
-                    // firstPerson = viewState.zoom == undefined || viewState.zoom > 19;
-                    // if (firstPerson) {
-                    // //     // viewState.maxPitch = 180;
-                    //     viewState.minPitch = -180;
-                    //     viewState.position[2] = 5; 
-                    // }
-                    // const view = currentViewState.zoom <= 19 ?
-                    //     new deck.MapView({
-                    //         altitude: 5,
-                    //     }) : new deck.FirstPersonView({
-                    //     });
                     
+                    $('#compass-div').css('transform', `rotate(${-viewState.bearing}deg)`)
                     map3d.setProps({
                         viewState: viewState,
-                        // views: view,
                     });
                     $('#deck-zoom-box').text(parseInt(viewState.zoom));
                     reloadPopupDiv();
@@ -4640,7 +4557,9 @@ if (!isset($_SESSION)) {
                         if (object.properties.address != null)
                             displayedText += `Address: ${object.properties.address}</br>`;
                     } else if (info.layer instanceof snap4deck.CrestLayer) {
-                        displayedText += `Traffic congestion: ${object.relativeDensity * 100}%`;
+                        // displayedText += `Traffic start congestion: ${Math.floor(object.startDensity * 10000) / 100}%`;
+                        displayedText += `Traffic congestion: ${Math.floor(object.density * 100) / 100}`;
+                        // displayedText += `Traffic end congestion: ${Math.floor(object.endDensity * 10000) / 100}%`;
                     } else {
                         displayedText = object.toString();
                     }
@@ -4652,7 +4571,6 @@ if (!isset($_SESSION)) {
                     viewport
                 }) => {
                     cursorType = 'grab';
-                    // $(popupId + '').css('visibility', 'visible');
                 },
                 onDrag: ({
                     viewport
@@ -4661,7 +4579,6 @@ if (!isset($_SESSION)) {
                         reloadPopupDiv()
                     }
                     cursorType = 'grabbing';
-                    // cursorType = 'grab';
                 },
                 onDragStart: ({
                     viewport
@@ -4684,16 +4601,16 @@ if (!isset($_SESSION)) {
                         $('#deck-whatif-popup').css('left', `${info.x}px`);
                         lastWhatifCoord = info.coordinate;
                     }
+                    if (event.rightButton && event.srcEvent.ctrlKey) {
+                        console.log(info.coordinate);
+                    }
                 },
             });
-            // document.addEventListener('contextmenu', event => event.preventDefault());
             $(`#${widgetName}_map3d`).on('contextmenu', event => event.preventDefault());
             loadDensityTable();
+            loadSettingContent();
             reverseColorButton('deck-movement-mode');
-            // return;
 
-            //Hiding the 2d maps
-            //$(`#${mapDivLocal}`).css('visibility', 'hidden');
             $(`#${widgetName}_map3d`).css('z-index', 420);
 
             $('#deck-pitch-up').on('click', function(event) {
@@ -4751,6 +4668,7 @@ if (!isset($_SESSION)) {
                         ...currentViewState
                     },
                 });
+                $('#compass-div').css('transform', `rotate(${-currentViewState.bearing}deg)`)
             });
 
             $('#deck-bear-down').on('click', function(event) {
@@ -4768,6 +4686,7 @@ if (!isset($_SESSION)) {
                         ...currentViewState
                     },
                 });
+                $('#compass-div').css('transform', `rotate(${-currentViewState.bearing}deg)`)
             });
 
             $('#deck-zoom-up').on('click', function(event) {
@@ -4910,29 +4829,25 @@ if (!isset($_SESSION)) {
             // $('#deck-light-btn').click((event) => toggleLightMenu());
             $('#dropdownMenu1').click((event) => toggleMenu(mapMenuId));
             $('#orthomaps-btn').click((event) => {
-                hideInnerMenus();
-                $('#orthomaps-btn').removeClass('deck-btn');
-                $('#orthomaps-btn').addClass('deck-btn-active');
-                showMenu("orthomaps-menu-content");
+                setHeaderMenu('orthomaps');
             });
             $('#geojson-btn').click((event) => {
-                hideInnerMenus();
-                $('#geojson-btn').removeClass('deck-btn');
-                $('#geojson-btn').addClass('deck-btn-active');
-                showMenu("geojson-menu-content");
+                setHeaderMenu('geojson');
             });
             $('#buildings-btn').click((event) => {
-                hideInnerMenus();
-                $('#buildings-btn').removeClass('deck-btn');
-                $('#buildings-btn').addClass('deck-btn-active');
-                showMenu("buildings-menu-content");
+                setHeaderMenu('buildings');
             });
-            $('#lights-btn').click((event) => {
-                hideInnerMenus();
-                $('#lights-btn').removeClass('deck-btn');
-                $('#lights-btn').addClass('deck-btn-active');
-                showMenu("lights-menu-content");
+            $('#settings-btn').click((event) => {
+                setHeaderMenu('settings');
             });
+            // $('#lights-btn').click((event) => {
+            //     hideInnerMenus();
+            //     $('#lights-btn').removeClass('deck-btn');
+            //     $('#lights-btn').addClass('deck-btn-active');
+            //     showMenu("lights-menu-content");
+            //     setHeaderMenu('orthomaps');
+            // });
+
             $('#heatmap-info-btn').click(() => {
                 unselectInfo();
                 $('#heatmapLegend').css('display', 'block');
@@ -4989,6 +4904,23 @@ if (!isset($_SESSION)) {
                 $('#2DButton i').addClass('hidden');
                 $('#3DButton i').removeClass('hidden');
                 hideMenu(mapMenuId);
+            });
+            $('#compass-icon').click(() => {
+                if (!manuallyControlled) {
+                    map3d.setProps({
+                        viewState: {
+                            ...currentViewState
+                        },
+                    });
+                    manuallyControlled = true;
+                }
+                currentViewState.bearing = 0;
+                map3d.setProps({
+                    viewState: {
+                        ...currentViewState
+                    },
+                });
+                $('#compass-div').css('transform', `rotate(${-currentViewState.bearing}deg)`)
             });
 
             let lastBuildingIdInsert = null;
@@ -9023,6 +8955,10 @@ if (!isset($_SESSION)) {
 
                                 if (is3dOn) {
                                     var result = _density;
+                                    if (roads.length == null) {
+                                        loadingDiv.setStatus('ko');
+                                        return;
+                                    }
                                     // Removing first null object
                                     if (roads[0].road == null)
                                         roads = roads.slice(1);
@@ -9040,105 +8976,166 @@ if (!isset($_SESSION)) {
                                             segment.endPos = [parseFloat(segment.end.long),
                                                 parseFloat(segment.end.lat)
                                             ];
-                                            segment.middlePos = getMiddlePosition(segment.startPos, segment.endPos);
-                                            var segmentDensity = density.data[0][segment
-                                                .id
-                                            ];
-                                            segment.density = parseFloat(segmentDensity);
-                                            segment.relativeDensity = parseFloat(segment
-                                                .density) / parseFloat(segment.Lanes);
+                                            var segmentDensity = density.data[0][segment.id];
+                                            // segment.density = parseFloat(segmentDensity);
+                                            segment.density = parseFloat(segmentDensity) / parseFloat(segment.Lanes);
                                             if (segment.relativeDensity > 1)
                                                 segment.relativeDensity = 1;
-                                            segment.nextRelativeDensity = parseFloat(segment.relativeDensity);
-                                            segment.prevRelativeDensity = parseFloat(segment.relativeDensity);
-                                            segment.color = getDensityColor(segment.relativeDensity);
-                                            segment.prevColor = segment.color;
-                                            segment.nextColor = segment.color;
-                                            if (j > 0) {
-                                                var prevSegment = road.segments[j - 1];
-                                                const avgRelativeDensity = (prevSegment.relativeDensity + segment.relativeDensity) / 2;
-                                                const avgColor = getDensityColor(avgRelativeDensity);
-                                                prevSegment.nextRelativeDensity = avgRelativeDensity;
-                                                prevSegment.nextColor = avgColor;
-                                                segment.prevRelativeDensity = avgRelativeDensity;
-                                                segment.prevColor = avgColor;
+                                            segment.startDensity = segment.density;
+                                            segment.endDensity = segment.density;
+                                            segment.color = getDensityColor(segment.density);
+                                            segment.startColor = segment.color;
+                                            segment.endColor = segment.color;
+                                            segment.startAttach = [];
+                                            segment.endAttach = [];
+                                            // if (j > 0) {
+                                            //     var prevSegment = road.segments[j - 1];
+                                            //     const avgRelativeDensity = (prevSegment.relativeDensity + segment.relativeDensity) / 2;
+                                            //     const avgColor = getDensityColor(avgRelativeDensity);
+                                            //     prevSegment.nextRelativeDensity = avgRelativeDensity;
+                                            //     prevSegment.nextColor = avgColor;
+                                            //     segment.prevRelativeDensity = avgRelativeDensity;
+                                            //     segment.prevColor = avgColor;
+                                            // }
+                                        }
+                                    }
+
+                                    allSegments = [];
+                                    for (let road of roads) {
+                                        allSegments.push(...road.segments);
+                                    }
+
+                                    const tollerance = 3;
+                                    const duplicateSegments = [];
+                                    for (let i = 0; i < allSegments.length; i++) {
+                                        let indexMatch = [];
+                                        let currentSegment = allSegments[i];
+                                        for (let j = i + 1; j < allSegments.length; j++) {
+                                            let nextSegment = allSegments[j];
+                                            let sameStart = false;
+                                            let sameEnd = false;
+                                            // TODO: da finire
+                                            if (checkSamePositions(currentSegment.startPos, nextSegment.endPos, tollerance)) {
+                                                currentSegment.startAttach.push(nextSegment.density);
+                                                nextSegment.endAttach.push(currentSegment.density);
+                                            }
+                                            if (checkSamePositions(currentSegment.startPos, nextSegment.startPos, tollerance)) {
+                                                sameStart = true;
+                                                currentSegment.startAttach.push(nextSegment.density);
+                                                nextSegment.startAttach.push(currentSegment.density);
+                                            }
+                                            if (checkSamePositions(currentSegment.endPos, nextSegment.endPos, tollerance)) {
+                                                sameEnd = true;
+                                                currentSegment.endAttach.push(nextSegment.density);
+                                                nextSegment.endAttach.push(currentSegment.density);
+                                            }
+                                            if (checkSamePositions(currentSegment.endPos, nextSegment.startPos, tollerance)) {
+                                                currentSegment.endAttach.push(nextSegment.density);
+                                                nextSegment.startAttach.push(currentSegment.density);
+                                            }
+                                            if (sameStart && sameEnd) {
+                                                duplicateSegments.push([i, j]);
                                             }
                                         }
                                     }
 
-                                    for (let i = 0; i < roads.length; i++) {
-                                        const road = roads[i];
-                                        const lastIndexRoad = road.segments.length - 1;
-                                        let roadToAttach = {
-                                            toStart: {
-                                                fromStart: [],
-                                                fromEnd: [],
-                                            },
-                                            toEnd: {
-                                                fromStart: [],
-                                                fromEnd: [],
-                                            }
-                                        }
-                                        for (let j = i + 1; j < roads.length; j++) {
-                                            const nextRoad = roads[j];
-                                            const lastIndexNextRoad = nextRoad.segments.length - 1;
-                                            if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[0].startPos))
-                                                roadToAttach.toStart.fromStart.push(nextRoad);
-                                            else if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[lastIndexNextRoad].endPos))
-                                                roadToAttach.toStart.fromEnd.push(nextRoad);
-                                            else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[0].startPos))
-                                                roadToAttach.toEnd.fromStart.push(nextRoad);
-                                            else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[lastIndexNextRoad].endPos))
-                                                roadToAttach.toEnd.fromEnd.push(nextRoad);
-                                        }
-                                        var avgStart = road.segments[0].prevRelativeDensity;
-                                        for (let evalRoad of roadToAttach.toStart.fromStart)
-                                            avgStart += evalRoad.segments[0].prevRelativeDensity;
-                                        for (let evalRoad of roadToAttach.toStart.fromEnd)
-                                            avgStart += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
-                                        avgStart /= (1 + roadToAttach.toStart.fromStart.length +
-                                            roadToAttach.toStart.fromEnd.length);
-                                        avgStartColor = getDensityColor(avgStart);
-                                        for (let evalRoad of roadToAttach.toStart.fromStart) {
-                                            evalRoad.segments[0].prevRelativeDensity = avgStart;
-                                            evalRoad.segments[0].prevColor = avgStartColor;
-                                        }
-                                        for (let evalRoad of roadToAttach.toStart.fromEnd) {
-                                            evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgStart;
-                                            evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgStartColor;
-                                        }
-                                        road.segments[0].prevRelativeDensity = avgStart;
-                                        road.segments[0].prevColor = avgStartColor;
-
-                                        var avgEnd = road.segments[lastIndexRoad].nextRelativeDensity;
-                                        for (let evalRoad of roadToAttach.toEnd.fromStart)
-                                            avgEnd += evalRoad.segments[0].prevRelativeDensity;
-                                        for (let evalRoad of roadToAttach.toEnd.fromEnd)
-                                            avgEnd += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
-                                        avgEnd /= (1 + roadToAttach.toEnd.fromStart.length +
-                                            roadToAttach.toEnd.fromEnd.length);
-                                        avgEndColor = getDensityColor(avgEnd);
-                                        for (let evalRoad of roadToAttach.toEnd.fromStart) {
-                                            evalRoad.segments[0].prevRelativeDensity = avgEnd;
-                                            evalRoad.segments[0].prevColor = avgEndColor;
-                                        }
-                                        for (let evalRoad of roadToAttach.toEnd.fromEnd) {
-                                            evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgEnd;
-                                            evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgEndColor;
-                                        }
-                                        road.segments[lastIndexRoad].nextRelativeDensity = avgEnd;
-                                        road.segments[lastIndexRoad].nextColor = avgEndColor;
+                                    // rimozione dei duplicati
+                                    for (let [i, j] of duplicateSegments) {
+                                        allSegments[i].density = (allSegments[i].density + allSegments[j].density) / 2;
                                     }
+                                    for (let i = 0; i < duplicateSegments.length; i++) {
+                                        allSegment = allSegments.slice(duplicateSegments[i][1] - i, 1);
+                                    }
+
+                                    // calcolo media densita degli incroci
+                                    for (let segment of allSegments) {
+                                        let avarageStart = segment.density;
+                                        for (let density of segment.startAttach)
+                                            avarageStart += density;
+                                        avarageStart /= segment.startAttach.length + 1;
+                                        segment.startDensity = avarageStart;
+                                        segment.startColor = getDensityColor(avarageStart);
+                                        delete segment.startAttach;
+                                        let avarageEnd = segment.density;
+                                        for (let density of segment.endAttach)
+                                            avarageEnd += density;
+                                        avarageEnd /= segment.endAttach.length + 1;
+                                        segment.endDensity = avarageEnd;
+                                        segment.endColor = getDensityColor(avarageEnd);
+                                        delete segment.endAttach;
+                                    }
+
+                                    // for (let i = 0; i < roads.length; i++) {
+                                    //     const road = roads[i];
+                                    //     const lastIndexRoad = road.segments.length - 1;
+                                    //     let roadToAttach = {
+                                    //         toStart: {
+                                    //             fromStart: [],
+                                    //             fromEnd: [],
+                                    //         },
+                                    //         toEnd: {
+                                    //             fromStart: [],
+                                    //             fromEnd: [],
+                                    //         }
+                                    //     }
+                                    //     for (let j = i + 1; j < roads.length; j++) {
+                                    //         const nextRoad = roads[j];
+                                    //         const lastIndexNextRoad = nextRoad.segments.length - 1;
+                                    //         if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[0].startPos))
+                                    //             roadToAttach.toStart.fromStart.push(nextRoad);
+                                    //         else if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[lastIndexNextRoad].endPos))
+                                    //             roadToAttach.toStart.fromEnd.push(nextRoad);
+                                    //         else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[0].startPos))
+                                    //             roadToAttach.toEnd.fromStart.push(nextRoad);
+                                    //         else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[lastIndexNextRoad].endPos))
+                                    //             roadToAttach.toEnd.fromEnd.push(nextRoad);
+                                    //     }
+                                    //     var avgStart = road.segments[0].prevRelativeDensity;
+                                    //     for (let evalRoad of roadToAttach.toStart.fromStart)
+                                    //         avgStart += evalRoad.segments[0].prevRelativeDensity;
+                                    //     for (let evalRoad of roadToAttach.toStart.fromEnd)
+                                    //         avgStart += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
+                                    //     avgStart /= (1 + roadToAttach.toStart.fromStart.length +
+                                    //         roadToAttach.toStart.fromEnd.length);
+                                    //     avgStartColor = getDensityColor(avgStart);
+                                    //     for (let evalRoad of roadToAttach.toStart.fromStart) {
+                                    //         evalRoad.segments[0].prevRelativeDensity = avgStart;
+                                    //         evalRoad.segments[0].prevColor = avgStartColor;
+                                    //     }
+                                    //     for (let evalRoad of roadToAttach.toStart.fromEnd) {
+                                    //         evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgStart;
+                                    //         evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgStartColor;
+                                    //     }
+                                    //     road.segments[0].prevRelativeDensity = avgStart;
+                                    //     road.segments[0].prevColor = avgStartColor;
+
+                                    //     var avgEnd = road.segments[lastIndexRoad].nextRelativeDensity;
+                                    //     for (let evalRoad of roadToAttach.toEnd.fromStart)
+                                    //         avgEnd += evalRoad.segments[0].prevRelativeDensity;
+                                    //     for (let evalRoad of roadToAttach.toEnd.fromEnd)
+                                    //         avgEnd += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
+                                    //     avgEnd /= (1 + roadToAttach.toEnd.fromStart.length +
+                                    //         roadToAttach.toEnd.fromEnd.length);
+                                    //     avgEndColor = getDensityColor(avgEnd);
+                                    //     for (let evalRoad of roadToAttach.toEnd.fromStart) {
+                                    //         evalRoad.segments[0].prevRelativeDensity = avgEnd;
+                                    //         evalRoad.segments[0].prevColor = avgEndColor;
+                                    //     }
+                                    //     for (let evalRoad of roadToAttach.toEnd.fromEnd) {
+                                    //         evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgEnd;
+                                    //         evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgEndColor;
+                                    //     }
+                                    //     road.segments[lastIndexRoad].nextRelativeDensity = avgEnd;
+                                    //     road.segments[lastIndexRoad].nextColor = avgEndColor;
+                                    // }
 
 
                                     layers.traffic = [];
                                     // apiUrls3D[`traffic`] = event;
 
-                                    var allSegments = [];
-                                    for (let road of roads) {
-                                        allSegments.push(...road.segments);
-                                    }
+
                                     loadingDiv.setStatus('ok');
+                                    let elevationChanged = false;
                                     if (terrainOn) {
                                         const loadingElevationDiv = new LoadingDiv({
                                             text: 'elevation data',
@@ -9148,73 +9145,88 @@ if (!isset($_SESSION)) {
                                         let positionRemaining = allSegments.length * 2;
                                         for (let segment of allSegments) {
                                             loadAltitude(segment.startPos[0], segment.startPos[1], (altitude) => {
-                                                segment.startPos.push(altitude);
-                                                if (segment.endPos.length == 3)
-                                                    segment.middlePos.push((segment.endPos[2] + altitude) / 2);
+                                                segment.startPos.push(altitude || 0);
                                                 positionRemaining--;
                                                 if (positionRemaining <= 0) {
                                                     loadingElevationDiv.setStatus('ok');
-                                                    removeLayerSet('crest-layer', layers.traffic);
-                                                    const crestLayer = new snap4deck.CrestLayer({
-                                                        id: 'crest-layer-elevated',
+                                                    elevationChanged = true;
+                                                    layers.crest = new snap4deck.CrestLayer({
+                                                        ...layers.crest.props,
+                                                        // data: Object.assign({}, allSegments),
                                                         data: allSegments,
-                                                        pickable: true,
-                                                        getStartPosition: (d) => d.startPos,
-                                                        getMiddlePosition: (d) => d.middlePos,
-                                                        getEndPosition: (d) => d.endPos,
-                                                        getStartDensity: (d) => d.prevRelativeDensity,
-                                                        getMiddleDensity: (d) => d.relativeDensity,
-                                                        getEndDensity: (d) => d.nextRelativeDensity,
-                                                        getStartColor: (d) => d.prevColor.map(x => x / 255),
-                                                        getMiddleColor: (d) => d.color.map(x => x / 255),
-                                                        getEndColor: (d) => d.nextColor.map(x => x / 255),
+                                                        updateTriggers: {
+                                                            currentTime: {
+                                                                time: animationTime,
+                                                            },
+                                                            getStartPosition: {
+                                                                elevation: elevationChanged
+                                                            },
+                                                            getEndPosition: {
+                                                                elevation: elevationChanged
+                                                            }
+                                                        },
                                                     });
-                                                    layers.traffic.push(crestLayer);
                                                     updateLayers();
+                                                    if (settingOptions.animationEnabled.value)
+                                                        startTimerAnimation();
                                                 }
                                             });
                                             loadAltitude(segment.endPos[0], segment.endPos[1], (altitude) => {
-                                                segment.endPos.push(altitude);
-                                                if (segment.startPos.length == 3)
-                                                    segment.middlePos.push((segment.startPos[2] + altitude) / 2);
+                                                segment.endPos.push(altitude || 0);
                                                 positionRemaining--;
                                                 if (positionRemaining <= 0) {
                                                     loadingElevationDiv.setStatus('ok');
-                                                    removeLayerSet('crest-layer', layers.traffic);
-                                                    const crestLayer = new snap4deck.CrestLayer({
-                                                        id: 'crest-layer-elevated',
+                                                    elevationChanged = true;
+                                                    layers.crest = new snap4deck.CrestLayer({
+                                                        ...layers.crest.props,
                                                         data: allSegments,
-                                                        getStartPosition: (d) => d.startPos,
-                                                        getMiddlePosition: (d) => d.middlePos,
-                                                        getEndPosition: (d) => d.endPos,
-                                                        getStartDensity: (d) => d.prevRelativeDensity,
-                                                        getMiddleDensity: (d) => d.relativeDensity,
-                                                        getEndDensity: (d) => d.nextRelativeDensity,
-                                                        getStartColor: (d) => d.prevColor.map(x => x / 255),
-                                                        getMiddleColor: (d) => d.color.map(x => x / 255),
-                                                        getEndColor: (d) => d.nextColor.map(x => x / 255),
+                                                        // data: Object.assign({}, allSegments),
+                                                        updateTriggers: {
+                                                            currentTime: {
+                                                                time: animationTime,
+                                                            },
+                                                            getStartPosition: {
+                                                                elevation: elevationChanged
+                                                            },
+                                                            getEndPosition: {
+                                                                elevation: elevationChanged
+                                                            }
+                                                        },
                                                     });
-                                                    layers.traffic.push(crestLayer);
                                                     updateLayers();
+                                                    if (settingOptions.animationEnabled.value)
+                                                        startTimerAnimation();
                                                 }
                                             });
                                         }
                                     }
-                                    const crestLayer = new snap4deck.CrestLayer({
+                                    layers.crest = new snap4deck.CrestLayer({
                                         id: 'crest-layer',
                                         data: allSegments,
                                         pickable: true,
                                         getStartPosition: (d) => d.startPos,
-                                        getMiddlePosition: (d) => d.middlePos,
                                         getEndPosition: (d) => d.endPos,
-                                        getStartDensity: (d) => d.prevRelativeDensity,
-                                        getMiddleDensity: (d) => d.relativeDensity,
-                                        getEndDensity: (d) => d.nextRelativeDensity,
-                                        getStartColor: (d) => d.prevColor.map(x => x / 255),
+                                        getStartDensity: (d) => d.startDensity,
+                                        getMiddleDensity: (d) => d.density,
+                                        getEndDensity: (d) => d.endDensity,
+                                        getStartColor: (d) => d.startColor.map(x => x / 255),
                                         getMiddleColor: (d) => d.color.map(x => x / 255),
-                                        getEndColor: (d) => d.nextColor.map(x => x / 255),
+                                        getEndColor: (d) => d.endColor.map(x => x / 255),
+                                        arrowSize: settingOptions.arrowSize.value || 20,
+                                        isAnimated: settingOptions.animationEnabled.value,
+                                        currentTime: animationTime,
+                                        updateTriggers: {
+                                            currentTime: {
+                                                time: animationTime,
+                                            },
+                                            getStartPosition: {
+                                                elevation: elevationChanged
+                                            },
+                                            getEndPosition: {
+                                                elevation: elevationChanged
+                                            }
+                                        }
                                     });
-                                    layers.traffic.push(crestLayer);
                                     layers.mockIcon = createMockIcon();
                                     updateLayers();
                                     return;
@@ -11687,11 +11699,13 @@ if (!isset($_SESSION)) {
                                                     wmsUrl +=
                                                         "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
                                                     wmsUrl += '&bbox={bbox}';
-                                                    if (terrainOn)
+                                                    if (terrainOn) {
                                                         layers.terrain = createManagedTerrainLayer({
                                                             ...layers.terrain.props,
                                                             heatmap: wmsUrl
                                                         });
+                                                        layers.wms = null;
+                                                    }
                                                     else
                                                         layers.wms = createHeatmapLayer({
                                                             data: wmsUrl,
@@ -12339,8 +12353,8 @@ if (!isset($_SESSION)) {
                     if (is3dOn) {
                         // removeLayerSet('traffic-line-layer', layers.traffic);
                         delete apiUrls3D['traffic']
-                        layers.traffic = [];
-                        removeLayerSet('mock-icon-layer', layers.pin);
+                        layers.crest = null;
+                        // removeLayerSet('mock-icon-layer', layers.pin);
                         updateLayers();
                     }
                     for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
@@ -13082,6 +13096,7 @@ if (!isset($_SESSION)) {
                 minZoom: 18,
                 maxZoom: 18,
                 pickable: false,
+                maxTiles: settingOptions.maxTiles.value || settingOptions.maxTiles.default,
                 TilesetClass: snap4deck.GLBTileSet,
                 renderSubLayers: props => {
                     const {
@@ -13125,6 +13140,7 @@ if (!isset($_SESSION)) {
                 maxZoom: 18,
                 TilesetClass: snap4deck.GLBTileSet,
                 pickable: false,
+                maxTiles: settingOptions.maxTiles.value || settingOptions.maxTiles.default,
                 // maxCacheSize: 200000,
                 renderSubLayers: props => {
                     const {
@@ -13732,6 +13748,31 @@ if (!isset($_SESSION)) {
             }, delay * 1000);
         }
 
+        function startTimerAnimation() {
+            window.requestAnimationFrame(updateCrestAnimation);
+        }
+
+        var start;
+        var lastTimestamp;
+        function updateCrestAnimation(timestamp) {
+            if (layers.crest == null)
+                return;
+            if (!start) {
+                start = timestamp;
+                lastTimestamp = timestamp;
+            }
+            const deltaTime = timestamp - lastTimestamp;
+            lastTimestamp = timestamp;
+            animationTime += deltaTime;
+            layers.crest = new snap4deck.CrestLayer({
+                ...layers.crest.props,
+                data: allSegments,
+                currentTime: animationTime,
+            });
+            updateLayers();
+            window.requestAnimationFrame(updateCrestAnimation);
+        }
+
         function addMarker(coordinate) {
             const r = Math.floor(Math.random() * 255);
             const g = Math.floor(Math.random() * 255);
@@ -13920,11 +13961,13 @@ if (!isset($_SESSION)) {
                     layers.tree,
                     layers.hiddenBuilding,
                     layers.hoverBuilding,
+                    ...layers.vehicle,
                     ...layers.whatif,
                     layers.selection,
                     ...layers.fixedPins,
                     layers.mockIcon,
                     ...layers.traffic,
+                    layers.crest,
                     ...layers.pin,
                 ]
             })
@@ -14025,7 +14068,6 @@ if (!isset($_SESSION)) {
         function getBoundingBox(viewState) {
             const selectionState = {
                 ...viewState,
-                // pitch: viewState.pitch > 63 ? 63 : viewState.pitch,
                 farZMultiplier: 1.5,
                 altitude: 1,
             }
@@ -14270,6 +14312,7 @@ if (!isset($_SESSION)) {
             return (a >= b ? b : a) + diff;
         }
 
+        // da usare solo in un sistema di coordinate lineari e quindi non con lat e lng
         function getMiddlePosition(pos1, pos2) {
             const deltaLng = getDelta(pos1[0], pos2[0]);
             const deltaLat = getDelta(pos1[1], pos2[1]);
@@ -14295,8 +14338,7 @@ if (!isset($_SESSION)) {
             prevSegm.nextColor = nextSegm.color;
         }
 
-        function checkSamePositions(pos1, pos2) {
-            const tollerance = 3; // in metri;
+        function checkSamePositions(pos1, pos2, tollerance = 3) {
             const delta = getMeterDistance(pos1[1], pos1[0], pos2[1], pos2[0]);
             return delta < tollerance;
         }
@@ -14416,18 +14458,22 @@ if (!isset($_SESSION)) {
         }
 
         function hideInnerMenus() {
-            $('#orthomaps-btn').addClass('deck-btn');
-            $('#geojson-btn').addClass('deck-btn');
-            $('#buildings-btn').addClass('deck-btn');
-            $('#lights-btn').addClass('deck-btn');
-            $('#orthomaps-btn').removeClass('deck-btn-active');
-            $('#geojson-btn').removeClass('deck-btn-active');
-            $('#buildings-btn').removeClass('deck-btn-active');
-            $('#lights-btn').removeClass('deck-btn-active');
-            hideMenu("orthomaps-menu-content");
-            hideMenu("geojson-menu-content");
-            hideMenu("buildings-menu-content");
-            hideMenu("lights-menu-content");
+            const menuHeaders = $('#deck-menu-header').children();
+            for (let i = 0; i < menuHeaders.length; i++) {
+                $(menuHeaders[i]).addClass('deck-btn');
+                $(menuHeaders[i]).removeClass('deck-btn-active');
+            }
+            const menuContents = $('#deck-menu-content').children();
+            for (let i = 0; i < menuContents.length; i++) {
+                hideMenu(menuContents[i].id);
+            }
+        }
+
+        function setHeaderMenu(name) {
+            hideInnerMenus();
+            $(`#${name}-btn`).removeClass('deck-btn');
+            $(`#${name}-btn`).addClass('deck-btn-active');
+            showMenu(`${name}-menu-content`);
         }
 
         function toggleMenu(id) {
@@ -14443,6 +14489,84 @@ if (!isset($_SESSION)) {
 
         function showMenu(id) {
             $(`#${id}`).css('display', 'block');
+        }
+
+        function loadSettingContent() {
+            const contentDiv = $('#settings-menu-content');
+            const settingDiv = $('<div></div>');
+            settingDiv.css({width: "100%"});
+            for (let key in settingOptions) {
+                const item = settingOptions[key];
+                const div = $('<div class="itemSetting"></div>');
+                const text = $(`<p>${item.text}</p>`);
+                div.append(text);
+                let input;
+                switch (item.type.toLowerCase()) {
+                    case "number":
+                        input = $(`<input type="number" id="${key}-input" value="${item.value}" min="${item.min || 0}" max="${item.max || 100000}" />`);
+                        input.css('width', '40%');
+                        break;
+                    case "bool":
+                        input = $(`<input type="checkbox" role="switch" id="${key}-input">`);
+                        input.prop('checked', item.value);
+                        input.css('width', '25px');
+                        break;
+                    case "text":
+                    default:
+                        input = $(`<input type="text" id="${key}-input" value="${item.value}"/>`);
+                        input.css('width', '40%');
+                        break;
+                }
+                div.append(input);
+                contentDiv.append(div);
+            }
+            const divButtons = $('<div></div>');
+            divButtons.css({
+                display: "flex",
+                "justify-content": "space-between",
+            })
+            const btnReset = $(`<button class="deck-btn">Reset</button>`);
+            btnReset.css({
+                "background-color": "red",
+            });
+            btnReset.click(() => {
+                // for (let key in settingOptions)
+                //     settingOptions[key].value = settings[key].default;
+                document.cookie = `settings=; expires=${(new Date(Date.now() + 1314000000)).toUTCString()}`;
+                location.reload();
+            });
+            divButtons.append(btnReset);
+            const btnSave = $(`<button class="deck-btn">Save</button>`);
+            btnSave.css({
+                "background-color": "green",
+            });
+            btnSave.click(() => {
+                const items = $('#settings-menu-content input');
+                for (let i = 0; i < items.length; i++) {
+                    const key = items[i].id.split('-')[0];
+                    switch (settingOptions[key].type.toLowerCase()) {
+                        case "bool":
+                            settingOptions[key].value = items[i].checked;
+                        break;
+                        case "number":
+                            settingOptions[key].value = parseFloat(items[i].value);
+                        break;
+                        default:
+                            settingOptions[key].value = items[i].value;
+                        break;
+                    }
+                }
+                document.cookie = `settings=${JSON.stringify(settingOptions)}; expires=${(new Date(Date.now() + 1314000000)).toUTCString()}`;
+                location.reload();
+            });
+            divButtons.append(btnSave);
+            contentDiv.append(divButtons);
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
         }
 
         function unselectInfo() {
@@ -15445,230 +15569,6 @@ if (!isset($_SESSION)) {
             get controller() {
                 return this._getControllerProps({
                     type: MapController,
-                });
-            }
-        }
-
-        // ********** LAYERS **********
-        class TrafficLayer extends deck.CompositeLayer {
-            static defaultProps = {
-                getPath: {
-                    type: 'accessor',
-                    value: d => d.path
-                },
-            };
-            static layerName = 'TrafficLayer';
-
-            updateState({
-                props,
-                changeFlags
-            }) {
-                if (!changeFlags.dataChanged)
-                    return;
-            }
-
-            renderLayers() {
-                const planeLayers = []
-                // for (let d of this.props.data) {
-                //     planeLayers.push(new VerticalPlaneLayer({
-                //         id: `plane-${d.id}`,
-                //         fromPosition: d.path[0],
-                //         toPosition: d.path[1],
-                //         opacity: 1,
-                //         startDensity: parseFloat(d.relativeDensity),
-                //         endDensity: parseFloat(d.nextRelativeDensity),
-                //         fillColor: d.color,
-                //         startColor: d.color,
-                //         endColor: d.nextColor,
-                //         // parameters: {
-                //         //     depthTest: false
-                //         // },
-                //     }));
-                // }
-                return [
-                    new deck.TripsLayer({
-                        id: `bottom-${this.props.id}`,
-                        getPath: d => d.path,
-                        getTimestamps: d => [0, 100],
-                        getColor: d => d.color || [253, 128, 93],
-                        // getColor: [253, 128, 93],
-                        // parameters: {
-                        //     depthTest: false
-                        // },
-                        opacity: 1,
-                        // picking: true,
-                        widthMinPixels: 5,
-                        rounded: true,
-                        fadeTrail: false,
-                        trailLength: 200,
-                        currentTime: 100,
-                        data: this.props.data
-                    }),
-                    new snap4deck.CrestLayer({
-                        id: `crest-${this.props.id}`,
-                        data: this.props.data,
-                        parameters: {
-                            depthTest: false
-                        },
-                    }),
-                    // ...planeLayers
-                ];
-            }
-        }
-
-        class BackgroundLayer extends deck.BitmapLayer {
-            static vs = `
-            #define SHADER_NAME background-layer-vertex-shader;
-
-            attribute vec3 positions;
-            attribute vec3 positions64Low;
-
-            void main(void) {
-                geometry.worldPosition = positions;
-
-                gl_Position = project_position_to_clipspace(positions, positions64Low, vec3(0.0), geometry.position);
-                DECKGL_FILTER_GL_POSITION(gl_Position, geometry);
-            }
-        `;
-            static fs = `
-            #define SHADER_NAME background-layer-fragment-shader;
-
-            precision mediump float;
-
-            uniform vec3 fillColor;
-            uniform float opacity;
-
-            void main(void) {
-                gl_FragColor = vec4(fillColor, opacity);
-            }
-        `;
-            static defaultProps = {
-                fillColor: {
-                    type: 'color',
-                    value: [87, 87, 87]
-                },
-                // opacity: {
-                //     type: 'float',
-                //     value: 1,
-                // },
-            };
-
-            initializeState() {
-                super.initializeState();
-                const {
-                    gl
-                } = this.context;
-                this.setState({
-                    model: this._getModel(gl)
-                });
-            }
-
-            getShaders() {
-                return Object.assign({}, super.getShaders(), {
-                    vs: BackgroundLayer.vs,
-                    fs: BackgroundLayer.fs,
-                });
-            }
-
-            _sanitizeColor(color) {
-                if (color.length < 3)
-                    return [255, 0, 0];
-                return color;
-            }
-
-            static DEFAULT_INDICES = new Uint16Array([0, 2, 1, 0, 3, 2]);
-            // static DEFAULT_INDICES = new Uint16Array([0, 2, 1, 0, 3, 2, 0, 1, 2, 0, 2, 3]);
-
-            draw(opts) {
-                const {
-                    uniforms,
-                    moduleParameters,
-                } = opts;
-                const {
-                    model,
-                } = this.state;
-                const {
-                    opacity,
-                } = this.props;
-                var {
-                    fillColor,
-                } = this.props;
-                fillColor = this._sanitizeColor(fillColor);
-
-                if (!model)
-                    return;
-
-                if (terrainOn) {
-                    model
-                        .setUniforms(uniforms)
-                        .setUniforms({
-                            opacity,
-                            fillColor: fillColor.map(x => x / 255),
-                        })
-                        .draw();
-                }
-            }
-
-            _createMesh() {
-                const {
-                    bounds
-                } = this.props;
-
-                let normalizedBounds = bounds;
-                if (Number.isFinite(bounds[0])) {
-                    normalizedBounds = [
-                        [bounds[0], bounds[1]],
-                        [bounds[0], bounds[3]],
-                        [bounds[2], bounds[3]],
-                        [bounds[2], bounds[1]]
-                    ];
-                }
-
-                return this._createMeshNormalized(normalizedBounds);
-            }
-
-            _createMeshNormalized(bounds) {
-                return this.createQuad(bounds);
-            }
-
-            createQuad(bounds) {
-                const positions = new Float64Array(12);
-                // [[minX, minY], [minX, maxY], [maxX, maxY], [maxX, minY]]
-                for (let i = 0; i < bounds.length; i++) {
-                    positions[i * 3 + 0] = bounds[i][0];
-                    positions[i * 3 + 1] = bounds[i][1];
-                    positions[i * 3 + 2] = bounds[i][2] || 0;
-                }
-
-                return {
-                    // vertexCount: 12,
-                    vertexCount: 6,
-                    positions,
-                    indices: BackgroundLayer.DEFAULT_INDICES,
-                };
-            }
-
-            interpolateQuad(quad, ut, vt) {
-                return lerp(lerp(quad[0], quad[1], vt), lerp(quad[3], quad[2], vt), ut);
-            }
-
-            _getModel(gl) {
-                if (!gl)
-                    return null;
-                /*
-                0,0 --- 1,0
-                |       |
-                0,1 --- 1,1
-                */
-                return new luma.Model(gl, {
-                    ...this.getShaders(),
-                    id: this.props.id,
-                    geometry: new luma.Geometry({
-                        drawMode: gl.TRIANGLES,
-                        // vertexCount: 12
-                        vertexCount: 6
-                    }),
-                    isInstanced: false
                 });
             }
         }
@@ -20657,7 +20557,7 @@ if (!isset($_SESSION)) {
         left: calc(40% + 10px);
         height: calc(100% - 20px);
         position: absolute;
-        overflow-y: scroll;
+        overflow-y: auto;
         cursor: pointer;
         top: 10px;
     }
@@ -20756,6 +20656,23 @@ if (!isset($_SESSION)) {
         color: black;
     }
 
+    #compass-div {
+        flex-direction: column;
+        align-items: center;
+        color: var(--dash-bg-color);
+        transform-origin: 50% 33.5px;
+    }
+
+    #compass-div > * {
+        margin: 0;
+    }
+
+    #compass-icon {
+        font-size: 2em;
+        transform: rotate(-45deg);
+        cursor: pointer;
+    }
+
     .deck-btn {
         box-shadow: 0px 10px rgba(0, 0, 0, 0.1)!important;
     }
@@ -20774,7 +20691,37 @@ if (!isset($_SESSION)) {
         display: flex;
         align-items: flex-end;
     }
-    
+
+    .itemSetting {
+        display: flex;
+        width: 100%;
+        padding: 10px;
+        justify-content: space-between;
+        font-size: 1vw !important;
+    }
+
+    .itemSetting > * {
+        margin: 0;
+    }
+
+    .itemSetting > p {
+        line-height: 34px;
+    }
+
+    .itemSetting > input {
+        color: black;
+    }
+
+    #settings-menu-content button {
+        width: 35%;
+        font-size: 1vw !important;
+        text-decoration: none;
+        color: white;
+        padding: 10px 0px;
+        text-align: center;
+        border-radius: 30px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
 </style>
 
 <div class="widget" id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div">
@@ -20878,6 +20825,10 @@ if (!isset($_SESSION)) {
                                     <i class="fa fa-hand-pointer-o" aria-hidden="true"></i>
                                 </button>
                             </div>
+                            <div id="compass-div" class="deck-btn-set">
+                                <p>N</p>
+                                <i id="compass-icon" class="fa fa-compass" aria-hidden="true"></i>
+                            </div>
                         </div>
                     </div>
                     <div id="universal-bottom-left"></div>
@@ -20904,6 +20855,7 @@ if (!isset($_SESSION)) {
                             <a id="orthomaps-btn" class="deck-btn-active" href="#">Orthomaps</a>
                             <a id="geojson-btn" class="deck-btn" href="#">WMS & GeoJSON</a>
                             <a id="buildings-btn" class="deck-btn" href="#">Buildings</a>
+                            <a id="settings-btn" class="deck-btn" href="#">Settings</a>
                             <!-- <a id="lights-btn" class="deck-btn" href="#">Lights</a> -->
                         </div>
                         <div id="deck-menu-content">
@@ -20916,6 +20868,9 @@ if (!isset($_SESSION)) {
                             <div id="buildings-menu-content" style="display: none;">
                                 <!-- <li class="dropdown-header">Buildings</li> -->
                                 <li class="dropdown-header" id="buildingHeader">Buildings</li>
+                            </div>
+                            <div id="settings-menu-content" style="display: none;">
+                                <li class="dropdown-header" id="buildingHeader">Settings</li>
                             </div>
                             <div id="lights-menu-content" style="display: none;">
                                 <li class="dropdown-header">Lights</li>
