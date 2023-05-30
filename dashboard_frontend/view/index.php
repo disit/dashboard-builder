@@ -88,14 +88,7 @@
                 //Se non è pubblica può andare avanti con codice standard, altrimenti gli viene chiesto di collegarsi
                 if($row['visibility'] != 'public')
                 {
-                    $host='main.snap4city.org';
-if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
-  $host=$_SERVER['HTTP_X_FORWARDED_HOST'];
-  if($host=='dashboard.km4city.org')
-    $host.='/dashboardSmartCity';
-}
-                    header("Location: ../management/ssoLogin.php?redirect=https://$host/view/index.php?iddasboard=" . $_REQUEST['iddasboard']);
-                    exit();
+                    redirect_on_login();
                 }
             }
 
