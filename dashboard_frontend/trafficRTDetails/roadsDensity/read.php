@@ -5,7 +5,14 @@ header("Content-Type: application/json; charset=UTF-8");
 
 // include database and object files
 include_once '../config/Database.php';
-include_once '../objects/roads.php';
+include_once '../objects/roadsDensity.php';
+
+
+$sLat = $_REQUEST['sLat'];
+$sLong = $_REQUEST['sLong'];
+$eLat = $_REQUEST['eLat'];
+$eLong = $_REQUEST['eLong'];
+$zoom = $_REQUEST['zoom'];
 
 // instantiate database and product object
 $database = new Database();
@@ -14,11 +21,6 @@ $db = $database->getConnection();
 // initialize object
 $road = new Roads($db);
 
-$sLat = $_REQUEST['sLat'];
-$sLong = $_REQUEST['sLong'];
-$eLat = $_REQUEST['eLat'];
-$eLong = $_REQUEST['eLong'];
-$zoom = $_REQUEST['zoom'];
 
 // query products
 // $stmt = $road->read($sLat, $sLong, $eLat, $eLong, $zoom);
@@ -63,7 +65,8 @@ if ($num > 0) {
                 "start" => $start_item,
                 "end" => $end_item,
                 "Lanes" => $Lanes,
-                "FIPILI" => $FIPILI
+                "FIPILI" => $FIPILI,
+                "density" => $density
             );
 
             array_push($segments_arr, $segment_item);
@@ -86,7 +89,8 @@ if ($num > 0) {
                 "start" => $start_item,
                 "end" => $end_item,
                 "Lanes" => $Lanes,
-                "FIPILI" => $FIPILI
+                "FIPILI" => $FIPILI,
+                "density" => $density
             );
 
             array_push($segments_arr, $segment_item);
@@ -121,18 +125,13 @@ if ($num > 0) {
                 "start" => $start_item,
                 "end" => $end_item,
                 "Lanes" => $Lanes,
-                "FIPILI" => $FIPILI
+                "FIPILI" => $FIPILI,
+                "density" => $density
             );
 
             array_push($segments_arr, $segment_item);
         }
     }
-    $road_item = array(
-        "road" => $road,
-        "segments" => $segments_arr
-    );
-
-    array_push($roads_arr, $road_item);
 
     //print_r(count($roads_arr));
 

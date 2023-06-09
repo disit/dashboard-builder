@@ -25,17 +25,42 @@ class Roads{
     // read products
     function read($startLat, $startLong, $endLat, $endLong, $zoom, $db){    // MOD DB
 
-        if ($zoom > 1) {
-            $this->table_name = "lowDetailedGraphStatic";
+       if ($zoom < 11) {
+            $this->table_name = "10GraphStatic";
         }
+        else if ($zoom == 11) {
+            $this->table_name = "11GraphStatic";
+        }
+        else if ($zoom == 12) {
+            $this->table_name = "12GraphStatic";
+        }
+        else if ($zoom == 13) {
+            $this->table_name = "13GraphStatic";
+        }
+        else if ($zoom == 14) {
+            $this->table_name = "14GraphStatic";
+        }
+        else if ($zoom == 15) {
+            $this->table_name = "15GraphStatic";
+        }
+        else if ($zoom == 16) {
+            $this->table_name = "16GraphStatic";
+        }
+        else if ($zoom == 17) {
+            $this->table_name = "highDetailedGraphStatic";
+        }
+        else if ($zoom == 18) {
+            $this->table_name = "highDetailedGraphStatic";
+        }  
 
         // select all query
         $query = "SELECT
                 p.id, p.roadSegmentUnit, p.roadID, p.segmentID, p.StartLong, p.StartLat, p.EndLong, p.EndLat, p.Lanes, p.FIPILI
             FROM
                 " . $this->table_name . " p
-                WHERE p.StartLat > '" . $startLat . "' and p.StartLong > '" . $startLong . "' and p.EndLat < '" . $endLat . "' and p.EndLong < '" . $endLong . "'
+                WHERE p.StartLat > '" . $startLat . "' and p.StartLong > '" . $startLong . "' and p.EndLat < '" . $endLat . "' and p.EndLong < '" . $endLong . "' ORDER BY p.roadID
            ";
+
 
         // prepare query statement
       //  $stmt = $this->conn->prepare($query);   // MOD DB
@@ -49,16 +74,40 @@ class Roads{
 
     function firstRow($startLat, $startLong, $endLat, $endLong, $zoom, $db){    // MOD DB
 
-        if ($zoom > 1) {
-            $this->table_name = "lowDetailedGraphStatic";
+        if ($zoom < 11) {
+            $this->table_name = "10GraphStatic";
         }
-
+        else if ($zoom == 11) {
+            $this->table_name = "11GraphStatic";
+        }
+        else if ($zoom == 12) {
+            $this->table_name = "12GraphStatic";
+        }
+        else if ($zoom == 13) {
+            $this->table_name = "13GraphStatic";
+        }
+        else if ($zoom == 14) {
+            $this->table_name = "14GraphStatic";
+        }
+        else if ($zoom == 15) {
+            $this->table_name = "15GraphStatic";
+        }
+        else if ($zoom == 16) {
+            $this->table_name = "16GraphStatic";
+        }
+        else if ($zoom == 17) {
+            $this->table_name = "highDetailedGraphStatic";
+        }
+        else if ($zoom == 18) {
+            $this->table_name = "highDetailedGraphStatic";
+        }  
+        
         // select all query
         $query = "SELECT
-                min(p.id) as firstRow
+                p.id as firstRow
             FROM
                 " . $this->table_name . " p
-                WHERE p.StartLat > '" . $startLat . "' and p.StartLong > '" . $startLong . "' and p.EndLat < '" . $endLat . "' and p.EndLong < '" . $endLong . "'
+                WHERE p.StartLat > '" . $startLat . "' and p.StartLong > '" . $startLong . "' and p.EndLat < '" . $endLat . "' and p.EndLong < '" . $endLong . "' ORDER BY p.roadID LIMIT 1
            ";
 
         // prepare query statement

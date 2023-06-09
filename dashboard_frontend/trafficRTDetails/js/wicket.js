@@ -18,7 +18,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-var flagM = "";
+
 (function (root, factory) {
 
     if (typeof define === "function" && define.amd) {
@@ -504,12 +504,7 @@ var flagM = "";
      * @memberof this.Wkt.Wkt
      * @method
      */
-    Wkt.Wkt.prototype.read = function (str, flag) {
-        if (flag == "newMap") {
-            flagM = "newMap";
-        } else {
-            flagM = null;
-        }
+    Wkt.Wkt.prototype.read = function (str) {
         var matches;
         matches = this.regExes.typeStr.exec(str);
         if (matches) {
@@ -724,24 +719,21 @@ var flagM = "";
          * @memberof this.Wkt.Wkt.ingest
          * @instance
          */
+        /*point: function (str) {
+            var coords = Wkt.trim(str).split(this.regExes.spaces);
+            // In case a parenthetical group of coordinates is passed...
+            return [{ // ...Search for numeric substrings
+                x: parseFloat(this.regExes.numeric.exec(coords[0])[0]),
+                y: parseFloat(this.regExes.numeric.exec(coords[1])[0])
+            }];
+        }*/
         point: function (str) {
-            if(flagM != "newMap") {
-                var coords = Wkt.trim(str).split(this.regExes.spaces);
-                // In case a parenthetical group of coordinates is passed...
-                return [{ // ...Search for numeric substrings
-                    x: parseFloat(this.regExes.numeric.exec(coords[0])[0]),
-                    y: parseFloat(this.regExes.numeric.exec(coords[1])[0])
-                }];
-                //   }
-            } else {
-                //   point: function (str) {
-                var coords = Wkt.trim(str).split(this.regExes.spaces);
-                // In case a parenthetical group of coordinates is passed...
-                return [ // ...Search for numeric substrings
-                    [parseFloat(this.regExes.numeric.exec(coords[0])[0]),
-                        parseFloat(this.regExes.numeric.exec(coords[1])[0])]
-                ];
-            }
+            var coords = Wkt.trim(str).split(this.regExes.spaces);
+            // In case a parenthetical group of coordinates is passed...
+            return [ // ...Search for numeric substrings
+                 [parseFloat(this.regExes.numeric.exec(coords[0])[0]),
+                 parseFloat(this.regExes.numeric.exec(coords[1])[0])]
+            ];
         },
 
         /**
