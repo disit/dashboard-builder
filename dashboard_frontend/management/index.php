@@ -46,7 +46,7 @@ if (!isset($_SESSION)) {
 
 if(isset($_GET['switchNewLayout']) || $layoutStyle == "new") {
 
-  if ($_SESSION['isPublic'] || sizeof($_SESSION['isPublic'] < 1)) {
+  if ($_SESSION['isPublic'] || sizeof($_SESSION) < 1) {
     $cookie_name = "layout";
     if ($_GET['switchNewLayout'] == "true" || (!isset($_GET['switchNewLayout']) && $layoutStyle == "new")) {
       $cookie_value = "new_layout";
