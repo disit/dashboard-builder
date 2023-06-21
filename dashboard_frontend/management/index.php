@@ -44,11 +44,11 @@ if (!isset($_SESSION)) {
   session_start();
 }
 
-if(isset($_GET['switchNewLayout'])) {
+if(isset($_GET['switchNewLayout']) || $layoutStyle == "new") {
 
-  if ($_SESSION['isPublic']) {
+  if ($_SESSION['isPublic'] || sizeof($_SESSION['isPublic'] < 1)) {
     $cookie_name = "layout";
-    if ($_GET['switchNewLayout'] == "true") {
+    if ($_GET['switchNewLayout'] == "true" || (!isset($_GET['switchNewLayout']) && $layoutStyle == "new")) {
       $cookie_value = "new_layout";
     } else {
       $cookie_value = "legacy_layout";
@@ -56,7 +56,7 @@ if(isset($_GET['switchNewLayout'])) {
     setcookie($cookie_name, $cookie_value, time() + (86400), "/"); // 86400 = 1 day
   } else if (isset($_COOKIE['layout'])) {
     $cookie_name = "layout";
-    if ($_GET['switchNewLayout'] == "true") {
+    if ($_GET['switchNewLayout'] == "true" || (!isset($_GET['switchNewLayout']) && $layoutStyle == "new")) {
       $cookie_value = "new_layout";
     } else {
       $cookie_value = "legacy_layout";
@@ -64,7 +64,7 @@ if(isset($_GET['switchNewLayout'])) {
     setcookie($cookie_name, $cookie_value, time() + (86400), "/"); // 86400 = 1 day
   }
 
-  if (isset($_SESSION['newLayout'])) {
+  if (isset($_SESSION['newLayout']) || $layoutStyle == "new") {
     if ($_GET['switchNewLayout'] == "false") {
       $_SESSION['newLayout'] = false;
     } else {
