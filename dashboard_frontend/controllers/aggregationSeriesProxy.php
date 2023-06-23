@@ -256,77 +256,84 @@
                 }
                 //eventLog($urlToCall); 
             } else {
-                $smUrl = $kbUrlSuperServiceMap . "?serviceUri=" . rawurlencode($dataOrigin->serviceUri) . "&format=json";
-                $metricType = "Float";
 
-                if (isset($_REQUEST['timeRange']) && !isset($_REQUEST['lowerTime'])) {
-                    if (!empty($_REQUEST['timeRange'])) {
-                        if ($_REQUEST['timeRange'] != 'last') {
-                            switch ($_REQUEST['timeRange']) {
-                                case "4 Ore":
-                                    $timeRange = "fromTime=4-hour";
-                                    break;
+                if (stripos($dataOrigin->serviceUri, "servicemap") && strpos($dataOrigin->serviceUri, "serviceUri=")) {
+                    if (checkHost($link, explode("?serviceUri=", $dataOrigin->serviceUri)[0])) {
+                        $urlToCall = $dataOrigin->serviceUri;
+                    }
+                } else {
 
-                                case "12 Ore":
-                                    $timeRange = "fromTime=12-hour";
-                                    break;
+                    $smUrl = $kbUrlSuperServiceMap . "?serviceUri=" . rawurlencode($dataOrigin->serviceUri) . "&format=json";
+                    $metricType = "Float";
 
-                                case "Giornaliera":
-                                    $timeRange = "fromTime=1-day";
-                                    break;
+                    if (isset($_REQUEST['timeRange']) && !isset($_REQUEST['lowerTime'])) {
+                        if (!empty($_REQUEST['timeRange'])) {
+                            if ($_REQUEST['timeRange'] != 'last') {
+                                switch ($_REQUEST['timeRange']) {
+                                    case "4 Ore":
+                                        $timeRange = "fromTime=4-hour";
+                                        break;
 
-                                case "Settimanale":
-                                    $timeRange = "fromTime=7-day";
-                                    break;
+                                    case "12 Ore":
+                                        $timeRange = "fromTime=12-hour";
+                                        break;
 
-                                case "Mensile":
-                                    $timeRange = "fromTime=30-day";
-                                    break;
+                                    case "Giornaliera":
+                                        $timeRange = "fromTime=1-day";
+                                        break;
 
-                                case "Semestrale":
-                                    $timeRange = "fromTime=180-day";
-                                    break;
+                                    case "Settimanale":
+                                        $timeRange = "fromTime=7-day";
+                                        break;
 
-                                case "Annuale":
-                                    $timeRange = "fromTime=365-day";
-                                    break;
+                                    case "Mensile":
+                                        $timeRange = "fromTime=30-day";
+                                        break;
 
-                                case "2 Anni":
-                                    $timeRange = "fromTime=730-day";
-                                    break;
+                                    case "Semestrale":
+                                        $timeRange = "fromTime=180-day";
+                                        break;
 
-                                case "10 Anni":
-                                    $timeRange = "fromTime=3650-day";
-                                    break;
+                                    case "Annuale":
+                                        $timeRange = "fromTime=365-day";
+                                        break;
+
+                                    case "2 Anni":
+                                        $timeRange = "fromTime=730-day";
+                                        break;
+
+                                    case "10 Anni":
+                                        $timeRange = "fromTime=3650-day";
+                                        break;
+                                }
+
+                                $urlToCall = $smUrl . "&" . $timeRange;
+                            } else {
+                                $urlToCall = $smUrl;
                             }
-
-                            $urlToCall = $smUrl . "&" . $timeRange;
                         } else {
                             $urlToCall = $smUrl;
                         }
                     } else {
                         $urlToCall = $smUrl;
                     }
-                } else {
-                    $urlToCall = $smUrl;
-                }
 
-                
-                if(isset($_REQUEST['lowerTime'])){
-                    $urlToCall = $urlToCall . "&fromTime=" . $_REQUEST['lowerTime'];
-                }
-                
-                if (isset($_REQUEST['upperTime'])) {
-                    $urlToCall = $urlToCall . "&toTime=" . $_REQUEST['upperTime'];
-                }
 
-                if (isset($dataOrigin->smField)) {
-                    //  if(strpos($dataOrigin->smField, 'Forecast') !== false) {
-                    $urlToCall = $urlToCall . "&valueName=" . $dataOrigin->smField;
-                    //  }
+                    if (isset($_REQUEST['lowerTime'])) {
+                        $urlToCall = $urlToCall . "&fromTime=" . $_REQUEST['lowerTime'];
+                    }
+
+                    if (isset($_REQUEST['upperTime'])) {
+                        $urlToCall = $urlToCall . "&toTime=" . $_REQUEST['upperTime'];
+                    }
+
+                    if (isset($dataOrigin->smField)) {
+                        //  if(strpos($dataOrigin->smField, 'Forecast') !== false) {
+                        $urlToCall = $urlToCall . "&valueName=" . $dataOrigin->smField;
+                        //  }
+                    }
+                    $response["url"] = $urlToCall;
                 }
-                $response["url"] = $urlToCall;
-                
             }
 
             if(isset($urlToCall)) {
