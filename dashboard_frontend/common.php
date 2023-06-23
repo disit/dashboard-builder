@@ -856,3 +856,21 @@ function checkFAIcon($ico) {
     }
     return $ico;
 }
+
+function checkHost($link, $kbHost) {
+    $query = "SELECT DISTINCT kbUrl FROM Dashboard.Organizations;";
+    $r = mysqli_query($link, $query);
+
+    if($r) {
+        while ($row = mysqli_fetch_assoc($r)) {
+            if (stripos($kbHost, $row['kbUrl']) !== false) {
+                return true;
+            } else {
+                $stopFLag = 1;
+            }
+        }
+        return false;
+    } else {
+        return false;
+    }
+}
