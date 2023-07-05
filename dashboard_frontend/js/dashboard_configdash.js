@@ -69,22 +69,6 @@ function setEditMultiSeriesParameters(editMultiSeriesParametersAtt)
     editMultiSeriesParametersLocal = editMultiSeriesParametersAtt;
 }
 
-function addToEditMultiSeriesParameters(param)
-{
-    for (k = 0; k < editMultiSeriesParametersLocal.length; k++) {
-        if (editMultiSeriesParametersLocal[k].mode) {
-            if (editMultiSeriesParametersLocal[k].mode == "ckeditor") {
-                editMultiSeriesParametersLocal[k].mode == "no";
-            }
-            if (editMultiSeriesParametersLocal[k].mode == "no") {
-                editMultiSeriesParametersLocal[k].mode == "ckeditor";
-            }
-            return;
-        }
-    }
-    editMultiSeriesParametersLocal.push(param);
-}
-
 function addGisQuery()
 {
    var newTableRow, newTableCell, newQueryObj, widgetId, widgetTitle = null;
@@ -646,6 +630,8 @@ function addGisQueryM()
        newTableCell.find('select').append('<option value="Bubble">Bubble</option>');
        newTableCell.find('select').append('<option value="CustomPin">Custom Pin</option>');
        newTableCell.find('select').append('<option value="DynamicCustomPin">Dynamic Custom Pin</option>');
+       newTableCell.find('select').append('<option value="BimShape">BIM Shape</option>');
+       // newTableCell.find('select').append('<option value="BimShapePopup">BIM Shape & Popup</option>');
        newTableRow.append(newTableCell);
        newTableCell.find('select').val('No');
        newTableCell.find('select').on('change', editGisUpdateParams);
@@ -1079,7 +1065,7 @@ function editGisUpdateParams(e, params)
           newValue = $(this).val();
           let lastValue = editGisParametersLocal.queries[rowIndex].bubble;
           editGisParametersLocal.queries[rowIndex].bubble = newValue;
-          if (newValue == 'Bubble' || newValue == 'CustomPin' || newValue == 'DynamicCustomPin') {
+          if (newValue == 'Bubble' || newValue == 'CustomPin' || newValue == 'DynamicCustomPin' || newValue == 'BimShape' || newValue == 'BimShapePopup') {
               if (lastValue == null || lastValue == 'None' || lastValue == '') {
                   $('#bubbleMetricsSelect' + rowIndex).empty();
                   $('#bubbleMetricsSelect' + rowIndex).append('<option style="color:darkgrey" value="loading available metrics..." disabled>loading available metrics...</option>');
@@ -1239,14 +1225,6 @@ function editMultiSeriesUpdateParams(e, params)
     {
         case 'labels':
             newValue = params.newValue;
-            /* if (editMultiSeriesParametersLocal[rowIndex].mode) {
-                let finalParam = editMultiSeriesParametersLocal[rowIndex].mode;
-                editMultiSeriesParametersLocal[rowIndex] = {};
-                editMultiSeriesParametersLocal[rowIndex].label = newValue;
-                editMultiSeriesParametersLocal[rowIndex+1].mode = finalParam;
-            } else {
-                editMultiSeriesParametersLocal[rowIndex].label = newValue;
-            }   */
             editMultiSeriesParametersLocal[rowIndex].label = newValue;
             break;
 

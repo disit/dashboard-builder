@@ -346,6 +346,1289 @@ if (!isset($_SESSION)) {
             var serviceUrl = null;
             var code = null;
             var selectedData = {};
+            var getSmartCityAPIData = null;
+            var getShapeSmartCityAPIData = null;
+            var geoJsonLayerShape, bimShapeOnMap, descBim = null;
+
+            var spinIcon = (window.location.href.includes("view/index.php") || window.location.href.includes("management/dashboard_configdash.php")) ? 'fa fa-circle-o-notch fa-spin' : 'fa-solid fa-circle-notch fa-spin';
+
+            
+            function removeBimShapeColorLegend(index, resetPageFlag) {
+                map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
+                map.defaultMapRef.removeLayer(geoJsonLayerShape);
+            }
+            
+            function onMapEntityClick(feature, marker) {
+                marker.on('click', function (event) {
+                    //    map.defaultMapRef.off('moveend');
+                    if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code){
+                        let i=1;
+                        if(localStorage.getItem("events") == null){
+
+                            var events = [];
+                            events.push("MapMarkerClick1");
+                            localStorage.setItem("events", JSON.stringify(events));
+                        }
+                        else{
+                            var events = JSON.parse(localStorage.getItem("events"));
+                            for(var e in events){
+                                if(events[e].slice(0,9) == "MapMarker")
+                                    i = i+1;
+                            }
+                            events.push("MapMarkerClick" + i);
+                            localStorage.setItem("events", JSON.stringify(events));
+                        }
+                        let newId = "MapMarkerClick"+i;
+                        $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                        $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                        $('#'+newId).on( "click", function() {
+                            var widgets = JSON.parse(localStorage.getItem("widgets"));
+                            var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                            for(var w in widgets){
+                                if(widgets[w] != null){
+                                    $('body').trigger({
+                                        type: "reloadPreviousContent_"+widgets[w],
+                                        index: index
+                                    });
+                                }
+                            }
+                        });
+                        $( '#'+newId ).mouseover(function() {
+                            $('#'+newId).css('cursor', 'pointer');
+                        });
+
+                        var selectedData = {};
+                        selectedData.event = "click";
+                        selectedData.layers = [];
+                        selectedData.layers[0] = marker.feature.properties;
+                        selectedDataJson = JSON.stringify(selectedData);
+
+                        try {
+                            execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                        } catch(e) {
+                            console.log("Error in JS function from marker click on " + widgetName);
+                        }
+                    }
+
+                    event.target.unbindPopup();
+                    newpopup = null;
+                    var popupText, realTimeData, measuredTime, rtDataAgeSec, targetWidgets, color1, color2 = null;
+                    var urlToCall, fake, fakeId = null;
+
+                    //alert("CLICK!");
+
+
+                    if (feature.properties.fake === 'true') {
+                        urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + feature.id;
+                        fake = true;
+                        fakeId = feature.id;
+                    }
+                    else {
+                        urlToCall = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri(feature.properties.serviceUri) + "&format=json&fullCount=false";
+                        fake = false;
+                    }
+
+                    if (event.target._latlng) {
+                        var latLngId = event.target.getLatLng().lat + "" + event.target.getLatLng().lng;
+                    } else {
+                        var latLngId = (event.target.feature.geometry.coordinates[0][0][0])[0]+""+(event.target.feature.geometry.coordinates[0][0][0])[1]
+                    }
+                    latLngId = latLngId.replace(".", "");
+                    latLngId = latLngId.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
+
+                    // TBD if(this.feature.properties.kpidata != null) { // MAKE MyKPI / MyPOI API CALL AND VISUALIZATION }
+
+                    $.ajax({
+                        url: urlToCall,
+                        type: "GET",
+                        data: {},
+                        async: true,
+                        dataType: 'json',
+                        success: function (geoJsonServiceData) {
+                            var fatherNode = null;
+                            if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+                                fatherNode = geoJsonServiceData.BusStop;
+                            }
+                            else {
+                                if (geoJsonServiceData.hasOwnProperty("Sensor")) {
+                                    fatherNode = geoJsonServiceData.Sensor;
+                                }
+                                else {
+                                    //Prevedi anche la gestione del caso in cui non c'è nessuna di queste tre, sennò il widget rimane appeso.
+                                    fatherNode = geoJsonServiceData.Service;
+                                }
+                            }
+
+                            var serviceProperties = fatherNode.features[0].properties;
+                            var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                            var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                            var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                            serviceSubclass = serviceSubclass.replace(/_/g, " ");
+
+                            fatherNode.features[0].properties.targetWidgets = feature.properties.targetWidgets;
+                            fatherNode.features[0].properties.color1 = feature.properties.color1;
+                            fatherNode.features[0].properties.color2 = feature.properties.color2;
+                            targetWidgets = feature.properties.targetWidgets;
+                            color1 = feature.properties.color1;
+                            color2 = feature.properties.color2;
+
+                            //Popup nuovo stile uguali a quelli degli eventi ricreativi
+                            popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
+                            if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                                //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                            }
+                            popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button>'+(geoJsonServiceData.hasOwnProperty("BusStop")?'<button data-id="' + latLngId + '" class="recreativeEventMapTplTmtblBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">TIMETABLE</button><button data-id="' + latLngId + '" class="recreativeEventMapTplBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">BROWSE</button>':'')+'</div>';
+
+                            popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
+
+                            popupText += '<table id="' + latLngId + '" class="gisPopupGeneralDataTable">';
+                            //Intestazione
+                            popupText += '<thead>';
+                            popupText += '<th style="background: ' + color2 + '">Description</th>';
+                            popupText += '<th style="background: ' + color2 + '">Value</th>';
+                            popupText += '</thead>';
+
+                            //Corpo
+                            popupText += '<tbody>';
+
+                            for (var featureKey in serviceProperties) {
+                                if (serviceProperties.hasOwnProperty(featureKey)) {
+                                    if (serviceProperties[featureKey] != null && serviceProperties[featureKey] !== '' && serviceProperties[featureKey] !== ' ' && featureKey !== 'targetWidgets' && featureKey !== 'color1' && featureKey !== 'color2' && featureKey !== 'realtimeAttributes') {
+                                        if (!Array.isArray(serviceProperties[featureKey]) || (Array.isArray(serviceProperties[featureKey] && serviceProperties[featureKey].length > 0))) {
+                                            popupText += '<tr><td>' + featureKey + '</td><td>' + serviceProperties[featureKey] + '</td></tr>';
+                                        }
+                                    }
+                                }
+                            }
+                            if (nodeId != null && serviceProperties["serviceUri"] != null && serviceProperties["serviceUri"] != '') {
+                                let eventJson = new Object();
+                                eventJson.latitude = feature.geometry.coordinates[1];
+                                eventJson.longitude = feature.geometry.coordinates[0];
+                                eventJson.serviceUri = serviceProperties["serviceUri"];
+                                currentValue = JSON.stringify(eventJson);
+                                triggerEventOnIotApp(map.defaultMapRef, currentValue);
+                            }
+
+                            popupText += '</tbody>';
+                            popupText += '</table>';
+
+                            /*if (geoJsonServiceData.hasOwnProperty('busLines')) {
+                                if (geoJsonServiceData.busLines.results.bindings.length > 0) {
+                                    popupText += '<b>Lines: </b>';
+                                    for (var i = 0; i < geoJsonServiceData.busLines.results.bindings.length; i++) {
+                                        popupText += '<span style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + geoJsonServiceData.busLines.results.bindings[i].busLine.value + '</span> ';
+                                    }
+                                }
+                            }*/
+
+                            if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+                                popupText+='<div class="tplProgressBar" style="display:none; width:100%; height:1em; margin-top:1em; background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');"></div>';
+                            }
+
+                            popupText += '</div>';
+
+                            popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
+
+                            if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
+                                popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                            }
+
+                            if((serviceProperties.serviceType !== '')&&(serviceProperties.serviceType !== undefined)&&(serviceProperties.serviceType !== 'undefined')&&(serviceProperties.serviceType !== null)&&(serviceProperties.serviceType !== 'null')) {
+                                popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
+                                popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                            }
+
+                            if (serviceProperties.hasOwnProperty('description')) {
+                                if ((serviceProperties.description !== '') && (serviceProperties.description !== undefined) && (serviceProperties.description !== 'undefined') && (serviceProperties.description !== null) && (serviceProperties.description !== 'null')) {
+                                    popupText += serviceProperties.description + "<br>";
+                                }
+                                else {
+                                    popupText += "No description available";
+                                }
+                            }
+                            else {
+                                popupText += 'No description available';
+                            }
+
+                            popupText += '</div>';
+
+                            popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapContactsContainer">';
+
+                            var hasRealTime = false;
+
+                            if (geoJsonServiceData.hasOwnProperty("realtime")) {
+                                if (!jQuery.isEmptyObject(geoJsonServiceData.realtime)) {
+                                    realTimeData = geoJsonServiceData.realtime;
+                                    popupText += '<div class="popupLastUpdateContainer centerWithFlex"><b>Last update:&nbsp;</b><span class="popupLastUpdate" data-id="' + latLngId + '"></span></div>';
+
+                                    if ((serviceClass.includes("Emergency")) && (serviceSubclass.includes("First aid"))) {
+                                        //Tabella ad hoc per First Aid
+                                        popupText += '<table id="' + latLngId + '" class="psPopupTable">';
+                                        var series = {
+                                            "firstAxis": {
+                                                "desc": "Priority",
+                                                "labels": [
+                                                    "Red code",
+                                                    "Yellow code",
+                                                    "Green code",
+                                                    "Blue code",
+                                                    "White code"
+                                                ]
+                                            },
+                                            "secondAxis": {
+                                                "desc": "Status",
+                                                "labels": [],
+                                                "series": []
+                                            }
+                                        };
+
+                                        var dataSlot = null;
+
+                                        measuredTime = realTimeData.results.bindings[0].measuredTime.value.replace("T", " ").replace("Z", "");
+
+                                        for (var i = 0; i < realTimeData.results.bindings.length; i++) {
+                                            if (realTimeData.results.bindings[i].state.value.indexOf("estinazione") > 0) {
+                                                series.secondAxis.labels.push("Addressed");
+                                            }
+
+                                            if (realTimeData.results.bindings[i].state.value.indexOf("ttesa") > 0) {
+                                                series.secondAxis.labels.push("Waiting");
+                                            }
+
+                                            if (realTimeData.results.bindings[i].state.value.indexOf("isita") > 0) {
+                                                series.secondAxis.labels.push("In visit");
+                                            }
+
+                                            if (realTimeData.results.bindings[i].state.value.indexOf("emporanea") > 0) {
+                                                series.secondAxis.labels.push("Observation");
+                                            }
+
+                                            if (realTimeData.results.bindings[i].state.value.indexOf("tali") > 0) {
+                                                series.secondAxis.labels.push("Totals");
+                                            }
+
+                                            dataSlot = [];
+                                            dataSlot.push(realTimeData.results.bindings[i].redCode.value);
+                                            dataSlot.push(realTimeData.results.bindings[i].yellowCode.value);
+                                            dataSlot.push(realTimeData.results.bindings[i].greenCode.value);
+                                            dataSlot.push(realTimeData.results.bindings[i].blueCode.value);
+                                            dataSlot.push(realTimeData.results.bindings[i].whiteCode.value);
+
+                                            series.secondAxis.series.push(dataSlot);
+                                        }
+
+                                        var colsQt = parseInt(parseInt(series.firstAxis.labels.length) + 1);
+                                        var rowsQt = parseInt(parseInt(series.secondAxis.labels.length) + 1);
+
+                                        for (var i = 0; i < rowsQt; i++) {
+                                            var newRow = $("<tr></tr>");
+                                            var z = parseInt(parseInt(i) - 1);
+
+                                            if (i === 0) {
+                                                //Riga di intestazione
+                                                for (var j = 0; j < colsQt; j++) {
+                                                    if (j === 0) {
+                                                        //Cella (0,0)
+                                                        var newCell = $("<td></td>");
+
+                                                        newCell.css("background-color", "transparent");
+                                                    }
+                                                    else {
+                                                        //Celle labels
+                                                        var k = parseInt(parseInt(j) - 1);
+                                                        var colLabelBckColor = null;
+                                                        switch (k) {
+                                                            case 0:
+                                                                colLabelBckColor = "#ff0000";
+                                                                break;
+
+                                                            case 1:
+                                                                colLabelBckColor = "#ffff00";
+                                                                break;
+
+                                                            case 2:
+                                                                colLabelBckColor = "#66ff33";
+                                                                break;
+
+                                                            case 3:
+                                                                colLabelBckColor = "#66ccff";
+                                                                break;
+
+                                                            case 4:
+                                                                colLabelBckColor = "#ffffff";
+                                                                break;
+                                                        }
+
+                                                        newCell = $("<td><span>" + series.firstAxis.labels[k] + "</span></td>");
+                                                        newCell.css("font-weight", "bold");
+                                                        newCell.css("background-color", colLabelBckColor);
+                                                    }
+                                                    newRow.append(newCell);
+                                                }
+                                            }
+                                            else {
+                                                //Righe dati
+                                                for (var j = 0; j < colsQt; j++) {
+                                                    k = parseInt(parseInt(j) - 1);
+                                                    if (j === 0) {
+                                                        //Cella label
+                                                        newCell = $("<td>" + series.secondAxis.labels[z] + "</td>");
+                                                        newCell.css("font-weight", "bold");
+                                                    }
+                                                    else {
+                                                        //Celle dati
+                                                        newCell = $("<td>" + series.secondAxis.series[z][k] + "</td>");
+                                                        if (i === (rowsQt - 1)) {
+                                                            newCell.css('font-weight', 'bold');
+                                                            switch (j) {
+                                                                case 1:
+                                                                    newCell.css('background-color', '#ffb3b3');
+                                                                    break;
+
+                                                                case 2:
+                                                                    newCell.css('background-color', '#ffff99');
+                                                                    break;
+
+                                                                case 3:
+                                                                    newCell.css('background-color', '#d9ffcc');
+                                                                    break;
+
+                                                                case 4:
+                                                                    newCell.css('background-color', '#cceeff');
+                                                                    break;
+
+                                                                case 5:
+                                                                    newCell.css('background-color', 'white');
+                                                                    break;
+                                                            }
+                                                        }
+                                                    }
+                                                    newRow.append(newCell);
+                                                }
+                                            }
+                                            popupText += newRow.prop('outerHTML');
+                                        }
+
+                                        popupText += '</table>';
+                                    }
+                                    else {
+                                        //Tabella nuovo stile
+                                        popupText += '<table id="' + latLngId + '" class="gisPopupTable">';
+
+                                        //Intestazione
+                                        popupText += '<thead>';
+                                        popupText += '<th style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</th>';
+                                        popupText += '<th style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Value</th>';
+                                        popupText += '<th colspan="9" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Buttons</th>';
+                                        popupText += '</thead>';
+
+                                        //Corpo
+                                        popupText += '<tbody>';
+                                        var dataDesc, dataVal, dataLastBtn, data4HBtn, dataDayBtn, data7DayBtn,
+                                            data30DayBtn, data6MonthsBtn, data1YearBtn, data2YearBtn, data10YearBtn, value_unit = null;
+                                        if (realTimeData.head != null) {
+                                            for (var i = 0; i < realTimeData.head.vars.length; i++) {
+                                                if (realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== null && realTimeData.results.bindings[0][realTimeData.head.vars[i]] !== undefined) {
+                                                    if ((realTimeData.results.bindings[0][realTimeData.head.vars[i]]) && (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.trim() !== '') && (realTimeData.head.vars[i] !== null) && (realTimeData.head.vars[i] !== 'undefined')) {
+                                                        if ((realTimeData.head.vars[i] !== 'updating') && (realTimeData.head.vars[i] !== 'measuredTime') && (realTimeData.head.vars[i] !== 'instantTime')) {
+                                                            if (!realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.includes('Not Available')) {
+                                                                //realTimeData.results.bindings[0][realTimeData.head.vars[i]].value = '-';
+                                                                /*   dataDesc = realTimeData.head.vars[i].replace(/([A-Z])/g, ' $1').replace(/^./, function (str) {
+                                                                       return str.toUpperCase();
+                                                                   });*/
+                                                                dataDesc = realTimeData.head.vars[i];
+                                                                dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
+                                                                if (serviceProperties.realtimeAttributes && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]] && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit) {
+                                                                    value_unit = serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit;
+                                                                }
+                                                                if (dataVal.length > 50 && value_unit !== "SURI") {
+                                                                    dataVal = '<div class="tooltipSuri">' + encodeHTMLEntities(dataVal).substring(0, 20) + '... <span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                                                }
+                                                                if (value_unit == "SURI") {
+                                                                    if (dataVal.includes("http://www.disit.org/km4city")) {
+                                                                        dataVal = '<div class="tooltipSuri">[SURI id]<span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                                                    } else {
+                                                                        dataVal = '<div class="tooltipSuri">[WEB Url]<span class="tooltipSuriText">' + dataVal + '</span></div>';
+                                                                    }
+                                                                }
+                                                                if (dataVal.length > 50) {
+                                                                    dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + (realTimeData.results.bindings[0][realTimeData.head.vars[i]].value).replace(/["]+/g, '') + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
+                                                                } else {
+                                                                    dataLastBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '" data-value_unit="' + value_unit + '">Last</button></td>';
+                                                                }
+                                                                data4HBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">4h</button></td>';
+                                                                dataDayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">24h</button></td>';
+                                                                data7DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">7d</button></td>';
+                                                                data30DayBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">30d</button></td>';
+                                                                data6MonthsBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="6 months" data-range="180/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">6m</button></td>';
+                                                                data1YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">1y</button></td>';
+                                                                data2YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="2 year" data-range="730/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">2y</button></td>';
+                                                                data10YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="10 year" data-range="3650/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">10y</button></td>';
+                                                                popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
+                                                            }
+                                                        } else {
+                                                            measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
+                                                            var now = new Date();
+                                                            var measuredTimeDate = new Date(measuredTime);
+                                                            rtDataAgeSec = Math.abs(now - measuredTimeDate) / 1000;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        popupText += '</tbody>';
+                                        popupText += '</table>';
+                                        popupText += '<p><b>Keep data on target widget(s) after popup close: </b><input data-id="' + latLngId + '" type="checkbox" class="gisPopupKeepDataCheck" data-keepData="false"/></p>';
+                                    }
+
+                                    hasRealTime = true;
+                                }
+                            }
+
+                            popupText += '</div>';
+
+                            if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+                                popupText += '<div id="linesof_'+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+'" class="recreativeEventMapDataContainer recreativeEventMapTplContainer">Please wait...</div>';
+                                popupText += '<div id="tmtblof_'+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+'" class="recreativeEventMapDataContainer recreativeEventMapTplTmtblContainer">Please wait...</div>';
+                            }
+
+                            newpopup = L.popup({
+                                closeOnClick: false,//Non lo levare, sennò autoclose:false non funziona
+                                autoClose: false,
+                                offset: [15, 0],
+                                //minWidth: 435,
+                                minWidth: 400,
+                                maxWidth: 1200,
+                                //	className: geoJsonServiceData.hasOwnProperty("BusStop")?"draggableAndResizablePopup":"nonDraggableAndResizablePopup"
+                                className: "draggableAndResizablePopup"
+                            }).setContent(popupText);
+
+                            event.target.bindPopup(newpopup).openPopup();
+
+                            // draggable
+                            var makeDraggable = function(popup, excluding){
+                                var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
+                                L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
+                                var draggable = new L.Draggable(popup._container, popup._wrapper);
+                                draggable.enable(); $(".draggableAndResizablePopup").css("cursor","move");
+                                draggable.on('dragend', function() {
+                                    var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
+                                    popup.setLatLng(pos);
+                                    $(popup._wrapper).siblings(".leaflet-popup-tip-container").hide();
+                                });
+                                excluding.forEach((excluded) => {
+                                    $(excluded).css("cursor","auto").on("mouseover",function(e){ draggable.disable(); } ).on("mouseout",function(e){ draggable.enable(); } );
+                                });
+                            };
+                            //	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
+                            if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup .recreativeEventMapDataContainer"]);
+
+
+                            //
+
+                            // resizable
+                            $(".draggableAndResizablePopup .leaflet-popup-content-wrapper").css({
+                                "resize": "both",
+                                "overflow": "auto",
+                                "min-width": "400px",
+                                "max-width": "1200px",
+                                "min-height": "100px",
+                                "max-height": "400px"
+                            });
+                            //
+
+                            // responsive
+                            $(".draggableAndResizablePopup .recreativeEventMapDataContainer").css({
+                                "width": "100%",
+                                "height": "100%"
+                            });
+                            //
+
+                            if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+
+                                $.getJSON( '<?=$whatifmdtendpt?>?stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=graphs",function(graphs){
+                                    var pAgency = graphs.join();
+                                    var routesMarkup = "<p class=\"tplpoi_routesSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date().toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</p>";
+                                    var progress = { todo: -1, done: -1, bar:0};
+                                    $.getJSON( '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&stop='+encodeURIComponent(serviceProperties['serviceUri'])+'&date='+encodeURIComponent(new Date().toISOString().slice(0, 10))+'&list=routes', function(routes) {
+                                        if(Object.keys(routes).length == 0) { $(".recreativeEventMapTplBtn").hide(); return; }
+                                        Object.keys(routes).forEach(function(key){
+                                            var route = routes[key];
+                                            var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&route='+encodeURIComponent(route["uri"])+"&stop="+encodeURIComponent(serviceProperties['serviceUri'])+"&date="+encodeURIComponent(new Date().toISOString().slice(0, 10))+"&list=trips";
+                                            routesMarkup+="<p class=\"tplpoi_wifstprte\"><button class=\"polyin_"+route["uri"].replace(/[^a-zA-Z0-9]/g, "")+"\" data-uri=\""+route["uri"]+"\" data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\">"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</button></p>";
+                                            route["geoms"].forEach(function(path){
+                                                var latlngs = [];
+                                                path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+                                                    latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+                                                });
+                                                var polyline = new L.Polyline(latlngs,{className: "tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" polyin_"+route["uri"].replace(/[^a-zA-Z0-9]/g, ""), color:"#"+route["color"], weight:6}).bindTooltip(route["type"]+" " +route["short_name"]+" "+route["long_name"], { direction: 'right' });
+                                                polyline.on("mouseover",function(e) {
+                                                    e.target.openTooltip(e.latlng);
+                                                });
+                                                if("undefined" == typeof tplPoiItems) { tplPoiItems = new L.FeatureGroup(); map.defaultMapRef.addLayer(tplPoiItems); }
+                                                polyline.addTo(tplPoiItems);
+                                            });
+                                            newpopup.on('remove', function() {
+                                                $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide(); // TODO Remove only those related to the specific stop!!
+                                            });
+                                            // qui andiamo a generare tutte le stop raggiungibili direttamente (senza cambi) da quella selezionata
+                                            $.getJSON(rteBtnUrl,function(trips){
+                                                var tripGeoms = [];
+                                                Object.keys(trips).forEach(function(tripkey){
+                                                    if(!tripGeoms.includes(trips[tripkey]["path"])) {
+                                                        tripGeoms.push(trips[tripkey]["path"]);
+                                                        $.getJSON('<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(trips[tripkey]["uri"])+"&list=stops",function(stops) {
+                                                            var eventDesc = null;
+                                                            map["eventsOnMap"].forEach(function(mapevt){
+                                                                if(mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+                                                                    eventDesc = mapevt["desc"];
+                                                                }
+                                                            });
+                                                            if(progress.todo == -1 && stops.length > 0) {
+                                                                progress.todo = stops.length;
+                                                            }
+                                                            else {
+                                                                progress.todo += stops.length;
+                                                            }
+                                                            stops.forEach(function(stop){
+                                                                Number.prototype.countDecimals = function () {
+                                                                    if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
+                                                                    return this.toString().split(".")[1].length || 0;
+                                                                };
+                                                                for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
+                                                                    var layer = gisLayersOnMap[eventDesc].getLayers()[l];
+                                                                    if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == stop["stop_uri"] ) ||
+                                                                        ( (!layer["feature"]) && layer["_latlng"] && layer["_latlng"]["lat"] && parseFloat(layer["_latlng"]["lat"]) == parseFloat(stop["pos_lat"]).toFixed(parseFloat(layer["_latlng"]["lat"]).countDecimals()) && layer["_latlng"]["lng"] && parseFloat(layer["_latlng"]["lng"]) == parseFloat(stop["pos_lon"]).toFixed(parseFloat(layer["_latlng"]["lng"]).countDecimals())  )){
+                                                                        if(progress.done == -1) progress.done = 1; else progress.done += 1;
+                                                                        if(progress.done > -1 && progress.todo > -1 && progress.bar <= 100*progress.done/progress.todo ) {
+                                                                            progress.bar = 100*progress.done/progress.todo;
+                                                                            $(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
+                                                                            $(newpopup._container).find("div.tplProgressBar").show();
+                                                                            //console.log(progress);
+                                                                        }
+                                                                        else {
+                                                                            if(progress.bar < 99) {
+                                                                                progress.bar++;
+                                                                                $(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
+                                                                                $(newpopup._container).find("div.tplProgressBar").show();
+                                                                            }
+                                                                        }
+                                                                        return;
+                                                                    }
+                                                                }
+                                                                $.getJSON("<?=$superServiceMapProxy?>/api/v1?realtime=false&graphUri="+encodeURIComponent(pAgency)+"&serviceUri="+encodeURIComponent(stop["stop_uri"]),function(stopdata){
+                                                                    var newFeature = stopdata["BusStop"]["features"][0];
+                                                                    newFeature["properties"]["color1"] = feature["properties"]["color1"];
+                                                                    newFeature["properties"]["color2"] = feature["properties"]["color2"];
+                                                                    newFeature["properties"]["pinattr"] = feature["properties"]["pinattr"];
+                                                                    newFeature["properties"]["pincolor"] = feature["properties"]["pincolor"];
+                                                                    newFeature["properties"]["symbolcolor"] = feature["properties"]["symbolcolor"];
+                                                                    var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );
+                                                                    newMarker.addTo(gisLayersOnMap[eventDesc]);
+                                                                    if(progress.done == -1) progress.done = 1; else progress.done += 1;
+                                                                    if(progress.done > -1 && progress.todo > -1 && progress.bar < 100*progress.done/progress.todo) {
+                                                                        progress.bar = 100*progress.done/progress.todo;
+                                                                        $(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
+                                                                        $(newpopup._container).find("div.tplProgressBar").show();
+                                                                    }
+                                                                    else {
+                                                                        if(progress.bar < 99) {
+                                                                            progress.bar++;
+                                                                            $(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
+                                                                            $(newpopup._container).find("div.tplProgressBar").show();
+                                                                        }
+                                                                    }
+                                                                });
+                                                            });
+                                                        });
+                                                    }
+                                                });
+                                            });
+                                            //
+                                        });
+                                        if(Object.keys(routes).length === 0 && routes.constructor === Object) routesMarkup += "<p>No routes found for this date.</p>";
+                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).empty().append($(routesMarkup));
+                                        $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).click(function(){
+                                            var classes = $(this).attr('class').split(/\s+/);
+                                            $.each(classes, function(i, c) {
+                                                if (c.startsWith('polyin_')) {
+                                                    $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
+                                                    $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().siblings('div.recreativeEventMapTplContainer').find("button."+c).click();
+                                                    map.defaultMapRef.panTo(new L.LatLng(event.target.getLatLng().lat, event.target.getLatLng().lng));
+                                                }
+                                            });
+                                        });
+
+
+                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_wifstprte button").click(function() {
+                                            var wifstprtebtn = $(this);
+                                            var wifstprtebtnhtml = $(this).html();
+                                            var rteUri = $(this).data("uri");
+                                            $(this).html("Please wait...");
+                                            var hrRouteTxt=$(this).data("key");
+                                            lastSelectedRoute = hrRouteTxt;
+
+                                            var bg = $(this).css("background-color");
+                                            var fg = $(this).css("color");
+                                            $.getJSON($(this).data("url"),function(trips){
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p").hide();
+                                                wifstprtebtn.html(wifstprtebtnhtml);
+                                                var affectedTripsMarkup = "";
+                                                var tripsMarkup = "<p class=\"tplpoi_tripsSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date().toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"<br><strong>Route:</strong>&nbsp;"+hrRouteTxt+"</p><div style=\"height:100%; border: medium solid black; padding:0.5em;\" class=\"tplpoi_tripsDivInRoute\"><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0; display:none;\"><strong>Affected Trips:</strong></p><div id=\"tplpoi_affectedtrips\" style=\"display:none;\"></div><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0;\"><strong style=\"display:none;\">All Trips:</strong></p>";
+                                                $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide();
+                                                Object.keys(trips).sort(function(a,b){
+                                                    if(trips[a]["start"] > trips[b]["start"]) return 1; else return -1;
+                                                }).forEach(function(tripkey){
+                                                    var trip = trips[tripkey];
+                                                    var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(trip["uri"])+"&list=stops";
+                                                    tripsMarkup+="<p class=\"tplpoi_wifstptrp\"><button style=\"text-align:left; width:100%; background-color:"+bg+"; color:"+fg+";\" data-tripkey=\""+tripkey+"\" data-path=\""+trip["path"]+"\" data-url=\""+theTripUrl+"\" data-routeuri=\""+rteUri+"\" data-routebgcolor=\""+trip["route"]["bg_color"]+"\" data-routefgcolor=\""+trip["route"]["fg_color"]+"\" data-routeshortname=\""+trip["route"]["short_name"]+"\" data-routelongname=\""+trip["route"]["long_name"]+"\" data-routetype=\""+trip["route"]["type"]+"\" data-agencyname=\""+trip["route"]["agency"]+"\">"+trip["start"].substring(0,5)+"&nbsp;<span style=\"border:thin solid "+fg+"; padding:0.2em;\">"+(trip["direction"] == "0"?"&rharu;":"&lhard;")+"</span>&nbsp;"+trip["headsign"]+"</button></p>";
+                                                    var latlngs = [];
+                                                    trip["path"].split("((")[1].split("))")[0].split(",").forEach(function(node){
+                                                        latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+                                                    });
+                                                    var polyline = new L.Polyline(latlngs,{weight:6, color: wifstprtebtn.css("background-color"),className:"tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" polyof_"+rteUri.replace(/[^a-zA-Z0-9]/g, "")});
+                                                    polyline.addTo(tplPoiItems);
+                                                });
+                                                tripsMarkup+="</div>";
+                                                tripsMarkup+="<p class=\"tplpoi_backToRoutes\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").remove();
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").remove();
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToRoutes").remove();
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).append($(tripsMarkup));
+
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToRoutes button").click(function(){
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p").hide();
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").hide();
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_routesSubHead").show();
+                                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_wifstprte").show();
+                                                    $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).show();
+                                                });
+
+                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_wifstptrp button").click(function(){
+                                                    var wifstptrpbtn = $(this);
+                                                    var wifstptrpbtnhtml = $(this).html();
+                                                    var theaffectedstopsMarkup = "";
+                                                    var theTripMarkup = "<p class=\"tplpoi_theTripSubhead\" style=\"background-color:black; color:white;  padding:0.5em;\"><strong>Agency:</strong>&nbsp;"+$(this).data("agencyname")+"<br><strong>Route:</strong>&nbsp;"+$(this).data("routetype")+" "+$(this).data("routeshortname")+" "+$(this).data("routelongname")+"<br><strong>Trip:</strong>&nbsp;"+$(this).html().replace("<strong>","").replace("</strong>","")+"</p><div class=\"tplpoi_fullTripData\" style=\"height:100%; border: medium solid black; padding:0.5em;\"><p style=\"margin:0px 0; display:none;\"><strong>Affected Stops:</strong></p><div id=\"tplpoi_affectedstops\" style=\"display:none;\"></div><p style=\"margin:0px 0;\"><strong style=\"display:none;\">All Stops:</strong></p>";
+                                                    $(this).html("Please wait...");
+                                                    var bgcolor=$(this).data("routebgcolor");
+                                                    var fgcolor=$(this).data("routefgcolor");
+                                                    var routetype=$(this).data("routetype");
+                                                    var path = $(this).data("path");
+                                                    var tripkey = $(this).data("tripkey");
+                                                    var routeUri = $(this).data("routeuri");
+
+                                                    $.getJSON($(this).data("url"),function(tripdata){
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").hide();
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_wifstptrp").hide();
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToRoutes").hide();
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").hide();
+                                                        wifstptrpbtn.html(wifstptrpbtnhtml);
+                                                        $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide();
+                                                        var latlngs = [];
+                                                        path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+                                                            latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
+                                                        });
+                                                        var polyline = new L.Polyline(latlngs,{weight:6, color:"#"+bgcolor,className:"tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")});
+                                                        polyline.addTo(tplPoiItems);
+                                                        tripdata.forEach(function(oneStop, stopNum){
+                                                            if(serviceProperties['serviceUri'] == oneStop["stop_uri"]) {
+                                                                theTripMarkup+="<button data-serviceuri=\""+oneStop["stop_uri"]+"\" data-lat=\""+oneStop["pos_lat"]+"\" data-lon=\""+oneStop["pos_lon"]+"\" class=\"tplpoi_stopbtn\" style=\"text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+"; font-size:larger; font-weight:bold; \">#"+parseInt(oneStop["sequence"])+" "+oneStop["code"]+" "+oneStop["name"]+"<br>ARR "+(stopNum > 0 ? oneStop["arrival"].substring(0,5) : "--:--")+" DEP "+(stopNum < tripdata.length-1 ? oneStop["departure"].substring(0,5) : "--:--")+"</button>";
+                                                            }
+                                                            else {
+                                                                theTripMarkup+="<button data-serviceuri=\""+oneStop["stop_uri"]+"\" data-lat=\""+oneStop["pos_lat"]+"\" data-lon=\""+oneStop["pos_lon"]+"\" class=\"tplpoi_stopbtn\" style=\"text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+";\">#"+parseInt(oneStop["sequence"])+" "+oneStop["code"]+" "+oneStop["name"]+"<br>ARR "+(stopNum > 0 ? oneStop["arrival"].substring(0,5) : "--:--")+" DEP "+(stopNum < tripdata.length-1 ? oneStop["departure"].substring(0,5) : "--:--")+"</button>";
+                                                            }
+                                                        });
+                                                        theTripMarkup+="</div>";
+                                                        theTripMarkup+="<p class=\"tplpoi_backToTrips\"><button style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_theTripSubhead").remove();
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_fullTripData").remove();
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToTrips").remove();
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).append($(theTripMarkup));
+                                                        if(theaffectedstopsMarkup == "") {
+                                                            theaffectedstopsMarkup="<p>No stops found.</p>";
+                                                        }
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToTrips button").click(
+                                                            function(){
+                                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p").hide();
+                                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_fullTripData").hide();
+                                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").show();
+                                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("div.tplpoi_tripsDivInRoute").show();
+                                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_wifstptrp").show();
+                                                                $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_backToRoutes").show();
+                                                                $(".polyof_"+routeUri.replace(/[^a-zA-Z0-9]/g, "")).show();
+                                                            }
+                                                        );
+                                                        Number.prototype.countDecimals = function () {
+                                                            if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
+                                                            return this.toString().split(".")[1].length || 0;
+                                                        };
+                                                        $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" button.tplpoi_stopbtn").click(function(){
+                                                            //console.log("stopbtn");
+                                                            var serviceuri = $(this).data("serviceuri");
+                                                            var lat = $(this).data("lat");
+                                                            var lon = $(this).data("lon");
+                                                            var eventDesc = null;
+                                                            map["eventsOnMap"].forEach(function(mapevt){
+                                                                if(mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+                                                                    eventDesc = mapevt["desc"];
+                                                                }
+                                                            });
+                                                            /*var doCreate = true;
+                                                            gisLayersOnMap[eventDesc].getLayers().forEach(function(layer){
+                                                                if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) ||
+                                                                    ( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
+                                                                    try { layer.closePopup(); } catch(e) {}
+                                                                    layer.fire('click');
+                                                                    doCreate=false;
+                                                                }
+                                                            });
+                                                            if(!doCreate) return;												*/
+                                                            for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
+                                                                var layer = gisLayersOnMap[eventDesc].getLayers()[l];
+                                                                if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) ||
+                                                                    ( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
+                                                                    try { layer.closePopup(); } catch(e) {}
+                                                                    layer.fire('click');
+                                                                    console.log("click");
+                                                                    return;
+                                                                }
+                                                            }
+                                                            $.getJSON("<?=$superServiceMapProxy?>/api/v1?serviceUri="+encodeURIComponent(serviceuri),function(stopdata){
+                                                                var newFeature = stopdata["BusStop"]["features"][0];
+                                                                newFeature["properties"]["color1"] = feature["properties"]["color1"];
+                                                                newFeature["properties"]["color2"] = feature["properties"]["color2"];
+                                                                newFeature["properties"]["pinattr"] = feature["properties"]["pinattr"];
+                                                                newFeature["properties"]["pincolor"] = feature["properties"]["pincolor"];
+                                                                newFeature["properties"]["symbolcolor"] = feature["properties"]["symbolcolor"];
+                                                                var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );
+                                                                newMarker.addTo(gisLayersOnMap[eventDesc]);
+                                                                newMarker.fire('click');
+                                                            });
+                                                        });
+                                                    });
+
+                                                });
+
+                                            });
+
+                                        });
+
+                                    });
+                                });
+                            }
+
+                            if (hasRealTime) {
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').show();
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
+                                $('#<?= $_REQUEST['name_w'] ?>_map span.popupLastUpdate[data-id="' + latLngId + '"]').html(measuredTime);
+                            }
+                            else {
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').hide();
+                            }
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDetailsBtn[data-id="' + latLngId + '"]').click(function () {
+                                $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapDetailsContainer').show();
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).addClass('recreativeEventMapBtnActive');
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapDescriptionBtn[data-id="' + latLngId + '"]').click(function () {
+                                $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapDescContainer').show();
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).addClass('recreativeEventMapBtnActive');
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').click(function () {
+                                $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapContactsContainer').show();
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).addClass('recreativeEventMapBtnActive');
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click(function () {
+                                $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapTplContainer').show();
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).addClass('recreativeEventMapBtnActive');
+                                if($("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToTrips button").is(":visible")) {
+                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToTrips button").click();
+                                }
+                                if($("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToRoutes button").is(":visible")) {
+                                    $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" p.tplpoi_backToRoutes button").click();
+                                }
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]').click(function () {
+                                //console.log("clicked "+'#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplTmtblBtn[data-id="' + latLngId + '"]');
+                                $(this).parent().siblings('div.recreativeEventMapDataContainer').hide();
+                                $(this).parent().siblings('div.recreativeEventMapTplTmtblContainer').show();
+                                $(this).siblings('button.recreativeEventMapBtn').removeClass('recreativeEventMapBtnActive');
+                                $(this).addClass('recreativeEventMapBtnActive');
+                                var tmtblBtn = $(this);
+                                var tmtblMarkup = "";
+                                $.getJSON( '<?=$whatifmdtendpt?>?stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=graphs",function(graphs){
+                                    var pAgency = graphs.join();
+                                    $.getJSON('<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=timetable",function(timetable){
+                                        //console.log(timetable);
+                                        timetable.forEach(function(entry,rownum){
+                                            //console.log(entry);
+                                            tmtblMarkup+="<p class=\"tplpoi_tmtblrow\"><button data-r=\""+entry["route"].replace(/[^a-zA-Z0-9]/g, "")+"\" data-t=\""+entry["trip"]+"\" data-n=\""+rownum+"\" style=\"width:100%; background-color:#"+entry["bgcolor"]+"; color:#"+entry["fgcolor"]+"\"><p style=\"font-size:larger; font-weight:bold; margin:0px; padding:0px; text-align:left;\">"+(entry["departure"]?entry["departure"]:entry["arrival"]).substring(0,5)+"&nbsp;<span style=\"font-size:larger; border:thin solid #"+entry["fgcolor"]+";\">"+entry["number"]+"</span>&nbsp;"+entry["headsign"]+"</p><p class=\"nextstops\" style=\"margin:0px; padding:0px; font-weight:normal; text-align:left;\"></p></button></p>";
+                                        });
+                                        if(timetable.length == 0) {
+                                            tmtblMarkup+="<p class=\"tplpoi_tmtblrow\">The timetable is currently not available for this stop.</p>";
+                                        }
+                                        tmtblBtn.parent().siblings('div.recreativeEventMapTplTmtblContainer').empty();
+                                        tmtblBtn.parent().siblings('div.recreativeEventMapTplTmtblContainer').append($(tmtblMarkup));
+                                        timetable.forEach(function(entry,rownum) {
+                                            var theTripUrl = '<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&trip='+encodeURIComponent(entry["trip_uri"])+"&list=stops";
+                                            var n = rownum;
+                                            $.getJSON(theTripUrl,function(alltripstops){
+                                                //console.log(alltripstops);
+                                                var span = $("p.tplpoi_tmtblrow button[data-t=\""+entry["trip"]+"\"][data-n=\""+n+"\"] p.nextstops");
+                                                var spanMarkup = "";
+                                                var isNext = false;
+                                                alltripstops.forEach(function(stop){
+                                                    if(isNext) {
+                                                        if(-1 == spanMarkup.indexOf(stop["arrival"].substring(0,5)+"&nbsp;"+stop["name"].replaceAll(" ","&nbsp;")+"&nbsp;&bull; ")) {
+                                                            spanMarkup+=stop["arrival"].substring(0,5)+"&nbsp;"+stop["name"].replaceAll(" ","&nbsp;")+"&nbsp;&bull; ";
+                                                        }
+                                                    }
+                                                    if(stop["stop_uri"] == serviceProperties['serviceUri']) {
+                                                        isNext = true;
+                                                    }
+                                                });
+                                                if(!spanMarkup) {
+                                                    spanMarkup+="This is the terminus stop, the trip does not continue further.&nbsp;&bull; ";
+                                                }
+                                                // console.log("Appending "+spanMarkup.substring(0,spanMarkup.length-13));
+                                                span.append(spanMarkup.substring(0,spanMarkup.length-13));
+                                            });
+                                        });
+                                        $(".tplpoi_tmtblrow button").click(function(){
+                                            //console.log($(this).data("r")); console.log($(this).data("t"));
+                                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').click();
+                                            var t = $(this).data("t");
+                                            var observer = new MutationObserver(function(mutations, observer) {
+                                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().siblings('div.recreativeEventMapTplContainer').find('.tplpoi_tripsDivInRoute .tplpoi_wifstptrp button[data-tripkey="'+t+'"]').click();
+                                                observer.disconnect();
+                                            });
+                                            observer.observe($('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().siblings('div.recreativeEventMapTplContainer')[0], {childList: true});
+                                            $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapTplBtn[data-id="' + latLngId + '"]').parent().siblings('div.recreativeEventMapTplContainer').find("button.polyin_"+$(this).data("r")).click();
+                                        });
+                                    });
+                                });
+                            });
+
+                            if (hasRealTime) {
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.recreativeEventMapContactsBtn[data-id="' + latLngId + '"]').trigger("click");
+                            }
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("background", color2);
+                            $('#<?= $_REQUEST['name_w'] ?>_map table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("border", "none");
+                            $('#<?= $_REQUEST['name_w'] ?>_map table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').css("color", "black");
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map table.gisPopupTable[id="' + latLngId + '"] button.btn-sm').focus(function () {
+                                $(this).css("outline", "0");
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck[data-id="' + latLngId + '"]').click(function () {
+                                if ($(this).attr("data-keepData") === "false") {
+                                    $(this).attr("data-keepData", "true");
+                                }
+                                else {
+                                    $(this).attr("data-keepData", "false");
+                                }
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseenter');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseleave');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn[data-id="' + latLngId + '"]').hover(function () {
+                                    if ($(this).attr("data-lastDataClicked") === "false") {
+                                        $(this).css("background", color1);
+                                        $(this).css("background", "-webkit-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                        $(this).css("background", "background: -o-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                        $(this).css("background", "background: -moz-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                        $(this).css("background", "background: linear-gradient(to left, " + color1 + ", " + color2 + ")");
+                                        $(this).css("font-weight", "bold");
+                                    }
+
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    var colIndex = $(this).parent().index();
+                                    //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
+                                    var title = $(this).parents("tr").find("td").eq(0).html();
+
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2"),
+                                            widgetTitle: title
+                                        });
+                                    }
+                                },
+                                function () {
+                                    if ($(this).attr("data-lastDataClicked") === "false") {
+                                        $(this).css("background", color2);
+                                        $(this).css("font-weight", "normal");
+                                    }
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "mouseOutLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            value: $(this).attr("data-lastValue"),
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2")
+                                        });
+                                    }
+                                });
+
+                            //Disabilitiamo i 4Hours se last update più vecchio di 4 ore
+                            if (rtDataAgeSec > 14400) {
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "true");
+                                //Disabilitiamo i 24Hours se last update più vecchio di 24 ore
+                                if (rtDataAgeSec > 86400) {
+                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "true");
+                                    //Disabilitiamo i 7 days se last update più vecchio di 7 days
+                                    if (rtDataAgeSec > 604800) {
+                                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "true");
+                                        //Disabilitiamo i 30 days se last update più vecchio di 30 days
+                                        //if(rtDataAgeSec > 18144000)
+                                        if(rtDataAgeSec > 2592000)
+                                        {
+                                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "true");
+                                            //Disabilitiamo i 6 months se last update più vecchio di 180 days
+                                            if(rtDataAgeSec > 15552000)
+                                            {
+                                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "true");
+                                                //Disabilitiamo i 1 year se last update più vecchio di 365 days
+                                                if(rtDataAgeSec > 31536000)
+                                                {
+                                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "true");
+                                                    //Disabilitiamo i 2 year se last update più vecchio di 730 days
+                                                    if(rtDataAgeSec > 31536000*2) {
+                                                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="730/DAY"]').attr("data-disabled", "true");
+                                                        //Disabilitiamo i 10 year se last update più vecchio di 730 days
+                                                        if(rtDataAgeSec > 315360000) {
+                                                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="3650/DAY"]').attr("data-disabled", "true");
+
+                                                        } else {
+                                                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="3650/DAY"]').attr("data-disabled", "false");
+                                                        }
+
+                                                    } else {
+                                                        $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="730/DAY"]').attr("data-disabled", "false");
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
+                                            }
+                                        }
+                                        else {
+                                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                                        }
+                                    }
+                                    else {
+                                        $('#<?= $_REQUEST['name_w'] ?>_modalLinkOpen button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                                    }
+                                }
+                                else {
+                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                                }
+                            }
+                            else {
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="4/HOUR"]').attr("data-disabled", "false");
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="1/DAY"]').attr("data-disabled", "false");
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="7/DAY"]').attr("data-disabled", "false");
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="30/DAY"]').attr("data-disabled", "false");
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="180/DAY"]').attr("data-disabled", "false");
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"][data-range="365/DAY"]').attr("data-disabled", "false");
+                            }
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseenter');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseleave');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"]').hover(function () {
+                                    if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                        $(this).css("background-color", "#e6e6e6");
+                                        $(this).off("hover");
+                                        $(this).off("click");
+                                    }
+                                    else {
+                                        if ($(this).attr("data-timeTrendClicked") === "false") {
+                                            $(this).css("background", color1);
+                                            $(this).css("background", "-webkit-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                            $(this).css("background", "background: -o-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                            $(this).css("background", "background: -moz-linear-gradient(left, " + color1 + ", " + color2 + ")");
+                                            $(this).css("background", "background: linear-gradient(to left, " + color1 + ", " + color2 + ")");
+                                            $(this).css("font-weight", "bold");
+                                        }
+
+                                        var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                        //var colIndex = $(this).parent().index();
+                                        //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
+                                        var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+
+                                        for (var i = 0; i < widgetTargetList.length; i++) {
+                                            $.event.trigger({
+                                                type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                eventGenerator: $(this),
+                                                targetWidget: widgetTargetList[i],
+                                                value: $(this).attr("data-lastValue"),
+                                                color1: $(this).attr("data-color1"),
+                                                color2: $(this).attr("data-color2"),
+                                                widgetTitle: title
+                                            });
+                                        }
+                                    }
+                                },
+                                function () {
+                                    if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                        $(this).css("background-color", "#e6e6e6");
+                                        $(this).off("hover");
+                                        $(this).off("click");
+                                    }
+                                    else {
+                                        if ($(this).attr("data-timeTrendClicked") === "false") {
+                                            $(this).css("background", color2);
+                                            $(this).css("font-weight", "normal");
+                                        }
+
+                                        var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                        for (var i = 0; i < widgetTargetList.length; i++) {
+                                            $.event.trigger({
+                                                type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                eventGenerator: $(this),
+                                                targetWidget: widgetTargetList[i],
+                                                value: $(this).attr("data-lastValue"),
+                                                color1: $(this).attr("data-color1"),
+                                                color2: $(this).attr("data-color2")
+                                            });
+                                        }
+                                    }
+                                });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn[data-id=' + latLngId + ']').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn[data-id=' + latLngId + ']').click(function (event) {
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').each(function (i) {
+                                    $(this).css("background", $(this).attr("data-color2"));
+                                });
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').css("font-weight", "normal");
+                                $(this).css("background", $(this).attr("data-color1"));
+                                $(this).css("font-weight", "bold");
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').attr("data-lastDataClicked", "false");
+                                $(this).attr("data-lastDataClicked", "true");
+                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                var colIndex = $(this).parent().index();
+                                var title = $(this).parents("tr").find("td").eq(0).html();
+
+                                if ($(this).attr("data-value_unit") == "SURI") {
+                                    let q = "";
+                                    let qType = "";
+                                    let passData = {};
+                                    let widTargets = "";
+                                    if ($(this).attr("data-lastValue").includes("http://www.disit.org/km4city")) {
+                                        qType = "Default";
+                                        q = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + encodeServiceUri($(this).attr("data-lastValue")) + "&format=json&fullCount=false";
+                                        for (var i = 0; i < widgetTargetList.length; i++) {
+                                            if (widTargets == "") {
+                                                widTargets = widgetTargetList[i];
+                                            } else {
+                                                widTargets = widTargets + "," + widgetTargetList[i];
+                                            }
+                                        }
+                                        passData.desc = "SURI_" + $(this).attr("data-field");
+                                        passData.query = q;
+                                        passData.queryType = qType;
+                                        passData.color1 = $(this).attr("data-color1");
+                                        passData.color2 = $(this).attr("data-color2");
+                                        passData.targets = widTargets;
+                                        passData.fromSURI = true
+
+                                        $.event.trigger({
+                                            type: "addSelectorPin",
+                                            target: map.mapName,
+                                            passedData: passData,
+                                            // passedParams: passedParams
+                                        });
+                                    } else if ($(this).attr("data-lastValue").includes("http://") || $(this).attr("data-lastValue").includes("https://")) {
+                                        window.open($(this).attr("data-lastValue"), '_blank');
+                                    } else {
+                                        qType = "MyPOI";
+                                        q = $(this).attr("data-lastValue");
+                                    }
+
+                                }
+
+                                for (var i = 0; i < widgetTargetList.length; i++) {
+                                    $.event.trigger({
+                                        type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                        eventGenerator: $(this),
+                                        targetWidget: widgetTargetList[i],
+                                        value: $(this).attr("data-lastValue"),
+                                        color1: $(this).attr("data-color1"),
+                                        color2: $(this).attr("data-color2"),
+                                        widgetTitle: title,
+                                        field: $(this).attr("data-field"),
+                                        serviceUri: $(this).attr("data-serviceUri"),
+                                        marker: markersCache["" + $(this).attr("data-id") + ""],
+                                        mapRef: map.defaultMapRef,
+                                        fake: $(this).attr("data-fake"),
+                                        fakeId: $(this).attr("data-fakeId")
+                                    });
+                                }
+
+                                $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                                    if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                        $(this).css("background-color", "#e6e6e6");
+                                        $(this).off("hover");
+                                        $(this).off("click");
+                                    }
+                                });
+
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('click');
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').click(function (event) {
+                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                                else {
+                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').css("background", $(this).attr("data-color2"));
+                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').css("font-weight", "normal");
+                                    $(this).css("background", $(this).attr("data-color1"));
+                                    $(this).css("font-weight", "bold");
+                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').attr("data-timeTrendClicked", "false");
+                                    $(this).attr("data-timeTrendClicked", "true");
+                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
+                                    var colIndex = $(this).parent().index();
+                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
+                                    var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
+
+                                    var now = new Date();
+                                    var lastUpdateDate = new Date(lastUpdateTime);
+                                    var diff = parseFloat(Math.abs(now - lastUpdateDate) / 1000);
+                                    var range = $(this).attr("data-range");
+
+                                    for (var i = 0; i < widgetTargetList.length; i++) {
+                                        $.event.trigger({
+                                            type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                            eventGenerator: $(this),
+                                            targetWidget: widgetTargetList[i],
+                                            range: range,
+                                            color1: $(this).attr("data-color1"),
+                                            color2: $(this).attr("data-color2"),
+                                            widgetTitle: title,
+                                            field: $(this).attr("data-field"),
+                                            serviceUri: $(this).attr("data-serviceUri"),
+                                            marker: markersCache["" + $(this).attr("data-id") + ""],
+                                            mapRef: map.defaultMapRef,
+                                            fake: false
+                                            //fake: $(this).attr("data-fake")
+                                        });
+                                    }
+
+                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                                        if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                            $(this).css("background-color", "#e6e6e6");
+                                            $(this).off("hover");
+                                            $(this).off("click");
+                                        }
+                                    });
+                                }
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
+                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
+                                    $(this).css("background-color", "#e6e6e6");
+                                    $(this).off("hover");
+                                    $(this).off("click");
+                                }
+                            });
+
+                            map.defaultMapRef.off('popupclose');
+                            map.defaultMapRef.on('popupclose', function (closeEvt) {
+                                var popupContent = $('<div></div>');
+                                popupContent.html(closeEvt.popup._content);
+
+                                if (popupContent.find("button.lastValueBtn").length > 0) {
+                                    var widgetTargetList = popupContent.find("button.lastValueBtn").eq(0).attr("data-targetWidgets").split(',');
+
+                                    if (($('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn[data-lastDataClicked=true]').length > 0) && ($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false")) {
+                                        for (var i = 0; i < widgetTargetList.length; i++) {
+                                            $.event.trigger({
+                                                type: "restoreOriginalLastDataFromExternalContentGis_" + widgetTargetList[i],
+                                                eventGenerator: $(this),
+                                                targetWidget: widgetTargetList[i],
+                                                value: $(this).attr("data-lastValue"),
+                                                color1: $(this).attr("data-color1"),
+                                                color2: $(this).attr("data-color2")
+                                            });
+                                        }
+                                    }
+
+                                    if (($('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-timeTrendClicked=true]').length > 0) && ($('input.gisPopupKeepDataCheck').attr('data-keepData') === "false")) {
+                                        for (var i = 0; i < widgetTargetList.length; i++) {
+                                            $.event.trigger({
+                                                type: "restoreOriginalTimeTrendFromExternalContentGis_" + widgetTargetList[i],
+                                                eventGenerator: $(this),
+                                                targetWidget: widgetTargetList[i]
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+
+                            $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').off('click');
+
+                        },
+                        error: function (errorData) {
+                            console.log("Error in data retrieval");
+                            console.log(JSON.stringify(errorData));
+                            var serviceProperties = feature.properties;
+
+                            var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                            var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                            var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                            serviceSubclass = serviceSubclass.replace(/_/g, " ");
+
+                            popupText = '<h3 class="gisPopupTitle">' + serviceProperties.name + '</h3>' +
+                                '<p><b>Typology: </b>' + serviceClass + " - " + serviceSubclass + '</p>' +
+                                '<p><i>Data are limited due to an issue in their retrieval</i></p>';
+
+                            event.target.bindPopup(popupText, {
+                                offset: [15, 0],
+                                minWidth: 215,
+                                maxWidth: 600
+                            }).openPopup();
+                        }
+                    });
+
+                });
+
+                return marker;
+            }
 
             function haversineDistance(lat1,lon1,lat2,lon2) {
                 function toRad(x) {
@@ -500,8 +1783,8 @@ if (!isset($_SESSION)) {
                     buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, false);
                 }
                 if (feature.properties.pinattr != "pin" && feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
-                    var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';						
-					if("TransferServiceAndRenting_BusStop" == feature.properties.serviceType) { 
+                    var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
+					if("TransferServiceAndRenting_BusStop" == feature.properties.serviceType) {
 						if(feature.properties.hasOwnProperty("busStopCategory")) {
 							mapPinImg = '../img/gisMapIcons/' + feature.properties.busStopCategory + '.png';
 						}
@@ -513,7 +1796,7 @@ if (!isset($_SESSION)) {
 								mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '_Suburban.png'
 							}
 						}
-					}										
+					}
 					var markerIcon = markerIcon = L.icon({
 						iconUrl: mapPinImg,
 						iconAnchor: [16, 37]
@@ -4201,11 +5484,11 @@ if (!isset($_SESSION)) {
                             loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
 
                             if (desc == query) {
-                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
                                 var loadOkText = $('<p class="gisMapLoadingDivTextPar"> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
                                 var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                             } else {
-                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
                                 var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
                                 var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                             }
@@ -4276,7 +5559,7 @@ if (!isset($_SESSION)) {
                                         //console.log("Service Map selection addition");
                                         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
                                     }
-                                    if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode == "DynamicCustomPin") {
+                                    if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode == "DynamicCustomPin" || altViewMode == "BimShape" || altViewMode == "BimShapePopup") {
                                         query = query + "&valueName=" + bubbleSelectedMetric[desc];
                                     }
                                     query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
@@ -4982,11 +6265,11 @@ if (!isset($_SESSION)) {
                             loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
 
                             if (desc == query) {
-                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
                                 var loadOkText = $('<p class="gisMapLoadingDivTextPar"> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
                                 var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                             } else {
-                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
                                 var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
                                 var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                             }
@@ -9217,7 +10500,7 @@ if (!isset($_SESSION)) {
                                    loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
                                    loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
 
-                                   var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                   var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
                                    var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
                                    var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
 
@@ -9602,7 +10885,7 @@ if (!isset($_SESSION)) {
                             loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
                             loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
 
-                            var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                            var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
                             var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
                             var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
 
@@ -12206,7 +13489,7 @@ if (!isset($_SESSION)) {
                                 loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
                                 loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
 
-                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
                                 var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
                                 var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
 
@@ -12563,6 +13846,571 @@ if (!isset($_SESSION)) {
 
                 
                 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                $(document).on('addBimShape', function(event) {
+                    var currentBimShapePage = 0;
+                    var newBimShape = null;
+                    if (event.target === map.mapName) {
+                        var bimColorScale = "";
+                        if (lastPopup !== null) {
+                            lastPopup.closePopup();
+                        }
+
+                        function getBimColor(d) {
+                            var min_val, max_val, bim_hex = null;
+                            for (let i = 0; i < bimColorScale.length; i++) {
+                                min_val = bimColorScale[i]["min"] == '' ? Number.NEGATIVE_INFINITY : bimColorScale[i]["min"];
+                                max_val = bimColorScale[i]["max"] == '' ? Number.POSITIVE_INFINITY : bimColorScale[i]["max"];
+                                bim_hex = '#'+fullColorHex(bimColorScale[i].rgb.substring(1, bimColorScale[i].rgb.length - 1));
+                                if (min_val == null) min_val = 0;
+                                if (d >= parseFloat(min_val) && d < parseFloat(max_val)) {
+                                    return bim_hex;
+                                }
+                            }
+                        }
+                        
+                        function styleBimShape(feature) {
+                            //var color = getBimColor(feature.properties.density[Object.keys(feature.properties.density)[0]]);
+                            var color = getBimColor(feature.properties.lastValue[bubbleSelectedMetric[descBim]]);
+                            return {
+                                //weight: 2,
+                                //opacity: 1,
+                                //color: 'white',
+                                //dashArray: '3',
+                                stroke: false,
+                                fillOpacity: 0.6,
+                                fillColor: color //getColor(feature.properties.density)
+                            };
+                        }
+
+                        $(document).on('newBimShape', newBimShape = function (event) {
+                            //    console.log('[event] newOdTargetData')
+                        /*    if(sourcePolyID.length > 0 && targetPolyID.length >0){
+                                update_od_gui();
+                            }   */
+                            event.stopPropagation();
+                        });
+
+                        function addBimShapeEventToMap() {
+
+                            if (map.eventsOnMap.length > 0) {
+                                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                    if (map.eventsOnMap[i].type === 'addBimShape') {
+                                        removeBimShapeColorLegend(i, true);
+                                        map.eventsOnMap.splice(i, 1);
+                                        //map.defaultMapRef.off('click', heatmapClick);
+                                    }
+                                }
+                            }
+
+                            var passedData = event.passedData;
+
+                            var mapBounds = map.defaultMapRef.getBounds();
+                            var query = passedData.query;
+                            var queryShape = passedData.query;
+                            var targets = passedData.targets;
+                            var eventGenerator = passedData.eventGenerator;
+                            var color1 = passedData.color1;
+                            var color2 = passedData.color2;
+                            var queryType = passedData.queryType;
+                            descBim = passedData.desc;
+                            var display = passedData.display;
+                            var pinattr = passedData.pinattr;
+                            var pincolor = passedData.pincolor;
+                            var symbolcolor = passedData.symbolcolor;
+                            var iconFilePath = passedData.iconFilePath;
+                            bubbleSelectedMetric[descBim] = passedData.bubbleSelectedMetric;
+                            altViewMode = passedData.altViewMode;
+                            bimShapeOnMap = true;
+
+                            var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
+
+                            if ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0) {
+                                loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
+                            }
+                            else {
+                                loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_map'));
+                            }
+
+                            loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
+                            loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
+
+                            if (descBim == query) {
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
+                                var loadOkText = $('<p class="gisMapLoadingDivTextPar"> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                            } else {
+                                var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + descBim.toLowerCase() + '</b> to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
+                                var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + descBim.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                                var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + descBim.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                            }
+
+                            loadingDiv.css("background", color1);
+                            loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
+                            loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                            loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
+                            loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " + color2 + ")");
+
+                            loadingDiv.show();
+
+                            loadingDiv.append(loadingText);
+                            loadingDiv.css("opacity", 1);
+
+                            var parHeight = loadingText.height();
+                            var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                            loadingText.css("margin-top", parMarginTop + "px");
+
+                            var re1 = '(selection)';	// Word 1
+                            var re2 = '(=)';	// Any Single Character 1
+                            var re3 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])';	// Float 1
+                            var re4 = '(;|%3B)';	// Any Single Character 2
+                            var re5 = '([+-]?\\d*\\.\\d+)(?![-+0-9\\.])';	// Float 2
+                            var re6 = '(;|%3B)?';	// Any Single Character 3
+                            var re7 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?';	// Float 3
+                            var re8 = '(;|%3B)?';	// Any Single Character 4
+                            var re9 = '([+-]?\\d*\\.\\d+)?(?![-+0-9\\.])?';	// Float 4
+
+                            var pattern = new RegExp(re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9, ["i"]);
+
+                            var apiUrl = "";
+                            var shapeApiUrl = "";
+                            if(queryType === "Default")
+                            {
+                                if (!passedData.query.includes("selection")) {
+                                    query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData.query.split('serviceUri=')[1];
+                                    queryShape = null;
+                                } else {
+                                    if (pattern.test(passedData.query)) {
+                                        //console.log("Service Map selection substitution");
+                                        query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                    } else {
+                                        //console.log("Service Map selection addition");
+                                        query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                    }
+                                    if (altViewMode == "BimShape" || altViewMode == "BimShapePopup") {
+                                        queryShape = query + "&valueName=geometry";
+                                        query = query + "&valueName=" + bubbleSelectedMetric[descBim];
+                                    }
+                                    query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
+                                    queryShape = "<?=$superServiceMapProxy ?>api/v1?" + queryShape.split('?')[1];
+                                    if (!query.includes("&maxResults")) {
+                                        if (!query.includes("&queryId")) {
+                                            query = query + "&maxResults=0";
+                                        }
+                                    }
+                                }
+                            } else if(queryType === "Sensor") {
+                                if (event.query != null) {
+                                    query = "<?= $superServiceMapProxy ?>" + event.query;
+                                } else if (query != null) {
+                                    query = "<?= $superServiceMapProxy ?>" + encodeServiceUri(query);
+                                }
+                            } else {
+                                query = passedData.query;
+                            }
+
+                            if(passedData.targets && passedData.targets !== "")
+                            {
+                                targets = passedData.targets.split(",");
+                            }
+                            else
+                            {
+                                targets = [];
+                            }
+
+                            apiUrl = query + "&geometry=true&fullCount=false";
+                            if (queryShape != null) {
+                                shapeApiUrl = queryShape + "&geometry=true&fullCount=false";
+                            }
+
+                            //    if (queryType === "Sensor" && query.includes("%2525")) {
+                            if (query.includes("%2525") && !query.includes("%252525")) {
+                                let queryPart1 = query.split("/resource/")[0];
+                                let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
+                                let queryPart3 = query.split("&format=")[1];
+                                if (queryPart3 != undefined) {
+                                    apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2) + "&format=" + queryPart3;
+                                } else {
+                                    apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2);
+                                }
+                            }
+
+                            getSmartCityAPIData = fetchAjax(apiUrl, null, "GET", 'json', true, 0);
+                            getShapeSmartCityAPIData = fetchAjax(shapeApiUrl, null, "GET", 'json', true, 0);
+                            
+                            var geoJsonData = null;
+                            var geoShapeData = null;
+
+                            // var getSmartCityAPIData = fetchAjax("../controllers/superservicemapProxy.php/api/v1?seleion=43.78435588315245;11.206140518188478;43.81861292561012;11.274290084838867&categories=Building_construction&maxResults=200&format=json&model=BuildingBIM-Model&geometry=true&fullCount=false", null, "GET", 'json', true, 0);
+                        //    var getColorMapData = getSmartCityAPIData.then(function(jsonData) {
+                            
+                            $.when(getSmartCityAPIData, getShapeSmartCityAPIData).done(function(jsonData, shapeData) {
+                                //if (!jsonData.failure) {
+                                if (jsonData[1] == "success" && shapeData[1] == "success") {
+                                    geoJsonData = jsonData[0];
+                                    geoShapeData = shapeData[0];
+                                    var realtimeDataJson = null;
+                                    var fatherGeoJsonNode = {};
+                                    var dataObj = {};
+                                    if(queryType === "Default")
+                                    {
+                                        var countObjKeys = 0;
+                                        var objContainer = {};
+                                        Object.keys(geoJsonData).forEach(function (key) {
+                                            if (countObjKeys == 0) {
+                                                if (geoJsonData.hasOwnProperty(key)) {
+                                                    fatherGeoJsonNode = geoJsonData[key];
+                                                }
+                                            } else {
+                                                if (geoJsonData.hasOwnProperty(key)) {
+                                                    if (geoJsonData[key].features) {
+                                                        fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                    }
+                                                }
+                                            }
+                                            countObjKeys++;
+                                        });
+
+                                    } else {
+                                        if (geoJsonData.hasOwnProperty("BusStop")) {
+                                            fatherGeoJsonNode = geoJsonData.BusStop;
+                                        } else {
+                                            if (geoJsonData.hasOwnProperty("Sensor")) {
+                                                fatherGeoJsonNode = geoJsonData.Sensor;
+                                            } else {
+                                                if (geoJsonData.hasOwnProperty("Service")) {
+                                                    fatherGeoJsonNode = geoJsonData.Service;
+                                                } else {
+                                                    fatherGeoJsonNode = geoJsonData.Services;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    if  (geoJsonData.hasOwnProperty("realtime")) {
+                                        realtimeDataJson = geoJsonData.realtime;
+                                    }
+
+                                    for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
+
+                                        var shapeJsonString = null;
+                                        var shapeJson = null;
+
+                                        fatherGeoJsonNode.features[i].properties.targetWidgets = targets;
+                                        fatherGeoJsonNode.features[i].properties.color1 = color1;
+                                        fatherGeoJsonNode.features[i].properties.color2 = color2;
+                                        fatherGeoJsonNode.features[i].properties.pinattr = passedData.pinattr;
+                                        fatherGeoJsonNode.features[i].properties.pincolor = passedData.pincolor;
+                                        fatherGeoJsonNode.features[i].properties.symbolcolor = passedData.symbolcolor;
+                                        fatherGeoJsonNode.features[i].properties.iconFilePath = passedData.iconFilePath;
+                                        fatherGeoJsonNode.features[i].properties.altViewMode = passedData.altViewMode;
+
+                                        var maxValue = 0;
+                                        var valueObj = {};
+                                        if (fatherGeoJsonNode.features[i].properties.lastValue != null) {
+                                            if (geoShapeData.Services.features[i].properties.lastValue.hasOwnProperty("geometry")) {
+                                                shapeJsonString = geoShapeData.Services.features[i].properties.lastValue["geometry"];
+                                                if (IsJsonString(shapeJsonString)) {
+                                                    shapeJson = JSON.parse(shapeJsonString);
+                                                    fatherGeoJsonNode.features[i].geometry.coordinates = [];
+                                                    //fatherGeoJsonNode.features[i].geometry.coordinates[0] = [];
+                                                    fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
+                                                    // fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
+                                                }
+                                            }
+                                            if (fatherGeoJsonNode.features[i].properties.lastValue.hasOwnProperty(bubbleSelectedMetric[descBim])) {
+                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties.lastValue[bubbleSelectedMetric[descBim]];
+                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]].replace(/"/g, "");
+                                                if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]]))) {
+                                                //    if (altViewMode != "CustomPin" && altViewMode != "DynamicCustomPin") {
+                                                //        fatherGeoJsonNode.features.splice(i, 1);
+                                                        continue;
+                                                //    }
+                                                } else {
+                                                    if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] > maxValue) {
+                                                        maxValue = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]];
+                                                    }
+                                                }
+                                            } else {
+                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
+                                                //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = null;
+                                                // fatherGeoJsonNode.features.splice(i, 1);
+                                                continue;
+                                            }
+                                        } else {
+                                            if (fatherGeoJsonNode.features[i].properties.lastValue == null && geoJsonData.hasOwnProperty("realtime")) {
+                                                if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty("geometry")) {
+                                                    shapeJsonString = geoJsonData.realtime.results.bindings[0]["geometry"].value;
+                                                    if (IsJsonString(shapeJsonString)) {
+                                                        shapeJson = JSON.parse(shapeJsonString);
+                                                        fatherGeoJsonNode.features[i].geometry.coordinates = [];
+                                                        //fatherGeoJsonNode.features[i].geometry.coordinates[0] = [];
+                                                        fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
+                                                        // fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
+                                                    }
+                                                }
+                                                if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty(bubbleSelectedMetric[descBim])) {
+                                                    var key = bubbleSelectedMetric[descBim];
+                                                    var obj = {};
+                                                    obj[key] = geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[descBim]].value;
+                                                    fatherGeoJsonNode.features[i].properties["lastValue"] = obj;
+                                                }
+                                            } else {
+                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
+                                                //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = null;
+                                                //fatherGeoJsonNode.features.splice(i, 1);
+                                                continue;
+                                            }
+                                        }
+
+                                        if (fatherGeoJsonNode.features[i].properties.lastValue.hasOwnProperty("measuredTime")) {
+                                            fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.lastValue["measuredTime"];
+                                        } else {
+                                            fatherGeoJsonNode.features[i].properties.measuredTime = null;
+                                        }
+
+                                        fatherGeoJsonNode.features[i].geometry.type = "MultiPolygon";
+                                        var coordArray = [];
+                                        coordArray[0] = fatherGeoJsonNode.features[i].geometry.coordinates;
+                                        fatherGeoJsonNode.features[i].geometry.coordinates = coordArray;
+
+                                        //var customCoords = [[[[11.16099,43.844872],[11.163991,43.847706],[11.166261,43.8465],[11.173017,43.840416],[11.186034,43.843243],[11.188999,43.844734],[11.1903,43.845604],[11.203045,43.856892],[11.209618,43.86377],[11.214085,43.869831],[11.222537,43.872883],[11.223262,43.873299],[11.226853,43.8755],[11.229573,43.877342],[11.233493,43.88131],[11.235291,43.880474],[11.235913,43.880138],[11.241358,43.873638],[11.242074,43.872498],[11.242424,43.871861],[11.242744,43.871109],[11.242921,43.870522],[11.243043,43.869804],[11.24309,43.869068],[11.24314,43.868401],[11.243403,43.867771],[11.24391,43.867367],[11.245088,43.866589],[11.252609,43.863415],[11.253381,43.863094],[11.254076,43.863045],[11.254833,43.863316],[11.257015,43.864101],[11.257693,43.864586],[11.25806,43.864914],[11.25835,43.865173],[11.262708,43.869869],[11.263216,43.870453],[11.264464,43.8722],[11.270192,43.872601],[11.283123,43.872288],[11.283776,43.872124],[11.284663,43.87188],[11.285508,43.871513],[11.28613,43.871174],[11.286409,43.870998],[11.286979,43.869961],[11.286977,43.869629],[11.286741,43.869274],[11.286336,43.868774],[11.285736,43.868355],[11.28533,43.868168],[11.279434,43.866924],[11.276023,43.866226],[11.275009,43.865746],[11.274764,43.865524],[11.274939,43.865215],[11.277124,43.863125],[11.2778,43.862591],[11.27802,43.862469],[11.278544,43.862179],[11.284746,43.859409],[11.287473,43.86174],[11.287975,43.862495],[11.288706,43.862724],[11.289897,43.862629],[11.290931,43.86203],[11.292263,43.859123],[11.291045,43.85038],[11.290096,43.849957],[11.289331,43.849476],[11.287592,43.847919],[11.287481,43.847633],[11.287532,43.847336],[11.290481,43.838264],[11.288149,43.836147],[11.287025,43.836025],[11.282629,43.8349],[11.281686,43.834621],[11.280912,43.834343],[11.278593,43.832783],[11.278093,43.83139],[11.278057,43.83012],[11.27808,43.829102],[11.265028,43.832207],[11.259931,43.835224],[11.255191,43.836182],[11.25274,43.836178],[11.252041,43.836094],[11.234753,43.829788],[11.222291,43.822739],[11.212627,43.816185],[11.206869,43.810493],[11.203866,43.810329],[11.201222,43.811443],[11.200132,43.811886],[11.194947,43.813911],[11.194365,43.813454],[11.194243,43.813358],[11.192906,43.811817],[11.181428,43.80117],[11.180822,43.801262],[11.178409,43.801552],[11.170971,43.802448],[11.157832,43.803852],[11.146077,43.804317],[11.145694,43.805088],[11.146133,43.805538],[11.147303,43.806625],[11.15067,43.809692],[11.151453,43.810371],[11.153054,43.811699],[11.153452,43.812027],[11.155002,43.813286],[11.155831,43.813541],[11.158825,43.814152],[11.16015,43.814342],[11.161925,43.814606],[11.163063,43.814808],[11.163915,43.814991],[11.164899,43.815357],[11.166358,43.818932],[11.168736,43.825199],[11.169024,43.826283],[11.168324,43.828583],[11.168054,43.829029],[11.166495,43.82959],[11.16406,43.830681],[11.162995,43.831161],[11.160367,43.832436],[11.160029,43.832607],[11.15961,43.832825],[11.160026,43.840904],[11.16099,43.844872]]]];
+                                        // fatherGeoJsonNode.features[i].geometry.coordinates = customCoords;
+
+                                    /*    if (fatherGeoJsonNode.features[i].geometry.coordinates.length > 1) {
+                                            dataObj.lat = fatherGeoJsonNode.features[i].geometry.coordinates[1];
+                                            dataObj.lng = fatherGeoJsonNode.features[i].geometry.coordinates[0];
+                                        } else {
+                                            dataObj.coordinates = fatherGeoJsonNode.features[i].geometry.coordinates;
+                                        }   */
+                                        dataObj.eventType = "bimShapeEvent";
+                                        dataObj.descBim = descBim;
+                                        dataObj.query = passedData.query;
+                                        dataObj.targets = passedData.targets;
+                                        dataObj.eventGenerator = passedData.eventGenerator;
+                                        dataObj.color1 = passedData.color1;
+                                        dataObj.color2 = passedData.color2;
+                                        dataObj.queryType = passedData.queryType;
+                                        dataObj.display = passedData.display;
+                                        dataObj.iconTextMode = passedData.iconTextMode;
+
+                                        //    map.eventsOnMap.push(dataObj);
+                                    }
+
+                                    map.eventsOnMap.push(dataObj);
+                                    var colorBimMapName = "";
+                                    var legendBimFilePath = "";
+                                /*    if (bubbleSelectedMetric[descBim] == "occupancyPercentage") {
+                                        colorBimMapName = "ColorMapOccupancyPercentage";
+                                        legendBimFilePath = "../img/heatmapsGradientLegends/ColorMapOccupancyPercentage.png";
+                                    } else if (bubbleSelectedMetric[descBim] == "occupancy") {
+                                        colorBimMapName = "officeSpaceOccupancy";
+                                        legendBimFilePath = "../img/heatmapsGradientLegends/OfficeSpaceOccupancy.png";
+                                    }   */
+
+                                    colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1);
+                                    legendBimFilePath = '../img/heatmapsGradientLegends/' + colorBimMapName + '.png';
+                                    
+                                /*    return $.ajax({
+                                        url: heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName,
+                                        type: "GET",
+                                        async: true,
+                                        dataType: 'json',
+                                    }); */
+                                    var getColorMapData = fetchAjax(heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName, null, "GET", 'json', true, null);
+                                    getColorMapData.done(function(colorScale) {
+
+                                        bimColorScale = colorScale;
+                                    //    if (!gisLayersOnMap.hasOwnProperty(descBim)) {
+                                    //    geoJsonLayerShape = L.geoJson(shapeJson, {
+
+                                        if (geoJsonLayerShape) {
+                                            map.defaultMapRef.removeLayer(geoJsonLayerShape);
+                                        }
+
+                                        geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
+                                            //style: styleBimShape(fatherGeoJsonNode.features[0].properties.lastValue[bubbleSelectedMetric[descBim]]),
+                                            style: styleBimShape,
+                                            onEachFeature: onMapEntityClick
+                                        });
+                                        geoJsonLayerShape.addTo(map.defaultMapRef);
+                                        if(geoJsonLayerShape){
+                                            try{
+                                                geoJsonLayerShape.bringToFront();
+                                            }catch{
+
+                                            }
+                                        }
+
+                                        jQuery.event.trigger({
+                                            type: "newBimShape",
+                                        });
+
+                                        // add legend to map
+                                        //map.legendHeatmap.addTo(map.defaultMapRef);
+                                        //map.eventsOnMap.push(heatmap);
+                                        var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+
+                                        var bimShapeLegendColors = L.control({position: 'bottomleft'});
+
+                                        bimShapeLegendColors.onAdd = function (map) {
+                                            var div = L.DomUtil.create('div', 'info legend');
+                                            div.innerHTML += " <img src=" + legendBimFilePath + " height='100%'" + '<br>';
+                                            return div;
+                                        };
+
+                                        bimShapeLegendColors.addTo(map.defaultMapRef);
+                                        //  map.eventsOnMap.push(heatmap);
+
+                                        event.legendColors = bimShapeLegendColors;
+                                        map.eventsOnMap.push(event);
+
+                                        loadingDiv.empty();
+                                        loadingDiv.append(loadOkText);
+
+                                        parHeight = loadOkText.height();
+                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                        loadOkText.css("margin-top", parMarginTop + "px");
+
+                                        setTimeout(function () {
+                                            loadingDiv.css("opacity", 0);
+                                            setTimeout(function () {
+                                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
+                                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                });
+                                                loadingDiv.remove();
+                                            }, 350);
+                                        }, 1000);
+
+                                        if (eventGenerator) {
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                            eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
+                                            eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
+                                            if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
+                                            } else {
+                                                //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                            }
+
+                                            eventGenerator.show();
+                                        }
+
+                                    });
+                                } else {
+                                    gisLayersOnMap[event.descBim] = "loadError";
+
+                                    loadingDiv.empty();
+                                    loadingDiv.append(loadKoText);
+
+                                    parHeight = loadKoText.height();
+                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                    loadKoText.css("margin-top", parMarginTop + "px");
+
+                                    setTimeout(function () {
+                                        loadingDiv.css("opacity", 0);
+                                        setTimeout(function () {
+                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                            });
+                                            loadingDiv.remove();
+                                        }, 350);
+                                    }, 1000);
+
+                                    if (eventGenerator) {
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
+
+                                        setTimeout(function () {
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
+                                            eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
+                                        }, 1500);
+                                    }
+
+                                    console.log("Error in getting GeoJSON from ServiceMap");
+                                    console.log(JSON.stringify(geoJsonData));
+                                }
+                            });
+                            
+                        }
+
+                        if (addMode === 'additive') {
+                            addBimShapeEventToMap();
+                        }
+
+                        if (addMode === 'exclusive') {
+                            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                                if (map.eventsOnMap[i].eventType !== 'bimShapeEvent') {
+                                    map.defaultMapRef.eachLayer(function (layer) {
+                                        map.defaultMapRef.removeLayer(layer);
+                                    });
+                                    map.eventsOnMap.length = 0;
+                                    break;
+                                }
+                            }
+                            //Remove WidgetAlarm active pins
+                            $.event.trigger({
+                                type: "removeAlarmPin",
+                            });
+                            //Remove WidgetEvacuationPlans active pins
+                            $.event.trigger({
+                                type: "removeEvacuationPlanPin",
+                            });
+                            //Remove WidgetEvents active pins
+                            $.event.trigger({
+                                type: "removeEventFIPin",
+                            });
+                            //Remove WidgetResources active pins
+                            $.event.trigger({
+                                type: "removeResourcePin",
+                            });
+                            //Remove WidgetOperatorEvents active pins
+                            $.event.trigger({
+                                type: "removeOperatorEventPin",
+                            });
+                            //Remove WidgetTrafficEvents active pins
+                            $.event.trigger({
+                                type: "removeTrafficEventPin",
+                            });
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                                maxZoom: 18
+                            }).addTo(map.defaultMapRef);
+
+                            addBimShapeEventToMap();
+                        }
+
+                        //  resizeMapView(map.defaultMapRef);
+                    }
+                });
+
+                $(document).on('removeBimShape', function (event) {
+
+                    function removeBimShape(resetPageFlag) {
+                        if (geoJsonLayerShape !== null){
+                            map.defaultMapRef.removeLayer(geoJsonLayerShape);
+                        }
+                    }
+
+                    if (event.target === map.mapName) {
+                    //    bimShapeOnMap = false;
+                    //    animationFlag = false;
+                        for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                            if (map.eventsOnMap[i].eventType === 'bimShapeEvent') {
+                                removeBimShape(true);
+                                map.eventsOnMap.splice(i, 1);
+                            } else if (map.eventsOnMap[i].type === 'addBimShape') {
+                                removeBimShapeColorLegend(i, true);
+                                map.eventsOnMap.splice(i, 1);
+                            }
+                        }
+                    }
+
+                });
 
                 $(document).on('removeAlarm', function (event) {
                     if (event.target === map.mapName) {
@@ -14375,7 +16223,7 @@ if (!isset($_SESSION)) {
                                     loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapModalLoadingDiv').length * loadingDiv.height())) + "px");
                                     loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
 
-                                    var loadingText = $('<p class="gisMapModalLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>');
+                                    var loadingText = $('<p class="gisMapModalLoadingDivTextPar">adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="'+spinIcon+'" style="font-size: 30px"></i></p>');
                                     var loadOkText = $('<p class="gisMapModalLoadingDivTextPar"><b>' + desc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
                                     var loadKoText = $('<p class="gisMapModalLoadingDivTextPar">error adding <b>' + desc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
 

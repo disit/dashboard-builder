@@ -1295,6 +1295,35 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         if ((($(this).attr("data-query").includes("scenario")) !== true) && (($(this).attr("data-query").includes("whatif")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) !== true) && (($(this).attr("data-query").includes("<?= $od_hostname ?>")) !== true) && (widgetTargetList.length > 0)) {
 
                             if ($(this).attr("data-onMap") === "false") {
+
+                                // BIM-Shape
+                                if (($(this).attr("data-bubbleMode") == "BimShape" || $(this).attr("data-bubbleMode") == "BimShapePopup")) {
+                                //if (($(this).attr("data-bubbleMode") == "BimShape" || $(this).attr("data-bubbleMode") == "BimShapePopup") && $(this).attr("data-query").includes("&model=")) {
+                                    var sourceSelector = event.currentTarget.offsetParent;
+                                    $('.gisPinLink').each(function( index ) {
+                                        if(JSON.parse(widgetProperties.param.parameters).queries[index].bubble && JSON.parse(widgetProperties.param.parameters).queries[index].bubble.includes("BimShape")) {
+                                    //    if(JSON.parse(widgetProperties.param.parameters).queries[index].query.includes("&model=") && JSON.parse(widgetProperties.param.parameters).queries[index].bubble.includes("BimShape")) {
+                                            if (sourceSelector == $(this).offsetParent()[0]) {
+                                                if ($(this).attr("data-onMap") === "true") {
+                                                    $(this).attr("data-onMap", "false");
+                                                    if ($(this).attr("data-symbolMode") === 'auto') {
+                                                        if ($(this).attr("data-iconTextMode") == "icon" && $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") != null) {
+                                                            $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src", $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"))
+                                                        } else {
+                                                            $(this).find("i.gisPinIcon").html("navigation");
+                                                            $(this).find("i.gisPinIcon").css("color", "black");
+                                                            $(this).find("i.gisPinIcon").css("text-shadow", "none");
+                                                        }
+                                                    } else {
+                                                        $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                                        $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+
                                 $(this).attr("data-onMap", "true");
                                 if ($(this).attr("data-pinattr") == "pin") {
 
@@ -1434,6 +1463,18 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     passedData: coordsAndType
                 });
 
+            } else if (altViewMode == "BimShape" || altViewMode == "BimShapePopup") {
+
+                if (altViewMode == "BimShapePopup") {
+                    coordsAndType.bimShapePopup = true;
+                }
+
+                $.event.trigger({
+                    type: "addBimShape",
+                    target: widgetTargetList[0],
+                    passedData: coordsAndType
+                });
+
             } else {
 
                 $.event.trigger({
@@ -1456,11 +1497,27 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             coordsAndType.display = display;
 
             if (bubbleFlag != "Bubble") {
-                $.event.trigger({
-                    type: "removeSelectorPin",
-                    target: widgetTargetList[0],
-                    passedData: coordsAndType
-                });
+                if (bubbleFlag == "BimShape" || bubbleFlag == "BimShapePopup") {
+
+                    if (bubbleFlag == "BimShapePopup") {
+                        coordsAndType.bimShapePopup = true;
+                    }
+
+                    $.event.trigger({
+                        type: "removeBimShape",
+                        target: widgetTargetList[0],
+                        passedData: coordsAndType
+                    });
+
+                } else {
+
+                    $.event.trigger({
+                        type: "removeSelectorPin",
+                        target: widgetTargetList[0],
+                        passedData: coordsAndType
+                    });
+
+                }
             } else {
                 $.event.trigger({
                     type: "removeBubbles",

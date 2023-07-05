@@ -22904,7 +22904,7 @@
 
                                                 var svgSingleReadVariablesObj = null;
                                                 var iconPoolDatasetJSONCustom = null;
-                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin" || editGisParameters.queries[i].bubble == "DynamicCustomPin") {
+                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin" || editGisParameters.queries[i].bubble == "DynamicCustomPin" || editGisParameters.queries[i].bubble == "BimShape" || editGisParameters.queries[i].bubble == "BimShapePopup") {
 
                                                     // RETRIEVE METRICS ARRAY FOR BUBBLE CHART (SERVER SIDE)
                                                     getBubbleMetrics(editGisParameters.queries[i].query, i, function(extractedMetrics) {
@@ -23059,7 +23059,7 @@
                                                     }
                                                 }
 
-                                                if(styleParameters.iconText == "Icon Only" && editGisParameters.queries[i].bubble != 'CustomPin' && editGisParameters.queries[i].bubble != 'DynamicCustomPin') {
+                                                if(styleParameters.iconText == "Icon Only" && editGisParameters.queries[i].bubble != 'CustomPin' && editGisParameters.queries[i].bubble != 'DynamicCustomPin' && editGisParameters.queries[i].bubble != 'BimShape' && editGisParameters.queries[i].bubble != 'BimShapePopup') {
                                                     var iconPoolDatasetJSON = buildIconsBox(suggestedIconsList, i, allIcons, newTableRow, newTableCell, widgetId);
                                                 }
                                             
@@ -23178,7 +23178,7 @@
                                                         // Set Preview Icon with Default if bubble='None' AND iconPoolImg cotains the substring synopticTemplates/svg
                                                         if (editGisParameters.queries[i].iconPoolImg != null) {
                                                         //    if (editGisParameters.queries[i].bubble == 'None' && editGisParameters.queries[i].iconPoolImg.includes("synopticTemplates/svg")) {
-                                                            if (editGisParameters.queries[i].bubble != 'CustomPin' && editGisParameters.queries[i].bubble != 'DynamicCustomPin' && editGisParameters.queries[i].iconPoolImg.includes("synopticTemplates/svg")) {
+                                                            if (editGisParameters.queries[i].bubble != 'CustomPin' && editGisParameters.queries[i].bubble != 'DynamicCustomPin' && editGisParameters.queries[i].bubble != 'BimShape' && editGisParameters.queries[i].bubble != 'BimShapePopup' && editGisParameters.queries[i].iconPoolImg.includes("synopticTemplates/svg")) {
                                                                 newTableRow.find('#' + data.name_widget + '_opts_poolIcon_' + i).hide();
                                                                 //    $(this).parents('tr').find('div.icons-selector').hide();
                                                                 $(this).parents('tr').find('div.icons-selector').css("display", "none");
@@ -23349,6 +23349,8 @@
                                                 newTableCell.find('select').append('<option value="Bubble">Bubble</option>');
                                                 newTableCell.find('select').append('<option value="CustomPin">Custom Pin</option>');
                                                 newTableCell.find('select').append('<option value="DynamicCustomPin">Dynamic Custom Pin</option>');
+                                                newTableCell.find('select').append('<option value="BimShape">BIM Shape</option>');
+                                                // newTableCell.find('select').append('<option value="BimShapePopup">BIM Shape & Popup</option>');
                                                 newTableRow.append(newTableCell);
                                                 newTableCell.find('select').val(editGisParameters.queries[i].bubble);
                                                 newTableCell.find('select').on('change', editGisUpdateParams);
@@ -23358,7 +23360,7 @@
                                                 newTableCell = $('<td class="bubbleMetricsTd"><select id="bubbleMetricsSelect' + i + '" data-param="bubbleMetrics" class="form-control"></select></td>');
                                                 newTableRow.append(newTableCell);
 
-                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin" || editGisParameters.queries[i].bubble == "DynamicCustomPin") {
+                                                if (editGisParameters.queries[i].bubble == "Bubble" || editGisParameters.queries[i].bubble == "CustomPin" || editGisParameters.queries[i].bubble == "DynamicCustomPin" || editGisParameters.queries[i].bubble == "BimShape" || editGisParameters.queries[i].bubble == "BimShapePopup") {
                                                     var bubbleMetricsString = $('#' + data.name_widget + '_pinCtn' + i).attr("data-bubblemetricsarray");
                                                     if (bubbleMetricsString === "loading available metrics...") {
                                                         var bubbleMetricsArray = ["loading available metrics...", editGisParameters.queries[i].bubbleMetrics];
@@ -36617,7 +36619,8 @@
                                         newInnerDiv.show();
                                         newSelect.show();
 
-                                        if (data.url != "map" && data.url != "gisTarget" && !data.url.includes("selectorWebTarget")) {
+                                        //if (data.url != "map" && data.url != "gisTarget" && !data.url.includes("selectorWebTarget")) {
+                                        if (data.url != "map" && data.url != "gisTarget") {    
 
                                             $.ajax({
                                                 url: "../controllers/getTrustedUsers.php",

@@ -76,14 +76,13 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                         if (isset($_SESSION['orgKbUrl'])) {
                             $baseUrlKb = $_SESSION['orgKbUrl'];
                         }
-                        if (isset($_SESSION['orgGpsCentreLatLng'])) {
+                        if (isset($_REQUEST['mapCenterLat']) && $_REQUEST['mapCenterLng']) {
+                            $orgGpsLat = $_REQUEST['mapCenterLat'];
+                            $orgGpsLng = $_REQUEST['mapCenterLng'];
+                        } else if (isset($_SESSION['orgGpsCentreLatLng'])) {
                             $orgGpsCentreLatLng = $_SESSION['orgGpsCentreLatLng'];
                             $orgGpsLat = trim(explode(",", $orgGpsCentreLatLng)[0]);
                             $orgGpsLng = trim(explode(",", $orgGpsCentreLatLng)[1]);
-                        } else {
-                            // Se è di organizzazione "Other" o nessuna dà le coordinate del centro di Firenze di default
-                            $orgGpsLat = "43.769789";
-                            $orgGpsLng = "11.255694";
                         }
                         if (isset($_SESSION['orgZoomLevel'])) {
                             $orgZoomLevel = $_SESSION['orgZoomLevel'];
@@ -99,10 +98,13 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                         if (isset($_SESSION['orgKbUrl'])) {
                             $baseUrlKb = $_SESSION['orgKbUrl'];
                         }
-                        if (isset($_SESSION['orgGpsCentreLatLng'])) {
-                            $orgGpsCentreLatLng = $_SESSION['orgGpsCentreLatLng'];
-                            $orgGpsLat = trim(explode(",", $orgGpsCentreLatLng)[0]);
-                            $orgGpsLng = trim(explode(",", $orgGpsCentreLatLng)[1]);
+                        if (isset($_REQUEST['mapCenterLat']) && $_REQUEST['mapCenterLng']) {
+                            // if (isset($_SESSION['orgGpsCentreLatLng'])) {
+                            //    $orgGpsCentreLatLng = $_SESSION['orgGpsCentreLatLng'];
+                            //    $orgGpsLat = trim(explode(",", $orgGpsCentreLatLng)[0]);
+                            //    $orgGpsLng = trim(explode(",", $orgGpsCentreLatLng)[1]);
+                            $orgGpsLat = $_REQUEST['mapCenterLat'];
+                            $orgGpsLng = $_REQUEST['mapCenterLng'];
                         } else {
                             // Se è di organizzazione "Other" o nessuna dà le coordinate del centro di Firenze di default
                             $orgGpsLat = "43.769789";

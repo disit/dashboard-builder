@@ -1870,3 +1870,30 @@ function checkBIDash(widgets) {
         }
     }
 }
+
+var fetchAjax = function(queryUrl, dataObj, type, dataType, asyncFlag, timeoutVal) {
+    if (queryUrl == null || queryUrl == "") {
+        queryUrl = "../controllers/nullProxy.php";
+    }
+    // Return the $.ajax promise
+    return $.ajax({
+        url: queryUrl,
+        data: dataObj,
+        type: type,
+        dataType: dataType,     // 'json'
+        async: true,            // asyncFlag
+        timeout: timeoutVal
+    });
+}
+
+function isFloat(value) {
+    if (
+        typeof value === 'number' &&
+        !Number.isNaN(value) &&
+        !Number.isInteger(value)
+    ) {
+        return true;
+    }
+
+    return false;
+}
