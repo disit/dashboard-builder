@@ -62,6 +62,99 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         $(document).off('showBarSeriesFromExternalContent_' + widgetName);
         $(document).on('showBarSeriesFromExternalContent_' + widgetName, function(event)
         {
+
+        if (event.event == 'set_time'){         
+                               
+                            if ((event.passedData == null)||(event.passedData.length === 0)){
+                                var rows1=[];
+                                $.ajax({
+                                        url: "../controllers/getWidgetParams.php",
+                                        type: "GET",
+                                        data: {
+                                            widgetName: "<?= $_REQUEST['name_w'] ?>"
+                                        },
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function(widgetData) {
+                                            rows1 = JSON.parse(widgetData.params.rowParameters);
+                                            rowParameters = rows1;
+                                            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                                            var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                                            dateChoice = date;
+                                            }
+                                        });
+                                            //////////////////////////////
+                                            let newId = '';
+                                            var events = [];
+                                            var times = []; 
+                                            //console.log(localStorage);
+                                                    if(localStorage.getItem("events") == null){
+                                                            newId = "BarSerieSelectTime";        
+                                                            events.push("BarSerieSelectTime1");
+                                                            times.push(dateChoice);
+                                                            localStorage.setItem("events", JSON.stringify(events));
+                                                            localStorage.setItem("times", JSON.stringify(times));
+                                                            $('#BIMenuCnt').append('<div id="BarSerieSelectTime1" class="row" data-selected="false"></div>');
+                                                            $('#BarSerieSelectTime1').append('<div class="col-md-12 orgMenuSubItemCnt">BarSerieSelectTime1</div>' );
+                                                    }
+                                                            events = JSON.parse(localStorage.getItem("events"));
+                                                            times = JSON.parse(localStorage.getItem("times"));
+                                                            console.log(events.length);
+                                                            var count_events = events.length;
+                                                                let j=1;
+                                                                for(var e=0; e<count_events; e++){
+                                                                if(events[e].includes("BarSerieSelectTime")){
+                                                                    j++;
+                                                                }
+                                                                    
+                                                                    newId = "BarSerieSelectTime"+j;
+                                                                    if(!events.includes(newId)){
+                                                                    events.push(newId);
+                                                                    times.push(dateChoice);
+                                                                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                                                    $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                                                    localStorage.setItem("times", JSON.stringify(times));
+                                                                    localStorage.setItem("events", JSON.stringify(events));
+                                                                    }
+                                                                }
+                                                            
+                                                            
+                                                            $('#'+newId).on( "click", function() {
+                                                                var events = JSON.parse(localStorage.getItem("events"));
+                                                                var times = JSON.parse(localStorage.getItem("times"));
+                                                                if(newId.includes("BarSerieSelectTime")){
+                                                                for(var e =0; e<events.length; e++){
+                                                                if(events[e].includes("BarSerieSelectTime")){
+                                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                                var curr_data = times[index];
+                                                                console.log(widgets);
+                                                                        for(var w in widgets){
+                                                                            if(widgets[w] != null){
+                                                                                var new_currDate = new Date(curr_data);
+                                                                                $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date(new_currDate); 
+                                                                                var date1 = $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date();
+                                                                                set_time(date1);
+                                                                                //populateWidget(null, date1);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                  }
+                                                                }
+                                                            });
+                                                $('.orgMenuSubItemCnt').mouseover(function() {
+                                                $('.orgMenuSubItemCnt').css('cursor', 'pointer');
+                                              });
+                                            //////////////////////////////
+                            }else{
+                                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                            }
+                            timeNavCount = 0;
+                            var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                            localStorage.setItem("passedData", JSON.stringify(oldElement))            
+                        }
+                    /////////
+
 	    if(event.targetWidget === widgetName) {
             //console.log(event);
             if (localStorage.getItem("widgets") == null) {
@@ -100,7 +193,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 var oldElement = JSON.parse(localStorage.getItem("passedData"));
                 oldElement.push(newEl);
                 localStorage.setItem("passedData", JSON.stringify(oldElement));
-                console.log(localStorage)
+                //console.log(localStorage);
             }
             var newValue = event.passedData;
             rowParameters = newValue;
@@ -112,23 +205,40 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 	$(document).off('reloadPreviousContent_' + widgetName);
         $(document).on('reloadPreviousContent_' + widgetName, function(event){
             var passedData = JSON.parse(localStorage.getItem("passedData"));
-            var j = 0;
-            var t = -1;
-            while(passedData[j].eventIndex <= event.index && j < passedData.length - 1){
-                if(passedData[j].name === widgetName){
-                    t = j;
+                    if (passedData === null) {
+                    console.log("The value is null");
+                    if(t == -1){
+                            $('body').trigger({
+                                type: "resetContent_"+widgetName
+                            });
+                        }
+                        else{
+                            //rowParameters = passedData[t].passedData;
+                            console.log(rowParameters);                          
+                            populateWidget(false,rowParameters);
+                        }
+                    } else {
+                    // Handle the case when the value is defined and valid
+                    console.log("The value is:"+ passedData);
+                    //
+                        var j = 0;
+                        var t = -1;
+                        while(passedData[j].eventIndex <= event.index && j < passedData.length - 1){
+                            if(passedData[j].name === widgetName){
+                                t = j;
+                            }
+                            j = j+1;
+                        }
+                        if(t == -1){
+                            $('body').trigger({
+                                type: "resetContent_"+widgetName
+                            });
+                        }else{
+                            rowParameters = passedData[t].passedData;
+                            populateWidget();
+                        }
+
                 }
-                j = j+1;
-            }
-            if(t == -1){
-                $('body').trigger({
-                    type: "resetContent_"+widgetName
-                });
-            }
-            else{
-                rowParameters = passedData[t].passedData;
-                populateWidget();
-            }
         });
 		
 		$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
@@ -941,7 +1051,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         }
 
         function populateWidget(fromCode, dateChoice) {
-			// console.log('fromCode: '+fromCode);
+			 //console.log('fromCode: '+fromCode);
 			var fromDate = null;
 			//if ((fromCode != null)&&(fromCode != '')){
             if (styleParameters.calendarM == 'yes' && dateChoice && dateChoice != ''){
@@ -2127,6 +2237,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     //populateWidget(true, timeRange, null, 0);
 					var timeRange = dateChoice;
 					populateWidget(null, date);
+                    set_time(date);
                     //loadHyperCube();
                     //drawDiagram(true, xAxisFormat, yAxisType);
             });
@@ -2149,6 +2260,17 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 });
                 <?= $_REQUEST['name_w'] ?>_loaded = true;
             }
+
+        ///////////////////
+        function set_time(timestamp){ 
+            //// 
+            try {
+                    execute_<?= $_REQUEST['name_w'] ?>(timestamp); 
+                } catch(e) {
+                        console.log("Error in JS function time selection"); 
+                }
+           }
+        ///////////////////////////
     });
 </script>
 

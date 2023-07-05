@@ -80,7 +80,114 @@
         $(document).on('showPieChartFromExternalContent_' + widgetName, function(event){
             
             var newValue = event.passedData;
-            rowParameters = newValue;
+                rowParameters = newValue;
+            //event_type = event;
+            //////////
+            if (event.event == 'set_time'){         
+                            //try{
+                                console.log(newValue);
+                            if ((newValue == null)||(newValue.length === 0)){
+                                var rows1=[];
+                                $.ajax({
+                                        url: "../controllers/getWidgetParams.php",
+                                        type: "GET",
+                                        data: {
+                                            widgetName: "<?= $_REQUEST['name_w'] ?>"
+                                        },
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function(widgetData) {
+                                            rows1 = JSON.parse(widgetData.params.rowParameters);
+                                            rowParameters = rows1;
+                                            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                                            var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                                        }
+                                    });
+                                    //////////////////////////////
+                                    console.log(widgetName);
+                                    if(event.targetWidget === widgetName) {
+                                                if(localStorage.getItem("widgets") == null){
+                                                    var widgets = [];
+                                                    widgets.push(widgetName);
+                                                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                                                }
+                                                else{
+                                                    var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                    if(!widgets.includes(widgetName)){
+                                                        widgets.push(widgetName);
+                                                        localStorage.setItem("widgets", JSON.stringify(widgets));
+                                                    }
+                                                }
+                                            }
+                                    let newId = '';
+                                            var events = [];
+                                            var times = []; 
+                                                    if(localStorage.getItem("events") == null){
+                                                            newId = "PieChartSelectTime";        
+                                                            events.push("PieChartSelectTime1");
+                                                            times.push(dateChoice);
+                                                            localStorage.setItem("events", JSON.stringify(events));
+                                                            localStorage.setItem("times", JSON.stringify(times));
+                                                            $('#BIMenuCnt').append('<div id="PieChartSelectTime1" class="row" data-selected="false"></div>');
+                                                            $('#PieChartSelectTime1').append('<div class="col-md-12 orgMenuSubItemCnt">PieChartSelectTime1</div>' );
+                                                    }
+                                                            events = JSON.parse(localStorage.getItem("events"));
+                                                            times = JSON.parse(localStorage.getItem("times"));
+                                                            console.log(events.length);
+                                                            var count_events = events.length;
+                                                                let j=1;
+                                                                for(var e=0; e<count_events; e++){
+                                                                if(events[e].includes("PieChartSelectTime")){
+                                                                    j++;
+                                                                }
+                                                                    
+                                                                    newId = "PieChartSelectTime"+j;
+                                                                    if(!events.includes(newId)){
+                                                                    events.push(newId);
+                                                                    times.push(dateChoice);
+                                                                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                                                    $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                                                    localStorage.setItem("times", JSON.stringify(times));
+                                                                    localStorage.setItem("events", JSON.stringify(events));
+                                                                    }
+                                                                }
+                                                            $('#'+newId).on( "click", function() {
+                                                                var events = JSON.parse(localStorage.getItem("events"));
+                                                                var times = JSON.parse(localStorage.getItem("times"));
+                                                                
+                                                                for(var e =0; e<events.length; e++){ 
+                                                                        if(events[e].includes("PieChartSelectTime")){   
+                                                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                                        var curr_data = times[index];
+                                                                        
+                                                                        //var widget_list = widgets.length;
+                                                                                for(var w in widgets){
+                                                                                //for(var w=0; w<widget_list; w++){
+                                                                                    console.log(widgets[w]);
+                                                                                    //if(widgets[w] !== null){
+                                                                                        var new_currDate = new Date(curr_data);
+                                                                                        $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date(new_currDate); 
+                                                                                        var date1 = $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date();
+                                                                                        set_time(date1);
+                                                                                        populateWidget(null, date1);
+                                                                                    //}
+                                                                                }
+                                                                            }
+                                                                }
+                                                            });
+                                                $('.orgMenuSubItemCnt').mouseover(function() {
+                                                $('.orgMenuSubItemCnt').css('cursor', 'pointer');
+                                              });
+                                            //////////////////////////////
+                            }else{
+                                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                            }
+                            timeNavCount = 0;
+                                set_time(event.datetime);
+                                populateWidget(event.datetime);            
+                        }
+                    /////////
             
             if(localStorage.getItem("widgets") == null){
                 var widgets = [];
@@ -388,7 +495,6 @@
         }
 
         function populateWidget(fromAggregate, fromCode) {
-
             seriesDataArray = [];
 			var fromDate = null;
 			if ((fromAggregate != null)&&(fromAggregate != '')){
@@ -1208,7 +1314,7 @@
                     }
                 };
 
-                //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
+                //Workaround temporaneo per far vedere pie tradizionali con piï¿½ di 3 fette
                 if(seriesValues.length > 0)
                 {
                     chartSeriesObject.push(singleObject);
@@ -1556,7 +1662,7 @@
                                 colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
                             }
 
-                            //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
+                            //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora ï¿½ inutile, non esistono soglie sull'anello piï¿½ interno
                             if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
                                 if (thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.length > 0) {
                                     labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
@@ -1617,7 +1723,7 @@
 
                             item.css("display", "block");
 
-                            //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
+                            //Workaround temporaneo per far vedere pie tradizionali con piï¿½ di 3 fette
                             if (series.secondAxis.labels.length > 0) {
                                 $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').append(item);
 
@@ -1751,7 +1857,7 @@
                             colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i % 10] + '"></div>');
                         }
 
-                        //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
+                        //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora ï¿½ inutile, non esistono soglie sull'anello piï¿½ interno
                         if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
                             if (thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.length > 0) {
                                 labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
@@ -1812,7 +1918,7 @@
 
                         item.css("display", "block");
 
-                        //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
+                        //Workaround temporaneo per far vedere pie tradizionali con piï¿½ di 3 fette
                         if (series.secondAxis.labels.length > 0) {
 
                             let legendSameItemFlag = false;
@@ -2226,8 +2332,6 @@
                             console.log("Error in appending JS function to DOM on " + widgetName);
                         }
 						//
-						
-						//
                     }
 				//////////////
                 populateWidget(null);
@@ -2397,9 +2501,15 @@
                 var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
                 dateChoice = date;
                 timeNavCount = 0;
+					var timeRange = dateChoice;
+                    var param_date  = date;
+                    var fromDate = '';
                     //populateWidget(true, timeRange, null, 0);
 					var timeRange = dateChoice;
+                    set_time(date);
+                    //
 					populateWidget(date);
+                    //execute_<?= $_REQUEST['name_w'] ?>(fromDate);
                     //loadHyperCube();
                     //drawDiagram(true, xAxisFormat, yAxisType);
             });
@@ -2424,6 +2534,17 @@
             }
 
 		///////////////////
+        function set_time(timestamp){
+            //execute_<?= $_REQUEST['name_w'] ?>(timestamp);
+            //var new_d = new Date(timestamp);
+                try {
+                        execute_<?= $_REQUEST['name_w'] ?>(timestamp);
+                } catch(e) {
+                        console.log("Error in JS function time selection");
+                       // console.log(e);
+                }
+           }
+        ///////////////////////////
 	});//Fine document ready
 
 </script>

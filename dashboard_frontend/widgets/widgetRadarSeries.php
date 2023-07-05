@@ -69,6 +69,95 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 		$(document).off('showRadarSeriesFromExternalContent_' + widgetName);
         $(document).on('showRadarSeriesFromExternalContent_' + widgetName, function(event){
 
+
+            //////////
+            console.log(event);
+            if (event.event == 'set_time'){         
+                                console.log(event.passedData);
+                            if ((event.passedData == null)||(event.passedData.length === 0)){
+                                var rows1=[];
+                                $.ajax({
+                                        url: "../controllers/getWidgetParams.php",
+                                        type: "GET",
+                                        data: {
+                                            widgetName: "<?= $_REQUEST['name_w'] ?>"
+                                        },
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function(widgetData) {
+                                            rows1 = JSON.parse(widgetData.params.rowParameters);
+                                            rowParameters = rows1;
+                                            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                                            var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                                        }
+                                    });
+                                    //////////////////////////////
+                                    let newId = '';
+                                            var events = [];
+                                            var times = []; 
+                                                    if(localStorage.getItem("events") == null){
+                                                            newId = "RadarSerieSelectTime";        
+                                                            events.push("RadarSerieSelectTime1");
+                                                            times.push(dateChoice);
+                                                            localStorage.setItem("events", JSON.stringify(events));
+                                                            localStorage.setItem("times", JSON.stringify(times));
+                                                            $('#BIMenuCnt').append('<div id="RadarSerieSelectTime1" class="row" data-selected="false"></div>');
+                                                            $('#RadarSerieSelectTime1').append('<div class="col-md-12 orgMenuSubItemCnt">RadarSerieSelectTime1</div>' );
+                                                    }
+                                                            events = JSON.parse(localStorage.getItem("events"));
+                                                            times = JSON.parse(localStorage.getItem("times"));
+                                                            console.log(events.length);
+                                                            var count_events = events.length;
+                                                                let j=1;
+                                                                for(var e=0; e<count_events; e++){
+                                                                if(events[e].includes("RadarSerieSelectTime")){
+                                                                    j++;
+                                                                }
+                                                                    
+                                                                    newId = "RadarSerieSelectTime"+j;
+                                                                    if(!events.includes(newId)){
+                                                                    events.push(newId);
+                                                                    times.push(dateChoice);
+                                                                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                                                    $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                                                    localStorage.setItem("times", JSON.stringify(times));
+                                                                    localStorage.setItem("events", JSON.stringify(events));
+                                                                    }
+                                                                }
+                                                            $('#'+newId).on( "click", function() {
+                                                                var events = JSON.parse(localStorage.getItem("events"));
+                                                                var times = JSON.parse(localStorage.getItem("times"));
+                                                                for(var e =0; e<events.length; e++){
+
+                                                                if(events[e].includes("RadarSerieSelectTime")){
+                                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                                var curr_data = times[index];
+                                                                        for(var w in widgets){
+                                                                            if(widgets[w] != null){
+                                                                                var new_currDate = new Date(curr_data);
+                                                                                $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date(new_currDate); 
+                                                                                var date1 = $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date();
+                                                                                set_time(date1);
+                                                                                //populateWidget(null, date1);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            });
+                                                $('.orgMenuSubItemCnt').mouseover(function() {
+                                                $('.orgMenuSubItemCnt').css('cursor', 'pointer');
+                                              });
+                                            //////////////////////////////
+                            }else{
+                                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                            }
+                            timeNavCount = 0;
+                                set_time(event.datetime);
+                                populateWidget(event.datetime);            
+                        }
+                    /////////
+
             if(localStorage.getItem("widgets") == null){
                 var widgets = [];
                 widgets.push(widgetName);
@@ -1985,6 +2074,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 timeNavCount = 0;
                     //populateWidget(true, timeRange, null, 0);
 					var timeRange = dateChoice;
+                    //console.log(date);
+                    set_time(date);
 					populateWidget(date);
                     //loadHyperCube();
                     //drawDiagram(true, xAxisFormat, yAxisType);
@@ -2010,6 +2101,14 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             }
 
 		///////////////////
+            function set_time(timestamp){        
+                try {
+                    execute_<?= $_REQUEST['name_w'] ?>(timestamp); 
+                } catch(e) {
+                        console.log("Error in JS function time selection"); 
+                }
+           }
+        ///////////////////////////
     });
 </script>
 

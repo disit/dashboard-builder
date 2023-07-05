@@ -118,6 +118,115 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         $(document).on('showCurvedLinesFromExternalContent_' + widgetName, function(event)
         {
             //
+            if (event.event == 'set_time'){         
+                                //console.log(event.passedData);
+                            if ((event.passedData == null)||(event.passedData.length === 0)){
+                                var rows1=[];
+                                //////STORAGE///
+                                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                                var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                                dateChoice = date;
+                                //console.log(dateChoice);
+                                var events = [];
+                                 var times = [];
+                                 //////////////////////////////
+                                 let j=1;
+                                                    if(localStorage.getItem("events") == null){
+                                                            newId = "CurvedLineSelectTime";
+                                                            events.push("CurvedLineSelectTime");
+                                                            times.push(dateChoice);
+                                                            localStorage.setItem("events", JSON.stringify(events));
+                                                            localStorage.setItem("times", JSON.stringify(times));
+                                                    }else{
+                                                       // var events = [];
+                                                        //    var times = [];
+                                                            events = JSON.parse(localStorage.getItem("events"));
+                                                            times = JSON.parse(localStorage.getItem("times"));
+                                                            for(var e in events){
+                                                                //if(events[e].slice(0,20) == "CurvedLineSelectTime"){
+                                                                if(events[e].includes("CurvedLineSelectTime")){
+                                                                    j = j+1;
+                                                                    }
+                                                                    newId = "CurvedLineSelectTime"+j;
+                                                                    events.push("CurvedLineSelectTime" + j);
+                                                                    times.push(dateChoice);
+                                                                    
+                                                                    localStorage.setItem("times", JSON.stringify(times));
+                                                                    localStorage.setItem("events", JSON.stringify(events));
+                                                                    //console.log(times);
+                                                                    //console.log(events);
+                                                                }
+                                                    }
+
+                                                    if(event.targetWidget === widgetName) {
+                                                            if(localStorage.getItem("widgets") == null){
+                                                                var widgets = [];
+                                                                widgets.push(widgetName);
+                                                                localStorage.setItem("widgets", JSON.stringify(widgets));
+                                                            }
+                                                            else{
+                                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                                if(!widgets.includes(widgetName)){
+                                                                    widgets.push(widgetName);
+                                                                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                                                                }
+                                                            }
+                                                        }
+                                                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                                                            $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                                                            $('#'+newId).on( "click", function() {
+                                                                //console.log(localStorage);
+                                                                //if(events[e].slice(0,20) == "CurvedLineSelectTime"){
+                                                                if(events[e].includes("CurvedLineSelectTime")){
+                                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                                var curr_data = times[index];
+                                                                console.log(widgets);
+                                                                        for(var w in widgets){
+                                                                           // console.log(widgets[w]);
+                                                                            //console.log(index);
+                                                                            //console.log(curr_data);
+                                                                            if(widgets[w] != null){
+                                                                                $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date(curr_data); 
+                                                                                var date1 = $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date();
+                                                                                set_time(date1);
+                                                                                console.log(date1);
+                                                                                //populateWidget(date1);
+                                                                            }
+                                                                        }
+                                                                }else{
+                                                                    
+                                                                }   
+                                                            });
+                                             $('.orgMenuSubItemCnt').mouseover(function() {
+                                                $('.orgMenuSubItemCnt').css('cursor', 'pointer');
+                                              });
+                                            //////////////////////////////
+                                ///////FINHE STORAGE
+                                $.ajax({
+                                        url: "../controllers/getWidgetParams.php",
+                                        type: "GET",
+                                        data: {
+                                            widgetName: "<?= $_REQUEST['name_w'] ?>"
+                                        },
+                                        async: true,
+                                        dataType: 'json',
+                                        success: function(widgetData) {
+                                            rows1 = JSON.parse(widgetData.params.rowParameters);
+                                            rowParameters = rows1;
+                                            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                                            var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                                        }
+                                    });
+                            }else{
+                                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                            }
+                            timeNavCount = 0;
+                                set_time(event.datetime);
+                                populateWidget(event.datetime);            
+                        }
+                    /////////
+            //
             if (event.event == "reset zoom"){
                 //event.t2 = Date.now();
                 var d = new Date;
@@ -153,6 +262,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 }
             }
             if(localStorage.getItem("widgets") == null){
+                //console.log(event);
                 var widgets = [];
                 widgets.push(widgetName);
                 localStorage.setItem("widgets", JSON.stringify(widgets));
@@ -1307,6 +1417,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             $('#'+newId).on( "click", function() {
                                                 var widgets = JSON.parse(localStorage.getItem("widgets"));
                                                 var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                console.log(widgets);
                                                 for(var w in widgets){
                                                     if(widgets[w] != null){
                                                         $('body').trigger({
@@ -4679,6 +4790,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
                 }
                 populateWidget(true, timeRange, null, timeNavCount);
+                set_time(date);
             });
             $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").clear()
 
@@ -4699,7 +4811,15 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 });
                 <?= $_REQUEST['name_w'] ?>_loaded = true;
             }
-
+            
+        ///////////////////
+        function set_time(timestamp){        
+                try {
+                    execute_<?= $_REQUEST['name_w'] ?>(timestamp); 
+                } catch(e) {
+                        console.log("Error in JS function time selection"); 
+                }
+           }
 		///////////////////
     });
 </script>
