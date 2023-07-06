@@ -13871,7 +13871,12 @@ if (!isset($_SESSION)) {
                         
                         function styleBimShape(feature) {
                             //var color = getBimColor(feature.properties.density[Object.keys(feature.properties.density)[0]]);
-                            var color = getBimColor(feature.properties.lastValue[bubbleSelectedMetric[descBim]]);
+                            var color = "";
+                            if (feature.properties.values) {
+                                color = getBimColor(feature.properties.values[bubbleSelectedMetric[descBim]]);
+                            } else if (feature.properties.lastValue) {
+                                color = getBimColor(feature.properties.lastValue[bubbleSelectedMetric[descBim]]);
+                            }
                             return {
                                 //weight: 2,
                                 //opacity: 1,
@@ -13991,8 +13996,8 @@ if (!isset($_SESSION)) {
                                         queryShape = query + "&valueName=geometry";
                                         query = query + "&valueName=" + bubbleSelectedMetric[descBim];
                                     }
-                                    query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
-                                    queryShape = "<?=$superServiceMapProxy ?>api/v1?" + queryShape.split('?')[1];
+                                    query = "<?=$superServiceMapProxy ?>api/v1/iot-search/?" + query.split('?')[1];
+                                    queryShape = "<?=$superServiceMapProxy ?>api/v1/iot-search/?" + queryShape.split('?')[1];
                                     if (!query.includes("&maxResults")) {
                                         if (!query.includes("&queryId")) {
                                             query = query + "&maxResults=0";
@@ -14003,7 +14008,8 @@ if (!isset($_SESSION)) {
                                 if (event.query != null) {
                                     query = "<?= $superServiceMapProxy ?>" + event.query;
                                 } else if (query != null) {
-                                    query = "<?= $superServiceMapProxy ?>" + encodeServiceUri(query);
+                                    query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData.query.split('serviceUri=')[1];
+                                    queryShape = null;
                                 }
                             } else {
                                 query = passedData.query;
@@ -14023,18 +14029,7 @@ if (!isset($_SESSION)) {
                                 shapeApiUrl = queryShape + "&geometry=true&fullCount=false";
                             }
 
-                            //    if (queryType === "Sensor" && query.includes("%2525")) {
-                            if (query.includes("%2525") && !query.includes("%252525")) {
-                                let queryPart1 = query.split("/resource/")[0];
-                                let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
-                                let queryPart3 = query.split("&format=")[1];
-                                if (queryPart3 != undefined) {
-                                    apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2) + "&format=" + queryPart3;
-                                } else {
-                                    apiUrl = queryPart1 + "/resource/" + encodeURI(queryPart2);
-                                }
-                            }
-
+                            
                             getSmartCityAPIData = fetchAjax(apiUrl, null, "GET", 'json', true, 0);
                             getShapeSmartCityAPIData = fetchAjax(shapeApiUrl, null, "GET", 'json', true, 0);
                             
@@ -14044,11 +14039,14 @@ if (!isset($_SESSION)) {
                             // var getSmartCityAPIData = fetchAjax("../controllers/superservicemapProxy.php/api/v1?seleion=43.78435588315245;11.206140518188478;43.81861292561012;11.274290084838867&categories=Building_construction&maxResults=200&format=json&model=BuildingBIM-Model&geometry=true&fullCount=false", null, "GET", 'json', true, 0);
                         //    var getColorMapData = getSmartCityAPIData.then(function(jsonData) {
                             
-                            $.when(getSmartCityAPIData, getShapeSmartCityAPIData).done(function(jsonData, shapeData) {
+                            //$.when(getSmartCityAPIData, getShapeSmartCityAPIData).done(function(jsonData, shapeData) {
+                            getSmartCityAPIData.done(function(jsonData) {
                                 //if (!jsonData.failure) {
-                                if (jsonData[1] == "success" && shapeData[1] == "success") {
-                                    geoJsonData = jsonData[0];
-                                    geoShapeData = shapeData[0];
+                                // if (jsonData[1] == "success" && shapeData[1] == "success") {
+                            //    if (jsonData[1] == "success") {
+                                    //geoJsonData = jsonData[0];
+                                    // geoShapeData = shapeData[0];
+                                    geoJsonData = jsonData;
                                     var realtimeDataJson = null;
                                     var fatherGeoJsonNode = {};
                                     var dataObj = {};
@@ -14056,20 +14054,24 @@ if (!isset($_SESSION)) {
                                     {
                                         var countObjKeys = 0;
                                         var objContainer = {};
-                                        Object.keys(geoJsonData).forEach(function (key) {
-                                            if (countObjKeys == 0) {
-                                                if (geoJsonData.hasOwnProperty(key)) {
-                                                    fatherGeoJsonNode = geoJsonData[key];
-                                                }
-                                            } else {
-                                                if (geoJsonData.hasOwnProperty(key)) {
-                                                    if (geoJsonData[key].features) {
-                                                        fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                        if(geoJsonData.features) {
+                                            fatherGeoJsonNode = geoJsonData;
+                                        } else {
+                                            Object.keys(geoJsonData).forEach(function (key) {
+                                                if (countObjKeys == 0) {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        fatherGeoJsonNode = geoJsonData[key];
+                                                    }
+                                                } else {
+                                                    if (geoJsonData.hasOwnProperty(key)) {
+                                                        if (geoJsonData[key].features) {
+                                                            fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                        }
                                                     }
                                                 }
-                                            }
-                                            countObjKeys++;
-                                        });
+                                                countObjKeys++;
+                                            });
+                                        }
 
                                     } else {
                                         if (geoJsonData.hasOwnProperty("BusStop")) {
@@ -14107,20 +14109,20 @@ if (!isset($_SESSION)) {
 
                                         var maxValue = 0;
                                         var valueObj = {};
-                                        if (fatherGeoJsonNode.features[i].properties.lastValue != null) {
-                                            if (geoShapeData.Services.features[i].properties.lastValue.hasOwnProperty("geometry")) {
-                                                shapeJsonString = geoShapeData.Services.features[i].properties.lastValue["geometry"];
+                                        if (fatherGeoJsonNode.features[i].properties.values != null) {
+                                            if (geoJsonData.features[i].properties.values.hasOwnProperty("geometry")) {
+                                                shapeJsonString = geoJsonData.features[i].properties.values["geometry"];
                                                 if (IsJsonString(shapeJsonString)) {
                                                     shapeJson = JSON.parse(shapeJsonString);
-                                                    fatherGeoJsonNode.features[i].geometry.coordinates = [];
-                                                    //fatherGeoJsonNode.features[i].geometry.coordinates[0] = [];
+                                                    //fatherGeoJsonNode.features[i].geometry.coordinates = [];
+                                                    fatherGeoJsonNode.features[i].geometry.coordinates[0] = [];
                                                     fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
                                                     // fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
                                                 }
                                             }
-                                            if (fatherGeoJsonNode.features[i].properties.lastValue.hasOwnProperty(bubbleSelectedMetric[descBim])) {
-                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties.lastValue[bubbleSelectedMetric[descBim]];
-                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]].replace(/"/g, "");
+                                            if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty(bubbleSelectedMetric[descBim])) {
+                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties.values[bubbleSelectedMetric[descBim]];
+                                                //fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]].replace(/"/g, "");
                                                 if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]]))) {
                                                 //    if (altViewMode != "CustomPin" && altViewMode != "DynamicCustomPin") {
                                                 //        fatherGeoJsonNode.features.splice(i, 1);
@@ -14138,7 +14140,7 @@ if (!isset($_SESSION)) {
                                                 continue;
                                             }
                                         } else {
-                                            if (fatherGeoJsonNode.features[i].properties.lastValue == null && geoJsonData.hasOwnProperty("realtime")) {
+                                            if (fatherGeoJsonNode.features[i].properties.values == null && geoJsonData.hasOwnProperty("realtime")) {
                                                 if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty("geometry")) {
                                                     shapeJsonString = geoJsonData.realtime.results.bindings[0]["geometry"].value;
                                                     if (IsJsonString(shapeJsonString)) {
@@ -14163,26 +14165,15 @@ if (!isset($_SESSION)) {
                                             }
                                         }
 
-                                        if (fatherGeoJsonNode.features[i].properties.lastValue.hasOwnProperty("measuredTime")) {
-                                            fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.lastValue["measuredTime"];
+                                    /*    if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty("dateObserved")) {
+                                            fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.values["dateObserved"];
                                         } else {
                                             fatherGeoJsonNode.features[i].properties.measuredTime = null;
-                                        }
-
-                                        fatherGeoJsonNode.features[i].geometry.type = "MultiPolygon";
-                                        var coordArray = [];
-                                        coordArray[0] = fatherGeoJsonNode.features[i].geometry.coordinates;
-                                        fatherGeoJsonNode.features[i].geometry.coordinates = coordArray;
-
-                                        //var customCoords = [[[[11.16099,43.844872],[11.163991,43.847706],[11.166261,43.8465],[11.173017,43.840416],[11.186034,43.843243],[11.188999,43.844734],[11.1903,43.845604],[11.203045,43.856892],[11.209618,43.86377],[11.214085,43.869831],[11.222537,43.872883],[11.223262,43.873299],[11.226853,43.8755],[11.229573,43.877342],[11.233493,43.88131],[11.235291,43.880474],[11.235913,43.880138],[11.241358,43.873638],[11.242074,43.872498],[11.242424,43.871861],[11.242744,43.871109],[11.242921,43.870522],[11.243043,43.869804],[11.24309,43.869068],[11.24314,43.868401],[11.243403,43.867771],[11.24391,43.867367],[11.245088,43.866589],[11.252609,43.863415],[11.253381,43.863094],[11.254076,43.863045],[11.254833,43.863316],[11.257015,43.864101],[11.257693,43.864586],[11.25806,43.864914],[11.25835,43.865173],[11.262708,43.869869],[11.263216,43.870453],[11.264464,43.8722],[11.270192,43.872601],[11.283123,43.872288],[11.283776,43.872124],[11.284663,43.87188],[11.285508,43.871513],[11.28613,43.871174],[11.286409,43.870998],[11.286979,43.869961],[11.286977,43.869629],[11.286741,43.869274],[11.286336,43.868774],[11.285736,43.868355],[11.28533,43.868168],[11.279434,43.866924],[11.276023,43.866226],[11.275009,43.865746],[11.274764,43.865524],[11.274939,43.865215],[11.277124,43.863125],[11.2778,43.862591],[11.27802,43.862469],[11.278544,43.862179],[11.284746,43.859409],[11.287473,43.86174],[11.287975,43.862495],[11.288706,43.862724],[11.289897,43.862629],[11.290931,43.86203],[11.292263,43.859123],[11.291045,43.85038],[11.290096,43.849957],[11.289331,43.849476],[11.287592,43.847919],[11.287481,43.847633],[11.287532,43.847336],[11.290481,43.838264],[11.288149,43.836147],[11.287025,43.836025],[11.282629,43.8349],[11.281686,43.834621],[11.280912,43.834343],[11.278593,43.832783],[11.278093,43.83139],[11.278057,43.83012],[11.27808,43.829102],[11.265028,43.832207],[11.259931,43.835224],[11.255191,43.836182],[11.25274,43.836178],[11.252041,43.836094],[11.234753,43.829788],[11.222291,43.822739],[11.212627,43.816185],[11.206869,43.810493],[11.203866,43.810329],[11.201222,43.811443],[11.200132,43.811886],[11.194947,43.813911],[11.194365,43.813454],[11.194243,43.813358],[11.192906,43.811817],[11.181428,43.80117],[11.180822,43.801262],[11.178409,43.801552],[11.170971,43.802448],[11.157832,43.803852],[11.146077,43.804317],[11.145694,43.805088],[11.146133,43.805538],[11.147303,43.806625],[11.15067,43.809692],[11.151453,43.810371],[11.153054,43.811699],[11.153452,43.812027],[11.155002,43.813286],[11.155831,43.813541],[11.158825,43.814152],[11.16015,43.814342],[11.161925,43.814606],[11.163063,43.814808],[11.163915,43.814991],[11.164899,43.815357],[11.166358,43.818932],[11.168736,43.825199],[11.169024,43.826283],[11.168324,43.828583],[11.168054,43.829029],[11.166495,43.82959],[11.16406,43.830681],[11.162995,43.831161],[11.160367,43.832436],[11.160029,43.832607],[11.15961,43.832825],[11.160026,43.840904],[11.16099,43.844872]]]];
-                                        // fatherGeoJsonNode.features[i].geometry.coordinates = customCoords;
-
-                                    /*    if (fatherGeoJsonNode.features[i].geometry.coordinates.length > 1) {
-                                            dataObj.lat = fatherGeoJsonNode.features[i].geometry.coordinates[1];
-                                            dataObj.lng = fatherGeoJsonNode.features[i].geometry.coordinates[0];
-                                        } else {
-                                            dataObj.coordinates = fatherGeoJsonNode.features[i].geometry.coordinates;
                                         }   */
+
+                                        //fatherGeoJsonNode.features[i].geometry.type = "MultiPolygon";
+                                        fatherGeoJsonNode.features[i].geometry.type = shapeJsonString = shapeJson.type;
+
                                         dataObj.eventType = "bimShapeEvent";
                                         dataObj.descBim = descBim;
                                         dataObj.query = passedData.query;
@@ -14200,13 +14191,6 @@ if (!isset($_SESSION)) {
                                     map.eventsOnMap.push(dataObj);
                                     var colorBimMapName = "";
                                     var legendBimFilePath = "";
-                                /*    if (bubbleSelectedMetric[descBim] == "occupancyPercentage") {
-                                        colorBimMapName = "ColorMapOccupancyPercentage";
-                                        legendBimFilePath = "../img/heatmapsGradientLegends/ColorMapOccupancyPercentage.png";
-                                    } else if (bubbleSelectedMetric[descBim] == "occupancy") {
-                                        colorBimMapName = "officeSpaceOccupancy";
-                                        legendBimFilePath = "../img/heatmapsGradientLegends/OfficeSpaceOccupancy.png";
-                                    }   */
 
                                     colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1);
                                     legendBimFilePath = '../img/heatmapsGradientLegends/' + colorBimMapName + '.png';
@@ -14300,7 +14284,7 @@ if (!isset($_SESSION)) {
                                         }
 
                                     });
-                                } else {
+                            /*    } else {
                                     gisLayersOnMap[event.descBim] = "loadError";
 
                                     loadingDiv.empty();
@@ -14333,7 +14317,42 @@ if (!isset($_SESSION)) {
 
                                     console.log("Error in getting GeoJSON from ServiceMap");
                                     console.log(JSON.stringify(geoJsonData));
+                                }   */
+                            });
+
+                            getSmartCityAPIData.fail(function(errorData) {
+                                gisLayersOnMap[event.descBim] = "loadError";
+
+                                loadingDiv.empty();
+                                loadingDiv.append(loadKoText);
+
+                                parHeight = loadKoText.height();
+                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                loadKoText.css("margin-top", parMarginTop + "px");
+
+                                setTimeout(function () {
+                                    loadingDiv.css("opacity", 0);
+                                    setTimeout(function () {
+                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                        });
+                                        loadingDiv.remove();
+                                    }, 350);
+                                }, 1000);
+
+                                if (eventGenerator) {
+                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
+
+                                    setTimeout(function () {
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
+                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
+                                    }, 1500);
                                 }
+
+                                console.log("Error in getting GeoJSON Shapes from ServiceMap");
+                                console.log(JSON.stringify(errorData));
                             });
                             
                         }

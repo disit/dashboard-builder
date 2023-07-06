@@ -48,7 +48,8 @@ class WidgetSelectorNewFactory extends aGenericWidgetFactory
                     case "Mobile Device":
                     case "Data Table Device":
                     case "Sensor":
-                        $myQuery = $selectedRow['parameters'] . "&fromTime=3-day";
+                        // $myQuery = $selectedRow['parameters'] . "&fromTime=3-day";
+                        $myQuery = $selectedRow['parameters'];
                         $myDesc = $selectedRow['unique_name_id'];
                         $myQueryType = "Sensor";
                         break;

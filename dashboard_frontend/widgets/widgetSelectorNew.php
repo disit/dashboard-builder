@@ -1300,10 +1300,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 if (($(this).attr("data-bubbleMode") == "BimShape" || $(this).attr("data-bubbleMode") == "BimShapePopup")) {
                                 //if (($(this).attr("data-bubbleMode") == "BimShape" || $(this).attr("data-bubbleMode") == "BimShapePopup") && $(this).attr("data-query").includes("&model=")) {
                                     var sourceSelector = event.currentTarget.offsetParent;
+                                    var count=0;
                                     $('.gisPinLink').each(function( index ) {
-                                        if(JSON.parse(widgetProperties.param.parameters).queries[index].bubble && JSON.parse(widgetProperties.param.parameters).queries[index].bubble.includes("BimShape")) {
-                                    //    if(JSON.parse(widgetProperties.param.parameters).queries[index].query.includes("&model=") && JSON.parse(widgetProperties.param.parameters).queries[index].bubble.includes("BimShape")) {
-                                            if (sourceSelector == $(this).offsetParent()[0]) {
+                                        if (sourceSelector == $(this).offsetParent()[0]) {
+                                            if(JSON.parse(widgetProperties.param.parameters).queries[index-count].bubble && JSON.parse(widgetProperties.param.parameters).queries[index-count].bubble.includes("BimShape")) {
                                                 if ($(this).attr("data-onMap") === "true") {
                                                     $(this).attr("data-onMap", "false");
                                                     if ($(this).attr("data-symbolMode") === 'auto') {
@@ -1320,7 +1320,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                     }
                                                 }
                                             }
+                                        } else {
+                                            count++;
                                         }
+
                                     });
                                 }
 

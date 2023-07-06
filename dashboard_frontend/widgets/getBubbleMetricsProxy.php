@@ -142,7 +142,8 @@ switch($dataOrigin)
     case "POI":
 
         $geoBb = get_string_between($dataQuery, "selection=", "&");
-        $urlToCall = $superServiceMapUrlPrefix . "api/v1?selection=" . $geoBb;
+        // $urlToCall = $superServiceMapUrlPrefix . "api/v1?selection=" . $geoBb;
+        $urlToCall = $superServiceMapUrlPrefix . "api/v1/iot-search/?selection=" . $geoBb;
         if (strpos($dataQuery, 'categories=') !== false) {
             $serviceType = get_string_between($dataQuery, "categories=", "&");
             if ($serviceType === false) {
@@ -197,11 +198,13 @@ switch($dataOrigin)
                 $fatherGeoJsonNode = $geoJsonData->Services;
             } else if ($geoJsonData->SensorSites) {
                 $fatherGeoJsonNode = $geoJsonData->SensorSites;
+            } else {
+                $fatherGeoJsonNode = $geoJsonData;
             }
 
             $response['metrics'] = array();
             for ($count = 0; $count < sizeof($fatherGeoJsonNode->features); $count++) {
-                $singleServieUri = $fatherGeoJsonNode->features[$count]->properties->serviceUri;
+            /*    $singleServieUri = $fatherGeoJsonNode->features[$count]->properties->serviceUri;
 
                 $urlToCallSingleDevice = $superServiceMapUrlPrefix . "api/v1?serviceUri=" . rawurlencode($singleServieUri) . "&format=json";
                 //  $urlToCall = $dataQuery;
@@ -243,8 +246,22 @@ switch($dataOrigin)
 
                 } else {
                     $response['result'] = "Call to SM KO";
+                }   */
+
+                if (isset($fatherGeoJsonNode->features[$count]->properties->values)) {
+                    //for($n = 0; $n < $fatherGeoJsonNode->features[$count]->properties->values; $n++) {
+                    foreach($fatherGeoJsonNode->features[$count]->properties->values as $key => $value) {
+                        if (!in_array($key, $response['metrics'])) {
+                            array_push($response['metrics'], $key);
+                            //  $response['result'] = "OK";
+                            //  $response['metrics'] = $realtimeAttributes;
+                            //  break;
+                        }
+                    }
                 }
+
             }
+
         }
         else
         {
