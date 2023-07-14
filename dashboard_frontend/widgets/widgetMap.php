@@ -810,7 +810,7 @@ if (!isset($_SESSION)) {
                             var makeDraggable = function(popup, excluding){
                                 var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
                                 L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
-                                var draggable = new L.Draggable(popup._container, popup._wrapper);
+                            /*    var draggable = new L.Draggable(popup._container, popup._wrapper);
                                 draggable.enable(); $(".draggableAndResizablePopup").css("cursor","move");
                                 draggable.on('dragend', function() {
                                     var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
@@ -819,7 +819,7 @@ if (!isset($_SESSION)) {
                                 });
                                 excluding.forEach((excluded) => {
                                     $(excluded).css("cursor","auto").on("mouseover",function(e){ draggable.disable(); } ).on("mouseout",function(e){ draggable.enable(); } );
-                                });
+                                }); */
                             };
                             //	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
                             if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup .recreativeEventMapDataContainer"]);
@@ -13862,8 +13862,8 @@ if (!isset($_SESSION)) {
                                 min_val = bimColorScale[i]["min"] == '' ? Number.NEGATIVE_INFINITY : bimColorScale[i]["min"];
                                 max_val = bimColorScale[i]["max"] == '' ? Number.POSITIVE_INFINITY : bimColorScale[i]["max"];
                                 bim_hex = '#'+fullColorHex(bimColorScale[i].rgb.substring(1, bimColorScale[i].rgb.length - 1));
-                                if (min_val == null) min_val = 0;
-                                if (d >= parseFloat(min_val) && d < parseFloat(max_val)) {
+                                if (min_val == null) min_val = -1;
+                                if (d > parseFloat(min_val) && d <= parseFloat(max_val)) {
                                     return bim_hex;
                                 }
                             }
@@ -14031,7 +14031,7 @@ if (!isset($_SESSION)) {
 
                             
                             getSmartCityAPIData = fetchAjax(apiUrl, null, "GET", 'json', true, 0);
-                            getShapeSmartCityAPIData = fetchAjax(shapeApiUrl, null, "GET", 'json', true, 0);
+                            // getShapeSmartCityAPIData = fetchAjax(shapeApiUrl, null, "GET", 'json', true, 0);
                             
                             var geoJsonData = null;
                             var geoShapeData = null;
@@ -14047,244 +14047,269 @@ if (!isset($_SESSION)) {
                                     //geoJsonData = jsonData[0];
                                     // geoShapeData = shapeData[0];
                                     geoJsonData = jsonData;
-                                    var realtimeDataJson = null;
-                                    var fatherGeoJsonNode = {};
-                                    var dataObj = {};
-                                    if(queryType === "Default")
-                                    {
-                                        var countObjKeys = 0;
-                                        var objContainer = {};
-                                        if(geoJsonData.features) {
-                                            fatherGeoJsonNode = geoJsonData;
-                                        } else {
-                                            Object.keys(geoJsonData).forEach(function (key) {
-                                                if (countObjKeys == 0) {
-                                                    if (geoJsonData.hasOwnProperty(key)) {
-                                                        fatherGeoJsonNode = geoJsonData[key];
-                                                    }
-                                                } else {
-                                                    if (geoJsonData.hasOwnProperty(key)) {
-                                                        if (geoJsonData[key].features) {
-                                                            fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                    if (geoJsonData.error == null && geoJsonData.failure == null) {
+                                        var realtimeDataJson = null;
+                                        var fatherGeoJsonNode = {};
+                                        var dataObj = {};
+                                        if (queryType === "Default") {
+                                            var countObjKeys = 0;
+                                            var objContainer = {};
+                                            if (geoJsonData.features) {
+                                                fatherGeoJsonNode = geoJsonData;
+                                            } else {
+                                                Object.keys(geoJsonData).forEach(function (key) {
+                                                    if (countObjKeys == 0) {
+                                                        if (geoJsonData.hasOwnProperty(key)) {
+                                                            fatherGeoJsonNode = geoJsonData[key];
+                                                        }
+                                                    } else {
+                                                        if (geoJsonData.hasOwnProperty(key)) {
+                                                            if (geoJsonData[key].features) {
+                                                                fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                            }
                                                         }
                                                     }
-                                                }
-                                                countObjKeys++;
-                                            });
-                                        }
-
-                                    } else {
-                                        if (geoJsonData.hasOwnProperty("BusStop")) {
-                                            fatherGeoJsonNode = geoJsonData.BusStop;
-                                        } else {
-                                            if (geoJsonData.hasOwnProperty("Sensor")) {
-                                                fatherGeoJsonNode = geoJsonData.Sensor;
-                                            } else {
-                                                if (geoJsonData.hasOwnProperty("Service")) {
-                                                    fatherGeoJsonNode = geoJsonData.Service;
-                                                } else {
-                                                    fatherGeoJsonNode = geoJsonData.Services;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    
-                                    if  (geoJsonData.hasOwnProperty("realtime")) {
-                                        realtimeDataJson = geoJsonData.realtime;
-                                    }
-
-                                    for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
-
-                                        var shapeJsonString = null;
-                                        var shapeJson = null;
-
-                                        fatherGeoJsonNode.features[i].properties.targetWidgets = targets;
-                                        fatherGeoJsonNode.features[i].properties.color1 = color1;
-                                        fatherGeoJsonNode.features[i].properties.color2 = color2;
-                                        fatherGeoJsonNode.features[i].properties.pinattr = passedData.pinattr;
-                                        fatherGeoJsonNode.features[i].properties.pincolor = passedData.pincolor;
-                                        fatherGeoJsonNode.features[i].properties.symbolcolor = passedData.symbolcolor;
-                                        fatherGeoJsonNode.features[i].properties.iconFilePath = passedData.iconFilePath;
-                                        fatherGeoJsonNode.features[i].properties.altViewMode = passedData.altViewMode;
-
-                                        var maxValue = 0;
-                                        var valueObj = {};
-                                        if (fatherGeoJsonNode.features[i].properties.values != null) {
-                                            if (geoJsonData.features[i].properties.values.hasOwnProperty("geometry")) {
-                                                shapeJsonString = geoJsonData.features[i].properties.values["geometry"];
-                                                if (IsJsonString(shapeJsonString)) {
-                                                    shapeJson = JSON.parse(shapeJsonString);
-                                                    //fatherGeoJsonNode.features[i].geometry.coordinates = [];
-                                                    fatherGeoJsonNode.features[i].geometry.coordinates[0] = [];
-                                                    fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
-                                                    // fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
-                                                }
-                                            }
-                                            if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty(bubbleSelectedMetric[descBim])) {
-                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties.values[bubbleSelectedMetric[descBim]];
-                                                //fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]].replace(/"/g, "");
-                                                if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]]))) {
-                                                //    if (altViewMode != "CustomPin" && altViewMode != "DynamicCustomPin") {
-                                                //        fatherGeoJsonNode.features.splice(i, 1);
-                                                        continue;
-                                                //    }
-                                                } else {
-                                                    if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] > maxValue) {
-                                                        maxValue = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]];
-                                                    }
-                                                }
-                                            } else {
-                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
-                                                //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = null;
-                                                // fatherGeoJsonNode.features.splice(i, 1);
-                                                continue;
-                                            }
-                                        } else {
-                                            if (fatherGeoJsonNode.features[i].properties.values == null && geoJsonData.hasOwnProperty("realtime")) {
-                                                if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty("geometry")) {
-                                                    shapeJsonString = geoJsonData.realtime.results.bindings[0]["geometry"].value;
-                                                    if (IsJsonString(shapeJsonString)) {
-                                                        shapeJson = JSON.parse(shapeJsonString);
-                                                        fatherGeoJsonNode.features[i].geometry.coordinates = [];
-                                                        //fatherGeoJsonNode.features[i].geometry.coordinates[0] = [];
-                                                        fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
-                                                        // fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
-                                                    }
-                                                }
-                                                if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty(bubbleSelectedMetric[descBim])) {
-                                                    var key = bubbleSelectedMetric[descBim];
-                                                    var obj = {};
-                                                    obj[key] = geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[descBim]].value;
-                                                    fatherGeoJsonNode.features[i].properties["lastValue"] = obj;
-                                                }
-                                            } else {
-                                                fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
-                                                //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = null;
-                                                //fatherGeoJsonNode.features.splice(i, 1);
-                                                continue;
-                                            }
-                                        }
-
-                                    /*    if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty("dateObserved")) {
-                                            fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.values["dateObserved"];
-                                        } else {
-                                            fatherGeoJsonNode.features[i].properties.measuredTime = null;
-                                        }   */
-
-                                        //fatherGeoJsonNode.features[i].geometry.type = "MultiPolygon";
-                                        fatherGeoJsonNode.features[i].geometry.type = shapeJsonString = shapeJson.type;
-
-                                        dataObj.eventType = "bimShapeEvent";
-                                        dataObj.descBim = descBim;
-                                        dataObj.query = passedData.query;
-                                        dataObj.targets = passedData.targets;
-                                        dataObj.eventGenerator = passedData.eventGenerator;
-                                        dataObj.color1 = passedData.color1;
-                                        dataObj.color2 = passedData.color2;
-                                        dataObj.queryType = passedData.queryType;
-                                        dataObj.display = passedData.display;
-                                        dataObj.iconTextMode = passedData.iconTextMode;
-
-                                        //    map.eventsOnMap.push(dataObj);
-                                    }
-
-                                    map.eventsOnMap.push(dataObj);
-                                    var colorBimMapName = "";
-                                    var legendBimFilePath = "";
-
-                                    colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1);
-                                    legendBimFilePath = '../img/heatmapsGradientLegends/' + colorBimMapName + '.png';
-                                    
-                                /*    return $.ajax({
-                                        url: heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName,
-                                        type: "GET",
-                                        async: true,
-                                        dataType: 'json',
-                                    }); */
-                                    var getColorMapData = fetchAjax(heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName, null, "GET", 'json', true, null);
-                                    getColorMapData.done(function(colorScale) {
-
-                                        bimColorScale = colorScale;
-                                    //    if (!gisLayersOnMap.hasOwnProperty(descBim)) {
-                                    //    geoJsonLayerShape = L.geoJson(shapeJson, {
-
-                                        if (geoJsonLayerShape) {
-                                            map.defaultMapRef.removeLayer(geoJsonLayerShape);
-                                        }
-
-                                        geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
-                                            //style: styleBimShape(fatherGeoJsonNode.features[0].properties.lastValue[bubbleSelectedMetric[descBim]]),
-                                            style: styleBimShape,
-                                            onEachFeature: onMapEntityClick
-                                        });
-                                        geoJsonLayerShape.addTo(map.defaultMapRef);
-                                        if(geoJsonLayerShape){
-                                            try{
-                                                geoJsonLayerShape.bringToFront();
-                                            }catch{
-
-                                            }
-                                        }
-
-                                        jQuery.event.trigger({
-                                            type: "newBimShape",
-                                        });
-
-                                        // add legend to map
-                                        //map.legendHeatmap.addTo(map.defaultMapRef);
-                                        //map.eventsOnMap.push(heatmap);
-                                        var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
-
-                                        var bimShapeLegendColors = L.control({position: 'bottomleft'});
-
-                                        bimShapeLegendColors.onAdd = function (map) {
-                                            var div = L.DomUtil.create('div', 'info legend');
-                                            div.innerHTML += " <img src=" + legendBimFilePath + " height='100%'" + '<br>';
-                                            return div;
-                                        };
-
-                                        bimShapeLegendColors.addTo(map.defaultMapRef);
-                                        //  map.eventsOnMap.push(heatmap);
-
-                                        event.legendColors = bimShapeLegendColors;
-                                        map.eventsOnMap.push(event);
-
-                                        loadingDiv.empty();
-                                        loadingDiv.append(loadOkText);
-
-                                        parHeight = loadOkText.height();
-                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                        loadOkText.css("margin-top", parMarginTop + "px");
-
-                                        setTimeout(function () {
-                                            loadingDiv.css("opacity", 0);
-                                            setTimeout(function () {
-                                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
-                                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                    countObjKeys++;
                                                 });
-                                                loadingDiv.remove();
-                                            }, 350);
-                                        }, 1000);
-
-                                        if (eventGenerator) {
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                            eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
-                                            eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
-                                            if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
-                                            } else {
-                                                //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
                                             }
 
-                                            eventGenerator.show();
+                                        } else {
+                                            if (geoJsonData.hasOwnProperty("BusStop")) {
+                                                fatherGeoJsonNode = geoJsonData.BusStop;
+                                            } else {
+                                                if (geoJsonData.hasOwnProperty("Sensor")) {
+                                                    fatherGeoJsonNode = geoJsonData.Sensor;
+                                                } else {
+                                                    if (geoJsonData.hasOwnProperty("Service")) {
+                                                        fatherGeoJsonNode = geoJsonData.Service;
+                                                    } else {
+                                                        fatherGeoJsonNode = geoJsonData.Services;
+                                                    }
+                                                }
+                                            }
                                         }
 
-                                    });
-                            /*    } else {
+                                        if (geoJsonData.hasOwnProperty("realtime")) {
+                                            realtimeDataJson = geoJsonData.realtime;
+                                        }
+
+                                        for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
+                                            if (passedData.floorNumber == null || passedData.modelInstance == "singleBuilding" || (passedData.floorNumber != null && fatherGeoJsonNode.features[i].properties.values && fatherGeoJsonNode.features[i].properties.values.identifierName != null && passedData.floorNumber == fatherGeoJsonNode.features[i].properties.values.identifierName)) {
+                                                var shapeJsonString = null;
+                                                var shapeJson = null;
+
+                                                fatherGeoJsonNode.features[i].properties.targetWidgets = targets;
+                                                fatherGeoJsonNode.features[i].properties.color1 = color1;
+                                                fatherGeoJsonNode.features[i].properties.color2 = color2;
+                                                fatherGeoJsonNode.features[i].properties.pinattr = passedData.pinattr;
+                                                fatherGeoJsonNode.features[i].properties.pincolor = passedData.pincolor;
+                                                fatherGeoJsonNode.features[i].properties.symbolcolor = passedData.symbolcolor;
+                                                fatherGeoJsonNode.features[i].properties.iconFilePath = passedData.iconFilePath;
+                                                fatherGeoJsonNode.features[i].properties.altViewMode = passedData.altViewMode;
+
+                                                var maxValue = 0;
+                                                var valueObj = {};
+                                                if (fatherGeoJsonNode.features[i].properties.values != null) {
+                                                    if (geoJsonData.features[i].properties.values.hasOwnProperty("geometry")) {
+                                                        shapeJsonString = geoJsonData.features[i].properties.values["geometry"];
+                                                        if (IsJsonString(shapeJsonString)) {
+                                                            shapeJson = JSON.parse(shapeJsonString);
+                                                            //fatherGeoJsonNode.features[i].geometry.coordinates = [];
+                                                            //fatherGeoJsonNode.features[i].geometry.coordinates[0] = [];
+                                                            //fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
+                                                            if (passedData.floorNumber != null) {
+                                                                fatherGeoJsonNode.features[i].geometry.coordinates = [];
+                                                                fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
+                                                            } else {
+                                                                fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
+                                                            }
+                                                        }
+                                                    }
+                                                    if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty(bubbleSelectedMetric[descBim])) {
+                                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties.values[bubbleSelectedMetric[descBim]];
+                                                        //fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]].replace(/"/g, "");
+                                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]]))) {
+                                                            //    if (altViewMode != "CustomPin" && altViewMode != "DynamicCustomPin") {
+                                                            //        fatherGeoJsonNode.features.splice(i, 1);
+                                                            continue;
+                                                            //    }
+                                                        } else {
+                                                            if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] > maxValue) {
+                                                                maxValue = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]];
+                                                            }
+                                                        }
+                                                    } else {
+                                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
+                                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = null;
+                                                        // fatherGeoJsonNode.features.splice(i, 1);
+                                                        continue;
+                                                    }
+                                                } else {
+                                                    if (fatherGeoJsonNode.features[i].properties.values == null && geoJsonData.hasOwnProperty("realtime")) {
+                                                        if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty("geometry")) {
+                                                            shapeJsonString = geoJsonData.realtime.results.bindings[0]["geometry"].value;
+                                                            if (IsJsonString(shapeJsonString)) {
+                                                                shapeJson = JSON.parse(shapeJsonString);
+                                                                if (passedData.floorNumber != null) {
+                                                                    fatherGeoJsonNode.features[i].geometry.coordinates = [];
+                                                                    fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
+                                                                } else {
+                                                                    fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
+                                                                }
+                                                            }
+                                                        }
+                                                        if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty(bubbleSelectedMetric[descBim])) {
+                                                            var key = bubbleSelectedMetric[descBim];
+                                                            var obj = {};
+                                                            obj[key] = geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[descBim]].value;
+                                                            fatherGeoJsonNode.features[i].properties["lastValue"] = obj;
+                                                        }
+                                                    } else {
+                                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
+                                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = null;
+                                                        //fatherGeoJsonNode.features.splice(i, 1);
+                                                        continue;
+                                                    }
+                                                }
+
+                                                /*    if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty("dateObserved")) {
+                                                        fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.values["dateObserved"];
+                                                    } else {
+                                                        fatherGeoJsonNode.features[i].properties.measuredTime = null;
+                                                    }   */
+
+                                                //fatherGeoJsonNode.features[i].geometry.type = "MultiPolygon";
+                                                fatherGeoJsonNode.features[i].geometry.type = shapeJsonString = shapeJson.type;
+
+                                                dataObj.eventType = "bimShapeEvent";
+                                                dataObj.descBim = descBim;
+                                                dataObj.query = passedData.query;
+                                                dataObj.targets = passedData.targets;
+                                                dataObj.eventGenerator = passedData.eventGenerator;
+                                                dataObj.color1 = passedData.color1;
+                                                dataObj.color2 = passedData.color2;
+                                                dataObj.queryType = passedData.queryType;
+                                                dataObj.display = passedData.display;
+                                                dataObj.iconTextMode = passedData.iconTextMode;
+
+                                                //    map.eventsOnMap.push(dataObj);
+                                            } else if (passedData.floorNumber != null && fatherGeoJsonNode.features[i].properties.values && fatherGeoJsonNode.features[i].properties.values.identifierName != null && passedData.floorNumber != fatherGeoJsonNode.features[i].properties.values.identifierName) {
+                                                fatherGeoJsonNode.features[i] = [];
+                                            }
+                                        }
+
+                                        i = 0;
+                                        while (i < fatherGeoJsonNode.features.length) {
+                                            if (Array.isArray(fatherGeoJsonNode.features[i]) && fatherGeoJsonNode.features[i].length == 0) {
+                                                fatherGeoJsonNode.features.splice(i, 1);
+                                            } else {
+                                                i++;
+                                            }
+                                        }
+
+                                        map.eventsOnMap.push(dataObj);
+                                        var colorBimMapName = "";
+                                        var legendBimFilePath = "";
+
+                                        colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1);
+                                        legendBimFilePath = '../img/heatmapsGradientLegends/' + colorBimMapName + '.png';
+
+                                        /*    return $.ajax({
+                                                url: heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName,
+                                                type: "GET",
+                                                async: true,
+                                                dataType: 'json',
+                                            }); */
+                                        var getColorMapData = fetchAjax(heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName, null, "GET", 'json', true, null);
+                                        getColorMapData.done(function (colorScale) {
+
+                                            bimColorScale = colorScale;
+                                            //    if (!gisLayersOnMap.hasOwnProperty(descBim)) {
+                                            //    geoJsonLayerShape = L.geoJson(shapeJson, {
+
+                                            if (geoJsonLayerShape) {
+                                                map.defaultMapRef.removeLayer(geoJsonLayerShape);
+                                            }
+
+                                            geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
+                                                //style: styleBimShape(fatherGeoJsonNode.features[0].properties.lastValue[bubbleSelectedMetric[descBim]]),
+                                                style: styleBimShape,
+                                                onEachFeature: onMapEntityClick
+                                            });
+                                            geoJsonLayerShape.addTo(map.defaultMapRef);
+
+                                            if (passedData.modelInstance == "singleBuilding") {
+                                                map.defaultMapRef.setView([fatherGeoJsonNode.features[0].geometry.coordinates[0][0][1], fatherGeoJsonNode.features[0].geometry.coordinates[0][0][0]], 18);
+                                            }
+
+                                            if (geoJsonLayerShape) {
+                                                try {
+                                                    geoJsonLayerShape.bringToFront();
+                                                } catch {
+
+                                                }
+                                            }
+
+                                            jQuery.event.trigger({
+                                                type: "newBimShape",
+                                            });
+
+                                            // add legend to map
+                                            //map.legendHeatmap.addTo(map.defaultMapRef);
+                                            //map.eventsOnMap.push(heatmap);
+                                            var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+
+                                            var bimShapeLegendColors = L.control({position: 'bottomleft'});
+
+                                            bimShapeLegendColors.onAdd = function (map) {
+                                                var div = L.DomUtil.create('div', 'info legend');
+                                                div.innerHTML += " <img src=" + legendBimFilePath + " height='100%'" + '<br>';
+                                                return div;
+                                            };
+
+                                            bimShapeLegendColors.addTo(map.defaultMapRef);
+                                            //  map.eventsOnMap.push(heatmap);
+
+                                            event.legendColors = bimShapeLegendColors;
+                                            map.eventsOnMap.push(event);
+
+                                            loadingDiv.empty();
+                                            loadingDiv.append(loadOkText);
+
+                                            parHeight = loadOkText.height();
+                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                            loadOkText.css("margin-top", parMarginTop + "px");
+
+                                            setTimeout(function () {
+                                                loadingDiv.css("opacity", 0);
+                                                setTimeout(function () {
+                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
+                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                    });
+                                                    loadingDiv.remove();
+                                                }, 350);
+                                            }, 1000);
+
+                                            if (eventGenerator) {
+                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
+                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
+                                                if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
+                                                } else {
+                                                    //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                                }
+
+                                                eventGenerator.show();
+                                            }
+
+                                        });
+
+                                } else {
                                     gisLayersOnMap[event.descBim] = "loadError";
 
                                     loadingDiv.empty();
@@ -14317,7 +14342,7 @@ if (!isset($_SESSION)) {
 
                                     console.log("Error in getting GeoJSON from ServiceMap");
                                     console.log(JSON.stringify(geoJsonData));
-                                }   */
+                                }
                             });
 
                             getSmartCityAPIData.fail(function(errorData) {
