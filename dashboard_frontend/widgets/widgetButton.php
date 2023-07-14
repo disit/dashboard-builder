@@ -319,6 +319,10 @@
                 button.mousedown(function()
                 {
                    $('#<?= $_REQUEST['name_w'] ?>_button').addClass('onOffButtonActive');
+                   if (code != null && code != '') {
+                             var functionName = "execute_" + "<?= $_REQUEST['name_w'] ?>";
+                             execute_<?= $_REQUEST['name_w'] ?>();
+                         }
                 });
 
                 button.mouseup(function()
@@ -494,6 +498,25 @@
                    $("#<?= $_REQUEST['name_w'] ?>_buttonAfter").css("box-shadow", "none");
                }
            }
+           ////////////////
+           if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
+						
+                        code = widgetProperties.param.code;
+                        var text_ck_area = document.createElement("text_ck_area");
+                        text_ck_area.innerHTML = code;
+                        var newInfoDecoded = text_ck_area.innerText;
+                        newInfoDecoded = newInfoDecoded.replaceAll("function execute()","function execute_" + "<?= $_REQUEST['name_w'] ?>(param)");
+
+                        var elem = document.createElement('script');
+                        elem.type = 'text/javascript';
+                        // elem.id = "<?= $_REQUEST['name_w'] ?>_code";
+                        // elem.src = newInfoDecoded;
+                        elem.innerHTML = newInfoDecoded;
+                        $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+
+                        $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                    }
+           //////////////////
            populateWidget();
         }
 
@@ -529,4 +552,5 @@
             <div id="<?= $_REQUEST['name_w'] ?>_buttonAfter" class="onOffButtonAfter"></div>
         </div>
     </div>
+    <div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div> 

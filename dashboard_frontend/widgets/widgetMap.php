@@ -810,7 +810,7 @@ if (!isset($_SESSION)) {
                             var makeDraggable = function(popup, excluding){
                                 var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
                                 L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
-                            /*    var draggable = new L.Draggable(popup._container, popup._wrapper);
+                                var draggable = new L.Draggable(popup._container, popup._wrapper);
                                 draggable.enable(); $(".draggableAndResizablePopup").css("cursor","move");
                                 draggable.on('dragend', function() {
                                     var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
@@ -819,7 +819,7 @@ if (!isset($_SESSION)) {
                                 });
                                 excluding.forEach((excluded) => {
                                     $(excluded).css("cursor","auto").on("mouseover",function(e){ draggable.disable(); } ).on("mouseout",function(e){ draggable.enable(); } );
-                                }); */
+                                });
                             };
                             //	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
                             if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup .recreativeEventMapDataContainer"]);
@@ -14114,25 +14114,14 @@ if (!isset($_SESSION)) {
                                                         shapeJsonString = geoJsonData.features[i].properties.values["geometry"];
                                                         if (IsJsonString(shapeJsonString)) {
                                                             shapeJson = JSON.parse(shapeJsonString);
-                                                            //fatherGeoJsonNode.features[i].geometry.coordinates = [];
-                                                            //fatherGeoJsonNode.features[i].geometry.coordinates[0] = [];
-                                                            //fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
-                                                            if (passedData.floorNumber != null) {
-                                                                fatherGeoJsonNode.features[i].geometry.coordinates = [];
-                                                                fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
-                                                            } else {
-                                                                fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
-                                                            }
+                                                            fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
                                                         }
                                                     }
                                                     if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty(bubbleSelectedMetric[descBim])) {
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties.values[bubbleSelectedMetric[descBim]];
                                                         //fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]].replace(/"/g, "");
                                                         if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]]))) {
-                                                            //    if (altViewMode != "CustomPin" && altViewMode != "DynamicCustomPin") {
-                                                            //        fatherGeoJsonNode.features.splice(i, 1);
                                                             continue;
-                                                            //    }
                                                         } else {
                                                             if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] > maxValue) {
                                                                 maxValue = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]];
@@ -14140,8 +14129,6 @@ if (!isset($_SESSION)) {
                                                         }
                                                     } else {
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
-                                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = null;
-                                                        // fatherGeoJsonNode.features.splice(i, 1);
                                                         continue;
                                                     }
                                                 } else {
@@ -14150,12 +14137,7 @@ if (!isset($_SESSION)) {
                                                             shapeJsonString = geoJsonData.realtime.results.bindings[0]["geometry"].value;
                                                             if (IsJsonString(shapeJsonString)) {
                                                                 shapeJson = JSON.parse(shapeJsonString);
-                                                                if (passedData.floorNumber != null) {
-                                                                    fatherGeoJsonNode.features[i].geometry.coordinates = [];
-                                                                    fatherGeoJsonNode.features[i].geometry.coordinates[0] = shapeJson.coordinates;
-                                                                } else {
-                                                                    fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
-                                                                }
+                                                                fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
                                                             }
                                                         }
                                                         if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty(bubbleSelectedMetric[descBim])) {
@@ -14166,8 +14148,6 @@ if (!isset($_SESSION)) {
                                                         }
                                                     } else {
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
-                                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = null;
-                                                        //fatherGeoJsonNode.features.splice(i, 1);
                                                         continue;
                                                     }
                                                 }
