@@ -83,6 +83,16 @@
         {
             url = null;
         }
+
+        //event click
+        button.mousedown(function()
+                {
+                   $('#<?= $_REQUEST['name_w'] ?>_button').addClass('onOffButtonActive');
+                   if (code != null && code != '') {
+                             var functionName = "execute_" + "<?= $_REQUEST['name_w'] ?>";
+                             execute_<?= $_REQUEST['name_w'] ?>();
+                         }
+                });
 		
         //Definizioni di funzione specifiche del widget
         function populateWidget()

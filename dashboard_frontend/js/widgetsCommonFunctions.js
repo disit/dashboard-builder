@@ -578,7 +578,7 @@ function getBubbleMetrics(query, idx, callback) {
         },
         error: function(errorData)
         {
-            console.log("Errore in caricamento proprietà 'IconsPool (All)'");
+            console.log("Errore nel caricamento metriche");
             console.log(JSON.stringify(errorData));
         }
     });

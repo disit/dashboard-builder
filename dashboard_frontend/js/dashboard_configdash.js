@@ -631,7 +631,7 @@ function addGisQueryM()
        newTableCell.find('select').append('<option value="CustomPin">Custom Pin</option>');
        newTableCell.find('select').append('<option value="DynamicCustomPin">Dynamic Custom Pin</option>');
        newTableCell.find('select').append('<option value="BimShape">BIM Shape</option>');
-       // newTableCell.find('select').append('<option value="BimShapePopup">BIM Shape & Popup</option>');
+       newTableCell.find('select').append('<option value="BimShapePopup">BIM Shape & Popup</option>');
        newTableRow.append(newTableCell);
        newTableCell.find('select').val('No');
        newTableCell.find('select').on('change', editGisUpdateParams);
