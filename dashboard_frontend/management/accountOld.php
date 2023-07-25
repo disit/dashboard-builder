@@ -34,17 +34,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 
     <title>Dashboard Management System</title>
     
-    <script type="text/javascript">
-       const setTheme = (theme) => {
-       document.documentElement.className = theme;
-       localStorage.setItem('theme', theme);
-       }
-       const getTheme = () => {
-       const theme = localStorage.getItem('theme');
-       theme && setTheme(theme);
-       }
-       getTheme();
-    </script>
+    
 
     <!-- Bootstrap Core CSS -->
       <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">

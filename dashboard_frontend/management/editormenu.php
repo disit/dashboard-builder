@@ -58,17 +58,7 @@ $lastUsedColors = null;
 
     <title>MenuManager</title>
     
-    <script type="text/javascript">
-      const setTheme = (theme) => {
-      document.documentElement.className = theme;
-      localStorage.setItem('theme', theme);
-      }
-      const getTheme = () => {
-      const theme = localStorage.getItem('theme');
-      theme && setTheme(theme);
-      }
-      getTheme();
-    </script>
+    
 
     <!-- Bootstrap Core CSS -->
     <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
@@ -204,12 +194,8 @@ $lastUsedColors = null;
     <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
-    <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
-    <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
-    <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
-    <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
-    <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
+    <?php include "theme-switcher.php" ?> 
+    
     <link href="../css/widgetCtxMenu_1.css?v=<?php
     echo time();
     ?>" rel="stylesheet">

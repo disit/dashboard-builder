@@ -20,17 +20,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 <html class="dark">
     <head>
         <meta charset="UTF-8">
-        <script type="text/javascript">
-            const setTheme = (theme) => {
-            document.documentElement.className = theme;
-            localStorage.setItem('theme', theme);
-            }
-            const getTheme = () => {
-            const theme = localStorage.getItem('theme');
-            theme && setTheme(theme);
-            }
-            getTheme();
-        </script>
+        
         <link href="../css/chatIframe.css" rel="stylesheet" type="text/css">
         <link rel="stylesheet" href="../css/chat.css" type="text/css" />
         <!-- Font awesome icons -->

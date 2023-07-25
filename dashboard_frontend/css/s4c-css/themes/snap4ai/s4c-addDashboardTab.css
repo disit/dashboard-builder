@@ -1,0 +1,37 @@
+.modalAddDashboardWizardChoiceCnt
+{
+    font-weight: bold !important;
+    margin-top: 0px !important;
+}
+
+.modalAddDashboardWizardChoicePic.col-xs-12
+{
+    height: 150px;
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-position: center center;
+    /*padding-left: 30px !important;
+    padding-right: 30px !important;*/
+}
+
+#dashboardLivePreviewerContainer
+{
+    /*border: 1px solid red;*/
+}
+
+#dashboardLivePreviewer
+{
+    /*background-color: orange;*/
+    width: 90%;
+    height: 100px;
+}
+
+#addWidgetWizardConfirmBtn
+{
+    margin-top: 40px;
+}
+
+#addWidgetWizardConfirmBtn2
+{
+    margin-top: 40px;
+}

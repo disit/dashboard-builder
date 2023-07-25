@@ -56,18 +56,6 @@ else
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title><?php include "mobMainMenuClaim.php" ?></title>
-        
-        <script type="text/javascript">
-          const setTheme = (theme) => {
-          document.documentElement.className = theme;
-          localStorage.setItem('theme', theme);
-          }
-          const getTheme = () => {
-          const theme = localStorage.getItem('theme');
-          theme && setTheme(theme);
-          }
-          getTheme();
-        </script>
 
         <!-- jQuery -->
         <script src="../js/jquery-1.10.1.min.js"></script>
@@ -133,13 +121,7 @@ else
         <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
 
         <!-- Custom CSS -->
-        <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/s4c-css/s4c-dashboardList.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/s4c-css/s4c-dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/s4c-css/s4c-addWidgetWizard2.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/s4c-css/s4c-addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/s4c-css/s4c-dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
-        <link href="../css/s4c-css/s4c-iotApplications.css?v=a" rel="stylesheet">
+        <?php include "theme-switcher.php"?>
 
         <!--Highchart -->
         <script src="https://code.highcharts.com/stock/highstock.js"></script>

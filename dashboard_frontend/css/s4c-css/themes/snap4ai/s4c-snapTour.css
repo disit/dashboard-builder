@@ -1,0 +1,76 @@
+.shepherd-element {
+    max-width: 480px;
+}
+
+.shepherd-text p{
+    color: var(--menu-color-)!important;
+}
+
+.shepherd-content{
+    padding: 10px;
+    background: var(--bg-color-);
+}
+
+.shepherd-element,
+.shepherd-button,
+.shepherd-content,
+.shepherd-has-title .shepherd-content .shepherd-header {
+    border-radius: 5px;
+}
+
+.shepherd-text {
+    font-size: 1.3rem;
+    color: var(--text-color-);
+}
+
+.shepherd-button {
+    font-weight: 700;
+    color: var(--white-);
+    padding: 10px;
+}
+
+.shepherd-button.shepherd-button-secondary{
+    background: var(--grey-blue02-)!important;
+    color: var(--dark-grey03-)!important;
+}
+
+.shepherd-button.shepherd-prev-btn {
+    margin-right: auto;
+}
+
+.shepherd-button:not(:disabled):hover {
+    background: var(--blue-);
+    color: var(--var(--white-)-);
+}
+
+.shepherd-header{
+    background: var(--blue-)!important;
+}
+
+.shepherd-button {
+    background: var(--blue-);
+}
+
+.shepherd-has-title .shepherd-content .shepherd-header .shepherd-title {
+    font-size: 2rem;
+    color: var(--text-color-);
+    font-weight: 900;
+    flex: auto;
+    align-self: center;
+}
+
+.light .shepherd-has-title .shepherd-content .shepherd-header .shepherd-title {
+    color: var(--text-color-);
+}
+
+.shepherd-has-title .shepherd-content .shepherd-cancel-icon {
+    color: var(--white-);
+}
+
+.shepherd-has-title .shepherd-content .shepherd-cancel-icon:hover{
+    color: var(--dark-grey01-)!important;
+}
+
+.shepherd-has-title .shepherd-content .shepherd-header {
+    justify-content: space-between;
+}

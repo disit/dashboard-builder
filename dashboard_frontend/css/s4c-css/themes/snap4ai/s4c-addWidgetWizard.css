@@ -1,0 +1,705 @@
+#addWidgetWizardLabelBody
+{
+    overflow-y: auto;
+    height: 800px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}
+
+#addWidgetWizardLoadingMsg, #addWidgetWizardOkMsg, #addWidgetWizardKoMsg
+{
+    display: none;
+}
+
+#addWidgetWizard div.modal-dialog
+{
+    width: 98vw;
+}
+
+/*#widgetWizardTableContainer, */#highLevelTypeMainContainer, #natureMainContainer, #subnatureMainContainer, #lowLevelTypeMainContainer, #instanceMainContainer, #linkMainContainer, #unitMainContainer, #lastDateMainContainer, #lastValueMainContainer
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    overflow-x:scroll;
+}
+
+#widgetWizardTableContainer
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    overflow-x:auto !important;
+}
+
+#widgetWizardTable label.checkbox
+{
+    font-size: 12px !important;
+    padding: 0px 20px 0px 25px !important
+}
+
+#widgetWizardTable tbody tr:hover, #widgetWizardSelectedRowsTable tbody tr:hover
+{
+    cursor: pointer;
+    background-color: #f3cf58;
+    font-weight: bold;
+}
+
+#addWidgetWizardConfirmBtnContainer
+{
+    display: none;
+}
+
+#addWidgetWizardConfirmBtn
+{
+    /*display: none;*/
+}
+
+div.addWidgetWizardColTitle
+{
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+    font-size: 1em;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+div.addWidgetWizardColContent
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+table.addWidgetWizardTable, table.addWidgetWizardTableSelected
+{
+    width: 100% !important;
+    border-collapse: collapse;
+    font-size: 0.7em;
+    overflow-y: hidden;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    border-bottom: none !important;
+    /*height: 200px !important;*/
+}
+
+table.addWidgetWizardTable
+{
+    height: 200px !important;
+}
+
+table.addWidgetWizardTable thead
+{
+    height: 56px !important;
+}
+
+table.addWidgetWizardTable tbody
+{
+    height: 144px !important;
+}
+
+#widgetWizardSelectedRowsTableContainer.col-xs-12
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+/* table.addWidgetWizardTable > tbody > tr, table.addWidgetWizardTableSelected > tbody > tr
+{
+   font-size: 11px;
+}
+
+table.addWidgetWizardTable > tbody .widgetWizardTableBoldCell, table.addWidgetWizardTableSelected > tbody .widgetWizardTableBoldCell
+{
+    font-weight: bold;
+    color: #576c75;
+    font-size: 12px;
+}
+
+table.addWidgetWizardTable tbody td, table.addWidgetWizardTableSelected tbody td
+{
+    line-height: 1 !important;
+    padding: 1px 0px 1px 0px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    border: none !important;
+} */
+
+thead.widgetWizardColTitle
+{
+    background-color: #576c75;
+    color: white;
+    font-size: 1.2em;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    /*float: left;*/
+}
+
+#modalStartWizardFooter
+{
+    background-color: rgba(108, 135, 147, 1);
+}
+
+tr.widgetWizardRow
+{
+    border-collapse: collapse;
+}
+
+tr.widgetWizardRow:hover
+{
+    background-color: lavender;
+}
+
+th.widgetWizardTitleCell
+{
+    border-collapse: collapse;
+    /*border: 1px solid #eeeeee;*/
+    text-align: center;
+}
+
+#widgetWizardTable th, #widgetWizardTable thead td
+{
+    border: none !important;
+    font-size: 12px;
+}
+
+table.dataTable thead th, table.dataTable thead td
+{
+    padding: 4px 18px !important;
+}
+
+#widgetWizardTable tbody tr:hover
+{
+    cursor: pointer;
+}
+
+#widgetWizardTable.dataTable tbody tr.selected
+{
+    background-color: var(--green-)!important;
+    color: var(--dark-grey01-);
+}
+
+#widgetWizardTable button.multiselect 
+{
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    border-radius: 0px;
+    background-color: #576c75 !important;
+    border: none !important;
+    color: white !important;
+}
+
+#widgetWIzardTableSearch
+{
+    height: 23px !important;
+    font-size: 10px;
+    font-weight: normal;
+    background-color: #576c75 !important;
+    color: white !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid white !important;
+}
+
+#widgetWIzardTableSearch::placeholder
+{
+    color: white !important;
+}
+
+#widgetWizardTableCommandsContainer, #widgetWizardSelectedRowsTableCommandsContainer
+{
+    background-color: #576c75;
+}
+
+#widgetWizardTable_filter label, #widgetWizardTable_filter input, #widgetWizardSelectedRowsTable_filter input 
+{
+    width: 100%;
+    margin-bottom: 0px !important;
+}
+
+#widgetWizardTableHideColsMenu.dropdown-menu > li > a
+{
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    font-size: 12px !important;
+}
+
+#widgetWizardTable ul.dropdown-menu > .active > a
+{
+    background-color: white !important;
+    color: #333 !important;
+}
+
+#widgetWizardTableRow, #widgetWizardSelectedRowsTableRow
+{
+    margin-top: 20px;
+}
+
+td.widgetWizardCell
+{
+    border-collapse: collapse;
+    border: 1px solid #eeeeee;
+    text-align: center;
+}
+
+tr.highLevelTypeRow, tr.natureRow, tr.subnatureRow, tr.lowLevelTypeRow, tr.instanceRow, tr.linkRow, tr.unitRow, tr.lastDateRow, tr.lastValueRow
+{
+    border-collapse: collapse;
+}
+
+td.highLevelTypeCell, td.natureCell, td.subnatureCell, td.lowLevelTypeCell, td.instanceCell, td.linkCell, td.unitCell, td.lastDateCell, td.lastValueCell
+{
+    border-collapse: collapse;
+    border: 1px solid #eeeeee;
+}
+
+td.highLevelTypeCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+td.natureCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.subnatureCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.lowLevelTypeCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.instanceCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.linkCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.unitCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.lastDateCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.lastValueCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+input.testCheckInput{
+    display:none;
+}
+
+.widgetTableActive { 
+    background-color: lavender
+}
+
+.widgetTableInactive {
+    background-color: white;
+}
+
+.multiselect-selected-text {
+    font-size: 10px;
+}
+
+.icons-mono-container {
+    float: left;
+    clear: none; 
+    width: 48%;
+    background-color: lavender;
+    overflow: auto;
+}
+
+.icons-multi-container {
+    float: right;
+    clear: none; 
+    width: 48%;
+    background-color: lavender;
+    overflow: auto;
+}
+
+.iconsMonoSingleIcon, .iconsMonoMultiIcon
+{
+    width: 50px;
+    height: 36px;
+    float: left;
+    background-size: 100% 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.addWidgetWizardIconClickClass:hover
+{
+    cursor: pointer;
+    border: 1px solid rgba(0, 162, 211, 1);
+}
+
+/*.iconTooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.iconTooltip .iconTooltipText {
+    visibility: hidden;
+    width: 120px;
+    background-color: whitesmoke;
+    color: black;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    
+    position: absolute;
+    z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}*/
+
+.addWidgetWizardIconTooltip
+{
+    font-family: 'ABeeZee'; font-size: 0.9em;
+}
+
+#widgetWizardTable_paginate .pagination
+{
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
+
+#widgetWizardTable_paginate .pagination > li > a, .pagination > li > span, #widgetWizardSelectedRowsTable_paginate .pagination > li > a, .pagination > li > span
+{
+    border: none !important;
+    color: white;
+    background-color: transparent;
+    font-weight: bold;
+}
+
+#widgetWizardTable_paginate .pagination > .active > a
+{
+    background-color: rgba(0, 162, 211, 1);
+    border-radius: 5px;
+}
+
+#widgetWizardTableSelectedRowsCounter
+{
+    /*height: 34px;*/
+}
+
+#noRowsSelectedAlert
+{
+    display: none;
+    color: #f3cf58;
+    font-style: italic;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 15px
+}
+
+#modalAddWidgetWizardAvailabilityMsg
+{
+    display: none;
+    font-size: 12px;
+    color: #f3cf58;
+    font-weight: bold;
+    font-style: italic;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+#addWidgetWizardWidgetAvailableMsg
+{
+    font-size: 12px;
+    color: #f3cf58;
+    font-weight: bold;
+    font-style: italic;
+}
+
+#choosenDashTemplateLbl, #choosenDashTemplateImg
+{
+    display: none;
+}
+
+#choosenDashTemplateImg
+{
+    height: 225px;
+    background-size: auto 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+#widgetWizardTableCommandsContainer #resetButton.cancelBtn
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#widgetWizardTable_paginate li.paginate_button, #widgetWizardSelectedRowsTable_paginate li.paginate_button
+{
+    font-size: 12px !important;
+}
+
+#widgetWizardSelectedRowsTable_paginate .pagination
+{
+    margin: 0px 0px 0px 0px !important;
+}
+
+#widgetWizardTable_paginate .pagination > li > a, #widgetWizardSelectedRowsTable_paginate .pagination > li > a 
+{
+    padding: 0px 12px !important;
+}
+
+#widgetWizardTableCommandsContainer button.confirmBtn
+{
+    padding: 0px 12px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+}
+
+#widgetWizardTable_filter input[type=search], #widgetWizardSelectedRowsTable_filter input[type=search] 
+{
+    font-size: 12px !important;
+    height: 18px !important;
+}
+
+.widgetWizardSelectedRowsDelBtn
+{
+    font-size: 16px;
+    color: rgba(0, 162, 211, 1);
+}
+
+.widgetWizardSelectedRowsDelBtn:hover
+{
+    color: red;
+}
+
+.dashboardWizardTabTxt
+{
+    color: white !important;
+    font-weight: bold !important;
+}
+
+#addWidgetWizard ul.nav>li.active>a
+{
+    background-color: transparent !important;
+    color: #fff;
+    border-bottom: none !important;
+}
+
+#addWidgetWizard ul.nav>li>a:hover
+{
+    background-color: transparent !important;
+    color: #fff;
+    font-style: italic;
+}
+
+#widgetWizardActuatorFieldsRow
+{
+    display: none;
+    background-color: transparent;
+    padding-left: 15px !important; 
+    padding-right: 15px !important;
+}
+
+.widgetWizardActuatorCell
+{
+    background-color: #576c75 !important;
+    height: 40px !important;
+}
+
+.wizardActLbl
+{
+    color: white;
+    font-weight: bold;
+    font-size: 12px !important;
+}
+
+#widgetWizardActuatorFieldsRow .form-control
+{
+    height: 20px !important;
+    padding: 0px !important;
+    font-size: 12px !important;
+    border-radius: 0px !important;
+}
+
+#actuatorTargetCell .wizardActLbl, 
+#actuatorTargetCell .wizardActInputCnt, 
+#actuatorEntityNameCell .wizardActLbl, 
+#actuatorEntityNameCell .wizardActInputCnt, 
+#actuatorValueTypeCell .wizardActLbl, 
+#actuatorValueTypeCell .wizardActInputCnt,
+#actuatorMinBaseValueCell .wizardActLbl,
+#actuatorMinBaseValueCell .wizardActInputCnt,
+#actuatorMaxBaseValueCell .wizardActLbl, 
+#actuatorMaxBaseValueCell .wizardActInputCnt
+{
+    display: none;
+}
+
+#summary
+{
+    color: white;
+}
+
+.summaryLbl
+{
+    color: #f3cf58;
+    font-weight: bold;
+    font-size: 14px !important;
+    margin-top: 15px;
+}
+
+#summaryTable
+{
+    width: 100%;
+}
+
+#summaryTable thead
+{
+    background-color: #576c75 !important;
+    color: white;
+}
+
+#summaryTable td, #summaryTable th
+{
+    text-align: center;
+}
+
+#summaryTable td
+{
+    color: #576c75;
+}
+
+tr.summaryTableRow:nth-child(odd)
+{
+    background-color: #f9f9f9;
+}
+
+tr.summaryTableRow:nth-child(even)
+{
+    background-color: #ffffff;
+}
+
+.singleWidgetIconCnt
+{
+    width: 150px;
+    height: 108px;
+    float: left;
+    background-size: 100% 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+#dashboardTemplatesInnerCnt
+{
+    height: 570px;
+    overflow-y: auto;
+}
+
+#wizardNotCompatibleRowsAlert
+{
+    display: none;
+}
+
+.addWidgetWizardIconsCntSublabel
+{
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+}
+
+.addWidgetWizardIconsCntLabelBig
+{
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+}
+
+.validityConditionIcon
+{
+    color: #f3cf58;
+    font-size: 48px;
+}
+
+.validityConditionLbl
+{
+    color: #f3cf58;
+    font-size: 14px;
+}
+
+.summaryLblIcon
+{
+    color: rgba(0, 162, 211, 1);
+    font-size: 48px;
+}
+
+#summaryDiv, #wrongConditionsDiv
+{
+    margin-top: 15px;
+}
+
+.modalAddDashboardWizardChoiceSubtxt
+{
+    font-size: 12px;
+    font-weight: normal;
+    color: white;
+}
+
+#summaryContainer, #checkContainer, #instantiateBtnContainer
+{
+    border: none;
+    background-color: #7a939f;
+    padding-top: 0px;
+    padding-bottom: 10px;
+    margin-top: 15px;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+#checkContainer, #instantiateBtnContainer
+{
+    height: 250px;
+}
+
+#summaryContainer .addWidgetWizardIconsCntLabelBig, #summaryContainer .addWidgetWizardIconsCntSublabel,
+#checkContainer .addWidgetWizardIconsCntLabelBig, #checkContainer .addWidgetWizardIconsCntSublabel,
+#instantiateBtnContainer .addWidgetWizardIconsCntLabelBig, #instantiateBtnContainer .addWidgetWizardIconsCntSublabel
+{
+    background-color: #576c75;
+}
+
+#GPSUser.cancelBtn/*, #FreezeMap.cancelBtn*/
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#GPSOrg.cancelBtn/*, #FreezeMap.cancelBtn*/
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
