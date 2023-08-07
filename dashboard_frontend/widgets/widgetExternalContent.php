@@ -69,30 +69,41 @@
         //READ_START
         $(document).off('showExternalContentFromExternalContent_' + widgetName);
         $(document).on('showExternalContentFromExternalContent_' + widgetName, function(event) {
-            //INSERT CONTROL OVER 
+            //INSERT CONTROL OVER   
             var passedData = event.passedData; 
-            //console.log(passedData);   
-           // $('#inputsvg_'+widgetName).val(passedData.dataOperation);
-            var link_svg = $('#svg_object_'+ widgetName).attr('data');
-               
-           // var dest_d = $('#tspan2829-2').attr('width');
-            var a = document.getElementById('svg_object_'+ widgetName);
-            var svgDoc = a.contentDocument;
-            console.log(a);     
-            var array_svg = passedData.dataOperation;
-            var l = array_svg.length;
-            for(var i=0; i<l; i++){
-            //$('#tspan2829-2').attr('width', 150);
-            console.log(svgDoc);
-            var delta = svgDoc.getElementById(passedData.dataOperation[i].target);
-            console.log(passedData.dataOperation[i].attributes[0]);
-            if (passedData.dataOperation[i].attributes[0].actions[0].target == 'textContent'){
-            delta.textContent = passedData.dataOperation[i].attributes[0].actions[0].input;
-            var data_siow=JSON.stringify(passedData.dataOperation[i].attributes);
-            delta.setAttribute('data-siow', data_siow);
-            }
-            console.log(delta);
-            }
+            var events_time = ''; 
+            if (event.events){
+                events_time = event.events;
+            }       
+            if (events_time == 'sendContent'){
+                    loadcontent(event);
+
+            }else{
+                        console.log('passedData:'); 
+                        console.log(passedData);   
+                    // $('#inputsvg_'+widgetName).val(passedData.dataOperation);
+                        var link_svg = $('#svg_object_'+ widgetName).attr('data');
+                        
+                    // var dest_d = $('#tspan2829-2').attr('width');
+                        var a = document.getElementById('svg_object_'+ widgetName);
+                        var svgDoc = a.contentDocument;
+                        console.log(a);     
+                        var array_svg = passedData.dataOperation;
+                        var l = array_svg.length;
+                        for(var i=0; i<l; i++){
+                        //$('#tspan2829-2').attr('width', 150);
+                        console.log(svgDoc);
+                        var delta = svgDoc.getElementById(passedData.dataOperation[i].target);
+                        console.log(passedData.dataOperation[i].attributes[0]);
+                        if (passedData.dataOperation[i].attributes[0].actions[0].target == 'textContent'){
+                        delta.textContent = passedData.dataOperation[i].attributes[0].actions[0].input;
+                        var data_siow=JSON.stringify(passedData.dataOperation[i].attributes);
+                        delta.setAttribute('data-siow', data_siow);
+                        }else {        
+                        console.log(delta);
+                        }
+                    }
+                }
         });
         //READ_END
         //
@@ -3287,6 +3298,22 @@
             $('#<?= $_REQUEST['name_w'] ?>_iFrame').height(wrapperH);
         }
         
+        //Funzione seleziione contenuto HTML
+        function loadcontent(data){
+            //Leggere il contenuto da CKEDITOR
+            var iframeContents = $('#<?= $_REQUEST['name_w'] ?>_iFrame').contents();
+            var content_code = iframeContents.find('body');
+            var content_script = iframeContents.find('script');
+            //
+            // Nel documento principale
+                const iframeElement = document.getElementById('<?= $_REQUEST['name_w'] ?>_iFrame');
+                const iframeWindow = iframeElement.contentWindow;        
+            //
+                var passedData = data.passedData;
+                var array = [];
+                iframeWindow.action(passedData);
+
+        }
         //Fine definizioni di funzione 
         
         setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);	
