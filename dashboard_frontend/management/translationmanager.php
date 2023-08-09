@@ -14,13 +14,13 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
+include('process-form.php');
 if (!isset($_SESSION)) {
     session_start();
 }
 
 if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
-include('process-form.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
 //session_start();
