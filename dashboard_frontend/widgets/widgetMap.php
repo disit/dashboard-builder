@@ -196,10 +196,13 @@ if (!isset($_SESSION)) {
             $replacements[1] = '&apos;';
             $title = $_REQUEST['title_w'];
             $link = mysqli_connect($host, $username, $password);
-            if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
-                eventLog("Returned the following ERROR in widgetMap.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
-                exit();
+            if ($_REQUEST['name_w'] !== 'preview'){
+                if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
+                    eventLog("Returned the following ERROR in widgetMap.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
+                    exit();
+                }
             }
+            
 
             $genFileContent = parse_ini_file("../conf/environment.ini");
             $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
@@ -1663,7 +1666,6 @@ if (!isset($_SESSION)) {
 
                 return marker;
             }
-
             function haversineDistance(lat1,lon1,lat2,lon2) {
                 function toRad(x) {
                     return x * Math.PI / 180;
@@ -1817,8 +1819,8 @@ if (!isset($_SESSION)) {
                     buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, false);
                 }
                 if (feature.properties.pinattr != "pin" && feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
-                    var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
-					if("TransferServiceAndRenting_BusStop" == feature.properties.serviceType) {
+                    var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';						
+					if("TransferServiceAndRenting_BusStop" == feature.properties.serviceType) { 
 						if(feature.properties.hasOwnProperty("busStopCategory")) {
 							mapPinImg = '../img/gisMapIcons/' + feature.properties.busStopCategory + '.png';
 						}
@@ -1830,7 +1832,7 @@ if (!isset($_SESSION)) {
 								mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '_Suburban.png'
 							}
 						}
-					}
+					}										
 					var markerIcon = markerIcon = L.icon({
 						iconUrl: mapPinImg,
 						iconAnchor: [16, 37]
@@ -14995,6 +14997,163 @@ if (!isset($_SESSION)) {
             * da tabella Config_widget_dashboard, la quale memorizza un record per ogni istanza di widget. Tale record viene scritto
             * quando il widget viene creato
             */
+           //////////
+           const currentURI = window.location.href;
+            // Controlla se contiene la stringa "preview.php"
+            const containsPreview = currentURI.includes("preview.php");
+            // Stampa il risultato del controllo
+            console.log(containsPreview);
+            if (containsPreview){
+                //widgetData.params = null;
+                var latLng = "<?= escapeForJS($_REQUEST['latLng']) ?>";
+                    //Parametri di costruzione del widget (struttura e aspetto)
+                    showTitle = '';
+                    widgetContentColor = "rgba(255,255,255,1)";
+                    fontSize = null;
+                    fontColor = null;
+                    hasTimer = "no";
+                    chartColor = null;
+                    dataLabelsFontSize = null;
+                    dataLabelsFontColor = null;
+                    chartLabelsFontSize = null;
+                    chartLabelsFontColor = null;
+                    appId = null;
+                    flowId = null;
+                    nodeId = null;
+                    nrMetricType = null;
+                    sm_based = "no";
+                    rowParameters = null;
+                    sm_field = null;
+                    addMode = "additive";
+                    enableFullscreenModal = "yes";
+                    enableFullscreenTab = "no";
+                    geoServerUrl = 'https://wmsserver.snap4city.org/';
+                    heatmapUrl = 'https://heatmap.snap4city.org/';
+                    nodeRedInputName = null;
+                    nrInputId = null;
+					code = null;
+                    metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
+                    widgetTitle = "Selector - Map";
+                    widgetHeaderColor = "rgba(51,204,255,1)";
+                    widgetHeaderFontColor = "rgba(255,255,255,1)";
+                    sizeRowsWidget = 75;
+                    styleParameters = null;
+                    //widgetParameters = JSON.parse("{\"latLng\":[43.76971,11.255751],\"zoom\":8}");
+                    widgetParameters = JSON.parse("{\"latLng\":"+latLng+",\"zoom\":10}");
+                    wsConnect = null;
+                    console.log('metricName: '+metricName);
+    $('#' + mapOptionsDivName).hide();
+
+
+setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer);
+$('#<?= str_replace('.', ' _ ', str_replace(' - ', '  _ ', $_REQUEST[' name_w '])) ?>_div').parents('li.gs_w').off('resizeWidgets');
+$('#<?= str_replace('.  ', ' _ ', str_replace(' - ', ' _ ', $_REQUEST[' name_w '])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
+
+
+$("#" + widgetName + "_buttonsDiv").css("height", "100%");
+$("#" + widgetName + "_buttonsDiv").css("float", "left");
+$("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).css("font-size", "20px");
+$("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(2).hover(function() {
+    $(this).find("span").css("color", "red");
+}, function() {
+    $(this).find("span").css("color", widgetHeaderFontColor);
+});
+$("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).css("font-size", "20px");
+$("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(3).hover(function() {
+    $(this).find("span").css("color", "red");
+}, function() {
+    $(this).find("span").css("color", widgetHeaderFontColor);
+});
+console.log('hostFile: '+hostFile);
+if (hostFile === "config") {
+    if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'yes')) {
+        $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 25 - 2));
+        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+    } else {
+        if ((enableFullscreenModal === 'yes') && (enableFullscreenTab === 'no')) {
+            $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 25 - 2));
+            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
+        } else {
+            if ((enableFullscreenModal === 'no') && (enableFullscreenTab === 'yes')) {
+                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 25 - 2));
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+            } else {
+                $("#" + widgetName + "_buttonsDiv").css("width", "0px");
+                $("#" + widgetName + "_buttonsDiv").hide();
+                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 0 - 25 - 2));
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+            }
+        }
+    }
+} else {
+    if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'yes')) {
+        $("#" + widgetName + "_buttonsDiv").css("width", "50px");
+        titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 50 - 2));
+        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+        $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+    } else {
+        if ((enableFullscreenTab === 'yes') && (enableFullscreenModal === 'no')) {
+            $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+            titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).hide();
+            $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).show();
+        } else {
+            if ((enableFullscreenTab === 'no') && (enableFullscreenModal === 'yes')) {
+                $("#" + widgetName + "_buttonsDiv").css("width", "25px");
+                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 25 - 2));
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(0).show();
+                $("#" + widgetName + "_buttonsDiv div.singleBtnContainer").eq(1).hide();
+            } else {
+                $("#" + widgetName + "_buttonsDiv").hide();
+                titleWidth = parseInt(parseInt($("#" + widgetName + "_div").width() - 25 - 2));
+            }
+        }
+    }
+}
+
+$("#" + widgetName + "_titleDiv").css("width", titleWidth + "px");
+
+if (firstLoad === false) {
+    showWidgetContent(widgetName);
+} else {
+    setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+}
+populateWidget();
+nodeRedClick = function(e) {
+    let eventJson = new Object();
+    eventJson.latitude = e.latlng.lat;
+    eventJson.longitude = e.latlng.lng;
+    currentValue = JSON.stringify(eventJson);
+    if (nodeId != null) {
+        triggerEventOnIotApp(map.defaultMapRef, currentValue);
+    }
+}
+if (metricName != 'Map' && nodeId != null) {
+    map.defaultMapRef.on('click', nodeRedClick)
+}
+setTimeout(function() {
+    map.default3DMapRef = initMapsAndListeners(map);
+    setTimeout(function() {
+        if (defaultOrthomapMenuItem != null) {
+            if (defaultOrthomapMenuItem.id != null) {
+                if (defaultOrthomapMenuItem.external == true) {
+                    $('#defaultMap').addClass('hidden');
+                }
+                $('#' + defaultOrthomapMenuItem.id).removeClass('hidden');
+            }
+        }
+    }, 500);
+}, 3000);
+            }else{
+
+           //////////
             $.ajax({
             //    url: "../controllers/getWidgetParams.php",
                 url: "../widgets/getParametersWidgets.php",
@@ -15250,7 +15409,7 @@ if (!isset($_SESSION)) {
 
                 }
             });
-
+}
             //Risponditore ad evento resize
             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>").on('customResizeEvent', function (event) {
                 resizeWidget();
