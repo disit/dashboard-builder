@@ -361,6 +361,22 @@ if (!isset($_SESSION)) {
                 map.defaultMapRef.removeLayer(geoJsonLayerShape);
             }
             
+            function checkFloorNumber(floorNumber, identifierName) {
+                if (identifierName == "M1" && floorNumber == -1) {
+                    return true;
+                } else if (identifierName == "PT" && floorNumber == 0) {
+                    return true;
+                } else if (identifierName == "P1" && floorNumber == 1) {
+                    return true;
+                } else if (identifierName == "P2" && floorNumber == 2) {
+                    return true;
+                } else if (identifierName == "P3" && floorNumber == 3) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            
             function onMapEntityClick(feature, marker) {
                 marker.on('click', function (event) {
                     //    map.defaultMapRef.off('moveend');
@@ -14130,7 +14146,7 @@ if (!isset($_SESSION)) {
                                         }
 
                                         for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
-                                            if (passedData.floorNumber == null || passedData.modelInstance == "singleBuilding" || (passedData.floorNumber != null && fatherGeoJsonNode.features[i].properties.values && fatherGeoJsonNode.features[i].properties.values.identifierName != null && passedData.floorNumber == fatherGeoJsonNode.features[i].properties.values.identifierName)) {
+                                            if (passedData.floorNumber == null || passedData.modelInstance == "singleBuilding" || (passedData.floorNumber != null && fatherGeoJsonNode.features[i].properties.values && fatherGeoJsonNode.features[i].properties.values.identifierName != null && (passedData.floorNumber == fatherGeoJsonNode.features[i].properties.values.identifierName || checkFloorNumber(passedData.floorNumber, fatherGeoJsonNode.features[i].properties.values.identifierName)))) {
                                                 var shapeJsonString = null;
                                                 var shapeJson = null;
 
@@ -14195,7 +14211,16 @@ if (!isset($_SESSION)) {
                                                     }   */
 
                                                 //fatherGeoJsonNode.features[i].geometry.type = "MultiPolygon";
-                                                fatherGeoJsonNode.features[i].geometry.type = shapeJsonString = shapeJson.type;
+                                                let countNullGeometry = 0;
+                                                if (shapeJson != null) {
+                                                    fatherGeoJsonNode.features[i].geometry.type = shapeJson.type;
+                                                } else {
+                                                    countNullGeometry++;
+                                                }
+                                                
+                                                if (countNullGeometry > 0) {
+                                                    console.log("Number of Devices with Empty or Null Geometry JSON: " + countNullGeometry);
+                                                }
 
                                                 dataObj.eventType = "bimShapeEvent";
                                                 dataObj.descBim = descBim;
@@ -14247,80 +14272,99 @@ if (!isset($_SESSION)) {
                                                 map.defaultMapRef.removeLayer(geoJsonLayerShape);
                                             }
 
-                                            geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
-                                                //style: styleBimShape(fatherGeoJsonNode.features[0].properties.lastValue[bubbleSelectedMetric[descBim]]),
-                                                style: styleBimShape,
-                                                onEachFeature: onMapEntityClick
-                                            });
-                                            geoJsonLayerShape.addTo(map.defaultMapRef);
+                                            try {
+                                                geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
+                                                    //style: styleBimShape(fatherGeoJsonNode.features[0].properties.lastValue[bubbleSelectedMetric[descBim]]),
+                                                    style: styleBimShape,
+                                                    onEachFeature: onMapEntityClick
+                                                });
+                                                geoJsonLayerShape.addTo(map.defaultMapRef);
 
-                                            if (passedData.modelInstance == "singleBuilding") {
-                                                map.defaultMapRef.setView([fatherGeoJsonNode.features[0].geometry.coordinates[0][0][1], fatherGeoJsonNode.features[0].geometry.coordinates[0][0][0]], 18);
-                                            }
-
-                                            if (geoJsonLayerShape) {
-                                                try {
-                                                    geoJsonLayerShape.bringToFront();
-                                                } catch {
-
+                                                if (passedData.modelInstance == "singleBuilding") {
+                                                    map.defaultMapRef.setView([fatherGeoJsonNode.features[0].geometry.coordinates[0][0][1], fatherGeoJsonNode.features[0].geometry.coordinates[0][0][0]], 18);
                                                 }
-                                            }
 
-                                            jQuery.event.trigger({
-                                                type: "newBimShape",
-                                            });
+                                                if (geoJsonLayerShape) {
+                                                    try {
+                                                        geoJsonLayerShape.bringToFront();
+                                                    } catch {
 
-                                            // add legend to map
-                                            //map.legendHeatmap.addTo(map.defaultMapRef);
-                                            //map.eventsOnMap.push(heatmap);
-                                            var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+                                                    }
+                                                }
 
-                                            var bimShapeLegendColors = L.control({position: 'bottomleft'});
+                                                jQuery.event.trigger({
+                                                    type: "newBimShape",
+                                                });
 
-                                            bimShapeLegendColors.onAdd = function (map) {
-                                                var div = L.DomUtil.create('div', 'info legend');
-                                                div.innerHTML += " <img src=" + legendBimFilePath + " height='100%'" + '<br>';
-                                                return div;
-                                            };
+                                                // add legend to map
+                                                //map.legendHeatmap.addTo(map.defaultMapRef);
+                                                //map.eventsOnMap.push(heatmap);
+                                                var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
 
-                                            bimShapeLegendColors.addTo(map.defaultMapRef);
-                                            //  map.eventsOnMap.push(heatmap);
+                                                var bimShapeLegendColors = L.control({position: 'bottomleft'});
 
-                                            event.legendColors = bimShapeLegendColors;
-                                            map.eventsOnMap.push(event);
+                                                bimShapeLegendColors.onAdd = function (map) {
+                                                    var div = L.DomUtil.create('div', 'info legend');
+                                                    div.innerHTML += " <img src=" + legendBimFilePath + " height='100%'" + '<br>';
+                                                    return div;
+                                                };
 
-                                            loadingDiv.empty();
-                                            loadingDiv.append(loadOkText);
+                                                bimShapeLegendColors.addTo(map.defaultMapRef);
+                                                //  map.eventsOnMap.push(heatmap);
 
-                                            parHeight = loadOkText.height();
-                                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                            loadOkText.css("margin-top", parMarginTop + "px");
+                                                event.legendColors = bimShapeLegendColors;
+                                                map.eventsOnMap.push(event);
 
-                                            setTimeout(function () {
-                                                loadingDiv.css("opacity", 0);
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadOkText);
+
+                                                parHeight = loadOkText.height();
+                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                loadOkText.css("margin-top", parMarginTop + "px");
+
                                                 setTimeout(function () {
-                                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
-                                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                    });
-                                                    loadingDiv.remove();
-                                                }, 350);
-                                            }, 1000);
+                                                    loadingDiv.css("opacity", 0);
+                                                    setTimeout(function () {
+                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
+                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                        });
+                                                        loadingDiv.remove();
+                                                    }, 350);
+                                                }, 1000);
 
-                                            if (eventGenerator) {
-                                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
-                                                eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
-                                                if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
-                                                } else {
-                                                    //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
-                                                    eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                                if (eventGenerator) {
+                                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                                    eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("font-weight", "bold");
+                                                    eventGenerator.parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('p.gisQueryDescPar').css("color", eventGenerator.attr("data-activeFontColor"));
+                                                    if (eventGenerator.parents("div.gisMapPtrContainer").find('a.gisPinLink').attr("data-symbolMode") === 'auto') {
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").html("near_me");
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("color", "white");
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisPinIcon").css("text-shadow", "2px 2px 4px black");
+                                                    } else {
+                                                        //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").show();
+                                                        eventGenerator.parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                                    }
+
+                                                    eventGenerator.show();
                                                 }
+                                            } catch {
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadKoText);
 
-                                                eventGenerator.show();
+                                                parHeight = loadKoText.height();
+                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                loadKoText.css("margin-top", parMarginTop + "px");
+                                                console.log("Error");
+                                                setTimeout(function () {
+                                                    loadingDiv.css("opacity", 0);
+                                                    setTimeout(function () {
+                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                        });
+                                                        loadingDiv.remove();
+                                                    }, 350);
+                                                }, 1000);
                                             }
 
                                         });

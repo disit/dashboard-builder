@@ -185,8 +185,8 @@ if (!isset($_SESSION)) {
         $roofedBuildingsPaths = scandir("../widgets/layers/edificato/roofBuildings");
         ?>
 
-        const version = '1.8.1';
-        const channel = 'alpha';
+        const version = '1.9.0';
+        const channel = 'relase';
 
         /** @type {MapManager} */
         var mapManger;
@@ -346,13 +346,16 @@ if (!isset($_SESSION)) {
             orthomaps: null,
             wms: null,
             trafficWms: null,
+            roads: null,
             cycling: [],
             bus: null,
             building: null,
+            modifiedBuildings: null,
             dynamicBuildings: [],
             hiddenBuilding: null,
             hoverBuilding: null,
             vehicle: [],
+            buslines: [],
             whatif: [],
             selection: null,
             tree: null,
@@ -391,6 +394,18 @@ if (!isset($_SESSION)) {
                 min: 1,
                 max: 1000,
             },
+            roadsKB: {
+                text: "Display roads informations",
+                type: "bool",
+                default: false,
+                value: false,
+            },
+            displayDecorations: {
+                text: "Display decorations",
+                type: "bool",
+                default: true,
+                value: true,
+            },
             realisticDecoration: {
                 text: "Realistic decorations",
                 type: "bool",
@@ -398,6 +413,7 @@ if (!isset($_SESSION)) {
                 value: false,
             },
         };
+        var buildingSelected = null;
         var deltaTimestamp = 0;
         var apiUrls3D = {};
         var updateTimeout;
@@ -494,13 +510,57 @@ if (!isset($_SESSION)) {
                     loadLowResGridSystemBuildings();
                 },
             },
-            // grid_dynamic_res: {
-            //     displayedName: 'Grid System (dynamic resolution)',
-            //     id: 'menu-dyn-res-grid-building',
-            //     action: () => {
-            //         loadDynResGridSystemBuildings();
-            //     },
-            // },
+            grid_building: {
+                displayedName: 'Building New',
+                id: 'menu-grid-building',
+                action: () => {
+                    layers.building = new snap4deck.BuildingTileLayer({
+                        data: 'https://www.snap4city.org/dashboardSmartCity/widgets/layers/edificato/grid_single_building/{x}/{y}/models.json',
+                        includedTiles: '../widgets/layers/edificato/list_grid_info.json',
+                        onClick: (info, event) => {
+                            console.log('building clicked', info, event);
+                            info.object.picked = true;
+                        },
+                    });
+                },
+            },
+            grid_building_tiled: {
+                displayedName: 'Building New Tiled',
+                id: 'menu-grid-building-tiled',
+                action: () => {
+                    layers.building = new snap4deck.BuildingTileLayer({
+                        data: 'https://www.snap4industry.org/dashboardSmartCity/widgets/layers/edificato/grid_tiled/{x}/{y}/models.json',
+                        // data: 'https://www.snap4solutions.org/dashboardSmartCity/widgets/layers/edificato/grid_tiled/{x}/{y}/models.json',
+                        // data: 'https://www.snap4city.org/dashboardSmartCity/widgets/layers/edificato/grid_tiled/{x}/{y}/models.json',
+                        // includedTiles: 'https://dashboard/dashboardSmartCity/widgets/layers/edificato/grid_tiled/list_grid_info.json',
+                        includedTiles: listGridInfo,
+                        onClick: (info, event) => {
+                            if (deckMode !== "selection")
+                                return;
+                            // info.object.picked = true;
+                            const data = [];
+                            const content = [];
+                            for (let contents of info.tile.content) {
+                                if (Array.isArray(contents))
+                                    content.push(...contents);
+                                else
+                                    content.push(contents);
+                            }
+                            for (let d of content) {
+                                data.push(...d.buildings)
+                            }
+                            console.log(data[info.index]);
+                            if (buildingSelected) {
+                                buildingSelected.picked = false;
+                            }
+                            buildingSelected = data[info.index];
+                            buildingSelected.picked = true;
+                            info.tile.layers[0].setNeedsRedraw();
+                            showInfoBuilding(buildingSelected, info.tile.layers[0]);
+                        },
+                    });
+                },
+            }
         }
 
         const riccardoBuildingsProp = {
@@ -514,7 +574,7 @@ if (!isset($_SESSION)) {
             getOrientation: [0, 0, 0],
             getScale: [0.722, 0.722, 1],
         }
-        
+
         const gridBuildingsProp = {
             position: [11.249009513574402, 43.7736035620886, -46.79],
             getOrientation: [0, 0, 0],
@@ -551,7 +611,6 @@ if (!isset($_SESSION)) {
 
         //Definizioni di funzione
         function triggerEventOnIotApp(map, message) {
-
             var data = {
                 "msgType": "SendToEmitter",
                 "widgetUniqueName": widgetName,
@@ -613,8 +672,6 @@ if (!isset($_SESSION)) {
                 //    showUpdateResult("API KO");
                 console.log("Update value KO");
             }
-
-
         }
 
         // TODO: go to 2D map
@@ -625,6 +682,7 @@ if (!isset($_SESSION)) {
         // TODO: need to separate
         //Funzione di associazione delle icone alle feature e preparazione popup per la mappa GIS
         function gisPrepareCustomMarker(feature, latlng) {
+            feature.prepared = true;
             if (feature.properties.altViewMode == "CustomPin" || feature.properties.altViewMode ==
                 "DynamicCustomPin") {
                 //   if (feature.properties.serviceType == "GovernmentOffice_Civil_registry") {
@@ -785,14 +843,6 @@ if (!isset($_SESSION)) {
             var marker = new L.Marker(latlng, {
                 icon: markerIcon
             });
-
-            if ("BusStop" == feature.properties.typeLabel) {
-                marker = new L.Marker(latlng, {
-                    icon: markerIcon,
-                    title: feature.properties.typeLabel + " " + feature.properties.agency + " " + feature
-                        .properties.name
-                });
-            }
 
             var latLngKey = latlng.lat + "" + latlng.lng;
 
@@ -1689,6 +1739,10 @@ if (!isset($_SESSION)) {
                         const btnClose = $('<button class="deck-close-btn">X</button>');
                         popupDiv.append(btnClose);
                         btnClose.on('click', function() {
+                            if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+                                layers.buslines = [];
+                                updateLayers();
+                            }
                             popupDiv.hide();
                         });
 
@@ -1754,6 +1808,7 @@ if (!isset($_SESSION)) {
 
                     // Starting popup event trigger section
                     if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+                        layers.buslines = [];
                         $.getJSON( '<?=$whatifmdtendpt?>?stop='+encodeURIComponent(serviceProperties['serviceUri'])+"&list=graphs",function(graphs){
                             var pAgency = graphs.join();									
                             var routesMarkup = "<p class=\"tplpoi_routesSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date().toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"</p>";									
@@ -1764,18 +1819,36 @@ if (!isset($_SESSION)) {
                                     var route = routes[key];
                                     var rteBtnUrl='<?=$whatifmdtendpt?>?agency='+encodeURIComponent(pAgency)+'&route='+encodeURIComponent(route["uri"])+"&stop="+encodeURIComponent(serviceProperties['serviceUri'])+"&date="+encodeURIComponent(new Date().toISOString().slice(0, 10))+"&list=trips";
                                     routesMarkup+="<p class=\"tplpoi_wifstprte\"><button class=\"polyin_"+route["uri"].replace(/[^a-zA-Z0-9]/g, "")+"\" data-uri=\""+route["uri"]+"\" data-url=\""+rteBtnUrl+"\" data-geoms=\""+route["geoms"].join("|")+"\" data-key=\""+key+"\" style=\"width:100%; background-color:#"+route["color"]+"; color:#"+route["text_color"]+"\">"+route["type"]+" " +route["short_name"]+" "+route["long_name"]+"</button></p>";
-                                    route["geoms"].forEach(function(path){
+                                    let data = [];
+                                    route["geoms"].forEach(function(wkt){
                                         var latlngs = [];
-                                        path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+                                        wkt.split("((")[1].split("))")[0].split(",").forEach(function(node){
                                             latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
                                         });
-                                        var polyline = new L.Polyline(latlngs,{className: "tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" polyin_"+route["uri"].replace(/[^a-zA-Z0-9]/g, ""), color:"#"+route["color"], weight:6}).bindTooltip(route["type"]+" " +route["short_name"]+" "+route["long_name"], { direction: 'right' });																						
-                                        polyline.on("mouseover",function(e) {													
-                                            e.target.openTooltip(e.latlng);													
+                                        let path = [];
+                                        for (let ll of latlngs) 
+                                            path.push([ll.lng, ll.lat]);
+                                        data.push({
+                                            path,
                                         });
-                                        if("undefined" == typeof tplPoiItems) { tplPoiItems = new L.FeatureGroup(); map.defaultMapRef.addLayer(tplPoiItems); }
-                                        polyline.addTo(tplPoiItems);
+                                        // var polyline = new L.Polyline(latlngs,{className: "tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" polyin_"+route["uri"].replace(/[^a-zA-Z0-9]/g, ""), color:"#"+route["color"], weight:6}).bindTooltip(route["type"]+" " +route["short_name"]+" "+route["long_name"], { direction: 'right' });																						
+                                        // polyline.on("mouseover",function(e) {													
+                                        //     e.target.openTooltip(e.latlng);													
+                                        // });
+                                        // if("undefined" == typeof tplPoiItems) { tplPoiItems = new L.FeatureGroup(); map.defaultMapRef.addLayer(tplPoiItems); }
+                                        // polyline.addTo(tplPoiItems);
                                     });
+                                    layers.buslines.push(new deck.PathLayer({
+                                        id: `${key}-main-route`,
+                                        data,
+                                        getPath: (d) => d.path,
+                                        getColor: [5, 170, 199],
+                                        getWidth: 5,
+                                        parameters: {
+                                            depthTest: false
+                                        },
+                                    }));
+                                    updateLayers();
                                     // newpopup.on('remove', function() {
                                     //     $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide(); // TODO Remove only those related to the specific stop!!
                                     // });
@@ -1803,27 +1876,27 @@ if (!isset($_SESSION)) {
                                                             if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
                                                             return this.toString().split(".")[1].length || 0; 
                                                         };
-                                                        for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
-                                                            var layer = gisLayersOnMap[eventDesc].getLayers()[l];																	
-                                                            if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == stop["stop_uri"] ) || 
-                                                                ( (!layer["feature"]) && layer["_latlng"] && layer["_latlng"]["lat"] && parseFloat(layer["_latlng"]["lat"]) == parseFloat(stop["pos_lat"]).toFixed(parseFloat(layer["_latlng"]["lat"]).countDecimals()) && layer["_latlng"]["lng"] && parseFloat(layer["_latlng"]["lng"]) == parseFloat(stop["pos_lon"]).toFixed(parseFloat(layer["_latlng"]["lng"]).countDecimals())  )){
-                                                                if(progress.done == -1) progress.done = 1; else progress.done += 1;
-                                                                if(progress.done > -1 && progress.todo > -1 && progress.bar <= 100*progress.done/progress.todo ) {																			
-                                                                        progress.bar = 100*progress.done/progress.todo;
-                                                                        $(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
-                                                                        $(newpopup._container).find("div.tplProgressBar").show();																			
-                                                                    //console.log(progress);
-                                                                }
-                                                                else {
-                                                                    if(progress.bar < 99) {
-                                                                        progress.bar++;
-                                                                        $(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
-                                                                        $(newpopup._container).find("div.tplProgressBar").show();						
-                                                                    }
-                                                                }
-                                                                return;															
-                                                            }
-                                                        }
+                                                        // for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
+                                                        //     var layer = gisLayersOnMap[eventDesc].getLayers()[l];																	
+                                                        //     if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == stop["stop_uri"] ) || 
+                                                        //         ( (!layer["feature"]) && layer["_latlng"] && layer["_latlng"]["lat"] && parseFloat(layer["_latlng"]["lat"]) == parseFloat(stop["pos_lat"]).toFixed(parseFloat(layer["_latlng"]["lat"]).countDecimals()) && layer["_latlng"]["lng"] && parseFloat(layer["_latlng"]["lng"]) == parseFloat(stop["pos_lon"]).toFixed(parseFloat(layer["_latlng"]["lng"]).countDecimals())  )){
+                                                        //         if(progress.done == -1) progress.done = 1; else progress.done += 1;
+                                                        //         if(progress.done > -1 && progress.todo > -1 && progress.bar <= 100*progress.done/progress.todo ) {																			
+                                                        //                 progress.bar = 100*progress.done/progress.todo;
+                                                        //                 $(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
+                                                        //                 $(newpopup._container).find("div.tplProgressBar").show();																			
+                                                        //             //console.log(progress);
+                                                        //         }
+                                                        //         else {
+                                                        //             if(progress.bar < 99) {
+                                                        //                 progress.bar++;
+                                                        //                 $(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
+                                                        //                 $(newpopup._container).find("div.tplProgressBar").show();						
+                                                        //             }
+                                                        //         }
+                                                        //         return;															
+                                                        //     }
+                                                        // }
                                                         $.getJSON("<?=$superServiceMapProxy?>/api/v1?realtime=false&graphUri="+encodeURIComponent(pAgency)+"&serviceUri="+encodeURIComponent(stop["stop_uri"]),function(stopdata){																													
                                                             var newFeature = stopdata["BusStop"]["features"][0];
                                                             newFeature["properties"]["color1"] = feature["properties"]["color1"]; 
@@ -1831,21 +1904,21 @@ if (!isset($_SESSION)) {
                                                             newFeature["properties"]["pinattr"] = feature["properties"]["pinattr"]; 
                                                             newFeature["properties"]["pincolor"] = feature["properties"]["pincolor"]; 
                                                             newFeature["properties"]["symbolcolor"] = feature["properties"]["symbolcolor"]; 															
-                                                            var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );															
-                                                            newMarker.addTo(gisLayersOnMap[eventDesc]); 	
-                                                            if(progress.done == -1) progress.done = 1; else progress.done += 1;
-                                                            if(progress.done > -1 && progress.todo > -1 && progress.bar < 100*progress.done/progress.todo) {																		
-                                                                    progress.bar = 100*progress.done/progress.todo;
-                                                                    $(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
-                                                                    $(newpopup._container).find("div.tplProgressBar").show();																		
-                                                            }
-                                                            else {
-                                                                if(progress.bar < 99) {
-                                                                    progress.bar++;
-                                                                    $(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
-                                                                    $(newpopup._container).find("div.tplProgressBar").show();	
-                                                                }																			
-                                                            }
+                                                            // var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );															
+                                                            // newMarker.addTo(gisLayersOnMap[eventDesc]); 	
+                                                            // if(progress.done == -1) progress.done = 1; else progress.done += 1;
+                                                            // if(progress.done > -1 && progress.todo > -1 && progress.bar < 100*progress.done/progress.todo) {																		
+                                                            //         progress.bar = 100*progress.done/progress.todo;
+                                                            //         $(newpopup._container).find("div.tplProgressBar").css("width",(100*progress.done/progress.todo)+"%");
+                                                            //         $(newpopup._container).find("div.tplProgressBar").show();																		
+                                                            // }
+                                                            // else {
+                                                            //     if(progress.bar < 99) {
+                                                            //         progress.bar++;
+                                                            //         $(newpopup._container).find("div.tplProgressBar").css("width",progress.bar+"%");
+                                                            //         $(newpopup._container).find("div.tplProgressBar").show();	
+                                                            //     }																			
+                                                            // }
                                                         });																				
                                                     });
                                                 });				
@@ -1884,6 +1957,7 @@ if (!isset($_SESSION)) {
                                         var affectedTripsMarkup = "";
                                         var tripsMarkup = "<p class=\"tplpoi_tripsSubHead\" style=\"background-color:black; color:white; padding:0.5em;\"><strong>Date:</strong>&nbsp;"+new Date().toLocaleDateString("en",{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })+"<br><strong>Route:</strong>&nbsp;"+hrRouteTxt+"</p><div style=\"height:100%; border: medium solid black; padding:0.5em;\" class=\"tplpoi_tripsDivInRoute\"><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0; display:none;\"><strong>Affected Trips:</strong></p><div id=\"tplpoi_affectedtrips\" style=\"display:none;\"></div><p class=\"tplpoi_preserveplease\" style=\"margin:0px 0;\"><strong style=\"display:none;\">All Trips:</strong></p>";
                                         $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide();
+                                        let data = [];
                                         Object.keys(trips).sort(function(a,b){
                                             if(trips[a]["start"] > trips[b]["start"]) return 1; else return -1;
                                         }).forEach(function(tripkey){													
@@ -1894,9 +1968,26 @@ if (!isset($_SESSION)) {
                                             trip["path"].split("((")[1].split("))")[0].split(",").forEach(function(node){
                                                 latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
                                             });
-                                            var polyline = new L.Polyline(latlngs,{weight:6, color: wifstprtebtn.css("background-color"),className:"tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")+" polyof_"+rteUri.replace(/[^a-zA-Z0-9]/g, "")});
-                                            polyline.addTo(tplPoiItems);														
+                                            let path = [];
+                                            for (let ll of latlngs) 
+                                                path.push([ll.lng, ll.lat]);
+                                            data.push({
+                                                path,
+                                                tripkey,
+                                                trip
+                                            })
                                         });
+                                        layers.buslines.push(new deck.PathLayer({
+                                            id: `${hrRouteTxt}-sub-route`,
+                                            data,
+                                            getPath: (d) => d.path,
+                                            getColor: [5, 170, 199],
+                                            getWidth: 5,
+                                            parameters: {
+                                                depthTest: false
+                                            },
+                                        }));
+                                        updateLayers();
                                         tripsMarkup+="</div>";
                                         tripsMarkup+="<p class=\"tplpoi_backToRoutes\"><button  style=\"width:100%;color:white;background-color:black;\">Back</button></p>";
                                         $("#linesof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).find("p.tplpoi_tripsSubHead").remove();
@@ -1921,7 +2012,7 @@ if (!isset($_SESSION)) {
                                             var bgcolor=$(this).data("routebgcolor");
                                             var fgcolor=$(this).data("routefgcolor");
                                             var routetype=$(this).data("routetype");
-                                            var path = $(this).data("path");
+                                            var wkt = $(this).data("path");
                                             var tripkey = $(this).data("tripkey");	
                                             var routeUri = $(this).data("routeuri");	 												
                                             
@@ -1933,11 +2024,30 @@ if (!isset($_SESSION)) {
                                                 wifstptrpbtn.html(wifstptrpbtnhtml);
                                                 $(".polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")).hide();
                                                 var latlngs = [];
-                                                path.split("((")[1].split("))")[0].split(",").forEach(function(node){
+                                                wkt.split("((")[1].split("))")[0].split(",").forEach(function(node){
                                                     latlngs.push(new L.LatLng(node.trim().split(" ")[1],node.trim().split(" ")[0]));
                                                 });
-                                                var polyline = new L.Polyline(latlngs,{weight:6, color:"#"+bgcolor,className:"tplPoiPolyline polyof_"+serviceProperties['serviceUri'].replace(/[^a-zA-Z0-9]/g, "")});
-                                                polyline.addTo(tplPoiItems);													
+
+                                                let data = [];
+                                                let path = [];
+                                                for (let ll of latlngs) 
+                                                    path.push([ll.lng, ll.lat]);
+                                                data.push({
+                                                    path,
+                                                    tripkey,
+                                                })
+                                                layers.buslines.push(new deck.PathLayer({
+                                                    id: tripkey,
+                                                    data,
+                                                    getPath: (d) => d.path,
+                                                    getColor: [5, 170, 199],
+                                                    getWidth: 5,
+                                                    parameters: {
+                                                        depthTest: false
+                                                    },
+                                                }));
+                                                updateLayers();
+                                                
                                                 tripdata.forEach(function(oneStop, stopNum){
                                                     if(serviceProperties['serviceUri'] == oneStop["stop_uri"]) {
                                                         theTripMarkup+="<button data-serviceuri=\""+oneStop["stop_uri"]+"\" data-lat=\""+oneStop["pos_lat"]+"\" data-lon=\""+oneStop["pos_lon"]+"\" class=\"tplpoi_stopbtn\" style=\"text-align:left; width:100%; margin-bottom:1em; color:#"+fgcolor+"; background-color:#"+bgcolor+"; font-size:larger; font-weight:bold; \">#"+parseInt(oneStop["sequence"])+" "+oneStop["code"]+" "+oneStop["name"]+"<br>ARR "+(stopNum > 0 ? oneStop["arrival"].substring(0,5) : "--:--")+" DEP "+(stopNum < tripdata.length-1 ? oneStop["departure"].substring(0,5) : "--:--")+"</button>";																												
@@ -1976,11 +2086,15 @@ if (!isset($_SESSION)) {
                                                     var lat = $(this).data("lat");
                                                     var lon = $(this).data("lon");
                                                     var eventDesc = null;
-                                                    map["eventsOnMap"].forEach(function(mapevt){
-                                                        if(mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
-                                                            eventDesc = mapevt["desc"];
-                                                        }																
-                                                    });	
+                                                    // Trigger click
+                                                    currentViewState.latitude = lat;
+                                                    currentViewState.longitude = lon;
+                                                    map3d.setProps({viewState: {...currentViewState}});
+                                                    // map["eventsOnMap"].forEach(function(mapevt){
+                                                    //     if(mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+                                                    //         eventDesc = mapevt["desc"];
+                                                    //     }																
+                                                    // });	
                                                     /*var doCreate = true;
                                                     gisLayersOnMap[eventDesc].getLayers().forEach(function(layer){																														
                                                         if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) || 
@@ -1991,27 +2105,27 @@ if (!isset($_SESSION)) {
                                                         }
                                                     });		
                                                     if(!doCreate) return;												*/
-                                                    for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
-                                                        var layer = gisLayersOnMap[eventDesc].getLayers()[l];
-                                                        if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) || 
-                                                            ( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
-                                                            try { layer.closePopup(); } catch(e) {}
-                                                            layer.fire('click');
-                                                            console.log("click");
-                                                            return;															
-                                                        }
-                                                    }
-                                                    $.getJSON("<?=$superServiceMapProxy?>/api/v1?serviceUri="+encodeURIComponent(serviceuri),function(stopdata){																													
-                                                        var newFeature = stopdata["BusStop"]["features"][0];
-                                                        newFeature["properties"]["color1"] = feature["properties"]["color1"]; 
-                                                        newFeature["properties"]["color2"] = feature["properties"]["color2"]; 
-                                                        newFeature["properties"]["pinattr"] = feature["properties"]["pinattr"]; 
-                                                        newFeature["properties"]["pincolor"] = feature["properties"]["pincolor"]; 
-                                                        newFeature["properties"]["symbolcolor"] = feature["properties"]["symbolcolor"]; 															
-                                                        var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );															
-                                                        newMarker.addTo(gisLayersOnMap[eventDesc]); 															
-                                                        newMarker.fire('click');
-                                                    });														
+                                                    // for(var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
+                                                    //     var layer = gisLayersOnMap[eventDesc].getLayers()[l];
+                                                    //     if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) || 
+                                                    //         ( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
+                                                    //         try { layer.closePopup(); } catch(e) {}
+                                                    //         layer.fire('click');
+                                                    //         console.log("click");
+                                                    //         return;															
+                                                    //     }
+                                                    // }
+                                                    // $.getJSON("<?=$superServiceMapProxy?>/api/v1?serviceUri="+encodeURIComponent(serviceuri),function(stopdata){																													
+                                                    //     var newFeature = stopdata["BusStop"]["features"][0];
+                                                    //     newFeature["properties"]["color1"] = feature["properties"]["color1"]; 
+                                                    //     newFeature["properties"]["color2"] = feature["properties"]["color2"]; 
+                                                    //     newFeature["properties"]["pinattr"] = feature["properties"]["pinattr"]; 
+                                                    //     newFeature["properties"]["pincolor"] = feature["properties"]["pincolor"]; 
+                                                    //     newFeature["properties"]["symbolcolor"] = feature["properties"]["symbolcolor"]; 															
+                                                    //     var newMarker = gisPrepareCustomMarker( newFeature, { "lng": newFeature["geometry"]["coordinates"][0], "lat": newFeature["geometry"]["coordinates"][1] } );															
+                                                    //     newMarker.addTo(gisLayersOnMap[eventDesc]); 															
+                                                    //     newMarker.fire('click');
+                                                    // });														
                                                 });
                                             });
                                             
@@ -4371,7 +4485,7 @@ if (!isset($_SESSION)) {
                         elevations,
                         texture: tileUrls,
                         tileSize: 256,
-                        opacity: 1
+                        opacity: 1,
                     });
                 } else {
                     layers.terrain = createTileLayer(tileUrls);
@@ -4404,6 +4518,7 @@ if (!isset($_SESSION)) {
 
             $('#lightTimestamp').val(formatDatetime(Date.now()));
             $('#lightEnable').prop('checked', lightsOn);
+
             currentViewState = {
                 latitude: latInit,
                 longitude: lngInit,
@@ -4420,46 +4535,145 @@ if (!isset($_SESSION)) {
 
             const settings = getCookie('settings');
             if (settings && settings != "")
-                settingOptions = JSON.parse(settings);
-            $.ajax({
-                url: '../widgets/layers/decorations/trees/alberi_firenze.geojson',
-                success: (data) => {
-                    layers.tree = new snap4deck.TreeLayer({
-                        id: 'tree-layer',
-                        minZoom: 18,
-                        maxZoom: 18,
-                        pickable: false,
-                        maxTiles: settingOptions.maxTiles.value || 200,
-                        model: '../widgets/layers/decorations/trees/tree_low_1.glb',
-                        data: JSON.parse(data),
-                        getElevation: (d) => {
-                            return d.properties && d.properties.elevation ? d.properties.elevation - elevationOffset : 0;
-                        },
-                    });
-                    updateLayers();
-                }
-            });
+                settingOptions = {
+                    ...settingOptions,
+                    ...JSON.parse(settings)
+                };
+            if (settingOptions.displayDecorations.value) {
+                $.ajax({
+                    url: '../widgets/layers/decorations/trees/alberi_firenze.geojson',
+                    success: (data) => {
+                        layers.tree = new snap4deck.TreeLayer({
+                            id: 'tree-layer',
+                            minZoom: 18,
+                            maxZoom: 18,
+                            pickable: true,
+                            // maxTiles: settingOptions.maxTiles.value || 200,
+                            model: '../widgets/layers/decorations/trees/trees_low2.glb',
+                            getOrientation: [0,0,90],
+                            sizeScale: 0.01,
+                            // model: '../widgets/layers/decorations/trees/tree_low_1.glb',
+                            // data: data,
+                            data: data.features ? data : JSON.parse(data),
+                            getElevation: (d) => {
+                                return d.properties && d.properties.elevation ? d.properties.elevation - elevationOffset : 0;
+                            },
+                            onClick: (info, event) => {
+                                console.log('clicked');
+                            }
+                        });
+                        updateLayers();
+                    }
+                });
 
-            layers.vehicle.push(new deck.ScenegraphLayer({
-                id: 'airplane-layer',
-                data: [
-                    {positions: [11.199664049797294, 43.802922897309, -10], rotation: 0,},
-                    {positions: [11.198907706148423, 43.803451457011874, -10], rotation: -30,},
-                    {positions: [11.200817114302204, 43.80321975648056, -10], rotation: 40,},
-                    {positions: [11.201332283214695, 43.80477050629828, -10], rotation: 50,},
-                    {positions: [11.200375340660075, 43.80484798194954, -10], rotation: -140,},
-                    {positions: [11.196612079522039, 43.80809041845304, -10], rotation: -70,},
-                    {positions: [11.196745364113017, 43.80715239609039, -10], rotation: 90,},
-                    {positions: [11.197337839154171, 43.80756254251544, -10], rotation: -90,},
-                ],
-                scenegraph: '../widgets/layers/decorations/vehicles/a319.glb',
-                getPosition: d => d.positions,
-                getOrientation: d => [0, d.rotation, 90],
-                getScale: [0.07, 0.07, 0.07],
-                // sizeScale: 0.07,
-                _lighting: 'pbr'
-            }));
+                layers.vehicle.push(new deck.ScenegraphLayer({
+                    id: 'airplane-layer',
+                    data: [
+                        {positions: [11.199664049797294, 43.802922897309, -10], rotation: 0,},
+                        {positions: [11.198907706148423, 43.803451457011874, -10], rotation: -30,},
+                        {positions: [11.200817114302204, 43.80321975648056, -10], rotation: 40,},
+                        {positions: [11.201332283214695, 43.80477050629828, -10], rotation: 50,},
+                        {positions: [11.200375340660075, 43.80484798194954, -10], rotation: -140,},
+                        {positions: [11.196612079522039, 43.80809041845304, -10], rotation: -70,},
+                        {positions: [11.196745364113017, 43.80715239609039, -10], rotation: 90,},
+                        {positions: [11.197337839154171, 43.80756254251544, -10], rotation: -90,},
+                    ],
+                    scenegraph: '../widgets/layers/decorations/vehicles/a319.glb',
+                    getPosition: d => d.positions,
+                    getOrientation: d => [0, d.rotation, 90],
+                    getScale: [0.07, 0.07, 0.07],
+                    // sizeScale: 0.07,
+                    _lighting: 'pbr'
+                }));
+            }
+            if (settingOptions.roadsKB.value) {
+                const roadsData = 'https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&' +
+                'format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&' +
+                'query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3E' +
+                'PREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E' +
+                'PREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E' +
+                'PREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3E' +
+                'PREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E' +
+                'SELECT+%3Fstrada+%3FnomeStrada+%3Felementostradale+%3Fhighwaytype+%3Fstartlat+%3Fstartlong+%3Fendlat+%3Fendlong+%3F' +
+                'compositiontipo+%3Foperatingstatus+%3FlatrafficDir+%3Flalunghezza+WHERE+%7B%3Fstrada+a+km4c%3ARoad.%3F' +
+                'strada+km4c%3AinMunicipalityOf+%3Fmunicip.%3Fstrada+km4c%3AextendName+%3FnomeStrada.%3Fmunicip+foaf%3Aname+%22Firenze%22.%3F' +
+                'strada+km4c%3AcontainsElement+%3Felementostradale.%3Felementostradale+km4c%3AstartsAtNode+%3F' +
+                'startnode.%3Felementostradale+km4c%3AhighwayType+%3Fhighwaytype.%3Felementostradale+km4c%3Acomposition+%3F' +
+                'compositiontipo.%3Felementostradale+km4c%3AoperatingStatus+%3Foperatingstatus.%3F' +
+                'elementostradale+km4c%3AtrafficDir+%3FlatrafficDir.%3Felementostradale+km4c%3Alength+%3F' +
+                'lalunghezza.%3Fstartnode+rdfsn%3Alat+%3Fstartlat.%3Fstartnode+rdfsn%3Along+%3Fstartlong.%3F' +
+                'elementostradale+km4c%3AendsAtNode+%3Fendnode.%3Fendnode+rdfsn%3Alat+%3Fendlat.%3F' +
+                'endnode+rdfsn%3Along+%3Fendlong.' +
+                'FILTER ( xsd:float(?startlat) < {north} %26%26 xsd:float(?startlat) > {south} %26%26' +
+                ' xsd:float(?startlong) < {east} %26%26 xsd:float(?startlong) > {west})%7D';
+                // kbfetch.then((res) => res.text()).then(jsontext => console.log(JSON.parse(jsontext)));
 
+                layers.roads = new snap4deck.FusionTileLayer({
+                    data: roadsData,
+                    getFusionCoords: d => [d.startlong.value, d.startlat.value],
+                    fusionTopDown: snap4deck.jsonFusionTopDown,
+                    fusionBottomUP: snap4deck.jsonFusionBottomUp,
+                    getTileData: (tile) => {
+                        return fetch(tile.url).then((res) => res.text()).then(jsontext => {
+                            jsontext = JSON.parse(jsontext).results.bindings;
+                            for (let binding of jsontext) {
+                                binding.startlong.value = parseFloat(binding.startlong.value);
+                                binding.startlat.value  = parseFloat(binding.startlat.value);
+                                binding.endlong.value   = parseFloat(binding.endlong.value);
+                                binding.endlat.value    = parseFloat(binding.endlat.value);
+                                binding.startPos = [binding.startlong.value, binding.startlat.value, 0];
+                                binding.endPos = [binding.endlong.value, binding.endlat.value, 0];
+                            }
+                            return jsontext;
+                        }).then((json) => {
+                            let promises = [];
+                            for (let j of json) {
+                                promises.push(loadAltitude(j.startPos));
+                                promises.push(loadAltitude(j.endPos));
+                            }
+                            return Promise.all(promises).then((altitudes) => {
+                                let i = 0;
+                                for (let j of json) {
+                                    j.startPos[2] = altitudes[i];
+                                    j.endPos[2] = altitudes[i + 1];
+                                    i += 2;
+                                }
+                                return json;
+                            });
+                        });
+                    },
+                    renderSubLayers: (props) => {
+                        if (!props.data)
+                            return;
+                        return new deck.LineLayer({
+                            ...props,
+                            pickable: true,
+                            getWidth: 5,
+                            getSourcePosition: d => d.startPos,
+                            getTargetPosition: d => d.endPos,
+                            getColor: [255, 0, 0, 255],
+                            parameters: {
+                                depthTest: false
+                            },
+                        });
+                        // console.log(props.data);
+                    },
+                });
+            }
+            metrics = [];
+            benchmarkOn = false;
+            function download(filename, text) {
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
+            }
             map3d = new deck.Deck({
                 mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
                 viewState: currentViewState,
@@ -4474,14 +4688,15 @@ if (!isset($_SESSION)) {
                 effects,
                 views: new deck.MapView({
                     // farZMultiplier: 3,
-                    // fovy: 20,
-                    // altitude: 1.9,
+                    // fovy: 90,
+                    altitude: 3,
                     // nearZMultiplier: 0.001,
                     farZMultiplier: 2.21,
                 }),
 
                 layers: [
                     layers.terrain,
+                    layers.roads,
                     layers.building,
                     ...layers.vehicle,
                     layers.tree,
@@ -4522,7 +4737,7 @@ if (!isset($_SESSION)) {
                 }) => {
                     clearTimeout(updateTimeout);
                     currentViewState = viewState;
-                    
+
                     // sky
                     // if (sky != undefined && map3d != undefined) {
                     //     const {
@@ -4549,20 +4764,30 @@ if (!isset($_SESSION)) {
                     if (object == null)
                         return null;
                     var displayedText = "";
-                    if (object.properties != null) {
+                    var layer = info.tile ? info.tile.layers[0] : info.layer;
+                    if (info.layer instanceof snap4deck.CrestLayer) {
+                        displayedText += `Traffic density: ${Math.floor(object.density * 100) / 100}`;
+                    } else if (info.layer instanceof snap4deck.BuildingTileLayer) {
+                        displayedText += `ID: ${object.ID}`;
+                    } else if (info.layer instanceof snap4deck.TreeLayer) {
+                        displayedText += `ID: ${object.properties.ID}</br>`;
+                        displayedText += `Common Name: ${object.properties.NOME_COMUN}</br>`;
+                        displayedText += `Tree Species: ${object.properties.SPECIE}</br>`;
+                        displayedText += `Circumference: ${object.properties.CIRCONF_CM} cm`;
+                    } else if (layer instanceof deck.LineLayer) {
+                        displayedText += `Name: ${object.nomeStrada.value}</br>`;
+                        displayedText += `Type: ${object.highwaytype.value}</br>`;
+                        displayedText += `Length: ${object.lalunghezza.value}`;
+                    } else if (object.properties != null) {
                         if (object.properties.OBJECTID != null)
                             displayedText += `ID: ${object.properties.OBJECTID}</br>`;
                         if (object.properties.name != null)
                             displayedText += `Name: ${object.properties.name}</br>`;
                         if (object.properties.address != null)
-                            displayedText += `Address: ${object.properties.address}</br>`;
-                    } else if (info.layer instanceof snap4deck.CrestLayer) {
-                        // displayedText += `Traffic start congestion: ${Math.floor(object.startDensity * 10000) / 100}%`;
-                        displayedText += `Traffic congestion: ${Math.floor(object.density * 100) / 100}`;
-                        // displayedText += `Traffic end congestion: ${Math.floor(object.endDensity * 10000) / 100}%`;
-                    } else {
-                        displayedText = object.toString();
+                            displayedText += `Address: ${object.properties.address}`;
                     }
+                    // if (object.density)
+                    //     displayedText += `Traffic density: ${Math.floor(object.density * 100) / 100}`;
                     return object && {
                         html: `<p class="hoverName">${displayedText}</p>`,
                     };
@@ -4588,6 +4813,11 @@ if (!isset($_SESSION)) {
                     hideMenu(mapMenuId);
                     hideMenu(lightMenuId);
                 },
+                _onMetrics: (metric) => {
+                    if (benchmarkOn)
+                        metrics.push(metric)
+                    // $("#deck-metrics-div p").text(`FPS: ${metric.fps}`);
+                },
                 onClick: (info, event) => {
                     hideMenu(mapMenuId);
                     hideMenu(lightMenuId);
@@ -4601,9 +4831,26 @@ if (!isset($_SESSION)) {
                         $('#deck-whatif-popup').css('left', `${info.x}px`);
                         lastWhatifCoord = info.coordinate;
                     }
-                    if (event.rightButton && event.srcEvent.ctrlKey) {
+                    if (event.rightButton && event.srcEvent.ctrlKey && event.srcEvent.altKey) {
+                        benchmarkOn = !benchmarkOn;
+                        if (benchmarkOn) {
+                            console.log('benchmark started');
+                        } else {
+                            console.log('benchmark stopped');
+                            download('benchmark.json', JSON.stringify(metrics));
+                            metrics = [];
+                        }
+                    }
+                    else if (event.rightButton && event.srcEvent.ctrlKey) {
                         console.log(info.coordinate);
                     }
+                },
+                onError: (error, layer) => {
+                    console.error('Fatal error', error);
+                    console.error('view state', currentViewState);
+                    console.error('layers', layers);
+                    console.error('istance', map3d);
+                    return true;
                 },
             });
             $(`#${widgetName}_map3d`).on('contextmenu', event => event.preventDefault());
@@ -4817,7 +5064,7 @@ if (!isset($_SESSION)) {
             });
             $('#shadowEnable').on('click', (event) => {
                 shadowsOn = event.currentTarget.checked;
-                reloadLight(); 
+                reloadLight();
             });
             $('#lightTimestamp').on('input', function() {
                 reloadLight();
@@ -4853,7 +5100,6 @@ if (!isset($_SESSION)) {
                 $('#heatmapLegend').css('display', 'block');
                 $('#heatmap-info-btn').addClass('deck-btn-active');
                 $('#heatmap-info-btn').removeClass('deck-btn');
-
             });
             $('#traffic-info-btn').click(() => {
                 unselectInfo();
@@ -4863,6 +5109,9 @@ if (!isset($_SESSION)) {
             });
             $('#building-info-btn').click(() => {
                 unselectInfo();
+                $('#building-info-btn').addClass('deck-btn-active');
+                $('#building-info-btn').removeClass('deck-btn');
+                $('#building-info-content').css('display', 'block');
             });
             $('#whatif-info-btn').click(() => {
                 unselectInfo();
@@ -4870,7 +5119,6 @@ if (!isset($_SESSION)) {
                 $('#whatif-info-btn').removeClass('deck-btn');
                 $('#whatif-control').css('display', 'block');
             });
-            
             $('#fullscreen-map-btn').click((event) => {
                 fullscreenOn = !fullscreenOn;
                 if (fullscreenOn) {
@@ -4889,7 +5137,6 @@ if (!isset($_SESSION)) {
                     $('#universal-map-controls, #universal-map-overlay, #universal-map-popups').css('height', fullscreenParams.controlLastHeight);
                 }
             });
-
             $('#2DButton').click(function(event) {
                 is3dOn = false;
                 $(`#${widgetName}_map3d`).css('visibility', 'hidden');
@@ -4897,7 +5144,6 @@ if (!isset($_SESSION)) {
                 $('#3DButton i').addClass('hidden');
                 hideMenu(mapMenuId);
             });
-
             $('#3DButton').click(function(event) {
                 is3dOn = true;
                 $(`#${widgetName}_map3d`).css('visibility', 'visible');
@@ -5410,64 +5656,11 @@ if (!isset($_SESSION)) {
                     bubbleSelectedMetric[desc] = passedData.bubbleSelectedMetric;
                     var altViewMode = passedData.altViewMode;
 
-                    var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
-
-                    if ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length > 0) {
-                        loadingDiv.insertAfter($(
-                            '#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').last());
-                    } else {
-                        loadingDiv.insertAfter($('#<?= $_REQUEST['name_w'] ?>_map'));
-                    }
-
-                    loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($(
-                            '#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                        .length * loadingDiv.height())) + "px");
-                    loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv
-                        .width()) + "px");
-
-                    if (desc == query) {
-                        var loadingText = $(
-                            '<p class="gisMapLoadingDivTextPar">adding to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>'
-                        );
-                        var loadOkText = $(
-                            '<p class="gisMapLoadingDivTextPar"> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>'
-                        );
-                        var loadKoText = $(
-                            '<p class="gisMapLoadingDivTextPar">error adding to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>'
-                        );
-                    } else {
-                        var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + desc
-                            .toLowerCase() +
-                            '</b> to map<br><i class="fa fa-circle-o-notch fa-spin" style="font-size: 30px"></i></p>'
-                        );
-                        var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + desc
-                            .toLowerCase() +
-                            '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>'
-                        );
-                        var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + desc
-                            .toLowerCase() +
-                            '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>'
-                        );
-                    }
-
-                    loadingDiv.css("background", color1);
-                    loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " +
-                        color2 + ")");
-                    loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " +
-                        color2 + ")");
-                    loadingDiv.css("background", "-moz-linear-gradient(bottom right, " + color1 + ", " +
-                        color2 + ")");
-                    loadingDiv.css("background", "linear-gradient(to bottom right, " + color1 + ", " +
-                        color2 + ")");
-
-                    loadingDiv.show();
-
-                    loadingDiv.append(loadingText);
-                    loadingDiv.css("opacity", 1);
-
-                    var parHeight = loadingText.height();
-                    var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                    loadingText.css("margin-top", parMarginTop + "px");
+                    var loadingDiv = new LoadingDiv({
+                        text: desc,
+                        color1,
+                        color2,
+                    });
 
                     var re1 = '(selection)'; // Word 1
                     var re2 = '(=)'; // Any Single Character 1
@@ -5482,22 +5675,6 @@ if (!isset($_SESSION)) {
                     var pattern = new RegExp(re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9, [
                         "i"
                     ]);
-
-                    /*   if (queryType === "Default") {
-                            if (pattern.test(query)) {
-                                query = query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
-                            }
-                            else {
-                                query = query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
-                            }
-                        }
-
-                        if (targets !== "") {
-                            targets = targets.split(",");
-                        }
-                        else {
-                            targets = [];
-                        }*/
 
                     if (queryType === "Default") {
                         if (passedData.query.includes("datamanager/api/v1/poidata/")) { // DA GESTIRE
@@ -5516,15 +5693,11 @@ if (!isset($_SESSION)) {
                             query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData
                                 .query + "&format=json";
                         } else {
+                            // south west north east
                             if (pattern.test(passedData.query)) {
-                                query = passedData.query.replace(pattern, "selection=" + mapBounds[
-                                        "_southWest"].lat + ";" + mapBounds["_southWest"].lng +
-                                    ";" + mapBounds["_northEast"].lat + ";" + mapBounds[
-                                        "_northEast"].lng);
+                                query = passedData.query.replace(pattern, "selection={selection}");
                             } else {
-                                query = passedData.query + "&selection=" + mapBounds["_southWest"].lat +
-                                    ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"]
-                                    .lat + ";" + mapBounds["_northEast"].lng;
+                                query = passedData.query + "&selection={selection}";
                             }
                             if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode ==
                                 "DynamicCustomPin") {
@@ -5591,910 +5764,51 @@ if (!isset($_SESSION)) {
                         }
                     }
 
-                    $.ajax({
-                        //    url: query + "&geometry=true&fullCount=false",
-                        url: apiUrl,
-                        type: "GET",
-                        data: {
-                            myPOIId: dataForApi
+                    const valueName = apiUrl.match(/valueName=([^&]*)/)[0].split('=')[1];
+                    var min = 0;
+                    var max = 100;
+                    minS = apiUrl.match(/min=\d+(.\d+)?/);
+                    maxS = apiUrl.match(/max=\d+(.\d+)?/);
+                    if (minS)
+                        min = parseFloat(minS[0].split('=')[1]);
+                    if (maxS)
+                        max = parseFloat(maxS[0].split('=')[1]);
 
+                    layers.fixedPins.push(new snap4deck.FusionTileLayer({
+                        id: passedData.desc,
+                        data: apiUrl,
+                        // zoomOffset: -10,
+                        // maxZoom: 5,
+                        renderSubLayers: (props) => {
+                            if (!props.data)
+                                return;
+                            return new snap4deck.Sensor3DLayer({
+                                ...props,
+                                data: props.data.features,
+                                getText: d => d.properties.lastValue[valueName],
+                                getElevation: d => (parseFloat(d.properties.lastValue[valueName]) / (max - min)) * 80,
+                                getFillColor: rgbaStringToArray(color1).slice(0,
+                                    -1),
+                                onClick: (event, info) => {
+                                    console.log('sensor3d triggered click');
+                                    info.object = event.object;
+                                    info.coordinate = event.coordinate;
+                                    onMarkerClick(event, info);
+                                },
+                            });
                         },
-                        async: true,
-                        timeout: 0,
-                        dataType: 'json',
-                        success: function(geoJsonData) {
-                            var fatherGeoJsonNode = {};
-
-                            if (queryType === "Default") {
-                                if (passedData.query.includes(
-                                        "datamanager/api/v1/poidata/")) {
-                                    fatherGeoJsonNode.features = [];
-                                    if (passedData.desc != "My POI") {
-                                        fatherGeoJsonNode.features[0] = geoJsonData;
-                                    } else {
-                                        fatherGeoJsonNode.features = geoJsonData;
-                                    }
-                                    fatherGeoJsonNode.type = "FeatureCollection";
-                                } else {
-                                    var countObjKeys = 0;
-                                    var objContainer = {};
-                                    Object.keys(geoJsonData).forEach(function(key) {
-                                        if (countObjKeys == 0) {
-                                            if (geoJsonData.hasOwnProperty(key)) {
-                                                fatherGeoJsonNode = geoJsonData[
-                                                    key];
-                                            }
-                                        } else {
-                                            if (geoJsonData.hasOwnProperty(key)) {
-                                                if (geoJsonData[key].features) {
-                                                    fatherGeoJsonNode.features =
-                                                        fatherGeoJsonNode.features
-                                                        .concat(geoJsonData[key]
-                                                            .features);
-                                                }
-                                            }
-                                        }
-                                        countObjKeys++;
-                                    });
-                                    /*    if (geoJsonData.hasOwnProperty("BusStops")) {
-                                            fatherGeoJsonNode = geoJsonData.BusStops;
-                                        } else {
-                                            if (geoJsonData.hasOwnProperty("SensorSites")) {
-                                                fatherGeoJsonNode = geoJsonData.SensorSites;
-                                            } else {
-                                                if (geoJsonData.hasOwnProperty("Service")) {
-                                                    fatherGeoJsonNode = geoJsonData.Service;
-                                                } else {
-                                                    fatherGeoJsonNode = geoJsonData.Services;
-                                                }
-                                            }
-                                        }*/
-                                }
-                            } else if (queryType === "MyPOI") {
-                                fatherGeoJsonNode.features = [];
-                                if (passedData.desc != "My POI") {
-                                    fatherGeoJsonNode.features[0] = geoJsonData;
-                                } else {
-                                    fatherGeoJsonNode.features = geoJsonData;
-                                }
-                                fatherGeoJsonNode.type = "FeatureCollection";
-                            } else {
-                                /*   var countObjKeys = 0;
-                                    var objContainer = {};
-                                    Object.keys(geoJsonData).forEach(function (key) {
-                                        if (countObjKeys == 0) {
-                                            if (geoJsonData.hasOwnProperty(key)) {
-                                                fatherGeoJsonNode = geoJsonData[key];
-                                            }
-                                        } else {
-                                            if (geoJsonData.hasOwnProperty(key)) {
-                                                fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
-                                            }
-                                        }
-                                        countObjKeys++;
-                                    });*/
-                                if (geoJsonData.hasOwnProperty("BusStop")) {
-                                    fatherGeoJsonNode = geoJsonData.BusStop;
-                                } else {
-                                    if (geoJsonData.hasOwnProperty("Sensor")) {
-                                        fatherGeoJsonNode = geoJsonData.Sensor;
-                                    } else {
-                                        if (geoJsonData.hasOwnProperty("Service")) {
-                                            fatherGeoJsonNode = geoJsonData.Service;
-                                        } else {
-                                            fatherGeoJsonNode = geoJsonData.Services;
-                                        }
-                                    }
-                                }
-                                //   fatherGeoJsonNode.features[0].properties.realtime = {};
-                                //    if (geoJsonData.hasOwnProperty("realtime") && bubbleSelectedMetric[desc] != '') {     // Commenta x POT. MOD. CONV. addSelectorPin
-                                if (geoJsonData.hasOwnProperty(
-                                        "realtime"
-                                    )) { // Attiva x POT. MOD. CONV. addSelectorPin
-                                    var dataObj = {};
-                                    if (fatherGeoJsonNode.features[0].properties
-                                        .realtimeAttributes.hasOwnProperty(
-                                            bubbleSelectedMetric[desc])) {
-                                        fatherGeoJsonNode.features[0].properties[
-                                                bubbleSelectedMetric[desc]] = geoJsonData
-                                            .realtime.results.bindings[0][
-                                                bubbleSelectedMetric[desc]
-                                            ].value;
-                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[0]
-                                                .properties[bubbleSelectedMetric[desc]]
-                                            ))) {
-                                            fatherGeoJsonNode.features.splice(0, 1);
-                                        } else {
-                                            if (fatherGeoJsonNode.features[0].properties[
-                                                    bubbleSelectedMetric[desc]] >
-                                                maxValue) {
-                                                maxValue = fatherGeoJsonNode.features[0]
-                                                    .properties[bubbleSelectedMetric[desc]];
-                                            }
-                                            if (geoJsonData.realtime.results.bindings[0]
-                                                .hasOwnProperty("measuredTime")) {
-                                                fatherGeoJsonNode.features[0].properties
-                                                    .measuredTime = geoJsonData.realtime
-                                                    .results.bindings[0].measuredTime.value;
-                                            } else {
-                                                fatherGeoJsonNode.features[0].properties
-                                                    .measuredTime = null;
-                                            }
-
-                                            dataObj.lat = fatherGeoJsonNode.features[0]
-                                                .geometry.coordinates[1];
-                                            dataObj.lng = fatherGeoJsonNode.features[0]
-                                                .geometry.coordinates[0];
-                                            dataObj.eventType = "selectorEvent";
-                                            dataObj.desc = desc;
-                                            dataObj.query = passedData.query;
-                                            dataObj.targets = passedData.targets;
-                                            dataObj.eventGenerator = passedData
-                                                .eventGenerator;
-                                            dataObj.color1 = passedData.color1;
-                                            dataObj.color2 = passedData.color2;
-                                            dataObj.queryType = passedData.queryType;
-                                            dataObj.display = passedData.display;
-                                            dataObj.iconTextMode = passedData.iconTextMode;
-
-                                            //    map.eventsOnMap.push(dataObj);
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .distance;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .typeLabel;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .tipo;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .photoThumbs;
-                                            //   delete fatherGeoJsonNode.features[0].properties.serviceUri;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .serviceType;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .lastValue;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .multimedia;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .hasGeometry;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .municipality;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .address;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .organization;
-                                            //    delete fatherGeoJsonNode.features[0].properties.realtimeAttributes;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .linkDBpedia;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .avgStars;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .starsCount;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .comments;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .photos;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .photoOrigs;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .wktGeometry;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .description;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .description2;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .description;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .civic;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .cap;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .email;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .note;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .city;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .province;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .website;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .phone;
-                                            delete fatherGeoJsonNode.features[0].properties
-                                                .fax;
-                                        }
-                                    } else {
-                                        fatherGeoJsonNode.features[0].properties[
-                                            bubbleSelectedMetric[desc]] = 0;
-                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
-                                        fatherGeoJsonNode.features.splice(0, 1);
-                                    }
-                                }
-                            }
-
-                            var maxValue = 0;
-
-                            //  if (bubbleSelectedMetric[desc] != '') {     // Comment x POT. MOD. CONV. addSelectorPin
-                            //     if (fatherGeoJsonNode.features.length == 1 && geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[desc]]) {
-
-                            //     console.log("Lenght of SMart CIty API Response for Event '" + passedData.desc + "': " + fatherGeoJsonNode.features.length);
-                            //     } else {
-                            var i = 0;
-                            // for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
-                            while (i < fatherGeoJsonNode.features.length) {
-                                var dataObj = {};
-
-                                if (altViewMode != "Bubble") {
-                                    fatherGeoJsonNode.features[i].properties.targetWidgets =
-                                        targets;
-                                    fatherGeoJsonNode.features[i].properties.color1 =
-                                        color1;
-                                    fatherGeoJsonNode.features[i].properties.color2 =
-                                        color2;
-                                    fatherGeoJsonNode.features[i].properties.pinattr =
-                                        passedData.pinattr;
-                                    fatherGeoJsonNode.features[i].properties.pincolor =
-                                        passedData.pincolor;
-                                    fatherGeoJsonNode.features[i].properties.symbolcolor =
-                                        passedData.symbolcolor;
-                                    fatherGeoJsonNode.features[i].properties.iconFilePath =
-                                        passedData.iconFilePath;
-                                    fatherGeoJsonNode.features[i].properties.altViewMode =
-                                        passedData.altViewMode;
-                                    if (fatherGeoJsonNode.features[i].properties
-                                        .lastValue == null && geoJsonData.hasOwnProperty(
-                                            "realtime")
-                                    ) { // Attiva x POT. MOD. CONV. addSelectorPin
-                                        if (fatherGeoJsonNode.features[0].properties
-                                            .realtimeAttributes.hasOwnProperty(
-                                                bubbleSelectedMetric[desc])) {
-                                            var key = bubbleSelectedMetric[desc];
-                                            var obj = {};
-                                            obj[key] = geoJsonData.realtime.results
-                                                .bindings[0][bubbleSelectedMetric[desc]]
-                                                .value;
-                                            fatherGeoJsonNode.features[0].properties[
-                                                "lastValue"] = obj;
-                                        }
-                                    }
-                                }
-
-                                var valueObj = {};
-                                if (fatherGeoJsonNode.features[i].properties.lastValue !=
-                                    null) {
-                                    if (fatherGeoJsonNode.features[i].properties.lastValue
-                                        .hasOwnProperty(bubbleSelectedMetric[desc])) {
-                                        fatherGeoJsonNode.features[i].properties[
-                                                bubbleSelectedMetric[desc]] =
-                                            fatherGeoJsonNode.features[i].properties
-                                            .lastValue[bubbleSelectedMetric[desc]];
-                                        fatherGeoJsonNode.features[i].properties[
-                                                bubbleSelectedMetric[desc]] =
-                                            fatherGeoJsonNode.features[i].properties[
-                                                bubbleSelectedMetric[desc]].replace(/"/g,
-                                                "");
-                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[i]
-                                                .properties[bubbleSelectedMetric[desc]]
-                                            ))) {
-                                            if (altViewMode != "CustomPin" && altViewMode !=
-                                                "DynamicCustomPin") {
-                                                fatherGeoJsonNode.features.splice(i, 1);
-                                                continue;
-                                            }
-                                        } else {
-                                            if (fatherGeoJsonNode.features[i].properties[
-                                                    bubbleSelectedMetric[desc]] >
-                                                maxValue) {
-                                                maxValue = fatherGeoJsonNode.features[i]
-                                                    .properties[bubbleSelectedMetric[desc]];
-                                            }
-                                        }
-                                    } else {
-                                        fatherGeoJsonNode.features[i].properties[
-                                            bubbleSelectedMetric[desc]] = 0;
-                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
-                                        fatherGeoJsonNode.features.splice(i, 1);
-                                        continue;
-                                    }
-                                } else {
-                                    fatherGeoJsonNode.features[i].properties[
-                                        bubbleSelectedMetric[desc]] = 0;
-                                    //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
-                                    fatherGeoJsonNode.features.splice(i, 1);
-                                    continue;
-                                }
-
-                                if (fatherGeoJsonNode.features[i].properties.lastValue
-                                    .hasOwnProperty("measuredTime")) {
-                                    fatherGeoJsonNode.features[i].properties.measuredTime =
-                                        fatherGeoJsonNode.features[i].properties.lastValue[
-                                            "measuredTime"];
-                                } else {
-                                    fatherGeoJsonNode.features[i].properties.measuredTime =
-                                        null;
-                                }
-
-                                dataObj.lat = fatherGeoJsonNode.features[i].geometry
-                                    .coordinates[1];
-                                dataObj.lng = fatherGeoJsonNode.features[i].geometry
-                                    .coordinates[0];
-                                dataObj.eventType = "selectorEvent";
-                                dataObj.desc = desc;
-                                dataObj.query = passedData.query;
-                                dataObj.targets = passedData.targets;
-                                dataObj.eventGenerator = passedData.eventGenerator;
-                                dataObj.color1 = passedData.color1;
-                                dataObj.color2 = passedData.color2;
-                                dataObj.queryType = passedData.queryType;
-                                dataObj.display = passedData.display;
-                                dataObj.iconTextMode = passedData.iconTextMode;
-
-                                //    map.eventsOnMap.push(dataObj);
-                                if (altViewMode == "Bubble") {
-                                    delete fatherGeoJsonNode.features[i].properties
-                                        .distance;
-                                    delete fatherGeoJsonNode.features[i].properties
-                                        .typeLabel;
-                                    delete fatherGeoJsonNode.features[i].properties.tipo;
-                                    delete fatherGeoJsonNode.features[i].properties
-                                        .photoThumbs;
-                                    delete fatherGeoJsonNode.features[i].properties
-                                        .serviceUri;
-                                    delete fatherGeoJsonNode.features[i].properties
-                                        .serviceType;
-                                    delete fatherGeoJsonNode.features[i].properties
-                                        .lastValue;
-                                    delete fatherGeoJsonNode.features[i].properties
-                                        .multimedia;
-                                    delete fatherGeoJsonNode.features[i].properties
-                                        .hasGeometry;
-                                }
-                                i++;
-                            }
-                            //     }
-
-                            map.eventsOnMap.push(dataObj);
-                            //  console.log("Number of Devices with Matched Attributes for Event '" + passedData.desc + "': " + fatherGeoJsonNode.features.length);
-                            if (altViewMode != "Bubble") {
-
-                                countSvgCnt = 0;
-                                currentCustomSvgLayer = desc;
-                                // Aggiornare totalSvgCnt con la length di fatherJsonNode
-                                totalSvgCnt = fatherGeoJsonNode.features.length;
-
-                                //    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
-                                if (is3dOn) {
-                                    if (altViewMode == 'DynamicCustomPin') {
-                                        var min = 0;
-                                        var max = 100;
-                                        const c = "";
-                                        minS = apiUrl.match(/min=\d+(.\d+)?/);
-                                        maxS = apiUrl.match(/max=\d+(.\d+)?/);
-                                        if (minS)
-                                            min = parseFloat(minS[0].split('=')[1]);
-                                        if (maxS)
-                                            max = parseFloat(maxS[0].split('=')[1]);
-                                        const metric = bubbleSelectedMetric[desc];
-                                        let featureRemaining = fatherGeoJsonNode.features.length;
-                                        const loadingRTDiv = new LoadingDiv({
-                                            text: 'Loading real-time data.',
-                                            color1,
-                                            color2,
-                                        });
-                                        let rtOn = false;
-                                        if (totalSvgCnt == 0) {
-                                            loadingRTDiv.setStatus('empty');
-                                        }
-                                        for (let feature of fatherGeoJsonNode.features) {
-                                            const uri = feature.properties.serviceUri;
-                                            const url =
-                                                `../controllers/superservicemapProxy.php/api/v1/?serviceUri=${uri}&format=json&fullCount=false`;
-                                            $.ajax({
-                                                url,
-                                                type: 'GET',
-                                                async: true,
-                                                success: (data) => {
-                                                    try {
-                                                        feature.realtime = data.realtime;
-                                                        const newVal = parseFloat(data.realtime.results.bindings[0][metric].value);
-                                                        if (newVal) {
-                                                            feature.elevation = (newVal / (max - min)) * 80;
-                                                            feature.val = newVal;
-                                                        } 
-                                                        featureRemaining--;
-                                                        if (featureRemaining == 0) {
-                                                            for (let layer of layers.fixedPins) {
-                                                                if (layer.props.id == passedData.desc) {
-                                                                    const updateSensor3DLayer = new snap4deck.Sensor3DLayer({
-                                                                        data: fatherGeoJsonNode.features,
-                                                                        id: `${passedData.desc}`,
-                                                                        getFillColor: rgbaStringToArray(color1).slice(0,
-                                                                            -1),
-                                                                        getElevation: d => d.elevation || 0,
-                                                                        getText: d => {
-                                                                            if (d.val) {
-                                                                                let text = d.val.toString();
-                                                                                let textsplitted = text.split('.');
-                                                                                if (textsplitted[1])
-                                                                                    textsplitted[1] = textsplitted[1].slice(0, 2);
-                                                                                text = textsplitted.join('.');
-                                                                                return text;
-                                                                            } else
-                                                                                return "No Value";
-                                                                        },
-                                                                        parameters: {
-                                                                            depthTest: false
-                                                                        },
-                                                                        updateTriggers: {
-                                                                            getElevation: featureRemaining,
-                                                                            getPosition: featureRemaining,
-                                                                            getText: featureRemaining,
-                                                                        },
-                                                                        onClick: (event, info) => {
-                                                                            info.object = event.object;
-                                                                            info.coordinate = event.coordinate;
-                                                                            onMarkerClick(event, info);
-                                                                        },
-                                                                    });
-                                                                    removeLayerSet(layer.props.id, layers.fixedPins);
-                                                                    layers.fixedPins.push(updateSensor3DLayer);
-                                                                    updateLayers();
-                                                                    break;
-                                                                }
-                                                            }
-                                                            loadingRTDiv.setStatus('ok');
-                                                        }
-                                                    } catch (err) {
-                                                        loadingRTDiv.setStatus('ko');
-                                                        console.error('error during converting metrics in sensors 3d');
-                                                        console.error(err);
-                                                    }
-                                                },
-                                                error: (err) => console.error(err),
-                                            });
-                                        }
-                                        const sensor3DLayer = new snap4deck.Sensor3DLayer({
-                                            data: fatherGeoJsonNode.features,
-                                            id: passedData.desc,
-                                            getText: () => "updating value",
-                                            getElevation: d => d.elevation || 0,
-                                            updateTriggers: {
-                                                getElevation: featureRemaining,
-                                            },
-                                            getFillColor: rgbaStringToArray(color1).slice(0,
-                                                -1),
-                                            onClick: (event, info) => {
-                                                console.log('sensor3d triggered click');
-                                                info.object = event.object;
-                                                info.coordinate = event.coordinate;
-                                                onMarkerClick(event, info);
-                                            },
-                                        });
-                                        layers.fixedPins.push(sensor3DLayer);
-                                    } else {
-                                        const svgLayer = createSVGLayer({
-                                            id: desc,
-                                            data: fatherGeoJsonNode.features,
-                                            onClick: (event, info) => {
-                                                console.log('sensor3d triggered click');
-                                                info.object = event.object;
-                                                info.coordinate = event.coordinate;
-                                                onMarkerClick(event, info);
-                                            },
-                                        });
-                                        layers.pin.push(svgLayer);
-                                    }
-                                    updateLayers();
-                                } else {
-                                    gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-                                        pointToLayer: gisPrepareCustomMarker,
-                                        onEachFeature: onEachFeatureSpiderify
-                                        //   }).addTo(map.defaultMapRef);
-                                    });
-                                }
-                                //    }
-
-                                loadingDiv.empty();
-                                loadingDiv.append(loadOkText);
-
-                                parHeight = loadOkText.height();
-                                parMarginTop = Math.floor((loadingDiv.height() -
-                                    parHeight) / 2);
-                                loadOkText.css("margin-top", parMarginTop + "px");
-
-                                setTimeout(function() {
-                                    loadingDiv.css("opacity", 0);
-                                    setTimeout(function() {
-                                        loadingDiv.nextAll(
-                                            "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                        ).each(function() {
-                                            $(this).css("top", ($(
-                                                        '#<?= $_REQUEST['name_w'] ?>_div'
-                                                    )
-                                                    .height() -
-                                                    (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                                            .length -
-                                                            1) *
-                                                        loadingDiv
-                                                        .height()
-                                                    )) +
-                                                "px");
-                                        });
-                                        loadingDiv.remove();
-                                    }, 350);
-                                }, 1000);
-
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "i.gisLoadingIcon").hide();
-                                eventGenerator.parents('div.gisMapPtrContainer').siblings(
-                                    'div.gisQueryDescContainer').find(
-                                    'p.gisQueryDescPar').css("font-weight", "bold");
-                                eventGenerator.parents('div.gisMapPtrContainer').siblings(
-                                    'div.gisQueryDescContainer').find(
-                                    'p.gisQueryDescPar').css("color", eventGenerator
-                                    .attr("data-activeFontColor"));
-                                if (eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        'a.gisPinLink').attr("data-symbolMode") ===
-                                    'auto') {
-                                    eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        "i.gisPinIcon").html("near_me");
-                                    eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        "i.gisPinIcon").css("color", "white");
-                                    eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        "i.gisPinIcon").css("text-shadow",
-                                        "2px 2px 4px black");
-                                } else {
-                                    //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                    eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        "div.gisPinCustomIconUp").show();
-                                    eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        "div.gisPinCustomIconUp").css("height", "100%");
-                                }
-
-                                eventGenerator.show();
-
-                                var wkt = null;
-
-                                if (display !== 'pins') {
-                                    stopGeometryAjax[desc] = false;
-                                    gisGeometryTankForFullscreen[desc] = {
-                                        capacity: fatherGeoJsonNode.features.length,
-                                        shown: false,
-                                        tank: [],
-                                        lastConsumedIndex: 0
-                                    };
-
-                                    for (var i = 0; i < fatherGeoJsonNode.features
-                                        .length; i++) {
-                                        if (fatherGeoJsonNode.features[i].properties
-                                            .hasOwnProperty('hasGeometry') &&
-                                            fatherGeoJsonNode.features[i].properties
-                                            .hasOwnProperty('serviceUri')) {
-                                            if (fatherGeoJsonNode.features[i].properties
-                                                .hasGeometry === true) {
-                                                //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
-
-                                                $.ajax({
-                                                    url: "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" +
-                                                        fatherGeoJsonNode.features[
-                                                            i].properties
-                                                        .serviceUri,
-                                                    type: "GET",
-                                                    data: {},
-                                                    async: true,
-                                                    timeout: 0,
-                                                    dataType: 'json',
-                                                    success: function(
-                                                        geometryGeoJson) {
-                                                        if (!stopGeometryAjax[
-                                                                desc]) {
-                                                            // Creazione nuova istanza del parser Wkt
-                                                            wkt = new Wkt.Wkt();
-
-                                                            // Lettura del WKT dalla risposta
-                                                            wkt.read(
-                                                                geometryGeoJson
-                                                                .Service
-                                                                .features[0]
-                                                                .properties
-                                                                .wktGeometry,
-                                                                null);
-
-                                                            var ciclePathFeature = [{
-                                                                type: "Feature",
-                                                                properties: geometryGeoJson
-                                                                    .Service
-                                                                    .features[
-                                                                        0
-                                                                    ]
-                                                                    .properties,
-                                                                geometry: wkt
-                                                                    .toJson()
-                                                            }];
-
-                                                            if (!
-                                                                gisGeometryLayersOnMap
-                                                                .hasOwnProperty(
-                                                                    desc)) {
-                                                                gisGeometryLayersOnMap
-                                                                    [desc] = [];
-                                                            }
-
-                                                            // CORTI - Pane
-                                                            map.defaultMapRef
-                                                                .createPane(
-                                                                    'ciclePathFeature'
-                                                                );
-                                                            map.defaultMapRef
-                                                                .getPane(
-                                                                    'ciclePathFeature'
-                                                                ).style
-                                                                .zIndex = 420;
-
-                                                            gisGeometryLayersOnMap
-                                                                [desc].push(L
-                                                                    .geoJSON(
-                                                                        ciclePathFeature, {
-                                                                            pane: 'ciclePathFeature'
-                                                                        })
-                                                                    .addTo(map
-                                                                        .defaultMapRef
-                                                                    ));
-                                                            gisGeometryTankForFullscreen
-                                                                [desc].tank
-                                                                .push(
-                                                                    ciclePathFeature
-                                                                );
-                                                        }
-                                                    },
-                                                    error: function(
-                                                        geometryErrorData) {
-                                                        console.log("Ko");
-                                                        console.log(JSON
-                                                            .stringify(
-                                                                geometryErrorData
-                                                            ));
-                                                    }
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-
-                            } else {
-
-                                bubbles[desc] = {};
-                                map.defaultMapRef.createPane('bubblePane');
-                                map.defaultMapRef.getPane('bubblePane').style.zIndex = 415;
-                                if (fatherGeoJsonNode.features.length > 0) {
-                                    bubbles[desc] = L.bubbleLayer(fatherGeoJsonNode, {
-                                        property: bubbleSelectedMetric[desc],
-                                        legend: false,
-                                        max_radius: 25,
-                                        //    scale: 'YlGnBu',
-                                        //    scale: [passedData.color1, '#ffffff'],
-                                        //    scale: ['#ffffff', passedData.color1],
-                                        //    scale: passedData.color1,
-                                        //    pane: 'bubblePane',
-                                        style: {
-                                            fillColor: passedData.color1,
-                                            weight: 0.3,
-                                            pane: 'bubblePane'
-                                        },
-                                        tooltip: true
-                                    });
-
-                                    /*   if (isNaN(bubbles.options.style.radius)) {
-                                            bubbles.options.style.radius = 10;
-                                        }*/
-
-                                    bubbles[desc].addTo(map.defaultMapRef);
-
-                                    loadingDiv.empty();
-                                    loadingDiv.append(loadOkText);
-
-                                    parHeight = loadOkText.height();
-                                    parMarginTop = Math.floor((loadingDiv.height() -
-                                        parHeight) / 2);
-                                    loadOkText.css("margin-top", parMarginTop + "px");
-
-                                    setTimeout(function() {
-                                        loadingDiv.css("opacity", 0);
-                                        setTimeout(function() {
-                                            loadingDiv.nextAll(
-                                                "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                            ).each(function() {
-                                                $(this).css("top", (
-                                                        $(
-                                                            '#<?= $_REQUEST['name_w'] ?>_div'
-                                                        )
-                                                        .height() -
-                                                        (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                                                .length -
-                                                                1
-                                                            ) *
-                                                            loadingDiv
-                                                            .height()
-                                                        )) +
-                                                    "px");
-                                            });
-                                            loadingDiv.remove();
-                                        }, 350);
-                                    }, 1000);
-
-                                    eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        "i.gisLoadingIcon").hide();
-                                    eventGenerator.parents('div.gisMapPtrContainer')
-                                        .siblings('div.gisQueryDescContainer').find(
-                                            'p.gisQueryDescPar').css("font-weight", "bold");
-                                    eventGenerator.parents('div.gisMapPtrContainer')
-                                        .siblings('div.gisQueryDescContainer').find(
-                                            'p.gisQueryDescPar').css("color", eventGenerator
-                                            .attr("data-activeFontColor"));
-                                    if (eventGenerator.parents("div.gisMapPtrContainer")
-                                        .find('a.gisPinLink').attr("data-symbolMode") ===
-                                        'auto') {
-                                        eventGenerator.parents("div.gisMapPtrContainer")
-                                            .find("i.gisPinIcon").html("near_me");
-                                        eventGenerator.parents("div.gisMapPtrContainer")
-                                            .find("i.gisPinIcon").css("color", "white");
-                                        eventGenerator.parents("div.gisMapPtrContainer")
-                                            .find("i.gisPinIcon").css("text-shadow",
-                                                "2px 2px 4px black");
-                                    } else {
-                                        //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                        eventGenerator.parents("div.gisMapPtrContainer")
-                                            .find("div.gisPinCustomIconUp").show();
-                                        eventGenerator.parents("div.gisMapPtrContainer")
-                                            .find("div.gisPinCustomIconUp").css("height",
-                                                "100%");
-                                    }
-
-                                    eventGenerator.show();
-                                } else {
-                                    var loadNoBubbleMetricsText = $(
-                                        '<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>'
-                                    );
-                                    loadingDiv.empty();
-                                    loadingDiv.append(loadNoBubbleMetricsText);
-
-                                    parHeight = loadNoBubbleMetricsText.height();
-                                    parMarginTop = Math.floor((loadingDiv.height() -
-                                        parHeight) / 2);
-                                    loadNoBubbleMetricsText.css("margin-top", parMarginTop +
-                                        "px");
-                                    setTimeout(function() {
-                                        loadingDiv.css("opacity", 0);
-                                        setTimeout(function() {
-                                            loadingDiv.nextAll(
-                                                "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                            ).each(function() {
-                                                $(this).css("top", (
-                                                        $(
-                                                            '#<?= $_REQUEST['name_w'] ?>_div'
-                                                        )
-                                                        .height() -
-                                                        (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                                                .length -
-                                                                1
-                                                            ) *
-                                                            loadingDiv
-                                                            .height()
-                                                        )) +
-                                                    "px");
-                                            });
-                                            loadingDiv.remove();
-                                        }, 350);
-                                    }, 1000);
-
-                                    eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        "i.gisLoadingIcon").hide();
-                                    eventGenerator.parents("div.gisMapPtrContainer").find(
-                                        "i.gisLoadErrorIcon").show();
-
-                                    setTimeout(function() {
-                                        eventGenerator.parents(
-                                            "div.gisMapPtrContainer").find(
-                                            "i.gisLoadErrorIcon").hide();
-                                        eventGenerator.parents(
-                                            "div.gisMapPtrContainer").find(
-                                            "a.gisPinLink").attr("data-onMap",
-                                            "false");
-                                        eventGenerator.parents(
-                                            "div.gisMapPtrContainer").find(
-                                            "a.gisPinLink").show();
-                                    }, 1500);
-
-                                }
-
-                                // CORTI - setta markers nella mappa 3D
-                                //                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-                                //                                            pointToLayer: gisPrepareCustomMarker,
-                                //                                            onEachFeature: onEachFeature
-                                //                                        }).addTo(map.default3DMapRef);
-
-                                //     }
-                            }
-
-                            // COMMENTA l'else x POT. MOD. CONV. addSelectorPin
-                            /*    } else {
-                                    var loadNoBubbleMetricsText = $('<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
-                                    loadingDiv.empty();
-                                    loadingDiv.append(loadNoBubbleMetricsText);
-
-                                    parHeight = loadNoBubbleMetricsText.height();
-                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                    loadNoBubbleMetricsText.css("margin-top", parMarginTop + "px");
-                                    setTimeout(function () {
-                                        loadingDiv.css("opacity", 0);
-                                        setTimeout(function () {
-                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
-                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                            });
-                                            loadingDiv.remove();
-                                        }, 350);
-                                    }, 1000);
-
-                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
-
-                                    setTimeout(function () {
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
-                                    }, 1500);
-                                    
-                                }*/
-                            // Fine commento else x POT. MOD. CONV. addSelectorPin
-                        },
-                        error: function(errorData) {
-                            gisLayersOnMap[event.desc] = "loadError";
-
-                            loadingDiv.empty();
-                            loadingDiv.append(loadKoText);
-
-                            parHeight = loadKoText.height();
-                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) /
-                                2);
-                            loadKoText.css("margin-top", parMarginTop + "px");
-
-                            setTimeout(function() {
-                                loadingDiv.css("opacity", 0);
-                                setTimeout(function() {
-                                    loadingDiv.nextAll(
-                                        "#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv"
-                                    ).each(function(i) {
-                                        $(this).css("top", ($(
-                                                '#<?= $_REQUEST['name_w'] ?>_div'
-                                            ).height() -
-                                            (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv')
-                                                    .length -
-                                                    1) *
-                                                loadingDiv
-                                                .height())
-                                        ) + "px");
-                                    });
-                                    loadingDiv.remove();
-                                }, 350);
-                            }, 1000);
-
-                            eventGenerator.parents("div.gisMapPtrContainer").find(
-                                "i.gisLoadingIcon").hide();
-                            eventGenerator.parents("div.gisMapPtrContainer").find(
-                                "i.gisLoadErrorIcon").show();
-
-                            setTimeout(function() {
-                                eventGenerator.parents("div.gisMapPtrContainer")
-                                    .find("i.gisLoadErrorIcon").hide();
-                                eventGenerator.parents("div.gisMapPtrContainer")
-                                    .find("a.gisPinLink").attr("data-onMap",
-                                        "false");
-                                eventGenerator.parents("div.gisMapPtrContainer")
-                                    .find("a.gisPinLink").show();
-                            }, 1500);
-
-                            console.log("Error in getting GeoJSON from ServiceMap");
-                            console.log(JSON.stringify(errorData));
+                        getTileData: (tile) => { 
+                            return fetch(tile.url).then(res => res.text()).then(jsontext => {
+                                const json = JSON.parse(jsontext)
+                                let data = {}
+                                for (let key in json)
+                                    data = {...data, ...json[key]}
+                                return data;
+                            });
                         }
-                    });
+                    }));
+                    updateLayers();
+                    loadingDiv.setStatus('ok');
                 }
                 eventMapManager.legacyTrigger(event, addSelectorEventToMap);
             });
@@ -6528,7 +5842,6 @@ if (!isset($_SESSION)) {
                         text: desc,
                         color1,
                         color2,
-                        autoremove: false,
                     });
 
                     var re1 = '(selection)'; // Word 1
@@ -6544,22 +5857,6 @@ if (!isset($_SESSION)) {
                     var pattern = new RegExp(re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9, [
                         "i"
                     ]);
-
-                    /*   if (queryType === "Default") {
-                            if (pattern.test(query)) {
-                                query = query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
-                            }
-                            else {
-                                query = query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
-                            }
-                        }
-
-                        if (targets !== "") {
-                            targets = targets.split(",");
-                        }
-                        else {
-                            targets = [];
-                        }*/
 
                     if (queryType === "Default") {
                         if (passedData.query.includes("datamanager/api/v1/poidata/")) {
@@ -6580,29 +5877,18 @@ if (!isset($_SESSION)) {
                         } else {
                             var selQuery;
                             if (is3dOn)
+                                // cultural
                                 selQuery =
                                 `&selection=${mapBounds3d[0][1]};${mapBounds3d[0][0]};${mapBounds3d[1][1]};${mapBounds3d[1][0]}`;
-                            // selQuery =
-                            // `&selection=${mapBounds3d[0][1]};${mapBounds3d[0][0]};${mapBounds3d[1][1]};${mapBounds3d[1][0]}`;
                             else
                                 selQuery = "&selection=" + mapBounds["_southWest"].lat + ";" +
                                 mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" +
                                 mapBounds["_northEast"].lng;
+                            selQuery = '&selection={selection}';
                             if (pattern.test(passedData.query))
                                 query = passedData.query.replace(pattern, selQuery);
                             else
                                 query = passedData.query + selQuery;
-                            // if (pattern.test(passedData.query)) {
-                            //     if (is3dOn) 
-                            //         query = passedData.query.replace(pattern, `selection=wkt:POLYGON((mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0]`);
-                            //     else
-                            //         query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
-                            // } else {
-                            //     if (is3dOn)
-                            //         query = passedData.query + "&selection=wkt:POLYGON((" + mapBounds3d[0][1] + ";" + mapBounds3d[0][0] + ";" + mapBounds3d[1][1] + ";" + mapBounds3d[1][0];
-                            //     else
-                            //         query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
-                            // }
                             query = "<?= $superServiceMapProxy ?>api/v1?" + query.split('?')[1];
                         }
                         if (!query.includes("&maxResults")) {
@@ -6641,8 +5927,6 @@ if (!isset($_SESSION)) {
                             "datamanager/api/v1/poidata/")) {
                         apiUrl = query + "&geometry=true&fullCount=false";
                     }
-
-                    //    if (queryType === "Sensor" && query.includes("%2525")) {
                     if (query.includes("%2525") && !query.includes("%252525")) {
                         let queryPart1 = query.split("/resource/")[0];
                         let queryPart2 = (query.split("/resource/")[1]).split("&format=")[0];
@@ -6655,437 +5939,140 @@ if (!isset($_SESSION)) {
                         }
                     }
 
-                    $.ajax({
-                        //    url: query + "&geometry=true&fullCount=false",
-                        url: apiUrl,
-                        type: "GET",
-                        data: {
-                            myPOIId: dataForApi
+                    apiUrl = apiUrl.replace(/&maxResults=\d*/g, "&maxResults=6000");
+                    let commonState = {};
+
+                    const sensorLayer = new snap4deck.FusionTileLayer({
+                        id: `${desc}-layer`,
+                        data: apiUrl,
+                        pickable: true,
+                        statePasstrough: true,
+                        fusionTopDown: (parent, current, index) => {
+                            if (!current)
+                                current = [[], []];
+                            if (!parent)
+                                return;
+                            return [
+                                // snap4deck.geojsonFusionTopDown(parent[0], current[0], index), 
+                                // snap4deck.geojsonFusionTopDown(parent[1], current[1], index), 
+                                parent[0] ? snap4deck.geojsonFusionBottomUp(parent[0], current[0]) : null, 
+                                parent[1] ? snap4deck.geojsonFusionBottomUp(parent[1], current[1]) : null, 
+                            ];
                         },
-                        async: true,
-                        timeout: 0,
-                        dataType: 'json',
-                        success: function(geoJsonData) {
-                            var fatherGeoJsonNode = {};
-                            /*    if (queryType === "Default") {
-                                    if (geoJsonData.hasOwnProperty("BusStops")) {
-                                        fatherGeoJsonNode = geoJsonData.BusStops;
-                                    }
-                                    else {
-                                        if (geoJsonData.hasOwnProperty("SensorSites")) {
-                                            fatherGeoJsonNode = geoJsonData.SensorSites;
-                                        }
-                                        else {
-                                            fatherGeoJsonNode = geoJsonData.Services;
-                                        }
-                                    }
-                                }
-                                else {
-                                    if (geoJsonData.hasOwnProperty("BusStop")) {
-                                        fatherGeoJsonNode = geoJsonData.BusStop;
-                                    }
-                                    else {
-                                        if (geoJsonData.hasOwnProperty("Sensor")) {
-                                            fatherGeoJsonNode = geoJsonData.Sensor;
-                                        }
-                                        else {
-                                            if (geoJsonData.hasOwnProperty("Service")) {
-                                                fatherGeoJsonNode = geoJsonData.Service;
-                                            }
-                                            else {
-                                                fatherGeoJsonNode = geoJsonData.Services;
-                                            }
-                                        }
-                                    }
-                                }*/
-
-                            if (queryType === "Default") {
-                                if (passedData.query.includes(
-                                        "datamanager/api/v1/poidata/")) {
-                                    fatherGeoJsonNode.features = [];
-                                    if (passedData.desc != "My POI") {
-                                        fatherGeoJsonNode.features[0] = geoJsonData;
-                                    } else {
-                                        fatherGeoJsonNode.features = geoJsonData;
-                                    }
-                                    fatherGeoJsonNode.type = "FeatureCollection";
-                                } else {
-                                    var countObjKeys = 0;
-                                    var objContainer = {};
-                                    Object.keys(geoJsonData).forEach(function(key) {
-                                        if (countObjKeys == 0) {
-                                            if (geoJsonData.hasOwnProperty(key)) {
-                                                fatherGeoJsonNode = geoJsonData[
-                                                    key];
-                                            }
-                                        } else {
-                                            if (geoJsonData.hasOwnProperty(key)) {
-                                                if (geoJsonData[key].features) {
-                                                    fatherGeoJsonNode.features =
-                                                        fatherGeoJsonNode.features
-                                                        .concat(geoJsonData[key]
-                                                            .features);
-                                                }
-                                            }
-                                        }
-                                        countObjKeys++;
-                                    });
-                                    /*    if (geoJsonData.hasOwnProperty("BusStops")) {
-                                            fatherGeoJsonNode = geoJsonData.BusStops;
-                                        } else {
-                                            if (geoJsonData.hasOwnProperty("SensorSites")) {
-                                                fatherGeoJsonNode = geoJsonData.SensorSites;
-                                            } else {
-                                                if (geoJsonData.hasOwnProperty("Service")) {
-                                                    fatherGeoJsonNode = geoJsonData.Service;
-                                                } else {
-                                                    fatherGeoJsonNode = geoJsonData.Services;
-                                                }
-                                            }
-                                        }*/
-                                }
-                            } else if (queryType === "MyPOI") {
-                                fatherGeoJsonNode.features = [];
-                                if (passedData.desc != "My POI") {
-                                    fatherGeoJsonNode.features[0] = geoJsonData;
-                                } else {
-                                    fatherGeoJsonNode.features = geoJsonData;
-                                }
-                                fatherGeoJsonNode.type = "FeatureCollection";
-                            } else {
-                                /*   var countObjKeys = 0;
-                                    var objContainer = {};
-                                    Object.keys(geoJsonData).forEach(function (key) {
-                                        if (countObjKeys == 0) {
-                                            if (geoJsonData.hasOwnProperty(key)) {
-                                                fatherGeoJsonNode = geoJsonData[key];
-                                            }
-                                        } else {
-                                            if (geoJsonData.hasOwnProperty(key)) {
-                                                fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
-                                            }
-                                        }
-                                        countObjKeys++;
-                                    });*/
-                                if (geoJsonData.hasOwnProperty("BusStop")) {
-                                    fatherGeoJsonNode = geoJsonData.BusStop;
-                                } else {
-                                    if (geoJsonData.hasOwnProperty("Sensor")) {
-                                        fatherGeoJsonNode = geoJsonData.Sensor;
-                                    } else {
-                                        if (geoJsonData.hasOwnProperty("Service")) {
-                                            fatherGeoJsonNode = geoJsonData.Service;
-                                        } else {
-                                            fatherGeoJsonNode = geoJsonData.Services;
-                                        }
+                        fusionBottomUP: (child, current) => {
+                            if (!current)
+                                current = [[], []];
+                            if (!child)
+                                return;
+                            return [
+                                child[0] ? snap4deck.geojsonFusionBottomUp(child[0], current[0]) : null, 
+                                child[1] ? snap4deck.geojsonFusionBottomUp(child[1], current[1]) : null, 
+                            ];
+                        },
+                        getTileData: (tile) => {
+                            let promise = fetch(tile.url)
+                            .then(response => response.text())
+                            .then(data => {
+                                const json = JSON.parse(data)
+                                var features = [];
+                                for (let key in json)
+                                    features.push(...json[key].features);
+                                for (let feature of features) {
+                                    gisPrepareCustomMarker(feature, []);
+                                    feature.properties = {
+                                        ...passedData,
+                                        ...feature.properties,
                                     }
                                 }
-                            }
-
-                            if (is3dOn && (display == "undefined" || display.includes(
-                                    'pins')) && fatherGeoJsonNode.features.length != 0) {
-                                for (var i = 0; i < fatherGeoJsonNode.features
-                                    .length; i++) {
-                                    gisPrepareCustomMarker(fatherGeoJsonNode.features[i],
-                                        []);
-                                }
-
-                                const otherProps = {
-                                    apiUrl: this.url,
-                                    targets,
-                                    color1,
-                                    color2,
-                                    pinattr: passedData.pinattr,
-                                    pincolor: passedData.pincolor,
-                                    symbolcolor: passedData.symbolcolor,
-                                    iconFilePath: passedData.iconFilePath,
-                                };
-
-                                apiUrls3D[`${passedData.desc}`] = event;
-
-                                if (terrainOn) {
-                                    let remainingFeatures = fatherGeoJsonNode.features.length;
-                                    for (let feature of fatherGeoJsonNode.features) {
-                                        let lng = feature.geometry.coordinates[0];
-                                        let lat = feature.geometry.coordinates[1];
-                                        loadAltitude(lng, lat, (altitude) => {
-                                            feature.geometry.coordinates[2] = altitude;
-                                            remainingFeatures--;
-                                            if (remainingFeatures <= 0) {
-                                                removeLayerSet(passedData.desc, layers.pin);
-                                                updateLayers();
-                                                const sensorLayer = createSensorLayer({
-                                                    data: fatherGeoJsonNode.features,
-                                                    id: `${passedData.desc}-elevated`
-                                                });
-                                                layers.pin.push(sensorLayer);
-                                                updateLayers();
-                                            }
-                                        });
-                                    }
-                                }
-
-                                const sensorLayer = createSensorLayer({
-                                    data: fatherGeoJsonNode.features,
-                                    id: passedData.desc
-                                });
-                                layers.pin.push(sensorLayer);
-                                updateLayers();
-                            }
-
-                            for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
-
-                                var dataObj = {};
-
-                                fatherGeoJsonNode.features[i].properties.targetWidgets =
-                                    targets;
-                                fatherGeoJsonNode.features[i].properties.color1 = color1;
-                                fatherGeoJsonNode.features[i].properties.color2 = color2;
-                                fatherGeoJsonNode.features[i].properties.pinattr =
-                                    passedData.pinattr;
-                                fatherGeoJsonNode.features[i].properties.pincolor =
-                                    passedData.pincolor;
-                                fatherGeoJsonNode.features[i].properties.symbolcolor =
-                                    passedData.symbolcolor;
-                                fatherGeoJsonNode.features[i].properties.iconFilePath =
-                                    passedData.iconFilePath;
-                                //    fatherGeoJsonNode.features[i].properties.altViewMode = passedData.altViewMode;
-
-                                dataObj.lat = fatherGeoJsonNode.features[i].geometry
-                                    .coordinates[1];
-                                dataObj.lng = fatherGeoJsonNode.features[i].geometry
-                                    .coordinates[0];
-                                dataObj.eventType = "selectorEvent";
-                                dataObj.desc = desc;
-                                dataObj.query = passedData.query;
-                                dataObj.targets = passedData.targets;
-                                dataObj.eventGenerator = passedData.eventGenerator;
-                                dataObj.color1 = passedData.color1;
-                                dataObj.color2 = passedData.color2;
-                                dataObj.queryType = passedData.queryType;
-                                dataObj.display = passedData.display;
-                                dataObj.iconTextMode = passedData.iconTextMode;
-                            }
-
-                            // map.eventsOnMap.push(dataObj);
-
-                            if (!gisLayersOnMap.hasOwnProperty(desc) && (display !==
-                                    'geometries') && !is3dOn) {
-                                gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-                                    pointToLayer: gisPrepareCustomMarker,
-                                    onEachFeature: onEachFeatureSpiderify
-                                }).addTo(map.defaultMapRef);
-                                //    oms.addMarker(gisLayersOnMap[desc]._layers);
-
-                                // CORTI - setta markers nella mappa 3D
-                                //                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-                                //                                            pointToLayer: gisPrepareCustomMarker,
-                                //                                            onEachFeature: onEachFeature
-                                //                                        }).addTo(map.default3DMapRef);
-
-                            }
-
-                            loadingDiv.setStatus('ok');
-                            setTimeout(() => loadingDiv.remove(), 1000);
-
-                            eventGenerator.parents("div.gisMapPtrContainer").find(
-                                "i.gisLoadingIcon").hide();
-                            eventGenerator.parents('div.gisMapPtrContainer').siblings(
-                                    'div.gisQueryDescContainer').find('p.gisQueryDescPar')
-                                .css("font-weight", "bold");
-                            eventGenerator.parents('div.gisMapPtrContainer').siblings(
-                                    'div.gisQueryDescContainer').find('p.gisQueryDescPar')
-                                .css("color", eventGenerator.attr("data-activeFontColor"));
-                            if (eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    'a.gisPinLink').attr("data-symbolMode") === 'auto') {
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "i.gisPinIcon").html("near_me");
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "i.gisPinIcon").css("color", "white");
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "i.gisPinIcon").css("text-shadow",
-                                    "2px 2px 4px black");
-                            } else {
-                                //Evidenziazione che gli eventi di questa query sono su mappa in caso di icona custom
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "div.gisPinCustomIconUp").show();
-                                eventGenerator.parents("div.gisMapPtrContainer").find(
-                                    "div.gisPinCustomIconUp").css("height", "100%");
-                            }
-
-                            eventGenerator.show();
-
-                            var wkt = null;
-
+                                return features;
+                            });
                             if (display !== 'pins') {
-                                stopGeometryAjax[desc] = false;
-                                gisGeometryTankForFullscreen[desc] = {
-                                    capacity: fatherGeoJsonNode.features.length,
-                                    shown: false,
-                                    tank: [],
-                                    lastConsumedIndex: 0
-                                };
-
-                                for (var i = 0; i < fatherGeoJsonNode.features
-                                    .length; i++) {
-                                    if (fatherGeoJsonNode.features[i].properties
-                                        .hasOwnProperty('hasGeometry') && fatherGeoJsonNode
-                                        .features[i].properties.hasOwnProperty('serviceUri')
-                                    ) {
-                                        if (fatherGeoJsonNode.features[i].properties
-                                            .hasGeometry === true) {
-                                            //gisGeometryServiceUriToShowFullscreen[event.desc].push(fatherGeoJsonNode.features[i].properties.serviceUri);
-
-                                            $.ajax({
-                                                url: "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" +
-                                                    fatherGeoJsonNode.features[i]
-                                                    .properties.serviceUri,
-                                                type: "GET",
-                                                data: {},
-                                                async: true,
-                                                timeout: 0,
-                                                dataType: 'json',
-                                                success: function(geometryGeoJson) {
-                                                    if (!stopGeometryAjax[
-                                                            desc]) {
-                                                        // Creazione nuova istanza del parser Wkt
-                                                        wkt = new Wkt.Wkt();
-
-                                                        // Lettura del WKT dalla risposta
-                                                        wkt.read(geometryGeoJson
-                                                            .Service
-                                                            .features[0]
-                                                            .properties
-                                                            .wktGeometry,
-                                                            null);
-
-                                                        var ciclePathFeature = [{
-                                                            type: "Feature",
-                                                            properties: geometryGeoJson
-                                                                .Service
-                                                                .features[
-                                                                    0]
-                                                                .properties,
-                                                            geometry: wkt
-                                                                .toJson()
-                                                        }];
-
-                                                        if (is3dOn) {
-                                                            const
-                                                                cyclingData = [];
-                                                            const index =
-                                                                getLayerIndexSet(
-                                                                    passedData
-                                                                    .desc,
-                                                                    layers
-                                                                    .cycling);
-                                                            if (index != -1)
-                                                                cyclingData
-                                                                .push(...layers
-                                                                    .cycling[
-                                                                        index]
-                                                                    .props.data
-                                                                );
-                                                            cyclingData.push(...
-                                                                ciclePathFeature
-                                                            );
-                                                            apiUrls3D[
-                                                                `${passedData.desc}`
-                                                            ] = event;
-
-                                                            const cyclingLayer =
-                                                                createPathLayer(
-                                                                    cyclingData,
-                                                                    passedData
-                                                                    .desc);
-                                                            if (index != -1) {
-                                                                layers.cycling[
-                                                                        index] =
-                                                                    null;
-                                                                updateLayers();
-                                                                layers.cycling[
-                                                                        index] =
-                                                                    cyclingLayer;
-                                                            } else
-                                                                layers.cycling
-                                                                .push(
-                                                                    cyclingLayer
-                                                                );
-                                                            updateLayers();
-                                                        }
-
-                                                        if (!
-                                                            gisGeometryLayersOnMap
-                                                            .hasOwnProperty(
-                                                                desc)) {
-                                                            gisGeometryLayersOnMap
-                                                                [desc] = [];
-                                                        }
-
-                                                        // CORTI - Pane
-                                                        map.defaultMapRef
-                                                            .createPane(
-                                                                'ciclePathFeature'
-                                                            );
-                                                        map.defaultMapRef
-                                                            .getPane(
-                                                                'ciclePathFeature'
-                                                            ).style.zIndex =
-                                                            420;
-
-                                                        gisGeometryLayersOnMap[
-                                                            desc].push(L
-                                                            .geoJSON(
-                                                                ciclePathFeature, {
-                                                                    pane: 'ciclePathFeature'
-                                                                }).addTo(map
-                                                                .defaultMapRef
-                                                            ));
-                                                        gisGeometryTankForFullscreen
-                                                            [desc].tank.push(
-                                                                ciclePathFeature
-                                                            );
-                                                        loadingDiv.setStatus('ok');
-                                                        setTimeout(() => loadingDiv.remove(), 1000);
-                                                    }
-                                                },
-                                                error: function(geometryErrorData) {
-                                                    console.log("Ko");
-                                                    console.log(JSON.stringify(
-                                                        geometryErrorData
-                                                    ));
-                                                }
-                                            });
+                                return promise.then(features => {
+                                    // const features = res.features;
+                                    if (features.length == 0)
+                                        return null;
+                                    let promises = [];
+                                    for (let feature of features) {
+                                        let prop = feature.properties;
+                                        if (prop.hasOwnProperty('hasGeometry') && 
+                                            prop.hasOwnProperty('serviceUri') && prop.hasGeometry == true) {
+                                            promises.push(
+                                                fetch(`<?= $superServiceMapProxy; ?>api/v1/?serviceUri=${prop.serviceUri}`)
+                                                    .then(wkt => wkt.text())
+                                            );
                                         }
                                     }
-                                }
+                                    return Promise.all([features, ...promises]);
+                                }).then(res => {
+                                    if (!res)
+                                        return null;
+                                    const sensors = res[0];
+                                    const responses = res.slice(1);
+                                    let paths = [];
+                                    for (let response of responses) 
+                                        paths.push(JSON.parse(response));
+                                    // Creazione nuova istanza del parser Wkt
+                                    wkt = new Wkt.Wkt();
+
+                                    // Lettura del WKT dalla risposta
+                                    let cycling = [];
+                                    for (let path of paths)
+                                        for (let key in path) {
+                                            for (let feature of path[key].features) {
+                                                wkt.read(feature
+                                                    .properties
+                                                    .wktGeometry,
+                                                    null);
+
+                                                var ciclePathFeature = {
+                                                    type: "Feature",
+                                                    properties: feature.properties,
+                                                    geometry: wkt.toJson()
+                                                };
+                                                cycling.push(ciclePathFeature);
+
+                                            }
+                                    }
+                                    return [sensors, cycling];
+                                });
                             }
+                            return Promise.all([promise,null]);
                         },
-                        error: function(errorData) {
-                            gisLayersOnMap[event.desc] = "loadError";
-
-                            loadingDiv.setStatus('ko');
-                            setTimeout(() => loadingDiv.remove(), 1000);
-
-                            eventGenerator.parents("div.gisMapPtrContainer").find(
-                                "i.gisLoadingIcon").hide();
-                            eventGenerator.parents("div.gisMapPtrContainer").find(
-                                "i.gisLoadErrorIcon").show();
-
-                            setTimeout(function() {
-                                eventGenerator.parents("div.gisMapPtrContainer")
-                                    .find("i.gisLoadErrorIcon").hide();
-                                eventGenerator.parents("div.gisMapPtrContainer")
-                                    .find("a.gisPinLink").attr("data-onMap",
-                                        "false");
-                                eventGenerator.parents("div.gisMapPtrContainer")
-                                    .find("a.gisPinLink").show();
-                            }, 1500);
-
-                            console.log("Error in getting GeoJSON from ServiceMap");
-                            console.log(JSON.stringify(errorData));
+                        renderSubLayers: (props) => {
+                            if (!props.data || Object.keys(props.data).length === 0)
+                                return;
+                            const sensors = props.data[0];
+                            const paths = props.data[1];
+                            commonState = {
+                                ...commonState,
+                                ...props.commonState
+                            }
+                            // const commonIconState = props.commonState ? props.commonState[1] : null;
+                            return [
+                                createPathLayer({
+                                    ...props,
+                                    data: paths,
+                                    id: `paths-${props.id}`,
+                                    // commonState: props.commonState[0]
+                                }),
+                                createSensorLayer({
+                                    ...props,
+                                    data: sensors,
+                                    id: `sensors-${props.id}`,
+                                    // commonState: commonIconState
+                                    commonState: commonState
+                                }),
+                            ];
+                        },
+                        refinementStrategy: "best-available",
+                        onClick: (info, event) => {
+                            if (info.sourceLayer instanceof deck.IconLayer)
+                                onMarkerClick(event, info);
                         }
                     });
+                    layers.pin.push(sensorLayer)
+                    updateLayers();
+                    loadingDiv.setStatus('ok');
                 }
                 eventMapManager.legacyTrigger(event, addSelectorEventToMap);
             });
@@ -7686,7 +6673,7 @@ if (!isset($_SESSION)) {
             var vehicle = "car";
             var waypoints = null;
             var studioControl = null;
-            $(document).on('addWhatif', function(event) {
+            $(document).on('addWhatif', function (event) {
                 if (event.target === map.mapName) {
                     // create whatif layer and add to map
                     $('#whatif-info-btn').css('display', 'block');
@@ -7749,8 +6736,8 @@ if (!isset($_SESSION)) {
                         //clear scenario description and time range
                         $("#resultDescription").html("");
                         $("#resultTimerange").html("");
-                        whatifRoutingStart = null;
-                        whatifRoutingEnd = null;
+                        // whatifRoutingStart = null;
+                        // whatifRoutingEnd = null;
                     // reset page:
                         // Hide routing mode options
                         $("#options").hide();
@@ -7803,8 +6790,8 @@ if (!isset($_SESSION)) {
                     // when the user chooses a scenario/studio, draw it on the map
                     $('#choice-select').change(function(){
                         whatifOn = true;
-                        whatifRoutingStart = null;
-                        whatifRoutingEnd = null;
+                        // whatifRoutingStart = null;
+                        // whatifRoutingEnd = null;
                         var choice = $('input[name=choice]:checked').val();                            
                         if( choice == "scenario") {
                             // scenarioName(visibility) -> we take only scenarioName
@@ -7828,12 +6815,17 @@ if (!isset($_SESSION)) {
                                 
                                 // TODO: deck whatif
                                 // remove previous choice's drawings
+
+                                whatifScenarioData = selectedScenarioData;
+                                whatifVehicle = vehicle;
                                 var firstShapeType = selectedScenarioData.features[0].geometry.type;
                                 if (is3dOn) {
                                     layers.whatif = createWhatifLayer({
                                         data: selectedScenarioData,
                                     });
                                     updateLayers();
+                                    if (whatifRoutingStart && whatifRoutingEnd)
+                                        startRouting();
                                 } else {
                                     map.defaultMapRef.removeLayer(whatifDrawnItems);
                                     whatifDrawnItems = new L.FeatureGroup();
@@ -8576,8 +7568,6 @@ if (!isset($_SESSION)) {
                                     // MS
                                 });
 
-                                whatifScenarioData = selectedScenarioData;
-                                whatifVehicle = vehicle;
                                 // Init GH Leaflet Routing Machine 
                                 lrmControl = L.Routing.control({
                                     // Servlet params
@@ -8746,11 +7736,11 @@ if (!isset($_SESSION)) {
                                 });
                             });
                         }
-
+                        
                         // Function for button creation
                         function createButton(label, container) {
                             var btn = L.DomUtil.create('div', '', container);
-                            btn.innerHTML = '<button>' + label + '</button>';
+                            btn.innerHTML = '<button>'+label+'</button>';
                             return btn;
                         }
 
@@ -8760,7 +7750,7 @@ if (!isset($_SESSION)) {
                                 var dist = -1;
                                 var nearestMarker = null;
                                 var newlat = latlng["lat"];
-                                var newlng = latlng["lng"];
+                                var newlng = latlng["lng"];									
                                 map.defaultMapRef.eachLayer(
                                     function(layer) { 
                                         if (layer instanceof L.Marker) { 
@@ -8803,11 +7793,11 @@ if (!isset($_SESSION)) {
                             }
                         };
                         // MS
-
+                        
                         // add a popup <from, to> when the map is clicked
                         // TODO: deck whatif
                         map.defaultMapRef.on('click', function(e) {
-                            if (lrmControl) {
+                            if(lrmControl) {
                                 var container = L.DomUtil.create('div'),
                                     startBtn = createButton('Start from this location', container),
                                     destBtn = createButton('Go to this location', container);
@@ -8874,7 +7864,10 @@ if (!isset($_SESSION)) {
                         zm = parseInt(currentViewState.zoom);
                     }
 
-                    var roadsJson = event.passedData + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" +
+                    const roadsUrl = event.passedData + "?sLat={south}&sLong={west}&eLat={north}&eLong={east}&zoom={z}";
+                    const densityUrl = "https://firenzetraffic.km4city.org/trafficRTDetails/density/read.php" +
+                        "?sLat={south}&sLong={west}&eLat={north}&eLong={east}&zoom={z}";
+                    var roadsJson2 = event.passedData + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" +
                         ne.lat + "&eLong=" + ne.lng + "&zoom=" + zm;
                     var event = {};
                     event.eventType = "trafficRealTimeDetails";
@@ -8886,457 +7879,230 @@ if (!isset($_SESSION)) {
 
                     event.marker = new L.LayerGroup();
 
-                    map.defaultMapRef.on('click', function(e) {
-                        var bnds = map.defaultMapRef.getBounds()
-                        if (roads == null)
-                            loadRoads();
-                        else {}
-                    });
+                    // map.defaultMapRef.on('click', function(e) {
+                    //     var bnds = map.defaultMapRef.getBounds()
+                    //     if (roads == null)
+                    //         loadRoads();
+                    //     else {}
+                    // });
 
                     // CORTI - zIndex
-                    map.defaultMapRef.createPane('trafficFlow');
-                    map.defaultMapRef.getPane('trafficFlow').style.zIndex = 420;
+                    // map.defaultMapRef.createPane('trafficFlow');
+                    // map.defaultMapRef.getPane('trafficFlow').style.zIndex = 420;
 
                     var wktLayer = new L.LayerGroup();
                     var roads = null;
                     var time = 0;
 
-                    loadRoads();
                     const loadingDiv = new LoadingDiv({
                         text: 'crest layer',
                         color1: '#ffffff',
                         color2: '#cccccc',
                     });
 
-                    function loadRoads() {
-                        defaults = {
-                            icon: new L.DivIcon({
-                                className: "geo-icon"
-                            }),
-                            editable: true,
-                            color: '#AA0000',
-                            weight: 2.5,
-                            opacity: 1,
-                            fillColor: '#AA0000',
-                            fillOpacity: 1,
-                            pane: 'trafficFlow' // CORTI
-                        };
-
-                        $.ajax({
-                            url: roadsJson,
-                            type: "GET",
-                            async: true,
-                            dataType: 'json',
-                            success: function(_roads) {
-                                roads = JSON.parse(JSON.stringify(_roads));
-
-                                if (!densityTable)
-                                    loadDensityTable(false);
-                                loadDensity(_roads);
-                            },
-                            error: function(err) {
-                                console.log(err);
-                                alert("error see log json");
-                            }
-                        });
-                    }
-
-                    function loadDensity(roads) {
-                        $.ajax({
-                            //    url: "http://localhost/dashboardSmartCity/trafficRTDetails/density/read.php" + "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat + "&eLong=" + ne.lng + "&zoom=" + zm,
-                            url: "https://firenzetraffic.km4city.org/trafficRTDetails/density/read.php" +
-                                "?sLat=" + so.lat + "&sLong=" + so.lng + "&eLat=" + ne.lat +
-                                "&eLong=" + ne.lng + "&zoom=" + zm,
-                            type: "GET",
-                            async: false,
-                            cache: false,
-                            dataType: 'json',
-                            success: function(_density) {
-
-                                if (is3dOn) {
-                                    var result = _density;
-                                    if (roads.length == null) {
-                                        loadingDiv.setStatus('ko');
-                                        return;
-                                    }
-                                    // Removing first null object
-                                    if (roads[0].road == null)
-                                        roads = roads.slice(1);
-
-                                    // For all roads
-                                    for (var i = 0; i < roads.length; i++) {
-                                        var road = roads[i];
-                                        var density = result[road.road];
-                                        // for all segments
-                                        for (var j = 0; j < road.segments.length; j++) {
-                                            var segment = road.segments[j];
-                                            segment.startPos = [parseFloat(segment.start
-                                                .long), parseFloat(segment.start
-                                                .lat)];
-                                            segment.endPos = [parseFloat(segment.end.long),
-                                                parseFloat(segment.end.lat)
-                                            ];
-                                            var segmentDensity = density.data[0][segment.id];
-                                            // segment.density = parseFloat(segmentDensity);
-                                            segment.density = parseFloat(segmentDensity) / parseFloat(segment.Lanes);
-                                            if (segment.relativeDensity > 1)
-                                                segment.relativeDensity = 1;
-                                            segment.startDensity = segment.density;
-                                            segment.endDensity = segment.density;
-                                            segment.color = getDensityColor(segment.density);
-                                            segment.startColor = segment.color;
-                                            segment.endColor = segment.color;
-                                            segment.startAttach = [];
-                                            segment.endAttach = [];
-                                            // if (j > 0) {
-                                            //     var prevSegment = road.segments[j - 1];
-                                            //     const avgRelativeDensity = (prevSegment.relativeDensity + segment.relativeDensity) / 2;
-                                            //     const avgColor = getDensityColor(avgRelativeDensity);
-                                            //     prevSegment.nextRelativeDensity = avgRelativeDensity;
-                                            //     prevSegment.nextColor = avgColor;
-                                            //     segment.prevRelativeDensity = avgRelativeDensity;
-                                            //     segment.prevColor = avgColor;
-                                            // }
-                                        }
-                                    }
-
-                                    allSegments = [];
-                                    for (let road of roads) {
-                                        allSegments.push(...road.segments);
-                                    }
-
-                                    const tollerance = 3;
-                                    const duplicateSegments = [];
-                                    for (let i = 0; i < allSegments.length; i++) {
-                                        let indexMatch = [];
-                                        let currentSegment = allSegments[i];
-                                        for (let j = i + 1; j < allSegments.length; j++) {
-                                            let nextSegment = allSegments[j];
-                                            let sameStart = false;
-                                            let sameEnd = false;
-                                            // TODO: da finire
-                                            if (checkSamePositions(currentSegment.startPos, nextSegment.endPos, tollerance)) {
-                                                currentSegment.startAttach.push(nextSegment.density);
-                                                nextSegment.endAttach.push(currentSegment.density);
-                                            }
-                                            if (checkSamePositions(currentSegment.startPos, nextSegment.startPos, tollerance)) {
-                                                sameStart = true;
-                                                currentSegment.startAttach.push(nextSegment.density);
-                                                nextSegment.startAttach.push(currentSegment.density);
-                                            }
-                                            if (checkSamePositions(currentSegment.endPos, nextSegment.endPos, tollerance)) {
-                                                sameEnd = true;
-                                                currentSegment.endAttach.push(nextSegment.density);
-                                                nextSegment.endAttach.push(currentSegment.density);
-                                            }
-                                            if (checkSamePositions(currentSegment.endPos, nextSegment.startPos, tollerance)) {
-                                                currentSegment.endAttach.push(nextSegment.density);
-                                                nextSegment.startAttach.push(currentSegment.density);
-                                            }
-                                            if (sameStart && sameEnd) {
-                                                duplicateSegments.push([i, j]);
-                                            }
-                                        }
-                                    }
-
-                                    // rimozione dei duplicati
-                                    for (let [i, j] of duplicateSegments) {
-                                        allSegments[i].density = (allSegments[i].density + allSegments[j].density) / 2;
-                                    }
-                                    for (let i = 0; i < duplicateSegments.length; i++) {
-                                        allSegment = allSegments.slice(duplicateSegments[i][1] - i, 1);
-                                    }
-
-                                    // calcolo media densita degli incroci
-                                    for (let segment of allSegments) {
-                                        let avarageStart = segment.density;
-                                        for (let density of segment.startAttach)
-                                            avarageStart += density;
-                                        avarageStart /= segment.startAttach.length + 1;
-                                        segment.startDensity = avarageStart;
-                                        segment.startColor = getDensityColor(avarageStart);
-                                        delete segment.startAttach;
-                                        let avarageEnd = segment.density;
-                                        for (let density of segment.endAttach)
-                                            avarageEnd += density;
-                                        avarageEnd /= segment.endAttach.length + 1;
-                                        segment.endDensity = avarageEnd;
-                                        segment.endColor = getDensityColor(avarageEnd);
-                                        delete segment.endAttach;
-                                    }
-
-                                    // for (let i = 0; i < roads.length; i++) {
-                                    //     const road = roads[i];
-                                    //     const lastIndexRoad = road.segments.length - 1;
-                                    //     let roadToAttach = {
-                                    //         toStart: {
-                                    //             fromStart: [],
-                                    //             fromEnd: [],
-                                    //         },
-                                    //         toEnd: {
-                                    //             fromStart: [],
-                                    //             fromEnd: [],
-                                    //         }
-                                    //     }
-                                    //     for (let j = i + 1; j < roads.length; j++) {
-                                    //         const nextRoad = roads[j];
-                                    //         const lastIndexNextRoad = nextRoad.segments.length - 1;
-                                    //         if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[0].startPos))
-                                    //             roadToAttach.toStart.fromStart.push(nextRoad);
-                                    //         else if (checkSamePositions(road.segments[0].startPos, nextRoad.segments[lastIndexNextRoad].endPos))
-                                    //             roadToAttach.toStart.fromEnd.push(nextRoad);
-                                    //         else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[0].startPos))
-                                    //             roadToAttach.toEnd.fromStart.push(nextRoad);
-                                    //         else if (checkSamePositions(road.segments[lastIndexRoad].endPos, nextRoad.segments[lastIndexNextRoad].endPos))
-                                    //             roadToAttach.toEnd.fromEnd.push(nextRoad);
-                                    //     }
-                                    //     var avgStart = road.segments[0].prevRelativeDensity;
-                                    //     for (let evalRoad of roadToAttach.toStart.fromStart)
-                                    //         avgStart += evalRoad.segments[0].prevRelativeDensity;
-                                    //     for (let evalRoad of roadToAttach.toStart.fromEnd)
-                                    //         avgStart += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
-                                    //     avgStart /= (1 + roadToAttach.toStart.fromStart.length +
-                                    //         roadToAttach.toStart.fromEnd.length);
-                                    //     avgStartColor = getDensityColor(avgStart);
-                                    //     for (let evalRoad of roadToAttach.toStart.fromStart) {
-                                    //         evalRoad.segments[0].prevRelativeDensity = avgStart;
-                                    //         evalRoad.segments[0].prevColor = avgStartColor;
-                                    //     }
-                                    //     for (let evalRoad of roadToAttach.toStart.fromEnd) {
-                                    //         evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgStart;
-                                    //         evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgStartColor;
-                                    //     }
-                                    //     road.segments[0].prevRelativeDensity = avgStart;
-                                    //     road.segments[0].prevColor = avgStartColor;
-
-                                    //     var avgEnd = road.segments[lastIndexRoad].nextRelativeDensity;
-                                    //     for (let evalRoad of roadToAttach.toEnd.fromStart)
-                                    //         avgEnd += evalRoad.segments[0].prevRelativeDensity;
-                                    //     for (let evalRoad of roadToAttach.toEnd.fromEnd)
-                                    //         avgEnd += evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity;
-                                    //     avgEnd /= (1 + roadToAttach.toEnd.fromStart.length +
-                                    //         roadToAttach.toEnd.fromEnd.length);
-                                    //     avgEndColor = getDensityColor(avgEnd);
-                                    //     for (let evalRoad of roadToAttach.toEnd.fromStart) {
-                                    //         evalRoad.segments[0].prevRelativeDensity = avgEnd;
-                                    //         evalRoad.segments[0].prevColor = avgEndColor;
-                                    //     }
-                                    //     for (let evalRoad of roadToAttach.toEnd.fromEnd) {
-                                    //         evalRoad.segments[evalRoad.segments.length - 1].nextRelativeDensity = avgEnd;
-                                    //         evalRoad.segments[evalRoad.segments.length - 1].nextColor = avgEndColor;
-                                    //     }
-                                    //     road.segments[lastIndexRoad].nextRelativeDensity = avgEnd;
-                                    //     road.segments[lastIndexRoad].nextColor = avgEndColor;
-                                    // }
-
-
-                                    layers.traffic = [];
-                                    // apiUrls3D[`traffic`] = event;
-
-
-                                    loadingDiv.setStatus('ok');
-                                    let elevationChanged = false;
-                                    if (terrainOn) {
-                                        const loadingElevationDiv = new LoadingDiv({
-                                            text: 'elevation data',
-                                            color1: '#ffffff',
-                                            color2: '#cccccc',
-                                        });
-                                        let positionRemaining = allSegments.length * 2;
-                                        for (let segment of allSegments) {
-                                            loadAltitude(segment.startPos[0], segment.startPos[1], (altitude) => {
-                                                segment.startPos.push(altitude || 0);
-                                                positionRemaining--;
-                                                if (positionRemaining <= 0) {
-                                                    loadingElevationDiv.setStatus('ok');
-                                                    elevationChanged = true;
-                                                    layers.crest = new snap4deck.CrestLayer({
-                                                        ...layers.crest.props,
-                                                        // data: Object.assign({}, allSegments),
-                                                        data: allSegments,
-                                                        updateTriggers: {
-                                                            currentTime: {
-                                                                time: animationTime,
-                                                            },
-                                                            getStartPosition: {
-                                                                elevation: elevationChanged
-                                                            },
-                                                            getEndPosition: {
-                                                                elevation: elevationChanged
-                                                            }
-                                                        },
-                                                    });
-                                                    updateLayers();
-                                                    if (settingOptions.animationEnabled.value)
-                                                        startTimerAnimation();
-                                                }
-                                            });
-                                            loadAltitude(segment.endPos[0], segment.endPos[1], (altitude) => {
-                                                segment.endPos.push(altitude || 0);
-                                                positionRemaining--;
-                                                if (positionRemaining <= 0) {
-                                                    loadingElevationDiv.setStatus('ok');
-                                                    elevationChanged = true;
-                                                    layers.crest = new snap4deck.CrestLayer({
-                                                        ...layers.crest.props,
-                                                        data: allSegments,
-                                                        // data: Object.assign({}, allSegments),
-                                                        updateTriggers: {
-                                                            currentTime: {
-                                                                time: animationTime,
-                                                            },
-                                                            getStartPosition: {
-                                                                elevation: elevationChanged
-                                                            },
-                                                            getEndPosition: {
-                                                                elevation: elevationChanged
-                                                            }
-                                                        },
-                                                    });
-                                                    updateLayers();
-                                                    if (settingOptions.animationEnabled.value)
-                                                        startTimerAnimation();
-                                                }
-                                            });
-                                        }
-                                    }
-                                    layers.crest = new snap4deck.CrestLayer({
-                                        id: 'crest-layer',
-                                        data: allSegments,
-                                        pickable: true,
-                                        getStartPosition: (d) => d.startPos,
-                                        getEndPosition: (d) => d.endPos,
-                                        getStartDensity: (d) => d.startDensity,
-                                        getMiddleDensity: (d) => d.density,
-                                        getEndDensity: (d) => d.endDensity,
-                                        getStartColor: (d) => d.startColor.map(x => x / 255),
-                                        getMiddleColor: (d) => d.color.map(x => x / 255),
-                                        getEndColor: (d) => d.endColor.map(x => x / 255),
-                                        arrowSize: settingOptions.arrowSize.value || 20,
-                                        isAnimated: settingOptions.animationEnabled.value,
-                                        currentTime: animationTime,
-                                        updateTriggers: {
-                                            currentTime: {
-                                                time: animationTime,
-                                            },
-                                            getStartPosition: {
-                                                elevation: elevationChanged
-                                            },
-                                            getEndPosition: {
-                                                elevation: elevationChanged
-                                            }
-                                        }
-                                    });
-                                    layers.mockIcon = createMockIcon();
-                                    updateLayers();
+                    if (!densityTable)
+                        loadDensityTable(false);
+                    const trafficLayer = new snap4deck.FusionTileLayer({
+                        id: `traffic-layer`,
+                        data: [roadsUrl, densityUrl],
+                        // pickable: true,
+                        offsetLoad: 18,
+                        getFusionCoords: d => d.startPos,
+                        fusionTopDown: snap4deck.jsonFusionTopDown,
+                        fusionBottomUP: snap4deck.jsonFusionBottomUp,
+                        getTileData: (tile) => {
+                            return fetch(tile.url[0])
+                            .then(response => response.text())
+                            .then(roadsData => {
+                                const roads = JSON.parse(roadsData)
+                                if (roads.hasOwnProperty('message'))
                                     return;
-                                }
 
-                                density = JSON.parse(JSON.stringify(_density));
-
-                                for (var i = 0; i < roads.length; i++) {
-                                    if (density.hasOwnProperty((roads[i].road))) {
-                                        roads[i].data = density[roads[i].road].data;
-                                    }
-                                }
-
-                                event.roads = roads;
-
-                                time = 0;
-                                draw(time);
-                                console.log("@time " + time);
-                            },
-                            error: function(err) {
-                                console.log(err);
-                                alert("error see log json");
-                            }
-                        });
-                    }
-
-                    function draw(t) {
-                        if (roads == null)
-                            return;
-                        //wktLayer.clearLayers();
-                        for (var i = 0; i < roads.length; i++) {
-                            var segs = roads[i].segments;
-                            for (var j = 0; j < segs.length; j++) {
-                                var seg = segs[j];
-                                if (typeof seg.start != "undefined") {
-                                    var wktPoint = "POINT(" + seg.start.long + " " + seg.start.lat +
-                                        ")";
-                                    var wktLine = "LINESTRING(" + seg.start.long + " " + seg.start.lat +
-                                        "," + seg.end.long + " " + seg.end.lat + ")";
-
-                                    try {
-                                        if (!jQuery.isEmptyObject(roads[i].data[0])) {
-                                            var value = Number(roads[i].data[t][seg.id].replace(",",
-                                                "."));
-                                            var green = 0.3;
-                                            var yellow = 0.6;
-                                            var orange = 0.9;
-                                            if (seg.Lanes == 2) {
-                                                green = 0.6;
-                                                yellow = 1.2;
-                                                orange = 1.8;
-                                            }
-                                            if (seg.FIPILI == 1) {
-                                                green = 0.25;
-                                                yellow = 0.5;
-                                                orange = 0.75;
-                                            }
-                                            if (seg.Lanes == 3) {
-                                                green = 0.9;
-                                                yellow = 1.5;
-                                                orange = 2;
-                                            }
-                                            if (seg.Lanes == 4) {
-                                                green = 1.2;
-                                                yellow = 1.6;
-                                                orange = 2;
-                                            }
-                                            if (seg.Lanes == 5) {
-                                                green = 1.6;
-                                                yellow = 2;
-                                                orange = 2.4;
-                                            }
-                                            if (seg.Lanes == 6) {
-                                                green = 2;
-                                                yellow = 2.4;
-                                                orange = 2.8;
-                                            }
-                                            if (value <= green)
-                                                defaults.color = "#00ff00";
-                                            else if (value <= yellow)
-                                                defaults.color = "#ffff00";
-                                            else if (value <= orange)
-                                                defaults.color = "#ff8c00";
-                                            else
-                                                defaults.color = "#ff0000";
-                                            defaults.fillColor = defaults.color;
-
-                                            if (!seg.obj) {
-                                                var wkt = new Wkt.Wkt();
-                                                wkt.read(wktLine, "newMap");
-                                                obj = wkt.toObject(defaults);
-                                                obj.options.trafficFlow = true;
-                                                obj.addTo(wktLayer);
-                                                seg.obj = obj;
-
-                                            } else {
-                                                seg.obj.setStyle(defaults);
-                                            }
+                                return fetch(tile.url[1])
+                                    .then(response => response.text())
+                                    .then(densityData => {
+                                        const density = JSON.parse(densityData);
+                                        const allSegments = preProcessRoads(roads, density);
+                                        return allSegments;
+                                    }).then(allSegments => {
+                                        const promises = [];
+                                        for (let segment of allSegments) {
+                                            promises.push(loadAltitude(segment.startPos));
+                                            promises.push(loadAltitude(segment.endPos));
                                         }
-                                    } catch (e) {
-                                        console.log(e);
-                                    }
+                                        // return promises;
+                                        return Promise.all(promises)
+                                        .then((altitudes) => {
+                                            i = 0;
+                                            for (let segment of allSegments) {
+                                                segment.startPos[2] = altitudes[i];
+                                                segment.endPos[2] = altitudes[i + 1];
+                                                i += 2;
+                                            }
+                                            return allSegments;
+                                        });
+                                    })
+                                    // .then(ukn => {
+                                    //     console.log(ukn);
+                                    // });
+                            });
+
+                        },
+                        renderSubLayers: (props) => {
+                            if (!props.data)
+                                return;
+                            let tf_layer = new snap4deck.CrestLayer({
+                                ...props,
+                                pickable: true,
+                                getStartPosition: (d) => d.startPos,
+                                getEndPosition: (d) => d.endPos,
+                                getStartDensity: (d) => d.startDensity,
+                                getMiddleDensity: (d) => d.density,
+                                getEndDensity: (d) => d.endDensity,
+                                getStartColor: (d) => d.startColor.map(x => x / 255),
+                                getMiddleColor: (d) => d.color.map(x => x / 255),
+                                getEndColor: (d) => d.endColor.map(x => x / 255),
+                                arrowSize: settingOptions.arrowSize.value || 20,
+                                // isAnimated: false,
+                                isAnimated: settingOptions.animationEnabled.value,
+                                currentTime: animationTime,
+                                updateTriggers: {
+                                    currentTime: {
+                                        time: animationTime,
+                                    },
+                                    // getStartPosition: {
+                                    //     elevation: elevationChanged
+                                    // },
+                                    // getEndPosition: {
+                                    //     elevation: elevationChanged
+                                    // }
+                                }
+                            });
+                            // let altitudeRemain = 0
+                            // let newData = [...props.data];
+                            // for (let d of newData) {
+                            //     loadAltitude(d.startPos[0], d.startPos[1], (altitude) => {
+                            //         d.startPos[2] = altitude;
+                            //         altitudeRemain--;
+                            //         if (altitudeRemain == 0) {
+                            //             console.log(props.tile)
+                            //             // tf_layer.getAttributeManager().invalidateAll();
+                            //             // tf_layer.setNeedsRedraw();
+                            //         }
+                            //     });
+                            //     loadAltitude(d.endPos[0], d.endPos[1], (altitude) => {
+                            //         d.endPos[2] = altitude;
+                            //         altitudeRemain--;
+                            //         if (altitudeRemain == 0) {
+                            //             console.log(props.tile)
+                            //             // tf_layer.getAttributeManager().invalidateAll();
+                            //             // tf_layer.setNeedsRedraw();
+                            //         }
+                            //     });
+                            //     altitudeRemain += 2;
+                            // }
+                            return tf_layer;
+                        },
+                    });
+                    layers.crest = trafficLayer;
+                    layers.mockIcon = createMockIcon();
+                    updateLayers();
+                    loadingDiv.setStatus('ok');
+                    startTimerAnimation();
+
+                    function preProcessRoads(roads, density) {
+                        var result = density;
+                        if (roads.length == null) {
+                            loadingDiv.setStatus('ko');
+                            return;
+                        }
+                        // Removing first null object
+                        if (roads[0].road == null)
+                            roads = roads.slice(1);
+
+                        // For all roads
+                        for (var i = 0; i < roads.length; i++) {
+                            var road = roads[i];
+                            var density = result[road.road];
+                            // for all segments
+                            for (var j = 0; j < road.segments.length; j++) {
+                                var segment = road.segments[j];
+                                segment.startPos = [parseFloat(segment.start
+                                    .long), parseFloat(segment.start
+                                    .lat)];
+                                segment.endPos = [parseFloat(segment.end.long),
+                                    parseFloat(segment.end.lat)
+                                ];
+                                var segmentDensity = density.data[0][segment.id];
+                                segment.density = parseFloat(segmentDensity) / parseFloat(segment.Lanes);
+                                if (segment.relativeDensity > 1)
+                                    segment.relativeDensity = 1;
+                                segment.startDensity = segment.density;
+                                segment.endDensity = segment.density;
+                                segment.color = getDensityColor(segment.density);
+                                segment.startColor = segment.color;
+                                segment.endColor = segment.color;
+                                segment.startAttach = [];
+                                segment.endAttach = [];
+                            }
+                        }
+
+                        allSegments = [];
+                        for (let road of roads) {
+                            allSegments.push(...road.segments);
+                        }
+
+                        const tollerance = 3;
+                        const duplicateSegments = [];
+                        for (let i = 0; i < allSegments.length; i++) {
+                            let indexMatch = [];
+                            let currentSegment = allSegments[i];
+                            for (let j = i + 1; j < allSegments.length; j++) {
+                                let nextSegment = allSegments[j];
+                                let sameStart = false;
+                                let sameEnd = false;
+                                // TODO: da finire
+                                if (checkSamePositions(currentSegment.startPos, nextSegment.endPos, tollerance)) {
+                                    currentSegment.startAttach.push(nextSegment.density);
+                                    nextSegment.endAttach.push(currentSegment.density);
+                                }
+                                if (checkSamePositions(currentSegment.startPos, nextSegment.startPos, tollerance)) {
+                                    sameStart = true;
+                                    currentSegment.startAttach.push(nextSegment.density);
+                                    nextSegment.startAttach.push(currentSegment.density);
+                                }
+                                if (checkSamePositions(currentSegment.endPos, nextSegment.endPos, tollerance)) {
+                                    sameEnd = true;
+                                    currentSegment.endAttach.push(nextSegment.density);
+                                    nextSegment.endAttach.push(currentSegment.density);
+                                }
+                                if (checkSamePositions(currentSegment.endPos, nextSegment.startPos, tollerance)) {
+                                    currentSegment.endAttach.push(nextSegment.density);
+                                    nextSegment.startAttach.push(currentSegment.density);
                                 }
                             }
                         }
-                        wktLayer.addTo(map.defaultMapRef);
-                    }
 
-                    event.trafficLayer = wktLayer;
-                    map.eventsOnMap.push(event);
+                        // calcolo media densita degli incroci
+                        for (let segment of allSegments) {
+                            let avarageStart = segment.density;
+                            for (let density of segment.startAttach)
+                                avarageStart += density;
+                            avarageStart /= segment.startAttach.length + 1;
+                            segment.startDensity = avarageStart;
+                            segment.startColor = getDensityColor(avarageStart);
+                            delete segment.startAttach;
+                            let avarageEnd = segment.density;
+                            for (let density of segment.endAttach)
+                                avarageEnd += density;
+                            avarageEnd /= segment.endAttach.length + 1;
+                            segment.endDensity = avarageEnd;
+                            segment.endColor = getDensityColor(avarageEnd);
+                            delete segment.endAttach;
+                        }
+
+                        return allSegments;
+                    }
                 }
                 event.passedParams = {
                     desc: "Crest"
@@ -9633,9 +8399,9 @@ if (!isset($_SESSION)) {
                             // $('#heatmapLegend').remove();
                             // map.defaultMapRef.removeControl(map.legendHeatmap);
                             // if (animationOn == false) {
-                                $('#heatmap-info-btn').css('display', 'none');
-                                $('#heatmapLegend').remove();
-                                switchToFirstActiveInfoMenu();
+                            $('#heatmap-info-btn').css('display', 'none');
+                            $('#heatmapLegend').remove();
+                            switchToFirstActiveInfoMenu();
                             // }
 
                             if (is3dOn) {
@@ -9644,8 +8410,7 @@ if (!isset($_SESSION)) {
                                         ...layers.terrain.props,
                                         heatmap: null,
                                     });
-                                else
-                                    layers.wms = null;
+                                layers.wms = null;
                                 updateLayers();
                             }
                         }
@@ -10097,8 +8862,7 @@ if (!isset($_SESSION)) {
                                         ...layers.terrain.props,
                                         traffic: null,
                                     });
-                                else
-                                    layers.trafficWms = null;
+                                layers.trafficWms = null;
                                 updateLayers();
                             }
                             addHeatmapFromClient(false);
@@ -10131,8 +8895,7 @@ if (!isset($_SESSION)) {
                                         ...layers.terrain.props,
                                         traffic: null,
                                     });
-                                else
-                                    layers.trafficWms = null;
+                                layers.trafficWms = null;
                                 updateLayers();
                             }
                             addHeatmapFromClient(false);
@@ -10293,7 +9056,7 @@ if (!isset($_SESSION)) {
                             addHeatmapFromClient(animationFlag);
                         } else {
                             animationFlag = false;
-                                    removeHeatmap(false);
+                            removeHeatmap(false);
                             for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
                                 if (map.eventsOnMap[i].eventType === 'heatmap') {
                                     removeHeatmap(false);
@@ -10722,7 +9485,7 @@ if (!isset($_SESSION)) {
                                             const div = L.DomUtil.create('div', 'info legend');
                                             const legendImgPath = "../trafficRTDetails/legend.png";
                                             div.innerHTML += " <img src=" + legendImgPath + " height='120'/>"
-                                                // '<br style="margin-bottom:20px;">';
+                                            // '<br style="margin-bottom:20px;">';
                                             return div;
                                         };
                                         heatmapLegendColors.addTo(map.defaultMapRef);
@@ -10919,26 +9682,26 @@ if (!isset($_SESSION)) {
                                                 //     .getElementsByClassName("leaflet-control")[
                                                 //         0];
 
-                                                    var heatmapLegendColors = L.control({
-                                                        position: 'bottomleft'
-                                                    });
+                                                var heatmapLegendColors = L.control({
+                                                    position: 'bottomleft'
+                                                });
 
-                                                    heatmapLegendColors.onAdd = function(map) {
+                                                heatmapLegendColors.onAdd = function(map) {
 
-                                                        var div = L.DomUtil.create('div',
-                                                                'info legend'),
-                                                            grades = ["Legend"];
-                                                        //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
-                                                        var legendImgPath = heatmapRange[0]
-                                                            .iconPath; // OLD-API
-                                                        div.innerHTML += " <img src=" +
-                                                            legendImgPath + " height='100%'" +
-                                                            '<br>'; /// OLD-API
-                                                        return div;
-                                                    };
+                                                    var div = L.DomUtil.create('div',
+                                                            'info legend'),
+                                                        grades = ["Legend"];
+                                                    //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
+                                                    var legendImgPath = heatmapRange[0]
+                                                        .iconPath; // OLD-API
+                                                    div.innerHTML += " <img src=" +
+                                                        legendImgPath + " height='100%'" +
+                                                        '<br>'; /// OLD-API
+                                                    return div;
+                                                };
 
-                                                    heatmapLegendColors.addTo(map.defaultMapRef);
-                                                    // map.eventsOnMap.push(heatmap);
+                                                heatmapLegendColors.addTo(map.defaultMapRef);
+                                                // map.eventsOnMap.push(heatmap);
 
                                                 event.legendColors = heatmapLegendColors;
                                                 map.eventsOnMap.push(event);
@@ -11038,11 +9801,13 @@ if (!isset($_SESSION)) {
                                         "&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A4326";
                                     trafficWmsUrl += '&bbox={bbox}';
 
-                                    if (terrainOn)
+                                    if (terrainOn) {
                                         layers.terrain = createManagedTerrainLayer({
                                             ...layers.terrain.props,
                                             traffic: trafficWmsUrl,
                                         });
+                                        layers.trafficWms = null;
+                                    }
                                     else
                                         layers.trafficWms = createHeatmapLayer({
                                             ...layers.trafficWms,
@@ -12060,7 +10825,6 @@ if (!isset($_SESSION)) {
                                 loadingDiv.setStatus('ko');
                             }
                         });
-
                     }
 
                     if (addMode === 'additive') {
@@ -12167,14 +10931,14 @@ if (!isset($_SESSION)) {
 
                     if (is3dOn) {
                         delete apiUrls3D[`${passedData.desc}`];
-                        if (display == "undefined" || display.includes('pins')) {
-                            removeLayerSet(passedData.desc, layers.pin);
-                            removeLayerSet(`${passedData.desc}-elevated`, layers.pin);
-                        }
+                        // if (display == "undefined" || display.includes('pins')) {
+                        removeLayerSet(`${passedData.desc}-layer`, layers.pin);
+                        removeLayerSet(`${passedData.desc}-elevated`, layers.pin);
+                        // }
                         removeLayerSet(passedData.desc, layers.fixedPins);
                         removeLayerSet(`${passedData.desc}-RT`, layers.fixedPins);
-                        if (display.includes('geometries'))
-                            removeLayerSet(passedData.desc, layers.cycling);
+                        // if (display.includes('geometries'))
+                        //     removeLayerSet(passedData.desc, layers.cycling);
                         updateLayers();
                     }
 
@@ -12420,8 +11184,7 @@ if (!isset($_SESSION)) {
                                     ...layers.terrain.props,
                                     heatmap: null,
                                 });
-                            else
-                                layers.wms = null;
+                            layers.wms = null;
                         }
                         updateLayers();
                         if (wmsLayer != null)
@@ -12503,8 +11266,7 @@ if (!isset($_SESSION)) {
                                         ...layers.terrain.props,
                                         traffic: null,
                                     });
-                                else
-                                    layers.trafficWms = null;
+                                layers.trafficWms = null;
                                 updateLayers();
                             }
                         } else if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
@@ -12666,7 +11428,6 @@ if (!isset($_SESSION)) {
                 ...props,
                 // texture: elevationUrl,
             });
-
         }
 
         function createBitmapLayer(image, bounds, id = 'bitmap-layer') {
@@ -12827,7 +11588,7 @@ if (!isset($_SESSION)) {
                 getLineWidth: 10,
                 ...props,
                 data
-            }), null, null];
+            }), null, layers.whatif[2]];
         }
 
         function createRoutingLayer(props) {
@@ -12888,30 +11649,15 @@ if (!isset($_SESSION)) {
         }
 
         function createAggregatedBuildingLayer(props) {
-            hiddenProps = {};
-            if (props.hidden)
-                hiddenProps = {
-                    // opacity: 0.7,
-                    parameters: {
-                        depthTest: false
-                    },
-                    getFillColor: (d) => {
-                        let type = d.properties.type || "Default";
-                        var color = buildingMappingColor[type];
-                        color[3] = 70;
-                        return color;
-                    },
-                };
             return createGeoJSONLayer({
                 id: 'aggregated-building-layer',
-                pickable: deckMode == 'selection',
+                pickable: true,
                 getFillColor: (d) => {
                     let type = d.properties.type || "Default";
                     return buildingMappingColor[type];
                 },
                 autoHighlight: false,
-                opacity: props.hidden ? 0 : 1,
-				onHover: (info) => {
+                onHover: (info) => {
                     if (deckMode == 'selection') {
                         cursorType = 'pointer';
                         const feature = info.object;
@@ -12923,7 +11669,7 @@ if (!isset($_SESSION)) {
                                     for (let feat of gjson.features) {
                                         if (feat.properties.OBJECTID == id) {
                                             hoverFeatures.push(feat);
-                                            break;	
+                                            break;
                                         }
                                     }
                                 }
@@ -12944,7 +11690,6 @@ if (!isset($_SESSION)) {
                                     shininess: 0,
                                     specularColor: [30, 30, 30]
                                 },
-                                ...hiddenProps,
                             });
                             layers.hoverBuilding = hoverLayer;
                             updateLayers();
@@ -12954,7 +11699,7 @@ if (!isset($_SESSION)) {
                         }
                     } else
                         cursorType = 'grab';
-				},
+                },
                 onClick: (event) => {
                     if (deckMode == 'selection') {
                         const feature = event.object;
@@ -12966,7 +11711,7 @@ if (!isset($_SESSION)) {
                                     for (let feat of gjson.features) {
                                         if (feat.properties.OBJECTID == id) {
                                             selectedFeatures.push(feat);
-                                            break;	
+                                            break;
                                         }
                                     }
                                 }
@@ -12983,7 +11728,6 @@ if (!isset($_SESSION)) {
                                     shininess: 0,
                                     specularColor: [30, 30, 30]
                                 },
-                                ...hiddenProps,
                             });
                             layers.selection = selectionLayer;
                             updateLayers();
@@ -12995,7 +11739,7 @@ if (!isset($_SESSION)) {
                     }
                 },
                 ...props,
-			});
+            });
         }
 
         function createMeshLayer(data, id, scenegraph, color = [255, 255, 255, 255], pickable = true) {
@@ -13056,7 +11800,7 @@ if (!isset($_SESSION)) {
             while (!isFound) {
                 i = start + parseInt((end - start) / 2);
                 yFound = parseInt(yList[i])
-                if (yFound ==  y) {
+                if (yFound == y) {
                     isFound = true;
                     break;
                 }
@@ -13069,22 +11813,22 @@ if (!isset($_SESSION)) {
             }
             return isFound;
         }
-        
-        function lon2tile(lon,zoom) { 
-            return (Math.floor((lon+180)/360*Math.pow(2,zoom))); 
+
+        function lon2tile(lon, zoom) {
+            return (Math.floor((lon + 180) / 360 * Math.pow(2, zoom)));
         }
 
-        function lat2tile(lat,zoom)  { 
-            return (Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom))); 
+        function lat2tile(lat, zoom) {
+            return (Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)));
         }
 
-        function tile2long(x,z) {
-            return (x/Math.pow(2,z)*360-180);
+        function tile2long(x, z) {
+            return (x / Math.pow(2, z) * 360 - 180);
         }
 
-        function tile2lat(y,z) {
-            var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
-            return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+        function tile2lat(y, z) {
+            var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
+            return (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
         }
 
         function createHighResGridBuildingLayer(props) {
@@ -13096,7 +11840,7 @@ if (!isset($_SESSION)) {
                 minZoom: 18,
                 maxZoom: 18,
                 pickable: false,
-                maxTiles: settingOptions.maxTiles.value || settingOptions.maxTiles.default,
+                // maxTiles: settingOptions.maxTiles.value || settingOptions.maxTiles.default,
                 TilesetClass: snap4deck.GLBTileSet,
                 renderSubLayers: props => {
                     const {
@@ -13123,7 +11867,8 @@ if (!isset($_SESSION)) {
                         return;
                     return createSceneGraphLayer({
                         id: `grid-high-res-building-system-${z}-${x}-${y}`,
-                        scenegraph: `../widgets/layers/edificato/grid_high_res/${z}/${x}/${y}/model.glb`,
+                        scenegraph: `https://www.snap4industry.org/dashboardSmartCity/widgets/layers/edificato/grid_high_res/${z}/${x}/${y}/model.glb`,
+                        // scenegraph: `https://www.snap4industry.org/dashboardSmartCity/widgets/layers/edificato/grid_tiled/${x}/${y}/tile.glb`,
                         ...glb
                     });
                 },
@@ -13203,6 +11948,7 @@ if (!isset($_SESSION)) {
 
         function clearBuildings() {
             layers.building = null;
+            layers.modifiedBuildings = null;
             layers.dynamicBuildings = [];
         }
 
@@ -13272,6 +12018,7 @@ if (!isset($_SESSION)) {
                 getElevation: f => f.properties.heightmean - 47.79,
             });
         }
+
         function loadOSMBRedux() {
             layers.building = createBuildingLayer({
                 data: '../widgets/layers/edificato/osmb_redux.geojson',
@@ -13280,6 +12027,7 @@ if (!isset($_SESSION)) {
                 getElevation: f => f.properties.heightmean - 47.79,
             });
         }
+
         function loadBorders() {
             layers.building = createBuildingLayer({
                 data: '../widgets/layers/edificato/tile_grid.geojson',
@@ -13430,7 +12178,7 @@ if (!isset($_SESSION)) {
                 id: 'mock-icon-layer',
                 getPosition: d => d.position,
                 getIcon: d => {
-                    return { 
+                    return {
                         url: '../img/gisMapIcons/Environment_Air_quality_monitoring_station.png',
                         width: 32,
                         height: 37,
@@ -13457,7 +12205,8 @@ if (!isset($_SESSION)) {
                 },
             };
 
-            return new deck.IconLayer({
+            return new snap4deck.FusionIconLayer({
+            // return new deck.IconLayer({
                 id: 'sensor-layer',
                 pickable: true,
                 getIcon: d => {
@@ -13487,30 +12236,6 @@ if (!isset($_SESSION)) {
                     depthTest: false
                 },
 
-                updateTriggers: {
-                    getIcon: lastHoveredObject,
-                },
-
-                onHover: (info, event) => {
-                    var redraw = false;
-                    cursorType = 'grab';
-                    if (lastHoveredObject != null) {
-                        lastHoveredObject.hover = false;
-                        lastHoveredObject = null;
-                        redraw = true;
-                    }
-                    if (info.object != null) {
-                        lastHoveredObject = info.object;
-                        info.object.hover = true;
-                        redraw = true;
-                        cursorType = 'pointer';
-                    }
-                    // if (redraw)
-                    //     redrawIconLayer(info.layer);
-                },
-                onClick: (info, event) => {
-                    onMarkerClick(event, info);
-                },
                 ...props,
             });
 
@@ -13596,15 +12321,14 @@ if (!isset($_SESSION)) {
             });
         }
 
-        function createPathLayer(data, id = 'path-layer') {
+        function createPathLayer(props) {
             return new deck.PathLayer({
-                id: id,
-                data: data,
                 getPath: d => [...d.geometry.coordinates],
                 getColor: d => [0, 0, 255],
                 getWidth: d => 5,
                 opacity: 0.7,
                 pickable: true,
+                ...props
             });
         }
 
@@ -13613,34 +12337,39 @@ if (!isset($_SESSION)) {
             return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
         }
 
-        function loadAltitude(lng, lat, callback) {
-            if (!terrainOn)
-                return;
-            // const altitude = layers.terrain.getElevationPoint([lng, lat]);
-            // console.log('altitude recived', altitude);
-            // callback(altitude);
-            let delta = 0.0001;
-            let elat = lat + delta;
-            let elng = lng + delta;
-            let bboxurl = `${lng},${lat},${elng},${elat}`;
-            let url = elevationUrl.replace('{bbox}', bboxurl);
-            url = url.replace('width=256', 'width=1');
-            url = url.replace('height=256', 'height=1');
+        function loadAltitude(lngLat) {
+            return new Promise((resolve) => {
+                if (!terrainOn)
+                    resolve(0);
 
-            let img = new Image();
-            img.onload = () => {
-                let canvas = document.createElement('canvas');
-                let ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-                let imgData = ctx.getImageData(0, 0, 1, 1).data;
-                let altitude = elevationDecoder.offset;
-                altitude += imgData[0] * elevationDecoder.rScaler;
-                altitude += imgData[1] * elevationDecoder.gScaler;
-                altitude += imgData[2] * elevationDecoder.bScaler;
-                callback(altitude);
-            };
-            img.crossOrigin = "Anonymous";
-            img.src = url;
+                const [lng, lat] = lngLat;
+                // const altitude = layers.terrain.getElevationPoint([lng, lat]);
+                // console.log('altitude recived', altitude);
+                // callback(altitude);
+                let delta = 0.0001;
+                let elat = lat + delta;
+                let elng = lng + delta;
+                let bboxurl = `${lng},${lat},${elng},${elat}`;
+                let url = elevationUrl.replace('{bbox}', bboxurl);
+                url = url.replace('width=256', 'width=1');
+                url = url.replace('height=256', 'height=1');
+
+                let img = new Image();
+                img.onload = () => {
+                    let canvas = document.createElement('canvas');
+                    let ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    let imgData = ctx.getImageData(0, 0, 1, 1).data;
+                    let altitude = elevationDecoder.offset;
+                    altitude += imgData[0] * elevationDecoder.rScaler;
+                    altitude += imgData[1] * elevationDecoder.gScaler;
+                    altitude += imgData[2] * elevationDecoder.bScaler;
+                    // callback(altitude);
+                    resolve(altitude);
+                };
+                img.crossOrigin = "Anonymous";
+                img.src = url;
+            });
         }
 
         function loadSVG(url) {
@@ -13764,9 +12493,11 @@ if (!isset($_SESSION)) {
             const deltaTime = timestamp - lastTimestamp;
             lastTimestamp = timestamp;
             animationTime += deltaTime;
-            layers.crest = new snap4deck.CrestLayer({
+            if (isNaN(animationTime))
+                animationTime = 0;
+            layers.crest = new snap4deck.FusionTileLayer({
                 ...layers.crest.props,
-                data: allSegments,
+                // data: allSegments,
                 currentTime: animationTime,
             });
             updateLayers();
@@ -13954,14 +12685,17 @@ if (!isset($_SESSION)) {
                     layers.orthomaps,
                     layers.wms,
                     layers.trafficWms,
+                    layers.roads,
                     ...layers.cycling,
                     layers.bus,
                     layers.building,
+                    layers.modifiedBuildings,
                     ...layers.dynamicBuildings,
                     layers.tree,
                     layers.hiddenBuilding,
                     layers.hoverBuilding,
                     ...layers.vehicle,
+                    ...layers.buslines,
                     ...layers.whatif,
                     layers.selection,
                     ...layers.fixedPins,
@@ -14416,13 +13150,8 @@ if (!isset($_SESSION)) {
             reverseColorButton('deck-movement-mode');
             reverseColorButton('deck-selection-mode');
 
-            if (mode == 'selection' && layers.building.id != 'aggregated-building-layer') {
-                layers.hiddenBuilding = createAggregatedBuildingLayer({
-                    data: '../widgets/layers/edificato/aggregated_buildings.geojson',
-                    hidden: true,
-                });
-            } else if (mode == 'selection') {
-                loadAggregatedBuildings();
+            if (mode == 'selection') {
+                cursorType = 'pointer';
             } else {
                 cursorType = 'grab';
                 if (layers.building.id == 'aggregated-building-layer')
@@ -14451,9 +13180,9 @@ if (!isset($_SESSION)) {
         }
 
         function switchToFirstActiveInfoMenu() {
-            if ($('#heatmap-info-btn').css('display') === 'block') 
+            if ($('#heatmap-info-btn').css('display') === 'block')
                 $('#heatmap-info-btn').click();
-            else if ($('#traffic-info-btn').css('display') === 'block') 
+            else if ($('#traffic-info-btn').css('display') === 'block')
                 $('#traffic-info-btn').click();
         }
 
@@ -14587,6 +13316,120 @@ if (!isset($_SESSION)) {
                 }
             }
         }
+
+        function showInfoBuilding(building, layer) {
+            const oldContent = $('#building-info-content');
+            if (oldContent)
+                oldContent.remove();
+            let htmlBuildingModels = `<div>`
+            for (let model of building.models) {
+                let isUsed = (building.usedModel && building.usedModel.type === model.type) || (!building.usedModel && model.is_default);
+                let htmlBuildingModel = `
+                    <div style="margin: 10px 0px;">
+                        ${model.type} <button ${isUsed ? "disabled" : ""}>${isUsed ? "In Use" : "Change"}</button>
+                    </div>
+                `;
+                htmlBuildingModels += htmlBuildingModel;
+            } 
+            htmlBuildingModels += `</div>`
+            let htmlBuilding = $(`
+                <div id="building-info-content">
+                    <h4>${building.name}</h4>
+                    <p>ID: ${building.ID}</p>
+                    ${htmlBuildingModels}
+                </div>
+            `);
+            $('#deck-info-content').append(htmlBuilding);
+            $('#building-info-content').css({
+                "padding": "10px 20px 20px 20px",
+            });
+            $('#building-info-content button').css({
+                "background": "var(--wdgt-bg-color)",
+                "color": "var(--text-color)",
+                "border": "none",
+                "float": "right"
+            });
+            const buttons = $('#building-info-content button').toArray()
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].addEventListener('click', (event, info) => {
+                    console.log(event, info);
+                    if (building.models[i].is_external_url) {
+                        window.open(building.models[i].path, "_blank");
+                        return;
+                    }
+                    for (let b of buttons) {
+                        b.innerText = "Change";
+                        b.disabled = false;
+                    }
+                    event.currentTarget.innerText = "In Use";
+                    event.currentTarget.disabled = true;
+                    building.usedModel = building.models[i];
+                    building.glb = `${building.tileUrl}/${building.usedModel.path}`;
+                    building.picked = false;
+                    if (!building.removedFromScene) {
+                        let oldData = layer.props.data;
+                        for (let d of oldData) {
+                            let nodes = d.scenegraph.children[0].children;
+                            let i = 0;
+                            for (let node of nodes) {
+                                if (node.id.includes(building.ID)) {
+                                    nodes.splice(i,1);
+                                    building.removedFromScene = true;
+                                    break;
+                                    break;
+                                }
+                                i++;
+                            }
+                        }
+                        layer.setNeedsRedraw();
+                    }
+                    console.log(layer);
+                    // TODO risolvere il problema 
+                    if (layers.modifiedBuildings) {
+                        const oldData = [...layers.modifiedBuildings.props.data];
+                        let founded = false;
+                        let i = 0;
+                        for (let d of oldData) {
+                            if (d.ID === building.ID) {
+                                founded = true;
+                                oldData.splice(i, 1);
+                                break;
+                            }
+                            i++;
+                        }
+                        oldData.push(building);
+                        layers.modifiedBuildings = new snap4deck.BuildingLayer({
+                            ...layers.modifiedBuildings.props,
+                            data: oldData,
+                        });
+                        // layers.modifiedBuildings = null;
+                        updateLayers();
+                    } else {
+                        layers.modifiedBuildings = new snap4deck.BuildingLayer({
+                            data: [building],
+                            pickable: true,
+                            _lighting: 'pbr',
+                            getPosition: d => {
+                                if (Array.isArray(d.usedModel.coords) && d.usedModel.coords.length == 2)
+                                    return [...d.usedModel.coords, -47.79]
+                                return [0, 0, 0];
+                            },
+                            onClick: (info, event) => {
+                                if (deckMode !== "selection")
+                                    return;
+                                console.log(info, event);
+                                showInfoBuilding(info.object, info.layer);
+                            }
+                        });
+                    } 
+                    // layers.building = null;
+                    updateLayers();
+                });
+            }
+            $('#building-info-btn').css('display', 'block');
+            $('#building-info-btn').click();
+        }
+
 
         function reverseColorButton(id) {
             const element = $(`#${id}`);
@@ -14758,177 +13601,6 @@ if (!isset($_SESSION)) {
             }
         }
 
-        class Map {
-            map;
-            viewState = {
-                latitude: 43.769789,
-                longitude: 11.255694,
-                zoom: 14,
-                maxZoom: 18,
-                minZoom: 1,
-            };
-            constructor(initialViewState) {
-                if (new.target === Map)
-                    throw new TypeError("Cannot initialize abstract map directly");
-                this.viewState = {
-                    ...this.viewState,
-                    ...initialViewState,
-                }
-            }
-            init() {}
-            addOrthomap() {}
-        }
-
-        class Map2D extends Map {
-            oms = {} // OverlappingMarkerSpiderfier for Leaflet
-            init() {}
-            addOrthomap() {}
-        }
-
-        class Map3D extends Map {
-            init() {
-                this.viewState = {
-                    ...this.viewState,
-                    pitch: 30,
-                    maxPitch: 75,
-                    bearing: 0,
-                };
-                this.map = new deck.DeckGL({
-                    mapStyle: 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
-                    viewState: currentViewState,
-                    controller: true,
-                    container: `${widgetName}_map3d`,
-                    effects,
-                    _animate: true,
-                    views: new deck.MapView({
-                        farZMultiplier: 1.5,
-                        altitude: 1,
-                    }),
-                    layers: [
-                        backgroundLayer,
-                        defaultLayer,
-                        //mapLayer,
-                        //heatmapLayer,
-                        //trafficLayer,
-                        ...buildingsLayer,
-                    ],
-                    _customRender: (redrawReason) => {
-                        if (sky != undefined && map3d != undefined) {
-                            const {
-                                bearing,
-                                pitch,
-                                maxPitch
-                            } = currentViewState;
-                            sky.draw(bearing, pitch, maxPitch);
-                        }
-                        map3d._drawLayers(redrawReason, {
-                            clearCanvas: false
-                        });
-                    },
-                    onWebGLInitialized: (gl) => {
-                        map3dGL = gl;
-                        sky = new Sky(gl);
-                        const {
-                            bearing,
-                            pitch,
-                            maxPitch
-                        } = currentViewState;
-                        sky.draw(bearing, pitch, maxPitch);
-                    },
-                    onViewStateChange: ({
-                        viewState
-                    }) => {
-                        clearTimeout(updateTimeout);
-                        if (autoreloadFeatures)
-                            updateTimeout = setTimeout(function() {
-                                EventMapManager.reloadEvents();
-                                // for (let key in apiUrls3D) {
-                                //     const event = apiUrls3D[key];
-                                //     switch (key) {
-                                //         case "traffic":
-                                //             layers.traffic = [];
-                                //             for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                //                 if (map.eventsOnMap[i] == undefined)
-                                //                     map.eventsOnMap.splice(i, 1);
-                                //                 else if (map.eventsOnMap[i].eventType && map
-                                //                     .eventsOnMap[i].eventType ===
-                                //                     "trafficRealTimeDetails") {
-                                //                     map.defaultMapRef.removeLayer(map.eventsOnMap[i]
-                                //                         .marker);
-                                //                     map.defaultMapRef.removeControl(map.eventsOnMap[i]
-                                //                         .legend);
-                                //                     map.defaultMapRef.removeLayer(map.eventsOnMap[i]
-                                //                         .trafficLayer);
-                                //                     map.eventsOnMap.splice(i, 1);
-                                //                 }
-                                //             }
-                                //             break;
-                                //         default:
-                                //             const display = event.passedData.display;
-                                //             if (display == "undefined" || display.includes('pins'))
-                                //                 removeLayerSet(key, layers.pin);
-                                //             if (display.includes('geometries'))
-                                //                 removeLayerSet(key, layers.cycling);
-                                //             break;
-                                //     }
-
-                                //     $.event.trigger(event);
-                                // }
-
-                            }, 5000);
-                        currentViewState = viewState;
-                        map3d.setProps({
-                            viewState: viewState,
-                        });
-                        $('#deck-zoom-box').text(parseInt(viewState.zoom));
-                        reloadPopupDiv();
-                        return viewState;
-                    },
-                    getCursor: () => cursorType,
-                    getTooltip: ({
-                        object
-                    }) => {
-                        if (object == null)
-                            return null;
-                        var displayedText = "";
-                        if (object.properties != null) {
-                            if (object.properties.OBJECTID != null)
-                                displayedText += `ID: ${object.properties.OBJECTID}</br>`;
-                            if (object.properties.name != null)
-                                displayedText += `Name: ${object.properties.name}</br>`;
-                            if (object.properties.address != null)
-                                displayedText += `Address: ${object.properties.address}</br>`;
-                        } else {
-                            displayedText = object.toString();
-                        }
-                        return object && {
-                            html: `<p class="hoverName">${displayedText}</p>`,
-                        };
-                    },
-                    onDragEnd: ({
-                        viewport
-                    }) => {
-                        cursorType = 'grab';
-                        // $(popupId + '').css('visibility', 'visible');
-                    },
-                    onDrag: ({
-                        viewport
-                    }) => {
-                        if (popupCoord.length != 0) {
-                            reloadPopupDiv()
-                        }
-                    },
-                    onDragStart: ({
-                        viewport
-                    }) => {
-                        manuallyControlled = false;
-                        cursorType = 'grabbing';
-                    },
-                });
-            }
-            addOrthomap() {}
-        }
-
         class EventMapManager {
             static exclusiveTypes = [
                 'removeAlarmPin',
@@ -15024,7 +13696,7 @@ if (!isset($_SESSION)) {
 
             reloadElevableEvents() {
                 for (let key in this.registeredEvents)
-                    if (key != "addHeatmap-Terrain") 
+                    if (key != "addHeatmap-Terrain")
                         $.event.trigger(this.registeredEvents[key]);
             }
 
@@ -15035,19 +13707,6 @@ if (!isset($_SESSION)) {
             _triggerReload(events) {
                 for (let key in events)
                     $.event.trigger(events[key]);
-            }
-        }
-
-        class MapManager {
-            is3D = true;
-            /** @type {Map} */
-            map;
-            constructor() {
-                this.map = new Map3D();
-            }
-
-            initMap(viewState) {
-                this.map.init(viewState);
             }
         }
 
@@ -15129,36 +13788,26 @@ if (!isset($_SESSION)) {
 
                 const faceInfos = [{
                         target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-                        // url: '/images/image_right.png'
                         url: `../img/Sky/${wheater}/right.png`
                     },
                     {
                         target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-                        // url: '/images/image_left.png'
-                        // url: '../img/Sky/image_left.png'
                         url: `../img/Sky/${wheater}/left.png`
                     },
                     {
                         target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-                        // url: '/images/image_top.png'
-                        // url: '../img/Sky/image_up.png'
                         url: `../img/Sky/${wheater}/top.png`
                     },
                     {
                         target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-                        // url: '/images/image_bottom.png'
-                        // url: '../img/Sky/image_bottom.png'
                         url: `../img/Sky/${wheater}/bottom.png`
                     },
                     {
                         target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-                        // url: '../img/Sky/image_front.png'
                         url: `../img/Sky/${wheater}/front.png`
                     },
                     {
                         target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-                        // url: '/images/image_behind.png'
-                        // url: '../img/Sky/image_behind.png'
                         url: `../img/Sky/${wheater}/behind.png`
                     },
                 ];
@@ -15167,23 +13816,15 @@ if (!isset($_SESSION)) {
                         target,
                         url
                     } = faceInfo;
-
-                    // Upload the canvas to the cubemap face.
                     const level = 0;
                     const internalFormat = gl.RGBA;
                     const width = 512;
                     const height = 512;
                     const format = gl.RGBA;
                     const type = gl.UNSIGNED_BYTE;
-
-                    // setup each face so it's immediately renderable
-                    // gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null);
-
-                    // Asynchronously load an image
                     const image = new Image();
                     image.src = url;
                     image.addEventListener('load', function() {
-                        // Now that the image has loaded make copy it to the texture.
                         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
                         gl.texImage2D(target, level, internalFormat, format, type, image);
                         gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
@@ -15204,28 +13845,15 @@ if (!isset($_SESSION)) {
                 this.cameraYRotationRadians = degToRad(0);
 
                 var spinCamera = true;
-                // Get the starting time.
                 var then = 0;
-
-                // requestAnimationFrame(drawScene);
                 this.draw();
-
-                // Draw the scene.
             }
 
             draw(bearing = 0, pitch = 0, maxPitch = 75) {
                 var gl = this.gl;
-
-                // Clear the canvas AND the depth buffer.
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-                // Tell it to use our program (pair of shaders)
                 gl.useProgram(this.program);
-
-                // Turn on the position attribute
                 gl.enableVertexAttribArray(this.positionLocation);
-
-                // Bind the position buffer.
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
 
                 // Tell the position attribute how to get data out of positionBuffer (ARRAY_BUFFER)
@@ -15242,12 +13870,9 @@ if (!isset($_SESSION)) {
                 var projectionMatrix =
                     m4.perspective(this.fieldOfViewRadians, aspect, 1, 2000);
 
-                // var cameraPosition = [0, 0, 0];
-                // var target = [0.5, 0, 0];
                 bearing *= Math.PI / 180;
                 pitch *= Math.PI / 180;
-                // var cameraPosition = [0, 0, 0];
-                // var target = [-Math.sin(bearing), - (1 / (pitch - maxPitch)), Math.cos(bearing)];
+
                 var cameraPosition = [Math.cos(bearing), Math.cos(pitch), Math.sin(bearing)];
                 var target = [0, 0, 0];
                 var up = [0, 1, 0];
@@ -15281,295 +13906,6 @@ if (!isset($_SESSION)) {
 
                 // Draw the geometry.
                 gl.drawArrays(gl.TRIANGLES, 0, 1 * 6);
-
-                // requestAnimationFrame(drawScene);
-            }
-        }
-
-        class ElevationManager {
-            elevationData;
-            zoom;
-
-            constructor(props) {
-                const {
-                    elevationData,
-                    zoom = 16,
-                } = props;
-
-                this.elevationData = elevationData;
-                this.zoom = zoom;
-            }
-
-            getElevation(xyz) {
-
-            }
-
-            getTileFromPosition(position, zoom) {
-                const lng = position[0];
-                const lat = position[1];
-                const n = 2 ^ zoom;
-                const x = n * ((lng + 180) / 360);
-                const y = (n * (1 - log2(tan(lat) + sec(lat)) / pi)) / 2;
-                return [parseInt(x), parseInt(y)];
-            }
-        }
-
-        class TerrainViewport extends deck.Viewport {
-            static displayName = "TerrainViewport";
-
-            longitude;
-            latitude;
-            pitch;
-            bearing;
-            altitude;
-            fovy;
-            orthographic;
-            constructor(opts = {}) {
-                console.log("Creating TerrainViewport");
-                console.log(opts);
-                const {
-                    latitude = 0,
-                        longitude = 0,
-                        zoom = 0,
-                        pitch = 0,
-                        bearing = 0,
-                        nearZMultiplier = 0.1,
-                        farZMultiplier = 1.01,
-                        orthographic = false,
-                        projectionMatrix,
-                        elevationData = null,
-
-                        repeat = false,
-                        worldOffset = 0,
-
-                        // backward compatibility
-                        // TODO: remove in v9
-                        legacyMeterSizes = false,
-                } = opts;
-
-                let {
-                    width,
-                    height,
-                    altitude = 1.5
-                } = opts;
-                const scale = Math.pow(2, zoom);
-
-                // Silently allow apps to send in 0,0 to facilitate isomorphic render etc
-                width = width || 1;
-                height = height || 1;
-
-                let fovy;
-                let projectionParameters = null;
-                if (projectionMatrix) {
-                    altitude = projectionMatrix[5] / 2;
-                    fovy = altitudeToFovy(altitude);
-                } else {
-                    if (opts.fovy) {
-                        fovy = opts.fovy;
-                        altitude = fovyToAltitude(fovy);
-                    } else {
-                        fovy = altitudeToFovy(altitude);
-                    }
-                    projectionParameters = getProjectionParameters({
-                        width,
-                        height,
-                        pitch,
-                        fovy,
-                        nearZMultiplier,
-                        farZMultiplier,
-                    });
-                }
-
-                // The uncentered matrix allows us two move the center addition to the
-                // shader (cheap) which gives a coordinate system that has its center in
-                // the layer's center position. This makes rotations and other modelMatrx
-                // transforms much more useful.
-                let viewMatrixUncentered = getViewMatrix({
-                    height,
-                    pitch,
-                    bearing,
-                    scale,
-                    altitude,
-                });
-
-                if (worldOffset) {
-                    const viewOffset = new Matrix4().translate([
-                        512 * worldOffset,
-                        0,
-                        0,
-                    ]);
-                    viewMatrixUncentered =
-                        viewOffset.multiplyLeft(viewMatrixUncentered);
-                }
-
-                super({
-                    ...opts,
-                    // x, y,
-                    width,
-                    height,
-
-                    // view matrix
-                    viewMatrix: viewMatrixUncentered,
-                    longitude,
-                    latitude,
-                    zoom,
-
-                    // projection matrix parameters
-                    ...projectionParameters,
-                    fovy,
-                    focalDistance: altitude,
-                });
-
-                // Save parameters
-                this.latitude = latitude;
-                this.longitude = longitude;
-                this.zoom = zoom;
-                this.pitch = pitch;
-                this.bearing = bearing;
-                this.altitude = altitude;
-                this.fovy = fovy;
-
-                this.orthographic = orthographic;
-
-                this._subViewports = repeat ? [] : null;
-                this._pseudoMeters = legacyMeterSizes;
-
-                Object.freeze(this);
-            }
-
-            projectPosition(xyz) {
-                if (this._pseudoMeters) return super.projectPosition(xyz);
-                // TODO: Modify here altitude for terrain elevation
-                const [X, Y] = super.projectFlat(xyz);
-                const Z = (xyz[2] || 0) * unitsPerMeter(xyz[1]);
-                console.log("projecting position");
-                console.log(xyz);
-                console.log(`projected in x: ${X} y: ${Y} z: ${Z}`);
-                return [X, Y, Z];
-            }
-
-            getElevation(xyz) {
-                tile = this.getTileFromPosition(xyz, this.zoom);
-            }
-
-            addMetersToLngLat(lngLatZ, xyz) {
-                return addMetersToLngLat(lngLatZ, xyz);
-            }
-
-            getTileFromPosition(position, zoom) {
-                const lng = position[0];
-                const lat = position[1];
-                const n = 2 ^ zoom;
-                const x = n * ((lng + 180) / 360);
-                const y = (n * (1 - log2(tan(lat) + sec(lat)) / pi)) / 2;
-                return [parseInt(x), parseInt(y)];
-            }
-
-            unprojectPosition(xyz) {
-                // TODO: Sarà tosto!
-                if (this._pseudoMeters) {
-                    // Backward compatibility
-                    return super.unprojectPosition(xyz);
-                }
-                const [X, Y] = this.unprojectFlat(xyz);
-                const Z = (xyz[2] || 0) / unitsPerMeter(Y);
-                console.log('unprojecting');
-                console.log(xyz);
-                console.log(`projected in x: ${X} y: ${Y} z: ${Z}`);
-                return [X, Y, Z];
-            }
-
-            panByPosition(coords, pixel) {
-                console.log('panning by position');
-                const fromLocation = pixelsToWorld(pixel, this.pixelUnprojectionMatrix);
-                const toLocation = this.projectFlat(coords);
-
-                const translate = vec2.add(
-                    [],
-                    toLocation,
-                    vec2.negate([], fromLocation)
-                );
-                const newCenter = vec2.add([], this.center, translate);
-
-                const [longitude, latitude] = this.unprojectFlat(newCenter);
-                return {
-                    longitude,
-                    latitude
-                };
-            }
-
-            getBounds(options = {}) {
-                console.log('getting bounds');
-                // @ts-ignore
-                const corners = getBounds(this, options.z || 0);
-
-                return [
-                    Math.min(
-                        corners[0][0],
-                        corners[1][0],
-                        corners[2][0],
-                        corners[3][0]
-                    ),
-                    Math.min(
-                        corners[0][1],
-                        corners[1][1],
-                        corners[2][1],
-                        corners[3][1]
-                    ),
-                    Math.max(
-                        corners[0][0],
-                        corners[1][0],
-                        corners[2][0],
-                        corners[3][0]
-                    ),
-                    Math.max(
-                        corners[0][1],
-                        corners[1][1],
-                        corners[2][1],
-                        corners[3][1]
-                    ),
-                ];
-            }
-
-            fitBounds(bounds, options = {}) {
-                console.log('fitting bounds');
-                const {
-                    width,
-                    height
-                } = this;
-                const {
-                    longitude,
-                    latitude,
-                    zoom
-                } = fitBounds({
-                    width,
-                    height,
-                    bounds,
-                    ...options,
-                });
-                return new WebMercatorViewport({
-                    width,
-                    height,
-                    longitude,
-                    latitude,
-                    zoom,
-                });
-            }
-        }
-
-        class TerrainView extends deck.View {
-            constructor(props) {
-                console.log("Creating TerrinView");
-                super({
-                    ...props,
-                    type: TerrainViewport
-                });
-            }
-
-            get controller() {
-                return this._getControllerProps({
-                    type: MapController,
-                });
             }
         }
 
@@ -19922,7 +18258,7 @@ if (!isset($_SESSION)) {
                                 }
                             const itemElement = $(itemTemplate);
 
-                            switch(itemMenu.service) {
+                            switch (itemMenu.service) {
                                 case "tileLayer":
                                     $('#orthomaps-menu-content').append(itemElement);
                                     break;
@@ -19933,9 +18269,9 @@ if (!isset($_SESSION)) {
                                     $('#geojson-menu-content').append(itemElement);
                                     break;
                             }
-                            
+
                             itemElement.click((event) => {
-                                switch(itemMenu.service) {
+                                switch (itemMenu.service) {
                                     case "tileLayer":
                                         addTileLayer(event, itemMenu);
                                         break;
@@ -20176,12 +18512,12 @@ if (!isset($_SESSION)) {
     }
 
     #<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_map3d {
-        position: relative!important;
-        top: -100%!important;
-        left: 0!important;
-        width: 100%!important;
-        height: 100%!important;
-        overflow: hidden!important;
+        position: relative !important;
+        top: -100% !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
         z-index: 999;
         background-color: white;
     }
@@ -20417,7 +18753,7 @@ if (!isset($_SESSION)) {
         padding: 0;
     } */
 
-    .deck-btn-set > button {
+    .deck-btn-set>button {
         padding: 0;
     }
 
@@ -20461,24 +18797,29 @@ if (!isset($_SESSION)) {
         top: 0;
         left: 0;
     }
+
     #universal-bottom-left {
         bottom: 0;
         left: 0;
     }
+
     #universal-top-middle {
         top: 0;
         left: 33.3%;
         right: 33.3%;
     }
+
     #universal-bottom-middle {
         bottom: 0;
         left: 33.3%;
         right: 33.3%;
     }
+
     #universal-top-right {
         top: 0;
         right: 0;
     }
+
     #universal-bottom-right {
         bottom: 0;
         right: 0;
@@ -20500,7 +18841,7 @@ if (!isset($_SESSION)) {
         overflow: hidden;
     }
 
-    #universal-map-overlay .dropdown-menu > li {
+    #universal-map-overlay .dropdown-menu>li {
         writing-mode: horizontal-tb;
         margin: 2px;
     }
@@ -20517,7 +18858,7 @@ if (!isset($_SESSION)) {
 
     #universal-map-overlay .dropdown-header {
         color: black;
-        padding: 3px 10px!important;
+        padding: 3px 10px !important;
         font-weight: bold;
     }
 
@@ -20526,7 +18867,7 @@ if (!isset($_SESSION)) {
     }
 
     .map-light-menu {
-        writing-mode: horizontal-tb!important;
+        writing-mode: horizontal-tb !important;
         position: absolute;
         padding: 10px;
     }
@@ -20570,10 +18911,10 @@ if (!isset($_SESSION)) {
     }
 
     #universal-map-overlay .dropdown-header {
-        background: none!important;
-        box-shadow: none!important;
+        background: none !important;
+        box-shadow: none !important;
     }
-    
+
     #universal-map-controls #dropdownMenu1 {
         width: 55px;
     }
@@ -20604,7 +18945,7 @@ if (!isset($_SESSION)) {
     }
 
     #deck-menu-header a {
-        font-size: 1vw!important;
+        font-size: 1vw !important;
         text-decoration: none;
         display: block;
         color: black;
@@ -20612,19 +18953,18 @@ if (!isset($_SESSION)) {
         text-align: center;
         border-radius: 30px;
         margin-bottom: 20px;
-        border: 1px solid rgba(0,0,0,0.1);
+        border: 1px solid rgba(0, 0, 0, 0.1);
     }
 
     #deck-menu-content .appendable {
         margin-bottom: 10px;
-        border: 1px solid rgba(0,0,0,0.1);
-        /* padding: 15px 20px; */
-        padding: 15px!important;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 15px !important;
         text-align: center;
-        font-size: 1vw!important;
+        font-size: 1vw !important;
     }
 
-    #deck-menu-content .appendable a{
+    #deck-menu-content .appendable a {
         text-decoration: none;
     }
 
@@ -20643,7 +18983,7 @@ if (!isset($_SESSION)) {
         text-align: center;
         border-radius: 30px;
         margin-bottom: 20px;
-        border: 1px solid rgba(0,0,0,0.1);
+        border: 1px solid rgba(0, 0, 0, 0.1);
         width: 100px;
         margin-left: 10px;
     }
@@ -20654,6 +18994,14 @@ if (!isset($_SESSION)) {
 
     #deck-info-content .leaflet-routing-geocoders {
         color: black;
+    }
+
+    #deck-metrics-div {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: rgba(0,0,0,0.8);
+        color: white;
     }
 
     #compass-div {
@@ -20674,16 +19022,16 @@ if (!isset($_SESSION)) {
     }
 
     .deck-btn {
-        box-shadow: 0px 10px rgba(0, 0, 0, 0.1)!important;
+        box-shadow: 0px 10px rgba(0, 0, 0, 0.1) !important;
     }
 
     .deck-btn:hover {
-        box-shadow: 0px 8px rgba(0, 0, 0, 0.1)!important;
+        box-shadow: 0px 8px rgba(0, 0, 0, 0.1) !important;
         transform: translate(0px, 2px);
     }
 
     .deck-btn-active {
-        box-shadow: 0px 5px rgba(0, 0, 0, 0.1)!important;
+        box-shadow: 0px 5px rgba(0, 0, 0, 0.1) !important;
         transform: translate(0px, 5px);
     }
 
@@ -20848,8 +19196,10 @@ if (!isset($_SESSION)) {
                     </div>
                     <div id="universal-bottom-right"></div>
                 </div>
-
                 <div id="universal-map-overlay">
+                    <!-- <div id="deck-metrics-div">
+                        <p>FPS: 0</p>
+                    </div> -->
                     <div id="deck-map-menu" class="map-menu map-menu-container">
                         <div id="deck-menu-header">
                             <a id="orthomaps-btn" class="deck-btn-active" href="#">Orthomaps</a>
