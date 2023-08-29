@@ -1321,24 +1321,45 @@ dashboardWidgets = [
                                     }
                                   }
                                     }else if(urlParams.has('OD')){
-                                        if (urlParams.has('layers')){
+                                        //if (urlParams.has('layers')){
                                             var OD_parameter = "<?= $_GET['OD']  ?>";
-                                                    var layers = "<?= $_GET['layers'] ?>";                   
-                                                    if ((OD_parameter !== "")&&(layers !=="")){
-                                                            
-                                                            var coordsAndType = "https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers="+layers;
+                                                    var action = "<?= $_GET['action'] ?>"; 
+                                                    console.log(OD_parameter);
+                                                    if (urlParams.has('organization')){
+                                                            organization = "<?= $_GET['organization'] ?>"; 
+                                                    }
+
+                                                    //var layers = '';
+                                                   // var coords1 = '<?= $coordinates ?>';
+                                                    ///console.log('coords1: '+coords1);
+                                                    var zoomLevel = 10;
+                                                                    var latitudine = 0;
+                                                                    var longitudine = 0;
+                                                                    var coords = '<?= $coordinates ?>';
+                                                                    if (coords !==''){
+                                                                        var coordVar = coords.split(',');
+                                                                        latitudine = parseFloat(coordVar[0].replace(/\s/g, ''));
+                                                                        longitudine = parseFloat(coordVar[1].replace(/\s/g, ''));
+                                                                    } 
+                                                    //              
+                                                    if ((OD_parameter !== "")){
+                                                       var od_hostname = "<?= $od_hostname ?>"; 
+                                                           var from_date = '';
+                                                           if (urlParams.has('from_date')){
+                                                                from_date = "<?= $_GET['from_date'] ?>"; 
+                                                           }
+                                                           //2019-10-26 00:00:00
+                                                            var coordsAndType = od_hostname+"/api/get?latitude="+latitudine+"&longitude="+longitudine+"&precision=municipality&from_date="+from_date+"&organization="+organization+"&inflow=True&od_id="+OD_parameter+"&perc=True";
                                                             //
                                                             var passedParams = {
-                                                                                "desc": OD_parameter,
-                                                                                "color1": "#33cc33",
-                                                                                "color2": "#adebad"
+                                                                                "desc": OD_parameter
                                                                             };
                                                             //
                                                             setTimeout(function() {
                                                             if (OD_parameter !== ""){
                                                                                 $.event.trigger({
                                                                                 type: "addOD",
-                                                                                target: '',
+                                                                                target: 'preview',
                                                                                 passedData: coordsAndType,
                                                                                 passedParams: passedParams
                                                                             });
@@ -1358,15 +1379,7 @@ dashboardWidgets = [
                                                                     // Chiamare la funzione fitMapToWindow all'avvio e in caso di ridimensionamento della finestra
                                                                     fitMapToWindow();
                                                                     window.addEventListener('resize', fitMapToWindow);
-                                                                    var zoomLevel = 10;
-                                                                    var latitudine = 0;
-                                                                    var longitudine = 0;
-                                                                    var coords = '<?= $coordinates ?>';
-                                                                    if (coords !==''){
-                                                                        var coordVar = coords.split(',');
-                                                                        latitudine = parseFloat(coordVar[0].replace(/\s/g, ''));
-                                                                        longitudine = parseFloat(coordVar[1].replace(/\s/g, ''));
-                                                                    }  
+                                                                     
                                                                     // 
                                                                     try {
                                                                         new Event('resize');
@@ -1380,20 +1393,14 @@ dashboardWidgets = [
                                                                                 console.error('error trigger:');
                                                                                 console.error(error);    
                                                                 }
-                                                                    ////////
-                                                                    // Impostare la vista della mappa con il valore di zoom
-                                                                    //
-                                                                //map.setView([latitudine, longitudine], zoomLevel);
-                                                               // var mapLayers = map.getLayers();
-                                                                //
-
-                                                                
+                                                                    ////
+                                                                //                                                              
                                                             }
                                                             //
                                                         }, 200);
                                                         }
                                                     
-                                                    }
+                                                  //  }
                                     }else{
 
                                     }
