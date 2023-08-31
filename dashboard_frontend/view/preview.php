@@ -29,6 +29,9 @@ error_reporting(E_ERROR);
             $org = 'Organization';
             if (isset($_REQUEST['organization'])){
                 $org = $_REQUEST['organization']; 
+                if ($org == 'Tuscany'){
+                    $org = 'Toscana';
+                }
             }
             if (($org != '')&&($org != null)){        
                 $query = 'SELECT gpsCentreLatLng FROM Organizations WHERE organizationName = "'.$org.'";';
@@ -1298,7 +1301,7 @@ dashboardWidgets = [
                                                                     var longitudine = 11.417668;
                                                                     ////////
                                                                     var coords = '<?= $coordinates ?>';
-                                                                    if (coords !==''){
+                                                                    if ((coords !=='')||(coords !=='0,0')){
                                                                         var coordVar = coords.split(',');
                                                                         latitudine = parseFloat(coordVar[0].replace(/\s/g, ''));
                                                                         longitudine = parseFloat(coordVar[1].replace(/\s/g, ''));
@@ -1323,18 +1326,29 @@ dashboardWidgets = [
                                     }else if(urlParams.has('OD')){
                                         //if (urlParams.has('layers')){
                                             var OD_parameter = "<?= $_GET['OD']  ?>";
+                                            var precision = "";
                                                     var action = "<?= $_GET['action'] ?>"; 
                                                     console.log(OD_parameter);
                                                     if (urlParams.has('organization')){
                                                             organization = "<?= $_GET['organization'] ?>"; 
+                                                            if (organization == 'Toscana'){
+                                                                organization = 'Tuscany';
+                                                            }
+                                                    }
+                                                    if (urlParams.has('precision')){
+                                                        precision = "<?= $_GET['precision'] ?>";
+                                                        if (precision == 'Municipalities'){
+                                                            precision = 'municipality';
+                                                            } 
                                                     }
 
                                                     //var layers = '';
                                                    // var coords1 = '<?= $coordinates ?>';
                                                     ///console.log('coords1: '+coords1);
-                                                    var zoomLevel = 10;
-                                                                    var latitudine = 0;
-                                                                    var longitudine = 0;
+                                                                    var zoomLevel = 10;
+                                                                    var latitudine = 43.866244;
+                                                                    var longitudine = 11.417668;
+
                                                                     var coords = '<?= $coordinates ?>';
                                                                     if (coords !==''){
                                                                         var coordVar = coords.split(',');
@@ -1348,8 +1362,8 @@ dashboardWidgets = [
                                                            if (urlParams.has('from_date')){
                                                                 from_date = "<?= $_GET['from_date'] ?>"; 
                                                            }
-                                                           //2019-10-26 00:00:00
-                                                            var coordsAndType = od_hostname+"/api/get?latitude="+latitudine+"&longitude="+longitudine+"&precision=municipality&from_date="+from_date+"&organization="+organization+"&inflow=True&od_id="+OD_parameter+"&perc=True";
+                                                           //
+                                                            var coordsAndType = od_hostname+"/api/get?latitude="+latitudine+"&longitude="+longitudine+"&precision="+precision+"&from_date="+from_date+"&organization="+organization+"&inflow=True&od_id="+OD_parameter+"&perc=True";
                                                             //
                                                             var passedParams = {
                                                                                 "desc": OD_parameter
