@@ -352,12 +352,20 @@ if($rsIP) {
 
             $queryIotSensor = $kbHostIp . "/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
 
-            try {
+        /*    try {
                 $queryIotSensorRresults = file_get_contents($queryIotSensor);
             } catch (Exception $e) {
                 echo ("ERRORE SPARQL QUERY: " . $e->getMessage() . "\n");
                 $sparqlErrorFlag = true;
+            }   */
+
+            $queryIotSensorRresults = file_get_contents($queryIotSensor);
+            if ($queryIotSensorRresults === false) {
+                echo ("ERRORE SPARQL QUERY. Exit Script.\n");
+                $sparqlErrorFlag = true;
+                exit();
             }
+
             $resArray = json_decode($queryIotSensorRresults, true);
 
             if (sizeof($resArray['results']['bindings']) == 0) {
@@ -593,7 +601,7 @@ if($rsIP) {
                     }
                 } else {
                     $high_level_type_v = getHltFromGeneric($high_level_type);
-                    $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, value_unit, ownerHash, delegatedHash, delegatedGroupHash, value_name, value_type, device_model_name, broker_name) VALUES ('$nature','$high_level_type_v','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$u', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr', '$value_name', '$value_type', '$device_model_name', '$brokerName') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_v . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', value_unit = '" . $u . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "';";
+                    $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, ownership, organizations, latitude, longitude, value_unit, ownerHash, delegatedHash, delegatedGroupHash, value_name, value_type, device_model_name, broker_name) VALUES ('$nature','$high_level_type_v','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances', '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$ownership', '$organizations', '$latitude', '$longitude', '$u', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr', '$value_name', '$value_type', '$device_model_name', '$brokerName') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type_v . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', sm_based = '" . $sm_based . "',  unit = '" . $unit . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = healthiness, ownership = '" . $ownership . "', organizations = '" . $organizations . "', latitude = '" . $latitude . "', longitude = '" . $longitude . "', value_unit = '" . $u . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "', device_model_name = '" . $device_model_name . "', broker_name = '" . $brokerName . "';";
                     mysqli_query($link, $insertQuery);
                 }
 

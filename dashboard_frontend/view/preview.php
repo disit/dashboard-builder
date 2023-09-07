@@ -1415,6 +1415,73 @@ dashboardWidgets = [
                                                         }
                                                     
                                                   //  }
+                                                }else if(urlParams.has('trafficFlow')){
+                                                    var trafficFlow = "<?= $_GET['trafficFlow'] ?>";
+                                                    console.log('trafficFlow: '+trafficFlow);
+                                                    var passedParams = {
+                                                    "desc": trafficFlow,
+                                                    "color1": "#33cc33",
+                                                    "color2": "#adebad"
+                                                };
+                                                    var coordsAndType = "https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers="+trafficFlow+"&request=GetMap&trafficflowmanager=true";
+                                                    console.log(coordsAndType);
+                                                    ////////////////******************////////////// */
+                                                    setTimeout(function() {
+                                                                try {
+                                                                        $('body').trigger({
+                                                                            type: "addHeatmap",
+                                                                            target: 'preview',
+                                                                            passedData: coordsAndType,
+                                                                            passedParams: passedParams
+                                                                        });
+                                                                    } catch (error) {
+                                                                        console.error(error);    
+                                                                }
+                                                                //
+                                                                   //var mapContainers = document.getElementById('preview_map');
+                                                                   var mapContainers = document.getElementsByClassName('mapContainer');
+                                                                    var mapContainer = mapContainers[0];
+                                                                    // Inizializzare la mappa
+                                                                    var map = L.map(mapContainer);
+                                                                    // Aggiungere un controllo per adattare la mappa all'ampiezza della finestra del browser
+                                                                    function fitMapToWindow() {
+                                                                    var mapWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+                                                                    var mapHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+                                                                    mapContainer.style.width = mapWidth + 'px';
+                                                                    mapContainer.style.height = mapHeight + 'px';
+                                                                    map.invalidateSize();
+                                                                    // Inizializzare la mappa
+                                                                    //console.log(mapContainers);
+                                                                    }
+                                                                    // Chiamare la funzione fitMapToWindow all'avvio e in caso di ridimensionamento della finestra
+                                                                    fitMapToWindow();
+                                                                    window.addEventListener('resize', fitMapToWindow);
+                                                                    var zoomLevel = 10;
+                                                                    var latitudine = 43.866244;
+                                                                    var longitudine = 11.417668;
+                                                                    ////////
+                                                                    var coords = '<?= $coordinates ?>';
+                                                                    if ((coords !=='')||(coords !=='0,0')){
+                                                                        var coordVar = coords.split(',');
+                                                                        latitudine = parseFloat(coordVar[0].replace(/\s/g, ''));
+                                                                        longitudine = parseFloat(coordVar[1].replace(/\s/g, ''));
+                                                                    }  
+                                                                    // 
+                                                                    try {
+                                                                        new Event('resize');
+                                                                        const resizeEvent = document.createEvent('Event');
+                                                                        resizeEvent.initEvent('resize', true, true);
+                                                                        window.innerWidth = '100%';
+                                                                        window.innerHeight = '100%';
+                                                                        window.dispatchEvent(resizeEvent);
+                                                                        map.setView([latitudine, longitudine], zoomLevel);                                          
+                                                                    } catch (error) {
+                                                                                console.error('error trigger:');
+                                                                                console.error(error);    
+                                                                }
+                                                               
+                                            }, 500);
+                                                    //////////////************/////////////********** */ */
                                     }else{
 
                                     }
