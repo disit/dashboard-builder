@@ -835,7 +835,7 @@ function redirect_on_login() {
     if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
         $host=$_SERVER['HTTP_X_FORWARDED_HOST'];
     }
-    if ($host=='localhost') {
+    if ($host=='localhost' || strpos($GLOBALS['appUrl'], 'http:') === 0) {
         header("Location: ../management/ssoLogin.php?redirect=http://$host" . $_SERVER['REQUEST_URI']);
     } else {
         header("Location: ../management/ssoLogin.php?redirect=https://$host" . $_SERVER['REQUEST_URI']);
