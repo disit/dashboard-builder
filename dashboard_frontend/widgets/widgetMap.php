@@ -328,6 +328,7 @@ if (!isset($_SESSION)) {
             var heatmapClick = null;
             var odmapClick = null;
             var nodeRedClick = null;
+            var getCoordsClick = null;
             var newOdTargetData = null;
             var newOdSourceData = null;
             var showAllPolyOdMapZoomend = null;
@@ -4895,6 +4896,9 @@ if (!isset($_SESSION)) {
 
                             container.onclick = function () {
                                 
+                                if(getCoordsClick != null){
+                                    map.off('click', getCoordsClick)
+                                }
                                 var selectedData = {};
                                 selectedData.event = "zoom";
                                 selectedData.layers = {};
@@ -4948,6 +4952,9 @@ if (!isset($_SESSION)) {
                                 $( '#'+newId ).mouseover(function() {
                                     $('#'+newId).css('cursor', 'pointer');
                                 });
+                                if(getCoordsClick != null){
+                                    map.on('click', getCoordsClick)
+                                }
                                 if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
                                     try {
                                         execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
@@ -5116,7 +5123,7 @@ if (!isset($_SESSION)) {
                                             //   html: svgContainerArray[cnt][0].innerHTML,
                                             html: htmlString,
                                             iconSize: iconSize,
-                                            iconAnchor: [20, 48]
+                                            //iconAnchor: [20, 48]
                                         });
                                         marker.setIcon(icon);
                                     } else {
@@ -5124,7 +5131,7 @@ if (!isset($_SESSION)) {
                                             let icon = L.divIcon({
                                                 html: svgContainerArray[event.id - 1][0].innerHTML,
                                                 iconSize: iconSize,
-                                                iconAnchor: [20, 48]
+                                                //iconAnchor: [20, 48]
                                             });
                                             marker.setIcon(icon);
                                         }
@@ -5153,14 +5160,14 @@ if (!isset($_SESSION)) {
                                             //   html: svgContainerArray[cnt][0].innerHTML,
                                             html: htmlString,
                                             iconSize: iconSize,
-                                            iconAnchor: [20, 48]
+                                            //iconAnchor: [20, 48]
                                         });
                                         marker.setIcon(icon);
                                     } else {
                                         let icon = L.divIcon({
                                             html: svgContainerArray[cnt][0].innerHTML,
                                             iconSize: iconSize,
-                                            iconAnchor: [20, 48]
+                                            //iconAnchor: [20, 48]
                                         });
                                         marker.setIcon(icon);
                                     }
@@ -14181,7 +14188,7 @@ if (!isset($_SESSION)) {
                                                         }
                                                     } else {
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
-                                                        continue;
+                                                        //continue;
                                                     }
                                                 } else {
                                                     if (fatherGeoJsonNode.features[i].properties.values == null && geoJsonData.hasOwnProperty("realtime")) {
@@ -14200,7 +14207,7 @@ if (!isset($_SESSION)) {
                                                         }
                                                     } else {
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
-                                                        continue;
+                                                        //continue;
                                                     }
                                                 }
 
@@ -15411,6 +15418,25 @@ setTimeout(function() {
                     }
                     if (metricName != 'Map' && nodeId != null) {
                         map.defaultMapRef.on('click', nodeRedClick)
+                    }
+                    getCoordsClick = function(e) {
+                        var selectedData = {};
+                        var selectedDataJson = "";
+                        selectedData.event = "mapClick";
+                        selectedData.coordinates = {};
+                        selectedData.coordinates.latitude = e.latlng.lat;
+                        selectedData.coordinates.longitude = e.latlng.lng;
+                        selectedDataJson = JSON.stringify(selectedData);
+                        if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
+                            try {
+                                execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
+                            } catch(e) {
+                                console.log("Error in JS function from map click on " + widgetName);
+                            }
+                        }
+                    }
+                    if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && widgetData.params.code != null && widgetData.params.code != "null") {
+                        map.defaultMapRef.on('click', getCoordsClick);
                     }
 		    
 		            if (widgetData.params.code != null && widgetData.params.code != "null") {
@@ -18290,6 +18316,7 @@ setTimeout(function() {
                                      // console.log(JSON.parse(data))
                                      // aggiorna var provando a fare authenticate
                                      tryingAuth = false;
+                                     
                                  } catch (errAuth) {
                                      console.log("Error in authencticate new WS: " + errAuth.message);
                                  }
