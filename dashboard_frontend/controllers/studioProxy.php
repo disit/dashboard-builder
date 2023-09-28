@@ -179,13 +179,15 @@ else if(isset($_SESSION['refreshToken'])) {
         $scenarioName = $_GET['scenarioName'];
         $studioDescription = $_GET['studioDescription']; //add scenario description 
         $waypoints = $_GET['waypoints'];
+        $weighting = $_GET['weighting'];
+        $startDatetime = $_GET['startDatetime'];
         $vehicle = $_GET['vehicle'];
         $isPublic = $_GET['public'];
         
         // encapsulate studio's data in a json to store it in db
         $dmVariableValue = json_encode(
             array('studioName' => $studioName, 'scenarioName' => $scenarioName, 'studioDescription' => $studioDescription,
-                'waypoints' => $waypoints, 'vehicle' => $vehicle,
+                'waypoints' => $waypoints, 'vehicle' => $vehicle, 'weighting' => $weighting, 'startDatetime' => $startDatetime,
                 'isPublic' => $isPublic)
         );
         

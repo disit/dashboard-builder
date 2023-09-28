@@ -16947,7 +16947,7 @@ module.exports = L.Routing = {
 			styles: [
 				{color: 'black', opacity: 0.15, weight: 9},
 				{color: 'white', opacity: 0.8, weight: 6},
-				{color: 'red', opacity: 1, weight: 2}
+				{color: 'blue', opacity: 1, weight: 5}
 			],
 			missingRouteStyles: [
 				{color: 'black', opacity: 0.15, weight: 7},
@@ -17910,6 +17910,8 @@ module.exports = L.Routing = {
         //    serviceUrl: 'http://localhost:8080/GHServletAntHel/route',
                         avoid_area: '',             // parameter required by GHServlet
                         vehicle: 'car',             // parameter required by GHServlet
+                        weighting: 'fastest',       // parameter required by GHServlet
+                        startDatetime: null,        // parameter required by GHServlet
 			profile: 'driving',
 			timeout: 30 * 1000,
 			routingOptions: {
@@ -18224,7 +18226,7 @@ module.exports = L.Routing = {
                         locs.push(latLng.lng + ',' + latLng.lat);
                     }
                     
-                    return this.options.serviceUrl + "?vehicle="+this.options.vehicle+"&waypoints="+ locs.join(';') +"&avoid_area="+this.options.avoid_area;
+                    return this.options.serviceUrl + "?vehicle="+this.options.vehicle+"&waypoints="+ locs.join(';') +"&avoid_area="+this.options.avoid_area + "&weighting="+this.options.weighting + "&startDatetime="+this.options.startDatetime;
 		},
                 
                 _convertInstructions: function(instructions) {

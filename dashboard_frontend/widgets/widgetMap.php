@@ -379,8 +379,16 @@ if (!isset($_SESSION)) {
             }
             
             function onMapEntityClick(feature, marker) {
+                
+                marker.on('mouseover', function (event) {
+                    this.bindTooltip(feature.properties.deviceName);
+                    event.target.openTooltip();
+                    //$(".leaflet-popup-close-button").css("display", "none");
+                });
+                
                 marker.on('click', function (event) {
                     //    map.defaultMapRef.off('moveend');
+                    this.unbindTooltip(feature.properties.deviceName);
                     if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code){
                         let i=1;
                         if(localStorage.getItem("events") == null){
@@ -7493,6 +7501,8 @@ if (!isset($_SESSION)) {
                                                 prevlng = lng;
                                             }else{ //vai col graphopper
                                                 vehicle = mode.routing.graphhopper.type;
+                                                weighting = $('#whatIf-weighting').val();   // Get the selected weighting
+                                                startDatetime = $('#whatIf-startDatetime').val();   // Get the selected datetime
                                                 //console.log("prev" + prevlat + " " +prevlng)
                                                 //console.log("current" + lat + " " +lng)
 						                        serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);	
@@ -7503,6 +7513,8 @@ if (!isset($_SESSION)) {
                                                         L.latLng(lat,lng)],
                                                     avoid_area: "%7B%22type%22%3A%22FeatureCollection%22%2C%22features%22%3A%5B%7B%22type%22%3A%22Feature%22%2C%22properties%22%3A%7B%7D%2C%22geometry%22%3A%7B%22type%22%3A%22Polygon%22%2C%22coordinates%22%3A%5B%5B%5B11.279826%2C43.770474%5D%2C%5B11.276307%2C43.767561%5D%2C%5B11.27871%2C43.766135%5D%2C%5B11.281285%2C43.768491%5D%2C%5B11.279826%2C43.770474%5D%5D%5D%7D%7D%5D%2C%22scenarioName%22%3A%22prova%22%2C%22isPublic%22%3Atrue%7D",
                                                     vehicle: vehicle,
+                                                    weighting: weighting,
+                                                    startDatetime: startDatetime,
                                                     // end Servlet params
                                                     geocoder: L.Control.Geocoder.nominatim(),
                                                     routeWhileDragging: false,
@@ -7891,6 +7903,8 @@ if (!isset($_SESSION)) {
                 var lrmControl = null;
                 var vehicle = "car";
                 var waypoints = null;
+                var weighting = "fastest";
+                var startDatetime = null;
                 var studioControl = null;
                 $(document).on('addWhatif', function (event) {
                     if (event.target === map.mapName) {
@@ -7911,8 +7925,22 @@ if (!isset($_SESSION)) {
                                                 '<select style="margin-top:6px" class="form-control" id="choice-select"></select>'+
                                                 '<div style="margin-top:6px" id="resultDescription"></div>'+
                                                 '<div style="margin-top:6px" id="resultTimerange"></div>'+
+                                                '<div style="margin-top:6px" id="weighting">' +
+                                                '<label for="whatIf-weighting">Weighting</label>'+
+                                                '<select id="whatIf-weighting" class="form-control">' +
+                                                    '<option value="fastest" selected="selected">Fastest</option>' +
+                                                    '<option value="fastest_with_traffic">Fastest with traffic</option>' +
+                                                    '<option value="shortest">Shortest</option>' +
+                                                    '<option value="short_fastest">Short/Fastest</option>' +
+                                                    '<option value="curvature">Curvature</option>' +
+                                                '</select></div>' +
+                                                '<div style="margin-top:6px" id="routing-datetime">' +
+                                                    '<label for="whatIf-startDatetime" style="display: block">Start date & time</label>'+
+                                                    '<input id="whatIf-startDatetime" type="datetime-local" class="form-control" name="datetimeFrom">'+
+                                                '</div>' +
                                              '</div>'+
-                                             '<div id="options"><span id="vehicles">'+
+                                             '<div id="options">' +
+                                                '<span id="vehicles">'+
                                                 '<button class="vehicle-btn selectedvehicle" title="Driving" id="car">'+
                                                     '<img src="../img/dynamic_routing/car.png" alt="Auto">'+
                                                 '</button>'+
@@ -7925,7 +7953,8 @@ if (!isset($_SESSION)) {
 												'<button class="vehicle-btn" title="Bus" id="bus">'+
                                                     '<img id="bus_button" src="../img/dynamic_routing/bus.svg" alt="Bus">'+
                                                 '</button>'+
-                                            '</span></div>';
+                                                '</span>' +
+                                             '</div>';
                             // disable interaction of this div with map
                             if (L.Browser.touch) {
                                 L.DomEvent.disableClickPropagation(div);
@@ -7937,6 +7966,8 @@ if (!isset($_SESSION)) {
                             return div;
                         };
                         whatifControl.addTo(map.defaultMapRef);
+                        // Hide datetime picker
+                        $("#routing-datetime").hide();
                         
                         // populate scenarios select (initially scenario choice is checked)
                         $.getJSON( '../controllers/scenarioProxy.php?method=GET&opt=name', function( data ) {
@@ -8070,9 +8101,9 @@ if (!isset($_SESSION)) {
                                     $("#options").show(); 
                                     // remove previous click listener (if present)
                                     $(".vehicle-btn").off("click");
-                                    $('.vehicle-btn').on('click', function(e) {
-                                        // Get clicked button's id
-                                        vehicle = e.currentTarget.id;
+                                    $("#whatIf-weighting").off("change");
+                                    $("#whatIf-startDatetime").off("change");
+                                    var doRoute = function(vehicle) {
                                         // Change active button
                                         $('.selectedvehicle').removeClass('selectedvehicle');
                                         $('#'+vehicle).addClass('selectedvehicle');
@@ -8084,6 +8115,9 @@ if (!isset($_SESSION)) {
                                             lrmControl = null;
                                         }
 
+                                        weighting = $('#whatIf-weighting').val();   // Get the selected weighting
+                                        startDatetime = $('#whatIf-startDatetime').val();   // Get the selected datetime
+
                                         serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
                                         lrmControl = L.Routing.control({
                                             // Servlet params
@@ -8091,6 +8125,8 @@ if (!isset($_SESSION)) {
                                             waypoints: waypoints,
                                             avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
                                             vehicle: vehicle,
+                                            weighting: weighting,
+                                            startDatetime: startDatetime,
                                             // end Servlet params
                                             geocoder: L.Control.Geocoder.nominatim(),
                                             routeWhileDragging: true,
@@ -8777,9 +8813,28 @@ if (!isset($_SESSION)) {
 											
 										}
 										// MS
+                                    };
+
+                                    // Set event listeners for vehicle selection and routing mode selection
+                                    $('.vehicle-btn').on('click', function(e) {
+                                        vehicle = e.currentTarget.id;   // Get clicked button's id
+                                        doRoute(vehicle);
+                                    });
+                                    $("#whatIf-weighting").on("change", function(e) {
+                                        // When the user chooses a weighting for the routing, if the weighting is "fastest_with_traffic" also show the datetime picker
+                                        if($(this).val() == "fastest_with_traffic")
+                                            $("#routing-datetime").show();
+                                        else
+                                            $("#routing-datetime").hide();
+                                        doRoute($('.selectedvehicle').attr('id'));
+                                    });
+                                    $("#whatIf-startDatetime").on("change", function(e) {
+                                        doRoute($('.selectedvehicle').attr('id'));
                                     });
 
                                     // Init GH Leaflet Routing Machine 
+                                    weighting = $('#whatIf-weighting').val();   // Get the selected weighting
+                                    startDatetime = $('#whatIf-startDatetime').val();   // Get the selected datetime
 
                                     serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
                                     lrmControl = L.Routing.control({
@@ -8788,6 +8843,8 @@ if (!isset($_SESSION)) {
                                         waypoints: [],
                                         avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
                                         vehicle: vehicle,
+                                        weighting: weighting,
+                                        startDatetime: startDatetime,
                                         // end Servlet params
                                         geocoder: L.Control.Geocoder.nominatim(),
                                         routeWhileDragging: true,
@@ -8891,6 +8948,8 @@ if (!isset($_SESSION)) {
                                     lrmControl.remove(map);
                                     lrmControl = null;
                                     waypoints = null;
+                                    weighting = 'fastest';
+                                    startDatetime = null;
                                 }
                                 // hide previous drawn items
                                 map.defaultMapRef.removeLayer(whatifDrawnItems);
@@ -8912,6 +8971,14 @@ if (!isset($_SESSION)) {
                                     var scenarioName = selectedStudioData.scenarioName;
                                     waypoints = selectedStudioData.waypoints;
                                     vehicle = selectedStudioData.vehicle;
+                                    weighting = selectedStudioData.weighting;   // Get the selected weighting
+                                    startDatetime = selectedStudioData.startDatetime;   // Get the selected datetime
+                                    if(selectedStudioData.weighting)
+                                        weighting = selectedStudioData.weighting;
+                                    else weighting = 'fastest';
+                                    if(selectedStudioData.startDatetime)
+                                        startDatetime = selectedStudioData.startDatetime;
+                                    else startDatetime = null;
                                     // get scenario related to the selected studio
                                     $.getJSON( '../controllers/scenarioProxy.php?method=GET&sel='+scenarioName, function( selectedScenarioData ) {                                        
                                         // remove previous choice's drawings
@@ -8959,6 +9026,9 @@ if (!isset($_SESSION)) {
                                             $('.selectedvehicle').removeClass('selectedvehicle');
                                             $('#'+vehicle).addClass('selectedvehicle');
 
+                                            weighting = $('#whatIf-weighting').val();   // Get the selected weighting
+                                            startDatetime = $('#whatIf-startDatetime').val();   // Get the selected datetime
+
                                             // TRICK: Reinit lrmControl, but with previous waypoints, in order to refresh the routing process
                                             waypoints = lrmControl.getWaypoints();
                                             if(lrmControl) {
@@ -8972,6 +9042,8 @@ if (!isset($_SESSION)) {
                                                 waypoints: waypoints,
                                                 avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
                                                 vehicle: vehicle,
+                                                weighting: weighting,
+                                                startDatetime: startDatetime,
                                                 // end Servlet params
                                                 geocoder: L.Control.Geocoder.nominatim(),
                                                 routeWhileDragging: true,
@@ -9000,6 +9072,8 @@ if (!isset($_SESSION)) {
                                             waypoints: [],
                                             avoid_area: encodeURIComponent(JSON.stringify(selectedScenarioData)),
                                             vehicle: vehicle,
+                                            weighting: weighting,
+                                            startDatetime: startDatetime,
                                             // end Servlet params
                                             geocoder: L.Control.Geocoder.nominatim(),
                                             routeWhileDragging: true,
@@ -9122,6 +9196,8 @@ if (!isset($_SESSION)) {
                             lrmControl.remove(map);
                             lrmControl = null;
                             waypoints = null;
+                            weighting = 'fastest';
+                            startDatetime = null;
                         }
                         if(studioControl) {
                             map.defaultMapRef.removeControl(studioControl);
@@ -14105,6 +14181,7 @@ if (!isset($_SESSION)) {
                             //    if (jsonData[1] == "success") {
                                     //geoJsonData = jsonData[0];
                                     // geoShapeData = shapeData[0];
+                                    let countNullGeometry = 0;
                                     geoJsonData = jsonData;
                                     if (geoJsonData.error == null && geoJsonData.failure == null) {
                                         var realtimeDataJson = null;
@@ -14180,6 +14257,11 @@ if (!isset($_SESSION)) {
                                                         fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties.values[bubbleSelectedMetric[descBim]];
                                                         //fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]].replace(/"/g, "");
                                                         if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]]))) {
+                                                            if (shapeJson != null) {
+                                                                fatherGeoJsonNode.features[i].geometry.type = shapeJson.type;
+                                                            } else {
+                                                                countNullGeometry++;
+                                                            }
                                                             continue;
                                                         } else {
                                                             if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] > maxValue) {
@@ -14218,15 +14300,11 @@ if (!isset($_SESSION)) {
                                                     }   */
 
                                                 //fatherGeoJsonNode.features[i].geometry.type = "MultiPolygon";
-                                                let countNullGeometry = 0;
+                                                //let countNullGeometry = 0;
                                                 if (shapeJson != null) {
                                                     fatherGeoJsonNode.features[i].geometry.type = shapeJson.type;
                                                 } else {
                                                     countNullGeometry++;
-                                                }
-                                                
-                                                if (countNullGeometry > 0) {
-                                                    console.log("Number of Devices with Empty or Null Geometry JSON: " + countNullGeometry);
                                                 }
 
                                                 dataObj.eventType = "bimShapeEvent";
@@ -14244,6 +14322,10 @@ if (!isset($_SESSION)) {
                                             } else if (passedData.floorNumber != null && fatherGeoJsonNode.features[i].properties.values && fatherGeoJsonNode.features[i].properties.values.identifierName != null && passedData.floorNumber != fatherGeoJsonNode.features[i].properties.values.identifierName) {
                                                 fatherGeoJsonNode.features[i] = [];
                                             }
+                                        }
+
+                                        if (countNullGeometry > 0) {
+                                            console.log("Number of Devices with Empty or Null Geometry JSON: " + countNullGeometry);
                                         }
 
                                         i = 0;
