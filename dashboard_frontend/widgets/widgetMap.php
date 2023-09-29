@@ -381,13 +381,25 @@ if (!isset($_SESSION)) {
             function onMapEntityClick(feature, marker) {
                 
                 marker.on('mouseover', function (event) {
-                    this.bindTooltip(feature.properties.deviceName);
+                    let tooltipString = "";
+                    if (feature.properties.deviceName.split("_").length > 2) {
+                        tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
+                    } else {
+                        tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
+                    }
+                    this.bindTooltip(tooltipString);
                     event.target.openTooltip();
                     //$(".leaflet-popup-close-button").css("display", "none");
                 });
                 
                 marker.on('click', function (event) {
                     //    map.defaultMapRef.off('moveend');
+                    let tooltipString = "";
+                    if (feature.properties.deviceName.split("_").length > 2) {
+                        tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
+                    } else {
+                        tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
+                    }
                     this.unbindTooltip(feature.properties.deviceName);
                     if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code){
                         let i=1;
