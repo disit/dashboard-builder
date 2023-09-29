@@ -381,26 +381,30 @@ if (!isset($_SESSION)) {
             function onMapEntityClick(feature, marker) {
                 
                 marker.on('mouseover', function (event) {
-                    let tooltipString = "";
-                    if (feature.properties.deviceName.split("_").length > 2) {
-                        tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
-                    } else {
-                        tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
+                    if (feature.properties.deviceName != null) {
+                        let tooltipString = "";
+                        if (feature.properties.deviceName.split("_").length > 2) {
+                            tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
+                        } else {
+                            tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
+                        }
+                        this.bindTooltip(tooltipString);
+                        event.target.openTooltip();
                     }
-                    this.bindTooltip(tooltipString);
-                    event.target.openTooltip();
                     //$(".leaflet-popup-close-button").css("display", "none");
                 });
                 
                 marker.on('click', function (event) {
                     //    map.defaultMapRef.off('moveend');
-                    let tooltipString = "";
-                    if (feature.properties.deviceName.split("_").length > 2) {
-                        tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
-                    } else {
-                        tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
+                    if (feature.properties.deviceName != null) {
+                        let tooltipString = "";
+                        if (feature.properties.deviceName.split("_").length > 2) {
+                            tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
+                        } else {
+                            tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
+                        }
+                        this.unbindTooltip(feature.properties.deviceName);
                     }
-                    this.unbindTooltip(feature.properties.deviceName);
                     if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code){
                         let i=1;
                         if(localStorage.getItem("events") == null){
@@ -14006,8 +14010,8 @@ if (!isset($_SESSION)) {
                         function getBimColor(d) {
                             var min_val, max_val, bim_hex = null;
                             for (let i = 0; i < bimColorScale.length; i++) {
-                                min_val = bimColorScale[i]["min"] == '' ? Number.NEGATIVE_INFINITY : bimColorScale[i]["min"];
-                                max_val = bimColorScale[i]["max"] == '' ? Number.POSITIVE_INFINITY : bimColorScale[i]["max"];
+                                min_val = (bimColorScale[i]["min"] == null || bimColorScale[i]["min"] == '') ? Number.NEGATIVE_INFINITY : bimColorScale[i]["min"];
+                                max_val = (bimColorScale[i]["max"] == null || bimColorScale[i]["max"] == '') ? Number.POSITIVE_INFINITY : bimColorScale[i]["max"];
                                 bim_hex = '#'+fullColorHex(bimColorScale[i].rgb.substring(1, bimColorScale[i].rgb.length - 1));
                                 if (min_val == null) min_val = -1;
                                 if (d > parseFloat(min_val) && d <= parseFloat(max_val)) {
@@ -14353,8 +14357,13 @@ if (!isset($_SESSION)) {
                                         var colorBimMapName = "";
                                         var legendBimFilePath = "";
 
-                                        colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1);
+                                        if (passedData.floorNumber == null) {
+                                            colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1) + "_building";
+                                        } else {
+                                            colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1) + "_floor";
+                                        }
                                         legendBimFilePath = '../img/heatmapsGradientLegends/' + colorBimMapName + '.png';
+                                        //legendBimFilePath = 'https://www.snap4city.org/download/ispra/colormapIspra/'  + colorBimMapName + '.png';
 
                                         /*    return $.ajax({
                                                 url: heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName,
