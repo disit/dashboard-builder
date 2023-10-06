@@ -793,7 +793,7 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
     top: 0px;
     z-index: 999;
 }
-.ui-datepicker 
+.ui-datepicker
 {
     position: relative;
     left: -130px;
@@ -805,3 +805,39 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
     height: auto;
 }
 
+ /*.bootstrap-datetimepicker-widget {
+   background-color: var(--scrollbar-bg-color);
+   color:var(--tab-text-color);
+ }*/
+
+ /*.bootstrap-datetimepicker-widget ul {
+   display: flex;
+   justify-content: space-between;
+   flex-direction: row;
+   flex-wrap: nowrap;
+ }*/
+
+ .bootstrap-datetimepicker-widget ul li:first-child {
+   width: 100%;
+   background: var(--menu-color)!important;
+ }
+
+ .bootstrap-datetimepicker-widget ul li.picker-switch {
+   width: auto;
+   background: var(--menu-color)!important;
+   display: flex;
+ }
+
+ /*.bootstrap-datetimepicker-widget ul li.picker-switch table .glyphicon {
+   font-size: 2.5rem;
+   padding: 0 5px;
+ }
+
+ .bootstrap-datetimepicker-widget ul li.picker-switch table.table-condensed td {
+   display: flex;
+   flex-direction: column;
+ }*/
+
+ /*.datepicker td, .datepicker th {
+   font-size:12px;
+ }*/

@@ -262,7 +262,6 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 }
             }
             if(localStorage.getItem("widgets") == null){
-                //console.log(event);
                 var widgets = [];
                 widgets.push(widgetName);
                 localStorage.setItem("widgets", JSON.stringify(widgets));
@@ -442,9 +441,10 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             widgetPositioning:{
                 horizontal: 'auto',
                 vertical: 'bottom'
-            }
+            },
+            sideBySide: true
         })
-
+        
         var pattern = /Percentuale\//;
         console.log("Entrato in widgetCurvedLineSeries --> " + widgetName); 
         var unitsWidget = [[
@@ -1417,7 +1417,6 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             $('#'+newId).on( "click", function() {
                                                 var widgets = JSON.parse(localStorage.getItem("widgets"));
                                                 var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
-                                                console.log(widgets);
                                                 for(var w in widgets){
                                                     if(widgets[w] != null){
                                                         $('body').trigger({
