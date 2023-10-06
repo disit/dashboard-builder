@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
     include '../config.php';
     require '../sso/autoload.php';
@@ -373,34 +372,22 @@
                                     $_SESSION['refreshToken'] = $tkn->refresh_token;
                                     //Se non è autore, controlliamo se ha delega
                                 //    $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $authorUsername . "/delegator?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
-                                    $apiUrl = $personalDataApiBaseUrl . "/v2/username/" . rawurlencode($_SESSION['loggedUsername']) . "/delegated?accessToken=" . $accessToken. "&sourceRequest=dashboardmanager";
+                                    $apiUrl =  $personalDataApiBaseUrl . "/v3/apps/".$dashboardId."/access/check?elementType=DashboardID&sourceRequest=dashboardmanager&accessToken=".$access>
 
-                                    $options = array(
-                                        'http' => array(
+                                        $options = array(
+                                            'http' => array(
                                                 'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
                                                 'method'  => 'GET',
                                                 'timeout' => 30,
                                                 'ignore_errors' => true
-                                        )
-                                    );
+                                            )
+                                        );
 
                                     $context  = stream_context_create($options);
                                     $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
-
                                     $delegatedDashboards = json_decode($delegatedDashboardsJson);
 
-                                    $hasDelegation = false;
-                                    for($i = 0; $i < count($delegatedDashboards); $i++) 
-                                    {
-                                        if($delegatedDashboards[$i]->elementId == $dashboardId)
-                                        {
-                                            $hasDelegation = true;    // MOD GP
-                                          /*  if($delegatedDashboards[$i]->usernameDelegated == $_SESSION['loggedUsername'])
-                                            {
-                                                $hasDelegation = true;
-                                            }   */
-                                        }
-                                    }
+                                    $hasDelegation = $delegatedDashboards->result=='true';
 
                                     if($hasDelegation)
                                     {
