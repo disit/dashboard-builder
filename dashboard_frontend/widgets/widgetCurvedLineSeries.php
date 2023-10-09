@@ -117,145 +117,113 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         $(document).off('showCurvedLinesFromExternalContent_' + widgetName);
         $(document).on('showCurvedLinesFromExternalContent_' + widgetName, function(event)
         {
-            //
             if (event.event == 'set_time'){         
                                 //console.log(event.passedData);
-                            if ((event.passedData == null)||(event.passedData.length === 0)){
-                                var rows1=[];
-                                //////STORAGE///
-                                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
-                                var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
-                                dateChoice = date;
-                                //console.log(dateChoice);
-                                var events = [];
-                                 var times = [];
-                                 //////////////////////////////
-                                 let j=1;
-                                                    if(localStorage.getItem("events") == null){
-                                                            newId = "CurvedLineSelectTime";
-                                                            events.push("CurvedLineSelectTime");
-                                                            times.push(dateChoice);
-                                                            localStorage.setItem("events", JSON.stringify(events));
-                                                            localStorage.setItem("times", JSON.stringify(times));
-                                                    }else{
-                                                       // var events = [];
-                                                        //    var times = [];
-                                                            events = JSON.parse(localStorage.getItem("events"));
-                                                            times = JSON.parse(localStorage.getItem("times"));
-                                                            for(var e in events){
-                                                                //if(events[e].slice(0,20) == "CurvedLineSelectTime"){
-                                                                if(events[e].includes("CurvedLineSelectTime")){
-                                                                    j = j+1;
-                                                                    }
-                                                                    newId = "CurvedLineSelectTime"+j;
-                                                                    events.push("CurvedLineSelectTime" + j);
-                                                                    times.push(dateChoice);
-                                                                    
-                                                                    localStorage.setItem("times", JSON.stringify(times));
-                                                                    localStorage.setItem("events", JSON.stringify(events));
-                                                                    //console.log(times);
-                                                                    //console.log(events);
-                                                                }
-                                                    }
-
-                                                    if(event.targetWidget === widgetName) {
-                                                            if(localStorage.getItem("widgets") == null){
-                                                                var widgets = [];
-                                                                widgets.push(widgetName);
-                                                                localStorage.setItem("widgets", JSON.stringify(widgets));
-                                                            }
-                                                            else{
-                                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                                if(!widgets.includes(widgetName)){
-                                                                    widgets.push(widgetName);
-                                                                    localStorage.setItem("widgets", JSON.stringify(widgets));
-                                                                }
-                                                            }
-                                                        }
-                                                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
-                                                            $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
-                                                            $('#'+newId).on( "click", function() {
-                                                                //console.log(localStorage);
-                                                                //if(events[e].slice(0,20) == "CurvedLineSelectTime"){
-                                                                if(events[e].includes("CurvedLineSelectTime")){
-                                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
-                                                                var curr_data = times[index];
-                                                                console.log(widgets);
-                                                                        for(var w in widgets){
-                                                                           // console.log(widgets[w]);
-                                                                            //console.log(index);
-                                                                            //console.log(curr_data);
-                                                                            if(widgets[w] != null){
-                                                                                $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date(curr_data); 
-                                                                                var date1 = $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date();
-                                                                                set_time(date1);
-                                                                                console.log(date1);
-                                                                                //populateWidget(date1);
-                                                                            }
-                                                                        }
-                                                                }else{
-                                                                    
-                                                                }   
-                                                            });
-                                             $('.orgMenuSubItemCnt').mouseover(function() {
-                                                $('.orgMenuSubItemCnt').css('cursor', 'pointer');
-                                              });
-                                            //////////////////////////////
-                                ///////FINHE STORAGE
-                                $.ajax({
-                                        url: "../controllers/getWidgetParams.php",
-                                        type: "GET",
-                                        data: {
-                                            widgetName: "<?= $_REQUEST['name_w'] ?>"
-                                        },
-                                        async: true,
-                                        dataType: 'json',
-                                        success: function(widgetData) {
-                                            rows1 = JSON.parse(widgetData.params.rowParameters);
-                                            rowParameters = rows1;
-                                            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
-                                            var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
-                                        }
-                                    });
-                            }else{
-                                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
+                if ((event.passedData == null)||(event.passedData.length === 0)){
+                    var rows1=[];
+                    //////STORAGE///
+                    $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime);
+                    var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                    dateChoice = date;
+                    //console.log(dateChoice);
+                    var events = [];
+                    var times = [];
+                    //////////////////////////////
+                    let j=1;
+                    if(localStorage.getItem("events") == null){
+                        newId = "CurvedLineSelectTime";
+                        events.push("CurvedLineSelectTime");
+                        times.push(dateChoice);
+                        localStorage.setItem("events", JSON.stringify(events));
+                        localStorage.setItem("times", JSON.stringify(times));
+                    }else{
+                       // var events = [];
+                        //    var times = [];
+                        events = JSON.parse(localStorage.getItem("events"));
+                        times = JSON.parse(localStorage.getItem("times"));
+                        for(var e in events){
+                            //if(events[e].slice(0,20) == "CurvedLineSelectTime"){
+                            if(events[e].includes("CurvedLineSelectTime")){
+                                j = j+1;
                             }
-                            timeNavCount = 0;
-                                set_time(event.datetime);
-                                populateWidget(event.datetime);            
+                            newId = "CurvedLineSelectTime"+j;
+                            events.push("CurvedLineSelectTime" + j);
+                            times.push(dateChoice);
+
+                            localStorage.setItem("times", JSON.stringify(times));
+                            localStorage.setItem("events", JSON.stringify(events));
+                            //console.log(times);
+                            //console.log(events);
                         }
-                    /////////
-            //
-            if (event.event == "reset zoom"){
-                //event.t2 = Date.now();
-                var d = new Date;
-                var month = (d.getMonth() + 1 );
-                if (month < 10){
-                    month = '0'+month;
+                    }
+
+                    if(event.targetWidget === widgetName) {
+                        if(localStorage.getItem("widgets") == null){
+                            var widgets = [];
+                            widgets.push(widgetName);
+                            localStorage.setItem("widgets", JSON.stringify(widgets));
+                        }
+                        else{
+                            var widgets = JSON.parse(localStorage.getItem("widgets"));
+                            if(!widgets.includes(widgetName)){
+                                widgets.push(widgetName);
+                                localStorage.setItem("widgets", JSON.stringify(widgets));
+                            }
+                        }
+                    }
+                    $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
+                        $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
+                        $('#'+newId).on( "click", function() {
+                            //console.log(localStorage);
+                            //if(events[e].slice(0,20) == "CurvedLineSelectTime"){
+                            if(events[e].includes("CurvedLineSelectTime")){
+                            var widgets = JSON.parse(localStorage.getItem("widgets"));
+                            var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                            var curr_data = times[index];
+                            console.log(widgets);
+                                for(var w in widgets){
+                                   // console.log(widgets[w]);
+                                    //console.log(index);
+                                    //console.log(curr_data);
+                                    if(widgets[w] != null){
+                                        $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date(curr_data);
+                                        var date1 = $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date();
+                                        set_time(date1);
+                                        console.log(date1);
+                                        //populateWidget(date1);
+                                    }
+                                }
+                            }else{
+
+                            }
+                        });
+                    $('.orgMenuSubItemCnt').mouseover(function() {
+                        $('.orgMenuSubItemCnt').css('cursor', 'pointer');
+                    });
+                    //////////////////////////////
+                    ///////FINHE STORAGE
+                    $.ajax({
+                        url: "../controllers/getWidgetParams.php",
+                        type: "GET",
+                        data: {
+                            widgetName: "<?= $_REQUEST['name_w'] ?>"
+                        },
+                        async: true,
+                        dataType: 'json',
+                        success: function(widgetData) {
+                            rows1 = JSON.parse(widgetData.params.rowParameters);
+                            rowParameters = rows1;
+                            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime);
+                            var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                        }
+                    });
+                }else{
+                    $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime);
                 }
-                var date = d.getDate();
-                if (date < 10){
-                    date = '0'+date;
-                }
-                var hour = d.getHours();
-                if (hour < 10){
-                    hour = '0'+hour;
-                }
-                var min = d.getMinutes();
-                if (min < 10){
-                    min = '0'+min;
-                }
-                var second = d.getSeconds();
-                if (second < 10){
-                    second = '0'+second;
-                }
-                //
-                var current_date = d.getFullYear()+'-'+month+'-'+ date +'T'+hour+':'+min+':'+second;
-                event.t2 = current_date;
-                populateWidget(true, timeRange, null, timeNavCount, null, null, null);                 
-             }
-            //
+                timeNavCount = 0;
+                set_time(event.datetime);
+                populateWidget(event.datetime);
+            }
             if(event.passedData != null && event.t1 == null && event.t2 == null){     //nuovi valori da mostrare da memorizzare nel localstorage
                 if(event.passedData[0].metricHighLevelType == 'Dynamic'){
                     localStorage.setItem(widgetName, JSON.stringify(event.passedData));
@@ -280,12 +248,13 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             //    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
             //    <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, event.range, event.marker, event.mapRef);
 
-                var newValue = event.passedData;
+                var newValue = null;
+                if (event.passedData != null && event.command != "resize") {
+                    newValue = event.passedData;
+                    rowParameters = newValue;
+                }
                 //    var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
                 //    point.update(newValue);
-
-                if(event.command != "resize")
-                    rowParameters = newValue;
 
                 if(idMetric === 'AggregationSeries' || nrMetricType != null)
                 {
@@ -311,6 +280,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             }
                         }
                     }
+                    //if(event.t1 != null && event.t2 != null){
                     if((event.t1 != null && event.t2 != null)&&((event.event !== "reset zoom"))){      //zoom nel caso dynamic, si popola il widget solo con i valori interni alla finestra temporale
                         var oldRowParam = JSON.parse(localStorage.getItem(widgetName))
                         if(oldRowParam[0].metricHighLevelType == "Dynamic"){
@@ -368,9 +338,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             oldElement.push(newEl);
                             localStorage.setItem("passedData", JSON.stringify(oldElement));
                         }
-                        if (event.event !== "reset zoom"){
+                        //if (event.event !== "reset zoom"){
                         populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
-                        }
+                        //}
                     }
                     else{
                         if(localStorage.getItem("passedData") == null){
@@ -399,7 +369,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             oldElement.push(newEl);
                             localStorage.setItem("passedData", JSON.stringify(oldElement));
                         }
-                        populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
+                        if (event.event !== "reset zoom") {
+                            populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
+                        } else {
+                            populateWidget(true, timeRange, null, timeNavCount, null, null, null);
+                        }
                     }
 
                     //    timeRange = widgetData.params.temporal_range_w;
@@ -2670,7 +2644,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 singleSeriesData = [];
 
             //    if (styleParameters.secondaryYAxisM && styleParameters.secondaryYAxisM == 'yes') {
-                if (styleParameters.secondaryYAxisM && styleParameters.secondaryYAxisM == 'yes' && (rowParameters[i].secYAx && rowParameters[i].secYAx == "secondary")) {
+                if (styleParameters.secondaryYAxisM != null && styleParameters.secondaryYAxisM == 'yes' && (rowParameters != null && rowParameters[i] != null && rowParameters[i].secYAx != null && rowParameters[i].secYAx == "secondary")) {
                     idYAxis = 1;
                 } else {
                     idYAxis = 0;

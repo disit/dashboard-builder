@@ -1,5 +1,5 @@
 <?php
-$defaultTheme = $layoutDefault; // Set the default theme
+$defaultTheme = isset($layoutDefault) ? $layoutDefault : 'dark'; // Set the default theme
 
 // Check if the theme is already set in the cookie
 if (isset($_COOKIE['selected_theme'])) {
