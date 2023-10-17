@@ -3380,8 +3380,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             return null; 
         }
         
-        function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture, t1, t2)
+        function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture, t1, t2, showContentOnLoad)
         {
+            if (showContentOnLoad != null && showContentOnLoad == "no") {
+                return;
+            }
 			//console.log('fromAggregate: '+fromAggregate);
 			//console.log('localTimeRange:'+localTimeRange);
 			//console.log('timeCount: '+timeCount);
@@ -4431,12 +4434,22 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         }
 
                         timeRange = widgetData.params.temporal_range_w;
-                        populateWidget(true, timeRange, null, timeNavCount);
+                        var key = getQueryString()["entityId"];
+                        if (key == null) {
+                            populateWidget(true, timeRange, null, timeNavCount);
+                        } else {
+                            populateWidget(true, timeRange, null, timeNavCount, null, null, null, styleParameters.showContentLoadM);
+                        }
                     }
                 }
                 else
                 {
-                    populateWidget(false, null, null, timeNavCount);
+                    var key = getQueryString()["entityId"];
+                    if (key == null) {
+                        populateWidget(false, null, null, timeNavCount);
+                    } else {
+                        populateWidget(false, null, null, timeNavCount, null, null, null, styleParameters.showContentLoadM);
+                    }
                 }
 
                 // Hide Next Button at first instantiation

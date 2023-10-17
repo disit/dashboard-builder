@@ -1050,7 +1050,10 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             }
         }
 
-        function populateWidget(fromCode, dateChoice) {
+        function populateWidget(fromCode, dateChoice, showContentOnLoad) {
+            if (showContentOnLoad != null && showContentOnLoad == "no") {
+                return;
+            }
 			 //console.log('fromCode: '+fromCode);
 			var fromDate = null;
 			//if ((fromCode != null)&&(fromCode != '')){
@@ -2089,7 +2092,12 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 					$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').hide();					
 				}
 				//
-                populateWidget();
+                var key = getQueryString()["entityId"];
+                if (key == null) {
+                    populateWidget();
+                } else {
+                    populateWidget(null, null, styleParameters.showContentLoadM);
+                }
 
 
             },

@@ -1897,3 +1897,92 @@ function isFloat(value) {
 
     return false;
 }
+
+function rgbToHex (rgb) {
+    var hex = Number(rgb).toString(16);
+    if (hex.length < 2) {
+        hex = "0" + hex;
+    }
+    return hex;
+};
+
+function fullColorHex (rgbArray) {
+    var red = rgbToHex((rgbArray.split(",")[0]).trim());
+    var green = rgbToHex((rgbArray.split(",")[1]).trim());
+    var blue = rgbToHex((rgbArray.split(",")[2]).trim());
+    return red+green+blue;
+};
+
+function getBimColor(d, bimColorScaleString) {
+    var bimColorScale = JSON.parse(bimColorScaleString);
+    var min_val, max_val, bim_hex = null;
+    for (let i = 0; i < bimColorScale.length; i++) {
+        min_val = (bimColorScale[i]["min"] == null || bimColorScale[i]["min"] == '') ? Number.NEGATIVE_INFINITY : bimColorScale[i]["min"];
+        max_val = (bimColorScale[i]["max"] == null || bimColorScale[i]["max"] == '') ? Number.POSITIVE_INFINITY : bimColorScale[i]["max"];
+        bim_hex = '#'+fullColorHex(bimColorScale[i].rgb.substring(1, bimColorScale[i].rgb.length - 1));
+        if (min_val == null) min_val = -1;
+        if (d > parseFloat(min_val) && d <= parseFloat(max_val)) {
+            return bim_hex;
+        }
+    }
+}
+
+function getSessionData(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function getQueryString() {
+    var queryStringKeyValue = window.parent.location.search.replace('?', '').split('&');
+    var qsJsonObject = {};
+    if (queryStringKeyValue != '') {
+        for (i = 0; i < queryStringKeyValue.length; i++) {
+            qsJsonObject[queryStringKeyValue[i].split('=')[0]] = queryStringKeyValue[i].split('=')[1];
+        }
+    }
+    return qsJsonObject;
+}
+
+function composeSURI(baseUrl, key) {
+    // var baseUrl = "http://www.disit.org/km4city/resource/iot/orionUNIFI/DISIT/";
+    var suri = baseUrl;
+    var key = getQueryString()[key];
+    //var entityId = getQueryString().entityId;
+    if (key != null) {
+        return suri+key;
+    } else {
+        return null;
+    }
+}
+
+function triggerMetricsForTrends(wName, listenerName, data, selMetrics, baseKbUrl, legendEntityName) {
+    var dataAttr = data.Service.features[0].properties.realtimeAttributes;
+    const keys = Object.keys(dataAttr);
+    var dataProcessedArray = [];
+    var i=0;
+    for (var n=0; n < keys.length; n++) {
+        if(selMetrics.includes(keys[n])) {
+            var serviceUri = data.Service.features[0].properties.serviceUri;
+            var org = data.Service.features[0].properties.organization;
+            var broker = data.Service.features[0].properties.brokerName;
+            var name = data.Service.features[0].properties.name;
+            //var metricName = org + ":" + broker + ":" + name;
+            var metricName = (legendEntityName != null) ? legendEntityName : org + ":" + broker + ":" + name;
+            dataProcessedArray[i] = {};
+            dataProcessedArray[i].metricId = baseKbUrl + serviceUri + "&format=json";
+            dataProcessedArray[i].metricHighLevelType = "IoT Device Variable";
+            dataProcessedArray[i].metricName = metricName;
+            dataProcessedArray[i].smField = keys[n];
+            dataProcessedArray[i].metricType = keys[n];
+            dataProcessedArray[i].serviceUri = serviceUri;
+            i++;
+        }
+    }
+
+    $('body').trigger({
+        type: listenerName,
+        targetWidget: wName,
+        passedData: dataProcessedArray
+    });
+}

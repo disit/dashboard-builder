@@ -713,6 +713,7 @@
                 $clockFont = NULL;
                 $rectDim = NULL;
 		        $calendarM = NULL;
+                $showContentLoadM = NULL;
                 $enableFullscreenTab = 'no';
                 $enableFullscreenModal = 'no'; 
              //   $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidget']);
@@ -3078,6 +3079,11 @@
             {
                 $areaChartOpacityM = sanitizePostString('areaChartOpacityM');
             }
+
+            if(isset($_POST['showContentLoadM'])&&($_POST['showContentLoadM']!=""))
+            {
+                $showContentLoadM = mysqli_real_escape_string($link, sanitizePostString('showContentLoadM'));
+            }
             
             //if(isset($_POST['TTTDate'])&&($_POST['TTTDate']!=""))
             //{
@@ -3109,6 +3115,7 @@
             $styleParametersArrayM['alrLook'] = $alrLookM;
             $styleParametersArrayM['areaChartOpacityM'] = $areaChartOpacityM;
 			$styleParametersArrayM['calendarM'] = $calendarM;
+            $styleParametersArrayM['showContentLoadM'] = $showContentLoadM;
 
             if(isset($_POST['deviceLabelsM_0'])&&($_POST['deviceLabelsM_0']!=""))
             {
@@ -3364,6 +3371,11 @@
                 $enableCKEditor = mysqli_real_escape_string($link, sanitizePostString('enableCKEditor'));
             }
 
+            if(isset($_POST['showContentLoadM'])&&($_POST['showContentLoadM']!=""))
+            {
+                $showContentLoadM = mysqli_real_escape_string($link, sanitizePostString('showContentLoadM'));
+            }
+
             $styleParametersArrayM = array();
             $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
             $styleParametersArrayM['rowsLabelsFontColor'] = $rowsLabelsFontColorM;
@@ -3380,6 +3392,7 @@
             $styleParametersArrayM['editDeviceLabels'] = $deviceLabels;
 			$styleParametersArrayM['calendarM'] = $calendarM;
             $styleParametersArrayM['enableCKEditor'] = $enableCKEditor;
+            $styleParametersArrayM['showContentLoadM'] = $showContentLoadM;
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {
