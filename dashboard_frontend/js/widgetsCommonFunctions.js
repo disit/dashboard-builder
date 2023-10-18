@@ -1956,7 +1956,7 @@ function composeSURI(baseUrl, key) {
     }
 }
 
-function triggerMetricsForTrends(wName, listenerName, data, selMetrics, baseKbUrl, legendEntityName) {
+function triggerMetricsForTrends(wName, listenerName, data, selMetrics, baseKbUrl, legendEntityName, timeRange) {
     var dataAttr = data.Service.features[0].properties.realtimeAttributes;
     const keys = Object.keys(dataAttr);
     var dataProcessedArray = [];
@@ -1976,6 +1976,9 @@ function triggerMetricsForTrends(wName, listenerName, data, selMetrics, baseKbUr
             dataProcessedArray[i].smField = keys[n];
             dataProcessedArray[i].metricType = keys[n];
             dataProcessedArray[i].serviceUri = serviceUri;
+            if (wName.includes("TimeTrendCompare")) {
+                dataProcessedArray[i].timeRange = timeRange;
+            }
             i++;
         }
     }

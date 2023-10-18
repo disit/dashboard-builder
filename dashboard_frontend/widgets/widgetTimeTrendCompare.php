@@ -71,6 +71,9 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
         var embedWidget = <?= $_REQUEST['embedWidget'] == 'true' ? 'true' : 'false' ?>;
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';
         var headerHeight = 25;
+        var fromGisExternalContentRangePrevious = null;
+        var fromGisExternalContentFieldPrevious = null;
+        var fromGisExternalContentServiceUriPrevious = null;
         console.log("Widget Time Trend Compare: " + widgetName);
         var unitsWidget = [['millisecond', // unit name
                 [1, 2, 5, 10, 20, 25, 50, 100, 200, 500] // allowed multiples
@@ -96,6 +99,26 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                 'year',
                 null
             ]];
+
+        $(document).off('showTimeTrendCompareFromExternalContent_' + widgetName);
+        $(document).on('showTimeTrendCompareFromExternalContent_' + widgetName, function(event)
+        {
+            if(event.targetWidget === widgetName)
+            {
+
+                clearInterval(countdownRef);
+                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
+
+                rowParameters = event.passedData[0].serviceUri;
+                sm_field = event.passedData[0].smField;
+
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, event.passedData[0].metricName, (event.passedData[0].title != null ? event.passedData[0].title : widgetTitle), null, (event.passedData[0].headerColor != null ? event.passedData[0].headerColor : widgetHeaderFontColor), true, rowParameters, sm_field, event.passedData[0].timeRange, null, null, false, null, null);
+
+                //populateWidget(event.passedData[0].timeRange, null, null, 0, null, udmFromUserOptions);
+
+            }
+        });
+
         $(document).off('changeMetricFromButton_' + widgetName);
         $(document).on('changeMetricFromButton_' + widgetName, function (event)
         {
@@ -1050,15 +1073,71 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                                 } else {
                                     localTimeZoneString = localTimeZone;
                                 }
-                                drawDiagram(convertedData, fromGisExternalContentRange, fromGisExternalContentField, true, localTimeZoneString, udm);
-                                upLimit = convertedData.data[0].commit.author.computationDate;
-                                if (timeNavCount < 0) {
-                                    if (moment(upLimit).isBefore(moment(dateInFuture))) {
+                                ComparePeriodCalc(timeRangeCompare, timeCount);
 
-                                    } else {
-                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                $.ajax({
+                                    //    url: rowParameters + "&" + serviceMapTimeRange + "&valueName=" + sm_field,
+                                    url: "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeURI(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitCompareISOTrim + "&valueName=" + fromGisExternalContentField,
+                                    type: "GET",
+                                    data: {},
+                                    async: true,
+                                    dataType: 'json',
+                                    success: function (originalData)
+                                    {
+                                        compareval = 1;
+                                        convertedData = convertDataFromSmToDm(originalData, fromGisExternalContentField, udm, compareval, timeCount, notFirstInst);
+                                        if (convertedData)
+                                        {
+                                            if (convertedData.data.length > 0)
+                                            {
+                                                var localTimeZone = moment.tz.guess();
+                                                var momentDateTime = moment();
+                                                var localDateTime = momentDateTime.tz(localTimeZone).format();
+                                                localDateTime = localDateTime.replace("T", " ");
+                                                var plusIndexLocal = localDateTime.indexOf("+");
+                                                localDateTime = localDateTime.substr(0, plusIndexLocal);
+                                                var localTimeZoneString = "";
+                                                if (localDateTime == "") {
+                                                    localTimeZoneString = "(not recognized) --> Europe/Rome"
+                                                } else {
+                                                    localTimeZoneString = localTimeZone;
+                                                }
+                                                //convertedData = convertedData + convertedData2;
+                                                drawDiagram(convertedData, fromGisExternalContentRange, fromGisExternalContentField, true, localTimeZoneString, udm);
+                                                upLimit = convertedData.data[0].commit.author.computationDate;
+                                                if (timeNavCount < 0) {
+                                                    if (moment(upLimit).isBefore(moment(dateInFuture))) {
+
+                                                    } else {
+                                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").hide();
+                                                    }
+                                                }
+
+                                            } else
+                                            {
+                                                showWidgetContent(widgetName);
+                                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                                console.log("Dati non disponibili da Service Map");
+                                            }
+                                        } else
+                                        {
+                                            showWidgetContent(widgetName);
+                                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                            console.log("Dati non disponibili da Service Map");
+                                        }
+                                    },
+                                    error: function (data)
+                                    {
+                                        showWidgetContent(widgetName);
+                                        $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
+                                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
+                                        console.log("Errore in scaricamento dati da Service Map");
+                                        console.log(JSON.stringify(data));
                                     }
-                                }
+                                });
+
                             } else
                             {
                                 showWidgetContent(widgetName);
@@ -1083,6 +1162,7 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                         console.log(JSON.stringify(data));
                     }
                 });
+
             } else
             {
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv i.gisDriverPin').hide();
