@@ -1956,30 +1956,37 @@ function composeSURI(baseUrl, key) {
     }
 }
 
-function triggerMetricsForTrends(wName, listenerName, data, selMetrics, baseKbUrl, legendEntityName, timeRange) {
+function triggerMetricsForTrends(wName, listenerName, data, selMetrics, baseKbUrl, legendEntityName, timeRange, legendLabels) {
     var dataAttr = data.Service.features[0].properties.realtimeAttributes;
     const keys = Object.keys(dataAttr);
     var dataProcessedArray = [];
     var i=0;
     for (var n=0; n < keys.length; n++) {
-        if(selMetrics.includes(keys[n])) {
-            var serviceUri = data.Service.features[0].properties.serviceUri;
-            var org = data.Service.features[0].properties.organization;
-            var broker = data.Service.features[0].properties.brokerName;
-            var name = data.Service.features[0].properties.name;
-            //var metricName = org + ":" + broker + ":" + name;
-            var metricName = (legendEntityName != null) ? legendEntityName : org + ":" + broker + ":" + name;
-            dataProcessedArray[i] = {};
-            dataProcessedArray[i].metricId = baseKbUrl + serviceUri + "&format=json";
-            dataProcessedArray[i].metricHighLevelType = "IoT Device Variable";
-            dataProcessedArray[i].metricName = metricName;
-            dataProcessedArray[i].smField = keys[n];
-            dataProcessedArray[i].metricType = keys[n];
-            dataProcessedArray[i].serviceUri = serviceUri;
-            if (wName.includes("TimeTrendCompare")) {
-                dataProcessedArray[i].timeRange = timeRange;
-            }
-            i++;
+       if (selMetrics.indexOf(keys[n]) != -1) {
+        //if(selMetrics.includes(keys[n])) {
+           var idx = selMetrics.indexOf(keys[n]);
+           var serviceUri = data.Service.features[0].properties.serviceUri;
+           var org = data.Service.features[0].properties.organization;
+           var broker = data.Service.features[0].properties.brokerName;
+           var name = data.Service.features[0].properties.name;
+           //var metricName = org + ":" + broker + ":" + name;
+           var metricName = (legendEntityName != null) ? legendEntityName : org + ":" + broker + ":" + name;
+           dataProcessedArray[i] = {};
+           dataProcessedArray[i].metricId = baseKbUrl + serviceUri + "&format=json";
+           dataProcessedArray[i].metricHighLevelType = "IoT Device Variable";
+           dataProcessedArray[i].metricName = metricName;
+           dataProcessedArray[i].smField = keys[n];
+           dataProcessedArray[i].metricType = keys[n];
+           dataProcessedArray[i].serviceUri = serviceUri;
+           if (wName.includes("TimeTrendCompare")) {
+               dataProcessedArray[i].timeRange = timeRange;
+           }
+           if (wName.includes("CurvedLineSeries")) {
+               if (legendLabels != null && legendLabels[i] != null) {
+                   dataProcessedArray[i].legendLabels = legendLabels[idx];
+               }
+           }
+           i++;
         }
     }
 

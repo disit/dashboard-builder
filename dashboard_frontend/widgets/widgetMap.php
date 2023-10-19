@@ -356,6 +356,7 @@ if (!isset($_SESSION)) {
 
             var spinIcon = (window.location.href.includes("view/index.php") || window.location.href.includes("management/dashboard_configdash.php")) ? 'fa fa-circle-o-notch fa-spin' : 'fa-solid fa-circle-notch fa-spin';
 
+            var selectedMetrics = null;
             
             function removeBimShapeColorLegend(index, resetPageFlag) {
                 map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
@@ -522,7 +523,7 @@ if (!isset($_SESSION)) {
                                 }   */
                                 let actionUrlFlag = false;
                                 let actionUrlText = "";
-                                for (prop in geoJsonServiceData.Service.features[0].properties.realtimeAttributes) {
+                                /*for (prop in geoJsonServiceData.Service.features[0].properties.realtimeAttributes) {
                                     if (geoJsonServiceData.Service.features[0].properties.realtimeAttributes[prop].value_type == "ActionUrl" && geoJsonServiceData.realtime.results.bindings[0][prop] != null && prop != "image") {
                                         actionUrlFlag = true;
                                         let actionObj = {};
@@ -537,7 +538,7 @@ if (!isset($_SESSION)) {
                                         }
                                         actionUrlText = actionUrlText + '<button data-id="' + latLngId + '" class="recreativeEventActionBtn recreativeEventMapBtn" type="button" onclick="window.open(\'' + href + '\', \'' + action + '\')"' + action + ' style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + prop + '</button>';
                                     }
-                                }
+                                }*/
                                 popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button>' + actionUrlText + (geoJsonServiceData.hasOwnProperty("BusStop") ? '<button data-id="' + latLngId + '" class="recreativeEventMapTplTmtblBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">TIMETABLE</button><button data-id="' + latLngId + '" class="recreativeEventMapTplBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">BROWSE</button>' : '') + '</div>';
 
                                 popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
@@ -618,6 +619,9 @@ if (!isset($_SESSION)) {
                                 if (geoJsonServiceData.hasOwnProperty("realtime")) {
                                     if (!jQuery.isEmptyObject(geoJsonServiceData.realtime)) {
                                         realTimeData = geoJsonServiceData.realtime;
+                                        if (selectedMetrics != null) {
+                                            realTimeData.head.vars = selectedMetrics;
+                                        }
                                         popupText += '<div class="popupLastUpdateContainer centerWithFlex"><b>Last update:&nbsp;</b><span class="popupLastUpdate" data-id="' + latLngId + '"></span></div>';
 
                                         if ((serviceClass.includes("Emergency")) && (serviceSubclass.includes("First aid"))) {
@@ -4996,7 +5000,7 @@ if (!isset($_SESSION)) {
                     $("#customLeafletControlDiv").html(" Drill ");
                     $("#customLeafletControlDiv").on("mouseover", function () {
                         $(this).css('cursor', 'pointer');
-                        console.log("Mouse Over");
+                        // console.log("Mouse Over");
                     });
                 }
                 //
@@ -14060,7 +14064,6 @@ if (!isset($_SESSION)) {
                             }
 
                             var passedData = event.passedData;
-
                             var mapBounds = map.defaultMapRef.getBounds();
                             var query = passedData.query;
                             var queryShape = passedData.query;
@@ -14075,6 +14078,7 @@ if (!isset($_SESSION)) {
                             var pincolor = passedData.pincolor;
                             var symbolcolor = passedData.symbolcolor;
                             var iconFilePath = passedData.iconFilePath;
+                            selectedMetrics = passedData.selectedMetrics;
                             bubbleSelectedMetric[descBim] = passedData.bubbleSelectedMetric;
                             altViewMode = passedData.altViewMode;
                             bimShapeOnMap = true;
@@ -14192,11 +14196,6 @@ if (!isset($_SESSION)) {
                             
                             //$.when(getSmartCityAPIData, getShapeSmartCityAPIData).done(function(jsonData, shapeData) {
                             getSmartCityAPIData.done(function(jsonData) {
-                                //if (!jsonData.failure) {
-                                // if (jsonData[1] == "success" && shapeData[1] == "success") {
-                            //    if (jsonData[1] == "success") {
-                                    //geoJsonData = jsonData[0];
-                                    // geoShapeData = shapeData[0];
                                     let countNullGeometry = 0;
                                     geoJsonData = jsonData;
                                     if (geoJsonData.error == null && geoJsonData.failure == null) {
@@ -14309,12 +14308,6 @@ if (!isset($_SESSION)) {
                                                     }
                                                 }
 
-                                                /*    if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty("dateObserved")) {
-                                                        fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.values["dateObserved"];
-                                                    } else {
-                                                        fatherGeoJsonNode.features[i].properties.measuredTime = null;
-                                                    }   */
-
                                                 //fatherGeoJsonNode.features[i].geometry.type = "MultiPolygon";
                                                 //let countNullGeometry = 0;
                                                 if (shapeJson != null) {
@@ -14363,21 +14356,11 @@ if (!isset($_SESSION)) {
                                             colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1) + "_floor";
                                         }
                                         legendBimFilePath = '../img/heatmapsGradientLegends/' + colorBimMapName + '.png';
-                                        //legendBimFilePath = 'https://www.snap4city.org/download/ispra/colormapIspra/'  + colorBimMapName + '.png';
 
-                                        /*    return $.ajax({
-                                                url: heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName,
-                                                type: "GET",
-                                                async: true,
-                                                dataType: 'json',
-                                            }); */
                                         var getColorMapData = fetchAjax(heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName, null, "GET", 'json', true, null);
                                         getColorMapData.done(function (colorScale) {
 
                                             bimColorScale = colorScale;
-                                            //    if (!gisLayersOnMap.hasOwnProperty(descBim)) {
-                                            //    geoJsonLayerShape = L.geoJson(shapeJson, {
-
                                             if (geoJsonLayerShape) {
                                                 map.defaultMapRef.removeLayer(geoJsonLayerShape);
                                             }

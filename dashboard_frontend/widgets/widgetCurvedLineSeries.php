@@ -85,6 +85,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var code = null;
         var yAxisMin, yAxisMax, secondaryYAxisMin, secondaryYAxisMax = null;
         var timeNavigationButtonClick = null;
+        var fromCode = null;
 
         //var trendType = 'monthWeek';
         //var trendType = 'dayHour';
@@ -370,7 +371,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             localStorage.setItem("passedData", JSON.stringify(oldElement));
                         }
                         if (event.event !== "reset zoom") {
-                            populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
+                            populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2, true);
                         } else {
                             populateWidget(true, timeRange, null, timeNavCount, null, null, null);
                         }
@@ -2969,11 +2970,14 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         } else {
                             objName = aggregationGetData[i].metricName;
                         }*/
-
-                        if (aggregationGetData[i].label) {
-                            objName = aggregationGetData[i].label;
+                        if (rowParameters[i].legendLabels != null && rowParameters[i].legendLabels != "") {
+                            objName = rowParameters[i].legendLabels;
                         } else {
-                            objName = aggregationGetData[i].metricName + " - " + smField;
+                            if (aggregationGetData[i].label) {
+                                objName = aggregationGetData[i].label;
+                            } else {
+                                objName = aggregationGetData[i].metricName + " - " + smField;
+                            }
                         }
 
                         if(smPayload.hasOwnProperty('trends'))
@@ -3380,7 +3384,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             return null; 
         }
         
-        function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture, t1, t2, showContentOnLoad)
+        function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture, t1, t2, showContentOnLoad, codeFlag)
         {
             if (showContentOnLoad != null && showContentOnLoad == "no") {
                 return;

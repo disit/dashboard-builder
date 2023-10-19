@@ -17,7 +17,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 ?>
 
 <script type='text/javascript'>
-    $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromTrackerFlag, fromTrackerDay, fromTrackerParams)
+    $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, fromGisMarker, fromGisMapRef, fromTrackerFlag, fromTrackerDay, fromTrackerParams, fromCsbl)
     {
 <?php
 $titlePatterns = array();
@@ -112,7 +112,7 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                 rowParameters = event.passedData[0].serviceUri;
                 sm_field = event.passedData[0].smField;
 
-                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, event.passedData[0].metricName, (event.passedData[0].title != null ? event.passedData[0].title : widgetTitle), null, (event.passedData[0].headerColor != null ? event.passedData[0].headerColor : widgetHeaderFontColor), true, rowParameters, sm_field, event.passedData[0].timeRange, null, null, false, null, null);
+                <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, event.passedData[0].metricName, (event.passedData[0].title != null ? event.passedData[0].title : widgetTitle), null, (event.passedData[0].headerColor != null ? event.passedData[0].headerColor : widgetHeaderFontColor), true, rowParameters, sm_field, event.passedData[0].timeRange, null, null, false, null, null, true);
 
                 //populateWidget(event.passedData[0].timeRange, null, null, 0, null, udmFromUserOptions);
 
@@ -969,8 +969,11 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
 
         }
 
-        function populateWidget(localTimeRange, kpiTracker, timeNavDirection, timeCount, dateInFuture, udmFromUserOptions, notFirstInst)
+        function populateWidget(localTimeRange, kpiTracker, timeNavDirection, timeCount, dateInFuture, udmFromUserOptions, notFirstInst, showContentOnLoad, fromCsbl)
         {
+            if ((showContentOnLoad != null && showContentOnLoad == "no") && !fromCsbl) {
+                return;
+            }
             if (fromGisExternalContent)
             {
                 // Reset Time Navigation
@@ -2559,7 +2562,16 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                 if (timeRangeCompare == null || timeRangeCompare == undefined) {
                     timeRangeCompare = widgetData.params.temporal_compare_w;
                 }
-                populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions);
+                var key = getQueryString()["entityId"];
+                if (key == null) {
+                    populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions);
+                } else {
+                    if (styleParameters != null && styleParameters.showContentLoadM != null) {
+                        populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions, null, styleParameters.showContentLoadM, fromCsbl);
+                    } else {
+                        populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions, null, null, fromCsbl);
+                    }
+                }
                 if (infoJson != "fromTracker" || fromGisExternalContent === true) {
                     var titleDiv = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv');
                     //    $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_infoButtonDiv').css("width", "3.5%");

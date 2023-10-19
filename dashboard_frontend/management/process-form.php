@@ -4293,6 +4293,13 @@
             } else {
                 $styleParametersArray["openNewTab"] = mysqli_real_escape_string($link, sanitizePostString('editWidgetOpenNewTab'));
             }
+            if ($type_widget_m == "widgetSingleContent" || $type_widget_m == "widgetTimeTrendCompare") {
+                if(isset($_POST['showContentLoadM'])&&($_POST['showContentLoadM']!="")) {
+                    $showContentLoadM = mysqli_real_escape_string($link, sanitizePostString('showContentLoadM'));
+                    $styleParametersArray['showContentLoadM'] = $showContentLoadM;
+                }
+            }
+            $styleParametersM = json_encode($styleParametersArray);
         }
 
         if($type_widget_m == "widgetTimeTrend")
