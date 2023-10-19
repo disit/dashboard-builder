@@ -4442,7 +4442,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         if (key == null) {
                             populateWidget(true, timeRange, null, timeNavCount);
                         } else {
-                            populateWidget(true, timeRange, null, timeNavCount, null, null, null, styleParameters.showContentLoadM);
+                            populateWidget(true, timeRange, null, timeNavCount, null, null, null, (styleParameters != null && styleParameters.showContentLoadM != null) ? styleParameters.showContentLoadM : null);
                         }
                     }
                 }
@@ -4452,7 +4452,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     if (key == null) {
                         populateWidget(false, null, null, timeNavCount);
                     } else {
-                        populateWidget(false, null, null, timeNavCount, null, null, null, styleParameters.showContentLoadM);
+                        populateWidget(false, null, null, timeNavCount, null, null, null, (styleParameters != null && styleParameters.showContentLoadM != null) ? styleParameters.showContentLoadM : null);
                     }
                 }
 

@@ -2566,11 +2566,7 @@ if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboa
                 if (key == null) {
                     populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions);
                 } else {
-                    if (styleParameters != null && styleParameters.showContentLoadM != null) {
-                        populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions, null, styleParameters.showContentLoadM, fromCsbl);
-                    } else {
-                        populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions, null, null, fromCsbl);
-                    }
+                    populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions, null, (styleParameters != null && styleParameters.showContentLoadM != null) ? styleParameters.showContentLoadM : null, fromCsbl);
                 }
                 if (infoJson != "fromTracker" || fromGisExternalContent === true) {
                     var titleDiv = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv');

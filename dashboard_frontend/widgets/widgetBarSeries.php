@@ -2096,7 +2096,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 if (key == null) {
                     populateWidget();
                 } else {
-                    populateWidget(null, null, styleParameters.showContentLoadM);
+                    populateWidget(null, null, (styleParameters != null && styleParameters.showContentLoadM != null) ? styleParameters.showContentLoadM : null);
                 }
 
 
