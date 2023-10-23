@@ -260,8 +260,11 @@
         var pattern = /Percentuale\//;
         
         //Definizioni di funzione specifiche del widget
-        function populateWidget()
+        function populateWidget(showContentOnLoad)
         {
+            if (showContentOnLoad != null && showContentOnLoad == "no") {
+                return;
+            }
             if(metricData !== null)
             {
                 if(metricData.data[0] !== 'undefined')
@@ -722,7 +725,12 @@
 
                                 $("#" + widgetName + "_loading").css("display", "none");
                                 $("#" + widgetName + "_content").css("display", "block");
-                                populateWidget();
+                                var key = getQueryString()["entityId"];
+                                if (key == null) {
+                                    populateWidget();
+                                } else {
+                                    populateWidget((styleParameters != null && styleParameters.showContentLoadM != null) ? styleParameters.showContentLoadM : null);
+                                }
                             },
                             error: function (errorData) {
                                 metricData = null;
