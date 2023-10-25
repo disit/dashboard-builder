@@ -4590,8 +4590,8 @@ if (!isset($_SESSION)) {
                         } else
                             break;
                     }
-                    // const gk = 'AIzaSyCxM-RjAx9e5sOqao_FCuA1Qugf2Mv9QLs';
-                    // const GOOGLE_MAPS_API_KEY = "AIzaSyBsntctk2YsoHxr_PeyfjeNhzbQZ_d4gsw"; // eslint-disable-line
+                    // const gk = 'XXX-YOUR-API-KEY';
+                    // const GOOGLE_MAPS_API_KEY = "XXX-YOUR-API-KEY-XXX"; // eslint-disable-line
                     // const TILESET_URL = 'https://tile.googleapis.com/v1/3dtiles/root.json';
                     // layers.google = new snap4deck.Tile3DLoweredLayer({
                     //     id: 'google-3d-tiles',
@@ -12393,7 +12393,7 @@ if (!isset($_SESSION)) {
             });
         }
         function createGoogleLayer() {
-            const gk = 'AIzaSyCxM-RjAx9e5sOqao_FCuA1Qugf2Mv9QLs';
+            const gk = 'XXX-YOUR-API-KEY';
             const TILESET_URL = 'https://tile.googleapis.com/v1/3dtiles/root.json';
             return new deck.Tile3DLayer({
                 id: 'google-3d-tiles',
@@ -18374,8 +18374,8 @@ if (!isset($_SESSION)) {
             }
         }
 
-        // leaflet token world 3d "9c04ad00edd787920af1a451bdd6553a", {
-        // map box token 'pk.eyJ1IjoiYW5kcmVhY29ydGk5MCIsImEiOiJjanhjN2dndTIwMGhnNDBvNDFkZzN3eHVoIn0.w07jn7vRfAcstoSz2EO5Ew';
+        // leaflet token world 3d "XXX-YOUR-3D-TOKEN-XXX", {
+        // map box token 'XXX-YOUR-TOKEN-XXX';
 
         // CORTI
         function getMenuAjaxCall() {
