@@ -494,15 +494,6 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     z-index: 500!important;
 }
 
-#universal-map-controls, #universal-map-overlay, #universal-map-popup {
-    position: absolute!important;
-    top: 45px!important;
-    left: 20px!important;
-    margin: 10px!important;
-    height: calc(100% - 85px)!important;
-    width: calc(100% - 60px)!important;
-}
-
 #universal-map-overlay .map-menu {
     left: 80px!important;
     top: 0px!important;
@@ -626,11 +617,6 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
 }
 
 .map3d {
-  position: absolute!important;
-  top: 45px!important;
-  left: 20px!important;
-  width: calc(100% - 40px)!important;
-  height: calc(100% - 65px)!important;
   border-radius: 30px!important;
   overflow: hidden!important;
 }

@@ -34979,6 +34979,7 @@
 										//////////////////////////////////	
                                             break;
 
+                                        case "widget3DMapDeckTest":    
                                         case "widget3DMapDeck":
                                             if(styleParamsRaw !== null)
                                             {

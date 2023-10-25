@@ -185,7 +185,7 @@ if (!isset($_SESSION)) {
         $roofedBuildingsPaths = scandir("../widgets/layers/edificato/roofBuildings");
         ?>
 
-        const version = '1.9.0';
+        const version = '1.12.0';
         const channel = 'relase';
 
         /** @type {MapManager} */
@@ -350,7 +350,7 @@ if (!isset($_SESSION)) {
             cycling: [],
             bus: null,
             building: null,
-            modifiedBuildings: null,
+            modifiedBuildings: [],
             dynamicBuildings: [],
             hiddenBuilding: null,
             hoverBuilding: null,
@@ -375,10 +375,18 @@ if (!isset($_SESSION)) {
             maxTiles: {
                 text: "Max number of tiles",
                 type: "Number",
-                default: 300,
-                value: 300,
-                min: 10,
+                default: 15,
+                value: 15,
+                min: 1,
                 max: 10000,
+            },
+            minTileZoom: {
+                text: "Min zoom 3D",
+                type: "Number",
+                default: 16,
+                value: 16,
+                min: 1,
+                max: 20,
             },
             animationEnabled: {
                 text: "Traffic Animation Enabled",
@@ -436,6 +444,48 @@ if (!isset($_SESSION)) {
                 displayedName: 'No Buildings',
                 id: 'menu-no-building',
                 action: () => {}
+            },
+            grid_building_tiled: {
+                displayedName: 'Building New Tiled',
+                id: 'menu-grid-building-tiled',
+                action: () => {
+                    layers.building = new snap4deck.BuildingTileLayer({
+                        data: 'https://www.snap4city.org/dashboardSmartCity/widgets/layers/edificato/grid_tiled/{x}/{y}/models.json',
+                        //data: 'http://localhost/dashboardSmartCity/widgets/layers/edificato/grid_tiled/{x}/{y}/models.json',
+                        // includedTiles: 'https://dashboard/dashboardSmartCity/widgets/layers/edificato/grid_tiled/list_grid_info.json',
+                        includedTiles: listGridInfo,
+                        maxRequest: 18,
+                        maxTiles: settingOptions.maxTiles.value,
+                        // minZoom: 15,
+                        minZoom: settingOptions.minTileZoom.value,
+                        minTileZoom: settingOptions.minTileZoom.value,
+                        // maxOffsetZoom: 1,
+                        onClick: (info, event) => {
+                            if (deckMode !== "selection")
+                                return;
+                            // info.object.picked = true;
+                            const data = [];
+                            const content = [];
+                            for (let contents of info.tile.content) {
+                                if (Array.isArray(contents))
+                                    content.push(...contents);
+                                else
+                                    content.push(contents);
+                            }
+                            for (let d of content) {
+                                data.push(...d.buildings)
+                            }
+                            console.log(data[info.index]);
+                            if (buildingSelected) {
+                                buildingSelected.picked = false;
+                            }
+                            buildingSelected = data[info.index];
+                            buildingSelected.picked = true;
+                            info.tile.layers[0].setNeedsRedraw();
+                            showInfoBuilding(buildingSelected, info.tile.layers[0]);
+                        },
+                    });
+                },
             },
             extruded: {
                 displayedName: 'Extruded Buildings',
@@ -510,57 +560,6 @@ if (!isset($_SESSION)) {
                     loadLowResGridSystemBuildings();
                 },
             },
-            grid_building: {
-                displayedName: 'Building New',
-                id: 'menu-grid-building',
-                action: () => {
-                    layers.building = new snap4deck.BuildingTileLayer({
-                        data: 'https://www.snap4city.org/dashboardSmartCity/widgets/layers/edificato/grid_single_building/{x}/{y}/models.json',
-                        includedTiles: '../widgets/layers/edificato/list_grid_info.json',
-                        onClick: (info, event) => {
-                            console.log('building clicked', info, event);
-                            info.object.picked = true;
-                        },
-                    });
-                },
-            },
-            grid_building_tiled: {
-                displayedName: 'Building New Tiled',
-                id: 'menu-grid-building-tiled',
-                action: () => {
-                    layers.building = new snap4deck.BuildingTileLayer({
-                        data: 'https://www.snap4industry.org/dashboardSmartCity/widgets/layers/edificato/grid_tiled/{x}/{y}/models.json',
-                        // data: 'https://www.snap4solutions.org/dashboardSmartCity/widgets/layers/edificato/grid_tiled/{x}/{y}/models.json',
-                        // data: 'https://www.snap4city.org/dashboardSmartCity/widgets/layers/edificato/grid_tiled/{x}/{y}/models.json',
-                        // includedTiles: 'https://dashboard/dashboardSmartCity/widgets/layers/edificato/grid_tiled/list_grid_info.json',
-                        includedTiles: listGridInfo,
-                        onClick: (info, event) => {
-                            if (deckMode !== "selection")
-                                return;
-                            // info.object.picked = true;
-                            const data = [];
-                            const content = [];
-                            for (let contents of info.tile.content) {
-                                if (Array.isArray(contents))
-                                    content.push(...contents);
-                                else
-                                    content.push(contents);
-                            }
-                            for (let d of content) {
-                                data.push(...d.buildings)
-                            }
-                            console.log(data[info.index]);
-                            if (buildingSelected) {
-                                buildingSelected.picked = false;
-                            }
-                            buildingSelected = data[info.index];
-                            buildingSelected.picked = true;
-                            info.tile.layers[0].setNeedsRedraw();
-                            showInfoBuilding(buildingSelected, info.tile.layers[0]);
-                        },
-                    });
-                },
-            }
         }
 
         const riccardoBuildingsProp = {
@@ -4423,6 +4422,13 @@ if (!isset($_SESSION)) {
             tileUrls.push(defaultTileUrl.replace('{s}', 'b'));
             tileUrls.push(defaultTileUrl.replace('{s}', 'c'));
 
+            updateListGridBuilding();
+            const settings = getCookie('settings');
+            if (settings && settings != "")
+                settingOptions = {
+                    ...settingOptions,
+                    ...JSON.parse(settings)
+                };
             // setting widget parameters
             if (widgetParameters) {
                 console.log('loading widget parameters', widgetParameters);
@@ -4480,9 +4486,15 @@ if (!isset($_SESSION)) {
                         } else
                             break;
                     }
-                    layers.terrain = createManagedTerrainLayer({
+                    layers.terrain = new snap4deck.MultiElevationTerrainLayer({
                         id: 'terrain-layer',
                         elevations,
+                        minZoom: 0,
+                        operation: 'terrain+draw',
+                        maxZoom: 18,
+                        material: {
+                            diffuse: 1
+                        },
                         texture: tileUrls,
                         tileSize: 256,
                         opacity: 1,
@@ -4491,7 +4503,9 @@ if (!isset($_SESSION)) {
                     layers.terrain = createTileLayer(tileUrls);
                 }
                 if (styleParameters.buildingType && supportedBuildings.hasOwnProperty(styleParameters.buildingType)) {
-                    supportedBuildings[styleParameters.buildingType].action();
+                    const buildingType = styleParameters.buildingType == 'glb' ? 'grid_building_tiled' : styleParameters.buildingType;
+                    supportedBuildings[buildingType].action();
+
                 } else {
                     loadAggregatedBuildings();
                 }
@@ -4531,29 +4545,28 @@ if (!isset($_SESSION)) {
                 height: height,
                 width: width,
             };
-            updateListGridBuilding();
 
-            const settings = getCookie('settings');
-            if (settings && settings != "")
-                settingOptions = {
-                    ...settingOptions,
-                    ...JSON.parse(settings)
-                };
             if (settingOptions.displayDecorations.value) {
                 $.ajax({
                     url: '../widgets/layers/decorations/trees/alberi_firenze.geojson',
                     success: (data) => {
+                        let model = '../widgets/layers/decorations/trees/tree_low_1.glb';
+                        let getOrientation = [0,0,0];
+                        let sizeScale = 1.3;
+                        if (settingOptions.realisticDecoration.value) {
+                            model = '../widgets/layers/decorations/trees/trees_low2.glb';
+                            getOrientation = [0,0,90];
+                            sizeScale = 0.017;
+                        }
                         layers.tree = new snap4deck.TreeLayer({
                             id: 'tree-layer',
-                            minZoom: 18,
-                            maxZoom: 18,
                             pickable: true,
-                            // maxTiles: settingOptions.maxTiles.value || 200,
-                            model: '../widgets/layers/decorations/trees/trees_low2.glb',
-                            getOrientation: [0,0,90],
-                            sizeScale: 0.01,
-                            // model: '../widgets/layers/decorations/trees/tree_low_1.glb',
-                            // data: data,
+                            model,
+                            getOrientation,
+                            sizeScale,
+                            maxTiles: settingOptions.maxTiles.value,
+                            // minZoom: 15,
+                            minTileZoom: settingOptions.minTileZoom.value,
                             data: data.features ? data : JSON.parse(data),
                             getElevation: (d) => {
                                 return d.properties && d.properties.elevation ? d.properties.elevation - elevationOffset : 0;
@@ -4614,7 +4627,8 @@ if (!isset($_SESSION)) {
                     fusionTopDown: snap4deck.jsonFusionTopDown,
                     fusionBottomUP: snap4deck.jsonFusionBottomUp,
                     getTileData: (tile) => {
-                        return fetch(tile.url).then((res) => res.text()).then(jsontext => {
+                        const {signal} = tile; 
+                        return fetch(tile.url).then((res) => res.text()).then(async jsontext => {
                             jsontext = JSON.parse(jsontext).results.bindings;
                             for (let binding of jsontext) {
                                 binding.startlong.value = parseFloat(binding.startlong.value);
@@ -4623,23 +4637,12 @@ if (!isset($_SESSION)) {
                                 binding.endlat.value    = parseFloat(binding.endlat.value);
                                 binding.startPos = [binding.startlong.value, binding.startlat.value, 0];
                                 binding.endPos = [binding.endlong.value, binding.endlat.value, 0];
+                                // if (terrainOn) {
+                                //     binding.startPos[2] = await layers.terrain.getAltitude(binding.startPos, signal);
+                                //     binding.endPos[2] = await layers.terrain.getAltitude(binding.endPos, signal);
+                                // }
                             }
                             return jsontext;
-                        }).then((json) => {
-                            let promises = [];
-                            for (let j of json) {
-                                promises.push(loadAltitude(j.startPos));
-                                promises.push(loadAltitude(j.endPos));
-                            }
-                            return Promise.all(promises).then((altitudes) => {
-                                let i = 0;
-                                for (let j of json) {
-                                    j.startPos[2] = altitudes[i];
-                                    j.endPos[2] = altitudes[i + 1];
-                                    i += 2;
-                                }
-                                return json;
-                            });
                         });
                     },
                     renderSubLayers: (props) => {
@@ -4647,6 +4650,8 @@ if (!isset($_SESSION)) {
                             return;
                         return new deck.LineLayer({
                             ...props,
+                            extensions: [new deck._TerrainExtension()],
+                            terrainDrawMode: 'offset',
                             pickable: true,
                             getWidth: 5,
                             getSourcePosition: d => d.startPos,
@@ -4689,8 +4694,9 @@ if (!isset($_SESSION)) {
                 views: new deck.MapView({
                     // farZMultiplier: 3,
                     // fovy: 90,
-                    altitude: 3,
+                    // altitude: 3,
                     // nearZMultiplier: 0.001,
+                    // farZMultiplier: 20000.21,
                     farZMultiplier: 2.21,
                 }),
 
@@ -4702,35 +4708,32 @@ if (!isset($_SESSION)) {
                     layers.tree,
                 ],
                 // /* uncomment for sky
-                _customRender: (redrawReason) => {
-                    if (skyOn && sky != undefined && map3d != undefined) {
-                        const {
-                            bearing,
-                            pitch,
-                            maxPitch
-                        } = currentViewState;
-                        sky.draw(bearing, pitch, maxPitch);
-                    }
-                    map3d._drawLayers(redrawReason, {
-                        clearCanvas: !skyOn
-                    });
-                },
+                // _customRender: (redrawReason) => {
+                //     if (skyOn && sky != undefined && map3d != undefined) {
+                //         const {
+                //             bearing,
+                //             pitch,
+                //             maxPitch
+                //         } = currentViewState;
+                //         sky.draw(bearing, pitch, maxPitch);
+                //     }
+                //     map3d._drawLayers(redrawReason, {
+                //         clearCanvas: !skyOn
+                //     });
+                // },
                 
                 onWebGLInitialized: (gl) => {
                     map3dGL = gl;
-                    var dbgRenderInfo = gl.getExtension("WEBGL_debug_renderer_info");
-                    console.log(gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL));
-                    console.log(gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL));
 
-                    if (skyOn) {
-                        sky = new Sky(gl);
-                        const {
-                            bearing,
-                            pitch,
-                            maxPitch
-                        } = currentViewState;
-                        sky.draw(bearing, pitch, maxPitch);
-                    }
+                    // if (skyOn) {
+                    //     sky = new Sky(gl);
+                    //     const {
+                    //         bearing,
+                    //         pitch,
+                    //         maxPitch
+                    //     } = currentViewState;
+                    //     sky.draw(bearing, pitch, maxPitch);
+                    // }
                 },
                 onViewStateChange: ({
                     viewState
@@ -4765,10 +4768,8 @@ if (!isset($_SESSION)) {
                         return null;
                     var displayedText = "";
                     var layer = info.tile ? info.tile.layers[0] : info.layer;
-                    if (info.layer instanceof snap4deck.CrestLayer) {
+                    if (layer instanceof snap4deck.CrestLayer) {
                         displayedText += `Traffic density: ${Math.floor(object.density * 100) / 100}`;
-                    } else if (info.layer instanceof snap4deck.BuildingTileLayer) {
-                        displayedText += `ID: ${object.ID}`;
                     } else if (info.layer instanceof snap4deck.TreeLayer) {
                         displayedText += `ID: ${object.properties.ID}</br>`;
                         displayedText += `Common Name: ${object.properties.NOME_COMUN}</br>`;
@@ -4788,6 +4789,8 @@ if (!isset($_SESSION)) {
                     }
                     // if (object.density)
                     //     displayedText += `Traffic density: ${Math.floor(object.density * 100) / 100}`;
+                    if (displayedText === "")
+                        return;
                     return object && {
                         html: `<p class="hoverName">${displayedText}</p>`,
                     };
@@ -4813,11 +4816,11 @@ if (!isset($_SESSION)) {
                     hideMenu(mapMenuId);
                     hideMenu(lightMenuId);
                 },
-                _onMetrics: (metric) => {
-                    if (benchmarkOn)
-                        metrics.push(metric)
-                    // $("#deck-metrics-div p").text(`FPS: ${metric.fps}`);
-                },
+                // _onMetrics: (metric) => {
+                //     if (benchmarkOn)
+                //         metrics.push(metric)
+                //     $("#deck-metrics-div p").text(`FPS: ${metric.fps}`);
+                // },
                 onClick: (info, event) => {
                     hideMenu(mapMenuId);
                     hideMenu(lightMenuId);
@@ -5073,7 +5076,6 @@ if (!isset($_SESSION)) {
             hideMenu(mapMenuId);
             hideMenu(lightMenuId);
 
-            // $('#deck-light-btn').click((event) => toggleLightMenu());
             $('#dropdownMenu1').click((event) => toggleMenu(mapMenuId));
             $('#orthomaps-btn').click((event) => {
                 setHeaderMenu('orthomaps');
@@ -5087,14 +5089,6 @@ if (!isset($_SESSION)) {
             $('#settings-btn').click((event) => {
                 setHeaderMenu('settings');
             });
-            // $('#lights-btn').click((event) => {
-            //     hideInnerMenus();
-            //     $('#lights-btn').removeClass('deck-btn');
-            //     $('#lights-btn').addClass('deck-btn-active');
-            //     showMenu("lights-menu-content");
-            //     setHeaderMenu('orthomaps');
-            // });
-
             $('#heatmap-info-btn').click(() => {
                 unselectInfo();
                 $('#heatmapLegend').css('display', 'block');
@@ -5785,6 +5779,8 @@ if (!isset($_SESSION)) {
                             return new snap4deck.Sensor3DLayer({
                                 ...props,
                                 data: props.data.features,
+                                extensions: [new deck._TerrainExtension()],
+                                terrainDrawMode: 'offset',
                                 getText: d => d.properties.lastValue[valueName],
                                 getElevation: d => (parseFloat(d.properties.lastValue[valueName]) / (max - min)) * 80,
                                 getFillColor: rgbaStringToArray(color1).slice(0,
@@ -6047,19 +6043,20 @@ if (!isset($_SESSION)) {
                                 ...commonState,
                                 ...props.commonState
                             }
-                            // const commonIconState = props.commonState ? props.commonState[1] : null;
                             return [
                                 createPathLayer({
                                     ...props,
                                     data: paths,
                                     id: `paths-${props.id}`,
-                                    // commonState: props.commonState[0]
+                                    extensions: [new deck._TerrainExtension()],
+                                    terrainDrawMode: 'offset',
                                 }),
                                 createSensorLayer({
                                     ...props,
                                     data: sensors,
                                     id: `sensors-${props.id}`,
-                                    // commonState: commonIconState
+                                    extensions: [new deck._TerrainExtension()],
+                                    terrainDrawMode: 'offset',
                                     commonState: commonState
                                 }),
                             ];
@@ -7910,7 +7907,9 @@ if (!isset($_SESSION)) {
                         getFusionCoords: d => d.startPos,
                         fusionTopDown: snap4deck.jsonFusionTopDown,
                         fusionBottomUP: snap4deck.jsonFusionBottomUp,
+                        tileSize: 256,
                         getTileData: (tile) => {
+                            const {signal} = tile;
                             return fetch(tile.url[0])
                             .then(response => response.text())
                             .then(roadsData => {
@@ -7922,29 +7921,8 @@ if (!isset($_SESSION)) {
                                     .then(response => response.text())
                                     .then(densityData => {
                                         const density = JSON.parse(densityData);
-                                        const allSegments = preProcessRoads(roads, density);
-                                        return allSegments;
-                                    }).then(allSegments => {
-                                        const promises = [];
-                                        for (let segment of allSegments) {
-                                            promises.push(loadAltitude(segment.startPos));
-                                            promises.push(loadAltitude(segment.endPos));
-                                        }
-                                        // return promises;
-                                        return Promise.all(promises)
-                                        .then((altitudes) => {
-                                            i = 0;
-                                            for (let segment of allSegments) {
-                                                segment.startPos[2] = altitudes[i];
-                                                segment.endPos[2] = altitudes[i + 1];
-                                                i += 2;
-                                            }
-                                            return allSegments;
-                                        });
-                                    })
-                                    // .then(ukn => {
-                                    //     console.log(ukn);
-                                    // });
+                                        return preProcessRoads(roads, density, signal);
+                                    });
                             });
 
                         },
@@ -7954,6 +7932,8 @@ if (!isset($_SESSION)) {
                             let tf_layer = new snap4deck.CrestLayer({
                                 ...props,
                                 pickable: true,
+                                extensions: [new deck._TerrainExtension()],
+                                terrainDrawMode: 'offset',
                                 getStartPosition: (d) => d.startPos,
                                 getEndPosition: (d) => d.endPos,
                                 getStartDensity: (d) => d.startDensity,
@@ -7963,44 +7943,14 @@ if (!isset($_SESSION)) {
                                 getMiddleColor: (d) => d.color.map(x => x / 255),
                                 getEndColor: (d) => d.endColor.map(x => x / 255),
                                 arrowSize: settingOptions.arrowSize.value || 20,
-                                // isAnimated: false,
                                 isAnimated: settingOptions.animationEnabled.value,
                                 currentTime: animationTime,
                                 updateTriggers: {
                                     currentTime: {
                                         time: animationTime,
                                     },
-                                    // getStartPosition: {
-                                    //     elevation: elevationChanged
-                                    // },
-                                    // getEndPosition: {
-                                    //     elevation: elevationChanged
-                                    // }
                                 }
                             });
-                            // let altitudeRemain = 0
-                            // let newData = [...props.data];
-                            // for (let d of newData) {
-                            //     loadAltitude(d.startPos[0], d.startPos[1], (altitude) => {
-                            //         d.startPos[2] = altitude;
-                            //         altitudeRemain--;
-                            //         if (altitudeRemain == 0) {
-                            //             console.log(props.tile)
-                            //             // tf_layer.getAttributeManager().invalidateAll();
-                            //             // tf_layer.setNeedsRedraw();
-                            //         }
-                            //     });
-                            //     loadAltitude(d.endPos[0], d.endPos[1], (altitude) => {
-                            //         d.endPos[2] = altitude;
-                            //         altitudeRemain--;
-                            //         if (altitudeRemain == 0) {
-                            //             console.log(props.tile)
-                            //             // tf_layer.getAttributeManager().invalidateAll();
-                            //             // tf_layer.setNeedsRedraw();
-                            //         }
-                            //     });
-                            //     altitudeRemain += 2;
-                            // }
                             return tf_layer;
                         },
                     });
@@ -8010,7 +7960,7 @@ if (!isset($_SESSION)) {
                     loadingDiv.setStatus('ok');
                     startTimerAnimation();
 
-                    function preProcessRoads(roads, density) {
+                    async function preProcessRoads(roads, density, signal) {
                         var result = density;
                         if (roads.length == null) {
                             loadingDiv.setStatus('ko');
@@ -8029,10 +7979,13 @@ if (!isset($_SESSION)) {
                                 var segment = road.segments[j];
                                 segment.startPos = [parseFloat(segment.start
                                     .long), parseFloat(segment.start
-                                    .lat)];
+                                    .lat), 0];
                                 segment.endPos = [parseFloat(segment.end.long),
-                                    parseFloat(segment.end.lat)
-                                ];
+                                    parseFloat(segment.end.lat), 0];
+                                // if (terrainOn) {
+                                //     segment.startPos[2] = await layers.terrain.getAltitude(segment.startPos, signal) || 0;
+                                //     segment.endPos[2] = await layers.terrain.getAltitude(segment.endPos, signal) || 0;
+                                // }
                                 var segmentDensity = density.data[0][segment.id];
                                 segment.density = parseFloat(segmentDensity) / parseFloat(segment.Lanes);
                                 if (segment.relativeDensity > 1)
@@ -8217,9 +8170,6 @@ if (!isset($_SESSION)) {
 
                             if (heatmapData[current_page].metadata != null) {
                                 heatmapDescr.firstChild.wholeText = heatmapData[current_page].metadata.date;
-                                if (is3dOn) {
-
-                                }
                             } else {
                                 heatmapDescr.firstChild.wholeText = heatmapData[current_page].dateTime;
                             }
@@ -8384,32 +8334,19 @@ if (!isset($_SESSION)) {
                                 }
                             }
                             map.defaultMapRef.removeControl(map.legendHeatmap);
-                            // $('#heatmap-info-btn').css('display', 'none');
-                            // $('#heatmapLegend').remove();
-                            /*    if(map.heatmapLegendColors) {
-                                    map.defaultMapRef.removeControl(map.heatmapLegendColors);
-                                }*/
+
                         } else { // NEW WMS HEATMAP
                             if (resetPageFlag == true) {
                                 current_page = 0;
                             }
                             if (wmsLayer != null)
                                 map.defaultMapRef.removeLayer(wmsLayer);
-                            // $('#heatmap-info-btn').css('display', 'none');
-                            // $('#heatmapLegend').remove();
-                            // map.defaultMapRef.removeControl(map.legendHeatmap);
-                            // if (animationOn == false) {
+
                             $('#heatmap-info-btn').css('display', 'none');
                             $('#heatmapLegend').remove();
                             switchToFirstActiveInfoMenu();
-                            // }
 
                             if (is3dOn) {
-                                if (terrainOn)
-                                    layers.terrain = createManagedTerrainLayer({
-                                        ...layers.terrain.props,
-                                        heatmap: null,
-                                    });
                                 layers.wms = null;
                                 updateLayers();
                             }
@@ -8449,10 +8386,6 @@ if (!isset($_SESSION)) {
                             map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
                             if (wmsLayer != null)
                                 map.defaultMapRef.removeLayer(wmsLayer);
-
-                            //if (is3dOn) {
-                            //removeLayerSet(wmsDatasetName, layers.wms);
-                            //}
                         }
                     }
 
@@ -8479,17 +8412,6 @@ if (!isset($_SESSION)) {
 
                     map.legendHeatmap.create = function() {
                         map.legendHeatmapDiv = $('<div id="heatmapLegend"></div>');
-                        // map.legendHeatmapDiv.id = "heatmapLegend";
-                        // map.legendHeatmapDiv = L.DomUtil.create('div');
-                        // map.legendHeatmapDiv.id = "heatmapLegend";
-                        // disable interaction of this div with map
-                        // if (L.Browser.touch) {
-                        //     L.DomEvent.disableClickPropagation(map.legendHeatmapDiv);
-                        //     L.DomEvent.on(map.legendHeatmapDiv, 'mousewheel', L.DomEvent
-                        //         .stopPropagation);
-                        // } else {
-                        //     L.DomEvent.on(map.legendHeatmapDiv, 'click', L.DomEvent.stopPropagation);
-                        // }
                         map.legendHeatmapDiv.css('width', '340px');
                         map.legendHeatmapDiv.css('fontWeight', 'bold');
                         map.legendHeatmapDiv.css('background', 'var(--wdgt-bg-color);');
@@ -8609,25 +8531,16 @@ if (!isset($_SESSION)) {
                                     if (is3dOn) {
                                         const opacity = parseFloat(this.value);
                                         if (gifWms.isAnimated == true) {
-                                            const oldProps = layers.wms.props;
                                             gifWms.opacity = opacity;
-                                            const id = oldProps.id;
-                                            const image = oldProps.image;
-                                            const bounds = oldProps.bounds;
-                                            layers.wms = createImageLayer(image, bounds, id,
-                                                opacity);
+                                            layers.wms = new deck.BimapLayer({
+                                                ...layers.wms.props,
+                                                opacity
+                                            });
                                         } else {
-                                            if (terrainOn) {
-                                                layers.terrain = createManagedTerrainLayer({
-                                                    ...layers.terrain.props,
-                                                    heatmapOpacity: opacity
-                                                });
-                                            } else {
-                                                layers.wms = createHeatmapLayer({
-                                                    ...layers.wms.props,
-                                                    opacity
-                                                });
-                                            }
+                                            layers.wms = createHeatmapLayer({
+                                                ...layers.wms.props,
+                                                opacity
+                                            });
                                         }
                                         updateLayers();
                                     }
@@ -8772,16 +8685,10 @@ if (!isset($_SESSION)) {
                                             layers.trafficWms = createImageLayer(image, bounds, id,
                                                 opacity);
                                         } else {
-                                            if (terrainOn)
-                                                layers.terrain = createManagedTerrainLayer({
-                                                    ...layers.terrain.props,
-                                                    trafficOpacity: opacity
-                                                });
-                                            else
-                                                layers.trafficWms = createHeatmapLayer({
-                                                    ...layers.trafficWms.props,
-                                                    opacity
-                                                });
+                                            layers.trafficWms = createHeatmapLayer({
+                                                ...layers.trafficWms.props,
+                                                opacity
+                                            });
                                         }
                                         updateLayers();
                                     }
@@ -8857,11 +8764,6 @@ if (!isset($_SESSION)) {
                             }
                             if (is3dOn) {
                                 gifWmsTraffic.isAniamted = false;
-                                if (terrainOn)
-                                    layers.terrain = createManagedTerrainLayer({
-                                        ...layers.terrain.props,
-                                        traffic: null,
-                                    });
                                 layers.trafficWms = null;
                                 updateLayers();
                             }
@@ -8890,11 +8792,6 @@ if (!isset($_SESSION)) {
                             }
                             if (is3dOn) {
                                 gifWmsTraffic.isAniamted = false;
-                                if (terrainOn)
-                                    layers.terrain = createManagedTerrainLayer({
-                                        ...layers.terrain.props,
-                                        traffic: null,
-                                    });
                                 layers.trafficWms = null;
                                 updateLayers();
                             }
@@ -9454,19 +9351,12 @@ if (!isset($_SESSION)) {
                                                 "&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A4326";
                                             trafficWmsUrl += '&bbox={bbox}';
 
-                                            if (terrainOn)
-                                                layers.terrain = createManagedTerrainLayer({
-                                                    ...layers.terrain.props,
-                                                    traffic: trafficWmsUrl,
-                                                    trafficOpacity: 1,
-                                                });
-                                            else
-                                                layers.trafficWms = createHeatmapLayer({
-                                                    data: trafficWmsUrl,
-                                                    id: datasetName,
-                                                    tileSize: 256,
-                                                    opacity: 1
-                                                });
+                                            layers.trafficWms = createHeatmapLayer({
+                                                data: trafficWmsUrl,
+                                                id: datasetName,
+                                                tileSize: 256,
+                                                opacity: 1
+                                            });
                                             updateLayers();
                                         }
 
@@ -9636,21 +9526,12 @@ if (!isset($_SESSION)) {
                                                         "&&tiled=true&width=256&height=256&srs=EPSG%3A4326";
                                                     wmsUrl += '&bbox={bbox}';
 
-                                                    if (terrainOn) {
-                                                        layers.terrain = createManagedTerrainLayer({
-                                                            ...layers.terrain.props,
-                                                            heatmap: wmsUrl,
-                                                            heatmapOpacity: 0.25,
-                                                        });
-                                                        updateLayers();
-                                                    } else {
-                                                        const heatmapLayer = createHeatmapLayer({
-                                                            data: wmsUrl,
-                                                            id: wmsDatasetName
-                                                        });
-                                                        layers.wms = heatmapLayer;
-                                                        updateLayers();
-                                                    }
+                                                    const heatmapLayer = createHeatmapLayer({
+                                                        data: wmsUrl,
+                                                        id: wmsDatasetName
+                                                    });
+                                                    layers.wms = heatmapLayer;
+                                                    updateLayers();
                                                 } else {
                                                     wmsLayer = L.tileLayer.wms(geoServerUrl +
                                                         "geoserver/Snap4City/wms", {
@@ -9801,18 +9682,10 @@ if (!isset($_SESSION)) {
                                         "&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A4326";
                                     trafficWmsUrl += '&bbox={bbox}';
 
-                                    if (terrainOn) {
-                                        layers.terrain = createManagedTerrainLayer({
-                                            ...layers.terrain.props,
-                                            traffic: trafficWmsUrl,
-                                        });
-                                        layers.trafficWms = null;
-                                    }
-                                    else
-                                        layers.trafficWms = createHeatmapLayer({
-                                            ...layers.trafficWms,
-                                            data: trafficWmsUrl
-                                        });
+                                    layers.trafficWms = createHeatmapLayer({
+                                        ...layers.trafficWms,
+                                        data: trafficWmsUrl
+                                    });
                                     updateLayers();
                                 }
                                 trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
@@ -10235,16 +10108,11 @@ if (!isset($_SESSION)) {
                                                             wmsUrl +=
                                                                 "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
                                                             wmsUrl += '&bbox={bbox}';
-                                                            if (terrainOn)
-                                                                layers.terrain = createManagedTerrainLayer({
-                                                                    ...layers.terrain.props,
-                                                                    heatmap: wmsUrl
-                                                                });
-                                                            else
-                                                                layers.wms = createHeatmapLayer({
-                                                                    data: wmsUrl,
-                                                                    id: wmsDatasetName
-                                                                });
+
+                                                            layers.wms = createHeatmapLayer({
+                                                                data: wmsUrl,
+                                                                id: wmsDatasetName
+                                                            });
                                                             updateLayers();
                                                         }
 
@@ -10464,18 +10332,10 @@ if (!isset($_SESSION)) {
                                                     wmsUrl +=
                                                         "&&tiled=true&width=512&height=512&srs=EPSG%3A4326";
                                                     wmsUrl += '&bbox={bbox}';
-                                                    if (terrainOn) {
-                                                        layers.terrain = createManagedTerrainLayer({
-                                                            ...layers.terrain.props,
-                                                            heatmap: wmsUrl
-                                                        });
-                                                        layers.wms = null;
-                                                    }
-                                                    else
-                                                        layers.wms = createHeatmapLayer({
-                                                            data: wmsUrl,
-                                                            id: wmsDatasetName
-                                                        });
+                                                    layers.wms = createHeatmapLayer({
+                                                        data: wmsUrl,
+                                                        id: wmsDatasetName
+                                                    });
                                                     updateLayers();
                                                 }
 
@@ -10931,14 +10791,10 @@ if (!isset($_SESSION)) {
 
                     if (is3dOn) {
                         delete apiUrls3D[`${passedData.desc}`];
-                        // if (display == "undefined" || display.includes('pins')) {
                         removeLayerSet(`${passedData.desc}-layer`, layers.pin);
                         removeLayerSet(`${passedData.desc}-elevated`, layers.pin);
-                        // }
                         removeLayerSet(passedData.desc, layers.fixedPins);
                         removeLayerSet(`${passedData.desc}-RT`, layers.fixedPins);
-                        // if (display.includes('geometries'))
-                        //     removeLayerSet(passedData.desc, layers.cycling);
                         updateLayers();
                     }
 
@@ -11170,22 +11026,8 @@ if (!isset($_SESSION)) {
                         if (resetPageFlag == true) {
                             current_page = 0;
                         }
-                        if (wmsDatasetName.includes('elevationTerrain=true')) {
-                            if (terrainOn == true) {
-                                const oldData = layers.terrain.props.texture;
-                                const terrainLayer = createTileLayer(oldData);
-                                terrainOn = false;
-                                layers.terrain = terrainLayer;
-                            }
-                        } else {
                             gifWms.isAnimated = false;
-                            if (terrainOn)
-                                layers.terrain = createManagedTerrainLayer({
-                                    ...layers.terrain.props,
-                                    heatmap: null,
-                                });
                             layers.wms = null;
-                        }
                         updateLayers();
                         if (wmsLayer != null)
                             map.defaultMapRef.removeLayer(wmsLayer);
@@ -11261,11 +11103,6 @@ if (!isset($_SESSION)) {
                             switchToFirstActiveInfoMenu();
                             if (is3dOn) {
                                 gifWmsTraffic.isAnimated = false;
-                                if (terrainOn)
-                                    layers.terrain = createManagedTerrainLayer({
-                                        ...layers.terrain.props,
-                                        traffic: null,
-                                    });
                                 layers.trafficWms = null;
                                 updateLayers();
                             }
@@ -11380,56 +11217,6 @@ if (!isset($_SESSION)) {
             });
         }
 
-        function createManagedTerrainLayer(props) {
-            return new snap4deck.ManagedTerrainLayer({
-                id: 'terrain-layer',
-                minZoom: 0,
-                maxZoom: 18,
-                tileSize: 256,
-                opacity: 1,
-                loadOptions: {
-                    terrain: {
-                        tesselator: 'martini',
-                    },
-                },
-                refinementStrategy: 'best-available',
-                color: [255, 255, 255],
-                // elevationData: elevationUrl,
-                ...props,
-            });
-        }
-
-        function createNewTerrainTileLayer(props) {
-            var {
-                elevationUrl
-            } = props;
-            // elevationUrl = elevationUrl.replace('width=512', 'width=256');
-            // elevationUrl = elevationUrl.replace('height=512', 'height=256');
-            elevationUrl = elevationUrl.replace('width=256', 'width=512');
-            elevationUrl = elevationUrl.replace('height=256', 'height=512');
-            return new NewTerrainLayer({
-                id: 'terrain-layer',
-
-                minZoom: 0,
-                maxZoom: 18,
-                tileSize: 256,
-                opacity: 1,
-                elevationDecoder,
-                loadOptions: {
-                    terrain: {
-                        tesselator: 'martini',
-                        // tesselator: 'delatin',
-                        // meshMaxError: 20,
-                    },
-                },
-                refinementStrategy: 'best-available',
-                color: [255, 255, 255],
-                elevationData: elevationUrl,
-                ...props,
-                // texture: elevationUrl,
-            });
-        }
-
         function createBitmapLayer(image, bounds, id = 'bitmap-layer') {
             return new deck.BitmapLayer({
                 id,
@@ -11445,16 +11232,10 @@ if (!isset($_SESSION)) {
                 data: image,
                 opacity: opacity,
                 image: image,
+                extensions: [new deck._TerrainExtension()],
+                terrainDrawMode: 'drape',
                 bounds: bounds,
                 textureParameters: {
-                    // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.NEAREST,
-                    // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.LINEAR,
-                    // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.NEAREST,
-                    // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.NEAREST_MIPMAP_NEAREST,
-                    // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.LINEAR_MIPMAP_NEAREST,
-                    // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.NEAREST_MIPMAP_LINEAR,
-                    // [map3dGL.TEXTURE_MIN_FILTER]: map3dGL.LINEAR_MIPMAP_LINEAR,
-                    // [map3dGL.TEXTURE_MAG_FILTER]: map3dGL.NEAREST,
                     [map3dGL.TEXTURE_WRAP_S]: map3dGL.REPEAT,
                     [map3dGL.TEXTURE_WRAP_T]: map3dGL.REPEAT,
                 },
@@ -11498,14 +11279,10 @@ if (!isset($_SESSION)) {
                 id: 'heatmap-layer',
                 type: "heatmap",
                 tileSize: 256,
-                // tileSize: 512,
                 opacity: 0.2,
                 minZoom: 0,
                 maxZoom: 18,
                 pickable: false,
-                parameters: {
-                    depthTest: false
-                },
                 renderSubLayers: props => {
                     const {
                         bbox: {
@@ -11519,19 +11296,19 @@ if (!isset($_SESSION)) {
                     return new deck.BitmapLayer(props, {
                         data: null,
                         image: props.data,
-                        // image: url + `&bbox=${west},${south},${east},${north}`,
-                        // textureParameters: pixelParams,
+                        extensions: [new deck._TerrainExtension()],
+                        terrainDrawMode: 'drape',
                         textureParameters: selectedParams,
                         bounds: [west, south, east, north],
-                        parameters: {
+                        parameters: { 
                             depthTest: false
-                        }
+                        },
                     });
                 },
                 updateTriggers: {
                     renderSubLayers: wmsBlurred
                 },
-                ...props
+                ...props,
             });
 
         }
@@ -11758,20 +11535,6 @@ if (!isset($_SESSION)) {
             });
         }
 
-        // function createSceneGraphLayer(props) {
-        //     const {position, scenegraph} = props;
-        //     const name = scenegraph.split("/").pop();
-        //     return new deck.ScenegraphLayer({
-        //         id: `${name.replace('.', '-')}-scene-layer`,
-        //         data: [{
-        //             position
-        //         }],
-        //         pickable: false,
-        //         _lighting: 'pbr',
-        //         getPosition: d => d.position,
-        //         ...props,
-        //     });
-        // }
         function createSceneGraphLayer(props) {
             const {
                 position,
@@ -11948,7 +11711,7 @@ if (!isset($_SESSION)) {
 
         function clearBuildings() {
             layers.building = null;
-            layers.modifiedBuildings = null;
+            layers.modifiedBuildings = [];
             layers.dynamicBuildings = [];
         }
 
@@ -12689,7 +12452,7 @@ if (!isset($_SESSION)) {
                     ...layers.cycling,
                     layers.bus,
                     layers.building,
-                    layers.modifiedBuildings,
+                    ...layers.modifiedBuildings,
                     ...layers.dynamicBuildings,
                     layers.tree,
                     layers.hiddenBuilding,
@@ -13350,6 +13113,14 @@ if (!isset($_SESSION)) {
                 "float": "right"
             });
             const buttons = $('#building-info-content button').toArray()
+            let j = 0;
+            for (let l of layers.modifiedBuildings) {
+                layers.modifiedBuildings[j] = new deck.ScenegraphLayer({
+                    ...l.props,
+                    data: [...l.props.data]
+                });
+                j++;
+            }
             for (let i = 0; i < buttons.length; i++) {
                 buttons[i].addEventListener('click', (event, info) => {
                     console.log(event, info);
@@ -13365,7 +13136,7 @@ if (!isset($_SESSION)) {
                     event.currentTarget.disabled = true;
                     building.usedModel = building.models[i];
                     building.glb = `${building.tileUrl}/${building.usedModel.path}`;
-                    building.picked = false;
+                    // building.picked = true;
                     if (!building.removedFromScene) {
                         let oldData = layer.props.data;
                         for (let d of oldData) {
@@ -13376,7 +13147,6 @@ if (!isset($_SESSION)) {
                                     nodes.splice(i,1);
                                     building.removedFromScene = true;
                                     break;
-                                    break;
                                 }
                                 i++;
                             }
@@ -13384,50 +13154,51 @@ if (!isset($_SESSION)) {
                         layer.setNeedsRedraw();
                     }
                     console.log(layer);
-                    // TODO risolvere il problema 
-                    if (layers.modifiedBuildings) {
-                        const oldData = [...layers.modifiedBuildings.props.data];
-                        let founded = false;
-                        let i = 0;
-                        for (let d of oldData) {
-                            if (d.ID === building.ID) {
-                                founded = true;
-                                oldData.splice(i, 1);
-                                break;
-                            }
-                            i++;
-                        }
-                        oldData.push(building);
-                        layers.modifiedBuildings = new snap4deck.BuildingLayer({
-                            ...layers.modifiedBuildings.props,
-                            data: oldData,
-                        });
-                        // layers.modifiedBuildings = null;
-                        updateLayers();
-                    } else {
-                        layers.modifiedBuildings = new snap4deck.BuildingLayer({
-                            data: [building],
-                            pickable: true,
-                            _lighting: 'pbr',
-                            getPosition: d => {
-                                if (Array.isArray(d.usedModel.coords) && d.usedModel.coords.length == 2)
-                                    return [...d.usedModel.coords, -47.79]
-                                return [0, 0, 0];
+
+                    let j = 0;
+                    for (let l of layers.modifiedBuildings) {
+                        if (l.id === building.ID) {
+                            layers.modifiedBuildings.splice(j, 1);
+                            break;
+                        } 
+                        j++;
+                    }
+
+                    const blayer = new deck.ScenegraphLayer({
+                        id: building.ID,
+                        data: [building],
+                        scenegraph: building.glb,
+                        pickable: true,
+                        _lighting: 'pbr',
+                        getPosition: d => {
+                            if (Array.isArray(d.usedModel.coords) && d.usedModel.coords.length == 2)
+                                return [...d.usedModel.coords, -47.79]
+                            return [0, 0, 0];
+                        },
+                        getColor: d => d.picked ? [255,255,100] : [255,255,255],
+                        updateTriggers: {
+                            getColor: {
+                                color: building.picked,
                             },
-                            onClick: (info, event) => {
-                                if (deckMode !== "selection")
-                                    return;
-                                console.log(info, event);
-                                showInfoBuilding(info.object, info.layer);
+                        },
+                        onClick: (info, event) => {
+                            if (deckMode !== "selection")
+                                return;
+                            if (buildingSelected) {
+                                buildingSelected.picked = false;
                             }
-                        });
-                    } 
-                    // layers.building = null;
+                            buildingSelected = building;
+                            buildingSelected.picked = true;
+                            showInfoBuilding(info.object, info.layer);
+                        }
+                    });
+                    layers.modifiedBuildings.push(blayer)
                     updateLayers();
                 });
             }
             $('#building-info-btn').css('display', 'block');
             $('#building-info-btn').click();
+            updateLayers();
         }
 
 
@@ -18410,7 +18181,7 @@ if (!isset($_SESSION)) {
                 tileUrls.push(menu.linkUrl.replace("{s}", "b"));
                 tileUrls.push(menu.linkUrl.replace("{s}", "c"));
                 if (terrainOn)
-                    layers.terrain = createManagedTerrainLayer({
+                    layers.terrain = new snap4deck.MultiElevationTerrainLayer({
                         ...layers.terrain.props,
                         // elevationUrl,
                         texture: tileUrls,

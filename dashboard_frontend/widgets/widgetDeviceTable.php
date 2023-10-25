@@ -1159,9 +1159,18 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 				start_value:<input type="text" id="start_value_<?= $_REQUEST['name_w'] ?>" />
 				url:<input type="text" id="url_<?= $_REQUEST['name_w'] ?>" />
 			</div>
-			<label class="mod2">Show	<select id="n_rows_<?= $_REQUEST['name_w'] ?>" aria-controls="maintable" class="form-control input-sm"><option value=5>5</option><option value=10>10</option><option value=20>20</option></select> </label>
-			<div class="pull-right mod2"><div id="maintable_filter_<?= $_REQUEST['name_w'] ?>" class="dataTables_filter"><label style="color: rgb(0, 0, 0);">Search:<input type="search" class="form-control input-sm" placeholder="" aria-controls="maintable" id="searchlabel_<?= $_REQUEST['name_w'] ?>"></label></div></div>
+
+
+<div class="table-list-header-pag">
+
+
+<label class="mod2">Show	<select id="n_rows_<?= $_REQUEST['name_w'] ?>" aria-controls="maintable" class="form-control input-sm"><option value=5>5</option><option value=10>10</option><option value=20>20</option></select> </label>
+         <div class="pull-right mod2"><div id="maintable_filter_<?= $_REQUEST['name_w'] ?>" class="dataTables_filter"><label>Search:<input type="search" class="form-control input-sm" placeholder="" aria-controls="maintable" id="searchlabel_<?= $_REQUEST['name_w'] ?>"></label></div></div>
 			<div id="paging_table_<?= $_REQUEST['name_w'] ?>" class="mod2"></div>
+
+
+</div>
+
 
             <table id="maintable_<?= $_REQUEST['name_w'] ?>" class="table table-striped table-bordered display responsive" cellspacing="0" style="width:100%">
 					<thead id="thead_<?= $_REQUEST['name_w'] ?>" ></thead>

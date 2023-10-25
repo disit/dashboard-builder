@@ -501,19 +501,6 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     left: 30px!important;
 }
 
-#universal-map-controls, #universal-map-overlay, #universal-map-popups {
-    position: absolute!important;
-    top: 55px!important;
-    height: calc(100% - 55px)!important;
-    width: calc(100% - 0px)!important;
-}
-
-#universal-map-controls, #universal-map-overlay {
-    margin: 10px!important;
-    height: calc(100% - 70px)!important;
-    width: calc(100% - 20px)!important;
-}
-
 #universal-top-right {
     background-color: var(--dash-bg-color)!important;
     border-radius: 10px!important;
@@ -4522,4 +4509,15 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
 
 .dataTables_scrollBody table tbody td button.btn i{
   font-size: 1.5rem!important;
+}
+
+.table-list-header-pag {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 1%;
+}
+
+.table-list-header-pag ul.pagination{
+    margin: 0 auto!important;
 }

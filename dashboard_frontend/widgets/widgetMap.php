@@ -384,10 +384,14 @@ if (!isset($_SESSION)) {
                 marker.on('mouseover', function (event) {
                     if (feature.properties.deviceName != null) {
                         let tooltipString = "";
-                        if (feature.properties.deviceName.split("_").length > 2) {
-                            tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
+                        if (feature.properties.deviceName.includes("building") || feature.properties.deviceName.includes("floor")) {
+                            if (feature.properties.deviceName.split("_").length > 2) {
+                                tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
+                            } else {
+                                tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
+                            }
                         } else {
-                            tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
+                            tooltipString = feature.properties.deviceName;
                         }
                         this.bindTooltip(tooltipString);
                         event.target.openTooltip();
@@ -398,12 +402,6 @@ if (!isset($_SESSION)) {
                 marker.on('click', function (event) {
                     //    map.defaultMapRef.off('moveend');
                     if (feature.properties.deviceName != null) {
-                        let tooltipString = "";
-                        if (feature.properties.deviceName.split("_").length > 2) {
-                            tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
-                        } else {
-                            tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
-                        }
                         this.unbindTooltip(feature.properties.deviceName);
                     }
                     if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code){
@@ -7370,6 +7368,1324 @@ if (!isset($_SESSION)) {
                         // resizeMapView(map.defaultMapRef);
                     }
                 });
+
+//####################################################################################################################
+//########################################## Collini #################################################################
+//################################### TRAFFIC SCENARY BUILDER SECTION ################################################
+// - variable, function, classes definition                           ################################################
+// - main progam - SCENARIO BUILDER EVENT TRIGGERED                   ################################################
+// - removeTrafficScenary                                             ################################################
+//####################################################################################################################
+//####################################################################################################################
+
+                //#####################################################################################################
+                //#####################################################################################################
+                //####################### variable, function, classes definition  #####################################
+                //#####################################################################################################
+                //#####################################################################################################
+                //
+                
+                //global variables........
+                const SENSOR_API_URL = "https://www.snap4city.org/superservicemap/api/v1/?";
+                var lAccessToken = null; // variabile per tenere il mio access token per le richieste                
+                var lorganizzazione = null;
+                var ilbrokerdellorganizzazione = null;
+                var drawerControl = null; // layer di riferimento dell tool per la selezione di disegni su mappa
+                var scenaryDrawnItems = null; // layer di riferimento per gli oggetti disengati sulla mappa              
+                var scenaryControl = null;  // layer di riferimento per il pannello di controllo dello scenary builder
+                var scenaryMarkers = null; // layer di riferimento per i sensori nel poligono disegnato                      
+                var scenaryData = new L.geoJSON(); // variabile di riferimento per i metadati e json dello scenario
+                var scenarioData = null; // variabile per tenere i dati in json dello scenario considerato per poi restituirlo
+                var isStatoAccorpato = false;
+                var isSaveFinalSet = false; // mi inizializzo il controllo se il bottone è stato inserito                
+                var loadingboxloaded = false; //  mi inizializzo la var per attendere che il grafo sia caricato per salvare lo scenario
+                scenaryData.type= "FeatureCollection"; 
+                scenaryData.features = [];
+                var datidaisensorichestoconsiderando = []; // variabile di riferimento per i dati dei sensori reali
+                var istanzedeisensorichestoconsiderando = []; // variabile di appoggio per tenere le istanze dei dati up della classe ISensori
+                var istanzedelgrafochestoconsiderando = []; // variabile di appoggio per tenere i road element identificativi del grafo
+                var acData = []; // inizializzo la variabie per contenere il grafo accorpato
+                var js20Data = []; // inizializzo la variabile per contenere il js a 20 metri
+
+                //############################ UTILS functions #######################################################
+                // handleIntersectionsAndSensors(polygonWKT)
+                // getPolygonWKTFromScenarioArea(scenarioareaOfInterest)
+                // calculateIntersection(point1, point2, point3, point4)
+                // calculateIntersections(strade,polygonCoordinates)
+                // removeParenthesesFromValues(obj)
+                // removeTrattiniFromValues(obj)
+                // showNotification(message)
+
+                // Function to handle road intersections and add sensors to the map
+                function handleIntersectionsAndSensors(polygonWKT) {
+                    const roadIntersections = calculateIntersections(istanzedelgrafochestoconsiderando, polygonWKT.match(/\d+\.\d+\s\d+\.\d+/g).map(coordinateStr => coordinateStr.split(' ').map(Number)));
+                    roadIntersections.forEach(intersection => {
+                        const elementoStradaleUri = intersection.elementoStradaleUri;
+                        const intersectionPoints = intersection.intersectionPoints;
+                        intersectionPoints.forEach(point => {
+                        const lat = point.lat;
+                        const lon = point.lon;
+                        const ilSensore = new IlSensore(elementoStradaleUri, [lon, lat], true);
+                        istanzedeisensorichestoconsiderando.push(ilSensore);
+                        scenaryMarkers.addLayer(ilSensore.marker);
+                        });
+                    });
+                }
+
+                // funzione che mi converte il poligono che ho in WKT
+                function getPolygonWKTFromScenarioArea(scenarioareaOfInterest) {
+                    const coordinates = scenarioareaOfInterest[0].geometry.coordinates[0].map(coordPair => coordPair.join(" ")).join(", ");
+                    const polygonWKT = `POLYGON ((${coordinates}))`;
+                    return polygonWKT;
+                }
+                
+                // funzione che mi calcola l'intersezione tra due punti che in realtà sono i primi del perimetro del polygon wkt 
+                // e gli altri due sono del road element...  mammamia però funziona ;)
+                function calculateIntersection(point1, point2, point3, point4) {
+                    const x1 = point1.lon;
+                    const y1 = point1.lat;
+                    const x2 = point2.lon;
+                    const y2 = point2.lat;
+                    const x3 = point3[0];
+                    const y3 = point3[1];
+                    const x4 = point4[0];
+                    const y4 = point4[1];
+                    const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+                    const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+                    if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
+                        const lon = x1 + ua * (x2 - x1);
+                        const lat = y1 + ua * (y2 - y1);
+                        return { lat, lon }; // ritorna l'intersezione
+                    }
+                    return null; // Nessuna intersezione
+                }
+            
+                // e questo era solo l'inizio ecco la funzione per calcolare le intersezioni...
+                // Funzione per calcolare l'intersezione tra una strada e il poligono
+                function calculateIntersections(strade,polygonCoordinates) {
+                    const intersections = [];
+                    for (const strada of strade) {
+                        const startlat = strada['nALat'];
+                        const startlong = strada['nALong'];
+                        const endlat = strada['nBLat'];
+                        const endlong = strada['nBLong'];
+                        const elementostradale = strada['segment'];
+                        // Creazione di una LineString per rappresentare la strada
+                        const roadCoordinates = [
+                            { lon: startlong, lat: startlat },
+                            { lon: endlong, lat: endlat }
+                        ];
+                        // Controllo delle intersezioni tra la strada e il perimetro del poligono
+                        const intersectionPoints = [];
+                        for (let i = 0; i < roadCoordinates.length - 1; i++) {
+                            const point1 = roadCoordinates[i];
+                            const point2 = roadCoordinates[i + 1];
+                            for (let j = 0; j < polygonCoordinates.length - 1; j++) {
+                                const polygonPoint1 = polygonCoordinates[j];
+                                const polygonPoint2 = polygonCoordinates[j + 1];
+                                const intersection = calculateIntersection(point1, point2, polygonPoint1, polygonPoint2);
+                                if (intersection) {
+                                    intersectionPoints.push(intersection);
+                                }
+                            }
+                        }
+                        if (intersectionPoints.length > 0) {
+                            intersections.push({
+                                elementoStradaleUri: elementostradale,
+                                intersectionPoints: intersectionPoints
+                            });
+                        }
+                    }
+                    return intersections;
+                }
+
+                // Function to remove parentheses from values
+                function removeParenthesesFromValues(obj) {
+                    if (typeof obj !== "object" || obj === null) {
+                        return obj;
+                    }
+                    if (Array.isArray(obj)) {
+                        return obj.map(removeParenthesesFromValues);
+                    }
+                    const newObj = {};
+                    for (const key in obj) {
+                        if (obj.hasOwnProperty(key)) {
+                            const value = obj[key];
+                            if (typeof value === "string") {
+                                newObj[key] = value.replace(/[()]/g, ""); // Remove parentheses from strings
+                            } else {
+                                newObj[key] = removeParenthesesFromValues(value);
+                            }
+                        }
+                    }
+                    return newObj;
+                }
+
+                // Function to remove parentheses from values
+                function removeTrattiniFromValues(obj) {
+                    if (typeof obj !== "object" || obj === null) {
+                        return obj;
+                    }
+                    if (Array.isArray(obj)) {
+                        return obj.map(removeTrattiniFromValues);
+                    }
+                    const newObj = {};
+                    for (const key in obj) {
+                            if (obj.hasOwnProperty(key)) {
+                            const value = obj[key];
+                            if (typeof value === "string") {
+                                newObj[key] = value.replace(/-/g, ""); // Remove parentheses from strings
+                            } else {
+                                newObj[key] = removeTrattiniFromValues(value);
+                            }
+                        }
+                    }
+                    return newObj;
+                }
+
+                // funciton to handle the visualization of the notifications of the scenario-builder menu
+                function showNotification(message) {
+                    const notification = document.getElementById("notification");
+                    const notificationMessage = document.getElementById("notification-message");
+                    // Imposta il messaggio della notifica
+                    notificationMessage.innerText = message;
+                    // Mostra la notifica
+                    notification.style.display = "block";
+                    // Nasconde la notifica dopo 5 secondi (5000 millisecondi)
+                    setTimeout(() => {
+                        notification.style.display = "none";
+                    }, 15000);
+                }
+
+                //############################## API and SPARQL functionsss #########################################
+                // getLAccessToken()
+                // getLeAltreUserInfo()
+                // buildSensorAPIURL(polygonWKT)
+                // buildSparqlQueryURL(polygonWKT) //road graph
+                // buildSparqlQueryURLsvolte(polygonWKT)
+                // fetchTrafficSensorData(sensorURL)
+                // fetchSparqlDataSvolte(sparqlQuery)
+                // fetchSparqlData(sparqlQuery) // grafo strade
+                // readFromDevice(lAccessToken, deviceName)
+                // createDevice(lAccessToken, deviceName, polygon, ilcentroide)
+                // sendDataINIT(lAccessToken, deviceName, scenario_data)
+                // sendDataACC(lAccessToken, deviceName, js20Data,acData,svolte)                
+
+                //function to get the access token
+                async function getLAccessToken() {                    
+                    if ("<?= $_SESSION['refreshToken'] ?>" != null && "<?= $_SESSION['refreshToken'] ?>" != "") {
+                        const result = await $.ajax({
+                            url: "../controllers/getAccessToken.php",
+                            data: {
+                                refresh_token: "<?= $_SESSION['refreshToken'] ?>"
+                            },
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            success: function (dataSso) {
+                                    lAccessToken = dataSso.accessToken;                                                                            
+                            },
+                            error: function (errorData) {
+                                console.log("Error in AJAX request for access token.");                                    
+                            }
+                        });
+                        return result;
+                    }
+                }
+
+                //function to get the organization and broker name
+                async function getLeAltreUserInfo() {                    
+                    if ("<?= $_SESSION['refreshToken'] ?>" != null && "<?= $_SESSION['refreshToken'] ?>" != "") {
+                        const result = await $.ajax({
+                            url: "../controllers/getOrganizationParameters.php?action=getAllParameters",
+                            data: {
+                                refresh_token: "<?= $_SESSION['refreshToken'] ?>"
+                            },
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            success: function (dataSso) {
+                                lorganizzazione =dataSso.orgName;
+                                ilbrokerdellorganizzazione =dataSso.orgBroker;                                   
+                            },
+                            error: function (errorData) {
+                                console.log("Error in AJAX request for organization parameters token.");                                    
+                            }
+                        });
+                        return result;
+                    }
+                }
+
+                //funzione che mi serve per creare l'api per prendere i dati dai sensori reali all'interno di un poligono WKT
+                function buildSensorAPIURL(polygonWKT) {
+                    const params = new URLSearchParams({
+                        selection: `wkt:${polygonWKT}`,
+                        categories: "SensorSite",
+                        maxResults: 100, // la puoi modificare per ora lascio 100
+                        lang: "it",
+                        geometry: false,
+                        format: "json",
+                        realtime: true
+                    });
+                    return SENSOR_API_URL + params.toString();
+                }              
+                
+                // funzione che mi serve per creare l'api per prendere il grafo strade all'interno di un poligono WKT
+                function buildSparqlQueryURL(polygonWKT){
+                    //const sparqlEndpoint = "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";                     
+                    const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
+                    // Sostituisci con l'endpoint SPARQL corretto            
+                    const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. FILTER (?highwaytype IN ("primary", "tertiary", "residential", "unclassified")) ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'), ?p ) ) } LIMIT 16000`;
+                    return sparqlEndpoint + query;
+                }
+
+                // funzione che mi serve per creare l'api per prendere dalla KB le info sulle svolte
+                function buildSparqlQueryURLsvolte(polygonWKT){
+                    const sparqlEndpoint =  "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
+                    // Sostituisci con l'endpoint SPARQL corretto            
+                    const query = `SELECT ?node_id as ?node ?where_id as ?from ?toward_id as ?to ?restriction WHERE {?r a km4c:TurnRestriction; km4c:node ?node; km4c:where ?where; km4c:toward ?toward; km4c:restriction ?restriction. ?node dct:identifier ?node_id. ?where dct:identifier ?where_id. ?toward dct:identifier ?toward_id. ?node geo:geometry ?p. FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'), ?p ) ) } LIMIT 16000`;                    
+                    return sparqlEndpoint + query;
+                }                  
+
+                // Function to fetch traffic sensor data
+                async function fetchTrafficSensorData(sensorURL){
+                    try {
+                        const response = await fetch(sensorURL);
+                        if (!response.ok) {
+                            throw new Error(`Error fetching sensor data: ${response.status}`);
+                        }
+                        const chesensorData = await response.json();
+                        const sensorFeatures = chesensorData.SensorSites.features;
+                        const sensorInfo = sensorFeatures.map(feature => ({
+                            serviceUri: feature.properties.serviceUri,
+                            coordinates: feature.geometry.coordinates,
+                            considerato: true
+                        }));
+                        datidaisensorichestoconsiderando = sensorInfo;
+                        datidaisensorichestoconsiderando.forEach(sensorInfo => {
+                            const ilSensore = new IlSensore(sensorInfo.serviceUri, sensorInfo.coordinates);
+                            istanzedeisensorichestoconsiderando.push(ilSensore);
+                            scenaryMarkers.addLayer(ilSensore.marker);
+                        });
+                    } catch (error) {
+                        console.error("Error fetching sensor data:", error);
+                    }
+                }
+
+                // Function to fetch SPARQL data
+                async function fetchSparqlDataSvolte(sparqlQuery){                    
+                    try {
+                        const response = await fetch(sparqlQuery);
+                        if (!response.ok) {
+                            throw new Error(`Error fetching SPARQL data: ${response.status}`);
+                        }else{
+                            return response.json();
+                        }
+                    }catch (error) {
+                        console.error("Error fetching SPARQL data:", error);                        
+                    }
+                }
+
+                // Function to fetch SPARQL data
+                async function fetchSparqlData(sparqlQuery){                    
+                    try {
+                        const response = await fetch(sparqlQuery);
+                        if (!response.ok) {
+                            throw new Error(`Error fetching SPARQL data: ${response.status}`);
+                        }
+                        const data = await response.json();
+                        const stradeFeatures = data.results.bindings;
+                        const stradeInfo = stradeFeatures.map(feature => ({
+                            road: feature.strada.value,
+                            segment: feature.elementostradale.value,
+                            type: feature.highwaytype.value,
+                            nALat: parseFloat(feature.startlat.value),
+                            nALong: parseFloat(feature.startlong.value),
+                            nBLat: parseFloat(feature.endlat.value),
+                            nBLong: parseFloat(feature.endlong.value),
+                            dir: feature.latrafficDir.value,
+                            length: parseFloat(feature.lalunghezza.value),
+                            nodeA: feature.startnode.value,
+                            nodeB: feature.endnode.value,
+                            lanes: feature.quante.value,
+                            elemType: feature.elementtype.value,
+                        }));
+                        stradeInfo.forEach(strada => {
+                            istanzedelgrafochestoconsiderando.push(strada);
+                            const stradaPolyline = L.polyline(
+                                [[strada.nALat, strada.nALong],[strada.nBLat, strada.nBLong],],
+                                {color: 'blue', weight: 5, opacity: 0.7,}
+                            );
+                            scenaryGrafo.addLayer(stradaPolyline);
+                        });
+                    } catch (error) {
+                        console.error("Error fetching SPARQL data:", error);
+                    }
+                }
+
+                // funzione per leggere i dati da un device
+                async function readFromDevice(lAccessToken, deviceName){       
+                    await getLAccessToken();                            
+                    const header = {
+                        "Content-Type": "application/json",
+                        "Accept": "application/x-www-form-urlencoded",
+                        "Authorization": `Bearer ${lAccessToken}`
+                    };
+                    try {                       
+                        //occhio x la prod sisema orion-1....
+                        //const url = `/superservicemap/api/v1?serviceUri=http://www.disit.org/km4city/resource/iot/orion-1/Organization/${deviceName}&maxResults=10`      
+                        const url =  "<?= $mainsuperservicemap; ?>" +"?serviceUri=" + "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + `/${deviceName}&maxResults=10`                                                                 
+                        const response = await fetch(url, { // oppure metti urlencoded
+                            method: "GET",
+                            headers: header
+                        });
+                        if (!response.ok) {
+                            throw new Error(`Error fetching sensor data: ${response.status}`);
+                        }
+                        const jsonResponse = await response.json();                            
+                        return jsonResponse                    
+                    } catch (error) {
+                        console.error("Oops: Something Else", error);
+                    }
+                }
+
+                // funzione di Alberto per la creazione del device
+                async function createDevice(lAccessToken, deviceName, polygon, ilcentroide){                   
+                    const gliattributes = '[{"value_name":"areaOfInterest","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"roadGraph","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"JS20","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"AC","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"TDMStar","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"TFRDevice","data_type":"string","value_type":"URL","editable":"0","value_unit":"SURI","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"status","data_type":"string","value_type":"status","editable":"0","value_unit":"status","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"trafficSensorList","data_type":"json","value_type":"datastructure","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"dateObserved","data_type":"string","value_type":"timestamp","editable":"0","value_unit":"timestamp","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"name","data_type":"string","value_type":"Identifier","editable":"0","value_unit":"ID","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"description","data_type":"string","value_type":"description","editable":"0","value_unit":"text","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"modality","data_type":"string","value_type":"Identifier","editable":"0","value_unit":"ID","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"referenceKB","data_type":"string","value_type":"URL","editable":"0","value_unit":"SURI","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"sourceData","data_type":"string","value_type":"Identifier","editable":"0","value_unit":"ID","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"startTime","data_type":"string","value_type":"datetime","editable":"0","value_unit":"timestamp","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"endTime","data_type":"string","value_type":"datetime","editable":"0","value_unit":"timestamp","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"location","data_type":"string","value_type":"description","editable":"0","value_unit":"text","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"turn","data_type":"json","value_type":"datastructure","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"}]';                
+                    const [lalongitude, lalatitude] = ilcentroide
+                    const header = {
+                        "Content-Type": "application/json",
+                        "Accept": "application/x-www-form-urlencoded",
+                        "Authorization": `Bearer ${lAccessToken}`
+                    };
+                    try {
+                        //const urlencoded = `https://iotdirectory.snap4city.org/api/device.php?action=insert&attributes=${encodeURIComponent(gliattributes)}&id=${deviceName}&type=scenario&kind=sensor&contextbroker=orionUNIFI&format=json&model=TFRS-Model&producer=DISIT&latitude=${lalatitude}&longitude=${lalongitude}&visibility=private&frequency=600&token=${lAccessToken}&k1=53bbe5d5-66e1-4cef-ba4f-16084434de48&k2=a9d4454b-bdf9-4481-a065-a23e99360128&edgegateway_type=&edgegateway_uri=&subnature=District&static_attributes=[]&service=&servicePath=&mac=&nodered=false`;
+                        //occhio abbiamo cambiato il broker e la base url per la prod
+                        const url = "<?= $baseiotdirectory; ?>" + `?action=insert&attributes=${gliattributes}&id=${deviceName}&type=scenario&kind=sensor&contextbroker=${ilbrokerdellorganizzazione}&format=json&model=TFRS-Model&producer=DISIT&latitude=${lalatitude}&longitude=${lalongitude}&visibility=private&frequency=600&token=${lAccessToken}&k1=53bbe5d5-66e1-4cef-ba4f-16084434de48&k2=a9d4454b-bdf9-4481-a065-a23e99360128&edgegateway_type=&edgegateway_uri=&subnature=District&static_attributes=[]&service=&servicePath=&mac=&nodered=false`;                        
+                        
+                        const response = await fetch(url, { // oppure metti urlencoded
+                            method: "POST",
+                            headers: header
+                        });
+                        if (response.ok) {
+                            const jsonResponse = await response.json();
+                            if (jsonResponse.status === 'ok') {
+                                //console.log("\nDevice created");
+                                return "ok";
+                            } else {
+                                //console.log("\nError Device not created!", jsonResponse);
+                                return "no";
+                            }
+                        } else {
+                            //console.log("\nHTTP Error:", response.status);
+                            return "no";
+                        }
+                    } catch (error) {
+                        console.error("Oops: Something Else", error);
+                    }
+                }
+
+                // funzione di Alberto per l'inserimento dei dati al momento dell'inizializzazione
+                async function sendDataINIT(lAccessToken, deviceName, scenario_data){
+                    getLAccessToken(); 
+                    //console.log("sendDataINITrequest");
+                    //console.log(lAccessToken);
+                    const header = {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "Authorization": `Bearer ${lAccessToken}`
+                    };
+
+                    const deviceType = "scenario"
+                    //const url = `https://www.snap4city.org/orionfilter/orionUNIFI/v2/entities/${deviceName}/attrs?elementid=${deviceName}&type=${deviceType}`;
+                    const url = "<?= $baseorionfilter; ?>" + `${ilbrokerdellorganizzazione}/v2/entities/${deviceName}/attrs?elementid=${deviceName}&type=${deviceType}`;                    
+                    const { dateObserved, name, location, description, modality, referenceKB, sourceData, startTime, endTime, organization} = scenario_data.metadata;               
+                    // Remove parentheses from the values in the JSON object
+                    var modified_scenario_data_sensors = removeParenthesesFromValues(scenario_data.sensors);
+                    var modified_scenario_data_roadGraph = removeParenthesesFromValues(scenario_data.roadGraph);
+                    const json = JSON.stringify({
+                        "dateObserved": { "value": dateObserved, "type": "string" },
+                        "name": { "value": name, "type": "string" },
+                        "location": { "value": location, "type": "string" },
+                        "description": { "value": description, "type": "string" },
+                        "modality": { "value": modality, "type": "string" },
+                        "referenceKB": { "value": referenceKB, "type": "string" },
+                        "sourceData": { "value": sourceData, "type": "string" },
+                        "startTime": { "value": startTime, "type": "string" },
+                        "endTime": { "value": endTime, "type": "string" },
+                        "status": { "value": "init", "type": "string" },
+                        // shape sotto
+                        "areaOfInterest": { "value": scenario_data.shape, "type": "json" },                        
+                        "trafficSensorList": { "value": modified_scenario_data_sensors , "type": "json" },    
+                        "roadGraph": { "value": modified_scenario_data_roadGraph, "type": "json" }      
+                    });
+                    jsonsolodateobserved = JSON.stringify({
+                        "dateObserved": { "value": dateObserved, "type": "string" }});
+                    try {
+                        //console.log("faccio ora la richiesta")
+                        const response = await fetch(url, {
+                            method: "PATCH",
+                            headers: header,
+                            body: json
+                        });
+                        if (!response.ok) {
+                            //console.log(response)
+                            throw new Error(`HTTP Error: ${response.status}`);
+                            return "dati_init_no"
+                        }
+                        else {
+                            //console.log("\nSuccessful data entry");
+                            return "dati_init_si"
+                        }
+                    } catch (error) {
+                        //console.error("Oops: Something Else", error);
+                        return "dati_init_no";
+                    }
+                }
+
+                // funzione di Alberto per l'invio dei dati accorpati
+                async function sendDataACC(lAccessToken, deviceName, js20Data,acData,svolte){
+                    await getLAccessToken(); 
+                    const header = {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "Authorization": `bearer ${lAccessToken}`
+                    };
+                    const deviceType = "scenario"
+                    //const url = `https://www.snap4city.org/orionfilter/orionUNIFI/v2/entities/${deviceName}/attrs?elementid=${deviceName}&type=${deviceType}`;
+                    const url =  "<?= $baseorionfilter; ?>" + `${ilbrokerdellorganizzazione}/v2/entities/${deviceName}/attrs?elementid=${deviceName}&type=${deviceType}`;
+                    // scommenta in prod (forse) dateObserved = new Date().toISOString()
+                    var date = new Date();
+                    date.setHours(date.getHours() +1);                    
+                    var dateObserved = date.toISOString();
+                    // Remove parentheses from the values in the JSON object
+                    var modified_scenario_data_js20Data = removeParenthesesFromValues(js20Data);
+                    var modified_scenario_data_acData = removeParenthesesFromValues(acData);
+                    const json = JSON.stringify({
+                        "dateObserved": { "value": dateObserved, "type": "string" },
+                        "status": { "value": "tdm", "type": "string" },
+                        "JS20": { "value": modified_scenario_data_js20Data , "type": "json" },    
+                        "TDMStar": { "value": modified_scenario_data_acData, "type": "json" },
+                        "turn": {"value": svolte, "type":"json"}                                                                         
+                    });
+                    try {
+                        const response = await fetch(url, {
+                            method: "PATCH",
+                            headers: header,
+                            body: json
+                        });
+                        if (!response.ok) {
+                            //console.log(response)
+                            throw new Error(`HTTP Error: ${response.status}`);
+                            return "nobuono"
+                        }
+                        else {
+                            //console.log("\nSuccessful data entry");
+                            return "tdmok"
+                        }
+                    } catch (error) {
+                        return "nobuono"
+                        //console.error("Oops: Something Else", error);
+                    }
+                }
+
+                //################################# Classes #########################################################
+                // IlSensore(sensorUri, coordinates,alContorno)
+                // °sensorUri
+                // °alContorno
+                // °considerato
+                // °coordinates
+                // °icon
+                // °marker                      
+                // - cambiascelta()
+                // - creaMarker()
+
+                // classe IlSensore dello scenario builder che permette di scegliere se considerare o meno il sensore
+                class IlSensore {
+                    //costruttore della classe che prende solo il sensorUri e le coordinate dato che le ho
+                    constructor(sensorUri, coordinates, alContorno = false) {  
+                        if(alContorno){
+                            this.consideredIcon = L.icon({
+                                iconUrl: '../img/gisMapIcons/over/RoadSensor_over.png', 
+                                iconSize: [32, 32], 
+                                iconAnchor: [16, 16], 
+                                popupAnchor: [0, -16] 
+                            });
+                            this.notConsideredIcon = L.icon({
+                                iconUrl: '../img/alarmIcons/alarmWhite.png', 
+                                iconSize: [32, 32], 
+                                iconAnchor: [16, 16], 
+                                popupAnchor: [0, -16] 
+                            }); 
+                        }else{
+                            this.consideredIcon = L.icon({
+                                iconUrl: '../img/gisMapIcons/RoadSensor.png', 
+                                iconSize: [32, 32], 
+                                iconAnchor: [16, 16], 
+                                popupAnchor: [0, -16] 
+                            });
+                            this.notConsideredIcon = L.icon({
+                                iconUrl: '../img/alarmIcons/alarm.png', 
+                                iconSize: [32, 32], 
+                                iconAnchor: [16, 16], 
+                                popupAnchor: [0, -16] 
+                            });  
+                        }                    
+                        this.sensorUri = sensorUri; 
+                        this.alContorno = alContorno;
+                        this.considerato = true; // di default lo considero
+                        this.coordinates = coordinates; 
+                        this.icon = this.consideredIcon;
+                        this.marker = this.creaMarker();                        
+                    }
+
+                    // funzione che modifica se il sensore è considerato o meno per lo scenario di riferimento
+                    cambiascelta(){
+                        if(this.considerato){
+                            this.considerato = false;
+                            this.icon = this.notConsideredIcon;
+                        }else{
+                            this.considerato = true;
+                            this.icon = this.consideredIcon;
+                        }
+                        this.marker.setIcon(this.icon);
+                        // ci metto la sensorUri del sensore di questo momento
+                        // ci metto un bottone per scegliere se considerare o meno il sensore
+                        this.marker.getPopup().setContent(`
+                            <p>${this.sensorUri}</p> 
+                            <button id="considerOrNotConsiderBtn">${this.considerato ? "Don't Consider" : "Consider"}</button>
+                        `);
+                        this.marker.closePopup();                
+                    }
+                    
+                    // funzione per la creazione del marker in base allo stato considerato o meno del sensore
+                    creaMarker(){
+                        const marker = L.marker([this.coordinates[1], this.coordinates[0]], { icon: this.icon });
+                        marker.bindPopup(`
+                            <p>${this.sensorUri}</p>
+                            <button id="considerOrNotConsiderBtn">${this.considerato ? "Don't Consider" : "Consider"}</button>
+                        `);                        
+                        marker.on('popupopen', () => {
+                            const considerOrNotConsiderBtn = document.getElementById('considerOrNotConsiderBtn');
+                            considerOrNotConsiderBtn.addEventListener('click', () => {
+                                this.cambiascelta();                         
+                            });
+                        });
+                        return marker;
+                    }                    
+                }                                                
+                //#####################################################################################################
+                //#####################################################################################################                
+                //########################### main progam - SCENARIO BUILDER EVENT TRIGGERED ##########################
+                //#####################################################################################################
+                //#####################################################################################################                
+                //
+                //                  main <- addTrafficScenary            event sent dal selettore
+                //                    |     |
+                //                    |     |-> scenaryControl             inserisco nella mappa
+                //                    |     -> #scenario-cancel            reset scenaryControl
+                //                    |     -> #scenario-save              button click handler                
+                //                    |     -> #scenario-check-acc1        button click handler
+                //                    |        |-> #scenario-save-finale1  button click handler
+                //                    |              
+                //                    X   <- removeTrafficScenary          event toggled dal selettore
+
+                //################## appena inviato l'evento addTrafficScenary dal selettore ##########################
+                $(document).on('addTrafficScenary', function (event) {    
+                    getLeAltreUserInfo();                                             
+                    if (event.target === map.mapName) {          
+                        // metto subito il layer dei markers                         
+                        scenaryMarkers = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(scenaryMarkers);
+                        // e anche quello per i disegni sulla mappa
+                        scenaryDrawnItems = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(scenaryDrawnItems);      
+                        // e anche quello per il grafo
+                        scenaryGrafo = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(scenaryGrafo);
+                        //aggiungo anche il tool per disegnare su mappa 
+                        drawerControl = new L.Control.Draw({
+                            edit: {
+                                featureGroup: scenaryDrawnItems,
+                                edit: false,
+                                remove: false
+                            },
+                            draw: {
+                                circle: false,
+                                marker: false,
+                                polyline: false,
+                                polygon: {
+                                    allowIntersection: false,
+                                    showArea: true
+                                }
+                            }
+                        });
+                        map.defaultMapRef.addControl(drawerControl);                        
+                        // poi sistemo i disegni che vengono fatti                                          
+                        map.defaultMapRef.on('draw:created', function(e) {                            
+                            if (scenaryData.features.length>=0){
+                                // Rimuovi i layer dei disegni
+                                for (const layerId in scenaryDrawnItems._layers) {
+                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                }
+                                scenaryData.features = []; // reinizializzo questa variabile
+                                // Rimuovi i marker associati
+                                for (const layerId in scenaryMarkers._layers) {
+                                    const marker = scenaryMarkers._layers[layerId];
+                                    scenaryMarkers.removeLayer(marker);
+                                }
+                                // Rimuovi il vecchio grafo
+                                for (const layerId in scenaryGrafo._layers) {
+                                    const grafo = scenaryGrafo._layers[layerId];
+                                    scenaryGrafo.removeLayer(grafo);
+                                }
+                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                            }
+                            // metto un popup sul poligono attuale per riferimento
+                            var type = e.layerType,
+                                layer = e.layer;
+                            layer.bindPopup("<div>current polygon</div><br>");    
+                            // mi prendo la geometria del poligono in formato geojson  
+                            var curGeojson = layer.toGeoJSON();                        
+                            // per il debug se vuoi scommenta sotto
+                            /*if( type === 'polygon' || type === 'rectangle') {
+                                console.log(type+" created");
+                            } */
+                            // aggiungo la geometria allo scenaryData.features 
+                            //e il layer al scenarydrawnitems per visualizzarlo su mappa
+                            scenaryData.features.push(curGeojson);
+                            scenaryDrawnItems.addLayer(layer);
+                            // a questo punto faccio la richiesta sensori del traffico
+                            // mi convertio la geometria in geojson in wkt
+                            const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);                    
+                            // adesso mi calcolo anche il poligono allargato per fare la query al grafo strade
+                            // Dividi il poligono WKT in coppie di coordinate
+                            const coordinates = polygonWKT
+                            .match(/\d+\.\d+\s\d+\.\d+/g)
+                            .map(coord => coord.split(' ').map(Number));
+                            // Calcola il centroide
+                            const centroid = coordinates.reduce(
+                            (acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
+                            [0, 0]
+                            );
+                            centroid[0] /= coordinates.length;
+                            centroid[1] /= coordinates.length;
+                            // Definisci la distanza di espansione in gradi
+                            const enlargementDistance = 0.02; // Regola questa distanza come necessario
+                            // Applica l'espansione alle coordinate
+                            const enlargedCoordinates = coordinates.map(([lon, lat]) => [
+                            lon + (lon - centroid[0]) * enlargementDistance,
+                            lat + (lat - centroid[1]) * enlargementDistance
+                            ]);
+                            // Costruisci il poligono allargato come WKT
+                            const enlargedPolygonWKT = `POLYGON ((${enlargedCoordinates
+                            .map(coord => coord.join(' '))
+                            .join(', ')}))`;
+                            //console.log('Poligono allargato WKT:', enlargedPolygonWKT);                              
+                            // per poi creare la url per fare la richiesta dei sensori del traffico 
+                            const sensorURL = buildSensorAPIURL(polygonWKT);                          
+                            // ora faccio la richiesta sparql alla kb per prendere i dati del grafo strade ...
+                            sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT)                                
+                            // Create the loading box element and add it to the document
+                            const loadingBox = document.createElement("div");
+                            //console.log(loadingBox);
+                            loadingBox.id = "loading-box";
+                            loadingBox.style.position = "absolute";
+                            loadingBox.style.top = "20%";
+                            loadingBox.style.left = "50%";
+                            loadingBox.style.transform = "translate(-50%, -50%)";
+                            loadingBox.style.backgroundColor = "#fff";
+                            loadingBox.style.border = "1px solid #ccc";
+                            loadingBox.style.padding = "20px";
+                            loadingBox.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.2)";
+                            loadingBox.style.zIndex = "9999";
+                            loadingBox.innerHTML = '<p style="color: black";>The road graph is loading...</p>';
+                            // Append the loading box to the map container
+                            const mapContainer = this.getContainer(); // Assuming `this` refers to the map object
+                            mapContainer.appendChild(loadingBox);
+                            //document.body.appendChild(loadingBox);                                                        
+                            // Before making the requests, show the loading box
+                            loadingBox.style.display = "block";
+                            loadingboxloaded = false;                            
+                            // Use Promise.all to fetch data concurrently
+                            Promise.all([fetchTrafficSensorData(sensorURL), fetchSparqlData(sparqlQuery)])
+                            .then(() => {
+                                loadingBox.style.display = "none";
+                                mapContainer.removeChild(loadingBox);
+                                loadingboxloaded = true;
+                                handleIntersectionsAndSensors(polygonWKT);
+                            })
+                            .catch(error => {
+                                // Hide and remove the loading box in case of an error
+                                loadingBox.style.display = "none";
+                                mapContainer.removeChild(loadingBox);
+                                loadingboxloaded = false;
+
+                                console.error("Error:", error);
+                            });
+                            
+                        });                  
+
+                        //################## poi mi metto subito lo scenary control #################################                       
+                        var scenaryControl = L.control({position: 'topright'});
+                        scenaryControl.onAdd = function (map) {
+                            var div = L.DomUtil.create('div');
+                            div.innerHTML = `
+                                <div id="scenario-div">
+                                    <div id="notification" style="display: none;">
+                                        <p id="notification-message">bells</p>
+                                    </div>
+                                    <select id="scenario-mode">
+                                        <option value="complete">Create New Scenario</option>
+                                        <option value="acc">After Accorpation</option>
+                                    </select>
+                                    <div id="scenario-content">
+                                        <div id="complete-content">
+                                            <!-- Contenuto per la modalità completa -->
+                                            <table>
+                                                <tr>
+                                                    <td><label for="scenario-name">Scenario name:</label></td>
+                                                    <td><input id="scenario-name" type="text" name="name" placeholder="Scenario name"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label for="scenario-location">City of reference:</label></td>
+                                                    <td><input id="scenario-location" type="text" name="location" placeholder="City of reference"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label for="scenario-description">Scenario description:</label></td>
+                                                    <td><input id="scenario-description" type="text" name="description" placeholder="Scenario description"></td>
+                                                </tr>
+                                                <!-- Aggiungi altre righe per i campi -->
+                                                <tr>
+                                                    <td><label for="scenario-referenceKB">SURI of the referenceKB:</label></td>
+                                                    <td><input id="scenario-referenceKB" type="text" name="SURI of the reference KB" placeholder="SURI of the reference KB"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label for="scenario-modality">Modality:</label></td>
+                                                    <td>
+                                                        <select id="scenario-modality" name="modality">
+                                                            <option value="generic">Generic</option>
+                                                            <option value="cars">Cars</option>
+                                                            <option value="trucks">Trucks</option>
+                                                            <option value="buses">Buses</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label for="scenario-sourceData">Source Data:</label></td>
+                                                    <td>
+                                                        <select id="scenario-sourceData" name="sourceData">
+                                                            <option value="sensors">Sensors</option>
+                                                            <option value="native">Native</option>
+                                                            <option value="Here">Here</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label for="scenario-startDatetime">From:</label></td>
+                                                    <td><input id="scenario-startDatetime" type="datetime-local" name="datetimeFrom"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label for="scenario-endDatetime">To:</label></td>
+                                                    <td><input id="scenario-endDatetime" type="datetime-local" name="datetimeTo"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <input type="button" id="scenario-save" value="Save"/>
+                                                        <button id="scenario-cancel" type="button">Cancel</button>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div id="acc-content">
+                                            <!-- Contenuto per la modalità accorpata -->
+                                            <table>
+                                                <tr>
+                                                    <td><label for="scenario-name">Scenario name:</label></td>
+                                                    <td><input id="scenario-name1" type="text" name="name" placeholder="Scenario name"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <button id="scenario-check-acc1">Save ACC</button>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>                                
+                                </div>
+                            `;
+                            var completeContent = div.querySelector('#complete-content');
+                            var accContent = div.querySelector('#acc-content');
+                            var modeSelect = div.querySelector('#scenario-mode');
+                            // Aggiungi un listener per l'evento change del select
+                            modeSelect.addEventListener('change', updateContent);
+                            // Funzione per aggiornare la visualizzazione in base alla modalità
+                            function updateContent() {
+                                var mode = modeSelect.value;
+                                if (mode === 'complete') {
+                                    completeContent.style.display = 'block';
+                                    accContent.style.display = 'none';
+                                } else if (mode === 'acc') {
+                                    completeContent.style.display = 'none';
+                                    accContent.style.display = 'block';
+                                }
+                                if (scenaryData.features.length>=0){
+                                    // Rimuovi i layer dei disegni
+                                    for (const layerId in scenaryDrawnItems._layers) {
+                                        scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                    }
+                                    scenaryData.features = []; // reinizializzo questa variabile
+                                    // Rimuovi i marker associati
+                                    for (const layerId in scenaryMarkers._layers) {
+                                        const marker = scenaryMarkers._layers[layerId];
+                                        scenaryMarkers.removeLayer(marker);
+                                    }
+                                    // Rimuovi il vecchio grafo
+                                    for (const layerId in scenaryGrafo._layers) {
+                                        const grafo = scenaryGrafo._layers[layerId];
+                                        scenaryGrafo.removeLayer(grafo);
+                                    }
+                                    datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                    istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                    istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                                }
+                            }
+                            // Chiama updateContent per impostare inizialmente la visualizzazione
+                            updateContent();
+                            // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+                            if (L.Browser.touch) {
+                                L.DomEvent.disableClickPropagation(div);
+                                L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+                            } else {
+                                L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+                            }
+                            return div;
+                        };
+                        scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+
+                        //################ cancel function dei metadati del builder ######################################
+                        $("#scenario-cancel").click(function() {  
+                            if (scenaryData.features.length>=0){
+                                // Rimuovi i layer dei disegni
+                                for (const layerId in scenaryDrawnItems._layers) {
+                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                }
+                                scenaryData.features = []; // reinizializzo questa variabile
+                                // Rimuovi i marker associati
+                                for (const layerId in scenaryMarkers._layers) {
+                                    const marker = scenaryMarkers._layers[layerId];
+                                    scenaryMarkers.removeLayer(marker);
+                                }
+                                // Rimuovi il vecchio grafo
+                                for (const layerId in scenaryGrafo._layers) {
+                                    const grafo = scenaryGrafo._layers[layerId];
+                                    scenaryGrafo.removeLayer(grafo);
+                                }
+                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                            }                          
+                            // qui gestisco il cancel ovvero se l'utente vuole resettare il control panel via
+                            $("#scenario-name").val("");
+                            $("#scenario-location").val("");
+                            $("#scenario-description").val("");
+                            $("#scenario-startDatetime").val("");
+                            $("#scenario-modality").val("generic"); 
+                            $("#scenario-modality").val("sensors"); 
+                            $("#scenario-referenceKB").val("");
+                            $("#scenario-endDatetime").val("");                            
+                            scenaryData = new L.geoJSON();
+                            scenaryData.type= "FeatureCollection";
+                            scenaryData.features = [];
+                        });
+                        
+                        //##################### salvo lo scenario ##################################################
+                        $("#scenario-save").click(async function() {     
+                            //console.log("scenario-save cliccato!")
+                            // mi prendo tutti i metadati 
+                            var scenarioareaOfInterest = scenaryData.features;         
+                            var scenarioName = $("#scenario-name").val();
+                            var scenarioLocation = $("#scenario-location").val();
+                            var scenarioDescription = $("#scenario-description").val();
+                            var scenarioreferenceKB= $("#scenario-referenceKB").val();
+                            var scenarioModality = $("#scenario-modality").val();
+                            var scenariosourceData= $("#scenario-sourceData").val();
+                            var scenarioStartDatetime = $("#scenario-startDatetime").val();
+                            var scenarioEndDatetime = $("#scenario-endDatetime").val();
+                            // per poi controllare se li hanno inseriti a modo oppure no 
+                            if (!scenarioName || !scenarioLocation ||  !scenarioDescription || !scenarioreferenceKB || !scenarioStartDatetime || !scenarioEndDatetime) {
+                                alert("Please fill in all required fields: Name, Location, Description, KB, Start Datetime, End Datetime.");
+                            }else if(! loadingboxloaded) {
+                                alert("Please Define a shape or wait the loading of the road graph");
+                            }
+                            else if (new Date(scenarioStartDatetime) >= new Date(scenarioEndDatetime)) {
+                                alert("Start Datetime must be before End Datetime.");
+                            }else if (scenarioareaOfInterest.length == 0) {
+                                alert("Select an areaOfInterest.");
+                            } else{  
+                                // quindi se li hanno messi bene a questo punto riprendo i dati dall'istanzedeisensorichestoconsiderando
+                                // sperando che mantenga lo stato consistente.... Yess lo tiene ;)                            
+                                const sensoriArray = istanzedeisensorichestoconsiderando.map(ilSensore => {
+                                    return {
+                                        sensorUri: ilSensore.sensorUri,
+                                        considered: ilSensore.considerato,
+                                        virtual: ilSensore.alContorno,
+                                        coordinates: ilSensore.coordinates
+                                    };
+                                });
+                                //associo ad ogni sensore il segment stradale più vicino dato il grafo
+                                // Itera attraverso gli istanzi dei sensori
+                                const sensoriArrayConStradaVicina = sensoriArray.map(sensore => {
+                                    // Inizializza delle variabili per tenere traccia della strada più vicina e della sua distanza
+                                    let stradaVicina = null;
+                                    let distanzaMinima = Infinity;
+                                    // Itera attraverso le informazioni della strada per trovare quella più vicina
+                                    istanzedelgrafochestoconsiderando.forEach(strada => {
+                                        // Calcola la distanza tra il sensore e il segmento stradale
+                                        const distanza = Math.sqrt(
+                                            Math.pow(sensore.coordinates[1] - strada.nALat, 2) +
+                                            Math.pow(sensore.coordinates[0] - strada.nALong, 2)
+                                        );
+
+                                        // Se la distanza è minore di quella minima precedentemente registrata, aggiorna la strada più vicina
+                                        if (distanza < distanzaMinima) {
+                                            distanzaMinima = distanza;
+                                            stradaVicina = strada;
+                                        }
+                                    });
+                                    // Aggiungi le informazioni sulla strada più vicina all'oggetto del sensore
+                                    sensore.nearestRoad = stradaVicina;
+                                    // Restituisci l'oggetto del sensore con le informazioni sulla strada più vicina
+                                    return sensore;
+                                });                            
+                                // mi creo lo scenarioData che non è altro che il json di uscita di questo tuul diciamo                                                                                                
+                                scenarioData = {
+                                    "metadata": {
+                                        "dateObserved": new Date().toISOString(),
+                                        "name": "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/deviceName" +  scenarioName,
+                                        "location": scenarioLocation,
+                                        "description": scenarioDescription,
+                                        "modality": scenarioModality,
+                                        "referenceKB": scenarioreferenceKB,                                    
+                                        "sourceData": scenariosourceData,
+                                        "startTime": scenarioStartDatetime,
+                                        "endTime": scenarioEndDatetime,
+                                        "organization": orgParams['orgId']
+                                    },
+                                    "shape": {
+                                        "scenarioareaOfInterest": scenarioareaOfInterest
+                                    },
+                                    //"sensors": sensoriArray,
+                                    "sensors": sensoriArrayConStradaVicina,
+                                    "roadGraph": istanzedelgrafochestoconsiderando                                                    
+                                };
+                                // e qui rimane il codice per fare il download del json risultante                            
+                                var jsonString = JSON.stringify(scenarioData, null, 2);
+                                var blob = new Blob([jsonString], { type: "application/json" });
+                                var url = URL.createObjectURL(blob);
+                                var a = document.createElement("a");
+                                a.href = url;
+                                a.download = "scenario_data.json";
+                                a.textContent = "Download JSON";
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);   
+                                // mi creo il device sendDataINIT
+                                //console.log("creo il device per lo scenario! ") 
+                                ilpoly = getPolygonWKTFromScenarioArea(scenarioareaOfInterest);
+                                const coordinates = ilpoly
+                                .match(/\d+\.\d+\s\d+\.\d+/g)
+                                .map(coord => coord.split(' ').map(Number));
+                                // Calcola il centroide
+                                const centroid = coordinates.reduce(
+                                (acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
+                                [0, 0]
+                                );
+                                centroid[0] /= coordinates.length;
+                                centroid[1] /= coordinates.length;
+                                await getLAccessToken(); // metto nella variabile di riferimento il ttttokken                           
+                                // includo il codice di Alberto per la creazione del device e invio dati per la versione INIT
+                                adesso = new Date().toISOString();
+                                ildevicename = "deviceName" + scenarioName;                                
+                                // Usa la funzione showNotification per mostrare un messaggio di successo
+                                creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
+                                if (creato == "ok") {
+                                    showNotification("Il dispositivo è stato creato con successo!");
+                                    //console.log("mando i dati TFRSDevice init");
+                                    try {
+                                        initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);            
+
+                                        // Aggiungi un ritardo di 1 secondo tra le notifiche
+                                        setTimeout(() => {
+                                            showNotification("E i dati iniziali sono stati inviati con successo!");
+                                        }, 1000);                          
+                                        // Se entrambe le operazioni sono andate bene, mostra un messaggio di completamento
+                                        setTimeout(() => {
+                                            showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
+                                        }, 2000);
+                                    } catch (error) {
+                                        console.error("Errore nell'invio dei dati iniziali:", error);
+                                        showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+                                    }
+                                } else {
+                                    console.error("Errore nella creazione del dispositivo:", creato);                                    
+                                    try {
+                                        initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);      
+                                        if(initdatainviati=="dati_init_si"){
+                                            showNotification("I dati iniziali sono stati inviati con successo!");
+                                            // Se entrambe le operazioni sono andate bene, mostra un messaggio di completamento
+                                            setTimeout(() => {
+                                                showNotification("Ora puoi andare sul sito NR e continuare in seguito.");
+                                            }, 1000); 
+                                        }else{
+                                            console.error("Errore nell'invio dei dati iniziali:", error);
+                                            showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+                                        }                                                                        
+                                    } catch (error) {
+                                        console.error("Errore nell'invio dei dati iniziali:", error);
+                                        showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+                                    }
+                                }
+                            }                            
+                        });                                
+
+                        //######################## check device se stato accorpato #################################
+                        $('#scenario-check-acc1').click(async function() {
+                            //console.log("bottone scenario-check-acc 1 chiamato!")
+                            // Rimuovi il bottone del save finale se è rimasto pending
+                            var buttonToRemove = document.getElementById("scenario-save-finale1");
+                            if (buttonToRemove) {
+                                buttonToRemove.remove();
+                                isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+                            }
+                            //rimuovi anche l'AC se è rimasto da uno scenario precedente
+                            if (scenaryData.features.length>=0){
+                                // Rimuovi i layer dei disegni
+                                for (const layerId in scenaryDrawnItems._layers) {
+                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                }
+                                scenaryData.features = []; // reinizializzo questa variabile
+                                // Rimuovi i marker associati
+                                for (const layerId in scenaryMarkers._layers) {
+                                    const marker = scenaryMarkers._layers[layerId];
+                                    scenaryMarkers.removeLayer(marker);
+                                }
+                                // Rimuovi il vecchio grafo
+                                for (const layerId in scenaryGrafo._layers) {
+                                    const grafo = scenaryGrafo._layers[layerId];
+                                    scenaryGrafo.removeLayer(grafo);
+                                }
+                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                            }               
+                            await getLAccessToken();
+                            var scenarioName = $("#scenario-name1").val();
+                            ildevicename = "deviceName" + scenarioName;
+                            try{
+                                let datidalsensore = await readFromDevice(lAccessToken, ildevicename)  
+                                let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
+                                if (lostatus == 'init'){
+                                    //console.log("stato ancora init e non acc")
+                                    showNotification("stato ancora init e non acc");
+                                }
+                                else if(lostatus == "acc" || lostatus=="tdm") {
+                                    if(lostatus == "acc"){
+                                        //console.log("stato acc ok!")
+                                        showNotification("stato acc ok!");                                    
+                                    }else if(lostatus == "tdm"){
+                                        //console.log("le tdm sono già state definite")
+                                        showNotification("le tdm sono già state definite");
+                                    }                                   
+
+                                    acData =  JSON.parse(datidalsensore.realtime.results.bindings[0].AC.value)
+                                    js20Data = JSON.parse(datidalsensore.realtime.results.bindings[0].JS20.value)
+                                    acData.forEach((strada, index) => {
+                                    // Crea un polilinea tra i punti di inizio e fine della strada
+                                    const stradaPolyline = L.polyline(
+                                        [
+                                            [parseFloat(strada.nALat), parseFloat(strada.nALong)],
+                                            [parseFloat(strada.nBLat), parseFloat(strada.nBLong)]
+                                        ],
+                                        {
+                                            color: 'blue', // Colore della strada
+                                            weight: 5, // Spessore della strada
+                                            opacity: 0.7 // Opacità della strada
+                                        }
+                                    );                            
+                                    // Aggiungi un popup al polilinea con le informazioni chiave
+                                    stradaPolyline.bindPopup(function () {
+                                        // Crea il contenuto del popup con un campo di input per il peso
+                                        return `
+                                            <b>Road:</b> ${strada.road}<br>
+                                            <b>Type:</b> ${strada.type}<br>
+                                            <b>Length:</b> ${strada.length} meters<br>
+                                            <b>Lanes:</b> ${strada.lanes} lanes<br>
+                                            <!-- Altri dettagli del popup -->
+                                            <label for="weightInput">Weight:</label>
+                                            <input type="number" id="weightInput" value="${strada.weight || 5}">
+                                            <button id="applyButton" data-index="${index}">Applica</button>
+                                        `;
+                                    });
+                                    // Aggiungi un gestore di eventi per il pulsante "Applica"
+                                    stradaPolyline.on('popupopen', function () {
+                                        const applyButton = document.getElementById('applyButton');
+                                        stradaPolyline.setStyle({ color: 'red' });
+
+                                        applyButton.addEventListener('click', function () {
+                                            const weightInput = document.getElementById('weightInput');
+                                            const newWeight = parseFloat(weightInput.value);
+
+                                            if (!isNaN(newWeight) && newWeight >= 0) {
+                                                // Ottieni l'indice dall'attributo data
+                                                const dataIndex = applyButton.getAttribute("data-index");
+                                                const index = parseInt(dataIndex, 10);
+
+                                                // Aggiorna il peso nella polilinea
+                                                //stradaPolyline.setStyle({ weight: newWeight });
+
+                                                // Aggiorna il peso in acData
+                                                acData[index].weight = newWeight.toString();
+                                                //console.log("peso aggiornato");
+                                                //console.log(index);
+
+                                                // Chiudi il popup
+                                                stradaPolyline.closePopup();
+                                            } else {
+                                                alert('Inserisci un peso valido maggiore o uguale a zero.');
+                                            }
+                                        });
+                                    });                            
+                                    // Aggiungi un gestore di eventi per ripristinare il colore quando il popup viene chiuso
+                                    stradaPolyline.on('popupclose', function () {
+                                        stradaPolyline.setStyle({ color: 'blue' }); // Ripristina il colore predefinito
+                                    });                                
+                                    scenaryGrafo.addLayer(stradaPolyline); //  epoi l'aggiungo alla mappa     
+                                    if(! isSaveFinalSet){
+                                        let button = document.createElement("button");
+                                        //console.log("lostocreando")
+                                        button.id = "scenario-save-finale1";
+                                        button.innerHTML = "Save Finale";
+                                        document.activeElement.parentElement.appendChild(button);
+                                        isSaveFinalSet = true;
+                                        // ############################ scenario-save-finale1 #################################################
+                                        $('#scenario-save-finale1').on('click', async function() {
+                                            let scenarioNametest = $("#scenario-name1").val();
+                                            ildevicenametest = "deviceName" + scenarioNametest;
+                                            if(ildevicenametest != ildevicename){
+                                                showNotification("Device name is no more consistent");
+                                                // Rimuovi il bottone del save finale se è rimasto pending
+                                                var buttonToRemove = document.getElementById("scenario-save-finale1");
+                                                if (buttonToRemove) {
+                                                    buttonToRemove.remove();
+                                                    isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+                                                }
+                                                //rimuovi anche l'AC se è rimasto da uno scenario precedente
+                                                if (scenaryData.features.length>=0){
+                                                    // Rimuovi i layer dei disegni
+                                                    for (const layerId in scenaryDrawnItems._layers) {
+                                                        scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                                    }
+                                                    scenaryData.features = []; // reinizializzo questa variabile
+                                                    // Rimuovi i marker associati
+                                                    for (const layerId in scenaryMarkers._layers) {
+                                                        const marker = scenaryMarkers._layers[layerId];
+                                                        scenaryMarkers.removeLayer(marker);
+                                                    }
+                                                    // Rimuovi il vecchio grafo
+                                                    for (const layerId in scenaryGrafo._layers) {
+                                                        const grafo = scenaryGrafo._layers[layerId];
+                                                        scenaryGrafo.removeLayer(grafo);
+                                                    }
+                                                    datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                                    istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                                    istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                                                }   
+                                            }else{
+                                                //console.log("scenario save finale 1 viaaa")
+                                                // codice per aggiungere le svolte
+                                                let areaOfInt = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value);
+                                                ilpolygonWKT = getPolygonWKTFromScenarioArea(areaOfInt.scenarioareaOfInterest);
+                                                svoltesparqlquery = buildSparqlQueryURLsvolte(ilpolygonWKT);
+                                                //console.log(svoltesparqlquery)
+                                                let ressvolte = await fetchSparqlDataSvolte(svoltesparqlquery);
+                                                let svolte = ressvolte.results.bindings;
+                                                await getLAccessToken();                                            
+                                                try{
+                                                    tdmaato = await sendDataACC(lAccessToken, ildevicename, js20Data, acData, svolte); 
+                                                    if(tdmaato == "tdmok"){
+                                                        showNotification("Device tdm updated succesfully!");
+                                                    }else{
+                                                        showNotification("Device tdm error");
+                                                    }
+                                                    // e qui rimane il codice per fare il download del json risultante                            
+                                                    var jsonString = JSON.stringify(scenarioData, null, 2);
+                                                    var blob = new Blob([jsonString], { type: "application/json" });
+                                                    var url = URL.createObjectURL(blob);
+                                                    var a = document.createElement("a");
+                                                    a.href = url;
+                                                    a.download = "scenario_data_final.json";
+                                                    a.textContent = "Download JSON";
+                                                    document.body.appendChild(a);
+                                                    a.click();
+                                                    document.body.removeChild(a);
+                                                    URL.revokeObjectURL(url);  
+                                                }catch{
+                                                    showNotification("Device tdm error");
+                                                }
+                                            }
+                                        });
+                                    }
+                                });
+                                }
+                                else{
+                                    console.log("error non gestito")
+                                }
+                            }
+                            catch{
+                                showNotification("il device non è stato ancora creato");
+                                //console.log("il device non è stato ancora creato")
+                            }                          
+                        });                            
+
+                    }                        
+                }); 
+
+                //##################################################################################################
+                //################### REMOVE TRAFFIC SCENARY BUILDER EVENT #########################################
+                //##################################################################################################
+                
+                //rimuovo tutto
+                $(document).on('removeTrafficScenary', function (event) {
+                    // gestisco quando l'utente clicca sul rimuovi lo scenario builder
+                    //console.log("removeTrafficScenary sent!");
+                    if (event.target === map.mapName) {
+                        //levo il drawer control
+                        map.defaultMapRef.removeControl(drawerControl);
+                        // levo i disegni sulla mappa 
+                        map.defaultMapRef.removeLayer(scenaryDrawnItems);                        
+                        // mi ero scordato di levare i markers ma li levo subito
+                        map.defaultMapRef.removeLayer(scenaryMarkers);
+                        // levo anche il grafo
+                        map.defaultMapRef.removeLayer(scenaryGrafo);
+                        //levo il pannello di controllo per lo scenario
+                        //map.defaultMapRef.removeControl(scenaryControl);
+                    }
+                    var scenarioToRemove = document.getElementById("scenario-div");
+                    if(scenarioToRemove){
+                        scenarioToRemove.remove();
+                        isSaveFinalSet = false;
+                    }
+                });
+
+//####################################################################################################################
+//####################################################################################################################                
+//###################################### END TRAFFIC SCENARY BUILDER SECTION #########################################
+//####################################################################################################################
+//####################################################################################################################
                 
                 //Collini
                 function delay(milliseconds){
@@ -14245,7 +15561,7 @@ if (!isset($_SESSION)) {
                                         }
 
                                         for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
-                                            if (passedData.floorNumber == null || passedData.modelInstance == "singleBuilding" || (passedData.floorNumber != null && fatherGeoJsonNode.features[i].properties.values && fatherGeoJsonNode.features[i].properties.values.identifierName != null && (passedData.floorNumber == fatherGeoJsonNode.features[i].properties.values.identifierName || checkFloorNumber(passedData.floorNumber, fatherGeoJsonNode.features[i].properties.values.identifierName)))) {
+                                            if (passedData.floorNumber == null || passedData.modelInstance == "singleBuilding" || passedData.modelInstance == "singleDevice" || (passedData.floorNumber != null && fatherGeoJsonNode.features[i].properties.values && fatherGeoJsonNode.features[i].properties.values.identifierName != null && (passedData.floorNumber == fatherGeoJsonNode.features[i].properties.values.identifierName || checkFloorNumber(passedData.floorNumber, fatherGeoJsonNode.features[i].properties.values.identifierName)))) {
                                                 var shapeJsonString = null;
                                                 var shapeJson = null;
 
@@ -14373,7 +15689,7 @@ if (!isset($_SESSION)) {
                                                 });
                                                 geoJsonLayerShape.addTo(map.defaultMapRef);
 
-                                                if (passedData.modelInstance == "singleBuilding") {
+                                                if (passedData.modelInstance == "singleBuilding" || passedData.modelInstance == "singleDevice") {
                                                     map.defaultMapRef.setView([fatherGeoJsonNode.features[0].geometry.coordinates[0][0][1], fatherGeoJsonNode.features[0].geometry.coordinates[0][0][0]], 18);
                                                 }
 
