@@ -402,7 +402,7 @@ if (!isset($_SESSION)) {
                 value: true,
             },
             arrowSize: {
-                text: "Arrow size for traffic (m)",
+                text: "Arrow size(m)",
                 type: "Number",
                 default: 20,
                 value: 20,
@@ -410,7 +410,7 @@ if (!isset($_SESSION)) {
                 max: 1000,
             },
             maxCrestHeight: {
-                text: "Maximum Height crest layer(m)",
+                text: "Height crest layer(m)",
                 type: "Number",
                 default: 40,
                 value: 40,
@@ -465,14 +465,18 @@ if (!isset($_SESSION)) {
                 displayedName: 'Google Tile',
                 id: 'menu-google-tile',
                 action: () => {
-                    layers.terrain = null;
-                    layers.tree = createTreeLayer({
-                        ...layers.tree.props,
-                        getElevation: (d) => {
-                            return d.properties && d.properties.elevation ? d.properties.elevation + elevationOffset : 0;
-                        },
-                        opacity: 0,
-                    })
+                    layers.terrain = createMultiElevationTerrain({
+                        operation: 'terrain',
+                    });
+                    // layers.tree = createTreeLayer({
+                    //     ...layers.tree.props,
+                    //     // getElevation: (d) => {
+                    //     //     return d.properties && d.properties.elevation ? d.properties.elevation + elevationOffset : 0;
+                    //     // },
+                    //     updateTriggers: {
+                    //         opacity: {changedBuilding: supportedBuildingSelected}
+                    //     },
+                    // })
                     layers.building = new deck.GeoJsonLayer({
                         id: 'geojson-layer',
                         data: '../widgets/layers/edificato/osm-buildings.geojson',
@@ -488,7 +492,7 @@ if (!isset($_SESSION)) {
                         highlightColor: [222, 218, 7, 200],
                         getPointRadius: 100,
                         getLineWidth: 1,
-                        getElevation: d => d.properties.heightmean / 2 + googleElevationOffset,
+                        getElevation: d => d.properties.heightmean / 2 + googleElevationOffset - 8,
                         updateTriggers: {
                             pickable: {a: deckMode},
                             autoHighlight: deckMode,
@@ -4576,7 +4580,8 @@ if (!isset($_SESSION)) {
                             elevation.elevationDecoder.rScaler = parseFloat(elevation.elevationDecoder.rScaler);
                             elevation.elevationDecoder.gScaler = parseFloat(elevation.elevationDecoder.gScaler);
                             elevation.elevationDecoder.bScaler = parseFloat(elevation.elevationDecoder.bScaler);
-                            elevation.elevationDecoder.offset = parseFloat(elevation.elevationDecoder.offset) - elevationOffset;
+                            // elevation.elevationDecoder.offset = parseFloat(elevation.elevationDecoder.offset);
+                            elevation.elevationDecoder.offset = parseFloat(elevation.elevationDecoder.offset) + elevationOffset;
                             if (elevation.bbox) {
                                 elevation.bbox.north = parseFloat(elevation.bbox.north);
                                 elevation.bbox.east = parseFloat(elevation.bbox.east);
@@ -4590,8 +4595,8 @@ if (!isset($_SESSION)) {
                         } else
                             break;
                     }
-                    // const gk = 'XXX-YOUR-API-KEY';
-                    // const GOOGLE_MAPS_API_KEY = "XXX-YOUR-API-KEY-XXX"; // eslint-disable-line
+                    // const gk = 'AIzaSyCxM-RjAx9e5sOqao_FCuA1Qugf2Mv9QLs';
+                    // const GOOGLE_MAPS_API_KEY = "AIzaSyBsntctk2YsoHxr_PeyfjeNhzbQZ_d4gsw"; // eslint-disable-line
                     // const TILESET_URL = 'https://tile.googleapis.com/v1/3dtiles/root.json';
                     // layers.google = new snap4deck.Tile3DLoweredLayer({
                     //     id: 'google-3d-tiles',
@@ -4943,6 +4948,7 @@ if (!isset($_SESSION)) {
                         $("#fps").text(`FPS: ${metric.fps}`);
                 },
                 onClick: (info, event) => {
+                    console.log(info, event);
                     hideMenu(mapMenuId);
                     hideMenu(lightMenuId);
                     if (preventClickEvent) {
@@ -4950,9 +4956,12 @@ if (!isset($_SESSION)) {
                         return;
                     }
                     if (whatifOn) {
+                        // const coord = map3d.getViewports()[0].unproject([info.x, info.y, 2]);
                         $('#deck-whatif-popup').css('display', 'block');
                         $('#deck-whatif-popup').css('top', `${info.y}px`);
                         $('#deck-whatif-popup').css('left', `${info.x}px`);
+                        // lastWhatifCoord = coord;
+                        // lastWhatifCoord = coord.slice(0,-1);
                         lastWhatifCoord = info.coordinate;
                     }
                     if (event.rightButton && event.srcEvent.ctrlKey && event.srcEvent.altKey) {
@@ -5328,9 +5337,14 @@ if (!isset($_SESSION)) {
                     clearBuildings();
                     supportedBuildingSelected = building;
                     if (layers.tree) {
-                        const oldProps = layers.tree.props;
-                        delete oldProps.getElevation;
-                        layers.tree = createTreeLayer(oldProps);
+                        let oldProps = Object.assign({}, layers.tree.props);
+                        layers.tree = createTreeLayer({
+                            data: oldProps.data,
+                            model: oldProps.model,
+                            getOrientation: oldProps.getOrientation,
+                            sizeScale: oldProps.sizeScale,
+                        });
+                        console.log(layers.tree)
                     }
                     building.action();
                     if (!layers.google) {
@@ -6214,6 +6228,7 @@ if (!isset($_SESSION)) {
                         // extensions: [new deck._TerrainExtension()],
                         // terrainDrawMode: 'offset',
                     });
+
                     layers.pin.push(sensorLayer)
                     updateLayers();
                     loadingDiv.setStatus('ok');
@@ -11556,6 +11571,8 @@ if (!isset($_SESSION)) {
                 getFillColor: [255, 0, 0, 200],
                 getLineColor: [0, 0, 0],
                 getElevation: f => f.properties.height,
+                extensions: [new deck._TerrainExtension()],
+                terrainDrawMode: 'offset',
                 autoHighlight: true,
                 highlightColor: [255, 0, 0, 200],
                 getRadius: 100,
@@ -12232,9 +12249,10 @@ if (!isset($_SESSION)) {
                     }
                 },
 
-                sizeScale: 5,
+                // sizeScale: 5,
                 getPosition: d => [...d.geometry.coordinates, 0],
-                getSize: 7,
+                // getPosition: d => [...d.geometry.coordinates, elevationOffset],
+                getSize: 35,
                 parameters: {
                     depthTest: false
                 },
@@ -12377,25 +12395,34 @@ if (!isset($_SESSION)) {
 
         function createTreeLayer(props) {
             return new snap4deck.TreeLayer({
-                id: 'tree-layer',
+                id: supportedBuildingSelected.id === 'menu-google-tile' ? 'google-tree-layer' : 'tree-layer',
                 pickable: true,
                 maxTiles: settingOptions.maxTiles.value,
                 // minZoom: 15,
                 minTileZoom: settingOptions.minTileZoom.value,
-                opacity: 1,
-                getElevation: (d) => {
-                    return d.properties && d.properties.elevation ? d.properties.elevation - elevationOffset : 0;
-                },
+                getElevation: (d) => 0,
+                // getElevation: (d) => {
+                //     return d.properties && d.properties.elevation ? d.properties.elevation : 0;
+                //     // return d.properties && d.properties.elevation ? d.properties.elevation - elevationOffset : 0;
+                // },
                 onClick: (info, event) => {
                     console.log('clicked');
                 },
-                ...props
+                opacity: supportedBuildingSelected.id === 'menu-google-tile' ? 0 : 1,
+                extensions: [new deck._TerrainExtension()],
+                terrainDrawMode: 'offset',
+                updateTriggers: {
+                    opacity: supportedBuildingSelected.id,
+                    renderSubLayers: supportedBuildingSelected.id
+                },
+                ...props,
             });
         }
+
         function createGoogleLayer() {
-            const gk = 'XXX-YOUR-API-KEY';
+            const gk = "<?= $X_GOOG_API_KEY; ?>";
             const TILESET_URL = 'https://tile.googleapis.com/v1/3dtiles/root.json';
-            return new deck.Tile3DLayer({
+            return new snap4deck.Tile3DLoweredLayer({
                 id: 'google-3d-tiles',
                 pickable: false,
                 data: TILESET_URL,
@@ -12407,11 +12434,11 @@ if (!isset($_SESSION)) {
                 loadOptions: {
                     fetch: {headers: {'X-GOOG-API-KEY': gk}}
                 },
-                operation: 'terrain+draw'
+                // operation: 'terrain+draw'
             });
         }
 
-        function createMultiElevationTerrain() {
+        function createMultiElevationTerrain(props) {
             return new snap4deck.MultiElevationTerrainLayer({
                 id: 'terrain-layer',
                 elevations,
@@ -12425,6 +12452,7 @@ if (!isset($_SESSION)) {
                 texture: tileUrls,
                 tileSize: 256,
                 opacity: 1,
+                ...props
             });
         }
 
@@ -12991,7 +13019,7 @@ if (!isset($_SESSION)) {
             return sUrl;
         }
 
-        function startRouting() {
+        function startRouting(vehicle) {
             if (!whatifRoutingEnd || !whatifRoutingStart)
                 return;
             serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
@@ -13002,7 +13030,7 @@ if (!isset($_SESSION)) {
                     L.latLng(whatifRoutingEnd[1], whatifRoutingEnd[0]),
                 ],
                 avoid_area: encodeURIComponent(JSON.stringify(whatifScenarioData)),
-                vehicle: whatifVehicle,
+                vehicle: vehicle || whatifVehicle,
                 weighting: $('#whatIf-weighting').val(),   // Get the selected weighting
                 startDatetime: $('#whatIf-startDatetime').val(),   // Get the selected datetime
                 geocoder: L.Control.Geocoder.nominatim(),
@@ -13083,7 +13111,9 @@ if (!isset($_SESSION)) {
 
             function closeDragElement() {
                 document.onmouseup = null;
+                document.ontouchend = null;
                 document.onmousemove = null;
+                document.ontouchmove = null;
             }
         }
 
@@ -18374,8 +18404,8 @@ if (!isset($_SESSION)) {
             }
         }
 
-        // leaflet token world 3d "XXX-YOUR-3D-TOKEN-XXX", {
-        // map box token 'XXX-YOUR-TOKEN-XXX';
+        // leaflet token world 3d "9c04ad00edd787920af1a451bdd6553a", {
+        // map box token 'pk.eyJ1IjoiYW5kcmVhY29ydGk5MCIsImEiOiJjanhjN2dndTIwMGhnNDBvNDFkZzN3eHVoIn0.w07jn7vRfAcstoSz2EO5Ew';
 
         // CORTI
         function getMenuAjaxCall() {

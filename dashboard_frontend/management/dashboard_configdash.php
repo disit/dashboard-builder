@@ -146,6 +146,7 @@
 
     <script src="../js/highcharts-9/code/highcharts.js"></script>
     <script src="../js/highcharts-9/code/modules/exporting.js"></script>
+    <script src="../js/highcharts-9/code/modules/export-data.js"></script>
     <script src="../js/highcharts-9/code/highcharts-more.js"></script>
     <script src="../js/highcharts-9/code/modules/parallel-coordinates.js"></script>
     <script src="../js/highcharts-9/code/modules/solid-gauge.js"></script>
@@ -28688,6 +28689,22 @@
                                         newSelect.show();
 										//console.log('CalendarM: '+styleParameters.calendarM);
 										$("#calendarM").val(styleParameters.calendarM);
+
+                                        if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                                            newLabel = $('<label for="exportM" class="col-md-1 control-label"><?php echo _("Export Chart Data"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newSelect = $('<select class="form-control" id="exportM" name="exportM">');
+                                            newSelect.append('<option value="enabled"><?php echo _("Enabled"); ?></option>');
+                                            newSelect.append('<option value="disabled"><?php echo _("Disabled"); ?></option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            newLabel.show();
+                                            newInnerDiv.show();
+                                            newSelect.show();
+                                            $("#exportM").val(styleParameters.exportM);
+                                        }
+
 										//
                                         //Codice di creazione soglie
                                         //Nuova riga
@@ -33532,6 +33549,22 @@
                                         newFormRow.append(newLabel);
                                         newFormRow.append(newInnerDiv);
                                         newSelect.val(styleParameters.openNewTab);
+                                        //$("#specificParamsM").append(newFormRow);
+
+                                        if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                                            newLabel = $('<label for="exportM" class="col-md-2 control-label"><?php echo _("Export Chart Data"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-3"></div>');
+                                            newSelect = $('<select name="exportM" class="form-control" id="exportM"></select>');
+                                            newSelect.append('<option value="enabled"><?php echo _("Enabled"); ?></option>');
+                                            newSelect.append('<option value="disabled"><?php echo _("Disabled"); ?></option>');
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+                                            //newLabel.show();
+                                            //newInnerDiv.show();
+                                            //newSelect.show();
+                                            newSelect.val(styleParameters.exportM);
+                                        }
                                         $("#specificParamsM").append(newFormRow);
 
                                         //View UDM

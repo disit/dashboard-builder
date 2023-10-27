@@ -714,6 +714,7 @@
                 $rectDim = NULL;
 		        $calendarM = NULL;
                 $showContentLoadM = NULL;
+                $exportM = NULL;
                 $enableFullscreenTab = 'no';
                 $enableFullscreenModal = 'no'; 
              //   $fontFamily = mysqli_real_escape_string($link, $_REQUEST['inputFontFamilyWidget']);
@@ -3084,6 +3085,11 @@
             {
                 $showContentLoadM = mysqli_real_escape_string($link, sanitizePostString('showContentLoadM'));
             }
+
+            if(isset($_POST['exportM'])&&($_POST['exportM']!=""))
+            {
+                $exportM = mysqli_real_escape_string($link, sanitizePostString('exportM'));
+            }
             
             //if(isset($_POST['TTTDate'])&&($_POST['TTTDate']!=""))
             //{
@@ -3116,6 +3122,7 @@
             $styleParametersArrayM['areaChartOpacityM'] = $areaChartOpacityM;
 			$styleParametersArrayM['calendarM'] = $calendarM;
             $styleParametersArrayM['showContentLoadM'] = $showContentLoadM;
+            $styleParametersArrayM['exportM'] = $exportM;
 
             if(isset($_POST['deviceLabelsM_0'])&&($_POST['deviceLabelsM_0']!=""))
             {
@@ -4319,6 +4326,11 @@
                 $styleParametersArray["xOffsetUdm"] = mysqli_real_escape_string($link, sanitizeGetInt('xOffsetUdm'));
             } else {
                 $styleParametersArray["xOffsetUdm"] = mysqli_real_escape_string($link, sanitizePostInt('xOffsetUdm'));
+            }
+            if (sanitizePostString('exportM') == null) {       // New pentest
+                $styleParametersArray["exportM"] = mysqli_real_escape_string($link, sanitizeGetString('exportM'));
+            } else {
+                $styleParametersArray["exportM"] = mysqli_real_escape_string($link, sanitizePostString('exportM'));
             }
             $styleParametersM = json_encode($styleParametersArray);
         }

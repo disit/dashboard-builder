@@ -86,6 +86,21 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var yAxisMin, yAxisMax, secondaryYAxisMin, secondaryYAxisMax = null;
         var timeNavigationButtonClick = null;
         var fromCode = null;
+        var <?= $_REQUEST['name_w'] ?>_clickExportState = false;
+
+        $(document).on("click", function(event) {
+            if ((hostFile == "index" || hostFile == "config") && <?= $_REQUEST['name_w'] ?>_clickExportState) {
+                /*if (!$(event.target).closest("#container").length) {
+                    $("#container").removeClass("exportData");
+                }*/
+                var container = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
+                if (container.hasClass("exportData")) {
+                    // If exportData class is present, remove it
+                    container.removeClass("exportData");
+                    <?= $_REQUEST['name_w'] ?>_clickExportState = false;
+                }
+            }
+        });
 
         //var trendType = 'monthWeek';
         //var trendType = 'dayHour';
@@ -1421,7 +1436,48 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         //Per disabilitare il menu in alto a destra
                         exporting:
                             {
-                                enabled: false
+                                enabled: (styleParameters != null && styleParameters.exportM != null && styleParameters.exportM == "enabled") ? true : false,
+                                buttons: {
+                                    contextButton: {
+                                        onclick(e) {
+                                        //    if (hostFile == "index") {
+                                        //        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").addClass("exportData");
+                                        //    }
+                                            var container = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
+                                            if (container.hasClass("exportData")) {
+                                                // If exportData class is present, remove it
+                                                container.removeClass("exportData");
+                                                <?= $_REQUEST['name_w'] ?>_clickExportState = false;
+                                            } else {
+                                                // If exportData class is not present, add it
+                                                container.addClass("exportData");
+                                                <?= $_REQUEST['name_w'] ?>_clickExportState = true;
+                                            }
+                                            this.menuItemState = container.hasClass("exportData") ? 2 : 0;
+                                            if (e) {
+                                                e.stopPropagation();
+                                            }
+
+                                            if (!this.tooltip.isHidden) {
+                                                this.tooltip.hide(0);
+                                            }
+                                            const button = this.exportSVGElements[0];
+                                            this.contextMenu(
+                                                button.menuClassName,
+                                                this.options.exporting.buttons.contextButton.menuItems,
+                                                button.translateX,
+                                                button.translateY,
+                                                button.width,
+                                                button.height,
+                                                button
+                                            );
+                                            button.setState(2);
+                                        //    if (hostFile == "index") {
+                                        //        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").removeClass("exportData");
+                                        //    }
+                                        }
+                                    }
+                                }
                             },
                         //Non cancellare sennò ci mette il titolo di default
                         title: {
@@ -1933,7 +1989,48 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         //Per disabilitare il menu in alto a destra
                         exporting:
                             {
-                                enabled: false
+                                enabled: (styleParameters != null && styleParameters.exportM != null && styleParameters.exportM == "enabled") ? true : false,
+                                buttons: {
+                                    contextButton: {
+                                        onclick(e) {
+                                        //    if (hostFile == "index") {
+                                        //        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").addClass("exportData");
+                                        //    }
+                                            var container = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
+                                            if (container.hasClass("exportData")) {
+                                                // If exportData class is present, remove it
+                                                container.removeClass("exportData");
+                                                <?= $_REQUEST['name_w'] ?>_clickExportState = false;
+                                            } else {
+                                                // If exportData class is not present, add it
+                                                container.addClass("exportData");
+                                                <?= $_REQUEST['name_w'] ?>_clickExportState = true;
+                                            }
+                                            this.menuItemState = container.hasClass("exportData") ? 2 : 0;
+                                            if (e) {
+                                                e.stopPropagation();
+                                            }
+
+                                            if (!this.tooltip.isHidden) {
+                                                this.tooltip.hide(0);
+                                            }
+                                            const button = this.exportSVGElements[0];
+                                            this.contextMenu(
+                                                button.menuClassName,
+                                                this.options.exporting.buttons.contextButton.menuItems,
+                                                button.translateX,
+                                                button.translateY,
+                                                button.width,
+                                                button.height,
+                                                button
+                                            );
+                                            button.setState(2);
+                                        //    if (hostFile == "index") {
+                                        //        $("#<?= $_REQUEST['name_w'] ?>_chartContainer").removeClass("exportData");
+                                        //    }
+                                        }
+                                    }
+                                }
                             },
                         //Non cancellare sennò ci mette il titolo di default
                         title: {

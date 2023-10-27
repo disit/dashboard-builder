@@ -169,6 +169,8 @@
            $embeddable = 'no';
        } */
    }
+   //setcookie('loggedUsername', $_SESSION["loggedUsername"]);
+   //setcookie('refreshToken', $_SESSION["refreshToken"]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -236,6 +238,7 @@
 
     <script src="../js/highcharts-9/code/highcharts.js"></script>
     <script src="../js/highcharts-9/code/modules/exporting.js"></script>
+    <script src="../js/highcharts-9/code/modules/export-data.js"></script>
     <script src="../js/highcharts-9/code/highcharts-more.js"></script>
     <script src="../js/highcharts-9/code/modules/parallel-coordinates.js"></script>
     <script src="../js/highcharts-9/code/modules/solid-gauge.js"></script>
@@ -253,7 +256,7 @@
     <!-- Versione locale: 1.3.1 --> 
     <link rel="stylesheet" href="../leafletCore/leaflet.css" />
     <script src="../leafletCore/leaflet.js"></script>
-    <script src="../js/OMS-leaflet/oms.min.js"></script>    <!-- OverlappingMarkerSpider for Leaflet --!>
+    <script src="../js/OMS-leaflet/oms.min.js"></script>    <!-- OverlappingMarkerSpider for Leaflet -->
    
    <!-- Leaflet marker cluster plugin -->
    <link rel="stylesheet" href="../leaflet-markercluster/MarkerCluster.css" />
@@ -1370,7 +1373,7 @@
                     dashboardWidgets[i].time = time;
                     dashboardWidgets[i].embedWidget = embedWidget;
                     dashboardWidgets[i].embedWidgetPolicy = embedWidgetPolicy;
-                    dashboardWidgets[i].hostFile = 'index';
+                    dashboardWidgets[i].hostFile = 'pa';
                     //$("li#" + dashboardWidgets[i]['name_w']).css('border', '1px solid ' + dashboardWidgets[i].borderColor);
                     
                     $("#gridsterUl").find("li#" + dashboardWidgets[i]['name_w']).load("../widgets/" + encodeURIComponent(dashboardWidgets[i]['type_w']) + ".php", dashboardWidgets[i]);
