@@ -143,6 +143,10 @@ div.widgetSeparator
     margin: 0 auto;
 }
 
+.exportData{
+    overflow-y: scroll !important;
+}
+
 .map2dContainer
 {
     width: 100%;
