@@ -22,6 +22,19 @@ set_time_limit (90);
 
 session_start();
 
+/*function get_string_between($string, $start, $end){
+    $string = ' ' . $string;
+    $ini = strpos($string, $start);
+    if ($ini == 0) return '';
+    $ini += strlen($start);
+    if (strpos($string, $end, $ini)) {
+        $len = strpos($string, $end, $ini) - $ini;
+    } else {
+        return false;
+    }
+    return substr($string, $ini, $len);
+}*/
+
 function get_string_between($string, $start, $end){
     $string = ' ' . $string;
     $ini = strpos($string, $start);

@@ -1963,7 +1963,7 @@
             <div id="snapLogo">
                             <a title="Snap4City" href="https://www.snap4city.org" target="_blank"><img id="snapLogoImg" src="../img/applicationLogos/snap4city-logo.png" alt="Snap4City.org"></a>
                           </div>
-            <div class="menu-btn click"><img src="../img/menu-white.png" width="32px"></div>
+                <div class="menu-btn click"><span class="material-icons-round"></span></div>
             </div>
             <nav id="s4c-sidebar" class="sidebar-menu" role="navigation">
               <div class="sidebar-container">

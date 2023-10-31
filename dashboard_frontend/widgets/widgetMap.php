@@ -395,6 +395,10 @@ if (!isset($_SESSION)) {
                         }
                         this.bindTooltip(tooltipString);
                         event.target.openTooltip();
+                    } else if (feature.properties.name != null) {
+                        let tooltipString = feature.properties.name;
+                        this.bindTooltip(tooltipString);
+                        event.target.openTooltip();
                     }
                     //$(".leaflet-popup-close-button").css("display", "none");
                 });
@@ -403,6 +407,8 @@ if (!isset($_SESSION)) {
                     //    map.defaultMapRef.off('moveend');
                     if (feature.properties.deviceName != null) {
                         this.unbindTooltip(feature.properties.deviceName);
+                    } else if (feature.properties.name != null) {
+                        this.unbindTooltip(feature.properties.name);
                     }
                     if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code){
                         let i=1;
@@ -1859,7 +1865,11 @@ if (!isset($_SESSION)) {
                     let tplPath = feature.properties.iconFilePath;
                     svgContainer = $('<div id="' + widgetName + '_svgCtn' + countSvgCnt + '">');
                     $("#" + widgetName).append(svgContainer);
-                    buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, false);
+                    if (feature.properties.lastValue != null) {
+                        buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, false);
+                    } else if (feature.properties.values != null) {
+                        buildSvgIcon(tplPath, feature.properties.values[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray, false);
+                    }
                 }
                 if (feature.properties.pinattr != "pin" && feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
                     var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';						
@@ -5471,63 +5481,6 @@ if (!isset($_SESSION)) {
                 });
 
                 $(document).on('addBubbleChart', function (event) {
-                  /*  if (event.target === map.mapName) {
-                        if (lastPopup !== null) {
-                            lastPopup.closePopup();
-                        }
-
-                        function addBubbleChartToMap() {
-                            alert("Bubble Charts to be implemented!");
-                        }
-
-
-                        if (addMode === 'additive') {
-                            addBubbleChartToMap();
-                        }
-
-                        if (addMode === 'exclusive') {
-                            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                if (map.eventsOnMap[i].eventType !== 'selectorEvent') {
-                                    map.defaultMapRef.eachLayer(function (layer) {
-                                        map.defaultMapRef.removeLayer(layer);
-                                    });
-                                    map.eventsOnMap.length = 0;
-                                    break;
-                                }
-                            }
-                            //Remove WidgetAlarm active pins
-                            $.event.trigger({
-                                type: "removeAlarmPin",
-                            });
-                            //Remove WidgetEvacuationPlans active pins
-                            $.event.trigger({
-                                type: "removeEvacuationPlanPin",
-                            });
-                            //Remove WidgetEvents active pins
-                            $.event.trigger({
-                                type: "removeEventFIPin",
-                            });
-                            //Remove WidgetResources active pins
-                            $.event.trigger({
-                                type: "removeResourcePin",
-                            });
-                            //Remove WidgetOperatorEvents active pins
-                            $.event.trigger({
-                                type: "removeOperatorEventPin",
-                            });
-                            //Remove WidgetTrafficEvents active pins
-                            $.event.trigger({
-                                type: "removeTrafficEventPin",
-                            });
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
-                            }).addTo(map.defaultMapRef);
-
-                            addBubbleChartToMap();
-                        }
-
-                    }*/
 
                     if (event.target === map.mapName) {
                         if (lastPopup !== null) {
@@ -5605,22 +5558,6 @@ if (!isset($_SESSION)) {
 
                             var pattern = new RegExp(re1 + re2 + re3 + re4 + re5 + re6 + re7 + re8 + re9, ["i"]);
 
-                            /*   if (queryType === "Default") {
-                                   if (pattern.test(query)) {
-                                       query = query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
-                                   }
-                                   else {
-                                       query = query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
-                                   }
-                               }
-
-                               if (targets !== "") {
-                                   targets = targets.split(",");
-                               }
-                               else {
-                                   targets = [];
-                               }*/
-
                             if(queryType === "Default")
                             {
                                 if (passedData.query.includes("datamanager/api/v1/poidata/")) {     // DA GESTIRE
@@ -5637,17 +5574,30 @@ if (!isset($_SESSION)) {
                                 } else if (passedData.query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {  // DA GESTIRE
                                     query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData.query + "&format=json";
                                 } else {
-                                    if (pattern.test(passedData.query)) {
-                                        //console.log("Service Map selection substitution");
-                                        query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                    if (passedData.query.includes("iot-search")) {
+                                        var lastPartQuery = passedData.query.split("selection=")[1];
+                                        var newSplit = lastPartQuery.split('&');
+                                        var lastPartString = "";
+                                        if (newSplit.length >= 2) {
+                                            var lastPart = newSplit.slice(1);
+                                            lastPartString = lastPart.join('&');
+                                        } else {
+                                            lastPartString = newSplit;
+                                        }
+                                        query = "<?= $superServiceMapProxy; ?>api/v1/iot-search/?selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng + "&" + lastPartString;
                                     } else {
-                                        //console.log("Service Map selection addition");
-                                        query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                        if (pattern.test(passedData.query)) {
+                                            //console.log("Service Map selection substitution");
+                                            query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                        } else {
+                                            //console.log("Service Map selection addition");
+                                            query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                        }
+                                        if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode == "DynamicCustomPin" || altViewMode == "BimShape" || altViewMode == "BimShapePopup") {
+                                            query = query + "&valueName=" + bubbleSelectedMetric[desc];
+                                        }
+                                        query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
                                     }
-                                    if (altViewMode == "Bubble" || altViewMode == "CustomPin" || altViewMode == "DynamicCustomPin" || altViewMode == "BimShape" || altViewMode == "BimShapePopup") {
-                                        query = query + "&valueName=" + bubbleSelectedMetric[desc];
-                                    }
-                                    query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
                                 }
                                 if (!query.includes("&maxResults")) {
                                     if (!query.includes("&queryId")) {
@@ -5735,20 +5685,24 @@ if (!isset($_SESSION)) {
                                         else {
                                             var countObjKeys = 0;
                                             var objContainer = {};
-                                            Object.keys(geoJsonData).forEach(function (key) {
-                                                if (countObjKeys == 0) {
-                                                    if (geoJsonData.hasOwnProperty(key)) {
-                                                        fatherGeoJsonNode = geoJsonData[key];
-                                                    }
-                                                } else {
-                                                    if (geoJsonData.hasOwnProperty(key)) {
-                                                        if (geoJsonData[key].features) {
-                                                            fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                            if (geoJsonData.hasOwnProperty("features")) {
+                                                fatherGeoJsonNode = geoJsonData;
+                                            } else {
+                                                Object.keys(geoJsonData).forEach(function (key) {
+                                                    if (countObjKeys == 0) {
+                                                        if (geoJsonData.hasOwnProperty(key)) {
+                                                            fatherGeoJsonNode = geoJsonData[key];
+                                                        }
+                                                    } else {
+                                                        if (geoJsonData.hasOwnProperty(key)) {
+                                                            if (geoJsonData[key].features) {
+                                                                fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                            }
                                                         }
                                                     }
-                                                }
-                                                countObjKeys++;
-                                            });
+                                                    countObjKeys++;
+                                                });
+                                            }
                                             /*    if (geoJsonData.hasOwnProperty("BusStops")) {
                                                     fatherGeoJsonNode = geoJsonData.BusStops;
                                                 } else {
@@ -5776,20 +5730,6 @@ if (!isset($_SESSION)) {
                                     }
                                     else
                                     {
-                                        /*   var countObjKeys = 0;
-                                           var objContainer = {};
-                                           Object.keys(geoJsonData).forEach(function (key) {
-                                               if (countObjKeys == 0) {
-                                                   if (geoJsonData.hasOwnProperty(key)) {
-                                                       fatherGeoJsonNode = geoJsonData[key];
-                                                   }
-                                               } else {
-                                                   if (geoJsonData.hasOwnProperty(key)) {
-                                                       fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
-                                                   }
-                                               }
-                                               countObjKeys++;
-                                           });*/
                                         if(geoJsonData.hasOwnProperty("BusStop"))
                                         {
                                             fatherGeoJsonNode = geoJsonData.BusStop;
@@ -5910,8 +5850,10 @@ if (!isset($_SESSION)) {
                                                         if (fatherGeoJsonNode.features[0].properties.realtimeAttributes.hasOwnProperty(bubbleSelectedMetric[desc])) {
                                                             var key = bubbleSelectedMetric[desc];
                                                             var obj = {};
-                                                            obj[key] = geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[desc]].value;
-                                                            fatherGeoJsonNode.features[0].properties["lastValue"] = obj;
+                                                            if ( geoJsonData.realtime != null && geoJsonData.realtime.results != null) {
+                                                                obj[key] = geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[desc]].value;
+                                                                fatherGeoJsonNode.features[0].properties["lastValue"] = obj;
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -5938,16 +5880,48 @@ if (!isset($_SESSION)) {
                                                         continue;
                                                     }
                                                 } else {
-                                                    fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = 0;
-                                                    //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
-                                                    //fatherGeoJsonNode.features.splice(i, 1);
-                                                    continue;
+                                                    if (fatherGeoJsonNode.features[i].properties.values != null) {
+                                                        if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty(bubbleSelectedMetric[desc])) {
+                                                            fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties.values[bubbleSelectedMetric[desc]];
+                                                            //fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]].replace(/"/g, "");
+                                                            if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]]))) {
+                                                                if (altViewMode != "CustomPin" && altViewMode != "DynamicCustomPin") {
+                                                                    fatherGeoJsonNode.features.splice(i, 1);
+                                                                    continue;
+                                                                }
+                                                            } else {
+                                                                if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] > maxValue) {
+                                                                    maxValue = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]];
+                                                                }
+                                                            }
+                                                        } else {
+                                                            fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = 0;
+                                                            //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
+                                                            fatherGeoJsonNode.features.splice(i, 1);
+                                                            continue;
+                                                        }
+                                                    } else {
+                                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = 0;
+                                                        //  fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[desc]] = null;
+                                                        fatherGeoJsonNode.features.splice(i, 1);
+                                                        continue;
+                                                    }
                                                 }
 
-                                                if (fatherGeoJsonNode.features[i].properties.lastValue.hasOwnProperty("measuredTime")) {
-                                                    fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.lastValue["measuredTime"];
-                                                } else {
-                                                    fatherGeoJsonNode.features[i].properties.measuredTime = null;
+                                                if (fatherGeoJsonNode.features[i].properties.lastValue != null) {
+                                                    if (fatherGeoJsonNode.features[i].properties.lastValue.hasOwnProperty("measuredTime")) {
+                                                        fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.lastValue["measuredTime"];
+                                                    } else {
+                                                        fatherGeoJsonNode.features[i].properties.measuredTime = null;
+                                                    }
+                                                } else if (fatherGeoJsonNode.features[i].properties.values != null) {
+                                                    if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty("measuredTime")) {
+                                                        fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.values["measuredTime"];
+                                                    } else if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty("dateObserved")) {
+                                                        fatherGeoJsonNode.features[i].properties.measuredTime = fatherGeoJsonNode.features[i].properties.values["dateObserved"];
+                                                    } else {
+                                                        fatherGeoJsonNode.features[i].properties.measuredTime = null;
+                                                    }
                                                 }
 
                                                 dataObj.lat = fatherGeoJsonNode.features[i].geometry.coordinates[1];
@@ -6182,47 +6156,8 @@ if (!isset($_SESSION)) {
                                                     }, 1500);
                                                 }
 
-                                            }
-
-                                            // CORTI - setta markers nella mappa 3D
-//                                        gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
-//                                            pointToLayer: gisPrepareCustomMarker,
-//                                            onEachFeature: onEachFeature
-//                                        }).addTo(map.default3DMapRef);
-
-                                            //     }
-                                        }
-
-                                    // COMMENTA l'else x POT. MOD. CONV. addSelectorPin
-                                /*    } else {
-                                        var loadNoBubbleMetricsText = $('<p class="gisMapLoadingDivTextPar">No Metrics Selected or Data Not Available for Charts<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
-                                        loadingDiv.empty();
-                                        loadingDiv.append(loadNoBubbleMetricsText);
-
-                                        parHeight = loadNoBubbleMetricsText.height();
-                                        parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                        loadNoBubbleMetricsText.css("margin-top", parMarginTop + "px");
-                                        setTimeout(function () {
-                                            loadingDiv.css("opacity", 0);
-                                            setTimeout(function () {
-                                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function () {
-                                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                });
-                                                loadingDiv.remove();
-                                            }, 350);
-                                        }, 1000);
-
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
-                                        eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
-
-                                        setTimeout(function () {
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
-                                            eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
-                                        }, 1500);
-                                        
-                                    }*/
-                                    // Fine commento else x POT. MOD. CONV. addSelectorPin
+                                    }
+                                }
                                 },
                                 error: function (errorData) {
                                     gisLayersOnMap[event.desc] = "loadError";
@@ -6418,14 +6353,27 @@ if (!isset($_SESSION)) {
                                 } else if (passedData.query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {
                                     query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData.query + "&format=json";
                                 } else {
-                                    if (pattern.test(passedData.query)) {
-                                        //console.log("Service Map selection substitution");
-                                        query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                    if (passedData.query.includes("iot-search")) {
+                                        var lastPartQuery = passedData.query.split("selection=")[1];
+                                        var newSplit = lastPartQuery.split('&');
+                                        var lastPartString = "";
+                                        if (newSplit.length >= 2) {
+                                            var lastPart = newSplit.slice(1);
+                                            lastPartString = lastPart.join('&');
+                                        } else {
+                                            lastPartString = newSplit;
+                                        }
+                                        query = "<?= $superServiceMapProxy; ?>api/v1/iot-search/?selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng + "&" + lastPartString;
                                     } else {
-                                        //console.log("Service Map selection addition");
-                                        query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                        if (pattern.test(passedData.query)) {
+                                            //console.log("Service Map selection substitution");
+                                            query = passedData.query.replace(pattern, "selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng);
+                                        } else {
+                                            //console.log("Service Map selection addition");
+                                            query = passedData.query + "&selection=" + mapBounds["_southWest"].lat + ";" + mapBounds["_southWest"].lng + ";" + mapBounds["_northEast"].lat + ";" + mapBounds["_northEast"].lng;
+                                        }
+                                        query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
                                     }
-                                    query = "<?=$superServiceMapProxy ?>api/v1?" + query.split('?')[1];
                                 }
                                 if (!query.includes("&maxResults")) {
                                     if (!query.includes("&queryId")) {
@@ -6541,20 +6489,24 @@ if (!isset($_SESSION)) {
                                         else {
                                             var countObjKeys = 0;
                                             var objContainer = {};
-                                            Object.keys(geoJsonData).forEach(function (key) {
-                                                if (countObjKeys == 0) {
-                                                    if (geoJsonData.hasOwnProperty(key)) {
-                                                        fatherGeoJsonNode = geoJsonData[key];
-                                                    }
-                                                } else {
-                                                    if (geoJsonData.hasOwnProperty(key)) {
-                                                        if (geoJsonData[key].features) {
-                                                            fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                            if (geoJsonData.hasOwnProperty("features")) {
+                                                fatherGeoJsonNode = geoJsonData;
+                                            } else {
+                                                Object.keys(geoJsonData).forEach(function (key) {
+                                                    if (countObjKeys == 0) {
+                                                        if (geoJsonData.hasOwnProperty(key)) {
+                                                            fatherGeoJsonNode = geoJsonData[key];
+                                                        }
+                                                    } else {
+                                                        if (geoJsonData.hasOwnProperty(key)) {
+                                                            if (geoJsonData[key].features) {
+                                                                fatherGeoJsonNode.features = fatherGeoJsonNode.features.concat(geoJsonData[key].features);
+                                                            }
                                                         }
                                                     }
-                                                }
-                                                countObjKeys++;
-                                            });
+                                                    countObjKeys++;
+                                                });
+                                            }
                                         /*    if (geoJsonData.hasOwnProperty("BusStops")) {
                                                 fatherGeoJsonNode = geoJsonData.BusStops;
                                             } else {
@@ -6624,7 +6576,11 @@ if (!isset($_SESSION)) {
                                     for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
 
                                         var dataObj = {};
-
+                                        if (fatherGeoJsonNode.features[i].properties.serviceType == null) {
+                                            if (fatherGeoJsonNode.features[i].properties.nature != null && fatherGeoJsonNode.features[i].properties.subnature != null) {
+                                                fatherGeoJsonNode.features[i].properties.serviceType = fatherGeoJsonNode.features[i].properties.nature + "_" + fatherGeoJsonNode.features[i].properties.subnature;
+                                            }
+                                        }
                                         fatherGeoJsonNode.features[i].properties.targetWidgets = targets;
                                         fatherGeoJsonNode.features[i].properties.color1 = color1;
                                         fatherGeoJsonNode.features[i].properties.color2 = color2;
