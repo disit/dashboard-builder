@@ -24,6 +24,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 
 <!DOCTYPE HTML>
 <html class="dark">
+<head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <!--<meta http-equiv="X-UA-Compatible" content="IE=edge">-->
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -57,8 +58,6 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
     <!-- JQUERY UI -->
     <script src="../js/jqueryUi/jquery-ui.js"></script>
     
-    <!-- Font awesome icons -->
-    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
 
     <!-- Bootstrap colorpicker -->
     <script src="../js/bootstrap-colorpicker.min.js"></script>

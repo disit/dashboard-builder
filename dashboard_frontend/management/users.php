@@ -62,8 +62,6 @@ include('process-form.php');
         <!-- Questa inclusione viene sempre DOPO bootstrap-table.js -->
         <script src="../boostrapTable/dist/locale/bootstrap-table-en-US.js"></script>
 
-        <!-- Font awesome icons -->
-        <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
         
         <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
 

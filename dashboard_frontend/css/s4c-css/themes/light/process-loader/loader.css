@@ -1,0 +1,320 @@
+/* Resource Manager - Process Loader
+   Copyright (C) 2018 DISIT Lab http://www.disit.org - University of Florence
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+body{
+     font-family: Verdana, Arial, Helvetica, sans-serif;   
+}
+
+#header {
+    text-align: center;
+    vertical-align: middle;
+    background-color: #337ab7;
+    color: #fff;
+    position: relative; 
+    top: -10px;
+    height: 10%;
+    padding-bottom: 10px;
+    
+}
+#content{ 
+margin:0 auto; 
+border:0px green dashed; 
+width:800px; 
+min-height:150px; 
+margin-top:100px;
+}
+#load { 
+width:30px;
+padding-top:50px;
+border:0px green dashed;
+margin:0 auto;
+}
+#paginate
+{
+text-align:center;
+border:0px green solid;
+width:500px;
+margin:0 auto;
+}
+.link{
+width:800px; 
+margin:0 auto; 
+border:0px green solid;
+}
+
+
+.icon {
+    width: 10%;
+    height: auto;
+    padding-left: 10px;
+}
+#comando_nuovo_Processo{
+ float: right;  
+padding-right: 20px; 
+}
+
+#header-text{
+    width: 75%;
+    vertical-align: middle;
+}
+
+#header-login {
+    float: right;
+    width: 15%;
+    background-color: #337ab7;
+    color: #fff;
+}
+#menu-laterale{
+    float: left;
+    background-color: #337ab7;
+    color: #fff;
+     width: 25%;
+     height: 90%;
+}
+
+#menu-laterale h3{
+    text-align: center;
+    padding: 15px;
+}
+
+#content {
+    float: right;
+    width: 72%;
+    background-color: #d9edf7;
+
+}
+
+#elenco_processi{
+    text-align: center;
+    padding: 15px;
+    padding-left: 15px;
+}
+legend{
+	cursor:pointer;
+}
+
+
+th{
+  text-align: center;
+    background-color: #337ab7;
+    color: #fff;
+    padding: 15px;
+}
+
+a{
+ color: #fff;   
+}
+.control-group
+{
+	text-align: left;
+}
+.a_page
+{
+	color: #337ab7;
+}
+#comando_nuovo_Processo2 {
+    padding-bottom: 15px;
+    padding-top: 15px;
+    width: 72%;
+}
+
+   /* Remove the navbar's default margin-bottom and rounded borders */ 
+    .navbar {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+    
+    /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+    .row.content {height: 450px}
+    
+    /* Set gray background color and 100% height */
+    .sidenav {
+      padding-top: 20px;
+      background-color: #337ab7;
+      height: 100%;
+    }
+    
+    /* Set black background color, white text and some padding */
+    footer {
+      color: white;
+      padding: 15px;
+    }
+    
+    /* On small screens, set height to 'auto' for sidenav and grid */
+    @media screen and (max-width: 767px) {
+      .sidenav {
+        height: auto;
+        padding: 15px;
+      }
+      .row.content {height:auto;} 
+    }
+    
+    .navbar-header {
+        background-color: #337ab7;
+    }
+    h1 {
+        color:white;
+    }
+    
+    h3{
+      color:white;  
+    }
+    
+    #myNavbar{
+       background-color: #337ab7; 
+    }
+    
+    #exampleModalLabel{
+        float: right;
+    }
+    
+    #button_nuovo_processo{
+        pudding: 15px;
+    }
+    
+
+
+
+/****** LOGIN MODAL ******/
+.loginmodal-container {
+  padding: 30px;
+  max-width: 350px;
+  width: 100% !important;
+  background-color: #F7F7F7;
+  margin: 0 auto;
+  border-radius: 2px;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.loginmodal-container h1 {
+  text-align: center;
+  font-size: 1.8em;
+}
+
+.loginmodal-container input[type=submit] {
+  width: 100%;
+  display: block;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.loginmodal-container input[type=text], input[type=password] {
+  height: 44px;
+  font-size: 16px;
+  width: 100%;
+  margin-bottom: 10px;
+  -webkit-appearance: none;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-top: 1px solid #c0c0c0;
+  /* border-radius: 2px; */
+  padding: 0 8px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+.loginmodal-container input[type=text]:hover, input[type=password]:hover {
+  border: 1px solid #b9b9b9;
+  border-top: 1px solid #a0a0a0;
+  -moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  -webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.loginmodal {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  height: 36px;
+  padding: 0 8px;
+/* border-radius: 3px; */
+/* -webkit-user-select: none;
+  user-select: none; */
+}
+
+.loginmodal-submit {
+  /* border: 1px solid #3079ed; */
+  border: 0px;
+  color: #fff;
+  text-shadow: 0 1px rgba(0,0,0,0.1); 
+  background-color: #4d90fe;
+  padding: 17px 0px;
+  font-size: 14px;
+  /* background-image: -webkit-gradient(linear, 0 0, 0 100%,   from(#4d90fe), to(#4787ed)); */
+}
+
+.loginmodal-submit:hover {
+  /* border: 1px solid #2f5bb7; */
+  border: 0px;
+  text-shadow: 0 1px rgba(0,0,0,0.3);
+  background-color: #357ae8;
+  /* background-image: -webkit-gradient(linear, 0 0, 0 100%,   from(#4d90fe), to(#357ae8)); */
+}
+
+.loginmodal-container a {
+  text-decoration: none;
+  color: #666;
+  font-weight: 400;
+  text-align: center;
+  display: inline-block;
+  opacity: 0.6;
+  transition: opacity ease 0.5s;
+} 
+
+.login-help{
+  font-size: 12px;
+}
+
+.file_archive_link{
+    color: #357ae8;
+}
+
+#myNavbar a{
+    color: #fff;
+}
+
+/* Upload*/
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+
+#img-upload{
+    width: 100%;
+}
+
+.nav-tabs a {
+ color: #337ab7;
+}
+.paging {
+	color: #333;
+}

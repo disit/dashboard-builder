@@ -60,8 +60,6 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
     <link href="../bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
     <script src="../bootstrap3-editable/js/bootstrap-editable.js"></script>
     
-    <!-- Font awesome icons -->
-      <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
     
       <!-- Custom CSS -->
       <link href="../css/s4c-css/s4c-dashboard.css?v=<?php echo time();?>" rel="stylesheet">

@@ -1,0 +1,374 @@
+* {
+	box-sizing: border-box;
+}
+
+#select1 {
+	width: 265px;
+	height: 190px;
+	font-family: Montserrat;
+	font-weight: 400;
+	font-size: 14px;
+}
+
+#select2 {
+	font-family: Montserrat;
+	font-weight: 400;
+	font-size: 14px;
+	width: 265px;
+	left: 365px;
+	position: relative;
+	height: 190px;
+}
+
+#email_label {
+    width: 314px;
+    position: absolute;
+    font-size: 14px;
+    top: 17px;
+    left: 44px;
+}
+
+#email_image {
+width: 50px;
+    left: -3px;
+    position: relative;
+}
+
+#href_email {
+    left: 357px;
+    top: 17px;
+    font-size: 14px;
+    position: absolute;
+}
+
+p.instructor {
+    position: relative;
+    top: -57px;
+    background: cadetblue;
+    padding: 20px;
+    width: 102%;
+    left: -16px;
+    text-align: left;
+    font-weight: bolder;
+font-family: Montserrat;
+font-weight:bold; 
+font-size: 14px;
+}
+
+
+
+ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: 70px 40px 70px;
+	grid-gap: 10px;
+	position: absolute;
+	top: 58px;
+}
+
+li.li_guideline {
+	list-style-image: url("../img/datatablemanager_idea.png");
+}
+
+ul.guideline {
+list-style: none;
+    margin: 0;
+    padding: 0;
+    grid-template-columns: 70px 40px 70px;
+    grid-gap: 10px;
+    list-style-type: disc;
+    display: block;
+    top: -10px;
+    padding: 25px;
+    padding-top: 8px;
+    font-family: Montserrat;font-weight:400; font-size: 14px;
+}
+
+div.guideline {
+    top: 15%;
+    position: absolute;
+    left: 52%;
+    width: 46%;
+    text-align: justify;
+}
+
+#div_select1 {
+	position: absolute;
+	left: -227px;
+	top: -120px;
+	font-family: Montserrat;font-weight:400; font-size: 14px;
+}
+
+#div_selectors {
+position: relative;
+    top: -40px;
+    width: 756px;
+    height: 270px;
+    background-color: gainsboro;
+    padding: 13px;
+    left: -4px;
+}
+
+#label_select1 {
+    position: absolute;
+    left: 77px;
+    border-style: solid;
+    padding: 7px;
+    border-width: 1px;
+    background-color: lavender;
+    font-weight: bold;
+    font-family: Montserrat;font-weight:bold; font-size: 14px;
+}
+
+#label_select2 {
+position: absolute;
+    left: 495px;
+    border-style: solid;
+    padding: 7px;
+    border-width: 1px;
+    width: 200px;
+    background-color: lavender;
+    font-weight: bold;
+    font-family: Montserrat;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+fieldset.guideline {
+    border: 1px;
+    border-style: solid;
+    padding-right: 10px;
+    padding-left: 10px;
+    font-family: Montserrat;font-weight:400; font-size: 14px;
+    position: relative;
+    height: 305px;
+}
+
+legend.guideline {
+    display: block;
+    margin-bottom: .5rem;
+    line-height: inherit;
+    color: darkcyan;
+    padding-right: 10px;
+    padding-left: 10px;
+    width: 380px;
+    font-family: Montserrat;font-weight:400; font-size: 14px;
+}
+
+#li_add_remove_btns {
+    left: 328px;
+    top: 90px;
+    position: absolute;
+}
+
+form {
+    margin: 100px auto;
+    min-width: 300px;
+    min-height: 680px;
+    position: absolute;
+    background-color: #ffffff;
+    font-family: Montserrat;
+    padding: 33px;
+    width: 1565px;
+    padding-bottom: 32px;
+}
+
+#div_email {
+    width: 32%;
+    left: 1015px;
+    position: absolute;
+    top: 38px;
+    background: lightgray;
+}
+
+#div_navigation_btns {
+    position: relative;
+    left: 760px;
+    top: -17px;
+    width: 173px;
+    z-index: 1001;
+}
+body {
+	background-color: #f1f1f1;
+}
+
+li.warning {
+	width: 550px;
+}
+
+#warninglist {
+	list-style: initial;
+	margin: 11px;
+	padding: 6px;
+	display: grid;
+	grid-template-columns: 70px 40px 70px;
+	grid-gap: 10px;
+	display: block;
+	position: absolute;
+	left: 710px;
+	top: 48px;
+}
+
+
+h1 {
+	text-align: center;
+}
+
+input {
+	padding: 10px;
+	width: 100%;
+	font-family: Montserrat;font-weight:400; font-size: 14px;
+	font-family: Raleway;
+	border: 1px solid black;
+}
+
+p {
+	position: absolute;
+	top: 15px;
+}
+
+/* Mark input boxes that gets an error on validation: */
+/* input.invalid { */
+/* 	background-color: #ffdddd; */
+/* } */
+input.submit {
+	width: 84px;
+	position: relative;
+	top: 14px;
+	left: 565px;
+}
+
+/* Hide all steps by default: */
+.tab {
+	left: 190px;
+	position: absolute;
+	width: 1462px;
+	top: 104px;
+}
+
+button {
+	background-color: #4CAF50;
+	color: #ffffff;
+	border: none;
+	padding: 10px 20px;
+	font-family: Montserrat;font-weight:400; font-size: 14px;
+	font-family: Raleway;
+	cursor: pointer;
+}
+
+button:hover {
+	opacity: 0.8;
+}
+
+span {
+	top: 10px;
+	position: absolute;
+	left: 700px;
+	display: none;
+}
+
+#submit_button {
+	background-color: #4CAF50;
+	color: #ffffff;
+	border: none;
+	padding: 10px 20px;
+	font-size: 17px;
+	font-family: Raleway;
+	cursor: pointer;
+}
+
+#prevBtn {
+	background-color: #bbbbbb;
+	color: #ffffff;
+	border: none;
+	padding: 10px 20px;
+	font-size: 17px;
+	font-family: Raleway;
+	cursor: pointer;
+}
+
+/* Make circles that indicate the steps of the form: */
+.step {
+	height: 15px;
+	width: 15px;
+	margin: 0 2px;
+	background-color: #bbbbbb;
+	border: none;
+	border-radius: 50%;
+	display: inline-block;
+	opacity: 0.5;
+}
+
+.step.active {
+	opacity: 1;
+}
+
+/* Mark the steps that are finished and valid: */
+.step.finish {
+	background-color: #4CAF50;
+}
+
+#example {
+	top: 44px;
+	left: 17px;
+	padding: 7px;
+	left: 291px;
+	position: absolute;
+}
+
+li.relative {
+	position: relative
+}
+
+#add {
+    position: absolute;
+    width: 50px;
+    font-weight: bolder;
+    font-size: 30px;
+    top: -67px;
+    height: 50px;
+    padding: 0px;
+}
+
+#remove {
+position: absolute;
+    width: 50px;
+    /* font-family: Montserrat; */
+    font-weight: bolder;
+    font-size: 30px;
+    top: 0;
+    height: 50px;
+    padding: 0px;
+}
+
+.label {
+	color: white;
+	padding: 8px;
+	font-family: Montserrat;font-weight:400; font-size: 14px;
+}
+
+#sheet_name {
+	left: 381px;
+	top: -136px;
+	width: 360px;
+}
+
+.success {
+	background-color: #4CAF50;
+} /* Green */
+.info {
+	background-color: #2196F3;
+} /* Blue */
+.warning {
+	background-color: #ff9800;
+} /* Orange */
+.danger {
+	background-color: #f44336;
+} /* Red */
+.other {
+	background-color: #e7e7e7;
+	color: black;
+} /* Gray */
+

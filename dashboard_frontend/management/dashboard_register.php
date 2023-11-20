@@ -52,8 +52,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
         <!--<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>-->
         <script src="../js/jqueryUi/jquery-ui.js"></script>
         
-        <!-- Font awesome icons -->
-          <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+        
         
           <!-- Custom CSS -->
           <?php include "theme-switcher.php" ?>

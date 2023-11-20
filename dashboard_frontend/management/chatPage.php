@@ -32,8 +32,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
             getTheme();
         </script>
         <link href="../css/chatIframe.css" rel="stylesheet" type="text/css">
-        <!-- Font awesome icons -->
-        <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+        
     </head>
     <body>
         <?php include "../cookie_banner/cookie-banner.php"; ?>

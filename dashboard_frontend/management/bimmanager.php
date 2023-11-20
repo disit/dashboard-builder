@@ -189,8 +189,7 @@ $lastUsedColors = null;
     echo time();
     ?>">
     
-    <!-- Font awesome icons -->
-    <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+    
     
     <!-- Custom CSS -->
     <?php include "theme-switcher.php"?>

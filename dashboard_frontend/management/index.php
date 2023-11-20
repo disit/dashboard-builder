@@ -53,7 +53,7 @@ if(isset($_GET['switchNewLayout']) || (isset($layoutStyle) && $layoutStyle == "n
     } else {
       $cookie_value = "legacy_layout";
     }
-    setcookie($cookie_name, $cookie_value, time() + (86400), "/"); // 86400 = 1 day
+    setcookie($cookie_name, $cookie_value, time() + (86400), "/", $cookieDomain); // 86400 = 1 day
   } else if (isset($_COOKIE['layout'])) {
     $cookie_name = "layout";
     if ($_GET['switchNewLayout'] == "true" || (!isset($_GET['switchNewLayout']) && $layoutStyle == "new")) {
@@ -61,7 +61,7 @@ if(isset($_GET['switchNewLayout']) || (isset($layoutStyle) && $layoutStyle == "n
     } else {
       $cookie_value = "legacy_layout";
     }
-    setcookie($cookie_name, $cookie_value, time() + (86400), "/"); // 86400 = 1 day
+    setcookie($cookie_name, $cookie_value, time() + (86400), "/", $cookieDomain); // 86400 = 1 day
   }
 
   if (isset($_SESSION['newLayout']) || $layoutStyle == "new") {

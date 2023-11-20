@@ -1,0 +1,363 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background-color: #f1f1f1;
+}
+
+li.warning {
+	width: 550px;
+}
+
+td {
+    border: 1px solid black;
+    word-break: break-all;
+  }
+
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+   border: 1px solid black;
+}
+
+tr:nth-child(even) {
+    background-color: aliceblue;
+}
+
+tr:nth-child(odd) {
+    background-color: beige;
+}
+
+th{
+    border: 1px solid black;
+    word-break: break-all;
+}
+
+
+form {
+    margin: 100px auto;
+    min-width: 300px;
+    min-height: 680px;
+    position: absolute;
+    background-color: #ffffff;
+    font-family: Montserrat;
+    padding: 33px;
+    width: 1565px;
+    padding-bottom: 32px;
+}
+
+#div_email {
+    width: 32%;
+    left: 1015px;
+    position: absolute;
+    top: 38px;
+    background: lightgray;
+}
+
+#div_navigation_btns {
+    position: relative;
+    left: 760px;
+    top: -17px;
+    width: 173px;
+    z-index: 1001;
+}
+
+#email_label {
+    width: 314px;
+    position: absolute;
+    font-size: 14px;
+    top: 17px;
+    left: 44px;
+}
+
+#email_image {
+width: 50px;
+    left: -3px;
+    position: relative;
+}
+
+#href_email {
+    left: 352px;
+    top: 17px;
+    font-size: 14px;
+    position: absolute;
+}
+
+
+p.instructor {
+    position: relative;
+    top: -57px;
+    background: cadetblue;
+    padding: 20px;
+    width: 102%;
+    left: -16px;
+    text-align: left;
+font-family: Montserrat;font-weight:bold; font-size: 14px;
+}
+
+#cell_first_second_row {
+	border: #f1f1f1;
+	border: none;
+	border-style: none;
+	border-width: 0px;
+	background-color: white;
+	border-top: hidden;
+}
+
+#cell_first_first_row{
+	
+	    background-color: #f1f1f1;
+    border: #f1f1f1;
+    border-style: hidden;
+}
+
+
+#div_table{    
+    overflow-y: scroll;
+    height: 605px;
+    overflow: scroll;
+    width: 102%;
+    top: -45px;
+    position: relative;
+    left: -16px;
+}
+
+#table_preview {
+	border-spacing: 0px;
+	table-layout: fixed;
+	margin-left: auto;
+	margin-right: auto;
+	text-align-last: center;
+	font-family: arial, sans-serif;
+	border-collapse: collapse;
+	    width: max-content;
+	position: relative;
+	font-family: Montserrat;
+	font-weight: 400;
+	font-size: 14px;
+	background: white;
+	display: block;
+}
+
+#warninglist {
+	list-style: initial;
+	margin: 11px;
+	padding: 6px;
+	display: grid;
+	grid-template-columns: 70px 40px 70px;
+	grid-gap: 10px;
+	display: block;
+	position: absolute;
+	left: 710px;
+	top: 48px;
+}
+
+
+.divTable.blueTable .divTableHeading {
+	background: #1C6EA4;
+	background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+	background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+	background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+	border-bottom: 2px solid #444444;
+}
+
+label{
+	display: inline-block;
+    top: 19px;
+    position: absolute;
+    width: 660px;
+    font-family: Montserrat;font-weight:400; font-size: 14px;
+}
+
+h1 {
+	text-align: center;
+}
+
+
+
+.header{
+	background-color: cadetblue;
+	background: #1C6EA4;
+	background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+	background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+	background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+	border-bottom: 2px solid #444444;
+	border-collapse: collapse;
+	font-weight: bold;
+}
+
+/* Mark input boxes that gets an error on validation: */
+/* input.invalid { */
+/* 	background-color: #ffdddd; */
+/* } */
+input.submit {
+	width: 84px;
+	position: relative;
+	top: 14px;
+	left: 565px;
+}
+
+
+button {
+	background-color: #4CAF50;
+	color: #ffffff;
+	border: none;
+	padding: 10px 20px;
+	font-size: 17px;
+	font-family: Raleway;
+	cursor: pointer;
+}
+
+button:hover {
+	opacity: 0.8;
+}
+
+p {
+	position: absolute;
+/* 	left: 228px; */
+	top: 11px;
+}
+
+#submit_button {
+	background-color: #4CAF50;
+	color: #ffffff;
+	border: none;
+	padding: 10px 20px;
+	font-size: 17px;
+	font-family: Raleway;
+	cursor: pointer;
+}
+
+#prevBtn {
+	background-color: #bbbbbb;
+	color: #ffffff;
+	border: none;
+	padding: 10px 20px;
+	font-size: 17px;
+	font-family: Raleway;
+	cursor: pointer;
+}
+
+
+#example {
+	top: 44px;
+	left: 17px;
+	padding: 7px;
+	left: 291px;
+	position: absolute;
+}
+
+
+#sheet_name {
+	left: 381px;
+	top: -136px;
+	width: 360px;
+}
+
+.success {
+	background-color: #4CAF50;
+} /* Green */
+.info {
+	background-color: #2196F3;
+} /* Blue */
+.warning {
+	background-color: #ff9800;
+} /* Orange */
+.danger {
+	background-color: #f44336;
+} /* Red */
+.other {
+	background-color: #e7e7e7;
+	color: black;
+} /* Gray */
+
+#div_please_wait{
+	display: none;
+}
+
+.loading {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    width: 100px;
+    margin: auto;
+    -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+.loading span {
+    position: absolute;
+  height: 30px;
+    width: 84px;
+    top: 50px;
+    overflow: hidden;
+}
+.loading span > i {
+    position: absolute;
+    height: 27px;
+    width: 22px;
+    border-radius: 50%;
+    -webkit-animation: wait 4s infinite;
+    -moz-animation: wait 4s infinite;
+    -o-animation: wait 4s infinite;
+    animation: wait 4s infinite;
+}
+.loading span > i:nth-of-type(1) {
+    left: -28px;
+    background: yellow;
+}
+.loading span > i:nth-of-type(2) {
+    left: -21px;
+    -webkit-animation-delay: 0.8s;
+    animation-delay: 0.8s;
+    background: lightgreen;
+}
+
+td.list_table_buttons {
+    text-align-last: left;
+    width: 110px;
+    border: 1px solid black;
+}
+
+input.list_table_buttons{
+    border: none;
+    color: white;
+    font-family: Montserrat;
+    font-weight: bold;
+    text-transform: uppercase;
+    height: 48px;
+    width: 100%;
+    position: relative;
+    font-size: 14px;
+    text-align-last: center;
+}
+
+@-webkit-keyframes wait {
+    0%   { left: -7px  }
+    30%  { left: 52px  }
+    60%  { left: 22px  }
+    100% { left: 100px }
+}
+@-moz-keyframes wait {
+    0%   { left: -7px  }
+    30%  { left: 52px  }
+    60%  { left: 22px  }
+    100% { left: 100px }
+}
+@-o-keyframes wait {
+    0%   { left: -7px  }
+    30%  { left: 52px  }
+    60%  { left: 22px  }
+    100% { left: 100px }
+}
+@keyframes wait {
+    0%   { left: -7px  }
+    30%  { left: 52px  }
+    60%  { left: 22px  }
+    100% { left: 100px }
+}

@@ -244,7 +244,7 @@ table.addWidgetWizardTable tbody td, table.addWidgetWizardTableSelected tbody td
 
 thead.widgetWizardColTitle
 {
-    background: var(--scrollbar-color-);
+    background: var(--dark-grey04-);
     color: var(--text-color-);
     font-size: 1.2em;
     padding-left: 0px !important;
@@ -254,7 +254,7 @@ thead.widgetWizardColTitle
 
 thead.widgetWizardColTitle2
 {
-    background: var(--scrollbar-color-);
+    background: var(--dark-grey04-);
     color: var(--text-color-);
     font-size: 1.2em;
     padding-left: 0px !important;

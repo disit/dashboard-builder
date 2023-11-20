@@ -92,8 +92,6 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
         <script type="text/javascript" src="https://rawgit.com/vedmack/yadcf/0.8.8/jquery.dataTables.yadcf.js"></script>
         <link rel="stylesheet" type="text/css" href="https://rawgit.com/vedmack/yadcf/0.8.7/jquery.dataTables.yadcf.css">
         
-        <!-- Font awesome icons -->
-          <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
         
           <!-- Custom CSS -->
           <?php include "theme-switcher.php" ?> 

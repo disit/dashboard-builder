@@ -76,6 +76,22 @@
   --dash-icon-color-:#102639;
   --mob-menu-bg-: #532e2e;
   --mob-user-menu-bg-: #1f0d0d;
+  --table-odd-color-: #574e4c;
+  --table-even-color-: #454241;
+  --strip-subtable-: #3d3a39;
+  --devices-: #f3cf58;
+  --active-: #44b7ae;
+  --public-:#60b8eb;
+  --private-:#988fdb;
+  /* Data Table Manager Preview */
+  --dtm-white-: #EDEFF2;
+  --dtm-darkcyan-: #376772;
+  --dtm-brightcyan-: #74939a;
+  --dtm-color-: #1f0d0d;
+  --dtm-header-: #c24d2c;
+  --dtm-even-: #dac4be;
+  --dtm-odd-: #ccada7;
+  --modal-overlay-: rgba(0, 0, 0, .5);
 }
 
 
@@ -2103,25 +2119,46 @@ div.mainContentCellCnt
 
 #dashboardTotNumberCnt div.pageSingleDataCnt, #dashboardTotNumberCnt div.pageSingleDataLabel
 {
-    background: #f3cf58;
+    background: var(--devices-);
     color: var(--dark-grey01-)!important;
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 10px;
+    font-size: 1.5em;
+    font-weight: 600;
 }
 
 #dashboardTotActiveCnt div.pageSingleDataCnt, #dashboardTotActiveCnt div.pageSingleDataLabel
 {
-    background: rgb(69, 183, 175);
+    background: var(--active-);
     color: var(--dark-grey01-)!important;
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 10px;
+    font-size: 1.5em;
+    font-weight: 600;
 }
 
 #dashboardTotPermCnt div.pageSingleDataCnt, #dashboardTotPermCnt div.pageSingleDataLabel
 {
-    background: #e37777;
+    background: var(--public-);
+    color: var(--dark-grey01-)!important;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+#dashboardTotPrivateCnt div.pageSingleDataCnt, #dashboardTotPrivateCnt div.pageSingleDataLabel
+{
+    background: var(--private-);
+    color: var(--dark-grey01-)!important;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+    font-weight: 600;
 }
 
 #dashboardLastCnt div.lastDashName, #dashboardLastCnt div.pageSingleDataLabel
@@ -2189,18 +2226,6 @@ div.accountEditIconContainer i
 #accountFirstNameMsg, #accountLastNameMsg, #accountOrganizationMsg, #accountEmailMsg, #accountPasswordMsg, #accountPasswordConfirmationMsg
 {
     font-size: 0.95em;
-}
-
-
-
-div.pageSingleDataCnt
-{
-    padding-top: 14px;
-    padding-bottom: 14px;
-    font-size: 2em;
-    color: var(--white-);
-    font-weight: bold;
-    text-transform: uppercase;
 }
 
 div.lastDashName
@@ -2828,6 +2853,8 @@ div.modalHeader, .dataSourcesDetails .modal-header
     color: var(--dark-grey03-);
     padding: 10px 0;
     border: none!important;
+    background: var(--modal-bg-);
+    border-radius: 10px 10px 0 0;
 }
 
 div.modalBody
@@ -3648,7 +3675,7 @@ input[type="text"]:disabled
 }
 
 .myS4C-btn:before{
-  content: url(../../../../management/img/snap4city-logo-symbol.svg);
+  content: url(../../management/img/snap4city-logo-symbol.svg);
   width: 2.5rem;
   height: auto;
 }
@@ -3729,7 +3756,7 @@ input[type="text"]:disabled
   flex-direction: row;
 }
 
-#delDashNameMsg
+#delDashNameMsg, #importDashNameMsg
 {
     color: var(--text-color-)!important;
 }
@@ -3942,7 +3969,7 @@ div.modal-dialog
     height: 90vh;
 }
 
-#delDashModalBody, #delDashModalFooter, #delDashNameMsg, #cloneDashboardModalBody, #cloneDashboardModalFooter, #delegationsModalBody, #delegationsModalFooter, #iotAppsModalBody, #iotAppsModalFooter, #checkDashLimitsModalBody, #checkDashLimitsModalFooter{
+#delDashModalBody, #delDashModalFooter, #delDashNameMsg, #cloneDashboardModalBody, #cloneDashboardModalFooter, #delegationsModalBody, #delegationsModalFooter, #iotAppsModalBody, #iotAppsModalFooter, #checkDashLimitsModalBody, #checkDashLimitsModalFooter, #importDashModalBody, #importDashNameMsg, #importDashModalFooter{
   padding: 20px;
 }
 
@@ -4038,7 +4065,7 @@ ul#delegationsTabsContainer, #wizardTabsContainer, #datasourcesTabsContainer, #a
 {
     display: none;
     font-weight: bold;
-    color: var(--white-);
+    color: var(--text-color--);
 }
 
 #delegationsNotAvailableRow, #groupDelegationsNotAvailableRow
@@ -4221,7 +4248,7 @@ div.orgMenuItemCntActive
 
 /* INPUT GENERAL STYLE */
 
-select, select.form-control,input[type="text"],input[type="search"],.input-group .form-control:first-child, .input-group-addon:first-child, .input-group-btn:first-child > .btn, .input-group-btn:first-child > .btn-group > .btn, .input-group-btn:first-child > .dropdown-toggle, .input-group-btn:last-child > .btn:not(:last-child):not(.dropdown-toggle), .input-group-btn:last-child > .btn-group:not(:last-child) > .btn{
+select, select.form-control,input[type="text"],input[type="search"],.input-group .form-control:first-child, .input-group-addon:first-child, .input-group-btn:first-child > .btn, .input-group-btn:first-child > .btn-group > .btn, .input-group-btn:first-child > .dropdown-toggle, .input-group-btn:last-child > .btn:not(:last-child):not(.dropdown-toggle), .input-group-btn:last-child > .btn-group:not(:last-child) > .btn, .modalInputTxt{
   background: transparent;
   border-bottom: 2px solid var(--text-color-)!important;
   border-top: none!important;
@@ -4229,9 +4256,9 @@ select, select.form-control,input[type="text"],input[type="search"],.input-group
   border-radius: 0;
   border-left: none!important;
   border-right: none!important;
-  padding: 0;
   color: var(--text-color-);
   font-size: 1.3rem;
+  margin-bottom: 6px;
 }
 
 select option, select.form-control option{
@@ -4314,7 +4341,7 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
 }
 
 .pagination > li > a, .pagination > li > span{
-  background: transparent;
+  background-color: transparent!important;
   border: none!important;
   color: var(--dark-grey05-)!important;
   font-weight: 800;
@@ -4631,6 +4658,283 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
   
 }
 
+.btn-info {
+    border: none;
+}
+
+/* IOT Devices Styles */
+
+body.IOTdevices, body.IOTdevices .dataTables_wrapper .dataTables_length, body.IOTdevices .dataTables_wrapper .dataTables_filter, body.IOTdevices .dataTables_wrapper .dataTables_info, body.IOTdevices .dataTables_wrapper .dataTables_processing, body.IOTdevices .dataTables_wrapper .dataTables_paginate{
+  color: var(--text-color-);
+}
+
+#mainContentCntIot
+{
+    overflow-y: auto;
+    background: var(--grey-blue02-);
+    border-radius: 5px 0 0 0;
+    height: 100vh!important;
+    width: 100vw;
+}
+
+div#mainCnt{
+  padding: 0!important;
+}
+
+body.IOTdevices .dataTables_scroll {
+    margin-top: 20px;
+}
+
+#displayAllDeviceRow .mainContentCellCnt .row{
+  display: flex!important:
+}
+
+body.IOTdevices .dataTables_wrapper{
+  margin-top: 15px;
+}
+
+body.IOTdevices .dataTables_scrollBody thead{
+  height: 0!important;
+}
+
+body.IOTdevices .dataTables_scrollHeadInner thead{
+  height: auto!important;
+}
+body.IOTdevices thead.dataTableHeadColTitle{
+  background: var(--dark-grey04-);
+  color: var(--text-color-);
+  font-size: 1.2em;
+}
+
+body.IOTdevices table.addWidgetWizardTable{
+  height: auto!important;
+}
+
+body.IOTdevices .dataTables_scrollHeadInner table.addWidgetWizardTable th{
+  padding: 8px 10px!important;
+}
+
+body.IOTdevices .dataTables_scrollBody th{
+  padding-top: 0!important;
+  padding-bottom: 0!important;
+}
+
+body.IOTdevices table.dataTable thead .sorting:after{
+  display: none;
+}
+
+body.IOTdevices .dataTables_scrollBody .addMapBtn{
+  text-align: center;
+}
+
+body.IOTdevices .dataTables_scrollBody .addMapBtn i{
+  color: var(--text-color-)!important;
+  font-size: 20px!important;
+}
+
+#addDeviceBtn{
+  background-color: var(--green-)!important;
+  border: 1px solid var(--green-)!important;
+  border-radius: 5px!important;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+#addDeviceBtn:hover{
+  background-color: transparent!important;
+  border: 1px solid var(--green-)!important;
+  color: var(--green-)!important;
+}
+
+.dataTables_scrollBody .table-striped > tbody > tr:nth-of-type(odd), tr.summaryTableRow:nth-child(odd), .table-striped > tbody > tr:nth-of-type(odd){
+  background: var(--table-odd-color-)!important;
+  color: var(--text-color-);
+  font-weight: 600;
+}
+
+.dataTables_scrollBody table.dataTable > tbody > tr:nth-of-type(even), table.dataTable tbody tr{
+  background: var(--table-even-color-)!important;
+  color: var(--text-color-);
+  font-weight: 600;
+}
+
+/* ---------- */
+
+body.IOTdevices .dataTables_wrapper .dataTables_paginate .paginate_button:hover{
+  background: transparent!important;
+  border: none;
+  cursor: pointer;
+}
+
+i[data-target="#addMapShow"]{
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.viewOnMap{
+  font-size: 1.5em;
+}
+
+.stripeSubtableDark{
+  padding: 10px;
+  background: transparent;
+}
+
+.stripeSubtableLight{
+  padding: 10px;
+  background: var(--strip-subtable-);
+}
+
+ .stripeSubtableDark .btn:hover, .stripeSubtableLight .btn:hover{
+   border: none!important;
+ }
+ 
+ body.IOTdevices .modal-content{
+   border-radius: 10px!important;
+   background: var(--modal-body-bg-)!important;
+ }
+ 
+ body.IOTdevices .modal-header{
+   border-radius: 10px!important;
+ }
+ 
+ body.IOTdevices .modal-content .tab-content{
+    background: var(--modal-body-bg-);
+  }
+  
+  body.IOTdevices .modal-footer{
+    background: var(--modal-body-bg-);
+    border-radius: 0 0 10px 10px; 
+  }
+ 
+ body.IOTdevices legend{
+   color: var(--text-color-)!important;
+   border: none;
+ }
+ body.IOTdevices legend div{
+    padding-bottom: 25px;
+ }
+ 
+ body.IOTdevices .select2-container--default .select2-selection--single{
+    background: transparent;
+    border-bottom: 2px solid var(--text-color-)!important;
+    border-top: none!important;
+    box-shadow: none;
+    border-radius: 0;
+    border-left: none!important;
+    border-right: none!important;
+    padding: 0;
+    color: var(--text-color-);
+    font-size: 1.3rem;
+ }
+ 
+body.IOTdevices .select2-container--default .select2-selection--single .select2-selection__rendered{
+  color: var(--text-color-);
+}
+
+body.IOTdevices .select2-dropdown{
+  background-color: var(--dark-grey01-);
+  border-radius: 0;
+  border: 1px solid var(--text-color-);
+}
+
+body.IOTdevices .select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: var(--blue-);
+}
+
+.ok_label{
+  color: var(--green-);
+}
+
+.not_ok_label{
+  color: var(--red-);
+}
+
+div#uploadFileBoard {
+    margin: 20px 0;
+    display: inline-flex;
+}
+
+body.IOTdevices #mobHeaderClaimCnt{
+  display: none;
+}
+
+body.IOTdevices div.dtsp-topRow.dtsp-bordered{
+  border: none!important;
+  border-radius: 0!important;
+}
+
+body.IOTdevices .dtsp-searchIcon {
+     background: transparent!important;
+ }
+ 
+body.IOTdevices div.dtsp-panesContainer div.dtsp-searchPanes div.dtsp-searchPane input.dtsp-paneInputButton:hover,  body.IOTdevices div.dtsp-panesContainer div.dtsp-searchPanes div.dtsp-searchPane button.dtsp-paneButton:hover{
+   background: transparent!important;
+   border-radius: 0!important;
+ }
+
+body.IOTdevices div.dtsp-panesContainer div.dtsp-searchPanes div.dtsp-searchPane div.dataTables_wrapper{
+   border: none!important;
+ }
+ 
+body.IOTdevices div.dtsp-panesContainer div.dtsp-searchPanes div.dtsp-searchPane div.dataTables_wrapper:hover{
+   border: none!important
+ }
+ 
+body.IOTdevices div.dtsp-topRow.dtsp-bordered:hover{
+  background: transparent!important;
+   border-radius: 0!important;
+}
+
+body.IOTdevices div.dtsp-panesContainer div.dataTables_wrapper div.dataTables_scrollBody {
+  background: var(--table-odd-color-) !important;
+  border-bottom: none;
+  color: var(--text-color-);
+}
+
+body.IOTdevices div.mainContentRow{
+   background: transparent!important;
+ }
+ 
+.ifBlockBulk thead tr, .decisionBlockBulk thead tr, .resultBlockBulk thead tr{
+  background-color: var(--dark-grey01-)!important;
+  color: var(--text-color-)!important;
+}
+
+.ifBlockBulk thead tr th, .decisionBlockBulk thead tr th, .resultBlockBulk thead tr th{
+  padding: 10px;
+}
+
+.ifBlockBulk i.fa-plus, .decisionBlockBulk i.fa-plus, .resultBlockBulk i.fa-plus{
+  color: var(--text-color-)!important;
+}
+
+ .ifBlockBulk tbody tr:nth-child(odd), .decisionBlockBulk tbody tr:nth-child(odd), .resultBlockBulk tbody tr:nth-child(odd){
+  background: var(--modal-bg-)!important;
+}
+
+ .ifBlockBulk tbody tr:nth-child(even), .decisionBlockBulk tbody tr:nth-child(even), .resultBlockBulk tbody tr:nth-child(even){
+  background: var(--grey-blue03-)!important;
+}
+
+ .ifBlockBulk i.fa-minus, .decisionBlockBulk i.fa-minus, .resultBlockBulk i.fa-minus{
+   color: var(--red-)!important;
+ }
+ 
+ .ifBlockBulk .label-danger, .decisionBlockBulk .label-danger, .resultBlockBulk .label-danger {
+      background-color: var(--orange-)!important;
+  }
+  
+/* Process Loader Styles */
+  
+#mainContentCntPload{
+      overflow-y: auto;
+      background: var(--grey-blue02-);
+      border-radius: 5px 0 0 0;
+      height: 100vh!important;
+      width: 100vw;
+  }
+  
 .changeLanguage-modal {
     border-radius: 10px!important;
     background: var(--modal-bg-);

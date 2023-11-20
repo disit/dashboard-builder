@@ -109,8 +109,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
         <!-- Filestyle -->
         <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
 
-       <!-- Font awesome icons -->
-         <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
+       
        
          <!-- Custom CSS -->
          <?php include "theme-switcher.php" ?> 

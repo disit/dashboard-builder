@@ -1,0 +1,818 @@
+* {
+    box-sizing: border-box;
+}
+
+/* ###################### */
+body {
+    font-family: Montserrat, Helvetica, sans-serif;
+    background-color: black;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+input[type=text]:focus, input[type=password]:focus {
+    background-color: #ddd;
+    outline: none;
+}
+
+/* Overwrite default styles of hr */
+hr {
+    position: relative;
+    top: 78px;
+    width: 1510px;
+    color: blueviolet;
+    height: 5px;
+    background: cadetblue;
+}
+
+#observed-date {
+    padding: 24px;
+    margin-left: 26px;
+}
+
+/* Set a style for the submit button */
+.registerbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    opacity: 0.9;
+}
+
+.registerbtn:hover {
+    opacity: 1;
+}
+
+/* Add a blue text color to links */
+a {
+    color: dodgerblue;
+}
+
+/* Set a grey background color and center the text of the "sign in" section */
+.signin {
+    background-color: #f1f1f1;
+    text-align: center;
+}
+
+/* ######################### */
+.box {
+    color: #fff;
+    padding: 20px;
+    display: none;
+    margin-top: 20px;
+}
+
+
+.red {
+    background: #ff0000;
+}
+
+.green {
+    background: #228B22;
+}
+
+.blue {
+    background: #0000ff;
+}
+
+#main_table {
+    width: 100%;
+    border: hidden;
+    position: relative;
+       top: 370px;
+    padding-top: 0px;
+    background: white;
+    left: -30px;
+    
+}
+
+#fieldset_general_information{
+height: 158px;
+    top: 503px;
+    left: 30px;
+    width: 1505px;
+    z-index: 1;
+}
+
+
+form {
+    margin: 100px auto;
+    min-width: 300px;
+    min-height: 680px;
+    position: absolute;
+    background-color: #ffffff;
+    font-family: Montserrat;
+    padding: 33px;
+    width: 1565px;
+    padding-bottom: 32px;
+}
+
+#div_email {
+    width: 32%;
+    left: 1015px;
+    position: absolute;
+    top: 38px;
+    background: lightgray;
+}
+
+#div_navigation_btns {
+    position: relative;
+    left: 679px;
+    top: -17px;
+    width: 173px;
+    z-index: 1001;
+}
+
+
+#email_label {
+    width: 314px;
+    position: absolute;
+    font-size: 14px;
+    top: 17px;
+}
+
+#email_image {
+    width: 50px;
+}
+
+#href_email {
+    left: 357px;
+    top: 17px;
+    font-size: 14px;
+    position: absolute;
+}
+
+#div-select-nature {
+    /*  top: 102px; */
+    /*  position: absolute; */
+    /*  left: -11px; */
+    top: 73px;
+    position: absolute;
+    left: 833px;
+    width: 718px;
+    height: 500px;
+}
+
+body {
+    background-color: #f1f1f1;
+}
+
+li.warning {
+    width: 550px;
+}
+
+.date_time_picker_for_sheet{
+    width: 100%;
+    height: 55px;
+    top: 1px;
+    background-color: #f1f1f1;
+}
+
+#date_time_picker_for_file{
+    height: 55px;
+    background-color: #f1f1f1;
+   width: 100%;
+}
+
+#warninglist {
+    list-style: initial;
+    margin: 11px;
+    padding: 6px;
+    display: grid;
+    grid-template-columns: 70px 40px 70px;
+    grid-gap: 10px;
+    display: block;
+    position: absolute;
+    left: 710px;
+    top: 48px;
+}
+
+h1 {
+    text-align: center;
+}
+
+fieldset {
+    position: absolute;
+    width: 1240px;
+    font-size: 14px;
+    height: 73px;
+    border: 1px;
+    border-style: solid;
+    padding-left: 10px;
+    top: 50px;
+    left: 120px;
+}
+
+legend {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: .5rem;
+/*  font-size: 1.5rem; */
+    line-height: inherit;
+    /*  color: darkcyan; */
+    width: auto;
+    padding-right: 10px;
+    padding-left: 10px;
+    font-size: 14px;
+    font-weight: 400;
+    font-family: Montserrat;
+}
+
+input.radio {
+    margin-left: 2%;
+}
+
+.block {
+    display: block;
+}
+
+/* Mark input boxes that gets an error on validation: */
+/* input.invalid { */
+/*  background-color: #ffdddd; */
+/* } */
+/* input.submit { */
+/*  width: 84px; */
+/*  position: relative; */
+/*  top: 14px; */
+/*  left: 565px; */
+/* } */
+
+#label_general_information {
+    top: -80px;
+    position: absolute;
+    width: 166px;
+}
+
+#div_general_information {
+    top: 203px;
+    position: absolute;
+    left: 197px;
+}
+
+label.date_observed_level_radio_button {
+    /*  margin-left: 10px; */
+    margin: 13px 0 0;
+    text-align: left;
+    position: absolute;
+    
+}
+
+.tab {
+    left: 190px;
+    position: absolute;
+    width: 1462px;
+    top: 243px;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+p.instructor {
+    position: relative;
+    top: -57px;
+    background: cadetblue;
+    padding: 20px;
+    width: 102%;
+    left: -16px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 14px;
+    font-family: Montserrat;
+}
+
+
+
+#submit_button {
+    background-color: #4CAF50;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 17px;
+    font-family: Raleway;
+    cursor: pointer;
+    /* position: absolute; */
+    /* left: 1460px; */
+    width: 84px;
+    position: absolute;
+    top: 13px;
+    left: 423%;
+}
+
+#prevBtn {
+background-color: #bbbbbb;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 17px;
+    font-family: Raleway;
+    cursor: pointer;
+    position: relative;
+    top: 13px;
+    left: 373%;
+}
+
+/* Make circles that indicate the steps of the form: */
+.step {
+    height: 15px;
+    width: 15px;
+    margin: 0 2px;
+    background-color: #bbbbbb;
+    border: none;
+    border-radius: 50%;
+    display: inline-block;
+    opacity: 0.5;
+}
+
+.step.active {
+    opacity: 1;
+}
+
+/* Mark the steps that are finished and valid: */
+.step.finish {
+    background-color: #4CAF50;
+}
+
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 70px 40px 70px;
+    grid-gap: 10px
+}
+
+label.example {
+    padding: 7px;
+    left: 652px;
+    position: absolute;
+    width: 321px;
+    top: 14px;
+}
+
+select {
+    width: 70px
+}
+
+li.relative {
+    position: relative
+}
+
+.header {
+    background-color: cadetblue;
+    background: #1C6EA4;
+    background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    border-bottom: 2px solid #444444;
+    border-collapse: collapse;
+    font-weight: bold;
+}
+
+/* label { */
+/*  display: inline-block; */
+/*  margin-bottom: .5rem; */
+/*  position: absolute; */
+/*  top: 16px; */
+/* } */
+
+/* #sheet_name { */
+/*  top: 17px; */
+/*  width: 360px; */
+/*  position: absolute; */
+/*  left: 284px; */
+/* } */
+
+/* Create two equal columns that floats next to each other */
+.column {
+    float: left;
+    width: 50%;
+    padding: 10px;
+    height: 298px;
+}
+
+/* Clear floats after the columns */
+.row {
+    position: relative;
+    left: -3px;
+}
+
+#div_contain_fieldset {
+    top: -58px;
+}
+
+
+#div_question{
+    position: relative;
+    top: -190px;
+    left: -3px;
+}
+
+#div_contain_date_for_file {
+    background: darkgray;
+    padding: 20px;
+    width: 420px;
+    padding-bottom: 16px;
+    left: 3%;
+    top: 100px;
+}
+
+#table_observed_date_for_sheets {
+width: 100%;
+    top: -61px;
+    border-style: hidden;
+    position: relative;
+    left: -8px;
+    border: 1px solid #666;
+}
+
+td.td_observed_date_for_sheets {
+    border: 1px solid #666;
+    font-weight: bold;
+    background: #1C6EA4;
+}
+
+td {
+    /*  border: 1px solid #666; */
+    word-break: break-all;
+    padding: 20px;
+    /*  background: #1C6EA4; */
+}
+
+#div_sheet_name {
+    position: absolute;
+    top: -80px;
+    width: 273px;
+    margin-bottom: .5rem;
+    left: 0px;
+}
+
+#label_sheet_name {
+    position: absolute;
+    top: 35px;
+    left: 593px;
+}
+
+#table_sheet_name {
+    width: 400px;
+    padding-bottom: 0px;
+    bottom: 0px;
+    position: relative;
+    top: 0px;
+    LEFT: 40PX;
+    z-index: 2;
+}
+
+#table_coordinates {
+    width: 400px;
+    padding-bottom: 0px;
+    bottom: 0px;
+    position: relative;
+    top: 0px;
+    left: 10px;
+    z-index: 2;
+}
+
+#fieldset_general{
+    position: absolute;
+    width: 1505px;
+    font-size: 14px;
+    height: 365px;
+    font-family: Montserrat;
+    border: 1px;
+    border-style: solid;
+    padding-right: 10px;
+    padding-left: 10px;
+    text-align-last: justify;
+    left: 30px;
+    top: 108px;
+}
+
+#table_nature_sub_nature {
+    width: 627px;
+    padding-bottom: 0px;
+    bottom: 0px;
+    position: relative;
+    top: 0px;
+    left: -18px;
+    z-index: 2;
+}
+
+#input_sheet_name {
+    left: 696px;
+    position: absolute;
+    top: 340px;
+    width: 418px;
+}
+
+label.label_observed_date {
+    margin-left: 1%;
+/*  margin: 10px 10px 0 10px; */
+    position: absolute;
+}
+
+#input_observed_date {
+    /*  position: absolute; */
+    left: 154px;
+    top: 14px;
+    width: 394px;
+    text-align: center;
+    padding: 15px;
+    margin: 5px 0 22px 0;
+    display: inline-block;
+    border: none;
+    background: #f1f1f1;
+}
+
+#div_nature {
+    position: absolute;
+    top: -40px;
+    width: 273px;
+    margin-bottom: .5rem;
+    left: 0px;
+}
+
+#div_sub_nature {
+    position: absolute;
+    /*  top: -20px; */
+    width: 273px;
+    margin-bottom: .5rem;
+    left: 0px;
+}
+
+.success {
+    background-color: #4CAF50;
+} /* Green */
+.info {
+    background-color: #2196F3;
+} /* Blue */
+.warning {
+    background-color: #ff9800;
+} /* Orange */
+.danger {
+    background-color: #f44336;
+} /* Red */
+.other {
+    background-color: #e7e7e7;
+    color: black;
+} /* Gray */
+
+#container{
+    height: 100%;
+    width: 1600px;
+    position: fixed;
+    top: 3%;
+}
+
+select.combo {
+    width: 100%;
+    height: 50px;
+    position: relative;
+    background: #f1f1f1;
+}
+
+#div_table {
+    top: 74px;
+    position: absolute;
+    left: -23px;
+    width: 1565px;
+}
+
+/* #table_date_observed_for_file { */
+/*  width: 368px; */
+/*  position: relative; */
+/*  top: 0%; */
+/*  margin-left: 0px; */
+/*  margin-right: 0px; */
+/*  left:133%; */
+/*  border: 1px solid #666; */
+/*     font-weight: bold; */
+/*     background: #1C6EA4; */
+/* } */
+
+#div_date_observed_for_file{
+    display: none;
+    position: relative;
+    left: -3px;
+    top: -82px;
+}
+
+#div_date_observed_for_each_row{
+    display: block;
+    position: relative;
+    left: -3px;
+    top: -82px;
+}
+
+table {
+    /*     margin-left: auto; */
+/*  margin-right: auto; */
+    border-spacing: 0px;
+/*  table-layout: fixed; */
+    width: 983px;
+    text-align-last: center;
+    top: 29px;
+    position: relative;
+    padding: 10px;
+    font-weight: bold;
+}
+
+/* td { */
+/*  border: 1px solid #666; */
+/*  word-break: break-all; */
+/*  padding: 20px; */
+/*  background: cadetblue; */
+/* } */
+table.blueTable {
+    border: 1px solid black;
+    background-color: #EEEEEE;
+    width: 42%;
+    text-align: center;
+    border-collapse: collapse;
+}
+
+table.blueTable td, table.blueTable th {
+    /*  border: 1px solid #AAAAAA; */
+    padding: 3px 5px;
+    background: white;
+}
+
+table.blueTable tbody td {
+    font-size: 14px;
+    text-align-last: auto;
+font-family: Montserrat;
+}
+
+table.blueTable tr:nth-child(even) {
+    background: #D0E4F5;
+}
+
+tr {
+    position: relative;
+    height: 50px;
+}
+
+table.blueTable thead {
+    background: #1C6EA4;
+    background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    border-bottom: 2px solid #444444;
+}
+
+table.blueTable thead th {
+    font-size: 14px;
+    font-weight: bold;
+    color: #000000;
+    text-align: center;
+    /*  border-left: 2px solid #D0E4F5; */
+    position: relative;
+    height: 50px;
+}
+
+table.blueTable thead th:first-child {
+    background: white;
+    border-left: hidden;
+    border-top: hidden;
+}
+
+table.blueTable tfoot {
+    font-size: 14px;
+    color: #FFFFFF;
+    background: #D0E4F5;
+    background: -moz-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+    background: -webkit-linear-gradient(top, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+    background: linear-gradient(to bottom, #dcebf7 0%, #d4e6f6 66%, #D0E4F5 100%);
+    border-top: 2px solid #444444;
+}
+
+table.blueTable tfoot td {
+    font-size: 14px;
+    font-family: Montserrat;
+}
+
+table.blueTable tfoot .links {
+    text-align: right;
+}
+
+table.blueTable tfoot .links a {
+    display: inline-block;
+    background: #1C6EA4;
+    color: #FFFFFF;
+    padding: 2px 8px;
+    border-radius: 5px;
+}
+
+#warning_span {
+    width: 400px;
+    position: absolute;
+    top: 30px;
+    left: 458px;
+    padding: 20px;
+    font-size: 14px;
+    left: 437px;
+    padding-right: 0px;
+    font-weight: bold;
+}
+
+
+#info_span{
+padding: 19px;
+    width: 400px;
+    position: absolute;
+    font-size: 14px;
+    left: 440px;
+    background-color: burlywood;
+    text-align: center;
+    font-family: Montserrat;
+    top: 11px;
+}
+
+#table_date_observed_for_each_row {
+    border: 1px solid black;
+    background-color: #EEEEEE;
+    width: 42%;
+    text-align: center;
+    border-collapse: collapse;
+    top: 57px;
+    left: 40px;
+    top: 60px;
+    width: 400px;
+}
+
+#table_date_observed_for_file {
+    width: 400px;
+    left: 40px;
+    top: 60px;
+}
+
+li.warning_item_uploading_file {
+    list-style-image: url("../img/datatablemanager_warning-upload-file.png");
+}
+
+li.li_guideline {
+    list-style-image: url("../img/datatablemanager_idea.png");
+}
+
+ul.guideline {
+    margin: 0;
+    display: block;
+    padding: 25px;
+    padding-top: 8px;
+    text-align-last: auto;
+}
+
+fieldset.guideline {
+    border: 1px;
+    border-style: solid;
+    padding-right: 10px;
+    padding-left: 10px;
+    position: absolute;
+    width: 955px;
+    font-size: 14px;
+    height: 188px;
+    font-family: Montserrat;
+    text-align-last: justify;
+    left: 525px;
+    top: 49px;
+}
+
+legend.guideline {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: .5rem;
+    line-height: inherit;
+    color: darkcyan;
+    width: auto;
+    padding-right: 10px;
+    padding-left: 10px;
+    font-size: 14px;
+    font-weight:bold;
+}
+
+/* Full-width input fields */
+input[type=text], input[type=password] {
+    width: 100%;
+    padding: 15px;
+    /*  margin: 5px 0 22px 0; */
+    display: inline-block;
+    border: none;
+    background: #f1f1f1;
+}
+
+input[type=text]:focus, input[type=password]:focus {
+    background-color: #ddd;
+    outline: none;
+}
+
+/* input[type=radio]:focus, input[type=password]:focus { */
+/* margin: 13px 0 0; */
+/* } */
+

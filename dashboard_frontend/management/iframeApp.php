@@ -65,8 +65,6 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
        <!-- Questa inclusione viene sempre DOPO bootstrap-table.js -->
        <script src="../boostrapTable/dist/locale/bootstrap-table-en-US.js"></script>
 
-       <!-- Font awesome icons -->
-        <link href="../js/fontAwesome/V6/css/all.css" rel="stylesheet">
 
         <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
         
@@ -114,9 +112,8 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
         <!-- Filestyle -->
         <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
 
-       <!-- Font awesome icons -->
-       <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
-
+       
+        
         <!-- Custom CSS -->
         <?php include "theme-switcher.php"?>   
         
@@ -278,8 +275,8 @@ $curr_lang = selectLanguage($localizations);
         const session = JSON.parse('<?= serializeToJsonString($_SESSION) ?>');
         SnapTour.init(steps, {
             isPublic: session.isPublic,
-          //  resetTimeout: 1000 * 60 * 60 * 12 // 12 hour as ms. if left blank the default is 24h
-            resetTimeout: 1000 * 60 * 5
+            resetTimeout: 1000 * 60 * 60 * 24 // 24 hour as ms. if left blank the default is 24h
+            //resetTimeout: 1000 * 60 * 5
         });
     });
 </script>

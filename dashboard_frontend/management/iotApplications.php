@@ -85,8 +85,6 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
     <!-- Filestyle -->
     <script type="text/javascript" src="../js/filestyle/src/bootstrap-filestyle.min.js"></script>
 
-    <!-- Font awesome icons -->
-    <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
     
     <link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
 
@@ -254,6 +252,8 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                 <select id="applicationType" class="form-control">
                     <option value="basic"><?= _("Basic")?></option>
                     <option value="advanced"><?= _("Advanced")?></option>
+                    <option value="basic-debug"><?= _("Basic Debug")?></option>
+                    <option value="advanced-debug"><?= _("Advanced Debug")?></option>
                     <option value="portia"><?= _("Web scraper (portia)")?></option>
                 </select>    
               </div>
@@ -332,6 +332,8 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                     <select id="appTypeEditIoTApp" class="form-control" disabled>
                         <option value="basic"><?= _("Basic")?></option>
                         <option value="advanced"><?= _("Advanced")?></option>
+                        <option value="basic-debug"><?= _("Basic Debug")?></option>
+                        <option value="advanced-debug"><?= _("Advanced Debug")?></option>
                         <option value="plumber"><?= _("Data analytic")?></option>
                         <option value="portia"><?= _("Web scraper (portia)")?></option>
                     </select>    

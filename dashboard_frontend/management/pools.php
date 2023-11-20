@@ -41,8 +41,6 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
       <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
       <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
 
-    <!-- Font awesome icons -->
-      <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
     
       <!-- Custom CSS -->
       <?php include "theme-switcher.php"?>

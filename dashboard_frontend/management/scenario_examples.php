@@ -51,9 +51,7 @@ $tourRepo = new TourRepository($host, $username, $password, $dbname);
     <!-- Bootstrap Core JavaScript -->
     <script src="../js/bootstrap.min.js"></script>
 
-    <!-- Font awesome icons -->
-     <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
-
+   
      <!-- Custom CSS -->
      <?php include "theme-switcher.php"?>
 
@@ -170,8 +168,8 @@ $tourRepo = new TourRepository($host, $username, $password, $dbname);
         const session = JSON.parse('<?= serializeToJsonString($_SESSION) ?>');
         SnapTour.init(steps, {
             isPublic: session.isPublic,
-        //    resetTimeout: 1000 * 60 * 60 * 12 // 12 hour as ms. if left blank the default is 24h
-            resetTimeout: 1000 * 60 * 5
+            resetTimeout: 1000 * 60 * 60 * 24 // 24 hour as ms. if left blank the default is 24h
+            //resetTimeout: 1000 * 60 * 5
         });
     });
 </script>

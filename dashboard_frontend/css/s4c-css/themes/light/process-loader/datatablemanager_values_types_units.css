@@ -1,0 +1,365 @@
+* {
+	box-sizing: border-box;
+}
+
+/* ###################### */
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	background-color: black;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+
+input[type=text]:focus, input[type=password]:focus {
+	background-color: #ddd;
+	outline: none;
+}
+
+/* Overwrite default styles of hr */
+hr {
+	border: 1px solid #f1f1f1;
+	margin-bottom: 25px;
+}
+
+#observed-date {
+	padding: 24px;
+	margin-left: 26px;
+}
+
+/* Set a style for the submit button */
+.registerbtn {
+	background-color: #4CAF50;
+	color: white;
+	padding: 16px 20px;
+	margin: 8px 0;
+	border: none;
+	cursor: pointer;
+	width: 100%;
+	opacity: 0.9;
+}
+
+.registerbtn:hover {
+	opacity: 1;
+}
+
+/* Add a blue text color to links */
+a {
+	color: dodgerblue;
+}
+
+/* Set a grey background color and center the text of the "sign in" section */
+.signin {
+	background-color: #f1f1f1;
+	text-align: center;
+}
+
+/* ######################### */
+/* .box { */
+/* 	color: #fff; */
+/* 	padding: 20px; */
+/* 	display: none; */
+/* 	margin-top: 20px; */
+/* } */
+
+.red {
+	background: #ff0000;
+}
+
+.green {
+	background: #228B22;
+}
+
+.blue {
+	background: #0000ff;
+}
+
+form {
+    margin: 100px auto;
+    min-width: 300px;
+    min-height: 680px;
+    position: absolute;
+    background-color: #ffffff;
+    font-family: Montserrat;
+    padding: 33px;
+    width: 1565px;
+    padding-bottom: 32px;
+}
+
+#div_email {
+    width: 32%;
+    left: 1015px;
+    position: absolute;
+    top: 38px;
+    background: lightgray;
+}
+
+#div_navigation_btns {
+    position: relative;
+    left: 760px;
+    top: -17px;
+    width: 173px;
+    z-index: 1001;
+}
+
+#email_label {
+    width: 314px;
+    position: absolute;
+    font-size: 14px;
+    top: 17px;
+    left: 44px;
+}
+
+#email_image {
+    width: 50px;
+    left: -227px;
+    position: relative;
+}
+
+#href_email {
+    left: 357px;
+    top: 17px;
+    font-size: 14px;
+    position: absolute;
+}
+
+.combo_value_type  {
+    height: 50px;
+    position: inherit;
+    background: #f1f1f1;
+    width: 100%;
+}
+
+
+#table_value_type_unit {
+    background-color: white;
+    padding-bottom: 0px;
+    position: relative;
+    top: -26px;
+    left: -17px;
+    width: 102%;
+    display: block;
+    overflow-y: scroll;
+	height: 570px;
+}
+
+#div-select-nature {
+	/*  top: 102px; */
+	/*  position: absolute; */
+	/*  left: -11px; */
+	top: 73px;
+	position: absolute;
+	left: 833px;
+	width: 718px;
+	height: 500px;
+}
+
+
+body {
+	background-color: #f1f1f1;
+}
+
+li.warning {
+	width: 550px;
+}
+
+#warninglist {
+	list-style: initial;
+	margin: 11px;
+	padding: 6px;
+	display: grid;
+	grid-template-columns: 70px 40px 70px;
+	grid-gap: 10px;
+	display: block;
+	position: absolute;
+	left: 710px;
+	top: 48px;
+}
+
+
+
+p.instructor {
+    position: relative;
+    top: -57px;
+    background: cadetblue;
+    padding: 20px;
+    width: 102%;
+    left: -16px;
+    text-align: left;
+    font-weight: bolder;
+    font-family: Montserrat;font-weight:bold; font-size: 14px;
+}
+
+h1 {
+	text-align: center;
+}
+
+fieldset {
+	border: 1px;
+	border-style: solid;
+	padding-right: 10px;
+	padding-left: 10px;
+	position: absolute;
+	/*  top: 361px; */
+	    width: 420px;
+	      
+}
+
+/* fieldset.fieldset_value_type{ */
+/* 	 width: 490px; */
+/* } */
+
+div.value_unit_comboboxes{
+position: relative;
+    left: 679px;
+}
+
+legend {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	margin-bottom: .5rem;
+font-family: Montserrat;font-weight:400; font-size: 14px;
+	line-height: inherit;
+	/*  color: darkcyan; */
+	width: auto;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+input.radio {
+	padding: 10px;
+	width: 100%;
+font-family: Montserrat;font-weight:400; font-size: 14px;
+	border: 1px solid #aaaaaa;
+}
+
+.block {
+	display: block;
+}
+
+/* Mark input boxes that gets an error on validation: */
+/* input.invalid { */
+/*  background-color: #ffdddd; */
+/* } */
+input.submit {
+	width: 84px;
+	position: relative;
+	top: 14px;
+	left: 565px;
+}
+
+#label_general_information {
+	top: -80px;
+	position: absolute;
+	width: 166px;
+}
+
+#div_general_information {
+	top: 203px;
+	position: absolute;
+	left: 197px;
+}
+
+.tab {
+	left: 190px;
+	position: absolute;
+	width: 1462px;
+	top: 243px;
+}
+
+button:hover {
+	opacity: 0.8;
+}
+
+#submit_button {
+	background-color: #4CAF50;
+	color: #ffffff;
+	border: none;
+	padding: 10px 20px;
+	font-size: 17px;
+	font-family: Raleway;
+	cursor: pointer;
+}
+
+#prevBtn {
+	background-color: #bbbbbb;
+	color: #ffffff;
+	border: none;
+	padding: 10px 20px;
+	font-size: 17px;
+	font-family: Raleway;
+	cursor: pointer;
+}
+
+.hidden_combobox {
+	display: none;
+}
+
+.combo_value_unit {
+    height: 50px;
+    position: inherit;
+    background: #f1f1f1;
+    width: 100%;
+}
+
+/* Add padding to containers */
+
+* {
+  box-sizing: border-box;
+  text-align: center;
+}
+
+#container{
+	height: 100%; width: 1600px; position: fixed; top: 3%;
+}
+
+table.blueTable {
+/*     border: 1px solid #1C6EA4; */
+/*     background-color: #EEEEEE; */
+    width: 25%;
+    text-align: center;
+    border-collapse: collapse;
+}
+
+table.blueTable td, table.blueTable th {
+    /*  border: 1px solid #AAAAAA; */
+    padding: 3px 5px;
+/*     background: white; */
+}
+
+table.blueTable tbody td {
+    font-family: Montserrat;font-weight:400; font-size: 14px;
+    text-align-last: auto;
+    border: solid;
+    border-width: 1px;
+    width: 500px;
+}
+
+
+tr:nth-child(even) {
+    background-color: aliceblue;
+}
+
+tr:nth-child(odd) {
+    background-color: beige;
+}
+
+/* table.blueTable tr:nth-child(even) { */
+/*     background: #D0E4F5; */
+/* } */
+
+tr {
+    position: relative;
+    height: 50px;
+}
+
+table.blueTable thead {
+    background: #1C6EA4;
+    background: -moz-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    background: -webkit-linear-gradient(top, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    background: linear-gradient(to bottom, #5592bb 0%, #327cad 66%, #1C6EA4 100%);
+    border-bottom: 2px solid #444444;
+}

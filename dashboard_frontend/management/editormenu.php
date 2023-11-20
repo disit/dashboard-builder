@@ -190,8 +190,6 @@ $lastUsedColors = null;
     <!-- Text fill -->
     <script src="../js/jquery.textfill.min.js"></script>
 
-    <!-- Font awesome icons -->
-    <link rel="stylesheet" href="../css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">
     
     <!-- Custom CSS -->
     <?php include "theme-switcher.php" ?> 
