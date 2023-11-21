@@ -5548,9 +5548,9 @@ if (!isset($_SESSION)) {
                             var iconFilePath = passedData.iconFilePath;
                             bubbleSelectedMetric[desc] = passedData.bubbleSelectedMetric;
                             altViewMode = passedData.altViewMode;
-			    if (passedData.selectedMetrics != null) {
-                            	selectedMetrics = passedData.selectedMetrics;
-			    }
+                            if (passedData.selectedMetrics != null) {
+                                            selectedMetrics = passedData.selectedMetrics;
+                            }
                             if (passedData.tooltipOnHover != null) {
                                 tooltipOnHover = passedData.tooltipOnHover;
                             }
@@ -7399,7 +7399,7 @@ if (!isset($_SESSION)) {
                 //#####################################################################################################
                 //
                 
-                //global variables........
+                //lobal variables........
                 const SENSOR_API_URL = "https://www.snap4city.org/superservicemap/api/v1/?";
                 var lAccessToken = null; // variabile per tenere il mio access token per le richieste                
                 var lorganizzazione = null;
@@ -7571,8 +7571,39 @@ if (!isset($_SESSION)) {
                     }, 15000);
                 }
 
+                // funzione per pulire tutte le cose relative al caso accorpato
+                function pulisciTutto(){
+                            var buttonToRemove = document.getElementById("scenario-save-finale1");
+                            if (buttonToRemove) {
+                                buttonToRemove.remove();
+                                isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+                            }
+                            //rimuovi anche l'AC se è rimasto da uno scenario precedente
+                            if (scenaryData.features.length>=0){
+                                // Rimuovi i layer dei disegni
+                                for (const layerId in scenaryDrawnItems._layers) {
+                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                }
+                                scenaryData.features = []; // reinizializzo questa variabile
+                                // Rimuovi i marker associati
+                                for (const layerId in scenaryMarkers._layers) {
+                                    const marker = scenaryMarkers._layers[layerId];
+                                    scenaryMarkers.removeLayer(marker);
+                                }
+                                // Rimuovi il vecchio grafo
+                                for (const layerId in scenaryGrafo._layers) {
+                                    const grafo = scenaryGrafo._layers[layerId];
+                                    scenaryGrafo.removeLayer(grafo);
+                                }
+                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                            }   
+                        }
+
                 //############################## API and SPARQL functionsss #########################################
                 // getLAccessToken()
+                //getScenarios(currentStatus)
                 // getLeAltreUserInfo()
                 // buildSensorAPIURL(polygonWKT)
                 // buildSparqlQueryURL(polygonWKT) //road graph
@@ -7605,6 +7636,36 @@ if (!isset($_SESSION)) {
                         });
                         return result;
                     }
+                }
+                
+                // funzione per prendere gli scenari presenti creati dall'utente 
+                async function getScenarios(currentStatus) { // currentStatus è init acc o tdm
+                    await getLAccessToken();                            
+                    const header = {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "Authorization": `Bearer ${lAccessToken}`
+                    };
+                    try {                       
+                        //occhio x la prod sisema orion-1...
+                        //console.log(lAccessToken);
+                        //const url = `/superservicemap/api/v1?serviceUri=http://www.disit.org/km4city/resource/iot/orion-1/Organization/${deviceName}&maxResults=10`      
+                        const url =  "<?= $mainsuperservicemap; ?>" +"/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model";
+                        const response = await fetch(url, { // oppure metti urlencoded
+                            method: "GET",
+                            headers: header
+                        });
+                        if (!response.ok) {
+                            throw new Error(`Error fetching sensor data: ${response.status}`);
+                        }
+                        const jsonResponse = await response.json();  
+                        // Extract deviceName values from the features array                            
+                        const deviceNames = jsonResponse.features.filter(feature => feature.properties.values.status === currentStatus).map(feature => feature.properties.deviceName);                          
+                        return deviceNames                    
+                    } catch (error) {
+                        console.error("Oops: Something Else", error);
+                    }
+                    //return ["ACC Scenario 1", "ACC Scenario 2", "ACC Scenario 3"];
                 }
 
                 //function to get the organization and broker name
@@ -7649,7 +7710,16 @@ if (!isset($_SESSION)) {
                     //const sparqlEndpoint = "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";                     
                     const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
                     // Sostituisci con l'endpoint SPARQL corretto            
-                    const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. FILTER (?highwaytype IN ("primary", "tertiary", "residential", "unclassified")) ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'), ?p ) ) } LIMIT 16000`;
+                    const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. FILTER (?highwaytype IN ("primary", "tertiary", "residential", "unclassified")) ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'),  bif:st_geomfromtext(CONCAT("MULTIPOINT(", STR(?startlong), " ", STR(?startlat), ",", STR(?endlong), " ", STR(?endlat), ")")) ) ) } LIMIT 16000`;
+                    return sparqlEndpoint + query;
+                }
+
+                function buildSparqlQueryURLottimizzata(maxX, maxY, minX, minY){
+                    //const sparqlEndpoint = "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";                     
+                    const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
+                    // Sostituisci con l'endpoint SPARQL corretto            
+                    //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ((?startlat >= ${minY} && ?startlat <= ${maxY} && ?startlong >= ${minX} && ?startlong <= ${maxX}) ||(?endlat >= ${minY} && ?endlat <= ${maxY} && ?endlong >= ${minX} && ?endlong <= ${maxX}) ) } LIMIT 16000`;
+                    const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( (?startlat > ${minX} %26%26 ?startlat < ${maxX} %26%26 ?startlong > ${minY} %26%26 ?startlong < ${maxY}) || (?endlat > ${minX} %26%26 ?endlat < ${maxX} %26%26 ?endlong > ${minY} %26%26 ?endlong < ${maxY}) )} LIMIT 16000`;
                     return sparqlEndpoint + query;
                 }
 
@@ -7701,7 +7771,9 @@ if (!isset($_SESSION)) {
                 }
 
                 // Function to fetch SPARQL data
-                async function fetchSparqlData(sparqlQuery){                    
+                async function fetchSparqlData(sparqlQuery){      
+                    //const allowedHighwayTypes = ["primary", "secondary", "residential","pedestrian", "tertiary", "residential", "unclassified"];              
+                    const allowedHighwayTypes = ["primary", "tertiary", "residential", "unclassified"];              
                     try {
                         const response = await fetch(sparqlQuery);
                         if (!response.ok) {
@@ -7709,7 +7781,9 @@ if (!isset($_SESSION)) {
                         }
                         const data = await response.json();
                         const stradeFeatures = data.results.bindings;
-                        const stradeInfo = stradeFeatures.map(feature => ({
+                        const stradeInfo = stradeFeatures
+                        .filter(feature => allowedHighwayTypes.includes(feature.highwaytype.value))
+                        .map(feature => ({
                             road: feature.strada.value,
                             segment: feature.elementostradale.value,
                             type: feature.highwaytype.value,
@@ -7958,7 +8032,7 @@ if (!isset($_SESSION)) {
                                 popupAnchor: [0, -16] 
                             });
                             this.notConsideredIcon = L.icon({
-                                iconUrl: '../img/alarmIcons/alarmWhite.png', 
+                                iconUrl: '../img/alarmIcons/alarmMapLow.png', 
                                 iconSize: [32, 32], 
                                 iconAnchor: [16, 16], 
                                 popupAnchor: [0, -16] 
@@ -7971,7 +8045,7 @@ if (!isset($_SESSION)) {
                                 popupAnchor: [0, -16] 
                             });
                             this.notConsideredIcon = L.icon({
-                                iconUrl: '../img/alarmIcons/alarm.png', 
+                                iconUrl: '../img/alarmIcons/alarmMapHigh.png', 
                                 iconSize: [32, 32], 
                                 iconAnchor: [16, 16], 
                                 popupAnchor: [0, -16] 
@@ -8019,7 +8093,43 @@ if (!isset($_SESSION)) {
                         });
                         return marker;
                     }                    
-                }                                                
+                }
+                
+                
+                function findBoundingBox(enlargedPolygonWKT) {
+                    // Estrai le coordinate dal formato WKT
+                    const coordinates = enlargedPolygonWKT
+                        .match(/\(\(([^)]+)\)\)/)[1]
+                        .split(',')
+                        .map(point => point.trim().split(' ').map(Number));
+
+                    // Inizializza le coordinate minime e massime
+                    let minX = Infinity;
+                    let minY = Infinity;
+                    let maxX = -Infinity;
+                    let maxY = -Infinity;
+
+                    // Itera attraverso i punti del poligono per trovare le coordinate estreme
+                    for (const [x, y] of coordinates) {
+                        // Aggiorna le coordinate minime e massime
+                        minX = Math.min(minX, x);
+                        minY = Math.min(minY, y);
+                        maxX = Math.max(maxX, x);
+                        maxY = Math.max(maxY, y);
+                    }
+
+                    // Restituisci il rettangolo che include il poligono
+                    const boundingBox = {
+                        minX,
+                        minY,
+                        maxX,
+                        maxY,
+                    };
+
+                    return boundingBox;
+                }
+
+
                 //#####################################################################################################
                 //#####################################################################################################                
                 //########################### main progam - SCENARIO BUILDER EVENT TRIGGERED ##########################
@@ -8034,7 +8144,7 @@ if (!isset($_SESSION)) {
                 //                    |     -> #scenario-check-acc1        button click handler
                 //                    |        |-> #scenario-save-finale1  button click handler
                 //                    |              
-                //                    X   <- removeTrafficScenary          event toggled dal selettore
+                //                    X   <- removeTrafficScenary          event toggled dal selettore                
 
                 //################## appena inviato l'evento addTrafficScenary dal selettore ##########################
                 $(document).on('addTrafficScenary', function (event) {    
@@ -8131,9 +8241,15 @@ if (!isset($_SESSION)) {
                             .join(', ')}))`;
                             //console.log('Poligono allargato WKT:', enlargedPolygonWKT);                              
                             // per poi creare la url per fare la richiesta dei sensori del traffico 
-                            const sensorURL = buildSensorAPIURL(polygonWKT);                          
+                            const sensorURL = buildSensorAPIURL(polygonWKT);    
+
                             // ora faccio la richiesta sparql alla kb per prendere i dati del grafo strade ...
-                            sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT)                                
+                            //console.log(enlargedPolygonWKT);
+                            const enlargedPolygonBoundingBox = findBoundingBox(enlargedPolygonWKT);
+                            //console.log(enlargedPolygonBoundingBox);
+                            sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT)     
+                            sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(enlargedPolygonBoundingBox.maxY, enlargedPolygonBoundingBox.maxX, enlargedPolygonBoundingBox.minY,enlargedPolygonBoundingBox.minX)                           
+                            //console.log(sparqlQueryottimizzata);
                             // Create the loading box element and add it to the document
                             const loadingBox = document.createElement("div");
                             //console.log(loadingBox);
@@ -8156,7 +8272,7 @@ if (!isset($_SESSION)) {
                             loadingBox.style.display = "block";
                             loadingboxloaded = false;                            
                             // Use Promise.all to fetch data concurrently
-                            Promise.all([fetchTrafficSensorData(sensorURL), fetchSparqlData(sparqlQuery)])
+                            Promise.all([fetchTrafficSensorData(sensorURL), fetchSparqlData(sparqlQueryottimizzata)])
                             .then(() => {
                                 loadingBox.style.display = "none";
                                 mapContainer.removeChild(loadingBox);
@@ -8183,10 +8299,6 @@ if (!isset($_SESSION)) {
                                     <div id="notification" style="display: none;">
                                         <p id="notification-message">bells</p>
                                     </div>
-                                    <select id="scenario-mode">
-                                        <option value="complete">Create New Scenario</option>
-                                        <option value="acc">After Accorpation</option>
-                                    </select>
                                     <div id="scenario-content">
                                         <div id="complete-content">
                                             <!-- Contenuto per la modalità completa -->
@@ -8244,62 +8356,11 @@ if (!isset($_SESSION)) {
                                                     </td>
                                                 </tr>
                                             </table>
-                                        </div>
-                                        <div id="acc-content">
-                                            <!-- Contenuto per la modalità accorpata -->
-                                            <table>
-                                                <tr>
-                                                    <td><label for="scenario-name">Scenario name:</label></td>
-                                                    <td><input id="scenario-name1" type="text" name="name" placeholder="Scenario name"></td>
-                                                </tr>
-                                                <tr>
-                                                    <td colspan="2">
-                                                        <button id="scenario-check-acc1">Save ACC</button>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
+                                        </div>                                        
                                     </div>                                
                                 </div>
                             `;
-                            var completeContent = div.querySelector('#complete-content');
-                            var accContent = div.querySelector('#acc-content');
-                            var modeSelect = div.querySelector('#scenario-mode');
-                            // Aggiungi un listener per l'evento change del select
-                            modeSelect.addEventListener('change', updateContent);
-                            // Funzione per aggiornare la visualizzazione in base alla modalità
-                            function updateContent() {
-                                var mode = modeSelect.value;
-                                if (mode === 'complete') {
-                                    completeContent.style.display = 'block';
-                                    accContent.style.display = 'none';
-                                } else if (mode === 'acc') {
-                                    completeContent.style.display = 'none';
-                                    accContent.style.display = 'block';
-                                }
-                                if (scenaryData.features.length>=0){
-                                    // Rimuovi i layer dei disegni
-                                    for (const layerId in scenaryDrawnItems._layers) {
-                                        scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
-                                    }
-                                    scenaryData.features = []; // reinizializzo questa variabile
-                                    // Rimuovi i marker associati
-                                    for (const layerId in scenaryMarkers._layers) {
-                                        const marker = scenaryMarkers._layers[layerId];
-                                        scenaryMarkers.removeLayer(marker);
-                                    }
-                                    // Rimuovi il vecchio grafo
-                                    for (const layerId in scenaryGrafo._layers) {
-                                        const grafo = scenaryGrafo._layers[layerId];
-                                        scenaryGrafo.removeLayer(grafo);
-                                    }
-                                    datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
-                                    istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
-                                    istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
-                                }
-                            }
-                            // Chiama updateContent per impostare inizialmente la visualizzazione
-                            updateContent();
+                            
                             // Disabilita l'interazione di questo div con la mappa per evitare conflitti
                             if (L.Browser.touch) {
                                 L.DomEvent.disableClickPropagation(div);
@@ -8428,18 +8489,18 @@ if (!isset($_SESSION)) {
                                     "sensors": sensoriArrayConStradaVicina,
                                     "roadGraph": "istanzedelgrafochestoconsiderando"                                                    
                                 };
-                                // e qui rimane il codice per fare il download del json risultante                            
-                                var jsonString = JSON.stringify(scenarioData, null, 2);
-                                var blob = new Blob([jsonString], { type: "application/json" });
-                                var url = URL.createObjectURL(blob);
-                                var a = document.createElement("a");
-                                a.href = url;
-                                a.download = "scenario_data.json";
-                                a.textContent = "Download JSON";
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                                URL.revokeObjectURL(url);   
+                                // // e qui rimane il codice per fare il download del json risultante                            
+                                // var jsonString = JSON.stringify(scenarioData, null, 2);
+                                // var blob = new Blob([jsonString], { type: "application/json" });
+                                // var url = URL.createObjectURL(blob);
+                                // var a = document.createElement("a");
+                                // a.href = url;
+                                // a.download = "scenario_data.json";
+                                // a.textContent = "Download JSON";
+                                // document.body.appendChild(a);
+                                // a.click();
+                                // document.body.removeChild(a);
+                                // URL.revokeObjectURL(url);   
                                 // mi creo il device sendDataINIT
                                 //console.log("creo il device per lo scenario! ") 
                                 ilpoly = getPolygonWKTFromScenarioArea(scenarioareaOfInterest);
@@ -8511,10 +8572,248 @@ if (!isset($_SESSION)) {
                                     }
                                 }
                             }                            
-                        });                                
+                        });                                                                                         
+
+                    }                        
+                }); 
+
+                //##################################################################################################
+                //################### REMOVE TRAFFIC SCENARY BUILDER EVENT #########################################
+                //##################################################################################################
+                
+                //rimuovo tutto
+                $(document).on('removeTrafficScenary', function (event) {
+                    // gestisco quando l'utente clicca sul rimuovi lo scenario builder
+                    //console.log("removeTrafficScenary sent!");
+                    if (event.target === map.mapName) {
+                        //levo il drawer control
+                        map.defaultMapRef.removeControl(drawerControl);
+                        // levo i disegni sulla mappa 
+                        map.defaultMapRef.removeLayer(scenaryDrawnItems);                        
+                        // mi ero scordato di levare i markers ma li levo subito
+                        map.defaultMapRef.removeLayer(scenaryMarkers);
+                        // levo anche il grafo
+                        map.defaultMapRef.removeLayer(scenaryGrafo);
+                        //levo il pannello di controllo per lo scenario
+                        //map.defaultMapRef.removeControl(scenaryControl);
+                    }
+                    var scenarioToRemove = document.getElementById("scenario-div");
+                    if(scenarioToRemove){
+                        scenarioToRemove.remove();
+                        isSaveFinalSet = false;
+                    }
+                });
+               
+                // provo a disaccoppiare la fase post creazione scenari
+                $(document).on('Fase2addTrafficScenar', function (event) {    
+                    getLeAltreUserInfo();                                             
+                    if (event.target === map.mapName) {          
+                        // metto subito il layer dei markers                         
+                        scenaryMarkers = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(scenaryMarkers);
+                        // e anche quello per i disegni sulla mappa
+                        scenaryDrawnItems = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(scenaryDrawnItems);      
+                        // e anche quello per il grafo
+                        scenaryGrafo = new L.FeatureGroup();
+                        map.defaultMapRef.addLayer(scenaryGrafo);
+                                                                
+                        //################## poi mi metto subito lo scenary control #################################                       
+                        var scenaryControl = L.control({position: 'topright'});
+                        scenaryControl.onAdd = function (map) {
+                            var div = L.DomUtil.create('div');
+                            div.innerHTML = `
+                                <div id="scenario-div">
+                                    <div id="notification" style="display: none;">
+                                        <p id="notification-message">bells</p>
+                                    </div>                                    
+                                    <div id="scenario-content">                                        
+                                        <div id="acc-content">
+                                            <!-- Contenuto per la modalità accorpata -->
+                                            <table>
+                                                <tr>
+                                                    <td><label>Type of Scenario:</label></td>
+                                                    <td>
+                                                        <input type="radio" id="acc-type-init" name="scenario-type" value="init">
+                                                        <label for="acc-type-init">Init</label>
+
+                                                        <input type="radio" id="acc-type-acc" name="scenario-type" value="acc">
+                                                        <label for="acc-type-acc">Acc</label>
+
+                                                        <input type="radio" id="acc-type-tdm" name="scenario-type" value="tdm">
+                                                        <label for="acc-type-tdm">TDM</label>
+                                                    </td>
+                                                </tr>
+
+                                                <td id="scenario-init-row" style="display: none;">                                                    
+                                                        <label for="scenario-init-list">Scenarios waiting to be processed:</label>
+                                                        <input type="text" id="search-scenario-init" placeholder="Search...">      
+                                                        <ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul>                                                                                              
+                                                </td>   
+                                                
+                                                <tr id="scenario-list-row" style="display: none;">
+                                                    <td><label for="scenario-list">Scenario List:</label></td>
+                                                    <td>
+                                                        <select id="scenario-list" name="scenario-list"></select>
+                                                    </td>
+                                                    <td colspan="2">
+                                                        <button id="scenario-check-acc1">Load ACC</button>
+                                                    </td>
+                                                </tr>                                                         
+                                                
+                                                <tr id="scenario-tdm-row" style="display: none;">
+                                                    <td>
+                                                        <label for="search-scenario-tdm">Scenarios processed check the TFRS Manager:</label>
+                                                        <input type="text" id="search-scenario-tdm" placeholder="Search...">
+                                                        <ul id="scenario-tdm-list" style="max-height: 120px; overflow: auto;"></ul>  
+                                                    </td>                                                    
+                                                </tr>
+                                         
+                                                <!-- questo era il codice in cui mettevi il nome dello scenario e via
+                                                <tr>
+                                                    <td><label for="scenario-name">Scenario name:</label></td>
+                                                    <td><input id="scenario-name1" type="text" name="name" placeholder="Scenario name"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <button id="scenario-check-acc1">Load ACC</button>
+                                                    </td>
+                                                </tr>-->
+                                            </table>
+                                        </div>
+                                    </div>                                
+                                </div>
+                            `;
+                            
+                            // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+                            if (L.Browser.touch) {
+                                L.DomEvent.disableClickPropagation(div);
+                                L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+                            } else {
+                                L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+                            }
+                            return div;
+                        };
+                        scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+                                                                        
+                        //####################### Gestisci l'evento change per tutti i radio button del tipo scenario #######
+                        $("input[name='scenario-type']").change(async function() {
+                            // Ottieni l'ID del radio button selezionato
+                            var selectedId = $(this).attr("id");
+
+                            // Determina il tipo di scenario in base all'ID
+                            var scenarioType;
+                            if (selectedId === "acc-type-init") {
+                                scenarioType = "init";
+                                // Nascondi la lista degli scenari se il tipo non è "ACC"
+                                $("#scenario-list-row").hide();
+                                //$("scenario-init-row").show()
+                                document.getElementById("scenario-init-row").style.display = "block";
+                                document.getElementById("scenario-tdm-row").style.display = "none";
+                                var initScenarios1 = await getScenarios(scenarioType);
+                                var initScenarios2 = await getScenarios("");
+                                var initScenarios = initScenarios1.concat(initScenarios2); 
+                                //console.log(initScenarios);
+                                var scenarioInitList = $("#scenario-init-list");
+
+                                var searchInput = $("#search-scenario-init");
+                                searchInput.on("input", function () {
+                                    var searchTerm = $(this).val().toLowerCase();
+                                    filterScenarios(initScenarios, searchTerm);
+                                });
+
+                                scenarioInitList.empty();
+                                initScenarios.forEach(scenario => {
+                                    var optionValue = scenario.replace("deviceName", "");
+                                    var optionText = optionValue + " -> " + scenario;
+                                    var listItem = $("<p>").text(optionText);
+                                    scenarioInitList.append(listItem);
+                                });
+
+                                pulisciTutto();
+                 
+                                function filterScenarios(scenarios, searchTerm) {
+                                    var scenarioInitList = $("#scenario-init-list");
+                                    scenarioInitList.empty();
+
+                                    scenarios.forEach(scenario => {
+                                        // Modificato il confronto per verificare se il termine di ricerca è incluso nel testo del paragrafo
+                                        if (scenario.toLowerCase().includes(searchTerm)) {
+                                            var optionValue = scenario.replace("deviceName", "");
+                                            var optionText = optionValue + " -> " + scenario;
+                                            var listItem = $("<p>").text(optionText);                            
+                                            scenarioInitList.append(listItem);
+                                        }
+                                    });
+                                }
+                            } else if (selectedId === "acc-type-acc") {
+                                scenarioType = "acc";
+                                // Mostra la lista degli scenari solo se il tipo è "ACC"
+                                $("#scenario-list-row").show();
+                                //$("scenario-init-list-row").hide()
+                                document.getElementById("scenario-init-row").style.display = "none";
+                                document.getElementById("scenario-tdm-row").style.display = "none";
+                                // Popola la lista degli scenari ACC
+                                var accScenarios = await getScenarios(scenarioType);
+                                //console.log(accScenarios);
+                                var scenarioList = $("#scenario-list");
+                                scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
+                                accScenarios.forEach(scenario => {
+                                    var option = $("<option>").val(scenario).text(scenario);
+                                    scenarioList.append(option);
+                                });
+                                pulisciTutto();
+                            } else if (selectedId === "acc-type-tdm") {
+                                
+                                scenarioType = "tdm";
+                                $("#scenario-list-row").hide();
+                                $("#scenario-init-row").hide();
+                                $("#scenario-tdm-row").show();
+
+                                var tdmScenarios = await getScenarios(scenarioType);
+                                //console.log(tdmScenarios);
+                                var scenarioTDMList = $("#scenario-tdm-list");
+
+                                var searchInputTDM = $("#search-scenario-tdm");
+                                searchInputTDM.on("input", function () {
+                                    var searchTermTDM = $(this).val().toLowerCase();
+                                    filterScenariosTDM(tdmScenarios, searchTermTDM);
+                                });
+
+                                scenarioTDMList.empty();
+                                tdmScenarios.forEach(scenario => {
+
+                                    var optionValue = scenario.replace("deviceName", "");
+                                    var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                                    var listItem = $("<p>").text(optionText); 
+                                    scenarioTDMList.append(listItem);
+                                });
+                                pulisciTutto();
+                                function filterScenariosTDM(scenarios, searchTerm) {
+                                    var scenarioTDMList = $("#scenario-tdm-list");
+                                    scenarioTDMList.empty();
+
+                                    scenarios.forEach(scenario => {
+                                        if (scenario.toLowerCase().includes(searchTerm)) {
+                                            var optionValue = scenario.replace("deviceName", "");
+                                            var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                                            var listItem = $("<p>").text(optionText);      
+                                            scenarioTDMList.append(listItem);
+                                        }
+                                    });
+                                }
+                            }
+
+                            if (scenarioType) {
+                                console.log("Scenario type selected: " + scenarioType);
+                                // Esegui qui le azioni specifiche in base al tipo di scenario
+                            } else {
+                                console.error("Errore nel determinare il tipo di scenario.");
+                            }
+                        });                        
 
                         //######################## check device se stato accorpato #################################
-                        $('#scenario-check-acc1').click(async function() {
+                        $('#scenario-check-acc1').click(async function() {                            
                             //console.log("bottone scenario-check-acc 1 chiamato!")
                             // Rimuovi il bottone del save finale se è rimasto pending
                             var buttonToRemove = document.getElementById("scenario-save-finale1");
@@ -8544,8 +8843,12 @@ if (!isset($_SESSION)) {
                                 istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
                             }               
                             await getLAccessToken();
-                            var scenarioName = $("#scenario-name1").val();
-                            ildevicename = "deviceName" + scenarioName;
+                            //var scenarioName = $("#scenario-name1").val();
+                            //ildevicename = "deviceName" + scenarioName;
+                            // Ottieni il valore selezionato utilizzando jQuery
+                            ildevicename = $("#scenario-list").val();
+                            // Ora puoi utilizzare selectedValue come necessario
+                            //console.log("Selected value: " + ildevicename);
                             try{
                                 let datidalsensore = await readFromDevice(lAccessToken, ildevicename)  
                                 let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
@@ -8640,9 +8943,11 @@ if (!isset($_SESSION)) {
                                         isSaveFinalSet = true;
                                         // ############################ scenario-save-finale1 #################################################
                                         $('#scenario-save-finale1').on('click', async function() {
-                                            let scenarioNametest = $("#scenario-name1").val();
-                                            ildevicenametest = "deviceName" + scenarioNametest;
-                                            if(ildevicenametest != ildevicename){
+                                            //let scenarioNametest = $("#scenario-name1").val();
+                                            //ildevicenametest = "deviceName" + scenarioNametest;
+                                            
+                                            ildevicenametest = $("#scenario-list").val();
+                                            if(ildevicenametest != ildevicename){//if(ildevicenametest != ildevicename){
                                                 showNotification("Device name is no more consistent");
                                                 // Rimuovi il bottone del save finale se è rimasto pending
                                                 var buttonToRemove = document.getElementById("scenario-save-finale1");
@@ -8696,17 +9001,17 @@ if (!isset($_SESSION)) {
                                                         showNotification("Device tdm error");
                                                     }
                                                     // e qui rimane il codice per fare il download del json risultante                            
-                                                    var jsonString = JSON.stringify(scenarioData, null, 2);
-                                                    var blob = new Blob([jsonString], { type: "application/json" });
-                                                    var url = URL.createObjectURL(blob);
-                                                    var a = document.createElement("a");
-                                                    a.href = url;
-                                                    a.download = "scenario_data_final.json";
-                                                    a.textContent = "Download JSON";
-                                                    document.body.appendChild(a);
-                                                    a.click();
-                                                    document.body.removeChild(a);
-                                                    URL.revokeObjectURL(url);  
+                                                    // var jsonString = JSON.stringify(scenarioData, null, 2);
+                                                    // var blob = new Blob([jsonString], { type: "application/json" });
+                                                    // var url = URL.createObjectURL(blob);
+                                                    // var a = document.createElement("a");
+                                                    // a.href = url;
+                                                    // a.download = "scenario_data_final.json";
+                                                    // a.textContent = "Download JSON";
+                                                    // document.body.appendChild(a);
+                                                    // a.click();
+                                                    // document.body.removeChild(a);
+                                                    // URL.revokeObjectURL(url);  
                                                 }catch{
                                                     showNotification("Device tdm error");
                                                 }
@@ -8728,17 +9033,13 @@ if (!isset($_SESSION)) {
                     }                        
                 }); 
 
-                //##################################################################################################
-                //################### REMOVE TRAFFIC SCENARY BUILDER EVENT #########################################
-                //##################################################################################################
-                
-                //rimuovo tutto
-                $(document).on('removeTrafficScenary', function (event) {
+                // e qui rimuovo la parte post creazione degli scenari
+                $(document).on('Fase2removeTrafficScenar', function (event) {
                     // gestisco quando l'utente clicca sul rimuovi lo scenario builder
                     //console.log("removeTrafficScenary sent!");
                     if (event.target === map.mapName) {
                         //levo il drawer control
-                        map.defaultMapRef.removeControl(drawerControl);
+                        //map.defaultMapRef.removeControl(drawerControl);
                         // levo i disegni sulla mappa 
                         map.defaultMapRef.removeLayer(scenaryDrawnItems);                        
                         // mi ero scordato di levare i markers ma li levo subito
@@ -8754,6 +9055,8 @@ if (!isset($_SESSION)) {
                         isSaveFinalSet = false;
                     }
                 });
+
+                
 
 //####################################################################################################################
 //####################################################################################################################                
