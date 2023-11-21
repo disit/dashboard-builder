@@ -16,6 +16,8 @@ if (isset($_COOKIE['selected_theme'])) {
     } else {
         setcookie('selected_theme', $selectedTheme, [
             'expires' => time() + (30 * 24 * 60 * 60), // Set the cookie for 30 days
+            'path' => '/',
+            'domain' => $cookieDomain,
             'secure' => true,
             'samesite' => 'None',
         ]);
