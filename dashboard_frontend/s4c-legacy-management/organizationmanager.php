@@ -364,7 +364,6 @@ $lastUsedColors = null;
 </style>
 
 <body style="overflow-y: hidden !important">
-  <?php include "../cookie_banner/cookie-banner.php"; ?>
 
     <!-- Inizio dei modali -->
     <!-- Modale wizard -->
@@ -401,11 +400,11 @@ $lastUsedColors = null;
                     if ($_SESSION['loggedRole'] == "RootAdmin") {
                         echo('<thead class="dashboardsTableHeader">
                                 <th>Organizazion Name</th>
-                                <th>Link to Knowledge Base</th>
+                                <!--<th>Link to Knowledge Base</th>
                                 <th>Zoom level</th>
                                 <th>Link to Drupal</th>
                                 <th>Link to Welcome Page</th>
-                                <th>Link to Org Page</th>
+                                <th>Link to Org Page</th>-->
                                 <th>User List</th>
                                 <th>Control</th>
                                 </thead>');
@@ -460,7 +459,7 @@ $lastUsedColors = null;
             </div>
         </div>
     </div>
-    <!--</div> <!-- Fine modal dialog -->
+    <!--</div>-->
     <div class="modal fade" id="edit_org" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -499,7 +498,7 @@ $lastUsedColors = null;
             </div>
         </div>
     </div>
-    <!--</div><!-- Fine modale -->
+    <!--</div>-->
     <!-- Fine modale wizard -->
     <!-- DELETE -->
     <div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -575,11 +574,55 @@ $lastUsedColors = null;
         </div>
 
     </div>
-    <!-- -->
-
-    <!--  -->
-
 </div>
+    <!-- -->
+    <div class="modal fade" id="group-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                    <h4 class="modal-title"><?= _("Groups: ") ?><span id="org_name"><span></h4>
+                </div>
+                <form method="post" accept-charset="UTF-8">
+                    <div class="modal-body">
+                        <div id="table_grpou_div" style="margin-left: 5%; margin-right: 5%">
+                            <div class="panel panel-default">
+                                <div class="panel-heading"><?= _("Add new Group") ?></div>
+                                <div class="input-group">
+                                    <div class="panel-body">
+                                        <input type="text" class="form-control" placeholder="Insert group name" aria-label="Insert group name" id="new_group">
+                                        <button type="button" id="group_button" class="btn btn-outline-secondary btn-warning new_grp" data-toggle="modal" data-target="#" style="float:left; margin-right: 5px;">
+                                            <i class="fa fa-plus"></i>
+                                            <?= _("Add") ?>
+                                        </button>
+                                        <!-- -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br /><br />
+                        <!-- -->
+                        <div id="select_group"></div>
+                        <!-- -->
+                        <table id="group_table" class="table table-striped table-bordered" style="width: 100%">
+                            <thead class="usersTableHeader">
+                            <th> <?= _("Groups List") ?></th>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn cancelBtn" id="close_users" data-dismiss="modal"><?= _("Cancel") ?></button>
+                        <!-- <input type="button" id="user_confirm" value="Confirm" class="btn confirmBtn">-->
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <!--  -->
 <script type='text/javascript'>
     ////*****////
     //*********MAPPA*********//
@@ -627,12 +670,15 @@ $lastUsedColors = null;
                 //var orthomap = JSON.stringify(obj[i]['orthomapJson']);
                 var orthomap = '';
                 for (var i = 0; i < l; i++) {
-                    var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#edit_org" data-toggle="modal" value="' + obj[i]['id'] + '" onclick="edit_fun(\'' + obj[i]['id'] + '\')">EDIT</button>';
-                    var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#delete-modal" data-toggle="modal" value="' + obj[i]['id'] + '" onclick="delete_func(\'' + obj[i]['id'] + '\',\'' + obj[i]['organizationName'] + '\')">DELETE</button>';
-                    var button_users = '<button type="button" class="viewDashBtn addchild" data-target="#users-modal" data-toggle="modal" onclick="list_user(\'' + obj[i]['id'] + '\',\'' + obj[i]['organizationName'] + '\')">MANAGE</button>';
+                    var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#edit_org" data-toggle="modal" value="' + obj[i]['org'] + '" onclick="edit_fun(\'' + obj[i]['org'] + '\')">EDIT</button>';
+                    var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#delete-modal" data-toggle="modal" value="' + obj[i]['org'] + '" onclick="delete_func(\'' + obj[i]['org'] + '\',\'' + obj[i]['org'] + '\')">DELETE</button>';
+                    var button_users = '<button type="button" class="viewDashBtn addchild" data-target="#users-modal" data-toggle="modal" onclick="list_user(\'' + obj[i]['org'] + '\')">MANAGE</button>';
+                    var button_groups = '<button type="button" class="viewDashBtn edit_group" data-target="#group-modal" data-toggle="modal" onclick="list_group(\'' + obj[i]['org'] + '\')">GROUP</button>';
                     //button_users = "";
                     if (role_session_active === 'RootAdmin') {
-                        $('#value_table').append('<tr><td>' + obj[i]['organizationName'] + '</td><td><a href="' + obj[i]['kbUrl'] + '" target="_blank">' + obj[i]['kbUrl'] + '</a></td><td>' + obj[i]['zoomLevel'] + '</td><td><a href="' + obj[i]['drupalUrl'] + '" target="_blank">' + obj[i]['drupalUrl'] + '</a></td><td><a href="' + obj[i]['orgUrl'] + '" target="_blank">' + obj[i]['orgUrl'] + '</a></td><td><a href="' + obj[i]['welcomeUrl'] + '" target="_blank">' + obj[i]['welcomeUrl'] + '</a></td><td>' + obj[i]['users'] + ' ' + button_users + '</td><td>' + button_edit + ' ' + button_del + '</td></tr>');
+                        //$('#value_table').append('<tr><td>' + obj[i]['organizationName'] + '</td><td><a href="' + obj[i]['kbUrl'] + '" target="_blank">' + obj[i]['kbUrl'] + '</a></td><td>' + obj[i]['zoomLevel'] + '</td><td><a href="' + obj[i]['drupalUrl'] + '" target="_blank">' + obj[i]['drupalUrl'] + '</a></td><td><a href="' + obj[i]['orgUrl'] + '" target="_blank">' + obj[i]['orgUrl'] + '</a></td><td><a href="' + obj[i]['welcomeUrl'] + '" target="_blank">' + obj[i]['welcomeUrl'] + '</a></td><td>' + obj[i]['users'] + ' ' + button_users + '</td><td>' + button_edit + ' ' +button_groups+' ' + button_del + '</td></tr>');
+                        $('#value_table').append('<tr><td>' + obj[i]['org']  + '</td><td><span id="'+obj[i]['org']+'_users">' + obj[i]['users'] + '</span> ' + button_users + '</td><td>' + button_edit + ' ' +button_groups+' ' + button_del + '</td></tr>');
+                        //
                     } else {
                         $('#value_table').append('<tr><td>' + obj[i]['organizationName'] + '</td><td><a href="' + obj[i]['drupalUrl'] + '" target="_blank">' + obj[i]['drupalUrl'] + '</a></td><td><a href="' + obj[i]['orgUrl'] + '" target="_blank">' + obj[i]['orgUrl'] + '</a></td></tr>');
                     }
@@ -729,6 +775,25 @@ $lastUsedColors = null;
             });
         });
         /////////
+        $('#group_button').click(function () {  
+        var new_group = $('#new_group').val();
+        var org_name = $('#org_name').text();
+        $.ajax({
+            url: 'editorganization.php',
+            data: {
+                action: 'add_group',
+                group: new_group,
+                organization: org_name
+            },
+            type: "POST",
+            async: false,
+            success: function (data) {
+                alert(data);
+                window.location.reload();
+                /////////
+            }
+        })
+    });
         /////////
         $('#conf_edit').click(function () {
             //
@@ -963,8 +1028,21 @@ $lastUsedColors = null;
     });
     }
     ///////
-    function list_user(id, org) {
-        $.ajax({
+    function list_user(org) {
+        $('#new_user_org').val(org);
+        var users = $('#'+org+'_users').text();
+        var array = JSON.parse(users);
+        console.log(array);
+        var len = array.length;
+                $("#users_table tbody tr").remove();
+                for (var i = 0; i < len; i++) {
+                    var current = array[i];
+                    //var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#" onclick="edit_user('+id+',\''+current+'\')" data-toggle="modal">EDIT</button>';
+                    var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#" onclick="delete_user(0,\'' + current + '\',\'' + org + '\')"  data-toggle="modal">DELETE</button>';
+                    $("#users_table").append('<tr><td>' + current + ' ' + button_del + '</td></tr>');
+                }
+               
+        /*$.ajax({
             url: 'editorganization.php',
             data: {
                 action: 'user_list',
@@ -988,13 +1066,15 @@ $lastUsedColors = null;
                 ///////
                 /////////
             }
-        });
+        });*/
     }
     ////
     function delete_func(id, name) {
         $('#delete_id').val(id);
         $('#delete_name').val(name);
     }
+
+
 
     function delete_user(id, user, org) {
         console.log(id);
@@ -1011,6 +1091,55 @@ $lastUsedColors = null;
             success: function (data) {
                 alert(data);
                 window.location.reload();
+                /////////
+            }
+        });
+    }
+
+    function delete_group(group, org) {
+        //console.log(id);
+        $.ajax({
+            url: 'editorganization.php',
+            data: {
+                action: 'delete_group',
+                group: group,
+                org: org
+            },
+            type: "POST",
+            async: false,
+            success: function (data) {
+                alert(data);
+                window.location.reload();
+                /////////
+            }
+        });
+    }
+
+    function list_group(org){
+       // console.log(id);
+        $('#org_name').text(org);
+        //groupOfNames
+        $.ajax({
+            url: 'editorganization.php',
+            data: {
+                action: 'get_gropus',
+                org: org
+            },
+            type: "POST",
+            async: false,
+            success: function (data) {
+                //alert(data);
+                var obj = JSON.parse(data);
+                var array = obj;
+                var len = array.length;
+                //window.location.reload();
+                $("#group_table tbody tr").remove();
+                for (var i = 0; i < len; i++) {
+                    var current = array[i];
+                    //var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#" onclick="edit_user('+id+',\''+current+'\')" data-toggle="modal">EDIT</button>';
+                    var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#" onclick="delete_group(\'' + current + '\',\'' + org + '\')"  data-toggle="modal">DELETE</button>';
+                    $("#group_table").append('<tr><td>' + current + ' ' + button_del + '</td></tr>');
+                }
                 /////////
             }
         });

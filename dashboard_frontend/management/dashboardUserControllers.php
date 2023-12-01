@@ -198,6 +198,10 @@ $link = mysqli_connect($host, $username, $password);
                         $mail = htmlspecialchars($_POST['new_email']);
                         $org = htmlspecialchars($_POST['org']);
                         $new_userType = htmlspecialchars($_POST['new_userType']);
+                        //
+                        //$group =  htmlspecialchars($_POST['group']);
+                        $group = $_POST['group'];
+                        //
                         if (($new_userType == "") || ($new_userType == null)) {
                             $new_userType = "Manager";
                         }
@@ -232,6 +236,24 @@ $link = mysqli_connect($host, $username, $password);
                                 //
                                 ldap_mod_add($connection, "ou=" . $org . "," . $ldapBaseDN . "", array('l' => $dn));
                                 ldap_mod_replace($connection, $dn, $serverctrls02);
+                                ////
+                                //GROUP
+                                if ($group !=""){
+                                    $numeroElementi = count($_POST['group']);
+                                    for($u=0; $u<$numeroElementi; $u++){
+                                        $curr_group = $group[$u];
+                                    $groupDn =  "cn=$curr_group,ou=$org,dc=ldap,dc=organization,dc=com";
+                                        if (ldap_mod_add($connection, $groupDn, ['member' => $dn])) {
+                                                //echo "Utente aggiunto come membro del gruppo con successo.";
+                                        } else {
+                                                $ldapErrorNo = ldap_errno($connection);
+                                                $ldapErrorStr = ldap_err2str($ldapErrorNo);
+                                              // echo "Errore nell'aggiunta dell'utente come membro del gruppo (Codice: $ldapErrorNo, Messaggio: $ldapErrorStr).";
+                                        }
+                                    }
+                                }
+
+                                ///
                                 //$mail
                                 $results['result'] = 'success';
                                 echo json_encode($results);
@@ -348,6 +370,31 @@ $link = mysqli_connect($host, $username, $password);
                         }
                     }
                     //
+                    /////OLD GROUPS
+                    if((isset($_POST['old_groups']))){
+                                ////
+                                $old_groups = $_POST['old_groups'];
+                               // echo($old_groups);
+                              // $groupArray = json_decode($old_groups);
+                               $numberOldGroup = count($_POST['old_groups']);
+                               if($numberOldGroup > 0){
+                                for($y=0; $y<$numberOldGroup; $y++){
+                                    $curr_group = ($old_groups[$y]);
+                                    //
+                                    $userDn = '';
+                                    $new_org = htmlspecialchars($_POST['org']);
+                                    $groupDn =  "cn=$curr_group,ou=$new_org,dc=ldap,dc=organization,dc=com";
+                                    //                   
+                                    if (ldap_mod_del($connection, $groupDn, ['member' => $dn])) {
+                                        $result['delete_group'] = "OK";
+                                    } else {
+                                        $result['delete_group'] = "Error";
+                                    }
+                                    //
+                                }
+                               }
+                               ////////
+                    }
                     //ORG
                     if ((isset($_POST['org'])) && (isset($_POST['old_org']))) {
                         $old_org = htmlspecialchars($_POST['old_org']);
@@ -415,7 +462,27 @@ $link = mysqli_connect($host, $username, $password);
                     } else {
                         //echo('ERROR CAMBIO MAIL');
                     }
-                    
+
+                    ///////////SELECT A GROUP//////////
+                    //$group = htmlspecialchars($_POST['group']);
+                    $group = $_POST['group'];
+                    //echo($group);
+                    //GROUP
+                    if ($group !=""){
+                        $numeroElementi = count($_POST['group']);
+                        for($u=0; $u<$numeroElementi; $u++){
+                            $curr_group = $group[$u];
+                        $groupDn =  "cn=$curr_group,ou=$new_org,dc=ldap,dc=organization,dc=com";
+                            if (ldap_mod_add($connection, $groupDn, ['member' => $dn])) {
+                                    //echo "Utente aggiunto come membro del gruppo con successo.";
+                            } else {
+                                    $ldapErrorNo = ldap_errno($connection);
+                                    $ldapErrorStr = ldap_err2str($ldapErrorNo);
+                                  // echo "Errore nell'aggiunta dell'utente come membro del gruppo (Codice: $ldapErrorNo, Messaggio: $ldapErrorStr).";
+                            }
+                        }
+                    }
+                    //////////////////////////////////                   
     echo json_encode($result);
                     //
                 } else if ($action == 'list_org') {
@@ -498,7 +565,48 @@ $link = mysqli_connect($host, $username, $password);
                         }
                     }
                     echo json_encode($results);
-                } else {
+                } else if($action == 'get_groups') { 
+                    //  
+                    $groups = [];
+                        $organization = mysqli_real_escape_string($link, $_REQUEST['org']);
+                        $username = mysqli_real_escape_string($link, $_REQUEST['username']);
+                        $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
+                        if ($connection) {
+                            ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
+                            $bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
+                            $searchFilter = "(objectClass=*)"; 
+                            $searchResult = ldap_search($connection, $ldapBaseDN, '(objectClass=*)');
+                            $entriesOrg = ldap_get_entries($connection, $searchResult);
+                            if ($entriesOrg){
+                                $lenght = $entriesOrg["count"];
+                                for ($i = 0; $i < $lenght; $i++) {
+                                    $org = $entriesOrg[$i]; 
+                                    if($org['member']){
+                                        //
+                                        if ($org['ou']['0'] == $organization){
+                                              $count = $org['member']['count'];
+                                              for($y=0; $y < $count; $y++){
+                                                $membership = ($org['member'][$y]);
+                                                //
+                                                if (strpos($membership, $username) !== false) {
+                                                    array_push($groups, $org['cn']['0']);
+                                                }
+                                                //
+                                              }
+                                          }
+                                    }
+                                }
+                                echo json_encode($groups);
+                            //////////LA MEMBERSHIP ANDREBBE TESTATA QUI//////////
+                          // $searchFilter = "(&(objectClass=groupOfNames)(cn=$subgroupCn))";
+                             //$searchResult = ldap_search($ldapConn, $ldapBaseDn, $searchFilter);
+                            ///////////////////////
+                            }else{
+                                //NOTIHING
+                            }
+                        }
+                    //
+                }else {
                     exit();
                 }
             } else {

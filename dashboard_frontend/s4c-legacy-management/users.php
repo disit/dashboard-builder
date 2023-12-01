@@ -2,16 +2,17 @@
 /* Dashboard Builder.
   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
-  This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Affero General Public License as
-   published by the Free Software Foundation, either version 3 of the
-   License, or (at your option) any later version.
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Affero General Public License for more details.
-   You should have received a copy of the GNU Affero General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+  This program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU General Public License
+  as published by the Free Software Foundation; either version 2
+  of the License, or (at your option) any later version.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 include('../config.php');
 include('process-form.php');
 session_start();
@@ -70,13 +71,64 @@ session_start();
 
         <!--<link href="https://fonts.googleapis.com/css?family=Cabin:400,500,600,700|Catamaran|Varela+Round" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">-->
+        <style>
+            #addUserGroupsTable thead th, #editUserGroupsTable thead th
+{
+    background: rgba(0, 162, 211, 1);
+    color: white;
+}
+
+#addUserGroupsTable, #aaddUserGroupsTable tr, #addUserGroupsTable td, #editUserGroupsTable, #editUserGroupsTable tr, #editUserGroupsTable td /*#addUserExistingPoolsTable, #addUserExistingPoolsTable tr, 
+#addUserExistingPoolsTable td, #addUserAddUsersToNewPoolTable, #addUserAddUsersToNewPoolTable tr, #addUserAddUsersToNewPoolTable td*/
+{
+    width: 100%;
+    border: none;
+}
+
+#addUserGroupsTable tr:nth-child(odd), #editUserGroupsTable tr:nth-child(odd)/*, #addUserExistingPoolsTable tr:nth-child(odd), #addUserAddUsersToNewPoolTable tr:nth-child(odd)*/
+{
+    background-color: white;
+}
+
+#addUserGroupsTable tr:nth-child(even), #editUserGroupsTable tr:nth-child(even)/*#addUserExistingPoolsTable tr:nth-child(even), #addUserAddUsersToNewPoolTable tr:nth-child(even)*/
+{
+    background-color: rgb(230, 249, 255);
+}
+
+#addUserGroupsTable th, #editUserGroupsTable th
+{
+   text-align: center;
+}
+
+#addUserGroupsTable .addUserGroupsTableMakeAdminHeader, #addUserGroupsTable .addUserGroupsTableMakeAdminCheckbox,
+#editUserGroupsTable .editUserGroupsTableMakeAdminHeader, #editUserGroupsTable .editUserGroupsTableMakeAdminCheckbox
+{
+   display: none;
+}
+
+#addUserGroupsTable td.checkboxCell, #addUserExistingGroupsTable td.checkboxCell,
+#editUserGroupsTable td.checkboxCell, #editUserExistingGroupsTable td.checkboxCell  
+{
+    width: 20%;
+    text-align: center;
+}
+
+#addUserGroupsTable td.poolNameCell, #editUserGroupsTable td.poolNameCell
+{
+    width: 60%;
+    text-align: center;
+}
+
+#addUserGroupsRow{
+    display: none;
+}
+        </style>
     </head>
     <body class="guiPageBody">
-      <?php include "../cookie_banner/cookie-banner.php"; ?>
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?>
             <div class="row mainRow">
-                <?php include "../s4c-legacy-management/mainMenu.php" ?>
+                <?php include "mainMenu.php" ?>
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
@@ -85,7 +137,7 @@ session_start();
                     </div>
                     <div class="row">
                         <div class="col-xs-10 col-md-12 centerWithFlex"  id="headerTitleCnt">Users</div>
-                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "../s4c-legacy-management/mobMainMenu.php" ?></div>
+                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
                         <div class="col-xs-12" id="mainContentCnt">
@@ -212,6 +264,18 @@ session_start();
                                         </div>
                                     </div> 
                                 </div>
+                            <!-- MANAGE GROUPS -->
+                            <div class="row" id="addUserGroupsRow">
+                            <div class="col-xs-12" id="addUserGroupsOuterContainer">
+                                        <div id="addUserGroupsContainer">
+                                        <table id="addUserGroupsTable"><thead><tr><th>Make member</th><th class="addUserGroupsTableMakeAdminHeader">Make admin</th><th>Groups</th></tr></thead>
+                                                <tbody>
+                                                </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                             <!-- END MANAGE GROUP -->
                         </form>    
                         <div class="row" id="addWidgetTypeLoadingMsg">
                             <div class="col-xs-12 centerWithFlex">Adding widget type, please wait</div>
@@ -403,6 +467,14 @@ session_start();
                                 <div class="modalFieldLabelCnt">Organization</div>
                                 <div id="organizationMsgM" class="modalFieldMsgCnt">&nbsp;</div>
                             </div>
+                            <div class="col-xs-12 col-md-6 modalCell" style="display:none;">
+                                <div class="modalFieldCnt">
+                                    <input type="text" id="NewgroupM" name="NewgroupM" class="modalInputTxt">
+                                    <input type="text" id="old_GroupsM" name="old_GroupsM" class="modalInputTxt" style="display:none;">
+                                </div>
+                                <div class="modalFieldLabelCnt">Groups</div>
+                                <div id="groupMsgM" class="modalFieldMsgCnt">&nbsp;</div>
+                            </div>
                             <!--<div class="col-xs-12 col-md-6 modalCell">-->
                             <!-- -->
                             <div class="row" id="addUserPoolsRowMod">
@@ -418,6 +490,18 @@ session_start();
                                 </div> 
                             </div>
                             <!-- -->
+                            <div class="row" id="addUserGroupsRowMod">
+                                <div class="col-xs-12" id="addUserGroupsOuterContainer">
+                                    <div id="editUserGroupsContainer">
+                                        <table id="editUserGroupsTable">
+                                            <thead><tr><th>Make member</th><th>Group</th></tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div> 
+                            </div>
                             <!--</div>-->
                         </div>
 
@@ -522,10 +606,9 @@ session_start();
         //Settaggio dei globals per il file usersManagement.js
         setGlobals(admin, existingPoolsJson);
 
-
-
-
         /*** * ADD NEW USER CONFIRM * ***/
+
+        
 
         $("#addNewUserConfirmBtn2").click(function () {
             //Chiamata API di inserimento nuovo utente
@@ -533,9 +616,14 @@ session_start();
             var new_password = $('#password').val();
             var new_userType = $('#userType').val();
             var new_email = $('#email').val();
+            var new_group = '';
             //
             //
             var addUserPoolsTable = $('.check_org:checked').val();
+           // new_group = $('.check_group:checked').val();
+           new_group = $('.check_group:checked').map(function() {
+                    return this.value;
+                }).get();
             //
             $.ajax({
                 url: "dashboardUserControllers.php",
@@ -544,7 +632,8 @@ session_start();
                     new_password: new_password,
                     new_userType: new_userType,
                     new_email: new_email,
-                    org: addUserPoolsTable
+                    org: addUserPoolsTable,
+                    group: new_group
                 },
                 type: "POST",
                 async: true,
@@ -796,11 +885,13 @@ session_start();
                                 var jdata = $.parseJSON(data);
                                 var lun_json = jdata.length;
                                 for (var i = 0; i < lun_json; i++) {
-                                    $('#addUserPoolsTable tbody').append('<tr><td class="checkboxCell addUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + jdata[i] + '" type="checkbox" class="check_org" value="' + jdata[i] + '" /></td><td class="poolNameCell">' + jdata[i] + '</td></tr>');
+                                    $('#addUserPoolsTable tbody').append('<tr><td class="checkboxCell addUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + jdata[i] + '" type="checkbox" class="check_org" value="' + jdata[i] + '" onclick="listgroups(\''+ jdata[i] +'\')"/></td><td class="poolNameCell">' + jdata[i] + '</td></tr>');
                                 }
                             }
                         });
                     });
+
+
 
                     $('#addNewUserCancelBtn').click(function () {
                         $('#addUserPoolsTable tbody').empty();
@@ -856,6 +947,7 @@ session_start();
             $("#editUserModalUpdating").hide();
             $("#editUserModalBody").show();
             $("#editUserModalFooter").show();
+            $("#editUserGroupsTable tbody tr").remove();
             var username = $(this).parents('tr').children('td:eq(0)').text();
             var role = $(this).parents('tr').children('td:eq(1)').text();
             var org = $(this).parents('tr').children('td:eq(2)').text();
@@ -886,11 +978,63 @@ session_start();
                     var lun_json = jdata.length;
                     for (var i = 0; i < lun_json; i++) {
                         if (jdata[i] == org) {
-                            $('#editUserPoolsTable tbody').append('<tr><td class="checkboxCell addUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + jdata[i] + '" type="checkbox" class="check_editorg" value="' + jdata[i] + '" checked/></td><td class="poolNameCell">' + jdata[i] + '</td></tr>');
+                            $('#editUserPoolsTable tbody').append('<tr><td class="checkboxCell addUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + jdata[i] + '" type="checkbox" class="check_editorg" value="' + jdata[i] + '" checked onclick="editGroup(\''+ jdata[i] +'\')"/></td><td class="poolNameCell">' + jdata[i] + '</td></tr>');
                         } else {
-                            $('#editUserPoolsTable tbody').append('<tr><td class="checkboxCell addUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + jdata[i] + '" type="checkbox" class="check_editorg" value="' + jdata[i] + '" /></td><td class="poolNameCell">' + jdata[i] + '</td></tr>');
+                            $('#editUserPoolsTable tbody').append('<tr><td class="checkboxCell addUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + jdata[i] + '" type="checkbox" class="check_editorg" value="' + jdata[i] + '" onclick="editGroup(\''+ jdata[i] +'\')" /></td><td class="poolNameCell">' + jdata[i] + '</td></tr>');
                         }
                     }
+                    ////LIST GROUPS////
+                    var org_search = $('.check_editorg:checked').val();
+                    console.log('List of groups:'+org_search);
+                   // $('#addUserGroupsRow').css('display','inline');
+                     // $("#editUserGroupsTable tbody tr").remove();
+                     //////////////////////////
+                    $.ajax({
+                        url: 'editorganization.php',
+                        data: {
+                            action: 'get_gropus',
+                            org: org_search
+                        },
+                        type: "POST",
+                        async: false,
+                        success: function (data) {
+                            //alert(data);
+                            var obj = JSON.parse(data);
+                            var array = obj;
+                            var len = array.length;
+                            //window.location.reload();
+                            
+                            for (var y = 0; y < len; y++) {
+                                var current = array[y];
+                                $('#editUserGroupsTable tbody').append('<tr><td class="checkboxCell editUserGroupsTableMakeMemberCheckbox"><input data-poolId="' + current + '" type="checkbox" class="check_group" value="' + current + '" /></td><td class="poolNameCell">' + current + '</td></tr>');
+                            }
+                        }
+                       });
+                    ////////LIST OF MEMBERS? CHECKMEMBERSHIP/////
+                    $.ajax({
+                        url: 'dashboardUserControllers.php',
+                        data: {
+                            action: 'get_groups',
+                            org: org_search,
+                            username: username
+                        },
+                        type: "POST",
+                        async: false,
+                        success: function (data1) {
+                            console.log(data1);
+                            $('#old_GroupsM').val(data1);
+                            var obj1 = JSON.parse(data1);
+                            var l1 = obj1.length; 
+                            //console.log(l1);
+                            for (var y = 0; y < l1; y++) {
+                                var valore2 = (obj1[y]);
+                                $(".check_group[value='"+valore2+"']").prop("checked", true);
+                            }
+                            //////////                      
+                        }
+                       });
+
+                    /////////////////////////////////////////////
                 }
             });
             /*************/
@@ -902,6 +1046,17 @@ session_start();
             $("#NewuserTypeM").val('');
             $("#editNewUserModalLabel").html("Edit account - ");
             $("#editUserPoolsTable tbody").empty();
+        });
+
+        //************//
+        $('#editNewUserModal').on('hidden.bs.modal', function () {
+        // Mostra un alert quando il modal si chiude
+            $("#NeworganizationM").val('');
+            $("#emailM").val('');
+            $("#NewuserTypeM").val('');
+            $("#editNewUserModalLabel").html("Edit account - ");
+            $("#editUserPoolsTable tbody").empty();
+            ////
         });
 
         //*******************//
@@ -920,6 +1075,16 @@ session_start();
             var old_org = $("#old_organizationM").val();
             var old_role = $("#old_roleM").val();
             ////
+            //var old_groups = $('#old_GroupsM').val();
+            //var group = $('.check_group:checked').val();
+            var group = $('.check_group:checked').map(function() {
+                    return this.value;
+                }).get();
+
+                var old_groups = $('.check_group:not(:checked)').map(function() {
+                    return this.value;
+                }).get();
+            ////
             $.ajax({
                 url: "dashboardUserControllers.php",
                 data: {action: 'edit user',
@@ -931,7 +1096,9 @@ session_start();
                     old_org: old_org,
                     old_mail: old_mail,
                     old_pass: old_pass,
-                    old_role: old_role
+                    old_role: old_role,
+                    group: group,
+                    old_groups: old_groups
                 },
                 type: "POST",
                 async: true,
@@ -1018,6 +1185,12 @@ session_start();
             //
         });
         //************//
+        //addNewUserCancelBtn
+        $(document).on('click','#addNewUserCancelBtn', function () {
+            $('#addUserGroupsRow').css('display','none');
+        });
+
+        
         $(document).on('click','#editUserKoConfirmBtn', function () {
             $('#editUserKoModal').modal('hide');
         });
@@ -1096,7 +1269,67 @@ session_start();
                 }
             });
         });
-
+      
         //*********************///
     });
+
+
+    function editGroup(value){
+    //////////////////////////
+        $("#editUserGroupsTable tbody tr").remove();
+         $.ajax({
+                        url: 'editorganization.php',
+                        data: {
+                            action: 'get_gropus',
+                            org: value
+                        },
+                        type: "POST",
+                        async: false,
+                        success: function (data) {
+                            //alert(data);
+                            var obj = JSON.parse(data);
+                            var array = obj;
+                            var len = array.length;
+                            //window.location.reload();
+                            
+                            for (var y = 0; y < len; y++) {
+                                var current = array[y];
+                                $('#editUserGroupsTable tbody').append('<tr><td class="checkboxCell editUserGroupsTableMakeMemberCheckbox"><input data-poolId="' + current + '" type="checkbox" class="check_group" value="' + current + '" /></td><td class="poolNameCell">' + current + '</td></tr>');
+                            }
+                        }
+         });
+/////////////////////////
+    }
+
+    function listgroups(value){
+                //alert(value);
+                $('#addUserGroupsRow').css('display','inline');
+                $("#addUserGroupsTable tbody tr").remove();
+                //////////////////////////
+                $.ajax({
+                        url: 'editorganization.php',
+                        data: {
+                            action: 'get_gropus',
+                            org: value
+                        },
+                        type: "POST",
+                        async: false,
+                        success: function (data) {
+                            //alert(data);
+                            var obj = JSON.parse(data);
+                            var array = obj;
+                            var len = array.length;
+                            //window.location.reload();
+                            
+                            for (var i = 0; i < len; i++) {
+                                var current = array[i];
+                               // var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#" onclick="delete_group(\'' + current + '\',\'' + org + '\')"  data-toggle="modal">DELETE</button>';
+                                //$("#group_table").append('<tr><td>' + current + ' ' + button_del + '</td></tr>');
+                                $('#addUserGroupsTable tbody').append('<tr><td class="checkboxCell addUserGroupsTableMakeMemberCheckbox"><input data-poolId="' + current + '" type="checkbox" class="check_group" value="' + current + '" /></td><td class="poolNameCell">' + current + '</td></tr>');
+                            }
+                            /////////
+                        }
+        });
+                /////////////////////////////
+        }
 </script>  
