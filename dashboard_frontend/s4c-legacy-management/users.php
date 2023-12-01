@@ -2,17 +2,16 @@
 /* Dashboard Builder.
   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+  This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 include('../config.php');
 include('process-form.php');
 session_start();
@@ -125,10 +124,11 @@ session_start();
         </style>
     </head>
     <body class="guiPageBody">
+      <?php include "../cookie_banner/cookie-banner.php"; ?>
         <div class="container-fluid">
             <?php include "sessionExpiringPopup.php" ?>
             <div class="row mainRow">
-                <?php include "mainMenu.php" ?>
+                <?php include "../s4c-legacy-management/mainMenu.php" ?>
                 <div class="col-xs-12 col-md-10" id="mainCnt">
                     <div class="row hidden-md hidden-lg">
                         <div id="mobHeaderClaimCnt" class="col-xs-12 hidden-md hidden-lg centerWithFlex">
@@ -137,7 +137,7 @@ session_start();
                     </div>
                     <div class="row">
                         <div class="col-xs-10 col-md-12 centerWithFlex"  id="headerTitleCnt">Users</div>
-                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "mobMainMenu.php" ?></div>
+                        <div class="col-xs-2 hidden-md hidden-lg centerWithFlex" id="headerMenuCnt"><?php include "../s4c-legacy-management/mobMainMenu.php" ?></div>
                     </div>
                     <div class="row">
                         <div class="col-xs-12" id="mainContentCnt">

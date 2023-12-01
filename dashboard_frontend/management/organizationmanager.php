@@ -59,14 +59,16 @@ $lastUsedColors = null;
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>organizationManager</title>
+    
+    
 
     <!-- Bootstrap Core CSS -->
-    <link href="../css/bootstrap.css" rel="stylesheet">
+    <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
+    <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles_gridster.css" type="text/css" />
     <link rel="stylesheet" href="../css/style_widgets.css?v=<?php
     echo time();
     ?>" type="text/css" />
-    <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/chat.css" type="text/css" />
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -79,8 +81,6 @@ $lastUsedColors = null;
     <script src="../js/jquery-1.10.1.min.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
-    <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
     <script src="../js/bootstrap.min.js"></script>
 
     <!-- Bootstrap Multiselect -->
@@ -121,8 +121,6 @@ $lastUsedColors = null;
     <!-- JQUERY UI -->
     <!--<script src="../js/jqueryUi/jquery-ui.js"></script>
 
-    <!-- Font awesome icons -->
-    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
 
     <!-- Bootstrap colorpicker -->
     <script src="../js/bootstrap-colorpicker.min.js"></script>
@@ -194,22 +192,10 @@ $lastUsedColors = null;
     <!-- Text fill -->
     <script src="../js/jquery.textfill.min.js"></script>
 
+    
     <!-- Custom CSS -->
-    <link href="../css/dashboard.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/dashboardView.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/addWidgetWizard2.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/addDashboardTab.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
-    <link href="../css/dashboard_configdash.css?v=<?php
-    echo time();
-    ?>" rel="stylesheet">
+    <?php include "theme-switcher.php"?>
+    
     <link href="../css/widgetCtxMenu_1.css?v=<?php
     echo time();
     ?>" rel="stylesheet">
@@ -374,6 +360,7 @@ $lastUsedColors = null;
 </style>
 
 <body style="overflow-y: hidden !important">
+  <?php include "../cookie_banner/cookie-banner.php"; ?>
 
     <!-- Inizio dei modali -->
     <!-- Modale wizard -->
