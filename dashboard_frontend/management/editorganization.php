@@ -68,6 +68,7 @@ if (isset($_SESSION['loggedRole'])) {
         for ($z = 0; $z < $entry_l; $z++) {
             $row['org'] = $entriesOrg[$z]['ou'][0];
             $row['users']= '';
+            $row['dtUsers']= '';
             $user_arr = array();
             //var_dump($entriesOrg[$z]['l']);
             if($entriesOrg[$z]['l']){
@@ -85,6 +86,23 @@ if (isset($_SESSION['loggedRole'])) {
                     
                 }
                 $row['users']= json_encode($user_arr);
+                $curr_users="";
+                //
+                $queyOrg = "SELECT users FROM Organizations WHERE organizationName ='".$entriesOrg[$z]['ou'][0]."'";
+                $resultOrg = mysqli_query($link, $queyOrg);
+                if (mysqli_num_rows($resultOrg) > 0) {
+                    while ($row0 = mysqli_fetch_assoc($resultOrg)) {
+                        //
+                        if(($row0['users'] !="")&&($row0['users'] != null)){
+                        $curr_users = $row0['users'];
+                        }else{
+                            $curr_users = '';
+                        };
+                        //
+                    }
+                }
+                //
+                $row['dtUsers']= $curr_users;
                 //$row['users']= json_encode($entriesOrg[$z]['l']);
             }
            // $row['users']= json_encode($entriesOrg[$z]['l']);
@@ -123,6 +141,9 @@ if (isset($_SESSION['loggedRole'])) {
                 $array_org[$z]= $us1;
             }
             $row['users']= json_encode($array_org);
+            //
+            $row['dtUsers']=0;
+            //
             array_push($final_array, $row);
         }
         //echo json_encode($final_array);
@@ -303,7 +324,7 @@ if (isset($_SESSION['loggedRole'])) {
                         } else {
                             $ldapErrorNo = ldap_errno($connection);
                             $ldapErrorStr = ldap_err2str($ldapErrorNo);
-                            echo "Errore nella creazione del child (Codice: $ldapErrorNo, Messaggio: $ldapErrorStr).";
+                            echo "Error creation (Code: $ldapErrorNo, Message: $ldapErrorStr).";
                         }
                         //
                     }
@@ -423,7 +444,7 @@ if (isset($_SESSION['loggedRole'])) {
         //////////////
     } else if ($action == 'add_user') {
         //nothing
-        if ($role_session_active == 'RootAdmin') {
+        //if ($role_session_active == 'RootAdmin') {
             $message = "";
             $id = mysqli_real_escape_string($link, $_REQUEST['id']);
             $id = filter_var($id, FILTER_SANITIZE_STRING);
@@ -443,20 +464,23 @@ if (isset($_SESSION['loggedRole'])) {
                 $bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
                 if($bind){
                     $ldapUsername = "cn=" . $user . "," . $ldapBaseDN;
-                    $checkldap = (checkLdapMembership($connection, $ldapUsername, $ldapToolName, $ldapBaseDN));
-                    if($checkldap) {
+                    //echo('ldapUsername: '.$ldapUsername);
+                   // $checkldap = (checkLdapMembership($connection, $ldapUsername, $ldapToolName, $ldapBaseDN));
+                    //if($checkldap) {
                     $add_org = ldap_mod_add($connection, "ou=" . $org . "," . $ldapBaseDN . "", array('l' => $ldapUsername));
                             if ($add_org) {
 
-                                $result['org'] = "OK";
-                                $result['index'] = 1;
+                               // $result['org'] = "OK";
+                               // $result['index'] = 1;
+                               $message = "User successfully added to organization";
                             } else {
-
-                                $result['org'] = "error during updating new organization";
-                                $result['index'] = 0;
+                                $message = "error during updating new organization";
+                                //$result['org'] = "error during updating new organization";
+                                //$result['index'] = 0;
                             }
-                    }
+                   // }
                 }
+                echo($message);
 /*
                 $ldapUsername = "cn=" . $user . "," . $ldapBaseDN;
                 $checkldap = (checkLdapMembership($connection, $ldapUsername, $ldapToolName, $ldapBaseDN));
@@ -482,9 +506,9 @@ if (isset($_SESSION['loggedRole'])) {
                 }
                 // var_dump($array_org);
 */
-            }
+            //}
             //
-            if ($checkldap == true) {
+           /* if ($checkldap == true) {
                 $curr_users = "";
                 $query0 = "SELECT users FROM Organizations WHERE id=" . $id . ";";
                 $result0 = mysqli_query($link, $query0);
@@ -516,9 +540,9 @@ if (isset($_SESSION['loggedRole'])) {
                 //
             } else {
                 $message = "User " . $user . " Yet assigned to organization  $organization";
-            }
+            }*/
         }
-        echo($message);
+       
         //
 //
     } else if ($action == 'delete_list') {
@@ -584,7 +608,7 @@ if (isset($_SESSION['loggedRole'])) {
                     }else{
                         $ldapErrorNo = ldap_errno($connection);
                         $ldapErrorStr = ldap_err2str($ldapErrorNo);
-                        echo "Errore nella cancellazione dell'entry (Codice: $ldapErrorNo, Messaggio: $ldapErrorStr).";
+                        echo "Error during deleting (Code: $ldapErrorNo, Messagge: $ldapErrorStr).";
                     }
                         ///
                         //
@@ -755,16 +779,31 @@ if (isset($_SESSION['loggedRole'])) {
                     } else {
                         $ldapErrorNo = ldap_errno($connection);
                         $ldapErrorStr = ldap_err2str($ldapErrorNo);
-                        echo "Errore nella cancellazione dell'entry (Codice: $ldapErrorNo, Messaggio: $ldapErrorStr).";
+                        echo "Error during deleting (Code: $ldapErrorNo, Messagge: $ldapErrorStr).";
                     }
                 } else {
-                    echo "Errore nell'autenticazione LDAP: " . ldap_error($connection);
+                    echo "Error LDAP authentication: " . ldap_error($connection);
                 }
             }
 
-    } else{
-
-    }
+        }else if($action == 'edit_dtUsers'){
+            $users = $_REQUEST['users'];
+            $org = $_REQUEST['org'];
+            $newUsers= implode(',', $users);
+            //
+            $query = "UPDATE Organizations SET users = '$newUsers' WHERE organizationName = '$org'";
+            $result = mysqli_query($link, $query);
+        if ($result) {
+            echo "User list successfully modified";
+        }else{
+            echo "Error during operation";
+        }
+           
+            //
+           // echo json_encode($users);
+        } else{
+    
+        }
 }
 ?>
 

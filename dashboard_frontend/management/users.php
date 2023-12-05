@@ -38,7 +38,6 @@ include('process-form.php');
         <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
         <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
 
-
         <link href="../css/bootstrap-colorpicker.min.css" rel="stylesheet">
 
         <!-- jQuery -->
@@ -1292,6 +1291,7 @@ include('process-form.php');
 
     function editGroup(value){
     //////////////////////////
+    $(".check_editorg:not([value='"+value+"']").prop("checked", false);
         $("#editUserGroupsTable tbody tr").remove();
          $.ajax({
                         url: 'editorganization.php',
@@ -1322,6 +1322,7 @@ include('process-form.php');
                 $('#addUserGroupsRow').css('display','inline');
                 $("#addUserGroupsTable tbody tr").remove();
                 //////////////////////////
+                $(".check_org:not([value='"+value+"']").prop("checked", false);
                 $.ajax({
                         url: 'editorganization.php',
                         data: {
@@ -1353,4 +1354,4 @@ include('process-form.php');
 <?php } else {
     include('../s4c-legacy-management/users.php');
 }
-?>  
+?> 

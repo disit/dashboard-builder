@@ -121,6 +121,8 @@ $lastUsedColors = null;
     <!-- JQUERY UI -->
     <!--<script src="../js/jqueryUi/jquery-ui.js"></script>
 
+    <!-- Font awesome icons -->
+    <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
 
     <!-- Bootstrap colorpicker -->
     <script src="../js/bootstrap-colorpicker.min.js"></script>
@@ -191,8 +193,7 @@ $lastUsedColors = null;
 
     <!-- Text fill -->
     <script src="../js/jquery.textfill.min.js"></script>
-
-    
+   
     <!-- Custom CSS -->
     <?php include "theme-switcher.php"?>
     
@@ -360,8 +361,7 @@ $lastUsedColors = null;
 </style>
 
 <body style="overflow-y: hidden !important">
-  <?php include "../cookie_banner/cookie-banner.php"; ?>
-
+<?php include "../cookie_banner/cookie-banner.php"; ?>
     <!-- Inizio dei modali -->
     <!-- Modale wizard -->
     <div class="modal-content modalContentWizardForm">
@@ -402,7 +402,7 @@ $lastUsedColors = null;
                                 <th>Link to Drupal</th>
                                 <th>Link to Welcome Page</th>
                                 <th>Link to Org Page</th>-->
-                                <th>User List</th>
+                                <th>Data Table/POI Users</th>
                                 <th>Control</th>
                                 </thead>');
                     } else {
@@ -538,7 +538,7 @@ $lastUsedColors = null;
                                 <div class="input-group">
                                     <div class="panel-body">
                                         <input type="text" id="new_user_id" hidden />
-                                        <input type="text" id="new_user_org" hidden />
+                                        <input type="text" id="new_user_org" hidden/>
                                         <input type="text" class="form-control" placeholder="Insert username name" aria-label="Insert username name" id="new_user">
                                         <button type="button" id="user_button" class="btn btn-outline-secondary btn-warning new_org" data-toggle="modal" data-target="#" style="float:left; margin-right: 5px;">
                                             <i class="fa fa-plus"></i>
@@ -555,7 +555,7 @@ $lastUsedColors = null;
                         <!-- -->
                         <table id="users_table" class="table table-striped table-bordered" style="width: 100%">
                             <thead class="usersTableHeader">
-                            <th> <?= _("Data Table/POI Users") ?></th>
+                            <th> <?= _("Organization Users") ?></th>
                             </thead>
                             <tbody>
 
@@ -565,6 +565,40 @@ $lastUsedColors = null;
                     <div class="modal-footer">
                         <button type="button" class="btn cancelBtn" id="close_users" data-dismiss="modal"><?= _("Cancel") ?></button>
                         <!-- <input type="button" id="user_confirm" value="Confirm" class="btn confirmBtn">-->
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+    <!-- DataTable USERS MODAL -->
+    <div class="modal fade" id="datatable-users-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                    <h4 class="modal-title"><?= _("Manage Data Table/POI Users List") ?></h4>
+                </div>
+                <form method="post" id="delete_element" accept-charset="UTF-8">
+                    <div class="modal-body">
+                        <!-- -->
+                        <div id="select_user">
+                        <input type="text" id="new_dtUser_org" style="display:none;"/> 
+                        </div>
+                        <!-- -->
+                        <table id="dtUsers_table" class="table table-striped table-bordered" style="width: 100%">
+                            <thead class="usersTableHeader">
+                            <th> <?= _("Data Table/POI Users") ?></th>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn cancelBtn" id="close_users" data-dismiss="modal"><?= _("Cancel") ?></button>
+                        <input type="button" id="dtUser_confirm" value="Confirm" class="btn confirmBtn">
                     </div>
                 </form>
             </div>
@@ -669,15 +703,22 @@ $lastUsedColors = null;
                 for (var i = 0; i < l; i++) {
                     var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#edit_org" data-toggle="modal" value="' + obj[i]['org'] + '" onclick="edit_fun(\'' + obj[i]['org'] + '\')">EDIT</button>';
                     var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#delete-modal" data-toggle="modal" value="' + obj[i]['org'] + '" onclick="delete_func(\'' + obj[i]['org'] + '\',\'' + obj[i]['org'] + '\')">DELETE</button>';
-                    var button_users = '<button type="button" class="viewDashBtn addchild" data-target="#users-modal" data-toggle="modal" onclick="list_user(\'' + obj[i]['org'] + '\')">MANAGE</button>';
+                    var button_users = '<button type="button" class="viewDashBtn addchild" data-target="#users-modal" data-toggle="modal" onclick="list_user(\'' + obj[i]['org'] + '\')">USERS</button>';
                     var button_groups = '<button type="button" class="viewDashBtn edit_group" data-target="#group-modal" data-toggle="modal" onclick="list_group(\'' + obj[i]['org'] + '\')">GROUP</button>';
+                    var button_datatable = '<button type="button" class="viewDashBtn edit_datatable" data-target="#datatable-users-modal" data-toggle="modal" onclick="user_group(\'' + obj[i]['org'] + '\')">MANAGER</button>';
                     //button_users = "";
+                    var dtUsers="";
+                    if (obj[i]['dtUsers'] !== null){
+                        dtUsers = obj[i]['dtUsers'];
+                    }
+                    //
                     if (role_session_active === 'RootAdmin') {
                         //$('#value_table').append('<tr><td>' + obj[i]['organizationName'] + '</td><td><a href="' + obj[i]['kbUrl'] + '" target="_blank">' + obj[i]['kbUrl'] + '</a></td><td>' + obj[i]['zoomLevel'] + '</td><td><a href="' + obj[i]['drupalUrl'] + '" target="_blank">' + obj[i]['drupalUrl'] + '</a></td><td><a href="' + obj[i]['orgUrl'] + '" target="_blank">' + obj[i]['orgUrl'] + '</a></td><td><a href="' + obj[i]['welcomeUrl'] + '" target="_blank">' + obj[i]['welcomeUrl'] + '</a></td><td>' + obj[i]['users'] + ' ' + button_users + '</td><td>' + button_edit + ' ' +button_groups+' ' + button_del + '</td></tr>');
-                        $('#value_table').append('<tr><td>' + obj[i]['org']  + '</td><td><span id="'+obj[i]['org']+'_users">' + obj[i]['users'] + '</span> ' + button_users + '</td><td>' + button_edit + ' ' +button_groups+' ' + button_del + '</td></tr>');
+                        $('#value_table').append('<tr><td>' + obj[i]['org']  + '</td><td><span id="'+obj[i]['org']+'_users" hidden>' + obj[i]['users'] + '</span><span id="'+obj[i]['org']+'_dtUsers">'+dtUsers+'</span>    '+button_datatable+'</td><td>' + button_edit + ' ' + button_users + ' ' +button_groups+' ' + button_del + '</td></tr>');
                         //
                     } else {
-                        $('#value_table').append('<tr><td>' + obj[i]['organizationName'] + '</td><td><a href="' + obj[i]['drupalUrl'] + '" target="_blank">' + obj[i]['drupalUrl'] + '</a></td><td><a href="' + obj[i]['orgUrl'] + '" target="_blank">' + obj[i]['orgUrl'] + '</a></td></tr>');
+                        $('#value_table').append('<tr><td>' + obj[i]['org']  + '</td><td><span id="'+obj[i]['org']+'_users" hidden>' + obj[i]['users'] + '</span><span id="'+obj[i]['org']+'_dtUsers">'+dtUsers+'</span></td><td></td></tr>');
+                       // $('#value_table').append('<tr><td>' + obj[i]['organizationName'] + '</td><td><a href="' + obj[i]['drupalUrl'] + '" target="_blank">' + obj[i]['drupalUrl'] + '</a></td><td><a href="' + obj[i]['orgUrl'] + '" target="_blank">' + obj[i]['orgUrl'] + '</a></td></tr>');
                     }
 
                 }
@@ -719,13 +760,17 @@ $lastUsedColors = null;
                     $('#edit_lng').val(e.latlng.lng);
                     $('#edit_zoom').val(zoom);
                     //
+                    var latlng = e.latlng;
                     // mymap2.removeLayer();
                     var greyIcon = new L.Icon({
                         iconUrl: '../img/outputPngIcons/pin-generico.png',
-                        iconAnchor: [e.latlng.lat, e.latlng.lng]
+                        //iconAnchor: [e.latlng.lat, e.latlng.lng]
+                        iconAnchor: [16,32]
                     });
                     $(".leaflet-marker-icon").remove();
                     var marker = L.marker([e.latlng.lat, e.latlng.lng], {icon: greyIcon}).addTo(mymap2);
+                    //var marker = L.marker(latlng, {icon: greyIcon}).addTo(mymap2);
+
                 });
         /////////
         mymap.on('click',
@@ -739,20 +784,27 @@ $lastUsedColors = null;
                     $('#new_lng').val(e.latlng.lng);
                     $('#new_zoom').val(zoom);
                     //
+                    var latlng = e.latlng;
+                    //
                     var greyIcon = new L.Icon({
                         iconUrl: '../img/outputPngIcons/pin-generico.png',
-                        iconAnchor: [e.latlng.lat, e.latlng.lng]
+                       // iconAnchor: [e.latlng.lat, e.latlng.lng]
+                       iconAnchor: [16,32]
                     });
                     //mymap.removeLayer();
                     $(".leaflet-marker-icon").remove();
                     var marker = L.marker([e.latlng.lat, e.latlng.lng], {icon: greyIcon}).addTo(mymap);
+                  // var marker = L.marker(latlng, {icon: greyIcon}).addTo(mymap);
                 });
         ////////////////
         $('#delete_command').click(function () {
             //
             var id = $('#delete_id').val();
             var name = $('#delete_name').val();
+            var org_list = $('#'+name+'_users').text();
             //
+            //alert('org_list: '+org_list);
+            if (org_list ==""){
             $.ajax({
                 url: 'editorganization.php',
                 data: {
@@ -770,6 +822,9 @@ $lastUsedColors = null;
                     }
                 }
             });
+          }else{
+            alert('This organization cannot be deleted if there are users assigned to it');
+          }
         });
         /////////
         $('#group_button').click(function () {  
@@ -944,6 +999,41 @@ $lastUsedColors = null;
             });
         });
         /////////////////
+        $('#dtUser_confirm').click(function () {
+            
+            var checkboxesSelezionate = $('.dtUser:checked'); 
+            //
+            var org = $('#new_dtUser_org').val();
+            var idArray = [];
+            // Aggiungi gli ID all'array
+            checkboxesSelezionate.each(function(){
+            idArray.push($(this).attr('value'));
+            });
+            console.log(idArray);
+            //AJACK MANAGER dtUSERS
+            $.ajax({
+                url: 'editorganization.php',
+                data: {
+                    action: 'edit_dtUsers',
+                    users: idArray,
+                    org: org
+                },
+                type: "POST",
+                async: true,
+                success: function (data) {
+                    alert(data);
+                    window.location.reload();
+                    /*if (data === 'ok') {     
+                        window.location.reload();
+                    } else {
+                        alert('Error during organization creation');
+                    }*/
+                }
+            });
+            //
+        });
+
+        /////////////////////
         setTimeout(mymap.invalidateSize.bind(mymap));
         setTimeout(mymap2.invalidateSize.bind(mymap2));
         ////////////////
@@ -1140,6 +1230,36 @@ $lastUsedColors = null;
                 /////////
             }
         });
+    }
+
+    function user_group(org){
+
+        $('#new_dtUser_org').val(org);
+        var users = $('#'+org+'_users').text();
+        var dtUsers = $('#'+org+'_dtUsers').text();
+    //var array = JSON.parse(users);
+    var array2 = dtUsers.split(',');
+    var array = JSON.parse(users);
+        //console.log(JSON.parse(array2));
+        var len = array.length;
+                $("#dtUsers_table tbody tr").remove();
+                for (var i = 0; i < len; i++) {
+                    var current = array[i];
+                    var checked = '';
+                    //var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#" onclick="edit_user('+id+',\''+current+'\')" data-toggle="modal">EDIT</button>';
+                   // var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#" onclick="delete_user(0,\'' + current + '\',\'' + org + '\')"  data-toggle="modal">DELETE</button>';
+                   for(var y=0; y< array2.length; y++){
+                        //console.log(array2[y]);
+                        if (array2[y] == current){
+                            console.log(current);
+                            checked = 'checked';
+                           // $("#dtUsers_table").append('<tr><td>' + current + '     <input class="form-check-input dtUser" type="checkbox" value="' + current + '" checked></td></tr>');
+                        }
+                   }
+                   $("#dtUsers_table").append('<tr><td>' + current + '     <input class="form-check-input dtUser" type="checkbox" value="' + current + '" '+checked+'></td></tr>');
+                    
+                }
+
     }
 
     $("#myModal_new").on('shown.bs.modal', function (e) {
