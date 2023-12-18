@@ -108,7 +108,37 @@ if (!isset($_SESSION)) {
 
     .slider.round:before {
         border-radius: 50%;}
-
+    .tooltip_custom {
+        position: relative;
+    }
+    .tooltip_custom .tooltiptext {
+        visibility: hidden;
+        width: 160px;
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0;
+        position: absolute;
+        z-index: 1;
+        top: 90%;
+        left: 50%;
+        margin-left: -80px;
+        /*half width*/
+    }
+    .tooltip_custom .tooltiptext::after {
+        content: "";
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent transparent black transparent;
+    }
+    .tooltip_custom:hover .tooltiptext {
+        visibility: visible;
+    }
 </style>
 
     <!-- Bring in the leaflet KML plugin -->
@@ -804,12 +834,34 @@ if (!isset($_SESSION)) {
                                                                        });*/
                                                                     dataDesc = realTimeData.head.vars[i];
                                                                     dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
+                                                                var tooltipText=null;
+                                                                if(dataDesc==="dateObserved" && navigator.language && Intl.DateTimeFormat().resolvedOptions().timeZone){
+                                                                    let userLocal=navigator.language;
+                                                                    let timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
+                                                                    let formattedDate = new Intl.DateTimeFormat(userLocal, {
+                                                                        timeZone,
+                                                                        year: "2-digit",
+                                                                        month: "2-digit",
+                                                                        day: "2-digit",
+                                                                        hour: "2-digit",
+                                                                        minute: "2-digit",
+                                                                        second: "2-digit",
+                                                                        // hourCycle: 'h23'
+                                                                    }).format(new Date(dataVal));
+                                                                    console.log("dateISOString-> " + dataVal)
+                                                                    tooltipText='<span>'+formattedDate+'</span>'+'<span class="tooltiptext">'+dataVal+'</span>';
+                                                                    // dataVal=formattedDate.replaceAll(' ',"");
+                                                                }
                                                                     if (serviceProperties.realtimeAttributes && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]] && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit) {
                                                                         value_unit = serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit;
                                                                     }
                                                                     if (dataVal.length > 50 && value_unit !== "SURI") {
                                                                         dataVal = '<div class="tooltipSuri">' + encodeHTMLEntities(dataVal).substring(0, 20) + '... <span class="tooltipSuriText">' + dataVal + '</span></div>';
                                                                     }
+                                                                if(tooltipText!==null){
+                                                                    dataVal = tooltipText;
+                                                                    //console.log(dataVal.length);//91
+                                                                }
                                                                     if (value_unit == "SURI") {
                                                                         if (dataVal.includes("http://www.disit.org/km4city")) {
                                                                             dataVal = '<div class="tooltipSuri">[SURI id]<span class="tooltipSuriText">' + dataVal + '</span></div>';
@@ -830,7 +882,7 @@ if (!isset($_SESSION)) {
                                                                     data1YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">1y</button></td>';
                                                                     data2YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="2 year" data-range="730/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">2y</button></td>';
                                                                     data10YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="10 year" data-range="3650/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">10y</button></td>';
-                                                                    popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
+                                                                popupText += '<tr><td>' + dataDesc + '</td><td' + (tooltipText?' class="tooltip_custom"':'') + '>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
                                                                 }
                                                             } else {
                                                                 measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
@@ -6664,7 +6716,8 @@ if (!isset($_SESSION)) {
                                     //    map.eventsOnMap.push(dataObj);
                                     }
 
-                                    map.eventsOnMap.push(dataObj);
+                                    if (dataObj != null)
+                                        map.eventsOnMap.push(dataObj);
 
                                     if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
                                         gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
