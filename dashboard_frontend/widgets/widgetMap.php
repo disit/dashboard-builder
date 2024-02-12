@@ -108,37 +108,15 @@ if (!isset($_SESSION)) {
 
     .slider.round:before {
         border-radius: 50%;}
-    .tooltip_custom {
-        position: relative;
-    }
-    .tooltip_custom .tooltiptext {
-        visibility: hidden;
-        width: 160px;
-        background-color: black;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 5px 0;
-        position: absolute;
-        z-index: 1;
-        top: 90%;
-        left: 50%;
-        margin-left: -80px;
-        /*half width*/
-    }
-    .tooltip_custom .tooltiptext::after {
-        content: "";
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        margin-left: -5px;
-        border-width: 5px;
-        border-style: solid;
-        border-color: transparent transparent black transparent;
-    }
-    .tooltip_custom:hover .tooltiptext {
-        visibility: visible;
-    }
+
+        .leaflet-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+
 </style>
 
     <!-- Bring in the leaflet KML plugin -->
@@ -172,11 +150,743 @@ if (!isset($_SESSION)) {
 <script src="../js/jquery.datetimepicker.min.js"></script>
 <link rel="stylesheet" href="../css/jquery.datetimepicker.min.css"/>
 
+<!-- SCENARY EDITOR ADREANI -->
+<!-- FINE ADREANI -->
+
 <!-- LEAFLET ANIMATOR PLUGIN -->
 <!-- <script type="text/javascript" src="../js/leaflet-wms-animator.js"></script> -->
 
-<script type='text/javascript'>
+<!--ARROW -->
+<script type="text/javascript" src="../js/leaflet.polylineDecorator.js"></script>
+<!-- EDITABLE POLYLINE -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-editable/dist/leaflet.editable.css" />
+<script src="https://unpkg.com/leaflet-editable/dist/Leaflet.Editable.js"></script>
+<!-- -->
+<script type="text/javascript" src="../js/leaflet-editable-polyline.js"></script>
+<!--<script type="text/javascript" src="../js/scenaryEditor.js"></script>-->
 
+<script type='text/javascript'>
+////////////ADREANI Nuova Classe
+class KBRoadEditor {
+    map;
+    segments;
+    nodes;
+    creatingNode = false;
+    historicActions = [];
+    redoActions = [];
+    segmentUpdated;
+    segmentCallback;
+    mode = 'drag';
+    arrowMinZoom = 16;
+    tableMetersZoomNode = {
+        "0": 10,
+        "1": 10,
+        "2": 10,
+        "3": 10,
+        "4": 10,
+        "5": 10,
+        "6": 10,
+        "7": 10,
+        "8": 10,
+        "9": 10,
+        "10": 10,
+        "11": 10,
+        "12": 10,
+        "13": 10,
+        "14": 10,
+        "15": 10,
+        "16": 5,
+        "17": 5,
+        "18": 3,
+        "19": 2,
+        "20": 1,
+        "21": 0.8,
+        "22": 0.6,
+        "23": 0.4,
+    }
+    tableMetersZoomArrow = {
+        "17": 13,
+        "18": 15,
+        "19": 15,
+        "20": 18,
+        "21": 19,
+        "22": 20,
+        "23": 21,
+    }
+
+    constructor(map, graph, segmentCallback = (segment) => { }) {
+        this.map = map;
+        this.segments = {};
+        this.nodes = {};
+        this.segmentCallback = segmentCallback;
+
+        this.loadGraph(graph);
+
+        this.map.on('mousedown', (e) => {
+            if (this.mode !== 'create')
+                return;
+            if (this.creatingNode)
+                return;
+
+            console.log('map down');
+            this.map.dragging.disable();
+            const { lat, lng } = e.latlng;
+            const newNode = this.createBlankNode(lat, lng);
+            this.drawNode(newNode);
+            newNode.circle.fire('mousedown');
+            let nodeHandled = true
+            this.map.on('mouseup', (e) => {
+                if (this.mode !== 'create')
+                    return;
+                if (nodeHandled) {
+                    newNode.circle.fire('mouseup');
+                    nodeHandled = false;
+                }
+            });
+        });
+
+        this.map.on('moveend', (e) => {
+            this.draw();
+        })
+        this.map.on('zoomend', () => {
+            this.clearSegments();
+            this.clearNodes();
+            this.draw();
+        });
+        this.draw();
+        this.updateHistoricAction();
+    }
+
+    reset() {
+        this.clearSegments();
+        this.clearNodes();
+        this.segments = {};
+        this.nodes = {};
+        this.historicActions = [];
+        this.redoActions = [];
+        this.creatingNode = false;
+        this.segmentUpdated = undefined;    
+    }
+
+    loadGraph(graph) {
+        this.reset();
+        graph = JSON.parse(JSON.stringify(graph));
+
+        for (let segment of graph) {
+            const segmentId = segment.segment;
+            const nodeAId = segment.nodeA;
+            const nodeBId = segment.nodeB;
+
+            // nodo a
+            if (!this.nodes.hasOwnProperty(nodeAId))
+                this.nodes[nodeAId] = {
+                    lat: segment.nALat,
+                    long: segment.nALong,
+                    id: nodeAId,
+                    segments: {}
+                };
+            this.nodes[nodeAId].segments[segmentId] = 'A';
+
+            // nodo b
+            if (!this.nodes.hasOwnProperty(nodeBId))
+                this.nodes[nodeBId] = {
+                    lat: segment.nBLat,
+                    long: segment.nBLong,
+                    id: nodeBId,
+                    segments: {}
+                };
+            this.nodes[nodeBId].segments[segmentId] = 'B';
+
+            // segmento
+            this.segments[segmentId] = segment;
+        }
+    }
+
+    haversine(lat1, lon1, lat2, lon2) {
+        // Convert latitude and longitude from degrees to radians
+        const toRadians = (angle) => (angle * Math.PI) / 180;
+        lat1 = toRadians(lat1);
+        lon1 = toRadians(lon1);
+        lat2 = toRadians(lat2);
+        lon2 = toRadians(lon2);
+
+        // Haversine formula
+        const dlat = lat2 - lat1;
+        const dlon = lon2 - lon1;
+        const a = Math.sin(dlat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        // Radius of Earth in meters (mean value)
+        const radiusEarth = 6371000; // meters
+
+        // Calculate the distance
+        const distance = radiusEarth * c;
+
+        return distance;
+    }
+
+    addEventListeners() {
+        // setthis.mode event
+        $('#line_view').click(() => this.mode = 'view');
+        $('#line_create').click(() => this.mode = 'create');
+        $('#line_drag').click(() => this.mode = 'drag');
+        $('#line_delete').click(() => this.mode = 'delete');
+        $('#line_split').click(() => this.mode = 'split');
+
+        // undo and redo functionality
+        $('#line_undo').click(() => this.undo());
+        $('#line_redo').click(() => this.redo());
+    }
+
+    deepCopySegments() {
+        const segmentsToCopy = {};
+        for (let segmentID in this.segments) {
+            const segmentToCopy = Object.assign({}, this.segments[segmentID]);
+            delete segmentToCopy.line;
+            delete segmentToCopy.arrow;
+            segmentsToCopy[segmentID] = segmentToCopy;
+        }
+        return JSON.parse(JSON.stringify(segmentsToCopy));
+    }
+
+    deepCopyNodes() {
+        const nodesToCopy = {};
+        for (let nodeID in this.nodes) {
+            const nodeToCopy = Object.assign({}, this.nodes[nodeID]);
+            delete nodeToCopy.circle;
+            nodesToCopy[nodeID] = nodeToCopy;
+        }
+        return JSON.parse(JSON.stringify(nodesToCopy));
+    }
+
+    updateHistoricAction(segmentUpdated) {
+        const historicAction = {
+            segments: this.deepCopySegments(),
+            nodes: this.deepCopyNodes(),
+            segmentUpdated
+        }
+        this.segmentUpdated = segmentUpdated;
+        this.historicActions.push(historicAction);
+        this.redoActions = [];
+    }
+
+    undo() {
+        if (this.historicActions.length < 2)
+            return
+
+        this.clearSegments();
+        this.clearNodes();
+
+        const redoAction = {
+            segments: this.deepCopySegments(),
+            nodes: this.deepCopyNodes(),
+            segmentUpdated: this.segmentUpdated,
+        }
+        this.redoActions.push(redoAction);
+        this.historicActions.pop();
+
+        const actualAction = this.historicActions[this.historicActions.length - 1];
+        this.segments = actualAction.segments;
+        this.segments = this.deepCopySegments();
+        this.nodes = actualAction.nodes;
+        this.nodes = this.deepCopyNodes();
+        this.segmentUpdated = actualAction.segmentUpdated;
+
+        this.draw();
+
+        if (redoAction.segmentUpdated)
+            this.segmentClicked(this.segments[redoAction.segmentUpdated]);
+    }
+
+    redo() {
+        if (this.redoActions.length < 1)
+            return;
+
+        this.clearSegments();
+        this.clearNodes();
+
+        const actualAction = this.redoActions.pop(); 
+        this.segments = actualAction.segments;
+        this.segments = this.deepCopySegments();
+        this.nodes = actualAction.nodes;
+        this.nodes = this.deepCopyNodes();
+        this.segmentUpdated = actualAction.segmentUpdated;
+
+        const historicAction = {
+            segments: this.deepCopySegments(),
+            nodes: this.deepCopyNodes(),
+            segmentUpdated: this.segmentUpdated,
+        }
+        this.historicActions.push(historicAction);
+
+        this.draw();
+
+        if (this.segmentUpdated)
+            this.segmentClicked(this.segments[this.segmentUpdated]);
+    }
+
+    segmentClicked(segment) {
+        this.segmentCallback(segment);
+    }
+
+    updateSegmentData(segment) {
+        const segmentUpdated = segment.segment;
+        this.segments[segment.segment] = segment;
+        this.updateHistoricAction(segmentUpdated);
+    }
+
+    getTimestamp() {
+        const now = new Date();
+        return now.getTime();
+    }
+
+    createBlankNode(lat, long) {
+        const newNode = {
+            id: `http://www.disit.org/km4city/resource/${this.getTimestamp()}${Math.floor(Math.random() * 100)}`,
+            lat,
+            long,
+            segments: {}
+        }
+        this.nodes[newNode.id] = newNode;
+        return newNode;
+    }
+
+    createLinkNodes(nodeA, nodeB) {
+        const timestamp = this.getTimestamp();
+        const newSegment = {
+            road: `http://www.disit.org/km4city/resource/${timestamp}`,
+            segment: `http://www.disit.org/km4city/resource/${timestamp}/0`,
+            type: "",
+            dir: "tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)",
+            length: 1,
+            lanes: "1",
+            roadElmSpeedLimit: null,
+            elemType: "",
+            operatingstatus: ""
+        }
+        this.setNodeToSegment(newSegment, nodeA, "A");
+        this.setNodeToSegment(newSegment, nodeB, "B");
+        this.segments[newSegment.segment] = newSegment;
+        return newSegment;
+    }
+
+    clearSegment(segment) {
+        if (segment.line) {
+            this.map.removeLayer(segment.line);
+            delete segment.line;
+        }
+        if (segment.arrow) {
+            this.map.removeLayer(segment.arrow);
+            delete segment.arrow;
+        }
+    }
+
+    clearSegments() {
+        for (let segmentID in this.segments) {
+            this.clearSegment(this.segments[segmentID]);
+        }
+    }
+
+    clearNode(node) {
+        if (node.circle) {
+            this.map.removeLayer(node.circle);
+            delete node.circle;
+        }
+    }
+
+    clearNodes() {
+        for (let nodeID in this.nodes) {
+            this.clearNode(this.nodes[nodeID]);
+        }
+    }
+
+    removeSegment(segment) {
+        this.map.removeLayer(segment.line);
+        this.map.removeLayer(segment.arrow);
+        delete this.nodes[segment.nodeA].segments[segment.segment];
+        delete this.nodes[segment.nodeB].segments[segment.segment];
+        delete this.segments[segment.segment];
+
+        this.drawNode(this.nodes[segment.nodeA]);
+        this.drawNode(this.nodes[segment.nodeB]);
+    }
+
+    drawSegment(segment) {
+        if (segment.line)
+            this.map.removeLayer(segment.line);
+        if (segment.arrow)
+            this.map.removeLayer(segment.arrow);
+
+        let color;
+        let type;
+        if (segment.dir.includes('tratto stradale aperto nella direzione positiva')) {
+            type = 'positive';
+            color = 'blue';
+        } else if (segment.dir.includes('tratto stradale chiuso in entrambe le direzioni')) {
+            type = 'closed';
+            color = 'grey';
+        } else if (segment.dir.includes('tratto stradale aperto nella direzione negativa')) {
+            type = 'negative';
+            color = 'blue';
+        } else {
+            type = 'bidirectional';
+            color = 'red';
+        }
+
+        segment.line = L.polyline([
+            new L.LatLng(segment.nALat, segment.nALong),
+            new L.LatLng(segment.nBLat, segment.nBLong)
+        ], {
+            color,
+            weight: 5
+        }).addTo(this.map);
+
+        // arrow
+        const patterns = [];
+
+        if (type !== 'negative' && this.map.getZoom() > this.arrowMinZoom) {
+            patterns.push({
+                offset: '80%',
+                repeat: 0,
+                symbol: L.Symbol.arrowHead({
+                    // pixelSize: 10,
+                    pixelSize: this.tableMetersZoomArrow[this.zoomTableSize()],
+                    polygon: true,
+                    pathOptions: {
+                        stroke: true,
+                        fillColor: color,
+                        fillOpacity: 1,
+                        fill: true,
+                        color
+                    }
+                })
+            });
+        }
+        if ((type === 'negative' || type === 'bidirectional') && this.map.getZoom() > this.arrowMinZoom)
+            patterns.push(
+                {
+                    offset: '20%',
+                    repeat: 0,
+                    symbol: L.Symbol.arrowHead({
+                        pixelSize: this.tableMetersZoomArrow[this.zoomTableSize()],
+                        // pixelSize: 10,
+                        polygon: true,
+                        headAngle: 420,
+                        pathOptions: {
+                            stroke: true,
+                            fillColor: color,
+                            fillOpacity: 1,
+                            fill: true,
+                            color
+                        }
+                    })
+                }
+            )
+        var arrow = L.polylineDecorator(segment.line, { patterns }).addTo(this.map);
+        arrow.on({
+            click: () => {
+                segment.line.fire('click');
+            },
+            mouseover: () => {
+                if (this.mode !== 'delete' && this.mode !== 'split')
+                    return;
+                segment.line.setStyle({ color: 'green' });
+                segment.arrow.setStyle({
+                    fillColor: 'green',
+                    color: 'green'
+                });
+                segment.arrow.bringToFront();
+            },
+            mouseout: () => {
+                segment.line.setStyle({ color });
+                segment.arrow.setStyle({
+                    fillColor: color,
+                    color
+                });
+            }
+        })
+        segment.arrow = arrow;
+
+        // hover effect 
+        segment.line.on('mouseover', () => {
+            if (this.mode !== 'delete' && this.mode !== 'split')
+                return;
+            segment.line.setStyle({ color: 'green' });
+            segment.arrow.setStyle({
+                fillColor: 'green',
+                color: 'green'
+            });
+        });
+
+        // Change border color back to red on mouseout
+        segment.line.on('mouseout', () => {
+            segment.line.setStyle({ color });
+            segment.arrow.setStyle({
+                fillColor: color,
+                color
+            });
+        });
+
+        segment.line.on({
+            click: () => {
+                if (this.mode === 'delete') {
+                    this.removeSegment(segment);
+                    this.updateHistoricAction();
+                } else if (this.mode === 'split') {
+                    const lineLatLng = segment.line.getLatLngs();
+                    const nodeLat = (lineLatLng[0].lat + lineLatLng[1].lat) / 2;
+                    const nodeLng = (lineLatLng[0].lng + lineLatLng[1].lng) / 2;
+                    const newNode = this.createBlankNode(nodeLat, nodeLng);
+
+                    const segmentA = Object.assign({}, segment);
+                    segmentA.segment += '_A';
+                    const segmentB = Object.assign({}, segment);
+                    segmentB.segment += '_B';
+
+                    this.setNodeToSegment(segmentA, this.nodes[segment.nodeA], "A");
+                    this.setNodeToSegment(segmentA, newNode, "B");
+                    this.setNodeToSegment(segmentB, newNode, "A");
+                    this.setNodeToSegment(segmentB, this.nodes[segment.nodeB], "B");
+
+                    this.segments[segmentA.segment] = segmentA;
+                    this.segments[segmentB.segment] = segmentB;
+
+                    this.removeSegment(segment);
+
+                    this.draw();
+                    this.updateHistoricAction();
+                } else {
+                    this.segmentClicked(segment);
+                }
+            }
+        });
+    }
+
+    setNodeToSegment(segment, node, position) {
+        if (position === 'A') {
+            segment.nALat = node.lat;
+            segment.nALong = node.long;
+            segment.nodeA = node.id;
+            node.segments[segment.segment] = 'A';
+        } else {
+            segment.nBLat = node.lat;
+            segment.nBLong = node.long;
+            segment.nodeB = node.id;
+            node.segments[segment.segment] = 'B';
+        }
+    }
+
+    removeNode(node) {
+        this.map.removeLayer(node.circle);
+        delete this.nodes[node.id];
+    }
+
+    zoomTableSize() {
+        if (parseInt(this.map.getZoom()) > 23)
+            return 23;
+        else if(parseInt(this.map.getZoom()) < 16)
+            return 16;
+        else 
+            return parseInt(this.map.getZoom());
+    }
+
+    drawNode(node) {
+        if (node.circle)
+            this.map.removeLayer(node.circle);
+
+        var pixelBounds = this.map.getPixelBounds();
+        var centerLat = this.map.getBounds().getCenter().lat;
+        var meterX = this.haversine(centerLat, this.map.getBounds().getEast(), centerLat, this.map.getBounds().getWest());
+        var metersPerPixelX = (pixelBounds.max.x - pixelBounds.min.x) / meterX;
+        var pixelRadius = 7.5;
+        var metersRadius = pixelRadius / metersPerPixelX;
+
+
+
+        node.circle = L.circle([node.lat, node.long], {
+            color: 'red',
+            weight: 2,
+            fillColor: 'white',
+            fillOpacity: 1,
+            radius: this.tableMetersZoomNode[this.zoomTableSize()],
+            // radius: metersRadius,
+        }).addTo(this.map);
+
+        // hover effect 
+        node.circle.on('mouseover', () => {
+            if (this.mode !== 'create' && this.mode !== 'drag' && this.mode !== 'delete')
+                return;
+            node.circle.setStyle({ color: 'green' });
+        });
+
+        // Change border color back to red on mouseout
+        node.circle.on('mouseout', () => {
+            node.circle.setStyle({ color: 'red' });
+        });
+
+        // dragging option
+        let dragNode;
+        node.circle.on({
+            mouseup: () => {
+                if (this.mode !== 'drag' && this.mode !== 'create')
+                    return;
+
+                this.creatingNode = false;
+                const bounds = node.circle.getBounds();
+                let nodeToAttach;
+                for (let secondNodeID in this.nodes) {
+                    if (secondNodeID === node.id)
+                        continue;
+                    const secondNode = this.nodes[secondNodeID];
+                    if (bounds.contains(new L.LatLng(secondNode.lat, secondNode.long))) {
+                        nodeToAttach = secondNode;
+                        break;
+                    }
+                }
+                if (nodeToAttach) {
+                    for (let segmentID in node.segments) {
+                        if (nodeToAttach.segments[segmentID]) {
+                            this.map.removeLayer(this.segments[segmentID].line);
+                            this.map.removeLayer(this.segments[segmentID].arrow);
+                            delete nodeToAttach.segments[segmentID];
+                            delete this.segments[segmentID];
+                            continue;
+                        }
+                        const segment = this.segments[segmentID];
+                        this.setNodeToSegment(segment, nodeToAttach, node.segments[segmentID]);
+                        this.drawSegment(segment);
+                    }
+                    this.map.removeLayer(node.circle);
+                    delete this.nodes[node.id];
+                    this.drawAllNodes();
+                }
+
+                this.updateHistoricAction();
+            },
+            click: () => {
+                if (this.mode !== 'delete')
+                    return;
+                let segmentsID = Object.keys(node.segments);
+                if (segmentsID.length > 2) {
+                    alert('cannot remove a node that it\'s linked than 3 or more segments');
+                    return;
+                }
+                else if (segmentsID.length == 2) {
+                    // A   B   C
+                    // o---o---o
+                    //   0   1
+                    const segment0 = this.segments[segmentsID[0]];
+                    const segment1 = this.segments[segmentsID[1]];
+                    const nodePosition0 = node.segments[segmentsID[0]];
+                    const nodePosition1 = node.segments[segmentsID[1]];
+                    const nodeToAttachID = nodePosition1 === 'A' ? segment1.nodeB : segment1.nodeA;
+                    const nodeToAttach = this.nodes[nodeToAttachID];
+
+                    this.setNodeToSegment(segment0, nodeToAttach, nodePosition0);
+                    this.removeSegment(segment1);
+                    this.removeNode(node);
+                    this.draw();
+                } else {
+                    if (segmentsID.length == 1)
+                        this.removeSegment(this.segments[segmentsID[0]]);
+                    this.removeNode(node);
+                }
+                this.updateHistoricAction();
+            },
+            mousedown: () => {
+                if (this.mode !== 'drag' && this.mode !== 'create')
+                    return;
+
+                console.log('node down');
+                this.creatingNode = true;
+                this.map.dragging.disable();
+                let itsNewNode = false;
+                if (this.mode === 'create') {
+                    itsNewNode = true;
+                    const newNode = this.createBlankNode(node.lat, node.long);
+                    this.createLinkNodes(node, newNode);
+                    this.draw();
+                    node = newNode;
+                    this.updateHistoricAction();
+                }
+                this.map.on('mousemove', dragNode = (e) => {
+                    // updating node
+                    const { lat, lng } = e.latlng;
+                    node.circle.setLatLng(e.latlng);
+                    node.lat = lat;
+                    node.long = lng;
+
+                    // updating attached segments
+                    for (let segmentID in node.segments) {
+                        const segment = this.segments[segmentID];
+                        if (node.segments[segmentID] === 'A') {
+                            segment.nALat = lat;
+                            segment.nALong = lng;
+                        } else {
+                            segment.nBLat = lat;
+                            segment.nBLong = lng;
+                        }
+                        segment.line.setLatLngs([
+                            new L.LatLng(segment.nALat, segment.nALong),
+                            new L.LatLng(segment.nBLat, segment.nBLong)
+                        ]);
+                        segment.length = this.haversine(segment.nALat, segment.nALong, segment.nBLat, segment.nBLong);
+                        segment.arrow.setPaths(segment.line.getLatLngs());
+                    }
+                    node.circle.bringToFront();
+
+                    // checking if its over another node
+                    const bounds = node.circle.getBounds();
+                    let nodeFound = false;
+                    for (let secondNodeID in this.nodes) {
+                        if (secondNodeID === node.id)
+                            continue;
+                        const secondNode = this.nodes[secondNodeID];
+                        if (bounds.contains(new L.LatLng(secondNode.lat, secondNode.long))) {
+                            node.circle.setStyle({ color: 'purple' });
+                            secondNode.circle.setStyle({ color: 'purple' });
+                            node.lastNodeFound = secondNode;
+                            nodeFound = true;
+                            break;
+                        }
+                    }
+                    if (!nodeFound && node.lastNodeFound) {
+                        node.circle.setStyle({ color: 'green' });
+                        node.lastNodeFound.circle.setStyle({ color: 'red' });
+                        delete node.lastNodeFound;
+                    }
+                });
+            }
+        });
+        this.map.on('mouseup', (e) => {
+            if (!dragNode)
+                return
+            this.map.dragging.enable();
+            this.map.removeEventListener('mousemove', dragNode);
+            dragNode = undefined;
+        });
+    }
+
+    drawAllNodes() {
+        for (let nodeID in this.nodes) {
+            this.drawNode(this.nodes[nodeID]);
+        }
+    }
+
+    draw() {
+        for (let segmentID in this.segments) {
+            const segment = this.segments[segmentID];
+            this.drawSegment(segment);
+        }
+
+        for (let nodeID in this.nodes) {
+            const node = this.nodes[nodeID];
+            this.drawNode(node);
+        }
+    }
+}
+
+//////////////FINE Adrean Nuova Classe
     //Ogni "main" lato client di un widget è semple incluso nel risponditore ad evento ready del documento, così siamo sicuri di operare sulla pagina già caricata
     $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w']))?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId) {
             
@@ -296,6 +1006,7 @@ if (!isset($_SESSION)) {
             resetPageFlag = null;
             wmsDatasetName = null;
             passedParams = null;    */
+            var roadElementGraph;
 
             var current_radius = null;
             var current_opacity, current_opacity_od, current_opacity_PS = null;
@@ -834,34 +1545,12 @@ if (!isset($_SESSION)) {
                                                                        });*/
                                                                     dataDesc = realTimeData.head.vars[i];
                                                                     dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
-                                                                var tooltipText=null;
-                                                                if(dataDesc==="dateObserved" && navigator.language && Intl.DateTimeFormat().resolvedOptions().timeZone){
-                                                                    let userLocal=navigator.language;
-                                                                    let timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
-                                                                    let formattedDate = new Intl.DateTimeFormat(userLocal, {
-                                                                        timeZone,
-                                                                        year: "2-digit",
-                                                                        month: "2-digit",
-                                                                        day: "2-digit",
-                                                                        hour: "2-digit",
-                                                                        minute: "2-digit",
-                                                                        second: "2-digit",
-                                                                        // hourCycle: 'h23'
-                                                                    }).format(new Date(dataVal));
-                                                                    console.log("dateISOString-> " + dataVal)
-                                                                    tooltipText='<span>'+formattedDate+'</span>'+'<span class="tooltiptext">'+dataVal+'</span>';
-                                                                    // dataVal=formattedDate.replaceAll(' ',"");
-                                                                }
                                                                     if (serviceProperties.realtimeAttributes && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]] && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit) {
                                                                         value_unit = serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit;
                                                                     }
                                                                     if (dataVal.length > 50 && value_unit !== "SURI") {
                                                                         dataVal = '<div class="tooltipSuri">' + encodeHTMLEntities(dataVal).substring(0, 20) + '... <span class="tooltipSuriText">' + dataVal + '</span></div>';
                                                                     }
-                                                                if(tooltipText!==null){
-                                                                    dataVal = tooltipText;
-                                                                    //console.log(dataVal.length);//91
-                                                                }
                                                                     if (value_unit == "SURI") {
                                                                         if (dataVal.includes("http://www.disit.org/km4city")) {
                                                                             dataVal = '<div class="tooltipSuri">[SURI id]<span class="tooltipSuriText">' + dataVal + '</span></div>';
@@ -882,7 +1571,7 @@ if (!isset($_SESSION)) {
                                                                     data1YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">1y</button></td>';
                                                                     data2YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="2 year" data-range="730/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">2y</button></td>';
                                                                     data10YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="10 year" data-range="3650/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">10y</button></td>';
-                                                                popupText += '<tr><td>' + dataDesc + '</td><td' + (tooltipText?' class="tooltip_custom"':'') + '>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
+                                                                    popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
                                                                 }
                                                             } else {
                                                                 measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
@@ -2626,34 +3315,12 @@ if (!isset($_SESSION)) {
                                                                        });*/
                                                                     dataDesc = realTimeData.head.vars[i];
                                                                     dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
-                                                                    var tooltipText=null;
-                                                                    if(dataDesc==="dateObserved" && navigator.language && Intl.DateTimeFormat().resolvedOptions().timeZone){
-                                                                    let userLocal=navigator.language;
-                                                                    let timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
-                                                                    let formattedDate = new Intl.DateTimeFormat(userLocal, {
-                                                                        timeZone,
-                                                                        year: "2-digit",
-                                                                        month: "2-digit",
-                                                                        day: "2-digit",
-                                                                        hour: "2-digit",
-                                                                        minute: "2-digit",
-                                                                        second: "2-digit",
-                                                                        // hourCycle: 'h23'
-                                                                    }).format(new Date(dataVal));
-                                                                    console.log("dateISOString-> " + dataVal)
-                                                                    tooltipText='<span>'+formattedDate+'</span>'+'<span class="tooltiptext">'+dataVal+'</span>';
-                                                                    // dataVal=formattedDate.replaceAll(' ',"");
-                                                                }
                                                                     if (serviceProperties.realtimeAttributes && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]] && serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit) {
                                                                         value_unit = serviceProperties.realtimeAttributes[realTimeData.head.vars[i]].value_unit;
                                                                     }
                                                                     if (dataVal.length > 50 && value_unit !== "SURI") {
                                                                         dataVal = '<div class="tooltipSuri">' + encodeHTMLEntities(dataVal).substring(0, 20) + '... <span class="tooltipSuriText">' + dataVal + '</span></div>';
                                                                     }
-                                                                    if(tooltipText!==null){
-                                                                    dataVal = tooltipText;
-                                                                    //console.log(dataVal.length);//91
-                                                                }
                                                                     if (value_unit == "SURI") {
                                                                         if (dataVal.includes("http://www.disit.org/km4city")) {
                                                                             dataVal = '<div class="tooltipSuri">[SURI id]<span class="tooltipSuriText">' + dataVal + '</span></div>';
@@ -2674,7 +3341,7 @@ if (!isset($_SESSION)) {
                                                                     data1YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="1 year" data-range="365/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">1y</button></td>';
                                                                     data2YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="2 year" data-range="730/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">2y</button></td>';
                                                                     data10YearBtn = '<td><button style="width: 30px" data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="10 year" data-range="3650/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">10y</button></td>';
-                                                                    popupText += '<tr><td>' + dataDesc + '</td><td' + (tooltipText?' class="tooltip_custom"':'') + '>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
+                                                                    popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
                                                                 }
                                                             } else {
                                                                 measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
@@ -4222,34 +4889,12 @@ if (!isset($_SESSION)) {
                                                             }); */
                                                             dataDesc = realTimeData.head.vars[i];
                                                             dataVal = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value;
-                                                            var tooltipText=null;
-                                                            if(dataDesc==="dateObserved" && navigator.language && Intl.DateTimeFormat().resolvedOptions().timeZone){
-                                                                    let userLocal=navigator.language;
-                                                                    let timeZone=Intl.DateTimeFormat().resolvedOptions().timeZone;
-                                                                    let formattedDate = new Intl.DateTimeFormat(userLocal, {
-                                                                        timeZone,
-                                                                        year: "2-digit",
-                                                                        month: "2-digit",
-                                                                        day: "2-digit",
-                                                                        hour: "2-digit",
-                                                                        minute: "2-digit",
-                                                                        second: "2-digit",
-                                                                        // hourCycle: 'h23'
-                                                                    }).format(new Date(dataVal));
-                                                                    console.log("dateISOString-> " + dataVal)
-                                                                    tooltipText='<span>'+formattedDate+'</span>'+'<span class="tooltiptext">'+dataVal+'</span>';
-                                                                    // dataVal=formattedDate.replaceAll(' ',"");
-                                                                }
-                                                            if(tooltipText!==null){
-                                                                dataVal = tooltipText;
-                                                                //console.log(dataVal.length);//91
-                                                            }
                                                             dataLastBtn = '<td><button data-id="' + latLngId + '" type="button" class="lastValueBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-lastDataClicked="false" data-targetWidgets="' + targetWidgets + '" data-lastValue="' + realTimeData.results.bindings[0][realTimeData.head.vars[i]].value + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>value</button></td>';
                                                             data4HBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-fakeid="' + fakeId + '" data-id="' + latLngId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="4 Hours" data-range="4/HOUR" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>4 hours</button></td>';
                                                             dataDayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="Day" data-range="1/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>24 hours</button></td>';
                                                             data7DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="7 days" data-range="7/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>7 days</button></td>';
                                                             data30DayBtn = '<td><button data-id="' + latLngId + '" type="button" class="timeTrendBtn btn btn-sm" data-fake="' + fake + '" data-id="' + fakeId + '" data-field="' + realTimeData.head.vars[i] + '" data-serviceUri="' + feature.properties.serviceUri + '" data-timeTrendClicked="false" data-range-shown="30 days" data-range="30/DAY" data-targetWidgets="' + targetWidgets + '" data-color1="' + color1 + '" data-color2="' + color2 + '">Last<br>30 days</button></td>';
-                                                            popupText += '<tr><td>' + dataDesc + '</td><td' + (tooltipText?' class="tooltip_custom"':'') + '>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + data6MonthsBtn + data1YearBtn + data2YearBtn + data10YearBtn + '</tr>';
+                                                            popupText += '<tr><td>' + dataDesc + '</td><td>' + dataVal + '</td>' + dataLastBtn + data4HBtn + dataDayBtn + data7DayBtn + data30DayBtn + '</tr>';
                                                         }
                                                     } else {
                                                         measuredTime = realTimeData.results.bindings[0][realTimeData.head.vars[i]].value.replace("T", " ");
@@ -5022,7 +5667,7 @@ if (!isset($_SESSION)) {
             function addDefaultBaseMap(map) {
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                    maxZoom: 18
+                    maxZoom: 23
                 }).addTo(map);
             }
 
@@ -5190,28 +5835,28 @@ if (!isset($_SESSION)) {
                             } else {
                                /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                    maxZoom: 18
+                                    maxZoom: 23
                                 }).addTo(map.defaultMapRef);*/
                                 addDefaultBaseMap(map.defaultMapRef);
                             }
                         } else {
                           /*  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);*/
                             addDefaultBaseMap(map.defaultMapRef);
                         }
                     } else {
                        /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
+                            maxZoom: 23
                         }).addTo(map.defaultMapRef);*/
                         addDefaultBaseMap(map.defaultMapRef);
                     }
                 } else {
                   /*  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                        maxZoom: 18
+                        maxZoom: 23
                     }).addTo(map.defaultMapRef);*/
                     addDefaultBaseMap(map.defaultMapRef);
                 }
@@ -5513,7 +6158,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addAlarmsToMap();
@@ -5604,7 +6249,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addEvacuationPlanToMap();
@@ -6379,7 +7024,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addSelectorEventToMap();
@@ -6583,7 +7228,8 @@ if (!isset($_SESSION)) {
                        /*     if (passedData.query.includes("&model=")) {
                                 apiUrl = apiUrl + "&model=" + passedData.desc;
                             }   */
-
+                            console.log('dataForApi:');
+                                    console.log(dataForApi);
                             $.ajax({
                             //    url: query + "&geometry=true&fullCount=false",
                                 url: apiUrl,
@@ -6596,7 +7242,6 @@ if (!isset($_SESSION)) {
                                 dataType: 'json',
                                 success: function (geoJsonData) {
                                     var fatherGeoJsonNode = {};
-
                                 /*    if (queryType === "Default") {
                                         if (geoJsonData.hasOwnProperty("BusStops")) {
                                             fatherGeoJsonNode = geoJsonData.BusStops;
@@ -6726,7 +7371,7 @@ if (!isset($_SESSION)) {
                                         }
                                     }
 
-
+                                    console.log(geoJsonData);
                                     for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
 
                                         var dataObj = {};
@@ -6760,8 +7405,7 @@ if (!isset($_SESSION)) {
                                     //    map.eventsOnMap.push(dataObj);
                                     }
 
-                                    if (dataObj != null)
-                                        map.eventsOnMap.push(dataObj);
+                                    map.eventsOnMap.push(dataObj);
 
                                     if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
                                         gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
@@ -6953,7 +7597,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addSelectorEventToMap();
@@ -7210,7 +7854,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addEventFIToMap();
@@ -7300,7 +7944,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addResourceToMap();
@@ -7388,7 +8032,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addOperatorEventToMap();
@@ -7468,7 +8112,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addOperatorEventToMap();
@@ -7517,6 +8161,8 @@ if (!isset($_SESSION)) {
                 var istanzedelgrafochestoconsiderando = []; // variabile di appoggio per tenere i road element identificativi del grafo
                 var acData = []; // inizializzo la variabie per contenere il grafo accorpato
                 var js20Data = []; // inizializzo la variabile per contenere il js a 20 metri
+                ///
+                var jsonStreetGraph = '';
 
                 //############################ UTILS functions #######################################################
                 // handleIntersectionsAndSensors(polygonWKT)
@@ -7526,6 +8172,8 @@ if (!isset($_SESSION)) {
                 // removeParenthesesFromValues(obj)
                 // removeTrattiniFromValues(obj)
                 // showNotification(message)
+
+                              
 
                 // Function to handle road intersections and add sensors to the map
                 function handleIntersectionsAndSensors(polygonWKT) {
@@ -7711,7 +8359,9 @@ if (!isset($_SESSION)) {
                 // readFromDevice(lAccessToken, deviceName)
                 // createDevice(lAccessToken, deviceName, polygon, ilcentroide)
                 // sendDataINIT(lAccessToken, deviceName, scenario_data)
-                // sendDataACC(lAccessToken, deviceName, js20Data,acData,svolte)                
+                // sendDataACC(lAccessToken, deviceName, js20Data,acData,svolte) 
+
+             
 
                 //function to get the access token
                 async function getLAccessToken() {                    
@@ -7748,6 +8398,7 @@ if (!isset($_SESSION)) {
                         //console.log(lAccessToken);
                         //const url = `/superservicemap/api/v1?serviceUri=http://www.disit.org/km4city/resource/iot/orion-1/Organization/${deviceName}&maxResults=10`      
                         const url =  "<?= $mainsuperservicemap; ?>" +"/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model";
+                        //const url =  "https://www.disit.org/superservicemap/api/v1/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model"
                         const response = await fetch(url, { // oppure metti urlencoded
                             method: "GET",
                             headers: header
@@ -7807,24 +8458,30 @@ if (!isset($_SESSION)) {
                     //const sparqlEndpoint = "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";                     
                     const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
                     // Sostituisci con l'endpoint SPARQL corretto            
-                    const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. FILTER (?highwaytype IN ("primary", "tertiary", "residential", "unclassified")) ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'),  bif:st_geomfromtext(CONCAT("MULTIPOINT(", STR(?startlong), " ", STR(?startlat), ",", STR(?endlong), " ", STR(?endlat), ")")) ) ) } LIMIT 16000`;
+                    //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. FILTER (?highwaytype IN ("primary", "tertiary", "residential", "unclassified")) ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'),  bif:st_geomfromtext(CONCAT("MULTIPOINT(", STR(?startlong), " ", STR(?startlat), ",", STR(?endlong), " ", STR(?endlat), ")")) ) ) } LIMIT 16000`;
+                    //NEW
+                    const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. FILTER (?highwaytype IN ("primary", "tertiary", "residential", "unclassified")) ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'),  bif:st_geomfromtext(CONCAT("MULTIPOINT(", STR(?startlong), " ", STR(?startlat), ",", STR(?endlong), " ", STR(?endlat), ")")) ) ) } LIMIT 16000`; 
                     return sparqlEndpoint + query;
                 }
 
                 function buildSparqlQueryURLottimizzata(maxX, maxY, minX, minY){
                     //const sparqlEndpoint = "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";                     
                     const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
-                    // Sostituisci con l'endpoint SPARQL corretto            
+                    // Sostituisci con l'endpoint SPARQL corretto
+                    //http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX            
                     //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ((?startlat >= ${minY} && ?startlat <= ${maxY} && ?startlong >= ${minX} && ?startlong <= ${maxX}) ||(?endlat >= ${minY} && ?endlat <= ${maxY} && ?endlong >= ${minX} && ?endlong <= ${maxX}) ) } LIMIT 16000`;
-                    const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( (?startlat > ${minX} %26%26 ?startlat < ${maxX} %26%26 ?startlong > ${minY} %26%26 ?startlong < ${maxY}) || (?endlat > ${minX} %26%26 ?endlat < ${maxX} %26%26 ?endlong > ${minY} %26%26 ?endlong < ${maxY}) )} LIMIT 16000`;
+                    //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( (?startlat > ${minX} %26%26 ?startlat < ${maxX} %26%26 ?startlong > ${minY} %26%26 ?startlong < ${maxY}) || (?endlat > ${minX} %26%26 ?endlat < ${maxX} %26%26 ?endlong > ${minY} %26%26 ?endlong < ${maxY}) )} LIMIT 16000`;
+                    //NEW
+                    const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat > ${minX} %26%26 ?startlat < ${maxX} %26%26 ?startlong > ${minY} %26%26 ?startlong < ${maxY}) || (?endlat > ${minX} %26%26 ?endlat < ${maxX} %26%26 ?endlong > ${minY} %26%26 ?endlong < ${maxY}) )} LIMIT 16000`;
                     return sparqlEndpoint + query;
                 }
 
                 // funzione che mi serve per creare l'api per prendere dalla KB le info sulle svolte
                 function buildSparqlQueryURLsvolte(polygonWKT){
-                    const sparqlEndpoint =  "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
+                    const sparqlEndpoint =  "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";
+                    //const sparqlEndpoint =  "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";  
                     // Sostituisci con l'endpoint SPARQL corretto            
-                    const query = `SELECT ?node_id as ?node ?where_id as ?from ?toward_id as ?to ?restriction WHERE {?r a km4c:TurnRestriction; km4c:node ?node; km4c:where ?where; km4c:toward ?toward; km4c:restriction ?restriction. ?node dct:identifier ?node_id. ?where dct:identifier ?where_id. ?toward dct:identifier ?toward_id. ?node geo:geometry ?p. FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'), ?p ) ) } LIMIT 16000`;                    
+                    const query = `SELECT ?node_id as ?node ?where_id as ?from ?toward_id as ?to ?restriction WHERE {?r a km4c:TurnRestriction; km4c:node ?node; km4c:where ?where; km4c:toward ?toward; km4c:restriction ?restriction. ?node dct:identifier ?node_id. ?where dct:identifier ?where_id. ?toward dct:identifier ?toward_id. ?node geo:geometry ?p. FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'), ?p ) ) } LIMIT 16000`;                
                     return sparqlEndpoint + query;
                 }                  
 
@@ -7867,20 +8524,62 @@ if (!isset($_SESSION)) {
                     }
                 }
 
+
+                function isPointInsidePolygon(point, polygon) {
+                    const [x, y] = point;
+                    let isInside = false;
+                    let j = polygon.length - 1;
+
+                    for (let i = 0; i < polygon.length; i++) {
+                        if ((polygon[i][1] < y && polygon[j][1] >= y || polygon[j][1] < y && polygon[i][1] >= y) &&
+                            (polygon[i][0] <= x || polygon[j][0] <= x)) {
+                            if (polygon[i][0] + (y - polygon[i][1]) / (polygon[j][1] - polygon[i][1]) * (polygon[j][0] - polygon[i][0]) < x) {
+                                isInside = !isInside;
+                            }
+                        }
+                        j = i;
+                    }
+
+                    return isInside;
+                }  
+
                 // Function to fetch SPARQL data
-                async function fetchSparqlData(sparqlQuery){      
-                    //const allowedHighwayTypes = ["primary", "secondary", "residential","pedestrian", "tertiary", "residential", "unclassified"];              
+                //
+                async function fetchSparqlData(sparqlQuery, wkt){      
+                    //const allowedHighwayTypes = ["primary", "secondary", "residential","pedestrian", "tertiary", "residential", "unclassified"];
+                    //
+                    //var restrinctions_list = '';      
+                    var restrinctions_list =         ressvolte.then((result) => {
+                                // Converti l'oggetto result in JSON
+                                let jsonString = JSON.stringify(result);
+                               // console.log(jsonString);
+                                restrinctions_list = jsonString;
+
+                                // FILTRA strade su base WKT
+
+                            })
+                            .catch((error) => {
+                                console.error(error);
+                            });
+                    //
+                    
+                    //console.log(restrinctions_list); 
+                    //
                     const allowedHighwayTypes = ["primary", "tertiary", "residential", "unclassified"];              
                     try {
                         const response = await fetch(sparqlQuery);
+                        //console.log(response);
                         if (!response.ok) {
                             throw new Error(`Error fetching SPARQL data: ${response.status}`);
                         }
                         const data = await response.json();
                         const stradeFeatures = data.results.bindings;
-                        const stradeInfo = stradeFeatures
+                        //console.log(stradeFeatures);
+                        //
+                        var stradeInfo = stradeFeatures
                         .filter(feature => allowedHighwayTypes.includes(feature.highwaytype.value))
-                        .map(feature => ({
+                        .map(feature => (
+                            {
                             road: feature.strada.value,
                             segment: feature.elementostradale.value,
                             type: feature.highwaytype.value,
@@ -7893,20 +8592,226 @@ if (!isset($_SESSION)) {
                             nodeA: feature.startnode.value,
                             nodeB: feature.endnode.value,
                             lanes: feature.quante.value,
+                            roadElmSpeedLimit: feature.roadElmSpeedLimit ? parseFloat(feature.roadElmSpeedLimit.value) : null,
                             elemType: feature.elementtype.value,
+                            operatingstatus: feature.operatingstatus.value
+                            //status: feature.status.value,
                         }));
-                        stradeInfo.forEach(strada => {
-                            istanzedelgrafochestoconsiderando.push(strada);
-                            const stradaPolyline = L.polyline(
-                                [[strada.nALat, strada.nALong],[strada.nBLat, strada.nBLong],],
-                                {color: 'blue', weight: 5, opacity: 0.7,}
+
+                        // FILTRA strade su base WKT
+                        var stradeInfoClean = [];
+                        const arrayWKT = [];
+                        const tmp = wkt.split('((')[1].split('))')[0].split(', ');
+                        for (wi=0; wi < tmp.length; wi++){
+                            arrayWKT.push(
+                                [
+                                    parseFloat(tmp[wi].split(' ')[1]), 
+                                    parseFloat(tmp[wi].split(' ')[0])  
+                                ]
                             );
-                            scenaryGrafo.addLayer(stradaPolyline);
+                        }
+                        for (si=0; si < stradeInfo.length; si++){
+                            roadInfo = stradeInfo[si];
+                            if(isPointInsidePolygon([roadInfo.nALat, roadInfo.nALong], arrayWKT) || isPointInsidePolygon([roadInfo.nBLat, roadInfo.nBLong], arrayWKT)){
+                                stradeInfoClean.push(roadInfo);
+                            }
+                        }
+                        stradeInfo = stradeInfoClean;
+
+
+                        var array_restrinction = JSON.parse(restrinctions_list);
+                        var restinction_nodes = array_restrinction.results.bindings;
+                        //console.log('stradeInfo: '+stradeInfo.length);
+                        //
+                        if (jsonStreetGraph == ''){
+                            jsonStreetGraph = stradeInfo;
+                        }
+                        istanzedelgrafochestoconsiderando = [];
+                        var istanzeJson = $('#jsonIstanze').text();
+                        if ((istanzeJson !== "")&&(istanzeJson !== undefined)){
+                            istanzeJson = JSON.parse(istanzeJson);
+                                //console.log('jsonIstanze');
+                                //console.log('CONSIDERA jsonIstanze');
+                            jsonStreetGraph = istanzeJson;
+                        }else{
+                            //istanzedelgrafochestoconsiderando = [];
+                            jsonStreetGraph = stradeInfo;
+                            //console.log('Non CONSIDERA jsonIstanze');
+                        }
+                        //
+                        //console.log('jsonStreetGraph:');
+                        //console.log(jsonStreetGraph);
+                        //
+                        //stradeInfo.forEach(strada => {
+
+        ///BOLOGNA -COLLINI -> CREAZIONE GRAFO STRADE
+                        jsonStreetGraph.forEach(strada => {
+                            //AGGIORNAMENTO DEL JSON DEI ROAD GRAPH
+                            istanzedelgrafochestoconsiderando.push(strada);
+                               
+                            
                         });
+                /// FINE BOLOGNA-COLLINI
+                var currentStatusEdit = $('#currentStatusEdit').val();
+                ///ADREANI
+            if (!roadElementGraph){
+                        roadElementGraph = new KBRoadEditor(map.defaultMapRef, istanzedelgrafochestoconsiderando, (strada) => {
+                            // segment. ci sono i dati
+                            // segment.line e la poliline da appenderre il popup
+                            //var descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+strada+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+strada.dir+'<br /><span><b>Restrictions: </b></span><br /><span></div>');
+                            ////////POPUPS BOLOGNA
+                            var jsonObject = {
+                                road: strada.road,
+                                segment : strada.segment,
+                                type : strada.type,
+                                nALat : strada.nALat,
+                                nALong : strada.nALong,
+                                nBLat : strada.nBLat,
+                                nBLong : strada.nBLong,
+                                dir : strada.dir,
+                                length :strada.length,
+                                nodeA : strada.nodeA,
+                                nodeB : strada.nodeB,
+                                lanes : strada.lanes,
+                                roadElmSpeedLimit : strada.roadElmSpeedLimit,
+                                elemType: strada.elemType,
+                                operatingstatus : strada.operatingstatus
+                            }
+                            
+                            // Convert JSON object to a string
+                                
+
+                            var stradajson = JSON.stringify(jsonObject);
+                           // console.log(stradajson);
+                            
+                            var parts = (strada.nodeB).split('/');
+                            var nodeName = parts[parts.length - 1];
+                            var restriction_span = '';
+                            var status = strada.operatingstatus;
+                            var toRestriction = '';
+                            var fromRestriction = '';
+                            var nodeRestriction = '';
+                            //console.log(restinction_nodes);
+                            
+                            var index = restinction_nodes.findIndex(function (item) {
+                                    return item.node.value === nodeName;
+                                });
+
+                            if (index !== -1) {
+                                 restriction_span = restinction_nodes[index].restriction.value;
+                                    toRestriction = restinction_nodes[index].to.value;
+                                    nodeRestriction = restinction_nodes[index].node.value;
+                                    fromRestriction =restinction_nodes[index].from.value;
+                                    color_dir = 'green';
+                                    console.log(restinction_nodes[index]);
+                            }else{
+                                restriction_span = 'Not defined';
+                            }
+
+                            //console.log(restriction_span);
+                            if (status !=='in esercizio'){
+                                color_dir = '#FFFFFF';
+                            }
+                            //
+                            //strada.restriction = restriction_span;
+                            //
+                            //console.log('restriction_span:'+restriction_span);
+                            var dir = strada.dir;
+                                if (strada.dir == 'tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)'){
+                                    dir = 'Positive Direction';
+                                }else if(strada.dir == 'tratto stradale aperto in entrambe le direzioni (default)'){
+                                    dir = 'Bidirection';
+                                }else if(strada.dir == 'tratto stradale aperto nella direzione negativa (da giunzione NOD_FIN a giunzione NOD_INI)'){
+                                    dir = 'Negative Direction';
+                                }else{
+                                    dir = 'Closed';
+                                }
+                            descrStrada = ('<div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="'+strada.segment+'" style="display:none"><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>'+strada.type+'</td></tr><tr><td><b>Nr.Lanes:</b></td><td>'+strada.lanes+'</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>'+strada.roadElmSpeedLimit+'</td></tr><tr><td><b>Direction:</b></td><td>'+dir+'</td></tr><tr><td><b>Restrictions:</b></td><td>'+restriction_span+'</td></tr></tbody></table></div>');
+                            //
+                            var width_popup = 350;
+                            //if (currentStatusEdit == 'streets'){
+                            if (roadElementGraph.mode !== 'view') {
+                                //EDITABLE//
+                                var directions = '<select  id="updateDir" class="form-select" aria-label="Default select example" value="'+strada.dir+'"><option value="tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)">Positive direction</option><option value="tratto stradale aperto in entrambe le direzioni (default)">Bidirection</option><option value="tratto stradale aperto nella direzione negativa (da giunzione NOD_FIN a giunzione NOD_INI)">Negative Direction</option><option value="tratto stradale chiuso in entrambe le direzioni">Closed</option></select>';
+                                var categoryStreets = '<select id="updateType" value="'+strada.type+'" class="form-select" aria-label="Default select example"><option value="primary">primary</option><option value="tertiary">tertiary</option><option value="residential">residential</option><option value="unclassified">unclassified</option></select>';
+                                directions = directions.replace('<option value="'+strada.dir+'">','<option value="'+strada.dir+'" selected>');
+                                categoryStreets = categoryStreets.replace('<option value="'+strada.type+'">','<option value="'+strada.type+'" selected>');
+                                var restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="only_straight_on">TurnRestriction-only_straight_on</option><option value="no_left_turn">TurnRestriction-no_left_turn</option><option value="no_right_turn">TurnRestriction-no_right_turn</option><option value="only_right_turn">TurnRestriction-only_right_turn</option><option value="no_u_turn">TurnRestriction-no_u_turn</option><option value="only_left_turn">TurnRestriction-only_left_turn</option><option value="no_straight_on">TurnRestriction-no_straight_on</option><option value="no_entry">TurnRestriction-no_entry</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option></select>';
+                                let arraysegment = (strada.segment).split('/');
+                                let segmentId = arraysegment[arraysegment.length-2]+'/'+arraysegment[arraysegment.length-1];
+                                ////////
+                                var restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option value="only_straight_on">only_straight_on</option><option value="no_left_turn">no_left_turn</option><option value="no_right_turn">no_right_turn</option><option value="only_right_turn">only_right_turn</option><option value="no_u_turn">no_u_turn</option><option value="only_left_turn">only_left_turn</option><option value="no_straight_on">no_straight_on</option><option value="no_entry">no_entry</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
+                                ///////
+                                descrStrada = ('<div id="segmentLabel_edit" style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street: </b></td><td>'+categoryStreets+'</td></tr><tr><td><b>Nr.Lanes: </b></td><td><input type="number" id="updateLanes" value="'+strada.lanes+'" /></td></tr><tr><td><b>Speed Limit (km/h): </b></td><td><input type="number" id="updateSpeedLimit" value="'+strada.roadElmSpeedLimit+'" /></td></tr><tr><td><b>Direction:</b></td><td>'+directions+'</td></tr><tr><td><b>Restrictions:  </b></td><td>'+restrinctions+'</td></tr>'+restriction_data+'</tbody></table><input type="button" id="updateStreet" value="Update" /></div>');
+                                width_popup = 450;
+                            }else{
+                                var dir = strada.dir;
+                                if (strada.dir == 'tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)'){
+                                    dir = 'Positive Direction';
+                                }else if(strada.dir == 'tratto stradale aperto in entrambe le direzioni (default)'){
+                                    dir = 'Bidirection';
+                                }else if(strada.dir == 'tratto stradale aperto nella direzione negativa (da giunzione NOD_FIN a giunzione NOD_INI)'){
+                                    dir = 'Negative Direction';
+                                }else{
+                                    dir = 'Closed';
+                                }
+                                width_popup = 350;
+                                //descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+dir+'<br /><span><b>Restrictions: </b></span>'+restriction_span+'<br /><span></div>');
+                                  descrStrada = ('<div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="'+strada.segment+'" style="display:none"><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>'+strada.type+'</td></tr><tr><td><b>Nr.Lanes:</b></td><td>'+strada.lanes+'</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>'+strada.roadElmSpeedLimit+'</td></tr><tr><td><b>Direction:</b></td><td>'+dir+'</td></tr><tr><td><b>Restrictions:</b></td><td>'+restriction_span+'</td></tr></tbody></table></div>');
+                            }
+                            ////////////
+                            strada.line.bindPopup(descrStrada, {maxWidth : width_popup});
+                            strada.line.openPopup();
+                            $('#updateStreet').click(() => {
+                                    strada.type = $('#updateType').val();
+                                    strada.lanes = $('#updateLanes').val();
+                                    strada.roadElmSpeedLimit = $('#updateSpeedLimit').val();
+                                    strada.dir = $('#updateDir').val();
+                                    roadElementGraph.draw();
+                                    roadElementGraph.updateSegmentData(strada);
+                                    //strada. = $('#updateRestriction').val();
+                                    //var stradajson = $('#stradajson').text();
+
+                                });
+                        });
+                        roadElementGraph.addEventListeners();
+                        if (currentStatusEdit == 'streets'){
+                            roadElementGraph.mode = 'drag';
+                        }else{
+                            roadElementGraph.mode = "view";
+                        }
+                    }else{
+                    roadElementGraph.reset();
+                    roadElementGraph.loadGraph(istanzedelgrafochestoconsiderando);
+                    roadElementGraph.draw();
+                }
+                $('#jsonIstanze').text('');
+                       
+                    
+                ///ADREANI
+
+                        var jsonIstanze_content =  $('#jsonIstanze').text();
+                        if ((jsonIstanze_content == "")||(jsonIstanze_content == undefined)){
+                            var istanzedelgrafochestoconsiderandoJSON = JSON.stringify(istanzedelgrafochestoconsiderando);
+                            //$('#jsonIstanze').text(istanzedelgrafochestoconsiderandoJSON);
+                        }
+
+                        //EVENT: CLICK ON POLYLINE
+
+
+
+                        
                     } catch (error) {
                         console.error("Error fetching SPARQL data:", error);
                     }
+
+                    
+                   
                 }
+
+               
+                
+                      
 
                 // funzione per leggere i dati da un device
                 async function readFromDevice(lAccessToken, deviceName){       
@@ -8244,132 +9149,212 @@ if (!isset($_SESSION)) {
                 //                    X   <- removeTrafficScenary          event toggled dal selettore                
 
                 //################## appena inviato l'evento addTrafficScenary dal selettore ##########################
-                $(document).on('addTrafficScenary', function (event) {    
-                    getLeAltreUserInfo();                                             
-                    if (event.target === map.mapName) {          
-                        // metto subito il layer dei markers                         
-                        scenaryMarkers = new L.FeatureGroup();
-                        map.defaultMapRef.addLayer(scenaryMarkers);
-                        // e anche quello per i disegni sulla mappa
-                        scenaryDrawnItems = new L.FeatureGroup();
-                        map.defaultMapRef.addLayer(scenaryDrawnItems);      
-                        // e anche quello per il grafo
-                        scenaryGrafo = new L.FeatureGroup();
-                        map.defaultMapRef.addLayer(scenaryGrafo);
-                        //aggiungo anche il tool per disegnare su mappa 
-                        drawerControl = new L.Control.Draw({
-                            edit: {
-                                featureGroup: scenaryDrawnItems,
-                                edit: false,
-                                remove: false
-                            },
-                            draw: {
-                                circle: false,
-                                marker: false,
-                                polyline: false,
-                                polygon: {
-                                    allowIntersection: false,
-                                    showArea: true
-                                }
-                            }
-                        });
-                        map.defaultMapRef.addControl(drawerControl);                        
-                        // poi sistemo i disegni che vengono fatti                                          
-                        map.defaultMapRef.on('draw:created', function(e) {                            
-                            if (scenaryData.features.length>=0){
-                                // Rimuovi i layer dei disegni
-                                for (const layerId in scenaryDrawnItems._layers) {
-                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
-                                }
-                                scenaryData.features = []; // reinizializzo questa variabile
-                                // Rimuovi i marker associati
-                                for (const layerId in scenaryMarkers._layers) {
-                                    const marker = scenaryMarkers._layers[layerId];
-                                    scenaryMarkers.removeLayer(marker);
-                                }
-                                // Rimuovi il vecchio grafo
-                                for (const layerId in scenaryGrafo._layers) {
-                                    const grafo = scenaryGrafo._layers[layerId];
-                                    scenaryGrafo.removeLayer(grafo);
-                                }
-                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
-                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
-                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
-                            }
-                            // metto un popup sul poligono attuale per riferimento
-                            var type = e.layerType,
-                                layer = e.layer;
-                            layer.bindPopup("<div>current polygon</div><br>");    
-                            // mi prendo la geometria del poligono in formato geojson  
-                            var curGeojson = layer.toGeoJSON();                        
-                            // per il debug se vuoi scommenta sotto
-                            /*if( type === 'polygon' || type === 'rectangle') {
-                                console.log(type+" created");
-                            } */
-                            // aggiungo la geometria allo scenaryData.features 
-                            //e il layer al scenarydrawnitems per visualizzarlo su mappa
-                            scenaryData.features.push(curGeojson);
-                            scenaryDrawnItems.addLayer(layer);
-                            // a questo punto faccio la richiesta sensori del traffico
-                            // mi convertio la geometria in geojson in wkt
-                            const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);                    
-                            // adesso mi calcolo anche il poligono allargato per fare la query al grafo strade
-                            // Dividi il poligono WKT in coppie di coordinate
-                            const coordinates = polygonWKT
-                            .match(/\d+\.\d+\s\d+\.\d+/g)
-                            .map(coord => coord.split(' ').map(Number));
-                            // Calcola il centroide
-                            const centroid = coordinates.reduce(
-                            (acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
-                            [0, 0]
-                            );
-                            centroid[0] /= coordinates.length;
-                            centroid[1] /= coordinates.length;
-                            // Definisci la distanza di espansione in gradi
-                            const enlargementDistance = 0.02; // Regola questa distanza come necessario
-                            // Applica l'espansione alle coordinate
-                            const enlargedCoordinates = coordinates.map(([lon, lat]) => [
-                            lon + (lon - centroid[0]) * enlargementDistance,
-                            lat + (lat - centroid[1]) * enlargementDistance
-                            ]);
-                            // Costruisci il poligono allargato come WKT
-                            const enlargedPolygonWKT = `POLYGON ((${enlargedCoordinates
+                $(document).on('addTrafficScenary', function(event) {
+	//$("#edit_lines").click(function() {    
+	getLeAltreUserInfo();
+	if (event.target === map.mapName) {
+		// metto subito il layer dei markers                         
+		scenaryMarkers = new L.FeatureGroup();
+		map.defaultMapRef.addLayer(scenaryMarkers);
+		// e anche quello per i disegni sulla mappa
+		scenaryDrawnItems = new L.FeatureGroup();
+		map.defaultMapRef.addLayer(scenaryDrawnItems);
+		// e anche quello per il grafo
+		scenaryGrafo = new L.FeatureGroup();
+		map.defaultMapRef.addLayer(scenaryGrafo);
+		//aggiungo anche il tool per disegnare su mappa 
+        drawerControl = new L.Control.Draw({
+            edit: {
+                featureGroup: scenaryDrawnItems,
+                edit: false,
+                remove: false
+            },
+            draw: {
+                circle: false,
+                marker: false,
+                polyline: false,
+                polygon: false,
+                rectangle: false
+            }
+        });
+
+		map.defaultMapRef.addControl(drawerControl);
+		// poi sistemo i disegni che vengono fatti 
+        
+        //BOLOGNA
+        map.defaultMapRef.on('draw:deleted', function(e) {
+             console.log('DELETE LAYER');
+             map.defaultMapRef.removeLayer(scenaryDrawnItems);                        
+             map.defaultMapRef.removeLayer(scenaryMarkers);
+             map.defaultMapRef.removeLayer(scenaryGrafo);
+             $('#jsonIstanze').text('');
+            ///////
+            datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+			istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+			istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+            //////
+            scenaryMarkers = new L.FeatureGroup();
+            map.defaultMapRef.addLayer(scenaryMarkers);
+            // e anche quello per i disegni sulla mappa
+            scenaryDrawnItems = new L.FeatureGroup();
+            map.defaultMapRef.addLayer(scenaryDrawnItems);
+            // e anche quello per il grafo
+            scenaryGrafo = new L.FeatureGroup();
+            map.defaultMapRef.addLayer(scenaryGrafo);
+            //
+            });
+        ////FINE BOLOGNA
+
+		map.defaultMapRef.on('draw:created', function(e) {
+            //console.log('scenaryGrafo:');
+            //console.log(scenaryGrafo);
+            //
+            //
+            $('#jsonIstanze').text('');
+            //$("#scenario-cancel").click();
+            //
+			if (scenaryData.features.length >= 0) {
+				// Rimuovi i layer dei disegni
+				for (const layerId in scenaryDrawnItems._layers) {
+					scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+				}
+                
+				scenaryData.features = []; // reinizializzo questa variabile
+				// Rimuovi i marker associati
+				for (const layerId in scenaryMarkers._layers) {
+					const marker = scenaryMarkers._layers[layerId];
+					scenaryMarkers.removeLayer(marker);
+				}
+				// Rimuovi il vecchio grafo
+				for (const layerId in scenaryGrafo._layers) {
+					const grafo = scenaryGrafo._layers[layerId];
+					 scenaryGrafo.removeLayer(grafo);              
+				}
+				datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+				istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+				istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+			}
+            //
+            //START BOLOGNA
+            //svuotare grafo salvato in locale      
+            //END BOLOGNA
+			// metto un popup sul poligono attuale per riferimento
+			var type = e.layerType,
+				layer = e.layer;
+			//layer.bindPopup("<div>current polygon</div><br>");    
+			// mi prendo la geometria del poligono in formato geojson  
+			var curGeojson = layer.toGeoJSON();
+			// per il debug se vuoi scommenta sotto
+			// aggiungo la geometria allo scenaryData.features 
+			//e il layer al scenarydrawnitems per visualizzarlo su mappa
+			scenaryData.features.push(curGeojson);
+			scenaryDrawnItems.addLayer(layer);
+			// a questo punto faccio la richiesta sensori del traffico
+			// mi convertio la geometria in geojson in wkt
+			const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);
+			// adesso mi calcolo anche il poligono allargato per fare la query al grafo strade
+			// Dividi il poligono WKT in coppie di coordinate
+			const coordinates = polygonWKT
+				.match(/\d+\.\d+\s\d+\.\d+/g)
+				.map(coord => coord.split(' ').map(Number));
+			// Calcola il centroide
+			const centroid = coordinates.reduce(
+				(acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
+				[0, 0]
+			);
+			centroid[0] /= coordinates.length;
+			centroid[1] /= coordinates.length;
+			// Definisci la distanza di espansione in gradi
+			const enlargementDistance = 0.02; // Regola questa distanza come necessario
+			// Applica l'espansione alle coordinate
+			const enlargedCoordinates = coordinates.map(([lon, lat]) => [
+				lon + (lon - centroid[0]) * enlargementDistance,
+				lat + (lat - centroid[1]) * enlargementDistance
+			]);
+			// Costruisci il poligono allargato come WKT
+			const enlargedPolygonWKT = `POLYGON ((${enlargedCoordinates
                             .map(coord => coord.join(' '))
                             .join(', ')}))`;
-                            //console.log('Poligono allargato WKT:', enlargedPolygonWKT);                              
-                            // per poi creare la url per fare la richiesta dei sensori del traffico 
-                            const sensorURL = buildSensorAPIURL(polygonWKT);    
+			//console.log('Poligono allargato WKT:', enlargedPolygonWKT);                              
+			// per poi creare la url per fare la richiesta dei sensori del traffico 
+			const sensorURL = buildSensorAPIURL(polygonWKT);
+             //console.log(sensorURL);
 
-                            // ora faccio la richiesta sparql alla kb per prendere i dati del grafo strade ...
-                            //console.log(enlargedPolygonWKT);
-                            const enlargedPolygonBoundingBox = findBoundingBox(enlargedPolygonWKT);
-                            //console.log(enlargedPolygonBoundingBox);
-                            sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT)     
-                            sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(enlargedPolygonBoundingBox.maxY, enlargedPolygonBoundingBox.maxX, enlargedPolygonBoundingBox.minY,enlargedPolygonBoundingBox.minX)                           
-                            //console.log(sparqlQueryottimizzata);
-                            // Create the loading box element and add it to the document
-                            const loadingBox = document.createElement("div");
-                            //console.log(loadingBox);
-                            loadingBox.id = "loading-box";
-                            loadingBox.style.position = "absolute";
-                            loadingBox.style.top = "20%";
-                            loadingBox.style.left = "50%";
-                            loadingBox.style.transform = "translate(-50%, -50%)";
-                            loadingBox.style.backgroundColor = "#fff";
-                            loadingBox.style.border = "1px solid #ccc";
-                            loadingBox.style.padding = "20px";
-                            loadingBox.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.2)";
-                            loadingBox.style.zIndex = "9999";
-                            loadingBox.innerHTML = '<p style="color: black";>The road graph is loading...</p>';
-                            // Append the loading box to the map container
-                            const mapContainer = this.getContainer(); // Assuming `this` refers to the map object
-                            mapContainer.appendChild(loadingBox);
-                            //document.body.appendChild(loadingBox);                                                        
-                            // Before making the requests, show the loading box
-                            loadingBox.style.display = "block";
-                            loadingboxloaded = false;                            
-                            // Use Promise.all to fetch data concurrently
-                            Promise.all([fetchTrafficSensorData(sensorURL), fetchSparqlData(sparqlQueryottimizzata)])
+			// ora faccio la richiesta sparql alla kb per prendere i dati del grafo strade ...
+            //console.log('enlargedPolygonWKT: ');
+			//console.log(enlargedPolygonWKT);
+			const enlargedPolygonBoundingBox = findBoundingBox(enlargedPolygonWKT);
+			//console.log(enlargedPolygonBoundingBox);
+            //buildSparqlQueryURL_CHECK
+			sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT)
+			sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(enlargedPolygonBoundingBox.maxY, enlargedPolygonBoundingBox.maxX, enlargedPolygonBoundingBox.minY, enlargedPolygonBoundingBox.minX)
+			//console.log(sparqlQueryottimizzata);
+            //console.log("sparqlQuery:");
+            //console.log(sparqlQuery);
+			//AGGIUNTA SVOLTE
+			svoltesparqlquery = buildSparqlQueryURLsvolte(enlargedPolygonWKT);
+			//console.log(svoltesparqlquery)
+			ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+        
+
+			//let svolte = ressvolte.results.bindings;
+			console.log(ressvolte);
+			// Create the loading box element and add it to the document
+			const loadingBox = document.createElement("div");
+			loadingBox.id = "loading-box";
+			loadingBox.style.position = "absolute";
+			loadingBox.style.top = "20%";
+			loadingBox.style.left = "50%";
+			loadingBox.style.transform = "translate(-50%, -50%)";
+			loadingBox.style.backgroundColor = "#fff";
+			loadingBox.style.border = "1px solid #ccc";
+			loadingBox.style.padding = "20px";
+			loadingBox.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.2)";
+			loadingBox.style.zIndex = "9999";
+			loadingBox.innerHTML = '<p style="color: black";>The road graph is loading...</p>';
+			// Append the loading box to the map container
+			const mapContainer = this.getContainer(); // Assuming `this` refers to the map object
+			mapContainer.appendChild(loadingBox);
+			//document.body.appendChild(loadingBox);                                                        
+			// Before making the requests, show the loading box
+			loadingBox.style.display = "block";
+			loadingboxloaded = false;
+			// Use Promise.all to fetch data concurrently
+            if (($('#showStreetGraph').is(':checked'))&&($('#showTrafficSensors').is(':checked'))) {
+			Promise.all([fetchTrafficSensorData(sensorURL), fetchSparqlData(sparqlQueryottimizzata, polygonWKT)])
+				.then((data) => {
+					loadingBox.style.display = "none";
+					mapContainer.removeChild(loadingBox);
+					loadingboxloaded = true;
+					handleIntersectionsAndSensors(polygonWKT);
+				})
+				.catch(error => {
+					// Hide and remove the loading box in case of an error
+					loadingBox.style.display = "none";
+					mapContainer.removeChild(loadingBox);
+					loadingboxloaded = false;
+
+					console.error("Error:", error);
+				});
+            }else if (($('#showStreetGraph').is(':checked'))&&(!$('#showTrafficSensors').is(':checked'))){
+                Promise.all(fetchSparqlData(sparqlQueryottimizzata, polygonWKT))
+				.then(() => {
+					loadingBox.style.display = "none";
+					mapContainer.removeChild(loadingBox);
+					loadingboxloaded = true;
+					handleIntersectionsAndSensors(polygonWKT);
+
+				})
+				.catch(error => {
+					// Hide and remove the loading box in case of an error
+					loadingBox.style.display = "none";
+					mapContainer.removeChild(loadingBox);
+					loadingboxloaded = false;
+
+					console.error("Error:", error);
+				});
+            }else if((!$('#showStreetGraph').is(':checked'))&&($('#showTrafficSensors').is(':checked'))) {
+                            Promise.all([fetchTrafficSensorData(sensorURL)])
                             .then(() => {
                                 loadingBox.style.display = "none";
                                 mapContainer.removeChild(loadingBox);
@@ -8384,15 +9369,742 @@ if (!isset($_SESSION)) {
 
                                 console.error("Error:", error);
                             });
-                            
-                        });                  
+            }else{
+                     loadingBox.style.display = "none";
+					mapContainer.removeChild(loadingBox);
+					loadingboxloaded = false;
+            }
 
-                        //################## poi mi metto subito lo scenary control #################################                       
-                        var scenaryControl = L.control({position: 'topright'});
-                        scenaryControl.onAdd = function (map) {
-                            var div = L.DomUtil.create('div');
-                            div.innerHTML = `
-                                <div id="scenario-div">
+		});
+
+		var scenaryEditControl = L.control({
+			position: 'bottomleft'
+		});
+		scenaryEditControl.onAdd = function(map) {
+			////Aggiunta pulsanti editing
+			var div1 = L.DomUtil.create('div');
+            div1.id="scenary_selector";
+			div1.innerHTML = `<div id="menu-lines" style="max-width: 55px" hidden>
+                                     <div id="scenario-div">
+                                        <table>
+                                            <tr>
+                                                <td colspan="2">
+                                                <button type="button" id="line_create" style="margin: 2%; width: 30px" title="Create"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                             <td colspan="2">
+                                             <button type="button" id="line_drag" style="margin: 2%; width: 30px" title="Drag/Join"><i class="fa fa-arrows" aria-hidden="true"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                <button type="button" id="line_split" style="margin: 2%; width: 30px" title="Split"><i class="fa fa-chain-broken" aria-hidden="true"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                <button type="button" id="line_delete" style="margin: 2%; width: 30px" title="Delete"><i class="fa fa-eraser" aria-hidden="true"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                <button type="button" id="line_redo" style="margin: 2%; width: 30px" title="Redo"><i class="fa fa-repeat" aria-hidden="true"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                <button type="button" id="line_undo" style="margin: 2%; width: 30px" title="Undo"><i class="fa fa-undo" aria-hidden="true"></i></button>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                <textarea id="jsonIstanze" style="display:none;"></textarea>
+                                <!--<button type="button" id="updateStreetGraph" style="display:none;">update</button>-->
+                                <div id="select-modality"><div id="scenario-div" style="background-color: white">
+                                                    <div id="edit-content">
+                                                        <table>
+                                                            <tr>
+                                                                <td colspan="2">
+                                                                    <input type="text" id="currentStatusEdit" value="" hidden></input>
+                                                                   <!-- <b><span id="activemod"></span></b><br />-->
+                                                                </td>
+                                                                </tr>
+                                                            <tr>
+                                                                <td>                                                                       
+                                                                    <button type="button" id="view_mod" style="margin: 2%"><i class="fa fa-eye" aria-hidden="true"></i>View</button>
+                                                                </td>
+                                                               <td>    
+                                                                   <button type="button" id="edit_lines" style="margin: 2%"><i class="fa fa-pencil" aria-hidden="true"></i>Edit</button> 
+                                                                </td>
+                                                            </tr>
+                                                            <tr></tr>
+                                                            <tr>
+                                                                <td colspan="2">
+                                                                <input type="checkbox" id="showStreetGraph" value="street" checked/>Show Road graph
+                                                                </td>
+                                                                </tr>
+                                                                <tr>
+                                                                <td colspan="2">
+                                                                <input type="checkbox" id="showTrafficSensors" value="traffic" checked/> Show Traffic Sensors
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </div></div>`;
+
+
+
+			// Disabilita l'interazione di questo div con la mappa per evitare conflitti
+			if (L.Browser.touch) {
+				L.DomEvent.disableClickPropagation(div1);
+				L.DomEvent.on(div1, 'mousewheel', L.DomEvent.stopPropagation);
+			} else {
+				L.DomEvent.on(div1, 'click', L.DomEvent.stopPropagation);
+			}
+			return div1;
+		};
+		scenaryEditControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+
+        $('#line_create').click(function(){
+            //lline_create
+            $("#line_create").css('background-color','#3E64A6');
+            $("#line_create").css('color','white');
+            //line_drag
+            $("#line_drag").css('background-color','');
+            $("#line_drag").css('color','black');
+            //line_split
+            $("#line_split").css('background-color','');
+            $("#line_split").css('color','black');
+            //line_delete
+            $("#line_delete").css('background-color','');
+            $("#line_delete").css('color','black');
+        });
+
+        $('#line_drag').click(function(){
+            //lline_create
+            $("#line_create").css('background-color','');
+            $("#line_create").css('color','black');
+            //line_drag
+            $("#line_drag").css('background-color','#3E64A6');
+            $("#line_drag").css('color','white');
+            //line_split
+            $("#line_split").css('background-color','');
+            $("#line_split").css('color','black');
+            //line_delete
+            $("#line_delete").css('background-color','');
+            $("#line_delete").css('color','black');
+        });
+
+        $('#line_split').click(function(){
+            //lline_create
+            $("#line_create").css('background-color','');
+            $("#line_create").css('color','black');
+            //line_drag
+            $("#line_drag").css('background-color','');
+            $("#line_drag").css('color','black');
+            //line_split
+            $("#line_split").css('background-color','#3E64A6');
+            $("#line_split").css('color','white');
+            //line_delete
+            $("#line_delete").css('background-color','');
+            $("#line_delete").css('color','black');
+        });
+
+        $('#line_delete').click(function(){
+            //lline_create
+            $("#line_create").css('background-color','');
+            $("#line_create").css('color','black');
+            //line_drag
+            $("#line_drag").css('background-color','');
+            $("#line_drag").css('color','black');
+            //line_split
+            $("#line_split").css('background-color','');
+            $("#line_split").css('color','black');
+            //line_delete
+            $("#line_delete").css('background-color','#3E64A6');
+            $("#line_delete").css('color','white');
+        });
+
+		//################## poi mi metto subito lo scenary control #################################                       
+		var scenaryControl = L.control({
+			position: 'topright'
+		});
+		scenaryControl.onAdd = function(map) {
+			var div = L.DomUtil.create('div');
+			//currentStatusEdit MANAGE STATUS//
+                div.id="modality-load";
+				div.innerHTML = `<div id="scenario-div">
+                                    <div id="notification" style="display: none;">
+                                        <p id="notification-message">bells</p>
+                                    </div>                                    
+                                    <div id="scenario-content">                                        
+                                        <div id="acc-content">
+                                            <!-- Contenuto per la modalità accorpata -->
+                                            <table>
+                                                <tr>
+                                                    <td><label>Type of Scenario:</label></td>
+                                                    <td>
+                                                        <input type="radio" id="acc-type-init" name="scenario-type" value="init">
+                                                        <label for="acc-type-init">Init</label>
+
+                                                        <input type="radio" id="acc-type-acc" name="scenario-type" value="acc">
+                                                        <label for="acc-type-acc">Acc</label>
+
+                                                        <input type="radio" id="acc-type-tdm" name="scenario-type" value="tdm">
+                                                        <label for="acc-type-tdm">TDM</label>
+                                                    </td>
+                                                </tr>
+                                                <td id="scenario-init-row" style="display: none;">                                                    
+                                                        <label for="scenario-init-list">Scenarios waiting to be processed:</label>
+                                                        <input type="text" id="search-scenario-init" placeholder="Search...">      
+                                                        <ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul>                                                                                              
+                                                </td>                                                   
+                                                <tr id="scenario-list-row" style="display: none;">
+                                                    <td><label for="scenario-list">Scenario List:</label></td>
+                                                    <td>
+                                                        <select id="scenario-list" name="scenario-list"></select>
+                                                    </td>
+                                                    <td colspan="2">
+                                                        <button id="scenario-check-acc1">Load ACC</button>
+                                                    </td>
+                                                </tr>                                                         
+                                                
+                                                <tr id="scenario-tdm-row" style="display: none;">
+                                                    <td>
+                                                        <label for="search-scenario-tdm">Scenarios processed check the TFRS Manager:</label>
+                                                        <input type="text" id="search-scenario-tdm" placeholder="Search...">
+                                                        <ul id="scenario-tdm-list" style="max-height: 120px; overflow: auto;"></ul>  
+                                                    </td>                                                    
+                                                </tr>
+                                         
+                                                <!-- questo era il codice in cui mettevi il nome dello scenario e via
+                                                <tr>
+                                                    <td><label for="scenario-name">Scenario name:</label></td>
+                                                    <td><input id="scenario-name1" type="text" name="name" placeholder="Scenario name"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <button id="scenario-check-acc1">Load ACC</button>
+                                                    </td>
+                                                </tr>-->
+                                            </table>
+                                        </div>
+                                    </div>                                
+                                </div>`;
+
+
+			// Disabilita l'interazione di questo div con la mappa per evitare conflitti
+			if (L.Browser.touch) {
+				L.DomEvent.disableClickPropagation(div);
+				L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+			} else {
+				L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+			}
+			return div;
+		};
+		scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+
+//update streets
+
+		//######################### EDITING  #######################################//
+		$('#showStreetGraph').change(function() {
+            //var showStreetGraph = 
+            if ($(this).is(':checked')) {
+                console.log('è checked');
+                try {
+				////
+				if (scenaryData.features.length >= 0) {
+					//console.log(sparqlQuery);
+					/*for (const layerId in scenaryGrafo._layers) {
+						const grafo = scenaryGrafo._layers[layerId];
+						scenaryGrafo.removeLayer(grafo);
+					}*/
+                    roadElementGraph.draw();
+					datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+					istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+					istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+					//fetchSparqlData(sparqlQuery);
+				}
+				//////
+
+			} catch (error) {
+				console.error("An error occurred:", error.message);
+			}
+            }else{
+                console.log('non è checked');
+                //if (scenaryData.features.length >= 0) {
+					//console.log(sparqlQuery);
+                           /* for (const layerId in scenaryGrafo._layers) {
+                                const grafo = scenaryGrafo._layers[layerId];
+                                scenaryGrafo.removeLayer(grafo);
+                            }*/
+
+                            roadElementGraph.clearSegments();
+                            roadElementGraph.clearNodes();
+               // }
+            }
+			
+		});
+		$('#showTrafficSensors').change(function() {
+            if ($(this).is(':checked')) {
+                //console.log(scenaryMarkers);
+                    //datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+					//istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+					//istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                    const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);
+                    const sensorURL = buildSensorAPIURL(polygonWKT);
+                    Promise.all([fetchTrafficSensorData(sensorURL)])
+                            .then(() => {
+                                handleIntersectionsAndSensors(polygonWKT);
+                            })
+                            .catch(error => {
+                                // Hide and remove the loading box in case of an error
+                                console.error("Error:", error);
+                            });
+                    /////
+                     for (const layerId in scenaryMarkers._layers) { 
+					const marker = scenaryMarkers._layers[layerId];
+                    console.log(marker);
+					//scenaryMarkers.removeLayer(marker);
+                    }
+                    scenaryMarkers = new L.FeatureGroup();
+                    map.defaultMapRef.addLayer(scenaryMarkers);
+            }else{                 
+                    for (const layerId in scenaryMarkers._layers) {
+					const marker = scenaryMarkers._layers[layerId];
+					scenaryMarkers.removeLayer(marker);
+                    }
+				}
+		});
+
+        $('#updateRestriction').change(function() {
+            alert('updateRestriction');
+        });
+
+		//################ cancel function dei metadati del builder ######################################
+
+		$("#scenario-cancel").click(function() {
+            roadElementGraph.clearSegments();
+            roadElementGraph.clearNodes();
+			if (scenaryData.features.length >= 0) {
+				// Rimuovi i layer dei disegni
+				for (const layerId in scenaryDrawnItems._layers) {
+					scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+				}
+				scenaryData.features = []; // reinizializzo questa variabile
+				// Rimuovi i marker associati
+				for (const layerId in scenaryMarkers._layers) {
+					const marker = scenaryMarkers._layers[layerId];
+					scenaryMarkers.removeLayer(marker);
+				}
+				// Rimuovi il vecchio grafo
+				for (const layerId in scenaryGrafo._layers) {
+					const grafo = scenaryGrafo._layers[layerId];
+					scenaryGrafo.removeLayer(grafo);
+				}
+                //
+                
+                //
+				datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+				istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+				istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+			}
+			// qui gestisco il cancel ovvero se l'utente vuole resettare il control panel via
+			$("#scenario-name").val("");
+			$("#scenario-location").val("");
+			$("#scenario-description").val("");
+			$("#scenario-startDatetime").val("");
+			$("#scenario-modality").val("generic");
+			$("#scenario-modality").val("sensors");
+			$("#scenario-referenceKB").val("");
+			$("#scenario-endDatetime").val("");
+			scenaryData = new L.geoJSON();
+			scenaryData.type = "FeatureCollection";
+			scenaryData.features = [];
+		});
+
+		//##################### salvo lo scenario ##################################################
+
+
+		$("#scenario-save").click(async function() {
+			console.log("scenario-save cliccato!")
+			// mi prendo tutti i metadati 
+			var scenarioareaOfInterest = scenaryData.features;
+			var scenarioName = $("#scenario-name").val();
+			var scenarioLocation = $("#scenario-location").val();
+			var scenarioDescription = $("#scenario-description").val();
+			var scenarioreferenceKB = $("#scenario-referenceKB").val();
+			var scenarioModality = $("#scenario-modality").val();
+			var scenariosourceData = $("#scenario-sourceData").val();
+			var scenarioStartDatetime = $("#scenario-startDatetime").val();
+			var scenarioEndDatetime = $("#scenario-endDatetime").val();
+			// per poi controllare se li hanno inseriti a modo oppure no 
+			if (!scenarioName || !scenarioLocation || !scenarioDescription || !scenarioreferenceKB || !scenarioStartDatetime || !scenarioEndDatetime) {
+				alert("Please fill in all required fields: Name, Location, Description, KB, Start Datetime, End Datetime.");
+			} else if (!loadingboxloaded) {
+				alert("Please Define a shape or wait the loading of the road graph");
+			} else if (new Date(scenarioStartDatetime) >= new Date(scenarioEndDatetime)) {
+				alert("Start Datetime must be before End Datetime.");
+			} else if (scenarioareaOfInterest.length == 0) {
+				alert("Select an areaOfInterest.");
+			} else {
+				// quindi se li hanno messi bene a questo punto riprendo i dati dall'istanzedeisensorichestoconsiderando
+				// sperando che mantenga lo stato consistente.... Yess lo tiene ;)                            
+				const sensoriArray = istanzedeisensorichestoconsiderando.map(ilSensore => {
+					return {
+						sensorUri: ilSensore.sensorUri,
+						considered: ilSensore.considerato,
+						virtual: ilSensore.alContorno,
+						coordinates: ilSensore.coordinates
+					};
+				});
+				//associo ad ogni sensore il segment stradale più vicino dato il grafo
+				// Itera attraverso gli istanzi dei sensori
+				const sensoriArrayConStradaVicina = sensoriArray.map(sensore => {
+					// Inizializza delle variabili per tenere traccia della strada più vicina e della sua distanza
+					let stradaVicina = null;
+					let distanzaMinima = Infinity;
+                    //
+                    var jsonIstanze = $('#jsonIstanze').text();
+                    if (jsonIstanze !== ''){
+                        istanzedelgrafochestoconsiderando = JSON.parse(jsonIstanze);
+                        console.log('done 1');
+                    }else{
+                        console.log('Not Modified 1');
+                    }
+                    //
+					// Itera attraverso le informazioni della strada per trovare quella più vicina
+					istanzedelgrafochestoconsiderando.forEach(strada => {
+						// Calcola la distanza tra il sensore e il segmento stradale
+						const distanza = Math.sqrt(
+							Math.pow(sensore.coordinates[1] - strada.nALat, 2) +
+							Math.pow(sensore.coordinates[0] - strada.nALong, 2)
+						);
+
+						// Se la distanza è minore di quella minima precedentemente registrata, aggiorna la strada più vicina
+						if (distanza < distanzaMinima) {
+							distanzaMinima = distanza;
+							stradaVicina = strada;
+						}
+					});
+					// Aggiungi le informazioni sulla strada più vicina all'oggetto del sensore
+					sensore.nearestRoad = stradaVicina;
+					// Restituisci l'oggetto del sensore con le informazioni sulla strada più vicina
+					return sensore;
+				});
+				// mi creo lo scenarioData che non è altro che il json di uscita di questo tuul diciamo                                                                                                
+				scenarioData = {
+					"metadata": {
+						"dateObserved": new Date().toISOString(),
+						//"name": "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/deviceName" +  scenarioName,
+						"name": ilbrokerdellorganizzazione + "_" + lorganizzazione + "_deviceName" + scenarioName,
+						"location": scenarioLocation,
+						"description": scenarioDescription,
+						"modality": scenarioModality,
+						"referenceKB": scenarioreferenceKB,
+						"sourceData": scenariosourceData,
+						"startTime": scenarioStartDatetime,
+						"endTime": scenarioEndDatetime,
+						"organization": orgParams['orgId']
+					},
+					"shape": {
+						"scenarioareaOfInterest": scenarioareaOfInterest
+					},
+					//"sensors": sensoriArray,
+					"sensors": sensoriArrayConStradaVicina,
+					"roadGraph": "istanzedelgrafochestoconsiderando"
+				};
+				// // e qui rimane il codice per fare il download del json risultante                            
+				 /*var jsonString = JSON.stringify(scenarioData, null, 2);
+				 var blob = new Blob([jsonString], { type: "application/json" });
+				 var url = URL.createObjectURL(blob);
+				 var a = document.createElement("a");
+				a.href = url;
+				 a.download = "scenario_data.json";
+				 a.textContent = "Download JSON";
+				 document.body.appendChild(a);
+				 a.click();
+				 document.body.removeChild(a);
+				 URL.revokeObjectURL(url);   */
+				// mi creo il device sendDataINIT
+				//console.log("creo il device per lo scenario! ") 
+				ilpoly = getPolygonWKTFromScenarioArea(scenarioareaOfInterest);
+				const coordinates = ilpoly
+					.match(/\d+\.\d+\s\d+\.\d+/g)
+					.map(coord => coord.split(' ').map(Number));
+				// Calcola il centroide
+				const centroid = coordinates.reduce(
+					(acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
+					[0, 0]
+				);
+				centroid[0] /= coordinates.length;
+				centroid[1] /= coordinates.length;
+				await getLAccessToken(); // metto nella variabile di riferimento il ttttokken                           
+				// includo il codice di Alberto per la creazione del device e invio dati per la versione INIT
+
+				adesso = new Date().toISOString();
+				ildevicename = "deviceName" + scenarioName;
+				// Usa la funzione showNotification per mostrare un messaggio di successo
+				creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
+				if (creato == "ok") {
+					showNotification("Il dispositivo è stato creato con successo!");
+					//console.log("mando i dati TFRSDevice init");
+					try {
+						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
+						// gestisco il salvataggio roadGraph nel mysql processloader_db e tabella bigdatafordevice del roadGraph per poi da nodered generare l'AC e JS20                                       
+						sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
+								"roadGraph": istanzedelgrafochestoconsiderando
+                                 // "roadGraph": Object.values(roadElementGraph.deepCopySegments())
+							})
+							.then(data => {
+								console.log('Risposta dal server:', data);
+							})
+							.catch(error => {
+								console.error('Si è verificato un errore:', error);
+							});
+						// Aggiungi un ritardo di 1 secondo tra le notifiche
+						setTimeout(() => {
+							showNotification("E i dati iniziali sono stati inviati con successo!");
+						}, 1000);
+						// Se entrambe le operazioni sono andate bene, mostra un messaggio di completamento
+						setTimeout(() => {
+							showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
+						}, 2000);
+					} catch (error) {
+						console.error("Errore nell'invio dei dati iniziali:", error);
+						showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+					}
+				} else {
+					console.error("Errore nella creazione del dispositivo:", creato);
+					try {
+						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
+						sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, istanzedelgrafochestoconsiderando)
+							.then(data => {
+								console.log('Risposta dal server:', data);
+							})
+							.catch(error => {
+								console.error('Si è verificato un errore:', error);
+							});
+						if (initdatainviati == "dati_init_si") {
+							showNotification("I dati iniziali sono stati inviati con successo!");
+							// Se entrambe le operazioni sono andate bene, mostra un messaggio di completamento
+							setTimeout(() => {
+								showNotification("Ora puoi andare sul sito NR e continuare in seguito.");
+							}, 1000);
+						} else {
+							console.error("Errore nell'invio dei dati iniziali:", error);
+							showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+						}
+					} catch (error) {
+						console.error("Errore nell'invio dei dati iniziali:", error);
+						showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+					}
+				}
+			}
+		});
+
+	
+///BOLOGNA
+$('#updateStreetGraph').click(async function(){
+    var segment = $('#segment').val();
+                                var json_list =  JSON.parse($('#jsonIstanze').text());
+                                    let streetElement = json_list.find(function(oggetto) {
+                                            return oggetto.segment === segment;
+                                            });
+                               
+                                    var updateType = $('#updateType').val();
+                                    var updateLanes = $('#updateLanes').val();
+                                    var updateSpeedLimit = $('#updateSpeedLimit').val();
+                                    var updateDir = $('#updateDir').val();
+                                    var updateRestriction = $('#updateRestriction').val();
+                                    var stradajson = $('#stradajson').text();
+                                    var strada = JSON.parse(stradajson);
+                                    
+                                    //console.log(json_list);
+                                    //
+                                    map.defaultMapRef.removeLayer(scenaryGrafo);
+                                    scenaryGrafo = new L.FeatureGroup();
+		                            map.defaultMapRef.addLayer(scenaryGrafo);
+                                    //
+                                    strada.dir = updateDir;
+                                    strada.type = updateType;
+                                    strada.lanes = updateLanes;
+                                    strada.roadElmSpeedLimit = updateSpeedLimit;
+                                    var strada2 = JSON.stringify(strada);
+                                    //
+                                    //console.log(strada2);
+                                    var istanzedelgrafochestoconsiderandoJSON = $('#jsonIstanze').text();
+                                    var nuovaStringa = istanzedelgrafochestoconsiderandoJSON.replace(stradajson, strada2);
+                                    //$('#jsonIstanze').text(nuovaStringa);
+                                    $('#stradajson').text(strada2);
+                                    //REFRESH DATA
+                                    //istanzedeisensorichestoconsiderando = istanzedelgrafochestoconsiderandoJSON;
+                                    //istanzedeisensorichestoconsiderando =nuovaStringa;
+                                    istanzedelgrafochestoconsiderando = nuovaStringa;
+                                    //$('#jsonIstanze').text(istanzedelgrafochestoconsiderando);
+                                    ///////////BOLOGNA
+                                    // Create the loading box element and add it to the document
+                                    const loadingBox = document.createElement("div");
+                                    const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);
+                                    /////BOLOGNA
+                                    //console.log(sparqlQueryottimizzata);
+                                    //$('.leaflet-popup').hide();
+                                    Promise.all([fetchSparqlData(sparqlQueryottimizzata, polygonWKT)])
+                                        .then(() => {
+                                            loadingBox.style.display = "none";
+                                            //mapContainer.removeChild(loadingBox);
+                                            loadingboxloaded = true;
+                                           // handleIntersectionsAndSensors(polygonWKT);                     
+                                            $('#close').click();
+                                                alert('Updated street data');
+                                        })
+                                        .catch(error => {
+                                            // Hide and remove the loading box in case of an error
+                                            loadingBox.style.display = "none";
+                                           // mapContainer.removeChild(loadingBox);
+                                            loadingboxloaded = false;
+                                            console.error("Error:", error);
+                                        });
+                                   // $("#edit_lines").click();
+                        
+                    });
+////BOLOGNA
+		//edit-lines
+	$("#edit_lines").click(async function() {
+			//alert('Editing modality activated');
+            if (roadElementGraph)
+                roadElementGraph.mode = 'drag';
+            $('#menu-lines').show();
+			$('#currentStatusEdit').val('streets');
+			//$('#activemod').text('Editing modality');
+			//$('#showStreetGraph').show();
+            var drawControl = document.querySelector('.leaflet-draw');
+                if (drawControl) {
+                    drawControl.parentNode.removeChild(drawControl);
+                    isSaveFinalSet = false;
+                }
+             //levo il drawer control
+             map.defaultMapRef.removeControl(drawerControl);
+             // levo i disegni sulla mappa 
+             //map.defaultMapRef.removeLayer(scenaryDrawnItems);                        
+             // mi ero scordato di levare i markers ma li levo subito
+             //map.defaultMapRef.removeLayer(scenaryMarkers);
+             // levo anche il grafo
+            map.defaultMapRef.removeLayer(scenaryGrafo);
+			//$('#showTrafficSensors').show();
+            //console.log(jsonStreetGraph);
+            ///////////
+            //map.defaultMapRef.removeLayer(scenaryControl);
+            //
+            $("#edit_lines").css('background-color','#3E64A6');
+            $("#edit_lines").css('color','white');
+            $("#view_mod").css('background-color','');
+            $("#view_mod").css('color','black');
+            //rgb(240, 240, 240)
+            //line_create
+            $("#line_create").css('background-color','');
+            $("#line_create").css('color','black');
+            //line_drag
+            $("#line_drag").css('background-color','');
+            $("#line_drag").css('color','black');
+            //line_split
+            $("#line_split").css('background-color','');
+            $("#line_split").css('color','black');
+            //line_delete
+            $("#line_delete").css('background-color','');
+            $("#line_delete").css('color','black');
+            ////
+        // metto subito il layer dei markers                         
+        scenaryMarkers = new L.FeatureGroup();
+		map.defaultMapRef.addLayer(scenaryMarkers);
+		// e anche quello per i disegni sulla mappa
+		scenaryDrawnItems = new L.FeatureGroup();
+		map.defaultMapRef.addLayer(scenaryDrawnItems);
+		// e anche quello per il grafo
+		scenaryGrafo = new L.FeatureGroup();
+		map.defaultMapRef.addLayer(scenaryGrafo);
+		//aggiungo anche il tool per disegnare su mappa
+            //////
+            drawerControl2 = new L.Control.Draw({
+                                    edit: {
+                                        featureGroup: scenaryDrawnItems,
+                                        edit: false,
+                                        remove: true
+                                    },
+                                    draw: {
+                                        circle: false,
+                                        marker: false,
+                                        polyline: false,
+                                        polygon: {
+                                            allowIntersection: false,
+                                            showArea: true
+                                        }
+                                    }
+                                });
+                   map.defaultMapRef.addControl(drawerControl2);
+          
+            /////////
+			try {
+				////
+				if (scenaryData.features.length >= 0) {
+					//console.log(sparqlQuery);
+					for (const layerId in scenaryGrafo._layers) {
+						const grafo = scenaryGrafo._layers[layerId];
+						scenaryGrafo.removeLayer(grafo);
+					}
+					datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+					istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+					istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+
+                    if(jsonStreetGraph !=""){
+                        //istanzedelgrafochestoconsiderando = jsonStreetGraph;
+                        var istanzedelgrafochestoconsiderandoJSON = $('#jsonIstanze').text();
+                                    //REFRESH DATA
+                                    istanzedelgrafochestoconsiderando = istanzedelgrafochestoconsiderandoJSON;
+                                    ///////////BOLOGNA
+                                    // Create the loading box element and add it to the document
+                                    const loadingBox = document.createElement("div");
+                                    const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);
+                                    /////BOLOGNA
+                                    Promise.all([fetchSparqlData(sparqlQueryottimizzata, polygonWKT)])
+                                        .then(() => {
+                                            loadingBox.style.display = "none";
+                                            //mapContainer.removeChild(loadingBox);
+                                            loadingboxloaded = true;
+                                           // handleIntersectionsAndSensors(polygonWKT); 
+                                            $('#close').click();
+                                            //alert('Updated street data');
+                                        })
+                                        .catch(error => {
+                                            // Hide and remove the loading box in case of an error
+                                            loadingBox.style.display = "none";
+                                           // mapContainer.removeChild(loadingBox);
+                                            loadingboxloaded = false;
+                                            console.error("Error:", error);
+                                        });
+                    }
+
+					//fetchSparqlData(sparqlQuery);
+                    var scenarioToRemove = document.getElementById("modality-load");
+                    if(scenarioToRemove){
+                        scenarioToRemove.remove();
+                        isSaveFinalSet = false;
+                    }
+                    //
+					///////////
+					var scenaryControl2 = L.control({
+						position: 'topright'
+					});
+                    //
+                    // 
+                    var scenarioToRemove = document.getElementById("scenario-edit-form");
+                    if(!scenarioToRemove){
+					scenaryControl2.onAdd = function(map) {
+						var div2 = L.DomUtil.create('div');
+                        div2.id='scenario-edit-form';
+						div2.innerHTML = `<div id="scenario-div">
                                     <div id="notification" style="display: none;">
                                         <p id="notification-message">bells</p>
                                     </div>
@@ -8405,8 +10117,8 @@ if (!isset($_SESSION)) {
                                                     <td><input id="scenario-name" type="text" name="name" placeholder="Scenario name"></td>
                                                 </tr>
                                                 <tr>
-                                                    <td><label for="scenario-location">City of reference:</label></td>
-                                                    <td><input id="scenario-location" type="text" name="location" placeholder="City of reference"></td>
+                                                    <td><label for="scenario-location">Location:</label></td>
+                                                    <td><input id="scenario-location" type="text" name="location" placeholder="Location"></td>
                                                 </tr>
                                                 <tr>
                                                     <td><label for="scenario-description">Scenario description:</label></td>
@@ -8414,10 +10126,10 @@ if (!isset($_SESSION)) {
                                                 </tr>
                                                 <!-- Aggiungi altre righe per i campi -->
                                                 <tr>
-                                                    <td><label for="scenario-referenceKB">SURI of the referenceKB:</label></td>
-                                                    <td><input id="scenario-referenceKB" type="text" name="SURI of the reference KB" placeholder="SURI of the reference KB"></td>
+                                                    <td><label for="scenario-referenceKB">ReferenceKB:</label></td>
+                                                    <td><input id="scenario-referenceKB" type="text" name="SURI of the reference KB" placeholder="Reference KB"></td>
                                                 </tr>
-                                                <tr>
+                                                <!--<tr>
                                                     <td><label for="scenario-modality">Modality:</label></td>
                                                     <td>
                                                         <select id="scenario-modality" name="modality">
@@ -8435,6 +10147,33 @@ if (!isset($_SESSION)) {
                                                             <option value="sensors">Sensors</option>
                                                             <option value="native">Native</option>
                                                             <option value="Here">Here</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>-->
+                                                <tr>
+                                                    <td><label for="scenario-roadData">Save Road Graph:</label></td>
+                                                    <td>
+                                                    <select id="scenario-roadData" name="roadData">
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label for="scenario-trafficData">Save traffic Sensors:</label></td>
+                                                    <td>
+                                                    <select id="scenario-trafficData" name="trafficData">
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label for="scenario-otherData">Save other Sensors:</label></td>
+                                                    <td>
+                                                        <select id="scenario-otherData" name="otherData">
+                                                            <option value="Yes">Yes</option>
+                                                            <option value="No">No</option>
                                                         </select>
                                                     </td>
                                                 </tr>
@@ -8455,251 +10194,718 @@ if (!isset($_SESSION)) {
                                             </table>
                                         </div>                                        
                                     </div>                                
-                                </div>
-                            `;
-                            
-                            // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+                                </div>`;
+                         ////
+                                        // Disabilita l'interazione di questo div con la mappa per evitare conflitti
                             if (L.Browser.touch) {
-                                L.DomEvent.disableClickPropagation(div);
-                                L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+                                L.DomEvent.disableClickPropagation(div2);
+                                L.DomEvent.on(div2, 'mousewheel', L.DomEvent.stopPropagation);
                             } else {
-                                L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+                                L.DomEvent.on(div2, 'click', L.DomEvent.stopPropagation);
                             }
-                            return div;
-                        };
-                        scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+                            return div2;
+                         ////
+					}
+                }
+                    scenaryControl2.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+                    ///
 
-                        //################ cancel function dei metadati del builder ######################################
-                        $("#scenario-cancel").click(function() {  
-                            if (scenaryData.features.length>=0){
-                                // Rimuovi i layer dei disegni
-                                for (const layerId in scenaryDrawnItems._layers) {
-                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
-                                }
-                                scenaryData.features = []; // reinizializzo questa variabile
-                                // Rimuovi i marker associati
-                                for (const layerId in scenaryMarkers._layers) {
-                                    const marker = scenaryMarkers._layers[layerId];
-                                    scenaryMarkers.removeLayer(marker);
-                                }
-                                // Rimuovi il vecchio grafo
-                                for (const layerId in scenaryGrafo._layers) {
-                                    const grafo = scenaryGrafo._layers[layerId];
-                                    scenaryGrafo.removeLayer(grafo);
-                                }
-                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
-                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
-                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
-                            }                          
-                            // qui gestisco il cancel ovvero se l'utente vuole resettare il control panel via
-                            $("#scenario-name").val("");
-                            $("#scenario-location").val("");
-                            $("#scenario-description").val("");
-                            $("#scenario-startDatetime").val("");
-                            $("#scenario-modality").val("generic"); 
-                            $("#scenario-modality").val("sensors"); 
-                            $("#scenario-referenceKB").val("");
-                            $("#scenario-endDatetime").val("");                            
-                            scenaryData = new L.geoJSON();
-                            scenaryData.type= "FeatureCollection";
-                            scenaryData.features = [];
-                        });
-                        
-                        //##################### salvo lo scenario ##################################################
-                        $("#scenario-save").click(async function() {     
-                            //console.log("scenario-save cliccato!")
-                            // mi prendo tutti i metadati 
-                            var scenarioareaOfInterest = scenaryData.features;         
-                            var scenarioName = $("#scenario-name").val();
-                            var scenarioLocation = $("#scenario-location").val();
-                            var scenarioDescription = $("#scenario-description").val();
-                            var scenarioreferenceKB= $("#scenario-referenceKB").val();
-                            var scenarioModality = $("#scenario-modality").val();
-                            var scenariosourceData= $("#scenario-sourceData").val();
-                            var scenarioStartDatetime = $("#scenario-startDatetime").val();
-                            var scenarioEndDatetime = $("#scenario-endDatetime").val();
-                            // per poi controllare se li hanno inseriti a modo oppure no 
-                            if (!scenarioName || !scenarioLocation ||  !scenarioDescription || !scenarioreferenceKB || !scenarioStartDatetime || !scenarioEndDatetime) {
-                                alert("Please fill in all required fields: Name, Location, Description, KB, Start Datetime, End Datetime.");
-                            }else if(! loadingboxloaded) {
-                                alert("Please Define a shape or wait the loading of the road graph");
-                            }
-                            else if (new Date(scenarioStartDatetime) >= new Date(scenarioEndDatetime)) {
-                                alert("Start Datetime must be before End Datetime.");
-                            }else if (scenarioareaOfInterest.length == 0) {
-                                alert("Select an areaOfInterest.");
-                            } else{  
-                                // quindi se li hanno messi bene a questo punto riprendo i dati dall'istanzedeisensorichestoconsiderando
-                                // sperando che mantenga lo stato consistente.... Yess lo tiene ;)                            
-                                const sensoriArray = istanzedeisensorichestoconsiderando.map(ilSensore => {
-                                    return {
-                                        sensorUri: ilSensore.sensorUri,
-                                        considered: ilSensore.considerato,
-                                        virtual: ilSensore.alContorno,
-                                        coordinates: ilSensore.coordinates
-                                    };
-                                });
-                                //associo ad ogni sensore il segment stradale più vicino dato il grafo
-                                // Itera attraverso gli istanzi dei sensori
-                                const sensoriArrayConStradaVicina = sensoriArray.map(sensore => {
-                                    // Inizializza delle variabili per tenere traccia della strada più vicina e della sua distanza
-                                    let stradaVicina = null;
-                                    let distanzaMinima = Infinity;
-                                    // Itera attraverso le informazioni della strada per trovare quella più vicina
-                                    istanzedelgrafochestoconsiderando.forEach(strada => {
-                                        // Calcola la distanza tra il sensore e il segmento stradale
-                                        const distanza = Math.sqrt(
-                                            Math.pow(sensore.coordinates[1] - strada.nALat, 2) +
-                                            Math.pow(sensore.coordinates[0] - strada.nALong, 2)
-                                        );
+            $("#scenario-save").click(async function() {
+               //SAVE SCENARIO EDITOR
+			var scenarioareaOfInterest = scenaryData.features;
+			var scenarioName = $("#scenario-name").val();
+			var scenarioLocation = $("#scenario-location").val();
+			var scenarioDescription = $("#scenario-description").val();
+			var scenarioreferenceKB = $("#scenario-referenceKB").val();
+			var scenarioModality = $("#scenario-modality").val();
+			var scenariosourceData = $("#scenario-sourceData").val();
+			var scenarioStartDatetime = $("#scenario-startDatetime").val();
+			var scenarioEndDatetime = $("#scenario-endDatetime").val();
+            /////////////
+            var enableRoadGraph = $('#scenario-roadData').val();
+            var enableTrafficSensors = $('#scenario-trafficData').val();
+            var enableOtherSensors = $('#scenario-otherData').val();
+            //////////////
+			if (!scenarioName || !scenarioLocation || !scenarioDescription || !scenarioreferenceKB || !scenarioStartDatetime || !scenarioEndDatetime) {
+				alert("Please fill in all required fields: Name, Location, Description, KB, Start Datetime, End Datetime.");
+			} else if (!loadingboxloaded) {
+				alert("Please Define a shape or wait the loading of the road graph");
+			} else if (new Date(scenarioStartDatetime) >= new Date(scenarioEndDatetime)) {
+				alert("Start Datetime must be before End Datetime.");
+			} else if (scenarioareaOfInterest.length == 0) {
+				alert("Select an areaOfInterest.");
+			} else {             
+                //BOLOGNA
+                //istanzedeisensorichestoconsiderando = JSON.parse(istanzedeisensorichestoconsiderando);
+                /*var nuovi_dati = Object.values(roadElementGraph.deepCopySegments());
+                    console.log(nuovi_dati);
+                */
 
-                                        // Se la distanza è minore di quella minima precedentemente registrata, aggiorna la strada più vicina
-                                        if (distanza < distanzaMinima) {
-                                            distanzaMinima = distanza;
-                                            stradaVicina = strada;
-                                        }
-                                    });
-                                    // Aggiungi le informazioni sulla strada più vicina all'oggetto del sensore
-                                    sensore.nearestRoad = stradaVicina;
-                                    // Restituisci l'oggetto del sensore con le informazioni sulla strada più vicina
-                                    return sensore;
-                                });                            
-                                // mi creo lo scenarioData che non è altro che il json di uscita di questo tuul diciamo                                                                                                
-                                scenarioData = {
-                                    "metadata": {
-                                        "dateObserved": new Date().toISOString(),
-                                        //"name": "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/deviceName" +  scenarioName,
-                                        "name": ilbrokerdellorganizzazione + "_" + lorganizzazione + "_deviceName" +  scenarioName,
-                                        "location": scenarioLocation,
-                                        "description": scenarioDescription,
-                                        "modality": scenarioModality,
-                                        "referenceKB": scenarioreferenceKB,                                    
-                                        "sourceData": scenariosourceData,
-                                        "startTime": scenarioStartDatetime,
-                                        "endTime": scenarioEndDatetime,
-                                        "organization": orgParams['orgId']
-                                    },
-                                    "shape": {
-                                        "scenarioareaOfInterest": scenarioareaOfInterest
-                                    },
-                                    //"sensors": sensoriArray,
-                                    "sensors": sensoriArrayConStradaVicina,
-                                    "roadGraph": "istanzedelgrafochestoconsiderando"                                                    
-                                };
-                                // // e qui rimane il codice per fare il download del json risultante                            
-                                // var jsonString = JSON.stringify(scenarioData, null, 2);
-                                // var blob = new Blob([jsonString], { type: "application/json" });
-                                // var url = URL.createObjectURL(blob);
-                                // var a = document.createElement("a");
-                                // a.href = url;
-                                // a.download = "scenario_data.json";
-                                // a.textContent = "Download JSON";
-                                // document.body.appendChild(a);
-                                // a.click();
-                                // document.body.removeChild(a);
-                                // URL.revokeObjectURL(url);   
-                                // mi creo il device sendDataINIT
-                                //console.log("creo il device per lo scenario! ") 
-                                ilpoly = getPolygonWKTFromScenarioArea(scenarioareaOfInterest);
-                                const coordinates = ilpoly
-                                .match(/\d+\.\d+\s\d+\.\d+/g)
-                                .map(coord => coord.split(' ').map(Number));
-                                // Calcola il centroide
-                                const centroid = coordinates.reduce(
-                                (acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
-                                [0, 0]
-                                );
-                                centroid[0] /= coordinates.length;
-                                centroid[1] /= coordinates.length;
-                                await getLAccessToken(); // metto nella variabile di riferimento il ttttokken                           
-                                // includo il codice di Alberto per la creazione del device e invio dati per la versione INIT
-                                adesso = new Date().toISOString();
-                                ildevicename = "deviceName" + scenarioName;                                
-                                // Usa la funzione showNotification per mostrare un messaggio di successo
-                                creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
-                                if (creato == "ok") {
-                                    showNotification("Il dispositivo è stato creato con successo!");
-                                    //console.log("mando i dati TFRSDevice init");
-                                    try {
-                                        initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);            
-                                        // gestisco il salvataggio roadGraph nel mysql processloader_db e tabella bigdatafordevice del roadGraph per poi da nodered generare l'AC e JS20                                       
-                                        sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  ildevicename, { "roadGraph": istanzedelgrafochestoconsiderando})
-                                        .then(data => {
-                                            console.log('Risposta dal server:', data);
-                                        })
-                                        .catch(error => {
-                                            console.error('Si è verificato un errore:', error);
-                                        });
-                                        // Aggiungi un ritardo di 1 secondo tra le notifiche
-                                        setTimeout(() => {
-                                            showNotification("E i dati iniziali sono stati inviati con successo!");
-                                        }, 1000);                          
-                                        // Se entrambe le operazioni sono andate bene, mostra un messaggio di completamento
-                                        setTimeout(() => {
-                                            showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
-                                        }, 2000);
-                                    } catch (error) {
-                                        console.error("Errore nell'invio dei dati iniziali:", error);
-                                        showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
-                                    }
-                                } else {
-                                    console.error("Errore nella creazione del dispositivo:", creato);                                    
-                                    try {
-                                        initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
-                                        sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  ildevicename, istanzedelgrafochestoconsiderando)
-                                        .then(data => {
-                                            console.log('Risposta dal server:', data);
-                                        })
-                                        .catch(error => {
-                                            console.error('Si è verificato un errore:', error);
-                                        });      
-                                        if(initdatainviati=="dati_init_si"){
-                                            showNotification("I dati iniziali sono stati inviati con successo!");
-                                            // Se entrambe le operazioni sono andate bene, mostra un messaggio di completamento
-                                            setTimeout(() => {
-                                                showNotification("Ora puoi andare sul sito NR e continuare in seguito.");
-                                            }, 1000); 
-                                        }else{
-                                            console.error("Errore nell'invio dei dati iniziali:", error);
-                                            showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
-                                        }                                                                        
-                                    } catch (error) {
-                                        console.error("Errore nell'invio dei dati iniziali:", error);
-                                        showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
-                                    }
-                                }
-                            }                            
-                        });                                                                                         
+				const sensoriArray = istanzedeisensorichestoconsiderando.map(ilSensore => {
+					return {
+						sensorUri: ilSensore.sensorUri,
+						considered: ilSensore.considerato,
+						virtual: ilSensore.alContorno,
+						coordinates: ilSensore.coordinates
+					};
+				});
+                ////////
 
-                    }                        
-                }); 
-
-                //##################################################################################################
-                //################### REMOVE TRAFFIC SCENARY BUILDER EVENT #########################################
-                //##################################################################################################
-                
-                //rimuovo tutto
-                $(document).on('removeTrafficScenary', function (event) {
-                    // gestisco quando l'utente clicca sul rimuovi lo scenario builder
-                    //console.log("removeTrafficScenary sent!");
-                    if (event.target === map.mapName) {
-                        //levo il drawer control
-                        map.defaultMapRef.removeControl(drawerControl);
-                        // levo i disegni sulla mappa 
-                        map.defaultMapRef.removeLayer(scenaryDrawnItems);                        
-                        // mi ero scordato di levare i markers ma li levo subito
-                        map.defaultMapRef.removeLayer(scenaryMarkers);
-                        // levo anche il grafo
-                        map.defaultMapRef.removeLayer(scenaryGrafo);
-                        //levo il pannello di controllo per lo scenario
-                        //map.defaultMapRef.removeControl(scenaryControl);
+                ////////////
+				const sensoriArrayConStradaVicina = sensoriArray.map(sensore => {
+					let stradaVicina = null;
+					let distanzaMinima = Infinity;
+                    //BOLOGNA
+                    var jsonIstanze_content =  $('#jsonIstanze').text();
+                    if ((jsonIstanze_content == "")||(jsonIstanze_content == undefined)){
+                            var istanzedelgrafochestoconsiderandoJSON = JSON.stringify(jsonIstanze_content);
+                            istanzedelgrafochestoconsiderando = istanzedelgrafochestoconsiderandoJSON;
                     }
-                    var scenarioToRemove = document.getElementById("scenario-div");
+                    /*if (roadElementGraph){
+                        istanzedelgrafochestoconsiderando =Object.values(roadElementGraph.deepCopySegments())
+                    }*/
+                    //istanzedelgrafochestoconsiderando = JSON.parse(istanzedelgrafochestoconsiderando);
+                    
+                    
+					istanzedelgrafochestoconsiderando.forEach(strada => {
+						const distanza = Math.sqrt(
+							Math.pow(sensore.coordinates[1] - strada.nALat, 2) +
+							Math.pow(sensore.coordinates[0] - strada.nALong, 2)
+						);
+
+						if (distanza < distanzaMinima) {
+							distanzaMinima = distanza;
+							stradaVicina = strada;
+						}
+					});
+					sensore.nearestRoad = stradaVicina;
+					return sensore;
+				});                                                                                              
+				scenarioData = {
+					"metadata": {
+						"dateObserved": new Date().toISOString(),
+						"name": ilbrokerdellorganizzazione + "_" + lorganizzazione + "_deviceName" + scenarioName,
+						"location": scenarioLocation,
+						"description": scenarioDescription,
+						"modality": scenarioModality,
+						"referenceKB": scenarioreferenceKB,
+						"sourceData": scenariosourceData,
+						"startTime": scenarioStartDatetime,
+						"endTime": scenarioEndDatetime,
+                        "enableRoadGraph":enableRoadGraph,
+                        "enableTrafficSensors":enableTrafficSensors,
+                        "enableOtherSensors":enableOtherSensors,
+						"organization": orgParams['orgId']
+					},
+					"shape": {
+						"scenarioareaOfInterest": scenarioareaOfInterest
+					},
+					"sensors": sensoriArrayConStradaVicina,
+					//"roadGraph": Object.values(roadElementGraph.deepCopySegments()), 
+                    "roadGraph": "istanzedelgrafochestoconsiderando",  //in prod mettere tra virgolette "istanzedelgrafochestoconsiderando"
+				};
+				ilpoly = getPolygonWKTFromScenarioArea(scenarioareaOfInterest);
+				const coordinates = ilpoly
+					.match(/\d+\.\d+\s\d+\.\d+/g)
+					.map(coord => coord.split(' ').map(Number));
+				const centroid = coordinates.reduce(
+					(acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
+					[0, 0]
+				);
+				centroid[0] /= coordinates.length;
+				centroid[1] /= coordinates.length;
+                //TEST OUTPUT
+                /*
+                var jsonString = JSON.stringify(scenarioData, null, 2);
+				var blob = new Blob([jsonString], { type: "application/json" });
+				var url = URL.createObjectURL(blob);
+				var a = document.createElement("a");
+				a.href = url;
+				a.download = "scenario_data_test.json";
+				a.textContent = "Download JSON";
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(url);   
+                console.log("DATI STRINGHE");*/
+                //END OUTPOUT
+				await getLAccessToken();                          
+				adesso = new Date().toISOString();
+				ildevicename = "deviceName" + scenarioName;
+				creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
+				if (creato == "ok") {
+					showNotification("Il dispositivo è stato creato con successo!");
+					try {
+						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);                                     
+						sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
+								"roadGraph": istanzedelgrafochestoconsiderando
+							})
+							.then(data => {
+								console.log('Risposta dal server:', data);
+							})
+							.catch(error => {
+								console.error('Si è verificato un errore:', error);
+							});
+						setTimeout(() => {
+							showNotification("E i dati iniziali sono stati inviati con successo!");
+						}, 1000);
+						setTimeout(() => {
+							showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
+						}, 2000);
+					} catch (error) {
+						console.error("Errore nell'invio dei dati iniziali:", error);
+						showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+					}
+				} else {
+					console.error("Errore nella creazione del dispositivo:", creato);
+					try {
+						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
+						sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, istanzedelgrafochestoconsiderando)
+							.then(data => {
+								console.log('Risposta dal server:', data);
+							})
+							.catch(error => {
+								console.error('Si è verificato un errore:', error);
+							});
+						if (initdatainviati == "dati_init_si") {
+							showNotification("I dati iniziali sono stati inviati con successo!");
+							setTimeout(() => {
+								showNotification("Ora puoi andare sul sito NR e continuare in seguito.");
+							}, 1000);
+						} else {
+							console.error("Errore nell'invio dei dati iniziali:", error);
+							showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+						}
+					} catch (error) {
+						console.error("Errore nell'invio dei dati iniziali:", error);
+						showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+					}
+				}
+			}
+		});
+					//////////////************/*******///////////// */
+
+				}
+				//////
+        //################ cancel function dei metadati del builder ######################################
+
+		$("#scenario-cancel").click(function() {
+            console.log('CLICK ON CANCEL');
+            roadElementGraph.clearSegments();
+            roadElementGraph.clearNodes();
+            //Object.values(roadElementGraph.deepCopySegments());
+            ///
+			if (scenaryData.features.length >= 0) {
+				// Rimuovi i layer dei disegni
+				for (const layerId in scenaryDrawnItems._layers) {
+					scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+				}
+				scenaryData.features = []; // reinizializzo questa variabile
+				// Rimuovi i marker associati
+				for (const layerId in scenaryMarkers._layers) {
+					const marker = scenaryMarkers._layers[layerId];
+					scenaryMarkers.removeLayer(marker);
+				}
+				// Rimuovi il vecchio grafo
+				for (const layerId in scenaryGrafo._layers) {
+					const grafo = scenaryGrafo._layers[layerId];
+					scenaryGrafo.removeLayer(grafo);
+				}
+				datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+				istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+				istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+			}
+			// qui gestisco il cancel ovvero se l'utente vuole resettare il control panel via
+			$("#scenario-name").val("");
+			$("#scenario-location").val("");
+			$("#scenario-description").val("");
+			$("#scenario-startDatetime").val("");
+			$("#scenario-modality").val("generic");
+			$("#scenario-modality").val("sensors");
+			$("#scenario-referenceKB").val("");
+			$("#scenario-endDatetime").val("");
+			scenaryData = new L.geoJSON();
+			scenaryData.type = "FeatureCollection";
+			scenaryData.features = [];
+		});
+
+		//##################### salvo lo scenario ##################################################
+
+			} catch (error) {
+				console.error("An error occurred:", error.message);
+			}
+			//Funzione per attivare la modiche delle polyline
+            /////////
+		});
+
+
+
+
+		$("#view_mod").click(async function() {
+			//alert('View modality activated');
+            $('#segmentLabel').hide();
+            $('#menu-lines').hide();
+            if(roadElementGraph){
+            roadElementGraph.mode = "view";
+            //roadElementGraph.addEventListeners();
+            }
+			//$('#activemod').text('View modality');
+			$('#currentStatusEdit').val('view');
+            //console.log(map);
+            $("#view_mod").css('background-color','#3E64A6');
+            $("#view_mod").css('color','white');
+            $("#edit_lines").css('background-color','');
+            $("#edit_lines").css('color','black');
+            //scenario-edit-form
+            // Trova l'elemento con la classe "leaflet-draw" nell'intero documento
+            var drawControl = document.querySelector('.leaflet-draw');
+            if (drawControl) {
+            drawControl.parentNode.removeChild(drawControl);
+            }
+
+            var scenarioToRemove = document.getElementById("modality-load");
                     if(scenarioToRemove){
                         scenarioToRemove.remove();
                         isSaveFinalSet = false;
                     }
+			//$('#showStreetGraph').hide();
+            var scenarioToRemove = document.getElementById("scenario-edit-form");
+                    if(scenarioToRemove){
+                        scenarioToRemove.remove();
+                        isSaveFinalSet = false;
+                    }
+			try {
+				////
+				if (scenaryData.features.length >= 0) {
+					//console.log(sparqlQuery);
+					for (const layerId in scenaryGrafo._layers) {
+						const grafo = scenaryGrafo._layers[layerId];
+						scenaryGrafo.removeLayer(grafo);
+					}
+					datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+					istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+					istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+					//fetchSparqlData(sparqlQuery);
+                   
+					//////////////////////////////////////////////////////////////
+					var scenaryControl3 = L.control({
+						position: 'topright'
+					});
+					scenaryControl3.onAdd = function(map) {
+						var div3 = L.DomUtil.create('div');
+						var currentStatusEdit = $('#currentStatusEdit').val();
+                        div3.id = "modality-load";
+						div3.innerHTML = `<div id="scenario-div">
+                                                        <div id="notification" style="display: none;">
+                                                            <p id="notification-message">bells</p>
+                                                        </div>                                    
+                                                        <div id="scenario-content">                                        
+                                                            <div id="acc-content">
+                                                                <!-- Contenuto per la modalità accorpata -->
+                                                                <table>
+                                                                    <tr>
+                                                                        <td><label>Type of Scenario:</label></td>
+                                                                        <td>
+                                                                            <input type="radio" id="acc-type-init" name="scenario-type" value="init">
+                                                                            <label for="acc-type-init">Init</label>
+
+                                                                            <input type="radio" id="acc-type-acc" name="scenario-type" value="acc">
+                                                                            <label for="acc-type-acc">Acc</label>
+
+                                                                            <input type="radio" id="acc-type-tdm" name="scenario-type" value="tdm">
+                                                                            <label for="acc-type-tdm">TDM</label>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <td id="scenario-init-row" style="display: none;">                                                    
+                                                                            <label for="scenario-init-list">Scenarios waiting to be processed:</label>
+                                                                            <input type="text" id="search-scenario-init" placeholder="Search...">      
+                                                                            <ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul>                                                                                              
+                                                                    </td>                                                                      
+                                                                    <tr id="scenario-list-row" style="display: none;">
+                                                                        <td><label for="scenario-list">Scenario List:</label></td>
+                                                                        <td>
+                                                                            <select id="scenario-list" name="scenario-list"></select>
+                                                                        </td>
+                                                                        <td colspan="2">
+                                                                            <button id="scenario-check-acc1">Load ACC</button>
+                                                                        </td>
+                                                                    </tr>                                                         
+                                                                    <tr id="scenario-tdm-row" style="display: none;">
+                                                                        <td>
+                                                                            <label for="search-scenario-tdm">Scenarios processed check the TFRS Manager:</label>
+                                                                            <input type="text" id="search-scenario-tdm" placeholder="Search...">
+                                                                            <ul id="scenario-tdm-list" style="max-height: 120px; overflow: auto;"></ul>  
+                                                                        </td>                                                    
+                                                                    </tr>
+                                                                    <!-- questo era il codice in cui mettevi il nome dello scenario e via
+                                                                    <tr>
+                                                                        <td><label for="scenario-name">Scenario name:</label></td>
+                                                                        <td><input id="scenario-name1" type="text" name="name" placeholder="Scenario name"></td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td colspan="2">
+                                                                            <button id="scenario-check-acc1">Load ACC</button>
+                                                                        </td>
+                                                                    </tr>-->
+                                                                </table>
+                                                            </div>
+                                                        </div>                                
+                                                    </div>`;
+                                                /////
+                                                ////
+                                        // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+                                                if (L.Browser.touch) {
+                                                    L.DomEvent.disableClickPropagation(div3);
+                                                    L.DomEvent.on(div3, 'mousewheel', L.DomEvent.stopPropagation);
+                                                } else {
+                                                    L.DomEvent.on(div3, 'click', L.DomEvent.stopPropagation);
+                                                }
+                                                return div3;
+                                            ////   
+                                        }
+                                        scenaryControl3.addTo(map.defaultMapRef); 
+					///////////////////
+                    ///////////////
+				}
+				//////
+
+			} catch (error) {
+				console.error("An error occurred:", error.message);
+			}
+            //sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT);
+           
+                //////////////VIEW CHANGING ///////////
+                            $("input[name='scenario-type']").change(async function() {
+                                                    // Ottieni l'ID del radio button selezionato
+                                                    var selectedId = $(this).attr("id");
+                                                    console.log('change: '+selectedId);
+
+                                                    // Determina il tipo di scenario in base all'ID
+                                                    var scenarioType;
+                                                    if (selectedId === "acc-type-init") {
+                                                        scenarioType = "init";
+                                                        // Nascondi la lista degli scenari se il tipo non è "ACC"
+                                                        $("#scenario-list-row").hide();
+                                                        //$("scenario-init-row").show()
+                                                        document.getElementById("scenario-init-row").style.display = "block";
+                                                        document.getElementById("scenario-tdm-row").style.display = "none";
+                                                        var initScenarios1 = await getScenarios(scenarioType);
+                                                        var initScenarios2 = await getScenarios("");
+                                                        var initScenarios = initScenarios1.concat(initScenarios2); 
+                                                        //console.log(initScenarios);
+                                                        var scenarioInitList = $("#scenario-init-list");
+
+                                                        var searchInput = $("#search-scenario-init");
+                                                        searchInput.on("input", function () {
+                                                            var searchTerm = $(this).val().toLowerCase();
+                                                            filterScenarios(initScenarios, searchTerm);
+                                                        });
+
+                                                        scenarioInitList.empty();
+                                                        initScenarios.forEach(scenario => {
+                                                            var optionValue = scenario.replace("deviceName", "");
+                                                            var optionText = optionValue + " -> " + scenario;
+                                                            var listItem = $("<p>").text(optionText);
+                                                            scenarioInitList.append(listItem);
+                                                        });
+
+                                                        pulisciTutto();
+                                        
+                                                        function filterScenarios(scenarios, searchTerm) {
+                                                            var scenarioInitList = $("#scenario-init-list");
+                                                            scenarioInitList.empty();
+
+                                                            scenarios.forEach(scenario => {
+                                                                // Modificato il confronto per verificare se il termine di ricerca è incluso nel testo del paragrafo
+                                                                if (scenario.toLowerCase().includes(searchTerm)) {
+                                                                    var optionValue = scenario.replace("deviceName", "");
+                                                                    var optionText = optionValue + " -> " + scenario;
+                                                                    var listItem = $("<p>").text(optionText);                            
+                                                                    scenarioInitList.append(listItem);
+                                                                }
+                                                            });
+                                                        }
+                                                    } else if (selectedId === "acc-type-acc") {
+                                                        scenarioType = "acc";
+                                                        // Mostra la lista degli scenari solo se il tipo è "ACC"
+                                                        $("#scenario-list-row").show();
+                                                        //$("scenario-init-list-row").hide()
+                                                        document.getElementById("scenario-init-row").style.display = "none";
+                                                        document.getElementById("scenario-tdm-row").style.display = "none";
+                                                        // Popola la lista degli scenari ACC
+                                                        var accScenarios = await getScenarios(scenarioType);
+                                                        //console.log(accScenarios);
+                                                        var scenarioList = $("#scenario-list");
+                                                        scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
+                                                        accScenarios.forEach(scenario => {
+                                                            var option = $("<option>").val(scenario).text(scenario);
+                                                            scenarioList.append(option);
+                                                        });
+                                                        pulisciTutto();
+                                                    } else if (selectedId === "acc-type-tdm") {
+                                                        
+                                                        scenarioType = "tdm";
+                                                        $("#scenario-list-row").hide();
+                                                        $("#scenario-init-row").hide();
+                                                        $("#scenario-tdm-row").show();
+
+                                                        var tdmScenarios = await getScenarios(scenarioType);
+                                                        //console.log(tdmScenarios);
+                                                        var scenarioTDMList = $("#scenario-tdm-list");
+
+                                                        var searchInputTDM = $("#search-scenario-tdm");
+                                                        searchInputTDM.on("input", function () {
+                                                            var searchTermTDM = $(this).val().toLowerCase();
+                                                            filterScenariosTDM(tdmScenarios, searchTermTDM);
+                                                        });
+
+                                                        scenarioTDMList.empty();
+                                                        tdmScenarios.forEach(scenario => {
+
+                                                            var optionValue = scenario.replace("deviceName", "");
+                                                            var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                                                            var listItem = $("<p>").text(optionText); 
+                                                            scenarioTDMList.append(listItem);
+                                                        });
+                                                        pulisciTutto();
+                                                        function filterScenariosTDM(scenarios, searchTerm) {
+                                                            var scenarioTDMList = $("#scenario-tdm-list");
+                                                            scenarioTDMList.empty();
+
+                                                            scenarios.forEach(scenario => {
+                                                                if (scenario.toLowerCase().includes(searchTerm)) {
+                                                                    var optionValue = scenario.replace("deviceName", "");
+                                                                    var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                                                                    var listItem = $("<p>").text(optionText);      
+                                                                    scenarioTDMList.append(listItem);
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+
+                                                    if (scenarioType) {
+                                                        console.log("Scenario type selected: " + scenarioType);
+                                                        // Esegui qui le azioni specifiche in base al tipo di scenario
+                                                    } else {
+                                                        console.error("Errore nel determinare il tipo di scenario.");
+                                                    }
+                                                });
+                            /////END VIEW CHANGING
+                            fetchSparqlData(sparqlQuery, polygonWKT);
+			//Funzione per attivare la modiche delle polyline 
+		});
+    }
+
+    //////////////VIEW CHANGING ///////////
+    $("input[name='scenario-type']").change(async function() {
+                            // Ottieni l'ID del radio button selezionato
+                            var selectedId = $(this).attr("id");
+                            console.log('change: '+selectedId);
+
+                            // Determina il tipo di scenario in base all'ID
+                            var scenarioType;
+                            if (selectedId === "acc-type-init") {
+                                scenarioType = "init";
+                                // Nascondi la lista degli scenari se il tipo non è "ACC"
+                                $("#scenario-list-row").hide();
+                                //$("scenario-init-row").show()
+                                document.getElementById("scenario-init-row").style.display = "block";
+                                document.getElementById("scenario-tdm-row").style.display = "none";
+                                var initScenarios1 = await getScenarios(scenarioType);
+                                var initScenarios2 = await getScenarios("");
+                                var initScenarios = initScenarios1.concat(initScenarios2); 
+                                //console.log(initScenarios);
+                                var scenarioInitList = $("#scenario-init-list");
+
+                                var searchInput = $("#search-scenario-init");
+                                searchInput.on("input", function () {
+                                    var searchTerm = $(this).val().toLowerCase();
+                                    filterScenarios(initScenarios, searchTerm);
+                                });
+
+                                scenarioInitList.empty();
+                                initScenarios.forEach(scenario => {
+                                    var optionValue = scenario.replace("deviceName", "");
+                                    var optionText = optionValue + " -> " + scenario;
+                                    var listItem = $("<p>").text(optionText);
+                                    scenarioInitList.append(listItem);
+                                });
+
+                                pulisciTutto();
+                 
+                                function filterScenarios(scenarios, searchTerm) {
+                                    var scenarioInitList = $("#scenario-init-list");
+                                    scenarioInitList.empty();
+
+                                    scenarios.forEach(scenario => {
+                                        // Modificato il confronto per verificare se il termine di ricerca è incluso nel testo del paragrafo
+                                        if (scenario.toLowerCase().includes(searchTerm)) {
+                                            var optionValue = scenario.replace("deviceName", "");
+                                            var optionText = optionValue + " -> " + scenario;
+                                            var listItem = $("<p>").text(optionText);                            
+                                            scenarioInitList.append(listItem);
+                                        }
+                                    });
+                                }
+                            } else if (selectedId === "acc-type-acc") {
+                                scenarioType = "acc";
+                                // Mostra la lista degli scenari solo se il tipo è "ACC"
+                                $("#scenario-list-row").show();
+                                //$("scenario-init-list-row").hide()
+                                document.getElementById("scenario-init-row").style.display = "none";
+                                document.getElementById("scenario-tdm-row").style.display = "none";
+                                // Popola la lista degli scenari ACC
+                                var accScenarios = await getScenarios(scenarioType);
+                                //console.log(accScenarios);
+                                var scenarioList = $("#scenario-list");
+                                scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
+                                accScenarios.forEach(scenario => {
+                                    var option = $("<option>").val(scenario).text(scenario);
+                                    scenarioList.append(option);
+                                });
+                                pulisciTutto();
+                            } else if (selectedId === "acc-type-tdm") {
+                                
+                                scenarioType = "tdm";
+                                $("#scenario-list-row").hide();
+                                $("#scenario-init-row").hide();
+                                $("#scenario-tdm-row").show();
+
+                                var tdmScenarios = await getScenarios(scenarioType);
+                                //console.log(tdmScenarios);
+                                var scenarioTDMList = $("#scenario-tdm-list");
+
+                                var searchInputTDM = $("#search-scenario-tdm");
+                                searchInputTDM.on("input", function () {
+                                    var searchTermTDM = $(this).val().toLowerCase();
+                                    filterScenariosTDM(tdmScenarios, searchTermTDM);
+                                });
+
+                                scenarioTDMList.empty();
+                                tdmScenarios.forEach(scenario => {
+
+                                    var optionValue = scenario.replace("deviceName", "");
+                                    var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                                    var listItem = $("<p>").text(optionText); 
+                                    scenarioTDMList.append(listItem);
+                                });
+                                pulisciTutto();
+                                function filterScenariosTDM(scenarios, searchTerm) {
+                                    var scenarioTDMList = $("#scenario-tdm-list");
+                                    scenarioTDMList.empty();
+
+                                    scenarios.forEach(scenario => {
+                                        if (scenario.toLowerCase().includes(searchTerm)) {
+                                            var optionValue = scenario.replace("deviceName", "");
+                                            var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                                            var listItem = $("<p>").text(optionText);      
+                                            scenarioTDMList.append(listItem);
+                                        }
+                                    });
+                                }
+                            }
+
+                            if (scenarioType) {
+                                console.log("Scenario type selected: " + scenarioType);
+                                // Esegui qui le azioni specifiche in base al tipo di scenario
+                            } else {
+                                console.error("Errore nel determinare il tipo di scenario.");
+                            }
+                        });
+    /////END VIEW CHANGING
+});
+
+        //
+     
+                ///
+                //##################################################################################################
+                //################### REMOVE TRAFFIC SCENARY BUILDER EVENT #########################################
+                //##################################################################################################       
+                //rimuovo tutto
+                $(document).on('removeTrafficScenary', function (event) {
+                    // gestisco quando l'utente clicca sul rimuovi lo scenario builder
+                    console.log("removeTrafficScenary sent!");
+                    if (event.target === map.mapName) {
+                                        //levo il drawer control
+                                        map.defaultMapRef.removeControl(drawerControl);
+                                        // levo i disegni sulla mappa 
+                                        map.defaultMapRef.removeLayer(scenaryDrawnItems);                        
+                                        // mi ero scordato di levare i markers ma li levo subito
+                                        map.defaultMapRef.removeLayer(scenaryMarkers);
+                                        // levo anche il grafo
+                                        map.defaultMapRef.removeLayer(scenaryGrafo);
+                                        //levo il pannello di controllo per lo scenario
+                                        //map.defaultMapRef.removeControl(scenaryControl);
+                                        map.defaultMapRef.off('draw:created');
+                                    
+                                //var modalityToRemove = document.getElementById("scenario-div");
+                                var modalityToRemove = document.getElementById("modality-load");
+                                    if(modalityToRemove){
+                                        modalityToRemove.remove();
+                                        isSaveFinalSet = false;
+                                    }
+                                    //
+                                var scenarioToRemove = document.getElementById("select-modality");
+                                //var modalityToRemove = document.getElementById("modality-load");
+                                var scenarioEditRemove = document.getElementById("scenario-edit-form");
+                                var scenary_selectorRemove = document.getElementById("scenary_selector");
+                                //
+                                    var menulines = document.getElementById("menu-lines");
+
+                                    var jsonIstanze = document.getElementById("jsonIstanze");
+                                //
+                                var drawControl = document.querySelector('.leaflet-draw');
+                                    //
+                                    if(scenarioToRemove){
+                                        scenarioToRemove.remove();
+                                        isSaveFinalSet = false;
+                                    }
+
+                                    if(modalityToRemove){
+                                        modalityToRemove.remove();
+                                        isSaveFinalSet = false;
+                                    }
+
+                                    if(scenarioEditRemove){
+                                        scenarioEditRemove.remove();
+                                        isSaveFinalSet = false;
+                                    }
+
+                                    if(menulines){
+                                        menulines.remove();
+                                        isSaveFinalSet = false;
+                                    }
+
+                                    if(roadElementGraph){
+                                        //roadElementGraph.clearSegments();
+                                        //roadElementGraph.clearNodes();
+                                        roadElementGraph.reset();
+                                        $('#jsonIstanze').text('');
+                                        //istanzedelgrafochestoconsiderando = []; 
+                                        console.log('r3eset roadElements');
+                                    }
+                                //
+                                if (drawControl) {
+                                    drawControl.parentNode.removeChild(drawControl);
+                                    isSaveFinalSet = false;
+                                    }
+                                //
+                                if(jsonIstanze){
+                                    jsonIstanze.remove();
+                                    delete roadElementGraph;
+                                    isSaveFinalSet = false;
+                                }else{
+                                    console.log('No Road Element Graph');
+                                }
+
+                                if(scenary_selectorRemove){
+                                        scenary_selectorRemove.remove();
+                                        isSaveFinalSet = false;
+                                    }
+                }
+                //
                 });
+               
                
                 // provo a disaccoppiare la fase post creazione scenari
                 $(document).on('Fase2addTrafficScenar', function (event) {    
@@ -8719,6 +10925,7 @@ if (!isset($_SESSION)) {
                         var scenaryControl = L.control({position: 'topright'});
                         scenaryControl.onAdd = function (map) {
                             var div = L.DomUtil.create('div');
+                            div.id = "modality-load";
                             div.innerHTML = `
                                 <div id="scenario-div">
                                     <div id="notification" style="display: none;">
@@ -9079,7 +11286,7 @@ if (!isset($_SESSION)) {
                                                 let areaOfInt = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value);
                                                 ilpolygonWKT = getPolygonWKTFromScenarioArea(areaOfInt.scenarioareaOfInterest);
                                                 svoltesparqlquery = buildSparqlQueryURLsvolte(ilpolygonWKT);
-                                                //console.log(svoltesparqlquery)
+                                                console.log(svoltesparqlquery)
                                                 let ressvolte = await fetchSparqlDataSvolte(svoltesparqlquery);
                                                 let svolte = ressvolte.results.bindings;
                                                 await getLAccessToken();                                            
@@ -9405,7 +11612,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addOperatorEventToMap();
@@ -9520,14 +11727,13 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addTrafficEventToMap();
                         }
 
                         //console.log(map.eventsOnMap.length);
-
                       //  resizeMapView(map.defaultMapRef);
                     }
                 });
@@ -9567,8 +11773,14 @@ if (!isset($_SESSION)) {
                             }
                         });
                         map.defaultMapRef.addControl(drawerControl);
+
+                        
+
+
                         
                         map.defaultMapRef.on('draw:created', function(e) {
+                            console.log('Re drawing');
+                            $('#jsonIstanze').text('');
                             var type = e.layerType,
                                 layer = e.layer;
                             var curGeojson = layer.toGeoJSON();
@@ -11284,7 +13496,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addTrafficRTDetailsToMap();
@@ -11979,7 +14191,7 @@ if (!isset($_SESSION)) {
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 18
+                                        maxZoom: 23
                                     }).addTo(map.defaultMapRef);
 
                                     addHeatmapFromClient(false);
@@ -12110,7 +14322,7 @@ if (!isset($_SESSION)) {
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 18
+                                        maxZoom: 23
                                     }).addTo(map.defaultMapRef);
 
                                     addHeatmapFromClient(false);
@@ -12480,7 +14692,7 @@ if (!isset($_SESSION)) {
 	                                // Get dataset name and metadata API url from passed data
 	                                const datasetName = baseQuery.split("WMS&layers=")[1].split("&")[0];
 	                                const apiUrl = geoServerUrl + "trafficflowmanager/api/metadata?fluxName=" + datasetName;
-
+console.log(apiUrl);
 	                                // Get layers metadata from API
 	                           //     heatmapData = null;
 	                                $.ajax({
@@ -13668,7 +15880,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addHeatmapToMap();
@@ -14544,7 +16756,7 @@ if (!isset($_SESSION)) {
                                             });
                                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                maxZoom: 18
+                                                maxZoom: 23
                                             }).addTo(map.defaultMapRef);
 
                                             addOdFromClient();
@@ -14609,7 +16821,7 @@ if (!isset($_SESSION)) {
                                         });
                                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                            maxZoom: 18
+                                            maxZoom: 23
                                         }).addTo(map.defaultMapRef);
 
                                         addOdFromClient();
@@ -14665,7 +16877,7 @@ if (!isset($_SESSION)) {
                                         });
                                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                            maxZoom: 18
+                                            maxZoom: 23
                                         }).addTo(map.defaultMapRef);
 
                                         addOdFromClient();
@@ -14725,7 +16937,7 @@ if (!isset($_SESSION)) {
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 18
+                                        maxZoom: 23
                                     }).addTo(map.defaultMapRef);
 
                                     addOdFromClient();
@@ -14785,7 +16997,7 @@ if (!isset($_SESSION)) {
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 18
+                                        maxZoom: 23
                                     }).addTo(map.defaultMapRef);
 
                                     addOdFromClient();
@@ -14845,7 +17057,7 @@ if (!isset($_SESSION)) {
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 18
+                                        maxZoom: 23
                                     }).addTo(map.defaultMapRef);
 
                                     addOdFromClient();
@@ -15016,7 +17228,8 @@ if (!isset($_SESSION)) {
                             targetPolyID = [];
                             sourcePolyID = [];
                             sourcePolyName = [];
-                            
+                            console.log('odUrl dataQuery mapDate:');
+                            console.log(mapDate);
                             $.ajax({
                                 url: odUrl + dataQuery,
                                 async: async == 'False' ? false : true,
@@ -15179,7 +17392,6 @@ if (!isset($_SESSION)) {
                             date = tmpdatestring.split('T')[0];
                             time = tmpdatestring.split('T')[1].split('.')[0];
                             // document.getElementById("<?= $_REQUEST['name_w'] ?>_odDescr").textContent = date + ' ' + time;
-
                             mapDateSet = date + ' ' + time;
                             dateIndex = dates.findIndex((dts) => dts === mapDateSet);
 
@@ -15473,6 +17685,7 @@ if (!isset($_SESSION)) {
                                     dataType: 'json',
                                     type: "POST",
                                     success: function (data) {
+                                        console.log(data);
                                         dates = data;
                                         colors = getOdColorLegend();
                                         if (opacity != null) {
@@ -15781,7 +17994,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addOdToMap();
@@ -16367,7 +18580,7 @@ if (!isset($_SESSION)) {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 18
+                                maxZoom: 23
                             }).addTo(map.defaultMapRef);
 
                             addBimShapeEventToMap();
@@ -17401,7 +19614,7 @@ setTimeout(function() {
 
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 18
+                            maxZoom: 23
                         }).addTo(fullscreendefaultMapRef);
                         fullscreendefaultMapRef.attributionControl.setPrefix('');
                         fullscreenHeatmapFirstInstantiation = true;
@@ -19100,7 +21313,7 @@ setTimeout(function() {
                                                 removeHeatmap(false);
                                                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                    maxZoom: 18
+                                                    maxZoom: 23
                                                 }).addTo(fullscreendefaultMapRef);
                                             }
                                         }
@@ -19145,7 +21358,7 @@ setTimeout(function() {
                                             });
                                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                maxZoom: 18
+                                                maxZoom: 23
                                             }).addTo(fullscreendefaultMapRef);
 
                                             addHeatmapFromClient();
@@ -19175,7 +21388,7 @@ setTimeout(function() {
                                                 removeHeatmap(false);
                                                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                    maxZoom: 18
+                                                    maxZoom: 23
                                                 }).addTo(fullscreendefaultMapRef);
                                             }
                                         }
@@ -19220,7 +21433,7 @@ setTimeout(function() {
                                             });
                                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                maxZoom: 18
+                                                maxZoom: 23
                                             }).addTo(fullscreendefaultMapRef);
 
                                             addHeatmapFromFullscreenClient(false);
@@ -20644,7 +22857,7 @@ setTimeout(function() {
                 
                 // example of TMS for GeoServer
 //                let layer = L.tileLayer('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/ambiti_amministrativi_toscana:firenze_sat_here_z17@EPSG%3A900913@jpeg/{z}/{x}/{y}.png', {
-//                  maxZoom: 18,
+//                  maxZoom: 23,
 //                  tms: true,
 //                  crs: L.CRS.EPSG4326,
 //                  attribution: false
@@ -20704,7 +22917,28 @@ setTimeout(function() {
                 return false;
             }
 
+ 
+                    ////////
+
         });//Fine document ready
+
+
+         /////////UPDATE STREET IN SCNEARY EDITOR
+         /*
+         function updateStreet(){
+                //edit_lines
+                $("#updateStreetGraph").click();
+                 $('.leaflet-popup-close-button').click();
+             //console.log(istanzedelgrafochestoconsiderandoJSON);
+        }*/
+
+         function updateRestricitons(){
+                   $('.restinction_data').css('display','');
+                   var restrictions = $('#updateRestriction').val();
+                   $('#restrictionType').val(restrictions);
+          }
+        ///////////UPDATE STREET SCENARY////  
+ 
     </script>
 
     <style>	<!-- CORTI -->
@@ -20735,10 +22969,16 @@ setTimeout(function() {
     .leaflet-popup-content {
         margin: 0;
         line-height: 1.5;
+        width: 450px;
     }
     .leaflet-popup-tip-container {
         display: none;
     }
+
+    .leaflet-popup-content-wrapper{
+        width: 450 px;
+    }
+
 </style>
 <!-- FINE OD POPUP STYLE -->
 

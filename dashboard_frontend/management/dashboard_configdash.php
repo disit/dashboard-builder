@@ -208,7 +208,11 @@
     <!-- Custom CSS -->
     <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
     <link href="../css/dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
-    <link href="../css/addWidgetWizard.css?v=<?php echo time();?>" rel="stylesheet">
+    <?php if($_SESSION['loggedRole'] == 'RootAdmin' && isset($useOpenSearch) && $useOpenSearch == "yes") { ?>
+        <link href="../css/addWidgetWizardOS-W.css?v=<?php echo time();?>" rel="stylesheet">
+    <?php } else { ?>
+        <link href="../css/addWidgetWizard.css?v=<?php echo time();?>" rel="stylesheet">
+    <?php } ?>
     <link href="../css/addDashboardTab.css?v=<?php echo time();?>" rel="stylesheet">
     <link href="../css/dashboard_configdash.css?v=<?php echo time();?>" rel="stylesheet">
     <link href="../css/widgetCtxMenu.css?v=<?php echo time();?>" rel="stylesheet">
@@ -458,7 +462,7 @@
     <div id="editDashboardMenu">
         <div class="row">
             <a id="link_modifyDash" href="#" data-toggle="modal" data-target="#modalEditDashboard">
-                <div class="col-xs-6 col-sm-3 col-lg-1 col-lg-offset-2 dashEditMenuItemCnt">
+                <div class="col-xs-6 col-sm-3 col-lg-1 col-lg-offset-1 dashEditMenuItemCnt">
                     <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-dashboard" style="color: #00cc66"></i></div>
                     <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Properties")?></div>
                 </div>
@@ -469,6 +473,12 @@
                     <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Wizard")?></div>
                 </div>
             </a>
+        <!--    <a id="link_start_wizardOS" href="#" data-toggle="modal">
+                <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
+                    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-magic" style="color: #4169e1"></i></div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("WizardOS")?></div>
+                </div>
+            </a>    -->
             <a id="link_add_widget" href="#" data-toggle="modal">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                     <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-plus-circle" style="color: #ffcc00"></i></div>
@@ -498,6 +508,18 @@
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                 <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-cubes" style="color: #ff9933"></i></div>
                     <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Save")?></div>
+                </div>
+            </a>
+            <a id="export-dashboard" class="internalLink" href="#">
+                <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
+                <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-download" style="color: white"></i></div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Export Dashboard")?></div>
+                </div>
+            </a>
+            <a id="import-widget" class="internalLink" href="#">
+                <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
+                <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-upload" style="color: white"></i></div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Import Widget")?></div>
                 </div>
             </a>
             <a id="dashboardViewLink" href="#" target="_blank">
@@ -1195,7 +1217,11 @@
                 </div>
             
                 <div id="addWidgetWizardLabelBody" class="modal-body modalBody">
-                    <?php include "addWidgetWizardInclusionCode.php" ?>
+                    <?php if($_SESSION['loggedRole'] == 'RootAdmin' && isset($useOpenSearch) && $useOpenSearch == "yes") {
+                        include "addWidgetWizardInclusionCodeOS.php";
+                    } else { 
+                        include "addWidgetWizardInclusionCode.php";
+                    } ?>
                 </div>
                 
                 <div id="modalStartWizardFooter" class="modal-footer">
@@ -1213,6 +1239,7 @@
         </div> <!-- Fine modal dialog -->
     </div><!-- Fine modale -->
     <!-- Fine modale wizard -->
+    
     <!--Select theme-->
     <div class="modal fade" id="modal-select-theme" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog" role="document">
@@ -2581,7 +2608,57 @@
         </div> <!-- Fine modal dialog -->
     </div>
     <!-- Fine modale informazioni widget -->
-    
+
+    <!-- Modale import widget -->
+    <div class="modal fade" id="modalImportWidget" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modalHeader centerWithFlex">
+                    Import Dashboard
+                </div>
+                <input type="hidden" id="dashImportHidden" name="dashImportHidden" />
+                <div id="importWidgetModalBody" class="modal-body modalBody">
+                    <div class="row">
+                        <div id="importWidgetNameMsg" class="col-xs-12 modalCell">
+                            <div class="modalDelMsg col-xs-12 centerWithFlex">
+                                <?= _("Choose the JSON File of the Widget to Import")?>
+                            </div>
+                            <div id="importWidgetFile" class="modalDelObjName col-xs-12 centerWithFlex">
+                                <input type="file" id="jsonFile" />
+                            </div>
+                            <!--<div id="importWidgetFile" class="modalDelObjName col-xs-12 centerWithFlex"><?= _("Widget Name: ")?>
+                                <input type="text" id="dashboardName" style="color:black"/>
+                            </div>  -->
+                        </div>
+                    </div>
+                    <div class="row" id="importWidgetRunningMsg">
+                        <div class="col-xs-12 modalCell">
+                            <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Importing widget, please wait")?></div>
+                            <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>
+                        </div>
+                    </div>
+                    <div class="row" id="importWidgetOkMsg">
+                        <div class="col-xs-12 modalCell">
+                            <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Widget imported successfully")?></div>
+                            <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                        </div>
+                    </div>
+                    <div class="row" id="importWidgetKoMsg">
+                        <div class="col-xs-12 modalCell">
+                            <div id = "importWidgetErrorText" class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Error importing widget, please try again")?></div>
+                            <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="importWidgetModalFooter" class="modal-footer">
+                    <button type="button" id="importWidgetCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                    <button type="button" id="importWidgetConfirmBtn" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fine modale import widget -->
+
     <div id="changeMetricCnt">
         <table id="changeMetricTable" class="addWidgetWizardTable table table-striped dt-responsive nowrap"> 
             <thead class="widgetWizardColTitle">
@@ -4893,6 +4970,11 @@
                     $("#link_start_wizard").click(function()
                     {
                        $("#addWidgetWizard").modal("show");
+                    });
+
+                    $("#link_start_wizardOS").click(function()
+                    {
+                       $("#addWidgetWizardOS").modal("show");
                     });
                     
                     $("#link_screenshot").click(function()
@@ -17608,6 +17690,87 @@
                         }, 800);*/
                     });
 
+                    $('#export-dashboard').click(function () {
+                        $.ajax({
+                            url: '../management/export.php',
+                            data: {
+                                dashboardId: <?= escapeforJS($_REQUEST['dashboardId'])?>
+                            },
+                            type: 'POST',
+                            dataType: 'json',
+                            success: function (response) {
+                                  // Converti il JSON in una stringa
+                                  let jsonString = JSON.stringify(response);
+
+                                  // Crea un oggetto Blob con il contenuto del JSON
+                                  let blob = new Blob([jsonString], { type: 'application/json' });
+
+                                  // Crea un URL oggetto dal Blob
+                                  let url = URL.createObjectURL(blob);
+
+                                  // Crea un elemento <a> per il download
+                                  let a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = 'export.json';
+                                  a.click();
+
+                                  // Rilascia l'URL oggetto
+                                  URL.revokeObjectURL(url);
+                            },
+                            error: function (xhr, status, error) {
+                                console.log('Error in Exporting Dashboard', error);
+                            },
+                        });
+                    });
+                    
+                    $('#import-widget').click(function() {
+                        $('#modalImportWidget').modal('show');
+                        $('#importWidgetRunningMsg').hide();
+                        $('#importWidgetOkMsg').hide();
+                        $('#importWidgetKoMsg').hide();
+                    });
+
+                    $('#importWidgetConfirmBtn').off("click");
+                    $('#importWidgetConfirmBtn').click(function () {
+                        let fileInput = $('#jsonFile')[0];
+                        let file = fileInput.files[0];
+
+                        let formData = new FormData();
+                        formData.append('jsonFile', file);
+                        //formData.append('nomeDashboard', $('#dashboardName').val());
+                        formData.append('dashboardId', <?= escapeForJS($_REQUEST['dashboardId']) ?>);
+
+                        $.ajax({
+                            url: '../management/importWidget.php',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function (response) {
+                                //console.log('File JSON inviato con successo!');
+                                //console.log('Risposta dal server: ' + response);
+                                if (response == 'Ok') {
+                                    $('#importWidgetKoMsg').hide();
+                                    $('#importWidgetOkMsg').show();
+                                    setTimeout(function () {
+                                        $('#modalImportDash').modal('hide');
+                                        location.reload();
+                                    }, 1000);
+                                } else {
+                                    let errorMsg = "\n\n" + response + "\n\n\n";
+                                    $('#importWidgetErrorText').text(errorMsg);
+                                    $('#importWidgetKoMsg').show();
+                                    //$('#modalImportDash').modal('hide');
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                $('#importWidgetKoMsg').show();
+                                //$('#modalImportDash').modal('hide');
+                                console.log("Errore nell'invio del file JSON: " + error);
+                            },
+                        });
+                    });
+
 
                     //Duplicazione della dashboard
                     $('#duplicateDashboardBtn').click(function () {
@@ -17695,6 +17858,41 @@
                         $('#widgetToDelNameHidden').val(widgetName);
                         $('#widgetToDelName').html(widgetTile);
                         $('#modalDelWidget').modal('show');
+                    });
+                    
+                    $(document).on('click', '.exportWidgetRow', function () {	
+                        var name_widget_m = $(this).parents('div.widgetCtxMenu').attr('data-widgetName');
+						var widgetId = $('li[id=' + name_widget_m + ']').attr('data-widgetId');
+                        $.ajax({
+                            url: '../management/exportWidget.php',
+                            data: {
+                                widgetId: widgetId
+                            },
+                            type: 'POST',
+                            dataType: 'json',
+                            success: function (response) {
+                                  // Converti il JSON in una stringa
+                                  let jsonString = JSON.stringify(response);
+
+                                  // Crea un oggetto Blob con il contenuto del JSON
+                                  let blob = new Blob([jsonString], { type: 'application/json' });
+
+                                  // Crea un URL oggetto dal Blob
+                                  let url = URL.createObjectURL(blob);
+
+                                  // Crea un elemento <a> per il download
+                                  let a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = 'exportWidget.json';
+                                  a.click();
+
+                                  // Rilascia l'URL oggetto
+                                  URL.revokeObjectURL(url);
+                            },
+                            error: function (xhr, status, error) {
+                                console.log('Error in Exporting Dashboard', error);
+                            },
+                        });
                     });
                     
                     $('#delWidgetConfirmBtn').click(function(){

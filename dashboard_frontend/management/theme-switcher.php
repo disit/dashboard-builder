@@ -6,13 +6,8 @@ if (isset($_COOKIE['selected_theme'])) {
 	$selectedTheme = $_COOKIE['selected_theme'];
 } else {
 	$selectedTheme = $defaultTheme;
-	//setcookie('selected_theme', $selectedTheme, time() + (30 * 24 * 60 * 60), "/", $cookieDomain, true); // Set the cookie for 30 days
-    //setcookie('selected_theme', $selectedTheme, time() + (30 * 24 * 60 * 60), "/", $cookieDomain, true, false, 'None');
     if (PHP_VERSION_ID < 70300) {
         setcookie('selected_theme', $selectedTheme, time() + (30 * 24 * 60 * 60), "/" . "; samesite='None'", $cookieDomain, true);
-
-        //setcookie('selected_theme', $selectedTheme, time() + (30 * 24 * 60 * 60), "/", $cookieDomain, true);
-        //header('Set-Cookie: selected_theme=' . $selectedTheme . '; expires=' . gmdate('D, d M Y H:i:s T', time() + (30 * 24 * 60 * 60)) . '; path=/; domain=' . $cookieDomain . '; secure; httponly; samesite=None', false);
     } else {
         setcookie('selected_theme', $selectedTheme, [
             'expires' => time() + (30 * 24 * 60 * 60), // Set the cookie for 30 days
@@ -32,7 +27,11 @@ switch ($current_page) {
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardList.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardView.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] == 'RootAdmin') {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizardOS.css">';
+        } else {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        }
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addDashboardTab.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard_configdash.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-iotApplications.css">';
@@ -44,29 +43,44 @@ switch ($current_page) {
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardList.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardView.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] == 'RootAdmin') {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizardOS.css">';
+        } else {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        }
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addDashboardTab.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard_configdash.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-iotApplications.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-synopticsForm.css.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">';
 		break;
-	
-	case 'metrics.php':
+
+    case 'dashboard_register.php':
+    case 'bimmanager.php':
+    case 'metrics.php':
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardList.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardView.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] == 'RootAdmin') {
+		    echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizardOS.css">';
+        } else {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        }
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addDashboardTab.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard_configdash.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">';
 		break;
-		
+
+    case 'inspectorOS.php':
 	case 'inspector.php':
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardList.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardView.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] == 'RootAdmin') {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizardOS.css">';
+        } else {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        }
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addDashboardTab.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard_configdash.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-iotApplications.css">';
@@ -79,51 +93,48 @@ switch ($current_page) {
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardList.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardView.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] == 'RootAdmin') {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizardOS.css">';
+        } else {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        }
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addDashboardTab.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard_configdash.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-iotApplications.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-externalServicesForm.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">';
 		break;
-		
-	case 'dashboard_register.php':
+
+    case 'dashboard_examples.php':
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardList.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardView.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addDashboardTab.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard_configdash.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">';
-		break;
-		
-	case 'dashboard_examples.php':
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardList.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardView.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] == 'RootAdmin') {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizardOS.css">';
+        } else {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        }
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addDashboardTab.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard_configdash.css">';
         echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-snapTour.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">';
 		break;
-		
-	case 'bimmanager.php':
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardList.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardView.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addDashboardTab.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard_configdash.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/fontawesome-free-6.2.0-web/css/all.min.css">';
-		break;
-	
-	default:
+
+    default:
 		// Include the appropriate CSS file based on the selected theme
+
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardList.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboardView.css">';
-		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] == 'RootAdmin') {
+            if ($current_page == 'dashboards.php') {
+                echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizardOS-W.css">';
+            } else {
+                echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizardOS.css">';
+            }
+        } else {
+            echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addWidgetWizard2.css">';
+        }
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-addDashboardTab.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-dashboard_configdash.css">';
 		echo '<link rel="stylesheet" type="text/css" href="' . $themeBaseUri . '/css/s4c-css/themes/' . $selectedTheme . '/s4c-iotApplications.css">';

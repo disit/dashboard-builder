@@ -343,7 +343,16 @@ if (isset($_GET['pageTitle'])) {
 
                                 <div class="col-xs-12 mainContentCellCnt">
                                   <div class="filterListBar">
-                                    <?php if (!$_SESSION['isPublic']) : ?>                                      
+                                    <?php if (!$_SESSION['isPublic']) : ?>
+                                      <?php if ($_SESSION['loggedRole'] === 'RootAdmin') { ?>
+                                        <div id="dashboardListImportDashboard" class="dashboardsListMenuTime">
+                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                        <!--    <input type="file" id="jsonFile" />
+                                            <input type="text" id="dashboardName" placeholder="Nome Dashboard" />   -->
+                                                <button id="importButton" class="btn btn-new-dash">Import Dashboard</button>
+                                            </div>
+                                        </div>
+                                      <?php } ?>
                                     <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
                                       <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
                                         <button id="link_start_wizard" type="button" class="btn btn-new-dash"><?= _("New dashboard")?></button>
@@ -528,6 +537,56 @@ if (isset($_GET['pageTitle'])) {
                     </div>
                 </div>
             </div>
+
+	    <!-- Modale import dashboard -->
+            <div class="modal fade" id="modalImportDash" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modalHeader centerWithFlex">
+                            Import Dashboard
+                        </div>
+                        <input type="hidden" id="dashImportHidden" name="dashImportHidden" />
+                        <div id="importDashModalBody" class="modal-body modalBody">
+                            <div class="row">
+                                <div id="importDashNameMsg" class="col-xs-12 modalCell">
+                                    <div class="modalDelMsg col-xs-12 centerWithFlex">
+                                        <?= _("Choose the JSON File of the Dashboard to Import")?>
+                                    </div>
+                                    <div id="importDashFile" class="modalDelObjName col-xs-12 centerWithFlex">
+                                        <input type="file" id="jsonFile" />
+                                    </div>
+                                    <div id="importDashFile" class="modalDelObjName col-xs-12 centerWithFlex"><?= _("Dashboard Name: ")?>
+                                        <input type="text" id="dashboardName" style="color:black"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" id="importDashRunningMsg">
+                                <div class="col-xs-12 modalCell">
+                                    <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Importing dashboard, please wait")?></div>
+                                    <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>
+                                </div>
+                            </div>
+                            <div class="row" id="importDashOkMsg">
+                                <div class="col-xs-12 modalCell">
+                                    <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Dashboard imported successfully")?></div>
+                                    <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                                </div>
+                            </div>
+                            <div class="row" id="importDashKoMsg">
+                                <div class="col-xs-12 modalCell">
+                                    <div id = "importDashErrorText" class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Error importing dashboard, please try again")?></div>
+                                    <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="importDashModalFooter" class="modal-footer">
+                            <button type="button" id="importDashCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                            <button type="button" id="importDashConfirmBtn" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Fine modale import dashboard -->
 
             <!-- Modale cancellazione dashboard -->
             <div class="modal fade" id="modalDelDash" tabindex="-1" role="dialog" aria-hidden="true">
@@ -1505,6 +1564,13 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
     <?php
 }
 ?>
+		    $('#importButton').off('click');
+                    $('#importButton').click(function () {
+		    	        $('#modalImportDash').modal('show');
+                        $('#importDashRunningMsg').hide();
+                        $('#importDashOkMsg').hide();
+                        $('#importDashKoMsg').hide();
+                    });
                     $('#link_start_wizard').off('click');
                     $('#link_start_wizard').click(function () {
                         authorizedPages = [];
@@ -1529,6 +1595,9 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     //  choosenWidgetIconName = null;
                                     //  widgetWizardSelectedRows = {};
                                     //  widgetWizardSelectedRowsTable.clear().draw(false);
+                                    if (loggedRole == "RootAdmin") {
+                                        $('.td').hide();
+                                    }
 
                                 } else {
                                     $('#modalCheckDashLimits').modal('show');
@@ -2500,6 +2569,72 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
 
                         });
 
+			            $('#importDashConfirmBtn').off("click");
+                        $('#importDashConfirmBtn').click(function () {
+                            let fileInput = $('#jsonFile')[0];
+                            let file = fileInput.files[0];
+
+                            let formData = new FormData();
+                            formData.append('jsonFile', file);
+                            formData.append('nomeDashboard', $('#dashboardName').val());
+
+                            var checkTitle = true;
+                            for (var i = 0; i < allGlobalDashboards.length; i++) {
+                                if ($('#dashboardName').val().toLowerCase() === allGlobalDashboards[i].title_header.toLowerCase()) {
+                                    checkTitle = false;
+                                    break;
+                                }
+                            }
+                            if (checkTitle) {
+                                $.ajax({
+                                    url: '../management/import.php',
+                                    type: 'POST',
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function (response) {
+                                        //console.log('File JSON inviato con successo!');
+                                        //console.log('Risposta dal server: ' + response);
+                                        if (response == 'Ok') {
+                                            var checkTitle = true;
+                                            for (var i = 0; i < allGlobalDashboards.length; i++) {
+                                                if ($('#dashboardName').val().toLowerCase() === allGlobalDashboards[i].title_header.toLowerCase()) {
+                                                    checkTitle = false;
+                                                    break;
+                                                }
+                                            }
+                                            if (checkTitle) {
+                                                $('#importDashKoMsg').hide();
+                                                $('#importDashOkMsg').show();
+                                                setTimeout(function () {
+                                                    $('#modalImportDash').modal('hide');
+                                                    location.reload();
+                                                }, 1000);
+                                            } else {
+                                                let errorMsg = "Dashboard Name is already in use. Please select another Dashboard name";
+                                                $('#importDashErrorText').text(errorMsg);
+                                                $('#importDashKoMsg').show();
+                                            }
+                                        } else {
+                                            let errorMsg = "\n\n" + response + "\n\n\n";
+                                            $('#importDashErrorText').text(errorMsg);
+                                            $('#importDashKoMsg').show();
+                                            //$('#modalImportDash').modal('hide');
+                                        }
+                                    },
+                                    error: function (xhr, status, error) {
+                                        $('#importDashKoMsg').show();
+                                        //$('#modalImportDash').modal('hide');
+                                        console.log("Errore nell'invio del file JSON: " + error);
+                                    },
+                                });
+                            } else {
+                                let errorMsg = "Dashboard Name is already in use. Please select another Dashboard name";
+                                $('#importDashErrorText').text(errorMsg);
+                                $('#importDashKoMsg').show();
+                            }
+                        });
+
                         $(this).find('.editDashBtnCard').off('click');
                         $(this).find('.editDashBtnCard').click(function ()
                         {
@@ -3228,7 +3363,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
 
         //   function loadWizardModal (allDashboardsList) {
 <?php if (!$_SESSION['isPublic']) : ?>
-            $("#addWidgetWizardLabelBody").load("addWidgetWizardInclusionCode.php", function () {
+            $("#addWidgetWizardLabelBody").load("<?php if($_SESSION['loggedRole'] == 'RootAdmin') echo('addWidgetWizardInclusionCodeOS.php'); else echo('addWidgetWizardInclusionCode.php'); ?>", function () {
 
                 if (!allDashboardsList) {
                     getAllGlobalDashboards();

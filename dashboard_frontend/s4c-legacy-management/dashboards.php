@@ -107,7 +107,11 @@ else
         <link href="../css/dashboard.css?v=<?php echo time(); ?>" rel="stylesheet">
         <link href="../css/dashboardList.css?v=<?php echo time(); ?>" rel="stylesheet">
         <link href="../css/dashboardView.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <?php if(isset($_SESSION['loggedRole']) && $_SESSION['loggedRole'] == 'RootAdmin') { ?>
+        <link href="../css/addWidgetWizardOS-W.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <?php } else { ?>
         <link href="../css/addWidgetWizard.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <?php } ?>
         <link href="../css/addDashboardTab.css?v=<?php echo time(); ?>" rel="stylesheet">
         <link href="../css/dashboard_configdash.css?v=<?php echo time(); ?>" rel="stylesheet">
 
@@ -390,30 +394,60 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                     <button id="all_organizations_public_dashboards" type="button" class="btn btn-warning">All Orgs</button>
                                                 </div>
                                             </div>  -->
-
-                                        <div id="dashboardListsSearchFilter" class="col-xs-12 col-sm-6 col-md-4 dashboardsListMenuItem">
-                                            <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-3">
-                                                Search
-                                            </div>-->
-                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                <div class="input-group">
-                                                    <div class="input-group-btn">
-                                                        <button type="button" id="searchDashboardBtn" class="btn"><i class="fa fa-search"></i></button>
-                                                        <button type="button" id="resetSearchDashboardBtn" class="btn"><i class="fa fa-close"></i></button>
+                                        <?php if ($_SESSION['loggedRole'] === 'RootAdmin') { ?>
+                                            <div id="dashboardListsSearchFilter" class="col-xs-12 col-sm-6 col-md-3 dashboardsListMenuItem">
+                                                <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-3">
+                                                    Search
+                                                </div>-->
+                                                <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                    <div class="input-group">
+                                                        <div class="input-group-btn">
+                                                            <button type="button" id="searchDashboardBtn" class="btn"><i class="fa fa-search"></i></button>
+                                                            <button type="button" id="resetSearchDashboardBtn" class="btn"><i class="fa fa-close"></i></button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-<?php if (!$_SESSION['isPublic']) : ?>                                      
-                                            <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-12 col-md-2 dashboardsListMenuItem">
-                                                <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
-                                                    New<br>dashboard
+                                            <?php if (!$_SESSION['isPublic']) : ?>
+                                                <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-12 col-md-3 dashboardsListMenuItem">
+                                                    <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
+                                                        New<br>dashboard
+                                                    </div>-->
+
+                                                    <div class="dashboardsListMenuItemContent centerWithFlex col-xs-6">
+                                                        <button id="importButton" class="btn btn-warning">Import Dashboard</button>
+                                                    </div>
+
+                                                    <div class="dashboardsListMenuItemContent centerWithFlex col-xs-6">
+                                                        <button id="link_start_wizard" type="button" class="btn btn-warning"><?= _("New dashboard")?></button>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php } else { ?>
+                                            <div id="dashboardListsSearchFilter" class="col-xs-12 col-sm-6 col-md-4 dashboardsListMenuItem">
+                                                <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-3">
+                                                    Search
                                                 </div>-->
                                                 <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                                    <button id="link_start_wizard" type="button" class="btn btn-warning"><?= _("New dashboard")?></button>
+                                                    <div class="input-group">
+                                                        <div class="input-group-btn">
+                                                            <button type="button" id="searchDashboardBtn" class="btn"><i class="fa fa-search"></i></button>
+                                                            <button type="button" id="resetSearchDashboardBtn" class="btn"><i class="fa fa-close"></i></button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-<?php endif; ?>                                      
+                                            <?php if (!$_SESSION['isPublic']) : ?>
+                                                <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-12 col-md-2 dashboardsListMenuItem">
+                                                    <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
+                                                        New<br>dashboard
+                                                    </div>-->
+                                                    <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                        <button id="link_start_wizard" type="button" class="btn btn-warning"><?= _("New dashboard")?></button>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php } ?>
                                     </div>
 
                                         <?php
@@ -501,6 +535,55 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 </div>
             </div>
 
+            <!-- Modale import dashboard -->
+            <div class="modal fade" id="modalImportDash" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modalHeader centerWithFlex">
+                            Import Dashboard
+                        </div>
+                        <input type="hidden" id="dashImportHidden" name="dashImportHidden" />
+                        <div id="importDashModalBody" class="modal-body modalBody">
+                            <div class="row">
+                                <div id="importDashNameMsg" class="col-xs-12 modalCell">
+                                    <div class="modalDelMsg col-xs-12 centerWithFlex">
+                                        <?= _("Choose the JSON File of the Dashboard to Import")?>
+                                    </div>
+                                    <div id="importDashFile" class="modalDelObjName col-xs-12 centerWithFlex">
+                                        <input type="file" id="jsonFile" />
+                                    </div>
+                                    <div id="importDashFile" class="modalDelObjName col-xs-12 centerWithFlex"><?= _("Dashboard Name: ")?>
+                                        <input type="text" id="dashboardName" style="color:black"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row" id="importDashRunningMsg">
+                                <div class="col-xs-12 modalCell">
+                                    <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Importing dashboard, please wait")?></div>
+                                    <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>
+                                </div>
+                            </div>
+                            <div class="row" id="importDashOkMsg">
+                                <div class="col-xs-12 modalCell">
+                                    <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Dashboard imported successfully")?></div>
+                                    <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                                </div>
+                            </div>
+                            <div class="row" id="importDashKoMsg">
+                                <div class="col-xs-12 modalCell">
+                                    <div id = "importDashErrorText" class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Error importing dashboard, please try again")?></div>
+                                    <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="importDashModalFooter" class="modal-footer">
+                            <button type="button" id="importDashCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                            <button type="button" id="importDashConfirmBtn" class="btn confirmBtn internalLink"><?= _("Confirm")?></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Fine modale import dashboard -->
             <!-- Modale cancellazione dashboard -->
             <div class="modal fade" id="modalDelDash" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog" role="document">
@@ -1476,6 +1559,13 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
     <?php
 }
 ?>
+                    $('#importButton').off('click');
+                    $('#importButton').click(function () {
+		    	        $('#modalImportDash').modal('show');
+                        $('#importDashRunningMsg').hide();
+                        $('#importDashOkMsg').hide();
+                        $('#importDashKoMsg').hide();
+                    });
                     $('#link_start_wizard').off('click');
                     $('#link_start_wizard').click(function () {
                         authorizedPages = [];
@@ -2471,6 +2561,59 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
 
                         });
 
+                        $('#importDashConfirmBtn').off("click");
+                        $('#importDashConfirmBtn').click(function () {
+                            let fileInput = $('#jsonFile')[0];
+                            let file = fileInput.files[0];
+
+                            let formData = new FormData();
+                            formData.append('jsonFile', file);
+                            formData.append('nomeDashboard', $('#dashboardName').val());
+
+                            var checkTitle = true;
+                            for (var i = 0; i < allGlobalDashboards.length; i++) {
+                                if ($('#dashboardName').val().toLowerCase() === allGlobalDashboards[i].title_header.toLowerCase()) {
+                                    checkTitle = false;
+                                    break;
+                                }
+                            }
+                            if (checkTitle) {
+                                $.ajax({
+                                    url: '../management/import.php',
+                                    type: 'POST',
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function (response) {
+                                        //console.log('File JSON inviato con successo!');
+                                        //console.log('Risposta dal server: ' + response);
+                                        if (response == 'Ok') {
+                                            $('#importDashKoMsg').hide();
+                                            $('#importDashOkMsg').show();
+                                            setTimeout(function () {
+                                                $('#modalImportDash').modal('hide');
+                                                location.reload();
+                                            }, 1000);
+                                        } else {
+                                            let errorMsg = "\n\n" + response + "\n\n\n";
+                                            $('#importDashErrorText').text(errorMsg);
+                                            $('#importDashKoMsg').show();
+                                            //$('#modalImportDash').modal('hide');
+                                        }
+                                    },
+                                    error: function (xhr, status, error) {
+                                        console.log("Errore nell'invio del file JSON: " + error);
+                                        $('#importDashKoMsg').show();
+                                        //$('#modalImportDash').modal('hide');
+                                    },
+                                });
+                            } else {
+                                let errorMsg = "Dashboard Name is already in use. Please select another Dashboard name";
+                                $('#importDashErrorText').text(errorMsg);
+                                $('#importDashKoMsg').show();
+                            }
+
+                        });
                         $(this).find('.editDashBtnCard').off('click');
                         $(this).find('.editDashBtnCard').click(function ()
                         {
@@ -3199,7 +3342,8 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
 
         //   function loadWizardModal (allDashboardsList) {
 <?php if (!$_SESSION['isPublic']) : ?>
-            $("#addWidgetWizardLabelBody").load("addWidgetWizardInclusionCode.php", function () {
+            //$("#addWidgetWizardLabelBody").load("addWidgetWizardInclusionCode.php", function () {
+            $("#addWidgetWizardLabelBody").load("<?php if($_SESSION['loggedRole'] == 'RootAdmin') echo('addWidgetWizardInclusionCodeOS.php'); else echo('addWidgetWizardInclusionCode.php'); ?>", function () {
 
                 if (!allDashboardsList) {
                     getAllGlobalDashboards();

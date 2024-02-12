@@ -220,7 +220,7 @@ a:focus, a:active {
 
 .btn:hover{
   background: var(--blue-)!important;
-  border: 1px solid var(--blue-);
+  /* border: 1px solid var(--blue-); */
   -webkit-transition: opacity 0.2s ease-in-out;
   -ms-transition:     opacity 0.2s ease-in-out;
   transition:         opacity 0.2s ease-in-out;
@@ -3756,7 +3756,7 @@ input[type="text"]:disabled
   flex-direction: row;
 }
 
-#delDashNameMsg, #importDashNameMsg
+#delDashNameMsg, #importDashNameMsg, #importDashKoMsg, #importDashKoMsg, #importDashErrorText, #dashboardName
 {
     color: var(--text-color-)!important;
 }
@@ -4664,6 +4664,11 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
 
 /* IOT Devices Styles */
 
+body.IOTdevices table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before{
+  display: none!important;
+}
+
+
 body.IOTdevices, body.IOTdevices .dataTables_wrapper .dataTables_length, body.IOTdevices .dataTables_wrapper .dataTables_filter, body.IOTdevices .dataTables_wrapper .dataTables_info, body.IOTdevices .dataTables_wrapper .dataTables_processing, body.IOTdevices .dataTables_wrapper .dataTables_paginate{
   color: var(--text-color-);
 }
@@ -4732,7 +4737,7 @@ body.IOTdevices .dataTables_scrollBody .addMapBtn i{
   font-size: 20px!important;
 }
 
-#addDeviceBtn{
+#addDeviceBtn, #new_file_modal{
   background-color: var(--green-)!important;
   border: 1px solid var(--green-)!important;
   border-radius: 5px!important;
@@ -4740,7 +4745,7 @@ body.IOTdevices .dataTables_scrollBody .addMapBtn i{
   text-transform: uppercase;
 }
 
-#addDeviceBtn:hover{
+#addDeviceBtn:hover, #new_file_modal:hover{
   background-color: transparent!important;
   border: 1px solid var(--green-)!important;
   color: var(--green-)!important;
@@ -4935,6 +4940,323 @@ body.IOTdevices div.mainContentRow{
       width: 100vw;
   }
   
+/* File Manager */
+
+body.fileManBody table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before{
+  display: none!important;
+}
+
+
+.fileManagerContBtn{
+  margin: 45px 5%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+.fileManagerCont{
+  margin: 0 5%;
+}
+
+body.fileManBody, body.fileManBody .dataTables_wrapper .dataTables_length, body.fileManBody .dataTables_wrapper .dataTables_filter, body.fileManBody .dataTables_wrapper .dataTables_info, body.fileManBody .dataTables_wrapper .dataTables_processing, body.fileManBody .dataTables_wrapper .dataTables_paginate{
+  color: var(--text-color-);
+}
+
+body.fileManBody .dataTables_scroll {
+  margin-top: 20px;
+}
+
+body.fileManBody .dataTables_wrapper{
+  margin-top: 15px;
+  overflow-x: auto;
+}
+
+body.fileManBody .dataTables_scrollBody thead{
+  height: 0!important;
+}
+
+body.fileManBody .dataTables_scrollHeadInner thead{
+  height: auto!important;
+}
+body.fileManBody thead.dataTableHeadColTitle{
+  background: var(--dark-grey04-);
+  color: var(--text-color-);
+  font-size: 1.2em;
+}
+
+body.fileManBody table.addWidgetWizardTable{
+  height: auto!important;
+  font-size: 1.2rem;
+}
+
+body.fileManBody .dataTables_scrollHeadInner table.addWidgetWizardTable th{
+  padding: 8px 10px!important;
+}
+
+body.fileManBody .dataTables_scrollBody th{
+  padding-top: 0!important;
+  padding-bottom: 0!important;
+}
+
+body.fileManBody table.dataTable thead .sorting:after{
+  display: none;
+}
+
+body.fileManBody .dataTables_scrollBody .addMapBtn{
+  text-align: center;
+}
+
+body.fileManBody .dataTables_scrollBody .addMapBtn i{
+  color: var(--text-color-)!important;
+  font-size: 20px!important;
+}
+
+body.fileManBody .dataTables_wrapper .dataTables_paginate .paginate_button:hover{
+  background: transparent!important;
+  border: none;
+  cursor: pointer;
+}
+
+body.fileManBody .main-cnt{
+   background: var(--grey-blue02-);
+ }
+
+body.fileManBody .modal-content{
+   border-radius: 10px!important;
+   background: var(--modal-body-bg-)!important;
+   height: 90vh!important;
+ }
+ 
+ body.fileManBody .modal-header{
+   border-radius: 10px!important;
+ }
+ 
+ body.fileManBody .modal-content .tab-content{
+    background: var(--modal-body-bg-);
+  }
+  
+  body.fileManBody .modal-footer{
+    background: var(--modal-body-bg-);
+    border-radius: 0 0 10px 10px; 
+  }
+  
+  body.fileManBody table.dataTable.dtr-inline.collapsed > tbody > tr[role="row"] > td.sorting_1{
+    display: flex;
+    justify-content: flex-start;
+    padding: 8px 10px;
+  }
+  
+  body.fileManBody table.dataTable.dtr-inline.collapsed > tbody > tr[role="row"] > td:first-child:before, body.fileManBody table.dataTable.dtr-inline.collapsed > tbody > tr[role="row"] > th:first-child:before{
+    position: initial;
+    width: auto;
+    font-size: 2rem;
+    margin-right: 20px;
+    font-size: 1.5rem;
+  }
+  
+  body.fileManBody table.dataTable>tbody>tr.child ul.dtr-details{
+    width: 100%;
+  }
+  
+  body.fileManBody legend {
+      color: var(--text-color-)!important;
+      border: none;
+  }
+  
+  body.fileManBody thead.dataTableHeadColTitle {
+      background: var(--dark-grey04-);
+      color: var(--btn-color-);
+      font-size: 1.2em;
+  }
+  
+  body.fileManBody .dataTables_scrollHeadInner thead {
+      height: auto!important;
+  }
+  
+  body.fileManBody div.modalHeader{
+   background: var(--modal-bg-);
+   }
+  
+  /* HeatMap Manager  */
+  
+  body.heatmapBoby table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before{
+    display: none!important;
+  }
+  
+  .div_heatmap_table{
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .div_heatmap_table .pull-left, .div_heatmap_table .pull-right{
+    margin-bottom: 20px; 
+  }
+  
+  body.heatmapBoby thead.dataTableHeadColTitle th{
+      background: var(--dark-grey04-);
+      color: var(--btn-color-);
+      font-size: 1em;
+  }
+  
+  body.heatmapBoby thead.dataTableHeadColTitle th a{
+    color: var(--text-color-);
+    cursor: pointer;
+  }
+  
+  body.heatmapBoby thead.dataTableHeadColTitle th a:hover{
+    font-family: inherit!important;
+    text-decoration: none;
+    color: inherit!important;
+  }
+  
+  body.heatmapBoby .dataTables_paginate {
+      display: flex;
+      justify-content: flex-end;
+  }
+  
+ body.heatmapBoby .dataTables_paginate a.paginate_button{
+   font-weight: 800;
+   padding: 0 10px;
+ }
+ 
+ body.heatmapBoby .dataTables_paginate a.paginate_button:hover{
+    color: var(--dark-grey05-)!important;
+  }
+  
+ body.heatmapBoby .modal-content{
+   border-radius: 10px!important;
+ }
+ 
+ body.heatmapBoby .modal-footer{
+   border: none!important;
+ }
+ 
+ body.heatmapBoby label{
+   color: var(--text-color-);
+ }
+ 
+ body.heatmapBoby .modal-body{
+   color: var(--text-color-);
+ }
+ 
+body.heatmapBoby .modal-content select{
+    width: 100%;
+  }
+  
+  /* MicroServices for IOT Applications */
+  
+  body.MserIotAppBody table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control:before{
+    display: none!important;
+  }
+    
+    .div_MserIotApp_table{
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+    
+    body.MserIotAppBody #view-menu{
+      display: flex;
+      justify-content: flex-end;
+      margin: 20px 0;
+    }
+    
+    .div_MserIotApp_table .pull-left, .div_MserIotApp_table .pull-right{
+      margin-bottom: 20px; 
+    }
+    
+    body.MserIotAppBody thead.dataTableHeadColTitle th{
+        background: var(--dark-grey04-);
+        color: var(--text-color-)!important;
+        font-size: 1em;
+    }
+    
+    .file_archive_link{
+      color: var(--blue-)!important;
+    }
+    
+    .file_archive_link:hover{
+      color: var(--text-color-)!important;
+    }
+    
+    body.MserIotAppBody .dataTables_paginate {
+        display: flex;
+        justify-content: flex-end;
+    }
+    
+   body.MserIotAppBody .dataTables_paginate a.paginate_button{
+     font-weight: 800;
+     padding: 0 10px;
+   }
+   
+   body.MserIotAppBody .dataTables_paginate a.paginate_button:hover{
+      color: var(--dark-grey05-)!important;
+    }
+    
+   body.MserIotAppBody .modal-content{
+     border-radius: 10px!important;
+   }
+   
+   body.MserIotAppBody .modal-footer{
+     border: none!important;
+   }
+   
+   body.MserIotAppBody label{
+     color: var(--text-color-);
+   }
+   
+   body.heatmapBoby .modal-body{
+     color: var(--text-color-);
+   }
+   
+  body.MserIotAppBody .modal-content select{
+      width: 100%;
+    }
+    
+  body.MserIotAppBody .container{
+    width: auto!important;
+  }
+  
+  body.MserIotAppBody .modal-body{
+    overflow-y: auto;
+    color: var(--text-color-); 
+  }
+  
+  .panel{
+     border-radius: 5px!important;
+   }
+  
+  .panel-default{
+    border-color: var(--text-color-);
+  }
+  
+  .panel-default > .panel-heading{
+    color: var(--dark-grey01-);
+    background-color: var(--text-color-);
+    border-color: var(--text-color-);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+  }
+  
+  .panel-default > .panel-body{
+    color: var(--text-color-); 
+  }
+  
+  .panel-default > .panel-footer{
+    background-color: var(--text-color-);
+    border-top: 1px solid var(--text-color-);
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    display: flex;
+    justify-content: flex-end;
+  }
+.publicBtn,.delegatedBtn {
+  background-color: transparent;
+  font-weight: bold;
+  border: none;
+  text-transform: uppercase;
+}
+
 .changeLanguage-modal {
     border-radius: 10px!important;
     background: var(--modal-bg-);

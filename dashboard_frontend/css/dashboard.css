@@ -3258,7 +3258,7 @@ input[type="text"]:disabled
 }
 
 #delDashModalBody, #delDashModalFooter, #delDashNameMsg, #cloneDashboardModalBody, #cloneDashboardModalFooter, #delegationsModalBody, #delegationsModalFooter,
-#iotAppsModalBody, #iotAppsModalFooter, #checkDashLimitsModalBody, #checkDashLimitsModalFooter
+#iotAppsModalBody, #iotAppsModalFooter, #checkDashLimitsModalBody, #checkDashLimitsModalFooter, #importDashModalBody, #importDashNameMsg, #importDashModalFooter
 {
     background-color: rgba(108, 135, 147, 1) !important;
 }
@@ -3268,7 +3268,7 @@ input[type="text"]:disabled
     min-height: 26vh;
 }
 
-#delDashNameMsg
+#delDashNameMsg, #importDashNameMsg
 {
     color: white !important;
 }

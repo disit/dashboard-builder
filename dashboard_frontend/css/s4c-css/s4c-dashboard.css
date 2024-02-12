@@ -3767,7 +3767,7 @@ input[type="text"]:disabled
   flex-direction: row;
 }
 
-#delDashNameMsg
+#delDashNameMsg, #importDashNameMsg
 {
     color: var(--text-color-)!important;
 }
@@ -3980,7 +3980,7 @@ div.modal-dialog
     height: 90vh;
 }
 
-#delDashModalBody, #delDashModalFooter, #delDashNameMsg, #cloneDashboardModalBody, #cloneDashboardModalFooter, #delegationsModalBody, #delegationsModalFooter, #iotAppsModalBody, #iotAppsModalFooter, #checkDashLimitsModalBody, #checkDashLimitsModalFooter{
+#delDashModalBody, #delDashModalFooter, #delDashNameMsg, #cloneDashboardModalBody, #cloneDashboardModalFooter, #delegationsModalBody, #delegationsModalFooter, #iotAppsModalBody, #iotAppsModalFooter, #checkDashLimitsModalBody, #checkDashLimitsModalFooter, #importDashModalBody, #importDashNameMsg, #importDashModalFooter{
   padding: 20px;
 }
 

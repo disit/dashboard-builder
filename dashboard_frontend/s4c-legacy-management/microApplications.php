@@ -910,8 +910,8 @@
         const session = JSON.parse('<?= serializeToJsonString($_SESSION) ?>');
         SnapTour.init(steps, {
             isPublic: session.isPublic,
-            //resetTimeout: 1000 * 60 * 60 * 12 // 12 hour as ms. if left blank the default is 24h
-            resetTimeout: 1000 * 60 * 5
+            resetTimeout: 1000 * 60 * 60 * 24 // 24 hour as ms. if left blank the default is 24h
+            //resetTimeout: 1000 * 60 * 5
         });
     });
 </script>

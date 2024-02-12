@@ -7,6 +7,7 @@
     
     $lastUsedColors = null;
     $dashId = escapeForSQL($_REQUEST['id_dashboard'], $link);
+    if ($_REQUEST['name_w'] !== 'preview'){
     if (checkVarType($dashId, "integer") === false) {
         eventLog("Returned the following ERROR in widgetCtxMenu.php for dashboard_id = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
         exit();
@@ -24,7 +25,7 @@
         eventLog("Returned the following ERROR in widgetCtxMenu.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
         exit();
     }
-
+}
 ?>
 
 
@@ -544,6 +545,10 @@
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-cogs"></i></div>
             <div class="col-xs-10 fullCtxMenuTxt"><?= _("More options")?></div>
 	</div>
+    <div class="row fullCtxMenuRow exportWidgetRow" data-selected="false" data-index="12">
+        <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-download"></i></div>
+        <div class="col-xs-10 fullCtxMenuTxt"><?= _("Export widget")?></div>
+    </div>
 	<div class="row fullCtxMenuRow delWidgetRow" data-selected="false" data-index="12">
             <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-close"></i></div>
             <div class="col-xs-10 fullCtxMenuTxt"><?= _("Delete widget")?></div>

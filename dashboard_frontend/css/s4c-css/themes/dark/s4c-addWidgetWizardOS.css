@@ -1,0 +1,1045 @@
+.content {
+    position: relative;
+    background-color: #fff;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    border: 1px solid #999;
+    border: 1px solid rgba(0, 0, 0, .2);
+    border-radius: 6px;
+    outline: 0;
+    -webkit-box-shadow: 0 3px 9px rgba(0, 0, 0, .5);
+    box-shadow: 0 3px 9px rgba(0, 0, 0, .5);
+}
+
+
+/* #addWidgetWizardLabelBody
+{
+    background-color: rgba(108, 135, 147, 1) !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+   height: 800px !important;
+    height: 100vh !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    
+    
+} */
+table#widgetWizardTable, table#widgetWizardSelectedRowsTable{
+    table-layout: fixed;
+}
+
+#widgetWizardTable th, #widgetWizardSelectedRowsTable th{
+    border: none !important;
+    font-size: 12px;
+    padding: 0px;
+    text-align: center;
+    /*max-width: 150px;
+    width: 150px !important;*/
+}
+
+#widgetWizardTable button.multiselect, #widgetWizardSelectedRowsTable button.multiselect{
+    padding:0 !important;
+}
+
+#widgetWizardTable td, #widgetWizardSelectedRowsTable td{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 9px !important;
+    /*max-width: 150px;
+    width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;*/
+}
+
+tfoot th input{
+            
+    width: 100%;
+    padding: 0;
+        padding-left: 0px;
+    margin: 0;
+    border: none;
+    border-left: 0.5px solid lightgray;
+    padding-left: 5px;
+    text-align: center;
+    border-top: 1px solid lightgray;
+
+}
+
+#widgetWizardTable td button.dt, #widgetWizardSelectedRowsTable td button.dt{
+    margin-right:2px;
+    color: #fff;
+    background: rgba(0, 162, 211, 1);
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+ 
+/* nel caso si desideri mantenere la scrollbar per il body ed eliminarla per altri blocchi div  */
+/*#addWidgetWizardLabelBody::-webkit-scrollbar{
+    width: 0px;
+}
+
+#widgetWizardTableContainer::-webkit-scrollbar{
+    width: 0px;
+}
+*/
+
+/*::-webkit-scrollbar{
+    width: 0px;
+}*/
+
+
+/*#addWidgetWizardLabelBod
+{
+    overflow-y: hidden;
+    height: 100vh !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+}*/
+
+#addWidgetWizardLoadingMsg, #addWidgetWizardOkMsg, #addWidgetWizardKoMsg
+{
+    display: none;
+}
+
+#addWidgetWizard2 div.modal-dialog
+{
+    width: 100vw;
+}
+#addWidgetWizard2 div.dialog
+{
+    width: 100vw;
+}
+
+#widgetWizardTableContainer, #highLevelTypeMainContainer, #natureMainContainer, #subnatureMainContainer, #lowLevelTypeMainContainer, #instanceMainContainer, #linkMainContainer, #unitMainContainer, #lastDateMainContainer, #lastValueMainContainer
+{
+    padding-right: 10px !important;
+    width: calc(87vw - 10px)!important;
+}
+
+
+#widgetWizardTableContainer2
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    overflow-x:auto !important;
+}
+
+#widgetWizardTable label.checkbox
+{
+    font-size: 12px !important;
+    padding: 0px 20px 0px 25px !important
+}
+
+#widgetWizardTable2 label.checkbox
+{
+    font-size: 12px !important;
+    padding: 0px 20px 0px 25px !important
+}
+
+#widgetWizardTable tbody tr:hover, #widgetWizardTable2 tbody tr:hover, #widgetWizardSelectedRowsTable tbody tr:hover, #widgetWizardSelectedRowsTable2 tbody tr:hover
+{
+    cursor: pointer;
+    background-color: var(--blue-);
+    font-weight: bold;
+}
+
+#addWidgetWizardConfirmBtnContainer
+{
+    display: none;
+}
+
+#addWidgetWizardConfirmBtn
+{
+    /*display: none;*/
+}
+
+#addWidgetWizardConfirmBtn2Container
+{
+    display: none;
+}
+
+#addWidgetWizardConfirmBtn2
+{
+    /*display: none;*/
+}
+
+
+div.addWidgetWizardColTitle
+{
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+    font-size: 1em;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+div.addWidgetWizardColTitle2
+{
+    background-color: rgba(0, 162, 211, 1);
+    color: white;
+    font-size: 1em;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+div.addWidgetWizardColContent
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+table.addWidgetWizardTable, table.addWidgetWizardTableSelected
+{
+    width: 100% !important;
+    border-collapse: collapse;
+    font-size: 0.7em;
+    overflow-y: hidden;
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+    border-bottom: none !important;
+    /*height: 200px !important;*/
+}
+
+table.addWidgetWizardTable
+{
+    height: 200px !important;
+}
+
+/* table.addWidgetWizardTable thead
+{
+    height: 56px !important;
+} */
+
+table.addWidgetWizardTable tbody
+{
+    height: 144px !important;
+}
+
+#widgetWizardSelectedRowsTableContainer.col-xs-12
+{
+    padding-left: 15px !important;
+    padding-right: 0px !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden;
+    width: 99% !important;
+}
+
+#widgetWizardSelectedRowsTableContainer2.col-xs-12
+{
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+/* table.addWidgetWizardTable > tbody > tr, table.addWidgetWizardTableSelected > tbody > tr
+{
+   font-size: 11px;
+}
+
+table.addWidgetWizardTable > tbody .widgetWizardTableBoldCell, table.addWidgetWizardTableSelected > tbody .widgetWizardTableBoldCell
+{
+    font-weight: bold;
+    color: #576c75;
+    font-size: 12px;
+}
+
+table.addWidgetWizardTable tbody td, table.addWidgetWizardTableSelected tbody td
+{
+    line-height: 1 !important;
+    padding: 1px 0px 1px 0px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    border: none !important;
+} */
+
+thead.widgetWizardColTitle, thead.widgetWizardColTitle2
+{
+    background: var(--scrollbar-color-);
+}
+
+
+/* #modalStartWizardFooter
+{
+    background-color: rgba(108, 135, 147, 1);
+}
+#modalStartWizardFooter2
+{
+    background-color: rgba(108, 135, 147, 1);
+} */
+
+tr.widgetWizardRow
+{
+    border-collapse: collapse;
+}
+
+tr.widgetWizardRow:hover
+{
+    background-color: lavender;
+}
+
+th.widgetWizardTitleCell
+{
+    border-collapse: collapse;
+    /*border: 1px solid #eeeeee;*/
+    text-align: center;
+}
+
+#widgetWizardTable th, #widgetWizardTable thead td
+{
+    border: none !important;
+    font-size: 12px;
+}
+
+#widgetWizardTable2 th, #widgetWizardTable2 thead td
+{
+    border: none !important;
+    font-size: 12px;
+}
+
+table.dataTable thead th, table.dataTable thead td
+{
+    padding: 4px 25px !important;
+}
+
+#widgetWizardTable tbody tr:hover
+{
+    cursor: pointer;
+}
+
+#widgetWizardTable2 tbody tr:hover
+{
+    cursor: pointer;
+}
+
+#widgetWizardTable.dataTable tbody tr.selected
+{
+    background-color: var(--green-)!important;
+    color: var(--dark-grey01-);
+}
+
+#widgetWizardTable2.dataTable tbody tr.selected
+{
+    background-color: #c3ffc1 !important;
+    font-weight: bold !important;
+}
+
+#widgetWizardTable button.multiselect 
+{
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    border-radius: 0px;
+    background-color:  var(--blue-)!important;
+    border: none !important;
+    color: var(--grey-blue04-)!important;
+}
+
+#widgetWizardTable2 button.multiselect2 
+{
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    border-radius: 0px;
+    background-color: #576c75 !important;
+    border: none !important;
+    color: white !important;
+}
+
+#widgetWIzardTableSearch
+{
+    height: 23px !important;
+    font-size: 10px;
+    font-weight: normal;
+    background-color: #576c75 !important;
+    color: white !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 1px solid white !important;
+}
+
+#widgetWIzardTableSearch::placeholder
+{
+    color: var(--text-color-) !important;
+}
+
+
+#widgetWizardTable_filter label, #widgetWizardTable2_filter label, #widgetWizardTable_filter input, #widgetWizardTable2_filter input, #widgetWizardSelectedRowsTable_filter input, #widgetWizardSelectedRowsTable2_filter input 
+{
+    width: 100%;
+    margin-bottom: 0px !important;
+}
+
+#widgetWizardTableHideColsMenu.dropdown-menu > li > a
+{
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    font-size: 12px !important;
+}
+
+#widgetWizardTableHideColsMenu2.dropdown-menu > li > a
+{
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    font-size: 12px !important;
+}
+
+
+#widgetWizardTable ul.dropdown-menu > .active > a
+{
+    background-color: white !important;
+    color: #333 !important;
+}
+
+#widgetWizardTable2 ul.dropdown-menu > .active > a
+{
+    background-color: white !important;
+    color: #333 !important;
+}
+
+#widgetWizardTableRow, #widgetWizardTableRow2, #widgetWizardSelectedRowsTableRow, #widgetWizardSelectedRowsTableRow2
+{
+    margin-top: 20px;
+}
+
+td.widgetWizardCell
+{
+    border-collapse: collapse;
+    border: 1px solid #eeeeee;
+    text-align: center;
+}
+
+tr.highLevelTypeRow, tr.natureRow, tr.subnatureRow, tr.lowLevelTypeRow, tr.instanceRow, tr.linkRow, tr.unitRow, tr.lastDateRow, tr.lastValueRow
+{
+    border-collapse: collapse;
+}
+
+td.highLevelTypeCell, td.natureCell, td.subnatureCell, td.lowLevelTypeCell, td.instanceCell, td.linkCell, td.unitCell, td.lastDateCell, td.lastValueCell
+{
+    border-collapse: collapse;
+    border: 1px solid #eeeeee;
+}
+
+td.highLevelTypeCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+td.natureCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.subnatureCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.lowLevelTypeCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.instanceCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.linkCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.unitCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.lastDateCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+td.lastValueCell:hover
+{
+    cursor: pointer;
+    background-color: orange;
+}
+
+input.testCheckInput{
+    display:none;
+}
+
+.widgetTableActive { 
+    background-color: lavender
+}
+
+.widgetTableInactive {
+    background-color: white;
+}
+
+.multiselect-selected-text {
+    font-size: 10px;
+}
+
+.multiselect2-selected-text {
+    font-size: 10px;
+}
+
+
+.icons-mono-container {
+    float: left;
+    clear: none; 
+    width: 48%;
+    background-color: lavender;
+    overflow: auto;
+}
+
+.icons-multi-container {
+    float: right;
+    clear: none; 
+    width: 48%;
+    background-color: lavender;
+    overflow: auto;
+}
+
+.iconsMonoSingleIcon, .iconsMonoMultiIcon
+{
+    width: 50px;
+    height: 36px;
+    float: left;
+    background-size: 100% 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+/* modifica per evitare di avere icone selezionate dal cursore
+.addWidgetWizardIconClickClass:hover
+{
+    cursor: pointer;
+    border: 1px solid rgba(0, 162, 211, 1);
+}
+
+.addWidgetWizardIconClickClass2:hover
+{
+    cursor: pointer;
+    border: 1px solid rgba(0, 162, 211, 1);
+}
+ autore: Bernardo Tiezzi*/ 
+
+/*.iconTooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.iconTooltip .iconTooltipText {
+    visibility: hidden;
+    width: 120px;
+    background-color: whitesmoke;
+    color: black;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    
+    position: absolute;
+    z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}*/
+
+.addWidgetWizardIconTooltip
+{
+    font-family: 'Montserrat'; font-size: 0.9em;
+}
+
+#widgetWizardTable_paginate .pagination
+{
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
+
+#widgetWizardTable2_paginate .pagination
+{
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+}
+
+
+#widgetWizardTable_paginate .pagination > li > a, #widgetWizardTable2_paginate .pagination > li > a, .pagination > li > span, #widgetWizardSelectedRowsTable_paginate .pagination > li > a, #widgetWizardSelectedRowsTable2_paginate .pagination > li > a, .pagination > li > span
+{
+    border: none !important;
+    color: var(--text-color-);
+    background-color: transparent;
+    font-weight: bold;
+}
+
+#widgetWizardTable_paginate .pagination > .active > a
+{
+    background: var(--blue-);
+    border-radius: 10px;
+    color: var(--btn-color-);
+    
+}
+
+#widgetWizardTable2_paginate .pagination > .active > a
+{
+   background: var(--blue-);
+    border-radius: 10px;
+    color: var(--btn-color-);
+}
+
+
+#widgetWizardTableSelectedRowsCounter
+{
+    /*height: 34px;*/
+}
+
+#widgetWizardTableSelectedRowsCounter2
+{
+    /*height: 34px;*/
+}
+
+#noRowsSelectedAlert
+{
+    display: none;
+    color: #f3cf58;
+    font-style: italic;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 15px
+}
+
+#noRowsSelectedAlert2
+{
+    display: none;
+    color: #f3cf58;
+    font-style: italic;
+    font-size: 12px;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 15px
+}
+
+#modalAddWidgetWizardAvailabilityMsg
+{
+    display: none;
+    font-size: 12px;
+    color: #f3cf58;
+    font-weight: bold;
+    font-style: italic;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+#addWidgetWizardWidgetAvailableMsg
+{
+    font-size: 12px;
+    color: #f3cf58;
+    font-weight: bold;
+    font-style: italic;
+}
+
+#addWidgetWizardWidgetAvailableMsg2
+{
+    font-size: 12px;
+    color: #f3cf58;
+    font-weight: bold;
+    font-style: italic;
+}
+
+#choosenDashTemplateLbl, #choosenDashTemplateImg
+{
+    display: none;
+}
+
+#choosenDashTemplateImg
+{
+    height: 225px;
+    background-size: auto 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+#widgetWizardTableCommandsContainer #resetButton.cancelBtn/*, #FreezeMap.cancelBtn*/ 
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#GPSUser.cancelBtn/*, #FreezeMap.cancelBtn*/ 
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#GPSOrg.cancelBtn/*, #FreezeMap.cancelBtn*/ 
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#SynMode.cancelBtn/*, #FreezeMap.cancelBtn*/ 
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#StdMode.cancelBtn/*, #FreezeMap.cancelBtn*/ 
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#widgetWizardTableCommandsContainer2 #resetButton2.cancelBtn
+{
+    font-weight: bold;
+    font-size: 12px !important;
+    padding: 0px 12px !important;
+}
+
+#widgetWizardTable_paginate li.paginate_button, #widgetWizardTable2_paginate li.paginate_button, #widgetWizardSelectedRowsTable_paginate li.paginate_button, #widgetWizardSelectedRowsTable2_paginate li.paginate_button
+{
+    font-size: 12px !important;
+}
+
+#widgetWizardSelectedRowsTable_paginate .pagination
+{
+    margin: 0px 0px 0px 0px !important;
+}
+
+#widgetWizardSelectedRowsTable2_paginate .pagination
+{
+    margin: 0px 0px 0px 0px !important;
+}
+
+
+#widgetWizardTable_paginate .pagination > li > a, #widgetWizardTable2_paginate .pagination > li > a, #widgetWizardSelectedRowsTable_paginate .pagination > li > a, #widgetWizardSelectedRowsTable2_paginate .pagination > li > a 
+{
+    padding: 0px 12px !important;
+}
+
+#widgetWizardTableCommandsContainer button.confirmBtn
+{
+    padding: 0px 12px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+}
+
+#widgetWizardTableCommandsContainer2 button.confirmBtn
+{
+    padding: 0px 12px !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+}
+
+#widgetWizardTable_filter input[type=search], #widgetWizardTable2_filter input[type=search], #widgetWizardSelectedRowsTable_filter input[type=search], #widgetWizardSelectedRowsTable2_filter input[type=search] 
+{
+    font-size: 12px !important;
+    height: 18px !important;
+}
+
+.widgetWizardSelectedRowsDelBtn
+{
+    font-size: 16px;
+    color: rgba(0, 162, 211, 1);
+}
+
+.widgetWizardSelectedRowsDelBtn:hover
+{
+    color: red;
+}
+
+.dashboardWizardTabTxt
+{
+    color: white !important;
+    font-weight: bold !important;
+}
+
+#addWidgetWizard2 ul.nav>li.active>a
+{
+    background-color: transparent !important;
+    color: #fff;
+    border-bottom: none !important;
+}
+
+#addWidgetWizard2 ul.nav>li>a:hover
+{
+    background-color: transparent !important;
+    color: #fff;
+    font-style: italic;
+}
+/*aggiunto da bernardo tiezzi*/
+#addWidgetWizardLabelBody ul.nav>li>a:hover
+{
+    background-color: transparent !important;
+    color: #fff;
+    font-style: italic;
+}
+/*aggiunto da bernardo tiezzi*/
+/* #addWidgetWizardLabelBody ul.nav>li.active>a
+{
+    background-color: transparent !important;
+    color: #fff;
+    border-bottom: none !important;
+} */
+#widgetWizardActuatorFieldsRow
+{
+    display: none;
+    background-color: transparent;
+    padding-left: 15px !important; 
+    padding-right: 15px !important;
+}
+
+#widgetWizardActuatorFieldsRow2
+{
+    display: none;
+    background-color: transparent;
+    padding-left: 15px !important; 
+    padding-right: 15px !important;
+}
+
+.widgetWizardActuatorCell
+{
+    background-color: #576c75 !important;
+    height: 40px !important;
+}
+
+.wizardActLbl
+{
+    color: white;
+    font-weight: bold;
+    font-size: 12px !important;
+}
+
+#widgetWizardActuatorFieldsRow .form-control
+{
+    height: 20px !important;
+    padding: 0px !important;
+    font-size: 12px !important;
+    border-radius: 0px !important;
+}
+
+#widgetWizardActuatorFieldsRow2 .form-control
+{
+    height: 20px !important;
+    padding: 0px !important;
+    font-size: 12px !important;
+    border-radius: 0px !important;
+}
+
+#actuatorTargetCell .wizardActLbl, 
+#actuatorTargetCell .wizardActInputCnt, 
+#actuatorTargetCell2 .wizardActLbl, 
+#actuatorTargetCell2 .wizardActInputCnt, 
+#actuatorEntityNameCell .wizardActLbl, 
+#actuatorEntityNameCell .wizardActInputCnt, 
+#actuatorEntityNameCell2 .wizardActLbl, 
+#actuatorEntityNameCell2 .wizardActInputCnt, 
+#actuatorValueTypeCell .wizardActLbl, 
+#actuatorValueTypeCell .wizardActInputCnt,
+#actuatorValueTypeCell2 .wizardActLbl, 
+#actuatorValueTypeCell2 .wizardActInputCnt,
+#actuatorMinBaseValueCell .wizardActLbl,
+#actuatorMinBaseValueCell .wizardActInputCnt,
+#actuatorMinBaseValueCell2 .wizardActLbl,
+#actuatorMinBaseValueCell2 .wizardActInputCnt,
+#actuatorMaxBaseValueCell .wizardActLbl, 
+#actuatorMaxBaseValueCell .wizardActInputCnt
+#actuatorMaxBaseValueCell2 .wizardActLbl, 
+#actuatorMaxBaseValueCell2 .wizardActInputCnt
+{
+    display: none;
+}
+
+#summary
+{
+    color: var(--text-color-);
+}
+
+#summary2
+{
+    color: var(--text-color-);
+}
+
+.validityConditionLbl{
+  color: var(--green-)!important;
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.summaryLbl
+{
+    color: var(--blue-);
+    font-weight: 800;
+    margin: 15px 0;
+}
+
+#summaryTable
+{
+    width: 100%;
+}
+
+#summaryTable2
+{
+    width: 100%;
+}
+
+
+#summaryTable thead
+{
+    background: var(--scrollbar-color-) !important;
+    color: var(--text-color-);
+}
+
+#summaryTable2 thead
+{
+    background-color: #576c75 !important;
+    color: white;
+}
+
+
+#summaryTable td, #summaryTable th, #summaryTable2 td, #summaryTable2 th
+{
+    text-align: center;
+}
+
+/* #summaryTable td, #summaryTable2 td
+{
+    color: #576c75;
+} */
+
+tr.summaryTableRow:nth-child(odd)
+{
+    background-color: #f9f9f9;
+}
+
+tr.summaryTableRow:nth-child(even)
+{
+    background-color: #ffffff;
+}
+
+.singleWidgetIconCnt
+{
+    width: 150px;
+    height: 108px;
+    float: left;
+    background-size: 100% 100%;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+#dashboardTemplatesInnerCnt, #dashboardTemplatesInnerCnt2{
+  padding-bottom: 20px;
+  margin-bottom: 50px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+#wizardNotCompatibleRowsAlert
+{
+    display: none;
+}
+
+
+#wizardNotCompatibleRowsAlert2
+{
+    display: none;
+}
+
+
+
+/* .addWidgetWizardIconsCntLabelBig
+{
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+} */
+
+.validityConditionIcon
+{
+    color: var(--yellow-);
+    font-size: 48px;
+}
+
+.summaryLblIcon
+{
+    color: var(--blue-);
+    font-size: 48px;
+}
+
+#summaryDiv, #wrongConditionsDiv, #summaryDiv2, #wrongConditionsDiv2
+{
+    margin-top: 15px;
+    color: var(--text-color-)!important;
+}
+
+.modalAddDashboardWizardChoiceSubtxt
+{
+    font-size: 12px;
+    font-weight: normal;
+    color: var(--text-color-)!important;
+}
+
+#summaryContainer, #checkContainer, #checkContainer2, #instantiateBtnContainer, #instantiateBtnContainer2, #summaryContainer2
+{
+    border: none;
+    padding-top: 0px;
+    padding-bottom: 10px;
+    margin-top: 15px;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+}
+
+#checkContainer, #checkContainer2, #instantiateBtnContainer, #instantiateBtnContainer2
+{
+    height: 250px;
+}
+
+/* #summaryContainer .addWidgetWizardIconsCntLabelBig, #summaryContainer .addWidgetWizardIconsCntSublabel,
+#summaryContainer2 .addWidgetWizardIconsCntLabelBig, #summaryContainer2 .addWidgetWizardIconsCntSublabel,
+#checkContainer .addWidgetWizardIconsCntLabelBig, #checkContainer .addWidgetWizardIconsCntSublabel,
+#checkContainer2 .addWidgetWizardIconsCntLabelBig, #checkContainer2 .addWidgetWizardIconsCntSublabel,
+#instantiateBtnContainer .addWidgetWizardIconsCntLabelBig, #instantiateBtnContainer .addWidgetWizardIconsCntSublabel,
+#instantiateBtnContainer2 .addWidgetWizardIconsCntLabelBig, #instantiateBtnContainer2 .addWidgetWizardIconsCntSublabel
+{
+    background-color: #576c75;
+} */
+
+.multiselect-native-select{
+    width: 100%;
+}
+.multiselect-native-select .btn-group{
+    width: 100%;
+}
+.multiselect-native-select .btn-group .multiselect{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.multiselect-native-select .btn-group .multiselect .multiselect-selected-text{
+    width: 84%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+}
+
+#wizardTab1MsgCnt {
+    display:none
+}

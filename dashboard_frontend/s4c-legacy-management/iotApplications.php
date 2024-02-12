@@ -24,6 +24,11 @@ $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
 checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/iotApplications.php"));
+
+function enableCreateIotApps() {
+  return isset($GLOBALS['enableCreateIotApp']) && $GLOBALS['enableCreateIotApp']=="true";
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -177,9 +182,11 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                       <!--<div class="iotAppsListMenuItemTitle centerWithFlex col-xs-4">
                           New<br>dashboard
                       </div>-->
+                      <?php if( enableCreateIotApps() ) : ?>
                       <div class="iotAppsListMenuItemContent centerWithFlex col-xs-12">
                         <button id="link_add_iotapp" data-toggle="modal" type="button" class="btn btn-warning"><?= _("Create new") ?></button>
                       </div>
+                      <?php endif; ?>
                     </div>
                   </div>
 
@@ -238,6 +245,8 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                 <select id="applicationType" class="form-control">
                     <option value="basic"><?= _("Basic")?></option>
                     <option value="advanced"><?= _("Advanced")?></option>
+                    <option value="basic-debug"><?= _("Basic Debug")?></option>
+                    <option value="advanced-debug"><?= _("Advanced Debug")?></option>
                     <option value="portia"><?= _("Web scraper (portia)")?></option>
                 </select>    
               </div>
@@ -268,7 +277,9 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
             <!-- Tabs -->
             <ul id="iotappTabsContainer" class="nav nav-tabs nav-justified">
                 <li id="propertiesTab" class="active"><a data-toggle="tab" href="#propertiesCnt"><?= _("Properties")?></a></li>
+                <?php if( enableCreateIotApps() ) : ?>
                 <li id="controlTab"><a data-toggle="tab" href="#controlCnt" class="dashboardWizardTabTxt"><?= _("Control")?></a></li>
+                <?php endif; ?>
                 <li id="ownershipTab"><a data-toggle="tab" href="#ownershipCnt" class="dashboardWizardTabTxt"><?= _("Ownership")?></a></li>
             </ul> 
             <!-- Fine tabs -->
@@ -316,6 +327,8 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                     <select id="appTypeEditIoTApp" class="form-control" disabled>
                         <option value="basic"><?= _("Basic")?></option>
                         <option value="advanced"><?= _("Advanced")?></option>
+                        <option value="basic-debug"><?= _("Basic Debug")?></option>
+                        <option value="advanced-debug"><?= _("Advanced Debug")?></option>
                         <option value="plumber"><?= _("Data analytic")?></option>
                         <option value="portia"><?= _("Web scraper (portia)")?></option>
                     </select>    
@@ -336,6 +349,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                   </div>     
                 </div>
               </div>
+              <?php if( enableCreateIotApps() ) : ?>
               <div id="controlCnt" class="tab-pane fade in">
                 <div class="row iotAppModalRow" style="padding-top:85px">
                   <div class="col-xs-12 centerWithFlex">
@@ -344,6 +358,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                   </div>     
                 </div>
               </div>
+              <?php endif; ?>
             </div>
             <div id="modalAddIoTAppFooter" class="modal-footer">
               <button type="button" id="modalEditIoTAppCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Close")?></button>
@@ -569,7 +584,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                checkIotApp(record.id);
              }
 
-            var newRow = '<tr data-dashTitle="' + record.title + '" data-uniqueid="' + record.id + '" data-authorName="' + record.username + '">' +
+            var newRow = '<tr data-title="' + record.name + '" data-uniqueid="' + record.id + '" data-authorName="' + record.username + '" data-type="' + record.type + '" data-created="' + record.created + '">' +
                   '<td class="' + cssClass + '" ><div id="rhealth_'+record.id+'" class="iotAppHealth" style="background-color:'+healthStyle+'">&nbsp;</div></td>' +
                   '<td class="' + cssClass + '" >' + record.type + '</td>'+
                   '<td class="' + cssClass + '" style="font-weight: bold"><a href="' + record.url + '" target="_blank">' + title + '</a></td>'+
@@ -579,7 +594,7 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                   '<td class="' + cssClass + '">' + record.id + '</td>'+
                   '<td class="' + cssClass + '">' + dashboards + '</td>'+
                   //'<td class="' + cssClass + '">' + record.image + '</td>'+
-                  '<td class="' + cssClass + '"><button type="button" class="viewDashBtn"><?= _("Management")?></button></td>'+
+                  '<td class="' + cssClass + '"><button type="button" class="viewDashBtn managementBtn"><?= _("Management")?></button><?php if(enableCreateIotApps()): ?><button type="button" class="viewDashBtn deleteBtn"><?= _("Delete")?></button><?php endif; ?></td>'+
                   '</tr>';
 
             return newRow;
@@ -1144,15 +1159,134 @@ checkSession('Manager',"ssoLogin.php?redirect=".urlencode($appUrl."/management/i
                             offstyle: "default",
                             size: "mini"
                         });
-                                                
-                        $('#list_dashboard button.viewDashBtn').off('click').click(function() 
-                        {
-                            var dashboardId = $(this).parents('tr').attr('data-uniqueid');
-                            var dashboardTitle = $(this).parents('tr').attr('data-dashTitle');
-                            var dashboardAuthorName = $(this).parents('tr').attr('data-authorName');
-                            alert('edit ');
-                        });
-                        
+                        $('#list_dashboard button.deleteBtn').off('click').click(function() {
+                            var appId = $(this).parents('tr').attr('data-uniqueid');
+                            if(confirm("Do you really want to DELETE the application?")) {
+                                $.ajax({
+                                  url: "../controllers/deleteIotApplication.php",
+                                  data: {"id":appId},
+                                  type: "GET",
+                                  async: true,
+                                  dataType: 'JSON',
+                                  cache: false, 
+                                  success: function (data) {
+                                    if(data.detail=="Ok") {
+                                      location.reload();
+                                    } else {
+                                      alert("Error: "+data.error);
+                                    }
+                                    console.log(data);
+                                  },
+                                  error: function (error) {
+                                    alert("An error occured");
+                                    console.log(error);
+                                  }
+                              });
+                            }
+                          });                                                
+                        $('#list_dashboard button.managementBtn').off('click').click(function() {
+                            var appId = $(this).parents('tr').attr('data-uniqueid');
+                            var appName = $(this).parents('tr').attr('data-title');
+                            var appType = $(this).parents('tr').attr('data-type');
+                            var appCreated = $(this).parents('tr').attr('data-created');
+                            appCreated = new Date(appCreated);
+                            
+                            $('#iotAppIdHidden').val(appId);
+                            $('#iotAppNameHidden').val(appName);
+                            $('#inputTitleEditIoTApp').val(appName);
+                            $('#appTypeEditIoTApp').val(appType);
+                            $('#createdEditIoTApp').val(appCreated.toLocaleString())
+                            
+                            $('#modalEditIoTApp').modal('show');
+                            $('#modalEditIoTAppConfirmBtn').off('click').click(function() {
+                              var appName = $('#inputTitleEditIoTApp').val().trim();
+                              var appId = $('#iotAppIdHidden').val();
+                              
+                              if(appName=='')
+                                alert("Please provide a name")
+                              else {
+                                $.ajax({
+                                  url: "../controllers/editIotApplication.php",
+                                  data: {"name": appName, "id":appId},
+                                  type: "GET",
+                                  async: true,
+                                  dataType: 'JSON',
+                                  cache: false, 
+                                  success: function (data) {
+                                    if(data.detail=="Ok") {
+                                      location.reload();
+                                    } else {
+                                      alert("Error: "+data.error);
+                                    }
+                                    console.log(data);
+                                    $('#modalAddIoTApp').modal('hide');
+                                  },
+                                  error: function (error) {
+                                    alert("An error occured");
+                                    console.log(error);
+                                    $('#modalAddIoTApp').modal('hide');
+                                  }
+                              });
+                              }
+                            });
+                            $('#modalEditIoTApp .deleteBtn').off('click').click(function() {
+                              var appId = $('#iotAppIdHidden').val();
+
+                              if(confirm("Do you really want to DELETE the application?")) {
+                                $.ajax({
+                                  url: "../controllers/deleteIotApplication.php",
+                                  data: {"id":appId},
+                                  type: "GET",
+                                  async: true,
+                                  dataType: 'JSON',
+                                  cache: false, 
+                                  success: function (data) {
+                                    if(data.detail=="Ok") {
+                                      location.reload();
+                                    } else {
+                                      alert("Error: "+data.error);
+                                    }
+                                    console.log(data);
+                                    $('#modalAddIoTApp').modal('hide');
+                                  },
+                                  error: function (error) {
+                                    alert("An error occured");
+                                    console.log(error);
+                                    $('#modalAddIoTApp').modal('hide');
+                                  }
+                              });
+                              }
+                            });
+                            $('#modalEditIoTApp .restartBtn').off('click').click(function() {
+                              var appId = $('#iotAppIdHidden').val();
+
+                              if(confirm("Do you really want to RESTART the application?")) {
+                                $.ajax({
+                                  url: "../controllers/restartIotApplication.php",
+                                  data: {"id":appId},
+                                  type: "GET",
+                                  async: true,
+                                  dataType: 'JSON',
+                                  cache: false, 
+                                  success: function (data) {
+                                    if(data.detail=="Ok") {
+                                      location.reload();
+                                    } else {
+                                      alert("Error: "+data.error);
+                                    }
+                                    console.log(data);
+                                    $('#modalAddIoTApp').modal('hide');
+                                  },
+                                  error: function (error) {
+                                    alert("An error occured");
+                                    console.log(error);
+                                    $('#modalAddIoTApp').modal('hide');
+                                  }
+                              });
+                              }
+                            });
+                        }
+                        );                        
                     });
                     
                     
