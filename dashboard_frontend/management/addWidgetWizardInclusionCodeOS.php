@@ -3105,7 +3105,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                             newIcon.css('background-image', 'url("../img/widgetIcons/mono/' + data.table[i].icon + '")');
 
                             $('.addWidgetWizardIconsCnt').eq(0).append(newIcon);
-                            $('body>.tooltip').remove();
+                            //$('body>.tooltip').remove();
                             $('[data-toggle="tooltip"]').tooltip();
                         } else {
                             //ICONE MULTI
@@ -4536,7 +4536,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 
             $('.addWidgetWizardIconClickClass').each(function () {
 
-                if( $("#highLevelTypeSelect option:first:checked").length == 0){
+                if( hide_all_icons == true){
                     $(this).hide();
                     return true;
                 }
@@ -5391,7 +5391,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                     $(this).attr("title",$(this).text());
                 });
 
-                $("#widgetWizardTable td").each(function(){
+            /*    $("#widgetWizardTable td").each(function(){
                     $('body>.tooltip').remove();
                     $(this).tooltip({container:'body'});
                     if($(this).find("span").length > 0){
@@ -5399,7 +5399,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                         $(this).attr("data-original-title",$(this).find("span").text());
 
                     }
-                });
+                });*/
             },
             initComplete: function () {
 

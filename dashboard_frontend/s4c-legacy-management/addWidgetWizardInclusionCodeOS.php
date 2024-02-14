@@ -3099,7 +3099,7 @@
                             newIcon.css('background-image', 'url("../img/widgetIcons/mono/' + data.table[i].icon + '")');
 
                             $('.addWidgetWizardIconsCnt').eq(0).append(newIcon);
-                            $('body>.tooltip').remove();
+                            //$('body>.tooltip').remove();
                             $('[data-toggle="tooltip"]').tooltip();
                         } else {
                             //ICONE MULTI
@@ -5386,7 +5386,7 @@
                     $(this).attr("title",$(this).text());
                 });
 
-                $("#widgetWizardTable td").each(function(){
+            /*    $("#widgetWizardTable td").each(function(){
                     $('body>.tooltip').remove();
                     $(this).tooltip({container:'body'});
                     if($(this).find("span").length > 0){
@@ -5394,7 +5394,7 @@
                         $(this).attr("data-original-title",$(this).find("span").text());
 
                     }
-                });
+                });*/
             },
             initComplete: function () {
 

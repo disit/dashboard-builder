@@ -8193,6 +8193,7 @@ class KBRoadEditor {
 
                 // funzione che mi converte il poligono che ho in WKT
                 function getPolygonWKTFromScenarioArea(scenarioareaOfInterest) {
+                    //console.log('getPolygonWKTFromScenarioArea:',scenarioareaOfInterest);
                     const coordinates = scenarioareaOfInterest[0].geometry.coordinates[0].map(coordPair => coordPair.join(" ")).join(", ");
                     const polygonWKT = `POLYGON ((${coordinates}))`;
                     return polygonWKT;
@@ -8454,15 +8455,15 @@ class KBRoadEditor {
                 }              
                 
                 // funzione che mi serve per creare l'api per prendere il grafo strade all'interno di un poligono WKT
-                function buildSparqlQueryURL(polygonWKT){
-                    //const sparqlEndpoint = "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";                     
-                    const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
+                /*function buildSparqlQueryURL(polygonWKT){
+                    const sparqlEndpoint = "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";                     
+                    //const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
                     // Sostituisci con l'endpoint SPARQL corretto            
                     //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. FILTER (?highwaytype IN ("primary", "tertiary", "residential", "unclassified")) ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'),  bif:st_geomfromtext(CONCAT("MULTIPOINT(", STR(?startlong), " ", STR(?startlat), ",", STR(?endlong), " ", STR(?endlat), ")")) ) ) } LIMIT 16000`;
                     //NEW
                     const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. FILTER (?highwaytype IN ("primary", "tertiary", "residential", "unclassified")) ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'),  bif:st_geomfromtext(CONCAT("MULTIPOINT(", STR(?startlong), " ", STR(?startlat), ",", STR(?endlong), " ", STR(?endlat), ")")) ) ) } LIMIT 16000`; 
                     return sparqlEndpoint + query;
-                }
+                }*/
 
                 function buildSparqlQueryURLottimizzata(maxX, maxY, minX, minY){
                     //const sparqlEndpoint = "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";                     
@@ -8545,9 +8546,12 @@ class KBRoadEditor {
 
                 // Function to fetch SPARQL data
                 //
-                async function fetchSparqlData(sparqlQuery, wkt){      
+                async function fetchSparqlData(sparqlQuery, wkt, existentRoadGraph = null, existentRessvolte = null){      
                     //const allowedHighwayTypes = ["primary", "secondary", "residential","pedestrian", "tertiary", "residential", "unclassified"];
                     //
+                    if (existentRessvolte){
+                        ressvolte = existentRessvolte;
+                    }
                     //var restrinctions_list = '';      
                     var restrinctions_list =         ressvolte.then((result) => {
                                 // Converti l'oggetto result in JSON
@@ -8565,7 +8569,7 @@ class KBRoadEditor {
                     
                     //console.log(restrinctions_list); 
                     //
-                    const allowedHighwayTypes = ["primary", "tertiary", "residential", "unclassified"];              
+                    //const allowedHighwayTypes = ["primary", "tertiary", "residential", "unclassified"];              
                     try {
                         const response = await fetch(sparqlQuery);
                         //console.log(response);
@@ -8577,7 +8581,7 @@ class KBRoadEditor {
                         //console.log(stradeFeatures);
                         //
                         var stradeInfo = stradeFeatures
-                        .filter(feature => allowedHighwayTypes.includes(feature.highwaytype.value))
+                        //.filter(feature => allowedHighwayTypes.includes(feature.highwaytype.value))
                         .map(feature => (
                             {
                             road: feature.strada.value,
@@ -8655,7 +8659,7 @@ class KBRoadEditor {
                 var currentStatusEdit = $('#currentStatusEdit').val();
                 ///ADREANI
             if (!roadElementGraph){
-                        roadElementGraph = new KBRoadEditor(map.defaultMapRef, istanzedelgrafochestoconsiderando, (strada) => {
+                        roadElementGraph = new KBRoadEditor(map.defaultMapRef, existentRoadGraph ? existentRoadGraph: istanzedelgrafochestoconsiderando, (strada) => {
                             // segment. ci sono i dati
                             // segment.line e la poliline da appenderre il popup
                             //var descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+strada+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+strada.dir+'<br /><span><b>Restrictions: </b></span><br /><span></div>');
@@ -8731,18 +8735,200 @@ class KBRoadEditor {
                             var width_popup = 350;
                             //if (currentStatusEdit == 'streets'){
                             if (roadElementGraph.mode !== 'view') {
-                                //EDITABLE//
+                                
+                                
                                 var directions = '<select  id="updateDir" class="form-select" aria-label="Default select example" value="'+strada.dir+'"><option value="tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)">Positive direction</option><option value="tratto stradale aperto in entrambe le direzioni (default)">Bidirection</option><option value="tratto stradale aperto nella direzione negativa (da giunzione NOD_FIN a giunzione NOD_INI)">Negative Direction</option><option value="tratto stradale chiuso in entrambe le direzioni">Closed</option></select>';
-                                var categoryStreets = '<select id="updateType" value="'+strada.type+'" class="form-select" aria-label="Default select example"><option value="primary">primary</option><option value="tertiary">tertiary</option><option value="residential">residential</option><option value="unclassified">unclassified</option></select>';
+                                var categoryStreets = '<select id="updateType" value="'+strada.type+'" class="form-select" aria-label="Default select example"><option value="footway">footway</option><option value="primary">primary</option><option value="tertiary">tertiary</option><option value="residential">residential</option><option value="unclassified">unclassified</option></select>';
                                 directions = directions.replace('<option value="'+strada.dir+'">','<option value="'+strada.dir+'" selected>');
                                 categoryStreets = categoryStreets.replace('<option value="'+strada.type+'">','<option value="'+strada.type+'" selected>');
-                                var restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="only_straight_on">TurnRestriction-only_straight_on</option><option value="no_left_turn">TurnRestriction-no_left_turn</option><option value="no_right_turn">TurnRestriction-no_right_turn</option><option value="only_right_turn">TurnRestriction-only_right_turn</option><option value="no_u_turn">TurnRestriction-no_u_turn</option><option value="only_left_turn">TurnRestriction-only_left_turn</option><option value="no_straight_on">TurnRestriction-no_straight_on</option><option value="no_entry">TurnRestriction-no_entry</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option></select>';
+                                //var restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="only_straight_on">TurnRestriction-only_straight_on</option><option value="no_left_turn">TurnRestriction-no_left_turn</option><option value="no_right_turn">TurnRestriction-no_right_turn</option><option value="only_right_turn">TurnRestriction-only_right_turn</option><option value="no_u_turn">TurnRestriction-no_u_turn</option><option value="only_left_turn">TurnRestriction-only_left_turn</option><option value="no_straight_on">TurnRestriction-no_straight_on</option><option value="no_entry">TurnRestriction-no_entry</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option></select>';
+                                var restrinctions = '';
+                                if (restriction_span != 'Not defined'){
+                                    restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option><option value="'+restriction_span+'">TurnRestriction-'+restriction_span+'</option></select>';
+                                   // restrinctions = restrinctions.replace('value="'+restriction_span+'"', 'value="'+restriction_span+'" selected');
+                                }else{
+                                    restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option></select>';
+                                }
+                                /////////////
                                 let arraysegment = (strada.segment).split('/');
                                 let segmentId = arraysegment[arraysegment.length-2]+'/'+arraysegment[arraysegment.length-1];
                                 ////////
-                                var restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option value="only_straight_on">only_straight_on</option><option value="no_left_turn">no_left_turn</option><option value="no_right_turn">no_right_turn</option><option value="only_right_turn">only_right_turn</option><option value="no_u_turn">no_u_turn</option><option value="only_left_turn">only_left_turn</option><option value="no_straight_on">no_straight_on</option><option value="no_entry">no_entry</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
-                                ///////
-                                descrStrada = ('<div id="segmentLabel_edit" style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street: </b></td><td>'+categoryStreets+'</td></tr><tr><td><b>Nr.Lanes: </b></td><td><input type="number" id="updateLanes" value="'+strada.lanes+'" /></td></tr><tr><td><b>Speed Limit (km/h): </b></td><td><input type="number" id="updateSpeedLimit" value="'+strada.roadElmSpeedLimit+'" /></td></tr><tr><td><b>Direction:</b></td><td>'+directions+'</td></tr><tr><td><b>Restrictions:  </b></td><td>'+restrinctions+'</td></tr>'+restriction_data+'</tbody></table><input type="button" id="updateStreet" value="Update" /></div>');
+                                //
+                                var restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
+                                ///////                             
+                                 //EDITABLE//
+                                descrStrada = `<div id="segmentLabel_edit" style="padding: 5%; width: 450px;">
+                                                <input type="text" id="segment" value="`+strada.segment+`" style="display: none"/>
+                                                <textarea id="stradajson" style="display:none">'+stradajson+'</textarea>
+                                                <table>
+                                                <tbody>
+                                                <tr>
+                                                <td><b>Category Street: </b></td>
+                                                <td><select id="updateType" value="`+strada.type+`" class="form-select" aria-label="Default select example">
+                                                            <option value="footway">footway</option>
+                                                            <option value="primary">primary</option>
+                                                            <option value="tertiary">tertiary</option>
+                                                            <option value="residential">residential</option>
+                                                            <option value="pedestrian">pedestrian</option>
+                                                            <option value="unclassified">unclassified</option>
+                                                        </select>
+                                                </td>
+                                                </tr>
+                                                <tr>
+                                                <td><b>Nr.Lanes: </b></td><td><input type="number" id="updateLanes" value="`+strada.lanes+`" /></td>
+                                                </tr>
+                                                <tr>
+                                                <td><b>Speed Limit (km/h): </b></td><td><input type="number" id="updateSpeedLimit" value="`+strada.roadElmSpeedLimit+`" /></td>
+                                                </tr>
+                                                <tr>
+                                                <td><b>Direction:</b></td>
+                                                <td>
+                                                <select  id="updateDir" class="form-select" aria-label="Default select example" value="`+strada.dir+`">
+                                                                <option value="tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)">Positive direction</option>
+                                                                <option value="tratto stradale aperto in entrambe le direzioni (default)">Bidirection</option>
+                                                                <option value="tratto stradale aperto nella direzione negativa (da giunzione NOD_FIN a giunzione NOD_INI)">Negative Direction</option>
+                                                                <option value="tratto stradale chiuso in entrambe le direzioni">Closed</option>
+                                                </select>
+                                                </td>
+                                                </tr>
+                                                <tr>
+                                                <td><b>Restrictions:  </b></td>
+                                                <td><select id="updateRestriction" value="`+restriction_span+`" class="form-select" aria-label="Default select example" onchange="updateRestricitons()">
+                                                                <option value="Select or create restriction" selected>Select or create restriction</option>
+                                                                <option value="Create new AccessRestriction">Create new AccessRestriction</option>
+                                                                <option value="Create new TurnRestriction">Create new TurnRestriction</option>
+                                                                <option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option>
+                                                        </select></td>
+                                                </tr>
+                                                <tr class="restinction_data" style="display: none;">
+                                                <td><b>Type:    </b></td>
+                                                <td><select id="restrictionType">
+                                                            <option class="turnRestriction" value="only_straight_on">only_straight_on</option>
+                                                            <option class="turnRestriction" value="no_left_turn">no_left_turn</option>
+                                                            <option class="turnRestriction" value="no_right_turn">no_right_turn</option>
+                                                            <option class="turnRestriction" value="only_right_turn">only_right_turn</option>
+                                                            <option class="turnRestriction" value="no_u_turn">no_u_turn</option>
+                                                            <option class="turnRestriction" value="only_left_turn">only_left_turn</option>
+                                                            <option class="turnRestriction" value="no_straight_on">no_straight_on</option>
+                                                            <option class="turnRestriction" value="no_entry">no_entry</option>
+                                                            <!-- -->
+                                                            <option class="accessRestriction" value="AccessRestriction">AccessRestriction</option>
+                                                            <option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option>
+                                                        </select>
+                                                </td>
+                                                </tr>
+                                                <tr class="restinction_data" style="display: none;"><td><b>From:</b></td>
+                                                <td><input id="restrctionFrom" type="text" value="`+segmentId+`" readonly/></td>
+                                                </tr>
+                                                <tr class="restinction_data" style="display: none;">
+                                                <td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="`+toRestriction+`" readonly/></td>
+                                                </tr>
+                                                <tr class="restinction_data" style="display: none;">
+                                                <td><b>Node:    </b></td class="restinction_data" style="display: none;">
+                                                <td><input type="text" id="restrictionNode" value="`+nodeRestriction+`" readonly/>
+                                                </td>
+                                                </tr>
+                                                <tr class="access_data" style="display: none;">
+                                                <td><b>Direction:</b></td>
+                                                <td>
+                                                <select id="direction_access">
+                                                            <option value="forward">forward</option>
+                                                            <option value="backward">backward</option>
+                                                </select>
+                                                </td>
+                                                </tr>
+                                                <tr class="access_data" style="display: none;">
+                                                <td><b>Access:</b></td>
+                                                <td>
+                                                <select id="access_access">
+                                                            <option value="no">no</option>
+                                                            <option value="yes">yes</option>
+                                                            <option value="designated">designated</option> 
+                                                            <option value="use_sidepath">use_sidepath</option> 
+                                                            <option value="destination">destination</option> 
+                                                            <option value="private">private</option> 
+                                                            <option value="permissive">permissive</option> 
+                                                            <option value="dismount">dismount</option>
+                                                </select>
+                                                </td>
+                                                </tr>
+                                                <tr class="access_data" style="display: none;">
+                                                <td><b>Who:</b></td>
+                                                <td>
+                                                    <select id="who_access">
+                                                    <option value="vehicle">vehicle</opton> 
+                                                    <option value="bicycle">bicycle</opton> 
+                                                    <option value="foot">foot</opton> 
+                                                    <option value="motor_vehicle">motor_vehicle</opton> 
+                                                    <option value="horse">horse</opton> 
+                                                    <option value="hgv">hgv</opton> 
+                                                    <option value="psv">psv</opton> 
+                                                    <option value="bus">bus</opton> 
+                                                    <option value="hazmat">hazmat</opton> 
+                                                    <option value="motorcar">motorcar</opton> 
+                                                    <option value="motorcycle">motorcycle</opton> 
+                                                    <option value="emergency">emergency</opton> 
+                                                    <option value="goods">goods</opton> 
+                                                    <option value="moped">moped</opton> 
+                                                    <option value="mofa">mofa</opton> 
+                                                    <option value="tourist_bus">tourist_bus</opton> 
+                                                    <option value="taxi">taxi</opton> 
+                                                    <option value="hov"> hov</opton> 
+                                                    <option value="ski">ski</opton> 
+                                                    <option value="snowmobile">snowmobile</opton> 
+                                                    <option value="wheelchair">wheelchair</opton>
+                                                    </select>
+                                                </td>
+                                                </tr>
+                                                <tr class="maxMinRestriction" style="display: none;">
+                                                <td><b>What:</b></td>
+                                                <td>
+                                                    <select id="what_minmax">
+                                                        <option value="maxspeed">maxspeed</option>
+                                                        <option value="maxweight">maxweight</option>
+                                                        <option value="maxheight">maxheight</option>
+                                                        <option value="maxlength">maxlength</option>
+                                                        <option value="maxwidth">maxwidth</option>
+                                                        <option value="minspeed">minspeed</option>
+                                                    </select>
+                                                </td>
+                                                </tr>
+                                                <tr class="maxMinRestriction" style="display: none;">
+                                                <td><b>Limit:<b/></td>
+                                                <td>
+                                                <input type="number" id="limit_minmax" value="" /></td>
+                                                </td>
+                                                </tr>
+                                                </tbody>
+                                                </table>
+                                                <input type="button" id="updateStreet" value="Update" />
+                                                </div>`;
+                                    
+                                                descrStrada = descrStrada.replace('<option value="'+strada.type+'">'+strada.type+'</option>','<option value="'+strada.type+'" selected>'+strada.type+'</option>'); 
+                                                descrStrada = descrStrada.replace('<option value="'+strada.dir+'">','<option value="'+strada.dir+'" selected>');     
+                                    //CHECK SUL restriction_span;
+                                    if (restriction_span != 'Not defined'){
+                                            //CHANGE DATA
+                                            
+                                            console.log(restriction_span);
+                                            if(restriction_span =='AccessRestriction'){
+                                                descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>'+restriction_span+'</option>');
+                                                descrStrada = descrStrada.replaceAll('<tr class="access_data" style="display: none;">','<tr class="access_data">');                                             
+                                            }else if(restriction_span =='MaxMinRestriction'){
+                                                descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>'+restriction_span+'</option>');
+                                                descrStrada = descrStrada.replaceAll('<tr class="maxMinRestriction" style="display: none;">','<tr class="maxMinRestriction">');
+                                            }else{          
+                                                descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>TurnRestriction-'+restriction_span+'</option>'); 
+                                                descrStrada = descrStrada.replaceAll('<tr class="restinction_data" style="display: none;">','<tr class="restinction_data">');
+                                                descrStrada = descrStrada.replace('id="restrictionType"', 'id="restrictionType" value="'+restriction_span+'"');
+                                                descrStrada = descrStrada.replace('<option class="turnRestriction" value="'+restriction_span+'">'+restriction_span+'</option>','<option class="turnRestriction" value="'+restriction_span+'" selected>'+restriction_span+'</option>');
+                                            }
+                                            
+                                    }
+
+                                //EDITABLE 
+                                ///////////
+                                //descrStrada = ('<div id="segmentLabel_edit" style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street: </b></td><td>'+categoryStreets+'</td></tr><tr><td><b>Nr.Lanes: </b></td><td><input type="number" id="updateLanes" value="'+strada.lanes+'" /></td></tr><tr><td><b>Speed Limit (km/h): </b></td><td><input type="number" id="updateSpeedLimit" value="'+strada.roadElmSpeedLimit+'" /></td></tr><tr><td><b>Direction:</b></td><td>'+directions+'</td></tr><tr><td><b>Restrictions:  </b></td><td>'+restrinctions+'</td></tr>'+restriction_data+'</tbody></table><input type="button" id="updateStreet" value="Update" /></div>');
                                 width_popup = 450;
                             }else{
                                 var dir = strada.dir;
@@ -9286,7 +9472,7 @@ class KBRoadEditor {
 			const enlargedPolygonBoundingBox = findBoundingBox(enlargedPolygonWKT);
 			//console.log(enlargedPolygonBoundingBox);
             //buildSparqlQueryURL_CHECK
-			sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT)
+			//sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT)
 			sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(enlargedPolygonBoundingBox.maxY, enlargedPolygonBoundingBox.maxX, enlargedPolygonBoundingBox.minY, enlargedPolygonBoundingBox.minX)
 			//console.log(sparqlQueryottimizzata);
             //console.log("sparqlQuery:");
@@ -9541,10 +9727,10 @@ class KBRoadEditor {
                                     </div>                                    
                                     <div id="scenario-content">                                        
                                         <div id="acc-content">
-                                            <!-- Contenuto per la modalità accorpata -->
+                                            <!-- ONLOAD VERSIONE -->
                                             <table>
                                                 <tr>
-                                                    <td><label>Type of Scenario:</label></td>
+                                                    <td><label>Load Scenario:</label></td>
                                                     <td>
                                                         <input type="radio" id="acc-type-init" name="scenario-type" value="init">
                                                         <label for="acc-type-init">Init</label>
@@ -9558,8 +9744,10 @@ class KBRoadEditor {
                                                 </tr>
                                                 <td id="scenario-init-row" style="display: none;">                                                    
                                                         <label for="scenario-init-list">Scenarios waiting to be processed:</label>
-                                                        <input type="text" id="search-scenario-init" placeholder="Search...">      
-                                                        <ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul>                                                                                              
+                                                        <input type="text" id="search-scenario-init" placeholder="Search..." hidden>      
+                                                        <!--<ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul>-->
+                                                        <select id="scenario-init-list" style="max-height: 120px; overflow: auto;"></select>  
+                                                        <button id="scenario-load">Load Scenario</button>                                                                                             
                                                 </td>                                                   
                                                 <tr id="scenario-list-row" style="display: none;">
                                                     <td><label for="scenario-list">Scenario List:</label></td>
@@ -9607,6 +9795,101 @@ class KBRoadEditor {
 		scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
 
 //update streets
+
+        //LOAD SCENARY
+        $('#scenario-load').click(async function(){
+            var scenarioLoad = $('#search-scenario-init').val();
+            console.log('load scenario: '+scenarioLoad);
+            //var selectScenario = $('#search-scenario-init').val();
+            var selectScenario = $('#scenario-init-list').val();
+                            var buttonToRemove = document.getElementById("scenario-save-finale1");
+                            if (buttonToRemove) {
+                                buttonToRemove.remove();
+                                isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+                            }
+                            //rimuovi anche l'AC se è rimasto da uno scenario precedente
+                            if (scenaryData.features.length>=0){
+                                // Rimuovi i layer dei disegni
+                                for (const layerId in scenaryDrawnItems._layers) {
+                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                }
+                                scenaryData.features = []; // reinizializzo questa variabile
+                                // Rimuovi i marker associati
+                                for (const layerId in scenaryMarkers._layers) {
+                                    const marker = scenaryMarkers._layers[layerId];
+                                    scenaryMarkers.removeLayer(marker);
+                                }
+                                // Rimuovi il vecchio grafo
+                                for (const layerId in scenaryGrafo._layers) {
+                                    const grafo = scenaryGrafo._layers[layerId];
+                                    scenaryGrafo.removeLayer(grafo);
+                                }
+                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                            }               
+                            getLAccessToken();
+                            //var scenarioName = $("#scenario-name1").val();
+                            //ildevicename = "deviceName" + scenarioName;
+                            // Ottieni il valore selezionato utilizzando jQuery
+                            ildevicename = $("#scenario-list").val();
+                            // Ora puoi utilizzare selectedValue come necessario
+                            //console.log("Selected value: " + ildevicename);
+                            try{
+                                let datidalsensore = await readFromDevice(lAccessToken, selectScenario);
+                                //console.dir(datidalsensore);
+                                var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
+                                //
+                                var arrayShape = shape[0].geometry.coordinates[0];
+                                var minY = arrayShape[0][1];
+                                var minX = arrayShape[0][0];
+                                var maxY = arrayShape[0][1];
+                                var maxX = arrayShape[0][0];
+                                for (let coord of arrayShape){
+                                    if (coord[1] < minY){
+                                        minY = coord[1]
+                                    }
+                                    if (coord[0] < minX){
+                                        minX = coord[0]
+                                    }
+                                    if (coord[1] > maxY){
+                                        maxY = coord[1]
+                                    }
+                                    if (coord[0] > maxX){
+                                        maxX = coord[0]
+                                    }
+                                }
+                                //
+                                console.log('shape1',shape);
+                                scenaryData.features.push(shape[0]);
+                                //var polygon = L.polygon(arrayShape);
+                                //map.defaultMapRef.fitBounds(polygon.getBounds());
+			                    //map.defaultMapRef.addLayer(scenaryData);
+                                //
+                                const polygonWKT = getPolygonWKTFromScenarioArea(shape);
+                                svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
+                                console.log(svoltesparqlquery)
+                                let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+                                //
+                                
+                                //console.log(polygonWKT);
+                                let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
+                                //console.dir(resDalDB);
+                                const roadGraph = JSON.parse(resDalDB[0].data).grandidati.roadGraph;
+                                //console.log(roadGraph);
+                                //roadElementGraph)
+                                const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
+                                //console.log(sparqlQueryottimizzata);
+                                fetchSparqlData(sparqlQueryottimizzata, polygonWKT, roadGraph,ressvolte);
+
+                            }
+                            catch(error){
+                                showNotification("Error during scenario load");
+                                console.error("Error", error)
+                                //console.log("il device non è stato ancora creato")
+                            } 
+        
+        });
 
 		//######################### EDITING  #######################################//
 		$('#showStreetGraph').change(function() {
@@ -9849,7 +10132,7 @@ class KBRoadEditor {
 				// Usa la funzione showNotification per mostrare un messaggio di successo
 				creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
 				if (creato == "ok") {
-					showNotification("Il dispositivo è stato creato con successo!");
+					showNotification("Scenario successfully created!");
 					//console.log("mando i dati TFRSDevice init");
 					try {
 						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
@@ -9866,11 +10149,11 @@ class KBRoadEditor {
 							});
 						// Aggiungi un ritardo di 1 secondo tra le notifiche
 						setTimeout(() => {
-							showNotification("E i dati iniziali sono stati inviati con successo!");
+							//showNotification("E i dati iniziali sono stati inviati con successo!");
 						}, 1000);
 						// Se entrambe le operazioni sono andate bene, mostra un messaggio di completamento
 						setTimeout(() => {
-							showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
+							//showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
 						}, 2000);
 					} catch (error) {
 						console.error("Errore nell'invio dei dati iniziali:", error);
@@ -9973,6 +10256,7 @@ $('#updateStreetGraph').click(async function(){
 ////BOLOGNA
 		//edit-lines
 	$("#edit_lines").click(async function() {
+        console.log('edit modality');
 			//alert('Editing modality activated');
             if (roadElementGraph)
                 roadElementGraph.mode = 'drag';
@@ -10058,7 +10342,7 @@ $('#updateStreetGraph').click(async function(){
 					istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
 					istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
 
-                    if(jsonStreetGraph !=""){
+                    /*if(jsonStreetGraph !=""){
                         //istanzedelgrafochestoconsiderando = jsonStreetGraph;
                         var istanzedelgrafochestoconsiderandoJSON = $('#jsonIstanze').text();
                                     //REFRESH DATA
@@ -10066,6 +10350,7 @@ $('#updateStreetGraph').click(async function(){
                                     ///////////BOLOGNA
                                     // Create the loading box element and add it to the document
                                     const loadingBox = document.createElement("div");
+                                    console.log('scenaryData',scenaryData);
                                     const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);
                                     /////BOLOGNA
                                     Promise.all([fetchSparqlData(sparqlQueryottimizzata, polygonWKT)])
@@ -10083,8 +10368,8 @@ $('#updateStreetGraph').click(async function(){
                                            // mapContainer.removeChild(loadingBox);
                                             loadingboxloaded = false;
                                             console.error("Error:", error);
-                                        });
-                    }
+                                        });  
+                    }*/
 
 					//fetchSparqlData(sparqlQuery);
                     var scenarioToRemove = document.getElementById("modality-load");
@@ -10256,14 +10541,15 @@ $('#updateStreetGraph').click(async function(){
 					let stradaVicina = null;
 					let distanzaMinima = Infinity;
                     //BOLOGNA
+                    /*
                     var jsonIstanze_content =  $('#jsonIstanze').text();
                     if ((jsonIstanze_content == "")||(jsonIstanze_content == undefined)){
                             var istanzedelgrafochestoconsiderandoJSON = JSON.stringify(jsonIstanze_content);
                             istanzedelgrafochestoconsiderando = istanzedelgrafochestoconsiderandoJSON;
-                    }
-                    /*if (roadElementGraph){
-                        istanzedelgrafochestoconsiderando =Object.values(roadElementGraph.deepCopySegments())
                     }*/
+                    if (roadElementGraph){
+                        istanzedelgrafochestoconsiderando =Object.values(roadElementGraph.deepCopySegments())
+                    }
                     //istanzedelgrafochestoconsiderando = JSON.parse(istanzedelgrafochestoconsiderando);
                     
                     
@@ -10315,7 +10601,7 @@ $('#updateStreetGraph').click(async function(){
 				centroid[0] /= coordinates.length;
 				centroid[1] /= coordinates.length;
                 //TEST OUTPUT
-                /*
+                /**
                 var jsonString = JSON.stringify(scenarioData, null, 2);
 				var blob = new Blob([jsonString], { type: "application/json" });
 				var url = URL.createObjectURL(blob);
@@ -10327,14 +10613,15 @@ $('#updateStreetGraph').click(async function(){
 				a.click();
 				document.body.removeChild(a);
 				URL.revokeObjectURL(url);   
-                console.log("DATI STRINGHE");*/
+                console.log("DATI STRINGHE");
+                ***/
                 //END OUTPOUT
 				await getLAccessToken();                          
 				adesso = new Date().toISOString();
 				ildevicename = "deviceName" + scenarioName;
 				creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
 				if (creato == "ok") {
-					showNotification("Il dispositivo è stato creato con successo!");
+					showNotification("Scenario successfully created!");
 					try {
 						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);                                     
 						sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
@@ -10347,10 +10634,10 @@ $('#updateStreetGraph').click(async function(){
 								console.error('Si è verificato un errore:', error);
 							});
 						setTimeout(() => {
-							showNotification("E i dati iniziali sono stati inviati con successo!");
+							//showNotification("E i dati iniziali sono stati inviati con successo!");
 						}, 1000);
 						setTimeout(() => {
-							showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
+							//showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
 						}, 2000);
 					} catch (error) {
 						console.error("Errore nell'invio dei dati iniziali:", error);
@@ -10501,10 +10788,10 @@ $('#updateStreetGraph').click(async function(){
                                                         </div>                                    
                                                         <div id="scenario-content">                                        
                                                             <div id="acc-content">
-                                                                <!-- Contenuto per la modalità accorpata -->
+                                                                <!-- LOAD SCNERIO NEW VERSION -->
                                                                 <table>
                                                                     <tr>
-                                                                        <td><label>Type of Scenario:</label></td>
+                                                                        <td><label>Load Scenario:</label></td>
                                                                         <td>
                                                                             <input type="radio" id="acc-type-init" name="scenario-type" value="init">
                                                                             <label for="acc-type-init">Init</label>
@@ -10518,8 +10805,10 @@ $('#updateStreetGraph').click(async function(){
                                                                     </tr>
                                                                     <td id="scenario-init-row" style="display: none;">                                                    
                                                                             <label for="scenario-init-list">Scenarios waiting to be processed:</label>
-                                                                            <input type="text" id="search-scenario-init" placeholder="Search...">      
-                                                                            <ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul>                                                                                              
+                                                                            <input type="text" id="search-scenario-init" placeholder="Search..." hidden>      
+                                                                            <!--<ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul> -->
+                                                                            <select id="scenario-init-list" style="max-height: 120px; overflow: auto;"></select> 
+                                                                            <button id="scenario-load">Load Scenario</button>                                                                                                  
                                                                     </td>                                                                      
                                                                     <tr id="scenario-list-row" style="display: none;">
                                                                         <td><label for="scenario-list">Scenario List:</label></td>
@@ -10565,6 +10854,93 @@ $('#updateStreetGraph').click(async function(){
                                         }
                                         scenaryControl3.addTo(map.defaultMapRef); 
 					///////////////////
+                    $('#scenario-load').click(async function(){
+            var scenarioLoad = $('#search-scenario-init').val();
+            console.log('load scenario: '+scenarioLoad);
+            var selectScenario = $('#scenario-init-list').val();
+            //var selectScenario = $('#search-scenario-init').val();
+                            var buttonToRemove = document.getElementById("scenario-save-finale1");
+                            if (buttonToRemove) {
+                                buttonToRemove.remove();
+                                isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+                            }
+                            //rimuovi anche l'AC se è rimasto da uno scenario precedente
+                            if (scenaryData.features.length>=0){
+                                // Rimuovi i layer dei disegni
+                                for (const layerId in scenaryDrawnItems._layers) {
+                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                }
+                                scenaryData.features = []; // reinizializzo questa variabile
+                                // Rimuovi i marker associati
+                                for (const layerId in scenaryMarkers._layers) {
+                                    const marker = scenaryMarkers._layers[layerId];
+                                    scenaryMarkers.removeLayer(marker);
+                                }
+                                // Rimuovi il vecchio grafo
+                                for (const layerId in scenaryGrafo._layers) {
+                                    const grafo = scenaryGrafo._layers[layerId];
+                                    scenaryGrafo.removeLayer(grafo);
+                                }
+                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                            }               
+                            getLAccessToken();
+                            //var scenarioName = $("#scenario-name1").val();
+                            //ildevicename = "deviceName" + scenarioName;
+                            // Ottieni il valore selezionato utilizzando jQuery
+                            ildevicename = $("#scenario-list").val();
+                            // Ora puoi utilizzare selectedValue come necessario
+                            //console.log("Selected value: " + ildevicename);
+                            try{
+                                let datidalsensore = await readFromDevice(lAccessToken, selectScenario);
+                                console.dir(datidalsensore);
+                                var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
+                                //
+                                var arrayShape = shape[0].geometry.coordinates[0];
+                                var minY = arrayShape[0][1];
+                                var minX = arrayShape[0][0];
+                                var maxY = arrayShape[0][1];
+                                var maxX = arrayShape[0][0];
+                                for (let coord of arrayShape){
+                                    if (coord[1] < minY){
+                                        minY = coord[1]
+                                    }
+                                    if (coord[0] < minX){
+                                        minX = coord[0]
+                                    }
+                                    if (coord[1] > maxY){
+                                        maxY = coord[1]
+                                    }
+                                    if (coord[0] > maxX){
+                                        maxX = coord[0]
+                                    }
+                                }
+                                //
+                                console.log('shape2',shape);
+                                scenaryData.features.push(shape[0]);
+                                const polygonWKT = getPolygonWKTFromScenarioArea(shape);
+                                svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
+                                console.log(svoltesparqlquery)
+                                let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+                                //
+                                
+                                console.log(polygonWKT);
+                                let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
+                                console.dir(resDalDB);
+                                const roadGraph = JSON.parse(resDalDB[0].data).grandidati.roadGraph;
+                                console.dir(roadGraph);
+                                //roadElementGraph)
+                                const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
+                                fetchSparqlData(sparqlQueryottimizzata, polygonWKT, roadGraph,ressvolte);
+
+                            }
+                            catch(error){
+                                showNotification("Error during scenario load");
+                                console.error("Error", error)
+                            } 
+        
+                    });
                     ///////////////
 				}
 				//////
@@ -10604,8 +10980,9 @@ $('#updateStreetGraph').click(async function(){
                                                         scenarioInitList.empty();
                                                         initScenarios.forEach(scenario => {
                                                             var optionValue = scenario.replace("deviceName", "");
-                                                            var optionText = optionValue + " -> " + scenario;
-                                                            var listItem = $("<p>").text(optionText);
+                                                            //var optionText = optionValue + " -> " + scenario;
+                                                            var optionText = optionValue;
+                                                            var listItem = $("<option>").val(scenario).text(optionText);
                                                             scenarioInitList.append(listItem);
                                                         });
 
@@ -10619,8 +10996,9 @@ $('#updateStreetGraph').click(async function(){
                                                                 // Modificato il confronto per verificare se il termine di ricerca è incluso nel testo del paragrafo
                                                                 if (scenario.toLowerCase().includes(searchTerm)) {
                                                                     var optionValue = scenario.replace("deviceName", "");
-                                                                    var optionText = optionValue + " -> " + scenario;
-                                                                    var listItem = $("<p>").text(optionText);                            
+                                                                    //var optionText = optionValue + " -> " + scenario;
+                                                                    var optionText = optionValue;
+                                                                    var listItem = $("<option>").val(scenario).text(optionText);                            
                                                                     scenarioInitList.append(listItem);
                                                                 }
                                                             });
@@ -10693,6 +11071,9 @@ $('#updateStreetGraph').click(async function(){
                             /////END VIEW CHANGING
                             fetchSparqlData(sparqlQuery, polygonWKT);
 			//Funzione per attivare la modiche delle polyline 
+
+
+            //////////////////
 		});
     }
 
@@ -10726,8 +11107,9 @@ $('#updateStreetGraph').click(async function(){
                                 scenarioInitList.empty();
                                 initScenarios.forEach(scenario => {
                                     var optionValue = scenario.replace("deviceName", "");
-                                    var optionText = optionValue + " -> " + scenario;
-                                    var listItem = $("<p>").text(optionText);
+                                    //var optionText = optionValue + " -> " + scenario;
+                                    var optionText = optionValue;
+                                    var listItem = $("<option>").val(scenario).text(optionText);
                                     scenarioInitList.append(listItem);
                                 });
 
@@ -10741,8 +11123,9 @@ $('#updateStreetGraph').click(async function(){
                                         // Modificato il confronto per verificare se il termine di ricerca è incluso nel testo del paragrafo
                                         if (scenario.toLowerCase().includes(searchTerm)) {
                                             var optionValue = scenario.replace("deviceName", "");
-                                            var optionText = optionValue + " -> " + scenario;
-                                            var listItem = $("<p>").text(optionText);                            
+                                            //var optionText = optionValue + " -> " + scenario;
+                                            var optionText = optionValue;
+                                            var listItem = $("<option>").val(scenario).text(optionText);                            
                                             scenarioInitList.append(listItem);
                                         }
                                     });
@@ -10936,7 +11319,7 @@ $('#updateStreetGraph').click(async function(){
                                             <!-- Contenuto per la modalità accorpata -->
                                             <table>
                                                 <tr>
-                                                    <td><label>Type of Scenario:</label></td>
+                                                    <td><label>Load Scenario:</label></td>
                                                     <td>
                                                         <input type="radio" id="acc-type-init" name="scenario-type" value="init">
                                                         <label for="acc-type-init">Init</label>
@@ -10951,8 +11334,9 @@ $('#updateStreetGraph').click(async function(){
 
                                                 <td id="scenario-init-row" style="display: none;">                                                    
                                                         <label for="scenario-init-list">Scenarios waiting to be processed:</label>
-                                                        <input type="text" id="search-scenario-init" placeholder="Search...">      
-                                                        <ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul>                                                                                              
+                                                        <input type="text" id="search-scenario-init" placeholder="Search..." hidden>      
+                                                        <select id="scenario-init-list" style="max-height: 120px; overflow: auto;"></select> 
+                                                        <button id="scenario-load">Load Scenario</button>                                                                                              
                                                 </td>   
                                                 
                                                 <tr id="scenario-list-row" style="display: none;">
@@ -11029,8 +11413,9 @@ $('#updateStreetGraph').click(async function(){
                                 scenarioInitList.empty();
                                 initScenarios.forEach(scenario => {
                                     var optionValue = scenario.replace("deviceName", "");
-                                    var optionText = optionValue + " -> " + scenario;
-                                    var listItem = $("<p>").text(optionText);
+                                    //var optionText = optionValue + " -> " + scenario;
+                                    var optionText = optionValue;
+                                    var listItem = $("<option>").val(scenario).text(optionText);
                                     scenarioInitList.append(listItem);
                                 });
 
@@ -11114,7 +11499,96 @@ $('#updateStreetGraph').click(async function(){
                             } else {
                                 console.error("Errore nel determinare il tipo di scenario.");
                             }
-                        });                        
+                        });     
+                        
+                        //############ Load Stato zero  #######//
+                        $('#scenario-load').click(async function(){
+            var scenarioLoad = $('#search-scenario-init').val();
+            console.log('load scenario: '+scenarioLoad);
+            var selectScenario = $('#scenario-init-list').val();
+            //var selectScenario = $('#search-scenario-init').val();
+                            var buttonToRemove = document.getElementById("scenario-save-finale1");
+                            if (buttonToRemove) {
+                                buttonToRemove.remove();
+                                isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+                            }
+                            //rimuovi anche l'AC se è rimasto da uno scenario precedente
+                            if (scenaryData.features.length>=0){
+                                // Rimuovi i layer dei disegni
+                                for (const layerId in scenaryDrawnItems._layers) {
+                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                }
+                                scenaryData.features = []; // reinizializzo questa variabile
+                                // Rimuovi i marker associati
+                                for (const layerId in scenaryMarkers._layers) {
+                                    const marker = scenaryMarkers._layers[layerId];
+                                    scenaryMarkers.removeLayer(marker);
+                                }
+                                // Rimuovi il vecchio grafo
+                                for (const layerId in scenaryGrafo._layers) {
+                                    const grafo = scenaryGrafo._layers[layerId];
+                                    scenaryGrafo.removeLayer(grafo);
+                                }
+                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                            }               
+                            getLAccessToken();
+                            //var scenarioName = $("#scenario-name1").val();
+                            //ildevicename = "deviceName" + scenarioName;
+                            // Ottieni il valore selezionato utilizzando jQuery
+                            ildevicename = $("#scenario-list").val();
+                            // Ora puoi utilizzare selectedValue come necessario
+                            //console.log("Selected value: " + ildevicename);
+                            try{
+                                let datidalsensore = await readFromDevice(lAccessToken, selectScenario);
+                                console.dir(datidalsensore);
+                                var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
+                                //
+                                var arrayShape = shape[0].geometry.coordinates[0];
+                                var minY = arrayShape[0][1];
+                                var minX = arrayShape[0][0];
+                                var maxY = arrayShape[0][1];
+                                var maxX = arrayShape[0][0];
+                                for (let coord of arrayShape){
+                                    if (coord[1] < minY){
+                                        minY = coord[1]
+                                    }
+                                    if (coord[0] < minX){
+                                        minX = coord[0]
+                                    }
+                                    if (coord[1] > maxY){
+                                        maxY = coord[1]
+                                    }
+                                    if (coord[0] > maxX){
+                                        maxX = coord[0]
+                                    }
+                                }
+                                //
+                                console.log('shape3',shape[0]);
+                                //
+                                const polygonWKT = getPolygonWKTFromScenarioArea(shape);
+                                svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
+                                console.log(svoltesparqlquery)
+                                let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+                                //
+                                
+                                console.log(polygonWKT);
+                                let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
+                                console.dir(resDalDB);
+                                const roadGraph = JSON.parse(resDalDB[0].data).grandidati.roadGraph;
+                                console.dir(roadGraph);
+                                //roadElementGraph)
+                                const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
+                                fetchSparqlData(sparqlQueryottimizzata, polygonWKT, roadGraph,ressvolte);
+
+                            }
+                            catch(error){
+                                showNotification("Error during scenario load");
+                                console.error("Error", error)
+                            } 
+        
+        });
 
                         //######################## check device se stato accorpato #################################
                         $('#scenario-check-acc1').click(async function() {                            
@@ -22933,9 +23407,44 @@ setTimeout(function() {
         }*/
 
          function updateRestricitons(){
-                   $('.restinction_data').css('display','');
+                   
                    var restrictions = $('#updateRestriction').val();
+                   var restrictions_text = $('#restrictionType').text();
                    $('#restrictionType').val(restrictions);
+                   //////
+                   if ((restrictions !=('Create new AccessRestriction'))&&(restrictions !=('Create new MaxMinRestriction'))&&(restrictions !=('Select or create restriction'))){
+                            $('.restinction_data').css('display','');
+                            $(".turnRestriction").css('display','');
+                            $(".maxMinRestriction").css('display','none');
+                            $(".accessRestriction").css('display','none');
+                            $(".access_data").css('display','none');
+                   }else if(restrictions =='Create new AccessRestriction'){
+                            $('.restinction_data').css('display','none');
+                            $(".turnRestriction").css('display','none');
+                            $(".maxMinRestriction").css('display','none');
+                            $(".accessRestriction").css('display','');
+                            $(".access_data").css('display','');
+                   }else if(restrictions =='Create new MaxMinRestriction'){
+                            $('.restinction_data').css('display','none');
+                            $(".turnRestriction").css('display','none');
+                            $(".maxMinRestriction").css('display','');
+                            $(".accessRestriction").css('display','none');
+                            $(".access_data").css('display','none');
+                   }else if(restrictions =='Select or create restriction'){
+                            $('.restinction_data').css('display','none');
+                            $(".turnRestriction").css('display','none');
+                            $(".maxMinRestriction").css('display','none');
+                            
+                            $(".accessRestriction").css('display','none');
+                            $(".access_data").css('display','none');
+                   }else{
+                            $('.restinction_data').css('display','none');
+                            $(".turnRestriction").css('display','none');
+                            $(".maxMinRestriction").css('display','none');
+                            $(".accessRestriction").css('display','none');
+                            $(".access_data").css('display','none');
+                   }
+                   //////
           }
         ///////////UPDATE STREET SCENARY////  
  
