@@ -1100,6 +1100,8 @@ class KBRoadEditor {
             var selectedMetrics = null;
             var tooltipOnHover = false;
             var popupOnClick = true;
+            var leafletMaxZoom = 23;
+            var leafletNativeMaxZoom = 19;
             
             function removeBimShapeColorLegend(index, resetPageFlag) {
                 map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
@@ -5667,7 +5669,8 @@ class KBRoadEditor {
             function addDefaultBaseMap(map) {
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                    maxZoom: 23
+                    maxZoom: leafletMaxZoom,
+                    maxNativeZoom: leafletNativeMaxZoom
                 }).addTo(map);
             }
 
@@ -5835,28 +5838,28 @@ class KBRoadEditor {
                             } else {
                                /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                    maxZoom: 23
+                                    maxZoom: leafletMaxZoom
                                 }).addTo(map.defaultMapRef);*/
                                 addDefaultBaseMap(map.defaultMapRef);
                             }
                         } else {
                           /*  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom
                             }).addTo(map.defaultMapRef);*/
                             addDefaultBaseMap(map.defaultMapRef);
                         }
                     } else {
                        /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 23
+                            maxZoom: leafletMaxZoom
                         }).addTo(map.defaultMapRef);*/
                         addDefaultBaseMap(map.defaultMapRef);
                     }
                 } else {
                   /*  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                        maxZoom: 23
+                        maxZoom: leafletMaxZoom
                     }).addTo(map.defaultMapRef);*/
                     addDefaultBaseMap(map.defaultMapRef);
                 }
@@ -6158,7 +6161,8 @@ class KBRoadEditor {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addAlarmsToMap();
@@ -6249,7 +6253,8 @@ class KBRoadEditor {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addEvacuationPlanToMap();
@@ -7024,7 +7029,8 @@ class KBRoadEditor {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addSelectorEventToMap();
@@ -7597,7 +7603,8 @@ class KBRoadEditor {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addSelectorEventToMap();
@@ -7854,7 +7861,8 @@ class KBRoadEditor {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addEventFIToMap();
@@ -7944,7 +7952,8 @@ class KBRoadEditor {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addResourceToMap();
@@ -8032,7 +8041,8 @@ class KBRoadEditor {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addOperatorEventToMap();
@@ -8112,7 +8122,8 @@ class KBRoadEditor {
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addOperatorEventToMap();
@@ -12086,7 +12097,8 @@ $('#updateStreetGraph').click(async function(){
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addOperatorEventToMap();
@@ -12201,7 +12213,8 @@ $('#updateStreetGraph').click(async function(){
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addTrafficEventToMap();
@@ -13970,7 +13983,8 @@ $('#updateStreetGraph').click(async function(){
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addTrafficRTDetailsToMap();
@@ -14665,7 +14679,8 @@ $('#updateStreetGraph').click(async function(){
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 23
+                                        maxZoom: leafletMaxZoom,
+                                        maxNativeZoom: leafletNativeMaxZoom
                                     }).addTo(map.defaultMapRef);
 
                                     addHeatmapFromClient(false);
@@ -14796,7 +14811,8 @@ $('#updateStreetGraph').click(async function(){
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 23
+                                        maxZoom: leafletMaxZoom,
+                                        maxNativeZoom: leafletNativeMaxZoom
                                     }).addTo(map.defaultMapRef);
 
                                     addHeatmapFromClient(false);
@@ -16354,7 +16370,8 @@ console.log(apiUrl);
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addHeatmapToMap();
@@ -17230,7 +17247,8 @@ console.log(apiUrl);
                                             });
                                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                maxZoom: 23
+                                                maxZoom: leafletMaxZoom,
+                                                maxNativeZoom: leafletNativeMaxZoom
                                             }).addTo(map.defaultMapRef);
 
                                             addOdFromClient();
@@ -17295,7 +17313,8 @@ console.log(apiUrl);
                                         });
                                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                            maxZoom: 23
+                                            maxZoom: leafletMaxZoom,
+                                            maxNativeZoom: leafletNativeMaxZoom
                                         }).addTo(map.defaultMapRef);
 
                                         addOdFromClient();
@@ -17351,7 +17370,8 @@ console.log(apiUrl);
                                         });
                                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                            maxZoom: 23
+                                            maxZoom: leafletMaxZoom,
+                                            maxNativeZoom: leafletNativeMaxZoom
                                         }).addTo(map.defaultMapRef);
 
                                         addOdFromClient();
@@ -17411,7 +17431,8 @@ console.log(apiUrl);
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 23
+                                        maxZoom: leafletMaxZoom,
+                                        maxNativeZoom: leafletNativeMaxZoom
                                     }).addTo(map.defaultMapRef);
 
                                     addOdFromClient();
@@ -17471,7 +17492,8 @@ console.log(apiUrl);
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 23
+                                        maxZoom: leafletMaxZoom,
+                                        maxNativeZoom: leafletNativeMaxZoom
                                     }).addTo(map.defaultMapRef);
 
                                     addOdFromClient();
@@ -17531,7 +17553,8 @@ console.log(apiUrl);
                                     });
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                        maxZoom: 23
+                                        maxZoom: leafletMaxZoom,
+                                        maxNativeZoom: leafletNativeMaxZoom
                                     }).addTo(map.defaultMapRef);
 
                                     addOdFromClient();
@@ -18468,7 +18491,8 @@ console.log(apiUrl);
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addOdToMap();
@@ -19054,7 +19078,8 @@ console.log(apiUrl);
                             });
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                maxZoom: 23
+                                maxZoom: leafletMaxZoom,
+                                maxNativeZoom: leafletNativeMaxZoom
                             }).addTo(map.defaultMapRef);
 
                             addBimShapeEventToMap();
@@ -20088,7 +20113,8 @@ setTimeout(function() {
 
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                            maxZoom: 23
+                            maxZoom: leafletMaxZoom,
+                            maxNativeZoom: leafletNativeMaxZoom
                         }).addTo(fullscreendefaultMapRef);
                         fullscreendefaultMapRef.attributionControl.setPrefix('');
                         fullscreenHeatmapFirstInstantiation = true;
@@ -21787,7 +21813,8 @@ setTimeout(function() {
                                                 removeHeatmap(false);
                                                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                    maxZoom: 23
+                                                    maxZoom: leafletMaxZoom,
+                                                    maxNativeZoom: leafletNativeMaxZoom
                                                 }).addTo(fullscreendefaultMapRef);
                                             }
                                         }
@@ -21832,7 +21859,8 @@ setTimeout(function() {
                                             });
                                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                maxZoom: 23
+                                                maxZoom: leafletMaxZoom,
+                                                maxNativeZoom: leafletNativeMaxZoom
                                             }).addTo(fullscreendefaultMapRef);
 
                                             addHeatmapFromClient();
@@ -21862,7 +21890,8 @@ setTimeout(function() {
                                                 removeHeatmap(false);
                                                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                    maxZoom: 23
+                                                    maxZoom: leafletMaxZoom,
+                                                    maxNativeZoom: leafletNativeMaxZoom
                                                 }).addTo(fullscreendefaultMapRef);
                                             }
                                         }
@@ -21907,7 +21936,8 @@ setTimeout(function() {
                                             });
                                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                 attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                maxZoom: 23
+                                                maxZoom: leafletMaxZoom,
+                                                maxNativeZoom: leafletNativeMaxZoom
                                             }).addTo(fullscreendefaultMapRef);
 
                                             addHeatmapFromFullscreenClient(false);
@@ -23319,19 +23349,22 @@ setTimeout(function() {
                         attribution: menu.layerAttribution,
                         apikey: menu.apiKey,
                         minZoom: menu.minZoom,
-                        maxZoom: menu.maxZoom
+                        maxZoom: menu.maxZoom,
+                        maxNativeZoom: leafletNativeMaxZoom
                     }).addTo(map.defaultMapRef);
                 } else {
                     layer = L.tileLayer(menu.linkUrl, {
                         attribution: menu.layerAttribution,
-                        apikey: menu.apiKey
+                        apikey: menu.apiKey,
+                        maxZoom: leafletMaxZoom,
+                        maxNativeZoom: leafletNativeMaxZoom
                     }).addTo(map.defaultMapRef);
                 }
                 layersAddedToMap.push({"id": menu.id, "layer": layer});
                 
                 // example of TMS for GeoServer
 //                let layer = L.tileLayer('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/ambiti_amministrativi_toscana:firenze_sat_here_z17@EPSG%3A900913@jpeg/{z}/{x}/{y}.png', {
-//                  maxZoom: 23,
+//                  maxZoom: leafletMaxZoom,
 //                  tms: true,
 //                  crs: L.CRS.EPSG4326,
 //                  attribution: false
