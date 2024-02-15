@@ -322,7 +322,10 @@ if($rsIP) {
         //   $kbUrl = $rowOrg['kbUrl'];
         $kbHostIp = $rowIP['kbIP'];
         //    if ($kbHostIp == "http://192.168.1.160:8890") {
-
+        $sparqlErrorFlag = false;
+        $sparqlBatchCounter = 0;
+        $sparqlLimit = 50000;
+        $sparqlOffset = 0;
         echo("\n--------- Ingestion IOT for kbIP: " . $kbHostIp . "\n");
 
         while ($sparqlErrorFlag === false) {
