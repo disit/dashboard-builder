@@ -181,21 +181,21 @@ if (sizeof($rs) > 0) {
                     }
                 } else {*/
                     // mark as OLD
-                    $query_updateOld = "UPDATE DashboardWizard SET oldEntry = 'old', healthiness = 'false', lastCheck = '" . $check_time . "' WHERE high_level_type = '" . $high_level_type . "' AND nature = '" . $nature . "' AND unique_name_id = '" . $unique_name_id . "' AND get_instances = '" . $get_instances . "';";
-                    mysqli_query($link, $query_updateOld);
                     array_push($oldEntries, $sUri);
+                    if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
+                        $query_updateOld = "UPDATE DashboardWizard SET oldEntry = 'old', healthiness = 'false', lastCheck = '" . $check_time . "' WHERE high_level_type = '" . $high_level_type . "' AND nature = '" . $nature . "' AND unique_name_id = '" . $unique_name_id . "' AND get_instances = '" . $get_instances . "';";
+                        mysqli_query($link, $query_updateOld);
+                    } else {
+                        $open_search->healthinessUpdate($get_instances, $check_time, 'old', 'false',
+                            [['term' => [
+                                'high_level_type' => $high_level_type,
 
-                    
-                    $open_search->healthinessUpdate($get_instances,$check_time,'old','false',
-                    [['term'=>[
-                              'high_level_type'=>$high_level_type,
-                              
-                        ]],
-                     ['term'=>['nature'=>$nature,
-                    ]],
-                     ['term'=>['unique_name_id'=>$unique_name_id]
-                    ]]);
-
+                            ]],
+                            ['term' => ['nature' => $nature,
+                            ]],
+                            ['term' => ['unique_name_id' => $unique_name_id]
+                            ]]);
+                    }
 
                     continue;
                 } else if ($status == "200") {
@@ -260,19 +260,22 @@ if (sizeof($rs) > 0) {
                                     $update_scritp_timeU = $updateTimeU->format('c');
                                     $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
                                     echo("             Udpating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
-                                    $query_update = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . substr($last_date, 0, strlen($last_date) - 6) . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances= '" . $get_instances . "' AND low_level_type = '" . $key . "';";
-                                    mysqli_query($link, $query_update);
+                                    if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
+                                        $query_update = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . substr($last_date, 0, strlen($last_date) - 6) . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances= '" . $get_instances . "' AND low_level_type = '" . $key . "';";
+                                        mysqli_query($link, $query_update);
+                                    } else {
 
-                                    $ldopen = substr($last_date, 0, strlen($last_date) - 6);
-                                    $lscopen = substr($update_time_okU, 0, strlen($update_time_okU) - 6);
+                                        $ldopen = substr($last_date, 0, strlen($last_date) - 6);
+                                        $lscopen = substr($update_time_okU, 0, strlen($update_time_okU) - 6);
 
-                                    $open_search->healthinessUpdate($get_instances,
-                                    $lscopen,'',$healthy,
-                                    ['term'=>[
-                                            'low_level_type'=>$key,
-                                            
-                                        ]
-                                    ],"ctx._source.last_date = '$ldopen';ctx._source.last_value = '$measure'");
+                                        $open_search->healthinessUpdate($get_instances,
+                                            $lscopen, '', $healthy,
+                                            ['term' => [
+                                                'low_level_type' => $key,
+
+                                            ]
+                                            ], "ctx._source.last_date = '$ldopen';ctx._source.last_value = '$measure'");
+                                    }
 
                                 }
                             } else {
@@ -323,26 +326,32 @@ if (sizeof($rs) > 0) {
 
                         if ($last_date_sql === null && $last_date != null) {
 
-                            $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date = '" . $last_date . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
-                            mysqli_query($link, $query_updateGeneral);
-
-                            $open_search->healthinessUpdate($get_instances,$check_time, '', $healthiness_sql,["term"=>["low_level_type"=>"NONE"]],
-                            "ctx._source.last_date = '$last_date'");
+                            if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
+                                $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date = '" . $last_date . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                                mysqli_query($link, $query_updateGeneral);
+                            } else {
+                                $open_search->healthinessUpdate($get_instances, $check_time, '', $healthiness_sql, ["term" => ["low_level_type" => "NONE"]],
+                                    "ctx._source.last_date = '$last_date'");
+                            }
 
                         } else if ($last_date_sql === null) {
 
-                            $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date = last_date, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
-                            mysqli_query($link, $query_updateGeneral);
-
-                            $open_search->healthinessUpdate($get_instances,$check_time, '', $healthiness_sql,["term"=>["low_level_type"=>"NONE"]]);
+                            if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
+                                $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date = last_date, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                                mysqli_query($link, $query_updateGeneral);
+                            } else {
+                                $open_search->healthinessUpdate($get_instances, $check_time, '', $healthiness_sql, ["term" => ["low_level_type" => "NONE"]]);
+                            }
 
                         } else if ($last_date_sql != null) {
 
-                            $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
-                            mysqli_query($link, $query_updateGeneral);
-
-                            $open_search->healthinessUpdate($get_instances,$check_time, '', $healthiness_sql,["term"=>["low_level_type"=>"NONE"]],
-                            "ctx._source.last_date = '$last_date'");
+                            if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
+                                $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                                mysqli_query($link, $query_updateGeneral);
+                            } else {
+                                $open_search->healthinessUpdate($get_instances, $check_time, '', $healthiness_sql, ["term" => ["low_level_type" => "NONE"]],
+                                    "ctx._source.last_date = '$last_date'");
+                            }
 
                         }
                         //**********************************************************************************
@@ -384,11 +393,13 @@ if (sizeof($rs) > 0) {
                                             $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
                                             echo("             Udpating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
 
-                                            $query_update = "UPDATE DashboardWizard SET oldEntry = NULL, healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '" . $key . "';";
-                                            mysqli_query($link, $query_update);
-
-                                            $open_search->healthinessUpdate($get_instances,substr($update_time_okU, 0, strlen($update_time_okU) - 6),
-                                             '', $healthy,["term"=>["low_level_type"=>$key]]);
+                                            if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
+                                                $query_update = "UPDATE DashboardWizard SET oldEntry = NULL, healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '" . $key . "';";
+                                                mysqli_query($link, $query_update);
+                                            } else {
+                                                $open_search->healthinessUpdate($get_instances, substr($update_time_okU, 0, strlen($update_time_okU) - 6),
+                                                    '', $healthy, ["term" => ["low_level_type" => $key]]);
+                                            }
 
                                         }
                                     } else {
@@ -404,7 +415,7 @@ if (sizeof($rs) > 0) {
                             $check_time = str_replace("T", " ", $date_now_ok[0]);
 
                             $checkHealthinessSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE get_instances = '" . $get_instances . "' AND low_level_type != '' AND healthiness = 'true'";
-                            $rs2_old = mysqli_query($link, $checkHealthinessSensorGeneralQuery);
+                            //$rs2_old = mysqli_query($link, $checkHealthinessSensorGeneralQuery);
 
                             $rs2 = $open_search->getHealthinessSensorGeneralQuery($get_instances);
      
@@ -420,7 +431,7 @@ if (sizeof($rs) > 0) {
                                     $healthiness_sql = 'false';
                                     //$lastDateSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE unique_name_id = '" . $unique_name_id . "'";
                                     $lastDateSensorGeneralQuery = "SELECT * FROM DashboardWizard WHERE get_instances = '" . $get_instances . "'";
-                                    $rs3_old = mysqli_query($link, $lastDateSensorGeneralQuery);
+                                    //$rs3_old = mysqli_query($link, $lastDateSensorGeneralQuery);
 
                                     $rs3 = $open_search->getGetInstancesGeneralQuery($get_instances);
 
@@ -437,21 +448,23 @@ if (sizeof($rs) > 0) {
                             //}
                             if ($last_date_sql === null) {
 
-                                $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
-                                mysqli_query($link, $query_updateGeneral);
-
-                                $open_search->healthinessUpdate($get_instances,$check_time,
-                                 '', $healthiness_sql,["term"=>["low_level_type"=>"NONE"]]);
-
-
+                                if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
+                                    $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                                    mysqli_query($link, $query_updateGeneral);
+                                } else {
+                                    $open_search->healthinessUpdate($get_instances, $check_time,
+                                        '', $healthiness_sql, ["term" => ["low_level_type" => "NONE"]]);
+                                }
 
                             } else {
 
-                                $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
-                                mysqli_query($link, $query_updateGeneral);
-
-                                $open_search->healthinessUpdate($get_instances,$check_time,
-                                 '', $healthiness_sql,["term"=>["low_level_type"=>"NONE"]],"ctx._source.last_date = '$last_date_sql'");
+                                if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
+                                    $query_updateGeneral = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . $last_date_sql . "', healthiness = '" . $healthiness_sql . "', lastCheck = '" . $check_time . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '';";
+                                    mysqli_query($link, $query_updateGeneral);
+                                } else {
+                                    $open_search->healthinessUpdate($get_instances, $check_time,
+                                        '', $healthiness_sql, ["term" => ["low_level_type" => "NONE"]], "ctx._source.last_date = '$last_date_sql'");
+                                }
 
                             }
                             //**********************************************************************************
@@ -479,8 +492,11 @@ if (sizeof($rs) > 0) {
 }
 
 
-$open_search->setBoolEmptyHealthinessUpdate();
-mysqli_query($link, "UPDATE DashboardWizard SET healthiness = 'false' WHERE healthiness IS NULL OR healthiness = '';");
+if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
+    mysqli_query($link, "UPDATE DashboardWizard SET healthiness = 'false' WHERE healthiness IS NULL OR healthiness = '';");
+} else {
+    $open_search->setBoolEmptyHealthinessUpdate();
+}
 
 $endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
