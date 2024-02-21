@@ -15,6 +15,9 @@
 
     include '../config.php'; 
 	require '../sso/autoload.php';
+	include '../opensearch/OpenSearchS4C.php';
+	$open_search = new OpenSearchS4C();
+
 	use Jumbojett\OpenIDConnectClient;
 	
     error_reporting(E_ERROR);
@@ -140,10 +143,56 @@
          "VALUES ('$nature','Synoptic', '$subnature', '$lowLevelType', '$uniqueNameId', NULL, NULL, NULL, NULL, 'webpage', 'no', 'direct', NULL, 'no', NULL, NULL,'$synBaseUrl', 'true', '', '$lastCheck', '$ownership', '$organizationArray', '$uniqueNameId', '$lowLevelType')";
     $r = mysqli_query($link, $q);
 
-    if($r)
-    {
-        
-		$synopticId = mysqli_insert_id($link);
+    if(isset($useOpenSearch) && $useOpenSearch == "yes") {
+        $return_data = $open_search->createUpdateDocumentDashboardWizard(
+            $nature,
+            'Synoptic',
+            $subnature,
+            $lowLevelType,
+            $uniqueNameId,
+            '',
+            '',
+            'webpage',
+            'no',
+            'direct',
+            '',
+            'no',
+            '',
+            '',
+            $synBaseUrl,
+            '',
+            '',
+            'true',
+            $lastCheck,
+            $ownership,
+            $organizationArray,
+            '',
+            '',
+            '',
+            $uniqueNameId,
+            '',
+            $lowLevelType,
+            '',
+            '',
+            '',
+            '',
+            '',
+            false,
+            false,
+            null,
+            OpenSearchS4C::default_index_name,
+            $lowLevelType
+
+        );
+    }
+	
+
+ //   {
+        if(isset($useOpenSearch) && $useOpenSearch == "yes" && isset($return_data['_id'])) {
+            $synopticId = $return_data['_id'];//mysqli_insert_id($link);
+        } else {
+            $synopticId = mysqli_insert_id($link);
+        }
 		
 		$tplStmt = mysqli_prepare($link, "SELECT microAppExtServIcon FROM SynopticTemplates WHERE low_level_type = ?");
 		mysqli_stmt_bind_param($tplStmt, "s", $lowLevelType);
@@ -160,6 +209,45 @@
 		mysqli_query($link,"update DashboardWizard set microAppExtServIcon = '$microAppExtServIcon' where id = $synopticId");
 	
 		$u = mysqli_query($link, "UPDATE Dashboard.DashboardWizard SET parameters = '$synBaseUrl$synopticId' WHERE id = $synopticId");
+
+        if(isset($useOpenSearch) && $useOpenSearch == "yes" && isset($return_data['_id'])) {
+            $open_search->createUpdateDocumentDashboardWizard(
+                $nature,
+                'Synoptic',
+                $subnature,
+                $lowLevelType,
+                $uniqueNameId,
+                '',
+                '',
+                'webpage',
+                'no',
+                'direct',
+                '',
+                'no',
+                '',
+                '',
+                $synBaseUrl . $synopticId,
+                '',
+                '',
+                'true',
+                $lastCheck,
+                $ownership,
+                $organizationArray,
+                '',
+                '',
+                '',
+                $uniqueNameId,
+                '',
+                $lowLevelType,
+                '',
+                '',
+                '',
+                '',
+                $microAppExtServIcon,
+                $synopticId
+
+            );
+        }
 		
 		if($u) {
 
@@ -243,12 +331,12 @@
 			$response['result'] = "Ko";
 			$response['detail'] = "The new synoptic's URL could not be set.";
 		}
-    }
+ /*   }
     else
     {
         $response['result'] = "Ko";
 		$response['detail'] = "The new synoptic could not be saved. ".mysqli_error($link);
-    }
+    }   */
     			
 	mysqli_close($link);
 	

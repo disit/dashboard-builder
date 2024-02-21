@@ -87,7 +87,8 @@ class DBSessionHandler implements SessionHandlerInterface {
      * Called periodically by PHP.
      */
     public function gc($max_lifetime) {
-        $old = time() - 0;
+        error_log("session gc $max_lifetime ");
+        $old = time() - $max_lifetime;
         $query = $this->db->prepare(self::$gc_session_query);
         $query->bind_param("i", $old);
         if ($query->execute()) {

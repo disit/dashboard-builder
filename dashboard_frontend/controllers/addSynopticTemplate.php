@@ -41,9 +41,9 @@
     } else {
         $edit = mysqli_real_escape_string($link, sanitizePostString('edit'));
     }
-	
-	
-    if (sanitizePostString('name') == null) {       
+
+
+    if (sanitizePostString('name') == null) {
         $name = mysqli_real_escape_string($link, sanitizeGetString('name'));
     } else {
         $name = mysqli_real_escape_string($link, sanitizePostString('name'));

@@ -14,6 +14,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
     include '../config.php'; 
+    include '../opensearch/OpenSearchS4C.php';
+	$open_search = new OpenSearchS4C();
     error_reporting(E_ERROR | E_NOTICE);
     date_default_timezone_set('Europe/Rome');
 
@@ -110,6 +112,45 @@
     $q = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id, instance_uri, get_instances, last_date, last_value, unit, metric, saved_direct, kb_based, sm_based, user, widgets, parameters, healthiness, microAppExtServIcon, lastCheck, ownership, organizations) " .
          "VALUES ('$nature','External Service', '$sub_nature', NULL, 'ExternalContent', NULL, NULL, NULL, NULL, 'webpage', 'no', 'direct', NULL, 'no', NULL, NULL,'$param', 'true', '$microAppExtServIcon', '$lastCheck', 'public', '$organizationArray')";
     $r = mysqli_query($link, $q);
+
+    if(isset($useOpenSearch) && $useOpenSearch == "yes") {
+        $open_search->createUpdateDocumentDashboardWizard(
+            $nature,
+            'External Service',
+            $sub_nature,
+            '',
+            'ExternalContent',
+            '',
+            '',
+            'webpage',
+            'no',
+            'direct',
+            '',
+            'no',
+            '',
+            '',
+            $param,
+            '',
+            '',
+            'true',
+            $lastCheck,
+            'public',
+            $organizationArray,
+            '',
+            '',
+            '',
+            $sub_nature,
+            'ExternalContent',
+            '',
+            '',
+            '',
+            '',
+            '',
+            $microAppExtServIcon
+
+        );
+    }
+    
     
     if($r)
     {

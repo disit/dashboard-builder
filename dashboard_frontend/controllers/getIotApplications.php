@@ -38,20 +38,22 @@ if (isset($_SESSION['refreshToken'])) {
   $_SESSION['refreshToken'] = $tkn->refresh_token;
   $response['access_token'] = $accessToken;
   
-  $json = http_get($iotAppApiBaseUrl."/v1/?op=list&accessToken=" . $accessToken);
+  $json = http_get($iotAppApiBaseUrl."/v1/?op=list&mtime=true&&accessToken=" . $accessToken);
   if ($json['httpcode'] == 200) {
     $response['applications'] = array();
     foreach ($json['result'] as $app) {
       $a = $app;
       $a['name'] = htmlspecialchars($a['name']);
       if($a['type']!='edge') {
+        $icons = array('python'=>'dataAnalyticPythonIcon.png','plumber'=>'dataAnalyticIcon.png','portia'=>'portiaIcon.png','basic'=>'iotAppBasicIcon.png','advanced'=>'iotAppAdvIcon.png','basic-debug'=>'iotAppBasicDebugIcon.png','advanced-debug'=>'iotAppAdvDebugIcon.png');
+        if(isset($icons[$a['type']])) {
+          $a['icon'] = $icons[$a['type']];
+        } else {
+          $a['icon'] = $icons['advanced'];
+        }
         if($a['type']=='plumber' || $a['type']=='python') {
-          $a['icon'] =($a['type']=='python' ? 'dataAnalyticPythonIcon.png' : 'dataAnalyticIcon.png');
           @$a['iotapps'] = join(',', $a['iotapps']);
-        } else if($a['type']=='portia') {
-          $a['icon'] = 'portiaIcon.png';
-        } else
-          $a['icon'] = $a['type']=='basic' ? 'iotAppBasicIcon.png' : 'iotAppAdvIcon.png';
+        }
       } else {
         $os = explode('_', $a['edgetype']);
         $os = $os[0];

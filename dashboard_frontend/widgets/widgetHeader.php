@@ -2,6 +2,7 @@
 $title_w =  filter_var(html_entity_decode($_REQUEST['title_w'], ENT_QUOTES|ENT_HTML5), FILTER_SANITIZE_STRING);
 $name_w = filter_input(INPUT_POST,'name_w',FILTER_SANITIZE_STRING);
 $link = mysqli_connect($host, $username, $password);
+if ($_REQUEST['name_w'] !== 'preview'){
 if (checkWidgetNameInDashboard($link, $name_w, $_REQUEST['id_dashboard']) === false) {
     eventLog("Returned the following ERROR in widgetHeader.php for the widget ".escapeForHTML($name_w)." is not instantiated or allowed in this dashboard.");
     exit();
@@ -9,6 +10,7 @@ if (checkWidgetNameInDashboard($link, $name_w, $_REQUEST['id_dashboard']) === fa
 if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer") === false) {
     eventLog("Returned the following ERROR in widgetHeader.php for the widget ".escapeForHTML($name_w)." is not an alphanum :".$_REQUEST['frequency_w']);
     exit();  
+}
 }
 ?>
 <div id='<?= $name_w ?>_header' class="widgetHeader">
@@ -100,7 +102,7 @@ if ($_REQUEST['frequency_w'] && checkVarType($_REQUEST['frequency_w'], "integer"
 <script type='text/javascript'>
     $(document).ready(function()
     {
-     //   console.log("Widget Header of : " + "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>");
+        //console.log("Widget Header of : " + "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>");
         $('#<?= $name_w ?>_infoBtn').hide();
         $('#source_<?= $name_w ?>').hide();
 
