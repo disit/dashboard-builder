@@ -171,6 +171,7 @@ class KBRoadEditor {
     map;
     segments;
     nodes;
+    filterTypes;
     creatingNode = false;
     historicActions = [];
     redoActions = [];
@@ -221,6 +222,50 @@ class KBRoadEditor {
         this.segmentCallback = segmentCallback;
 
         this.loadGraph(graph);
+        this.filterTypes =[];
+        this.filterTypes =["primary",
+                            "tertiary",
+                            "footway",
+                            "residential",
+                            "trunk_link",
+                            "motorway",
+                            "track",
+                            "secondary_link",
+                            "service",
+                            "tertiary_link",
+                            "path",
+                            "via_ferrata",
+                            "cycleway",
+                            "living_street",
+                            "primary_link",
+                            "emergency_bay",
+                            "steps",
+                            "motorway_link",
+                            "services",
+                            "disused",
+                            "road",
+                            "construction",
+                            "raceway",
+                            "emergency_access_point",
+                            "bridleway",
+                            "abandoned",
+                            "platform",
+                            "elevator",
+                            "bus_stop",
+                            "rest_area",
+                            "yes",
+                            "no",
+                            "corridor",
+                            "island",
+                            "crossing",
+                            "razed",
+                            "private",
+                            "pedestrian",
+                            "traffic_island",
+                            "bus_guideway",
+                            "ohm:military:Trench",
+                            "unclassified"];
+
 
         this.map.on('mousedown', (e) => {
             if (this.mode !== 'create')
@@ -255,6 +300,29 @@ class KBRoadEditor {
         });
         this.draw();
         this.updateHistoricAction();
+    }
+
+    isSegmentVisualized(segment) {
+        let visualized = false;
+        for (let filterType of this.filterTypes) {
+            if (segment.type === filterType) {
+                visualized = true;
+                break;
+            }
+        }
+        return visualized;
+    }
+
+    getSegmentsForSaving() {
+        const currentSegments = this.deepCopySegments();
+        const segmentToSave = [];
+        for (let key in currentSegments) {
+            const cs = currentSegments[key];
+            let needToSave = this.isSegmentVisualized(cs);
+            if (needToSave)
+                segmentToSave.push(cs);
+        }
+        return segmentToSave;
     }
 
     reset() {
@@ -511,11 +579,17 @@ class KBRoadEditor {
         this.drawNode(this.nodes[segment.nodeB]);
     }
 
-    drawSegment(segment) {
+
+
+//TEST NEW DRAW
+drawSegment(segment) {
         if (segment.line)
             this.map.removeLayer(segment.line);
         if (segment.arrow)
             this.map.removeLayer(segment.arrow);
+
+        const isVisualized = this.isSegmentVisualized(segment);
+        const opacity = isVisualized ? 1 : 0;
 
         let color;
         let type;
@@ -538,7 +612,8 @@ class KBRoadEditor {
             new L.LatLng(segment.nBLat, segment.nBLong)
         ], {
             color,
-            weight: 5
+            weight: 5,
+            opacity
         }).addTo(this.map);
 
         // arrow
@@ -555,7 +630,8 @@ class KBRoadEditor {
                     pathOptions: {
                         stroke: true,
                         fillColor: color,
-                        fillOpacity: 1,
+                        fillOpacity: opacity,
+                        opacity,
                         fill: true,
                         color
                     }
@@ -575,7 +651,8 @@ class KBRoadEditor {
                         pathOptions: {
                             stroke: true,
                             fillColor: color,
-                            fillOpacity: 1,
+                            fillOpacity: opacity,
+                            opacity,
                             fill: true,
                             color
                         }
@@ -661,6 +738,8 @@ class KBRoadEditor {
             }
         });
     }
+    //END NEW SEGMENT
+
 
     setNodeToSegment(segment, node, position) {
         if (position === 'A') {
@@ -8174,6 +8253,8 @@ class KBRoadEditor {
                 var js20Data = []; // inizializzo la variabile per contenere il js a 20 metri
                 ///
                 var jsonStreetGraph = '';
+                //
+                var scenaryOtherSensors = []; // layer di riferimento per gli altri sensori non traffic.
 
                 //############################ UTILS functions #######################################################
                 // handleIntersectionsAndSensors(polygonWKT)
@@ -8209,6 +8290,41 @@ class KBRoadEditor {
                     const polygonWKT = `POLYGON ((${coordinates}))`;
                     return polygonWKT;
                 }
+
+
+                ///////////BOLOGNA -> Load Scenario ////////
+                function loadScenarioSensor(list){
+                    console.log(suri);
+                    for (i=0;i<list.length; i++){
+                    var suri = list[i];
+                    /////
+                    $.ajax({
+                        url: "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + suri,
+                        type: "GET",
+                        data: {},
+                        async: true,
+                        timeout: 0,
+                        dataType: 'json',
+                        success: function (data) {
+                            //geometryGeoJson
+                                //console.log(data.Service.features[0]);
+                                var geometry = data.Service.features[0].geometry;
+                                var properties = data.Service.features[0].properties;
+                                /////////
+                                var newMarker = gisPrepareCustomMarker( data.Service.features[0], { "lng": geometry.coordinates[0], "lat": geometry.coordinates[1]} );
+                                map.defaultMapRef.addLayer(newMarker);
+                                ///////////                                  
+                            },
+                        error: function (geometryErrorData) {
+                                console.log("Ko");
+                                console.log(JSON.stringify(geometryErrorData));
+                            }
+                    });
+                }
+                    //////////
+
+                }
+                ///////////END Load Scenario //////////
                 
                 // funzione che mi calcola l'intersezione tra due punti che in realtà sono i primi del perimetro del polygon wkt 
                 // e gli altri due sono del road element...  mammamia però funziona ;)
@@ -8782,6 +8898,44 @@ class KBRoadEditor {
                                                             <option value="residential">residential</option>
                                                             <option value="pedestrian">pedestrian</option>
                                                             <option value="unclassified">unclassified</option>
+                                                                <!-- -->
+                                                                    <option value="trunk_link">trunk_link</option>
+                                                                    <option value="motorway">motorway</option>
+                                                                    <option value="track">track</option>
+                                                                    <option value="secondary_link">secondary_link</option>
+                                                                    <option value="service">service</option>
+                                                                    <option value="tertiary_link>"tertiary_link</option>
+                                                                    <option value="path">path</option>
+                                                                    <option value="cycleway">cycleway</option>
+                                                                    <option value="living_street">living_street</option>
+                                                                    <option value="primary_link">primary_link</option>
+                                                                    <option value="steps">steps</option>
+                                                                    <option value="motorway_link">motorway_link</option>
+                                                                    <option value="services">services</option>
+                                                                    <option value="road">road</option>
+                                                                    <option value="construction">construction</option>
+                                                                    <option value="raceway">raceway</option>
+                                                                    <option value="bridleway">bridleway</option>
+                                                                    <option value="abandoned">abandoned</option>
+                                                                    <option value="platform">platform</option>
+                                                                    <option value="bus_stop">bus_stop</option>
+                                                                    <option value="rest_area">rest_area</option>
+                                                                    <option value="yes">yes</option>
+                                                                    <option value="corridor">corridor</option>
+                                                                    <option value="island">island</option>
+                                                                    <option value="crossing">crossing</option>
+                                                                    <option value="via_ferrata">via_ferrata</option>
+                                                                    <option value="emergency_bay">emergency_bay</option>
+                                                                    <option value="no">no</option>
+                                                                    <option value="disused">disused</option>
+                                                                    <option value="emergency_access_point">emergency_access_point
+                                                                    <option value="elevator">elevator</option>
+                                                                    <option value="razed">razed</option>
+                                                                    <option value="private">private</option>
+                                                                    <option value="traffic_island">traffic_island</option>
+                                                                    <option value="bus_guideway">bus_guideway</option>
+                                                                    <option value="ohm:military:Trench">ohm:military:Trench</option>
+                                                                <!-- -->
                                                         </select>
                                                 </td>
                                                 </tr>
@@ -8953,8 +9107,13 @@ class KBRoadEditor {
                                     dir = 'Closed';
                                 }
                                 width_popup = 350;
+                                var restriction_data_details = '';
                                 //descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+dir+'<br /><span><b>Restrictions: </b></span>'+restriction_span+'<br /><span></div>');
                                   descrStrada = ('<div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="'+strada.segment+'" style="display:none"><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>'+strada.type+'</td></tr><tr><td><b>Nr.Lanes:</b></td><td>'+strada.lanes+'</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>'+strada.roadElmSpeedLimit+'</td></tr><tr><td><b>Direction:</b></td><td>'+dir+'</td></tr><tr><td><b>Restrictions:</b></td><td>'+restriction_span+'</td></tr></tbody></table></div>');
+
+                                  if(restriction_span !=='Not defined'){
+                                                 descrStrada = descrStrada.replace('</tbody></table>','<tr><td><b>From:</b></td><td>'+fromRestriction+'</td></tr><tr><td><b>To:</b></td><td>'+toRestriction+'</td></tr><tr><td><b>No:</b></td><td>'+nodeRestriction+'</td></tr></tbody></table>');    
+                                  }
                             }
                             ////////////
                             strada.line.bindPopup(descrStrada, {maxWidth : width_popup});
@@ -9038,7 +9197,7 @@ class KBRoadEditor {
 
                 // funzione di Alberto per la creazione del device
                 async function createDevice(lAccessToken, deviceName, polygon, ilcentroide){                   
-                    const gliattributes = '[{"value_name":"areaOfInterest","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"roadGraph","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"JS20","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"AC","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"TDMStar","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"TFRDevice","data_type":"string","value_type":"URL","editable":"0","value_unit":"SURI","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"status","data_type":"string","value_type":"status","editable":"0","value_unit":"status","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"trafficSensorList","data_type":"json","value_type":"datastructure","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"dateObserved","data_type":"string","value_type":"timestamp","editable":"0","value_unit":"timestamp","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"name","data_type":"string","value_type":"Identifier","editable":"0","value_unit":"ID","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"description","data_type":"string","value_type":"description","editable":"0","value_unit":"text","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"modality","data_type":"string","value_type":"Identifier","editable":"0","value_unit":"ID","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"referenceKB","data_type":"string","value_type":"URL","editable":"0","value_unit":"SURI","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"sourceData","data_type":"string","value_type":"Identifier","editable":"0","value_unit":"ID","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"startTime","data_type":"string","value_type":"datetime","editable":"0","value_unit":"timestamp","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"endTime","data_type":"string","value_type":"datetime","editable":"0","value_unit":"timestamp","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"location","data_type":"string","value_type":"description","editable":"0","value_unit":"text","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"turn","data_type":"json","value_type":"datastructure","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"}]';                
+                    const gliattributes = '[{"value_name":"areaOfInterest","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"roadGraph","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"JS20","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"AC","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"TDMStar","data_type":"json","value_type":"Geometry","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"TFRDevice","data_type":"string","value_type":"URL","editable":"0","value_unit":"SURI","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"status","data_type":"string","value_type":"status","editable":"0","value_unit":"status","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"otherSensors","data_type":"json","value_type":"datastructure","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"trafficSensorList","data_type":"json","value_type":"datastructure","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"dateObserved","data_type":"string","value_type":"timestamp","editable":"0","value_unit":"timestamp","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"name","data_type":"string","value_type":"Identifier","editable":"0","value_unit":"ID","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"description","data_type":"string","value_type":"description","editable":"0","value_unit":"text","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"modality","data_type":"string","value_type":"Identifier","editable":"0","value_unit":"ID","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"referenceKB","data_type":"string","value_type":"URL","editable":"0","value_unit":"SURI","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"sourceData","data_type":"string","value_type":"Identifier","editable":"0","value_unit":"ID","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"startTime","data_type":"string","value_type":"datetime","editable":"0","value_unit":"timestamp","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"endTime","data_type":"string","value_type":"datetime","editable":"0","value_unit":"timestamp","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"location","data_type":"string","value_type":"description","editable":"0","value_unit":"text","healthiness_criteria":"refresh_rate","healthiness_value":"300"},{"value_name":"turn","data_type":"json","value_type":"datastructure","editable":"0","value_unit":"complex","healthiness_criteria":"refresh_rate","healthiness_value":"300"}]';                
                     const [lalongitude, lalatitude] = ilcentroide
                     const header = {
                         "Content-Type": "application/json",
@@ -9136,7 +9295,8 @@ class KBRoadEditor {
                         // shape sotto
                         "areaOfInterest": { "value": scenario_data.shape, "type": "json" },                        
                         "trafficSensorList": { "value": {"modified_scenario_data_sensors": modified_scenario_data_sensors} , "type": "json" },    
-                        "roadGraph": { "value": {"schema": "processloader_db", "table": "bigdatafordevice"}, "type": "json" }      
+                        "roadGraph": { "value": {"schema": "processloader_db", "table": "bigdatafordevice"}, "type": "json" },
+                        "otherSensors": {"value": scenario_data.otherSensors, "type":"json"}      
                     });
                     jsonsolodateobserved = JSON.stringify({
                         "dateObserved": { "value": dateObserved, "type": "string" }});
@@ -9381,9 +9541,18 @@ class KBRoadEditor {
         //BOLOGNA
         map.defaultMapRef.on('draw:deleted', function(e) {
              console.log('DELETE LAYER');
+//
+                map.defaultMapRef.eachLayer(function (layer) {
+                        // Verifica se il layer è un poligono, rettangolo o marker
+                        if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+                            map.defaultMapRef.removeLayer(layer);
+                        }
+                    });
+             //
              map.defaultMapRef.removeLayer(scenaryDrawnItems);                        
              map.defaultMapRef.removeLayer(scenaryMarkers);
              map.defaultMapRef.removeLayer(scenaryGrafo);
+             map.defaultMapRef.removeLayer(scenaryOtherSensors);
              $('#jsonIstanze').text('');
             ///////
             datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
@@ -9399,12 +9568,21 @@ class KBRoadEditor {
             scenaryGrafo = new L.FeatureGroup();
             map.defaultMapRef.addLayer(scenaryGrafo);
             //
+            scenaryOtherSensors = new L.FeatureGroup();
+            map.defaultMapRef.addLayer(scenaryOtherSensors);
+            //
             });
         ////FINE BOLOGNA
 
 		map.defaultMapRef.on('draw:created', function(e) {
             //console.log('scenaryGrafo:');
             //console.log(scenaryGrafo);
+            map.defaultMapRef.eachLayer(function (layer) {
+                    // Verifica se il layer è un poligono, rettangolo o marker
+                 if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+                    map.defaultMapRef.removeLayer(layer);
+                }
+            });
             //
             //
             $('#jsonIstanze').text('');
@@ -9438,6 +9616,7 @@ class KBRoadEditor {
 			// metto un popup sul poligono attuale per riferimento
 			var type = e.layerType,
 				layer = e.layer;
+                console.log('layer',layer);
 			//layer.bindPopup("<div>current polygon</div><br>");    
 			// mi prendo la geometria del poligono in formato geojson  
 			var curGeojson = layer.toGeoJSON();
@@ -9493,6 +9672,35 @@ class KBRoadEditor {
 			//console.log(svoltesparqlquery)
 			ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
         
+        //BOLOGNA OtherSensors Level
+                var bounds = layer.getBounds();
+                var markersInShape = [];
+                // Itera attraverso tutti i marker e verifica se sono nell'area del rettangolo
+                map.defaultMapRef.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    if (bounds.contains(layer.getLatLng())) {
+                        markersInShape.push(layer);
+                         }
+                    }
+                });
+               // scenaryOtherSensors = markersInRectangle;
+                 
+                //var lr = markersInRectangle.length;
+                for(var i=0; i<markersInShape.length; i++){
+                    //console.log(markersInRectangle[i].feature.properties.serviceUri);
+                    if (markersInShape[i].feature != undefined){
+                    var su_marker = markersInShape[i].feature.properties.serviceUri;
+                    scenaryOtherSensors.push(su_marker);
+                    }
+                        //scenaryOtherSensors[i]=   markersInRectangle[i][0].feature.properties.serviceUri;
+                }
+                
+                //markersInRectangle[0].feature.properties.serviceUri;
+
+                //console.log('scenaryOtherSensors:',scenaryOtherSensors);
+                //console.log('scenaryDrawnItems:',scenaryDrawnItems);
+
+        //FINE BOLOGNA
 
 			//let svolte = ressvolte.results.bindings;
 			console.log(ressvolte);
@@ -9614,6 +9822,11 @@ class KBRoadEditor {
                                                 <button type="button" id="line_undo" style="margin: 2%; width: 30px" title="Undo"><i class="fa fa-undo" aria-hidden="true"></i></button>
                                                 </td>
                                             </tr>
+                                            <tr>
+                                                <td colspan="2">
+                                                <button type="button" id="line_reset" style="margin: 2%; width: 30px" title="Reset"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                                                </td>
+                                            </tr>
                                         </table>
                                     </div>
                                 </div>
@@ -9630,10 +9843,10 @@ class KBRoadEditor {
                                                                 </tr>
                                                             <tr>
                                                                 <td>                                                                       
-                                                                    <button type="button" id="view_mod" style="margin: 2%"><i class="fa fa-eye" aria-hidden="true"></i>View</button>
+                                                                    <button type="button" id="view_mod" style="margin: 2%; background-color: rgb(62, 100, 166); color: rgb(255, 255, 255);"><i class="fa fa-eye" aria-hidden="true"></i>    View</button>
                                                                 </td>
                                                                <td>    
-                                                                   <button type="button" id="edit_lines" style="margin: 2%"><i class="fa fa-pencil" aria-hidden="true"></i>Edit</button> 
+                                                                   <button type="button" id="edit_lines" style="margin: 2%"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</button> 
                                                                 </td>
                                                             </tr>
                                                             <tr></tr>
@@ -9642,11 +9855,27 @@ class KBRoadEditor {
                                                                 <input type="checkbox" id="showStreetGraph" value="street" checked/>Show Road graph
                                                                 </td>
                                                                 </tr>
+                                                                <!--
+                                                                <tr>
+                                                                <td colspan="2">
+                                                                <input type="checkbox" id="showFootways" value="footways" checked/> Show Footways
+                                                                </td>
+                                                                </tr>
+                                                                -->
                                                                 <tr>
                                                                 <td colspan="2">
                                                                 <input type="checkbox" id="showTrafficSensors" value="traffic" checked/> Show Traffic Sensors
                                                                 </td>
                                                             </tr>
+                                                            <! -- SELECT ROAD TYPE-->
+                                                            <tr>
+                                                                <td colspan="2">
+                                                                <button type="button" id="road_types" style="margin: 2%">Filter by road types</button> 
+                                                                </td>
+                                                                 <td>       
+                                                                </td>
+                                                            </tr>
+                                                            <!-- -->
                                                         </table>
                                                     </div>
                                                 </div></div>`;
@@ -9663,6 +9892,158 @@ class KBRoadEditor {
 			return div1;
 		};
 		scenaryEditControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+
+
+        $('#road_types').click(function(){
+            //
+            console.log('road_types');
+            var scenaryControl4 = L.control({
+                    position: 'bottomright'
+            });
+            ///
+            var element = document.getElementById('filter-list');
+           if (element !== null){
+            element.remove();
+            $("#road_types").css('background-color','');
+            $("#road_types").css('color','black');
+           }else{
+            scenaryControl4.onAdd = function(map) {
+                    var div = L.DomUtil.create('div');
+			            //currentStatusEdit MANAGE STATUS//
+                        $("#road_types").css('background-color','#3E64A6');
+                        $("#road_types").css('color','white');
+                        //
+                         div.id="filter-list";
+                         div.innerHTML = `<div id="scenario-div" style="margin: 10px;">
+                                                <table>
+                                                    <tbody style="margin-right: 5px; margin-left: 5px;">
+                                                    <tr style="margin-bottom: 20px">
+                                                                <td colspan="2"><span><b>Road Types:</b></span></td>
+                                                                <td colspan="2"><input type="checkbox" id="selectAllRoad" value="all" checked/>Select All</td>
+                                                                <td colspan="2"><input type="checkbox" id="SelectNoRoad" value="noone" />Unselect All</td>
+                                                            </tr>
+                                                            <tr><td colspan="2"><input type="checkbox" class="checkRoadType" value="primary" checked/>Primary</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tertiary" checked/>tertiary</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="footway" checked/>footway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="residential" checked/>residential</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="trunk_link" checked/>trunk_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="motorway" checked/>motorway</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="track" checked/>track</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="secondary_link" checked/>secondary_link</td>  
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="service" checked/>service</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tertiary_link" checked/>tertiary_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="path" checked/>path</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="via_ferrata" checked/>via_ferrata</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="cycleway" checked/>cycleway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="living_street" checked/>living_street</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="primary_link" checked/>primary_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="emergency_bay" checked/>emergency_bay</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="steps" checked/>steps</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="motorway_link" checked/>motorway_link</td>
+                                                                </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="services" checked/>services</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="disused" checked/>disused</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="road" checked/>road</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="construction" checked/>construction</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="raceway" checked/>raceway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="emergency_access_point" checked/>emergency_access_point</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bridleway" checked/>bridleway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="abandoned" checked/>abandoned</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="platform" checked/>platform</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="elevator" checked/>elevator</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bus_stop" checked/>bus_stop</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="rest_area" checked/>rest_area</td>
+                                                                </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="yes" checked/>yes</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="no" checked/>no</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="corridor" checked/>corridor</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="island" checked/>island</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="crossing" checked/>crossing</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="razed" checked/>razed</td>
+                                                            </tr>
+                                                            <tr> 
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="private" checked/>private</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="pedestrian" checked/>pedestrian</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="traffic_island" checked/>traffic_island</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bus_guideway" checked/>bus_guideway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="ohm:military:Trench" checked/>ohm:military:Trench</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="unclassified" checked/>unclassified</td>
+                                                                
+                                                            </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>`;
+                         // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+			if (L.Browser.touch) {
+				L.DomEvent.disableClickPropagation(div);
+				L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+			} else {
+				L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+			}
+			return div;
+		};
+		scenaryControl4.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+
+        //
+                        $('.checkRoadType').click(function(){
+                                    //roadElementGraph.reset();
+                                    //roadElementGraph.loadGraph(istanzedelgrafochestoconsiderando);
+                                    var checkboxes = document.querySelectorAll('.checkRoadType:checked');
+                                    var selectedRoadTypes = [];
+                                    checkboxes.forEach(function(checkbox) {
+                                        if (checkbox.checked) {
+                                            selectedRoadTypes.push(checkbox.value);
+                                        }
+                                    });
+                                    roadElementGraph.filterTypes = selectedRoadTypes;
+                                    roadElementGraph.draw();
+                                    $("#SelectNoRoad").prop("checked",false);
+                                    $("#selectAllRoad").prop("checked",false);
+                        });
+
+                        $('#selectAllRoad').click(function(){
+                                    $(".checkRoadType").prop("checked", true);
+                                    $("#SelectNoRoad").prop("checked",false);
+                                    //roadElementGraph.reset();
+                                    //roadElementGraph.loadGraph(istanzedelgrafochestoconsiderando);
+                                    var checkboxes = document.querySelectorAll('.checkRoadType:checked');
+                                    var selectedRoadTypes = [];
+                                    checkboxes.forEach(function(checkbox) {
+                                        if (checkbox.checked) {
+                                            selectedRoadTypes.push(checkbox.value);
+                                        }
+                                    });
+                                    roadElementGraph.filterTypes = selectedRoadTypes;
+                                    roadElementGraph.draw();
+                        });
+
+                        $('#SelectNoRoad').click(function(){
+                                    $(".checkRoadType").prop("checked", false);
+                                    $("#selectAllRoad").prop("checked",false);
+                                    //roadElementGraph.reset();
+                                    //roadElementGraph.loadGraph(istanzedelgrafochestoconsiderando);
+                                    var checkboxes = document.querySelectorAll('.checkRoadType:checked');
+                                    var selectedRoadTypes = [];
+                                    checkboxes.forEach(function(checkbox) {
+                                        if (checkbox.checked) {
+                                            selectedRoadTypes.push(checkbox.value);
+                                        }
+                                    });
+                                    roadElementGraph.filterTypes = selectedRoadTypes;
+                                    roadElementGraph.draw();
+                        });
+        }
+            ////
+
+        });
 
         $('#line_create').click(function(){
             //lline_create
@@ -9723,6 +10104,55 @@ class KBRoadEditor {
             $("#line_delete").css('background-color','#3E64A6');
             $("#line_delete").css('color','white');
         });
+
+        $("#line_reset").click(function() {
+            console.log('CLICK ON CANCEL');
+            roadElementGraph.clearSegments();
+            roadElementGraph.clearNodes();
+            roadElementGraph.reset();
+
+            
+            map.defaultMapRef.eachLayer(function (layer) {
+                    // Verifica se il layer è un poligono, rettangolo o marker
+                 if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+                    map.defaultMapRef.removeLayer(layer);
+                }
+            });
+            //Object.values(roadElementGraph.deepCopySegments());
+            ///
+			if (scenaryData.features.length >= 0) {
+				// Rimuovi i layer dei disegni
+				for (const layerId in scenaryDrawnItems._layers) {
+					scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+				}
+				scenaryData.features = []; // reinizializzo questa variabile
+				// Rimuovi i marker associati
+				for (const layerId in scenaryMarkers._layers) {
+					const marker = scenaryMarkers._layers[layerId];
+					scenaryMarkers.removeLayer(marker);
+				}
+				// Rimuovi il vecchio grafo
+				for (const layerId in scenaryGrafo._layers) {
+					const grafo = scenaryGrafo._layers[layerId];
+					scenaryGrafo.removeLayer(grafo);
+				}
+				datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+				istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+				istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+			}
+			// qui gestisco il cancel ovvero se l'utente vuole resettare il control panel via
+			$("#scenario-name").val("");
+			$("#scenario-location").val("");
+			$("#scenario-description").val("");
+			$("#scenario-startDatetime").val("");
+			$("#scenario-modality").val("generic");
+			$("#scenario-modality").val("sensors");
+			$("#scenario-referenceKB").val("");
+			$("#scenario-endDatetime").val("");
+			scenaryData = new L.geoJSON();
+			scenaryData.type = "FeatureCollection";
+			scenaryData.features = [];
+		});
 
 		//################## poi mi metto subito lo scenary control #################################                       
 		var scenaryControl = L.control({
@@ -9848,7 +10278,7 @@ class KBRoadEditor {
                             //console.log("Selected value: " + ildevicename);
                             try{
                                 let datidalsensore = await readFromDevice(lAccessToken, selectScenario);
-                                //console.dir(datidalsensore);
+                                console.dir(datidalsensore);
                                 var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
                                 //
                                 var arrayShape = shape[0].geometry.coordinates[0];
@@ -9871,15 +10301,58 @@ class KBRoadEditor {
                                     }
                                 }
                                 //
+                                scenaryData = new L.geoJSON();
+			                    scenaryData.type = "FeatureCollection";
+                                scenaryData.features= shape;
+                                //
+                                console.log('scenaryData.feature: ',scenaryData.features);
+                                ///////////load sensors
+                                var otherSensors_load = "";
+                                if (datidalsensore.realtime.results.bindings[0].otherSensors !== undefined){
+                                    otherSensors_load = datidalsensore.realtime.results.bindings[0].otherSensors.value
+                                    //console.log('otherSensors_load',otherSensors_load);
+                                    otherSensors_load = otherSensors_load.slice(1, -1);
+                                    var arrayURL = otherSensors_load.split(", ");
+                                    scenaryOtherSensors = arrayURL;
+                                     //console.log(scenaryOtherSensors);
+                                     if(scenaryOtherSensors.length > 0){
+                                            //CARICAMENTO DATI
+                                            // for(i=0; i<scenaryOtherSensors.length; i++){
+                                                    var suri = scenaryOtherSensors;
+                                                    loadScenarioSensor(suri);
+                                            // }
+                                            ////                                              
+                                     }
+
+                                }
+                                //
+                                function coordinateOrder(array) {
+                                    return array.map(function(coordinate) {
+                                        return [coordinate[1], coordinate[0]];  // Inverti l'ordine da [latitudine, longitudine] a [longitudine, latitudine]
+                                    });
+                                    }
+                                //
+                                var arrayshape2 = coordinateOrder(arrayShape);
+                                var polygon = L.polygon(arrayshape2);
+                                console.log('polygon',arrayshape2);
+                                //map.defaultMapRef.addLayer(polygon);
+                                //
+                                scenaryDrawnItems = new L.FeatureGroup();
+                                //scenaryDrawnItems.push(polygon);
+                                layer = polygon;
+                                scenaryData.features.push(shape);
+                                scenaryDrawnItems.addLayer(layer);
+                                map.defaultMapRef.addLayer(scenaryDrawnItems);
+                                //
                                 console.log('shape1',shape);
-                                scenaryData.features.push(shape[0]);
+                                //scenaryData.features.push(shape[0]);
                                 //var polygon = L.polygon(arrayShape);
                                 //map.defaultMapRef.fitBounds(polygon.getBounds());
 			                    //map.defaultMapRef.addLayer(scenaryData);
                                 //
                                 const polygonWKT = getPolygonWKTFromScenarioArea(shape);
                                 svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
-                                console.log(svoltesparqlquery)
+                                //console.log(svoltesparqlquery)
                                 let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
                                 //
                                 
@@ -9949,6 +10422,7 @@ class KBRoadEditor {
 					//istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
                     const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);
                     const sensorURL = buildSensorAPIURL(polygonWKT);
+                    console.log('sensorURL',sensorURL);
                     Promise.all([fetchTrafficSensorData(sensorURL)])
                             .then(() => {
                                 handleIntersectionsAndSensors(polygonWKT);
@@ -9965,6 +10439,7 @@ class KBRoadEditor {
                     }
                     scenaryMarkers = new L.FeatureGroup();
                     map.defaultMapRef.addLayer(scenaryMarkers);
+                    console.log('scenaryMarkers',scenaryMarkers);
             }else{                 
                     for (const layerId in scenaryMarkers._layers) {
 					const marker = scenaryMarkers._layers[layerId];
@@ -10088,7 +10563,11 @@ class KBRoadEditor {
 					// Restituisci l'oggetto del sensore con le informazioni sulla strada più vicina
 					return sensore;
 				});
-				// mi creo lo scenarioData che non è altro che il json di uscita di questo tuul diciamo                                                                                                
+				// mi creo lo scenarioData che non è altro che il json di uscita di questo tuul diciamo  
+                if (enableOtherSensors == 'No'){
+                    scenaryOtherSensors = '';
+                }
+                ///
 				scenarioData = {
 					"metadata": {
 						"dateObserved": new Date().toISOString(),
@@ -10108,6 +10587,7 @@ class KBRoadEditor {
 					},
 					//"sensors": sensoriArray,
 					"sensors": sensoriArrayConStradaVicina,
+                    "otherSensors": scenaryOtherSensors,
 					"roadGraph": "istanzedelgrafochestoconsiderando"
 				};
 				// // e qui rimane il codice per fare il download del json risultante                            
@@ -10326,7 +10806,7 @@ $('#updateStreetGraph').click(async function(){
                                     edit: {
                                         featureGroup: scenaryDrawnItems,
                                         edit: false,
-                                        remove: true
+                                        remove: false
                                     },
                                     draw: {
                                         circle: false,
@@ -10394,7 +10874,7 @@ $('#updateStreetGraph').click(async function(){
 						position: 'topright'
 					});
                     //
-                    // 
+                    //
                     var scenarioToRemove = document.getElementById("scenario-edit-form");
                     if(!scenarioToRemove){
 					scenaryControl2.onAdd = function(map) {
@@ -10506,6 +10986,52 @@ $('#updateStreetGraph').click(async function(){
                     scenaryControl2.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
                     ///
 
+                    $("#scenario-cancel").click(function() {
+                            console.log('CLICK ON CANCEL');
+                            roadElementGraph.clearSegments();
+                            roadElementGraph.clearNodes();
+                            //Object.values(roadElementGraph.deepCopySegments());
+                            map.defaultMapRef.eachLayer(function (layer) {
+                                    // Verifica se il layer è un poligono, rettangolo o marker
+                                    if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+                                        map.defaultMapRef.removeLayer(layer);
+                                    }
+                                });
+                            ///
+                            if (scenaryData.features.length >= 0) {
+                                // Rimuovi i layer dei disegni
+                                for (const layerId in scenaryDrawnItems._layers) {
+                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                }
+                                scenaryData.features = []; // reinizializzo questa variabile
+                                // Rimuovi i marker associati
+                                for (const layerId in scenaryMarkers._layers) {
+                                    const marker = scenaryMarkers._layers[layerId];
+                                    scenaryMarkers.removeLayer(marker);
+                                }
+                                // Rimuovi il vecchio grafo
+                                for (const layerId in scenaryGrafo._layers) {
+                                    const grafo = scenaryGrafo._layers[layerId];
+                                    scenaryGrafo.removeLayer(grafo);
+                                }
+                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                            }
+                            // qui gestisco il cancel ovvero se l'utente vuole resettare il control panel via
+                            $("#scenario-name").val("");
+                            $("#scenario-location").val("");
+                            $("#scenario-description").val("");
+                            $("#scenario-startDatetime").val("");
+                            $("#scenario-modality").val("generic");
+                            $("#scenario-modality").val("sensors");
+                            $("#scenario-referenceKB").val("");
+                            $("#scenario-endDatetime").val("");
+                            scenaryData = new L.geoJSON();
+                            scenaryData.type = "FeatureCollection";
+                            scenaryData.features = [];
+                        });
+
             $("#scenario-save").click(async function() {
                //SAVE SCENARIO EDITOR
 			var scenarioareaOfInterest = scenaryData.features;
@@ -10521,6 +11047,28 @@ $('#updateStreetGraph').click(async function(){
             var enableRoadGraph = $('#scenario-roadData').val();
             var enableTrafficSensors = $('#scenario-trafficData').val();
             var enableOtherSensors = $('#scenario-otherData').val();
+            ////////////
+            console.log('scenarioareaOfInterest',scenarioareaOfInterest);
+            //BOLOGNA SAVING PINS
+            var markersInPolygon = [];
+            var shapes = [];
+            var polygonBounds = scenaryDrawnItems.getBounds();
+                map.defaultMapRef.eachLayer(function (layer) {
+                if (layer instanceof L.Marker){ 
+                    if(polygonBounds.contains(layer.getLatLng())) {
+                            if(layer.feature != undefined){
+                                 var item = layer.feature.properties.serviceUri;
+                                  markersInPolygon.push(item);
+                            //console.log(layer);
+                            }
+                        }
+                    }
+                });
+                if (markersInPolygon.length > 0){
+                    scenaryOtherSensors = markersInPolygon;
+                }
+            //console.log('markersInPolygon',markersInPolygon);
+            
             //////////////
 			if (!scenarioName || !scenarioLocation || !scenarioDescription || !scenarioreferenceKB || !scenarioStartDatetime || !scenarioEndDatetime) {
 				alert("Please fill in all required fields: Name, Location, Description, KB, Start Datetime, End Datetime.");
@@ -10546,7 +11094,9 @@ $('#updateStreetGraph').click(async function(){
 					};
 				});
                 ////////
-
+                if (enableOtherSensors == 'No'){
+                    scenaryOtherSensors = '';
+                }
                 ////////////
 				const sensoriArrayConStradaVicina = sensoriArray.map(sensore => {
 					let stradaVicina = null;
@@ -10559,7 +11109,8 @@ $('#updateStreetGraph').click(async function(){
                             istanzedelgrafochestoconsiderando = istanzedelgrafochestoconsiderandoJSON;
                     }*/
                     if (roadElementGraph){
-                        istanzedelgrafochestoconsiderando =Object.values(roadElementGraph.deepCopySegments())
+                        //istanzedelgrafochestoconsiderando =Object.values(roadElementGraph.deepCopySegments())
+                        istanzedelgrafochestoconsiderando = roadElementGraph.getSegmentsForSaving();
                     }
                     //istanzedelgrafochestoconsiderando = JSON.parse(istanzedelgrafochestoconsiderando);
                     
@@ -10598,6 +11149,7 @@ $('#updateStreetGraph').click(async function(){
 						"scenarioareaOfInterest": scenarioareaOfInterest
 					},
 					"sensors": sensoriArrayConStradaVicina,
+                    "otherSensors": scenaryOtherSensors,
 					//"roadGraph": Object.values(roadElementGraph.deepCopySegments()), 
                     "roadGraph": "istanzedelgrafochestoconsiderando",  //in prod mettere tra virgolette "istanzedelgrafochestoconsiderando"
 				};
@@ -10691,6 +11243,7 @@ $('#updateStreetGraph').click(async function(){
             console.log('CLICK ON CANCEL');
             roadElementGraph.clearSegments();
             roadElementGraph.clearNodes();
+            roadElementGraph.reset();
             //Object.values(roadElementGraph.deepCopySegments());
             ///
 			if (scenaryData.features.length >= 0) {
@@ -10934,8 +11487,34 @@ $('#updateStreetGraph').click(async function(){
                                 svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
                                 console.log(svoltesparqlquery)
                                 let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+                                //Inverti ordine
+                                function coordinateOrder(array) {
+                                    return array.map(function(coordinate) {
+                                        return [coordinate[1], coordinate[0]];  // Inverti l'ordine da [latitudine, longitudine] a [longitudine, latitudine]
+                                    });
+                                    }
                                 //
-                                
+                                var arrayshape2 = coordinateOrder(arrayShape);
+                                var polygon = L.polygon(arrayshape2);
+                                console.log('polygon',arrayshape2);
+                                map.defaultMapRef.addLayer(polygon);
+                                //
+                                //
+                                var otherSensors_load = "";
+                                if (datidalsensore.realtime.results.bindings[0].otherSensors !== undefined){
+                                    otherSensors_load = datidalsensore.realtime.results.bindings[0].otherSensors.value
+                                    //console.log('otherSensors_load',otherSensors_load);
+                                    otherSensors_load = otherSensors_load.slice(1, -1);
+                                    var arrayURL = otherSensors_load.split(", ");
+                                    scenaryOtherSensors = arrayURL;
+                                     //console.log(scenaryOtherSensors);
+                                     if(scenaryOtherSensors.length > 0){
+                                                    var suri = scenaryOtherSensors;
+                                                    loadScenarioSensor(suri);                                            
+                                                    }
+
+                                }
+                                //
                                 console.log(polygonWKT);
                                 let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
                                 console.dir(resDalDB);
@@ -11249,6 +11828,8 @@ $('#updateStreetGraph').click(async function(){
                                     var jsonIstanze = document.getElementById("jsonIstanze");
                                 //
                                 var drawControl = document.querySelector('.leaflet-draw');
+                                //
+                                var filterList = document.getElementById("filter-list");
                                     //
                                     if(scenarioToRemove){
                                         scenarioToRemove.remove();
@@ -11267,6 +11848,11 @@ $('#updateStreetGraph').click(async function(){
 
                                     if(menulines){
                                         menulines.remove();
+                                        isSaveFinalSet = false;
+                                    }
+
+                                    if(filterList){
+                                        filterList.remove();
                                         isSaveFinalSet = false;
                                     }
 
@@ -23364,7 +23950,7 @@ setTimeout(function() {
                 
                 // example of TMS for GeoServer
 //                let layer = L.tileLayer('http://localhost:8080/geoserver/gwc/service/tms/1.0.0/ambiti_amministrativi_toscana:firenze_sat_here_z17@EPSG%3A900913@jpeg/{z}/{x}/{y}.png', {
-//                  maxZoom: leafletMaxZoom,
+//                  maxZoom: leafletMaxZoom
 //                  tms: true,
 //                  crs: L.CRS.EPSG4326,
 //                  attribution: false
