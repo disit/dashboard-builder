@@ -284,7 +284,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	client := &WebsocketUser{id: uuid.Must(uuid.NewV4()).String(), socket: conn, send: make(chan []byte), ClientIp: clientIP, ValidOrigin: validOrigin, Origin: origin}
+	client := &WebsocketUser{id: uuid.Must(uuid.NewV4(), nil).String(), socket: conn, send: make(chan []byte), ClientIp: clientIP, ValidOrigin: validOrigin, Origin: origin}
 	//log.Print(client.clientIp)
 	manager.register <- client
 

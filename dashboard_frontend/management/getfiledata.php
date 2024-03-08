@@ -41,6 +41,11 @@ if (isset($_SESSION["refreshToken"])) {
     $accessToken = $tkn->access_token;
     $_SESSION["refreshToken"] = $tkn->refresh_token;
 }
+
+//I don't care if the rest of the application runs on $_SESSION, the authtoken will be read only from a post, it's kinda sensible data
+else if (isset($_POST["authtoken"])) {
+    $accessToken = isset($_POST["authtoken"]);
+}
 $loggedRole = $_SESSION["loggedRole"];
 $loggedUser = $_SESSION["loggedUsername"];
 
@@ -75,9 +80,8 @@ if (isset($_SESSION["loggedRole"])) {
             "token" => $accessToken,
             "nodered" => "access",
         ];
-
         $ch = curl_init();
-
+        $debug=$ch;
         $url = sprintf(
             "%s?%s",
             $iot_directory_device,
@@ -92,131 +96,132 @@ if (isset($_SESSION["loggedRole"])) {
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $apiCall = curl_exec($ch);
-			if ($apiCall){
-				
-			$apiArray = json_decode($apiCall, true);
-			$data = $apiArray["data"];
-			$devices_list = [];
-			//
-			$length = count($data);
-			for ($i = 0; $i < $length; $i++) {
-				$current_device = $data[$i];
-				//
-				if ($current_device["devicetype"] == "File") {
-					$deviceid = $current_device["id"];
+                        if ($apiCall){
 
-					///////////////////ATTRIBUTES VALUE//////////////
-					$value_array = [
-						"action" => "get_device_data",
-						"id" => $deviceid,
-						"type" => "File",
-						"contextbroker" => $iot_contextbroker,
-						"version" => "v1",
-						"nodered" => "access",
-					];
-					$ch1 = curl_init();
+                        $apiArray = json_decode($apiCall, true);
+                        $data = $apiArray["data"];
+                        $devices_list = [];
+                        //
+                        $length = count($data);
+                        for ($i = 0; $i < $length; $i++) {
+                                $current_device = $data[$i];
+                                //
+                                if ($current_device["devicetype"] == "file") {
+                                        $deviceid = $current_device["id"];
 
-					$url01 = sprintf(
-						"%s?%s",
-						$iot_directory_device,
-						http_build_query($value_array)
-					);
+                                        ///////////////////ATTRIBUTES VALUE//////////////
+                                        $value_array = [
+                                                "action" => "get_device_data",
+                                                "id" => $deviceid,
+                                                "type" => "File",
+                                                "contextbroker" => $iot_contextbroker,
+                                                "version" => "v1",
+                                                "nodered" => "access",
+                                        ];
+                                        $ch1 = curl_init();
 
-					curl_setopt($ch1, CURLOPT_URL, $url01);
-					curl_setopt($ch1, CURLOPT_HTTPHEADER, [
-						"Content-Type: application/json",
-						"Authorization: Bearer " . $accessToken,
-					]);
-					curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
-					$deviceCall01 = curl_exec($ch1);
-					if ($deviceCall01){
-					$response0 = json_decode($deviceCall01, true);
+                                        $url01 = sprintf(
+                                                "%s?%s",
+                                                $iot_directory_device,
+                                                http_build_query($value_array)
+                                        );
 
-					$var_length = count($response0["attributes"]);
+                                        curl_setopt($ch1, CURLOPT_URL, $url01);
+                                        curl_setopt($ch1, CURLOPT_HTTPHEADER, [
+                                                "Content-Type: application/json",
+                                                "Authorization: Bearer " . $accessToken,
+                                        ]);
+                                        curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
+                                        $deviceCall01 = curl_exec($ch1);
+                                        if ($deviceCall01){
+                                        $response0 = json_decode($deviceCall01, true);
 
-					$dateObserved = "";
-					$newfileid = "";
-					$description = "";
-					$originalfilename = "";
-					$filesize = "";
-					$language = "";
-					$filetype = "";
+                                        $var_length = count($response0["attributes"]);
 
-					//
-					//capire la posizione fissa degli attributi come risultato dell'api per evitare il ciclo for
-					for ($x = 0; $x < $var_length; $x++) {
-						$current_attr = $response0["attributes"][$x]["name"];
-						if ($current_attr == "dateObserved") {
-							$dateObserved = $response0["attributes"][$x]["value"];
-						}
-						if ($current_attr == "description") {
-							$description = $response0["attributes"][$x]["value"];
-						}
-						if ($current_attr == "originalfilename") {
-							$originalfilename =
-								$response0["attributes"][$x]["value"];
-						}
-						if ($current_attr == "filesize") {
-							$filesize = $response0["attributes"][$x]["value"];
-						}
-						if ($current_attr == "language") {
-							$language = $response0["attributes"][$x]["value"];
-						}
-						if ($current_attr == "newfileid") {
-							$newfileid = $response0["attributes"][$x]["value"];
-						}
-						if ($current_attr == "filetype") {
-							$filetype = $response0["attributes"][$x]["value"];
-						}
-					}
-					//var_dump($current_device);
-					}else{
-						$message_output["code"] = "404";
-						$message_output["status"] = "KO";
-						$message_output["message"] = "Error loading devices attributes";
-						echo json_encode($message_output);
-						die();
-					}
+                                        $dateObserved = "";
+                                        $newfileid = "";
+                                        $description = "";
+                                        $originalfilename = "";
+                                        $filesize = "";
+                                        $language = "";
+                                        $filetype = "";
 
-					curl_close($ch1);
-					$file = [
-						"deviceid" => $current_device["id"],
-						"filename" => $originalfilename,
-						"description" => $description,
-						"subnature" => $current_device["subnature"],
-						"language" => $language,
-						"filesize" => $filesize,
-						"latitude" => $current_device["latitude"],
-						"longitude" => $current_device["longitude"],
-						"newfileid" => $newfileid,
-						"date" => $dateObserved,
-						"filetype" => $filetype,
-						"visibility" => $current_device["visibility"],
-						"organization" => $current_device["organization"],
-						"contextbroker" => $current_device["contextBroker"],
-					];
+                                        //
+                                        //capire la posizione fissa degli attributi come risultato dell'api per evitare il ciclo for
+                                        for ($x = 0; $x < $var_length; $x++) {
+                                                $current_attr = $response0["attributes"][$x]["name"];
+                                                if ($current_attr == "dateObserved") {
+                                                        $dateObserved = $response0["attributes"][$x]["value"];
+                                                }
+                                                if ($current_attr == "description") {
+                                                        $description = $response0["attributes"][$x]["value"];
+                                                }
+                                                if ($current_attr == "originalfilename") {
+                                                        $originalfilename =
+                                                                $response0["attributes"][$x]["value"];
+                                                }
+                                                if ($current_attr == "filesize") {
+                                                        $filesize = $response0["attributes"][$x]["value"];
+                                                }
+                                                if ($current_attr == "language") {
+                                                        $language = $response0["attributes"][$x]["value"];
+                                                }
+                                                if ($current_attr == "newfileid") {
+                                                        $newfileid = $response0["attributes"][$x]["value"];
+                                                }
+                                                if ($current_attr == "filetype") {
+                                                        $filetype = $response0["attributes"][$x]["value"];
+                                                }
+                                        }
+                                        //var_dump($current_device);
+                                        }else{
+                                                $message_output["code"] = "404";
+                                                $message_output["status"] = "KO";
+                                                $message_output["message"] = "Error loading devices attributes";
+                                                echo json_encode($message_output);
+                                                die();
+                                        }
 
-					array_push($devices_list, $file);
+                                        curl_close($ch1);
+                                        $file = [
+                                                "deviceid" => $current_device["id"],
+                                                "filename" => $originalfilename,
+                                                "description" => $description,
+                                                "subnature" => $current_device["subnature"],
+                                                "language" => $language,
+                                                "filesize" => $filesize,
+                                                "latitude" => $current_device["latitude"],
+                                                "longitude" => $current_device["longitude"],
+                                                "newfileid" => $newfileid,
+                                                "date" => $dateObserved,
+                                                "filetype" => $filetype,
+                                                "visibility" => $current_device["visibility"],
+                                                "organization" => $current_device["organization"],
+                                                "contextbroker" => $current_device["contextBroker"],
+                                        ];
 
-					//var_dump($devices_list);
-				}
-				
-				$message_output["code"] = "200";
-				$message_output["status"] = "OK";
-				$message_output["message"] = "get devices successfully";
-				$message_output["data"] = $devices_list;
-				echo json_encode($message_output);
-			}
-			//echo($apiCall);
-			curl_close($ch);
-			
-			}else{
-				$message_output["code"] = "404";
-				$message_output["status"] = "KO";
-				$message_output["message"] = "Devices not found";
-				echo json_encode($message_output);
-			}
-			//
+                                        array_push($devices_list, $file);
+
+                                        //var_dump($devices_list);
+                                }
+
+                                $message_output["code"] = "200";
+                                $message_output["status"] = "OK";
+                                $message_output["message"] = "get devices successfully";
+                                $message_output["data"] = $devices_list;
+                                $message_output["debug"] = $debug;
+                                echo json_encode($message_output);
+                        }
+                        //echo($apiCall);
+                        curl_close($ch);
+
+                        }else{
+                                $message_output["code"] = "404";
+                                $message_output["status"] = "KO";
+                                $message_output["message"] = "Devices not found";
+                                echo json_encode($message_output);
+                        }
+                        //
     } elseif ($action == "get_my_files") {
         $devices_list = [];
         $dataArray = [
@@ -225,7 +230,6 @@ if (isset($_SESSION["loggedRole"])) {
             "nodered" => "access",
         ];
         $apiCall = "";
-
         $ch = curl_init();
         $url = sprintf(
             "%s?%s",
@@ -242,16 +246,18 @@ if (isset($_SESSION["loggedRole"])) {
         $apiArray = json_decode($apiCall, true);
         $data = $apiArray["data"];
         $length = count($data);
+        $debug = $length.'-';
         for ($i = 0; $i < $length; $i++) {
             $current_device = $data[$i];
-            if ($current_device["devicetype"] == "File") {
+            $debug = $debug . $current_device["devicetype"] . '-';
+            if ($current_device["devicetype"] == "file") {
                 $deviceid = $current_device["id"];
 
                 ///////////////////ATTRIBUTES VALUE//////////////
                 $value_array = [
                     "action" => "get_device_data",
                     "id" => $deviceid,
-                    "type" => "File",
+                    "type" => "file",
                     "contextbroker" => $iot_contextbroker,
                     "version" => "v1",
                     "nodered" => "access",
@@ -274,7 +280,6 @@ if (isset($_SESSION["loggedRole"])) {
                 $response0 = json_decode($deviceCall01, true);
 
                 $var_length = count($response0["attributes"]);
-
                 $dateObserved = "";
                 $newfileid = "";
                 $description = "";
@@ -282,8 +287,8 @@ if (isset($_SESSION["loggedRole"])) {
                 $filesize = "";
                 $language = "";
                 $filetype = "";
-
                 //capire la posizione fissa degli attributi come risultato dell'api per evitare il ciclo for
+                //@mereu è un json, quella quassù non è una buona idea
                 for ($x = 0; $x < $var_length; $x++) {
                     $current_attr = $response0["attributes"][$x]["name"];
                     if ($current_attr == "dateObserved") {
@@ -333,24 +338,28 @@ if (isset($_SESSION["loggedRole"])) {
             $element_in_array = count($devices_list);
             if ($element_in_array == 0) {
                 $message_output["code"] = "404";
-                $message_output["message"] = "not founded devices";
+                $message_output["message"] = "devices not found";
+                $message_output["debug"] = $debug;
                 echo json_encode($message_output);
-                exit();
             }
         }
-        //$message_output['message'] = $data;
+        $message_output['message'] = $devices_list;
         if ($apiCall) {
             $message_output["status"] = "ok";
+            $message_output["code"] = "200";
+            echo json_encode($message_output);
         } else {
             $message_output["status"] = "ko";
+            $message_output["code"] = "501";
             $mesagge_output["message"] = $apiCall;
+            echo json_encode($message_output);
         }
         curl_close($ch);
     }
 
     ////upload file in a protect directory and create an iot_device with his attributes
     elseif ($action == "upload_file") {
-		
+
         //get file metadata from the form
         $latitude = mysqli_real_escape_string($link, $_POST["latitude"]);
         $latitude = filter_var($latitude, FILTER_SANITIZE_STRING);
@@ -375,16 +384,16 @@ if (isset($_SESSION["loggedRole"])) {
         $file_tmp_path = $_FILES["new_file"]["tmp_name"];
         $originalfilename = $_FILES["new_file"]["name"];
         $filesize = $_FILES["new_file"]["size"];
-		//echo($filesize);
+                //echo($filesize);
         $filesize = human_filesize($filesize);
-		
+
         $ext = pathinfo($originalfilename, PATHINFO_EXTENSION);
-		//echo($ext);
+                //echo($ext);
 
         //check extension
         mysqli_select_db($link, $dbname);
         $query_extensions = "SELECT extension FROM fileextensions";
-		//echo($query_extensions);
+                //echo($query_extensions);
         ($result_extensions = mysqli_query($link, $query_extensions)) or
             die(mysqli_error($link));
         $allowed_extensions = [];
@@ -403,7 +412,6 @@ if (isset($_SESSION["loggedRole"])) {
                 mkdir($protecteduploads_directory, 0333);
                 chmod($protecteduploads_directory, 0333);
             }
-
             //set new file id
             $new_fileid = uniqid() . "-" . time();
             $upload_dir = $protecteduploads_directory . $new_fileid;
@@ -414,9 +422,8 @@ if (isset($_SESSION["loggedRole"])) {
             $filename = $new_fileid . "." . $ext;
             //$filename = $description . "." . $ext;
             mkdir($upload_dir);
-            chmod($upload_dir, 0333); // no read permission
+            chmod($upload_dir, 0333); // no read permissions
             $filepath = $protecteduploads_directory . "/" . $filename;
-            //
             //
             if (move_uploaded_file($file_tmp_path, $filepath)) {
                 chmod($filepath, 0700);
@@ -443,13 +450,13 @@ if (isset($_SESSION["loggedRole"])) {
                 $modelCall = curl_exec($ch_model);
                 $device_model = json_decode($modelCall);
                 $content_model = $device_model->content;
-			if (!$content_model){
-				$message_output["code"] = "404";
+                        if (!$content_model){
+                                $message_output["code"] = "404";
                     $message_output["message"] =
                         "Error: model not found";
                     echo json_encode($message_output);
                     exit();
-			}
+                        }
                 $iot_contextbroker = $content_model->contextbroker;
                 $iot_attributes = $content_model->attributes;
                 $kind = $content_model->kind;
@@ -531,6 +538,7 @@ if (isset($_SESSION["loggedRole"])) {
                         "token" => $accessToken,
                         "payload" => $new_attributes,
                     ];
+                    //TODO insert here delegation
                     $curl01 = curl_init();
                     $url01 = sprintf(
                         "%s?%s",
@@ -1299,7 +1307,7 @@ if (isset($_SESSION["loggedRole"])) {
         echo json_encode($message_output);
     }
 
-    
+
 }
 
 // Read a file and display its content chunk by chunk

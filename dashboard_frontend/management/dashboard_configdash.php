@@ -35636,69 +35636,23 @@
                                                     id: 'menu-no-building',
                                                     action: () => {}
                                                 },
+                                                google: {
+                                                    displayedName: 'Google Tile',
+                                                    id: 'menu-google-tile',
+                                                    action: () => {
+                                                    }
+                                                },
+                                                grid_building_tiled: {
+                                                    displayedName: 'Building New Tiled',
+                                                    id: 'menu-grid-building-tiled',
+                                                    action: () => {
+                                                    },
+                                                },
                                                 extruded: {
                                                     displayedName: 'Extruded Buildings',
                                                     id: 'menu-extruded-building',
                                                     action: () => {
                                                         loadAggregatedBuildings();
-                                                    },
-                                                },
-                                                glb: {
-                                                    displayedName: 'Meshed GLB Buildings',
-                                                    id: 'menu-glb-building',
-                                                    action: () => {
-                                                        loadHighResBuildingsGLB();
-                                                    }
-                                                },
-                                                gltf: {
-                                                    displayedName: 'Meshed GLTF Buildings',
-                                                    id: 'menu-gltf-building',
-                                                    action: () => {
-                                                        loadHighResBuildingsGltf();
-                                                    },
-                                                },
-                                                splitted: {
-                                                    displayedName: 'Meshed GLB Splitted',
-                                                    id: 'menu-glb-splitted-building',
-                                                    action: () => {
-                                                        loadHighResBuildingsCutted();
-                                                        loadHighValueBuildings();
-                                                    },
-                                                },
-                                                no_text: {
-                                                    displayedName: 'Meshed Not Textured',
-                                                    id: 'menu-no-text-building',
-                                                    action: () => {
-                                                        loadNotTexturedBuildings();
-                                                    },
-                                                },
-                                                elevated: {
-                                                    displayedName: 'Meshed with San Giorgio',
-                                                    id: 'menu-combo-building',
-                                                    action: () => {
-                                                        loadElevatedBuildings();
-                                                        loadHighResElevatedBuildingsGLB();
-                                                    },
-                                                },
-                                                sgiorgio: {
-                                                    displayedName: 'San Giorgio',
-                                                    id: 'menu-sgiorgio-building',
-                                                    action: () => {
-                                                        loadElevatedBuildings();
-                                                    },
-                                                },
-                                                grid_high_res: {
-                                                    displayedName: 'Roof + Pattern (high resolution)',
-                                                    id: 'menu-high-res-grid-building',
-                                                    action: () => {
-                                                        loadHighResGridSystemBuildings();
-                                                    },
-                                                },
-                                                grid_low_res: {
-                                                    displayedName: 'Roof + Pattern (low resolution)',
-                                                    id: 'menu-low-res-grid-building',
-                                                    action: () => {
-                                                        loadLowResGridSystemBuildings();
                                                     },
                                                 },
                                             }

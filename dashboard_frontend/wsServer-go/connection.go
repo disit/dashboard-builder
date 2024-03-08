@@ -14,7 +14,7 @@ import (
 	"net"
 	"strings"
 
-	"gopkg.in/ldap.v3"
+	"github.com/go-ldap/ldap/v3"
 
 	oidc "github.com/coreos/go-oidc"
 )

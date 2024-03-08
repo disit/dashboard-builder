@@ -13,8 +13,7 @@
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
-  
-  include_once('../config.php');
+
 include('process-form.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
@@ -340,7 +339,7 @@ $lastUsedColors = null;
     .my-leaflet-map-container img {
         max-height: none;
     }
-    
+
     input.pw {
   -webkit-text-security: disc;
 }
@@ -371,7 +370,7 @@ $lastUsedColors = null;
             <div id="select_element_type" style="margin-left: 5%; margin: 2%;  float: left">
                 <!-- -->
                 <button type="button" id="new_file_modal" class="btn btn-warning new_org" data-toggle="modal" data-target="#myModal_new" style="float:left; margin-right: 5px;">
-                    <i class="fa fa-plus"></i> 
+                    <i class="fa fa-plus"></i>
                     Add new File
                 </button>
             </div>
@@ -435,7 +434,7 @@ $lastUsedColors = null;
                     <div class="input-group"><span class="input-group-addon"><?= _("File type") ?>:</span>
                         <select id="new_filetype" name="filetype" class="form-control">
                         </select>
-                    </div><br />            
+                    </div><br />
                     <div class="input-group">
                     <span class="input-group-addon"><?= _("Set coordinates") ?>:</span>
                     <div id="Map1" style="height:200px">
@@ -443,8 +442,8 @@ $lastUsedColors = null;
                     <div class="input-group"><span class="input-group-addon"><?= _("Latitude") ?>:</span><input id="new_latitude" name="latitude" type="text" class="form-control" oninput="new_coords()" ></div><br />
                     <div class="input-group"><span class="input-group-addon"><?= _("Longitude") ?>:</span><input id="new_longitude" name="longitude" type="text" class="form-control" oninput="new_coords()"></div><br />
                     <div class="input-group"><span class="input-group-addon"><?= _("Select a File") ?>:</span><input id="new_file" type="file" class="form-control" name="new_file" onchange="return fileValidation()"></div><br />
-                   
-                </div><br />  
+
+                </div><br />
                 </form>
                 <div class="modal-footer">
                     <button type="button" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel") ?></button>
@@ -470,21 +469,21 @@ $lastUsedColors = null;
                     <input id="edit_filesize" type="text" class="form-control" readonly style="display:none;"/>
                     <input id="edit_filetype" type="text" class="form-control" readonly style="display:none;"/>
                     <input id="edit_date" type="text" class="form-control" readonly style="display:none;"/>
-					<input id="edit_newfileid" type="text" class="form-control" readonly style="display:none;"/>
+                                        <input id="edit_newfileid" type="text" class="form-control" readonly style="display:none;"/>
                     <div class="input-group"><span class="input-group-addon"><?= _("Description") ?>:</span><input id="edit_description" name="description" type="text" class="form-control" ></div><br />
-                    
-   
+
+
                     <div class="input-group"><span class="input-group-addon"><?= _("Subnature") ?>:</span>
                         <select id="edit_subnature" name="subnature" class="form-control">
                         </select>
                     </div><br />
-                    
+
                     <div class="input-group">
                         <span class="input-group-addon"><?= _("Set coordinates") ?>:</span>
                         <div id="Map2" style="height:200px"></div></div><br />
                     <div class="input-group"><span class="input-group-addon"><?= _("Latitude") ?>:</span><input id="edit_latitude" name="latitude" type="text" class="form-control" oninput="edit_coords()" ></div><br />
                     <div class="input-group"><span class="input-group-addon"><?= _("Longitude") ?>:</span><input id="edit_longitude" name="longitude" type="text" class="form-control" oninput="edit_coords()"></div><br />
-                    
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel") ?></button>
@@ -541,114 +540,114 @@ $lastUsedColors = null;
         </div>
     </div>
         <!--  -->
-        
-        
+
+
     <div class="modal fade" id="delegationsModal" tabindex="-1" role="dialog" aria-labelledby="modalAddWidgetTypeLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
-	<div class="modal-content">
-	<div id="delegationHeadModalLabel"  class="modalHeader centerWithFlex">
-				  
-	</div>
-		<form class="form-horizontal">
-	
-		<div id="delegationsModalBody" class="modal-body modalBody">
-			<!-- Tabs -->
-			<ul id="delegationsTabsContainer" class="nav nav-tabs nav-justified">
+        <div class="modal-content">
+        <div id="delegationHeadModalLabel"  class="modalHeader centerWithFlex">
+
+        </div>
+                <form class="form-horizontal">
+
+                <div id="delegationsModalBody" class="modal-body modalBody">
+                        <!-- Tabs -->
+                        <ul id="delegationsTabsContainer" class="nav nav-tabs nav-justified">
                             <li id="ownershipTab" class="active"><a data-toggle="tab" href="#ownershipCnt" class="dashboardWizardTabTxt" aria-expanded="false">Ownership</a></li>
                             <li id="visibilityTab"><a data-toggle="tab" href="#visibilityCnt" class="dashboardWizardTabTxt">Visibility</a></li>
                             <li id="delegationsTab"><a data-toggle="tab" href="#delegationsCnt" class="dashboardWizardTabTxt">Delegations</a></li>
                             <li id="delegationsTabGroup"><a data-toggle="tab" href="#delegationsCntGroup" class="dashboardWizardTabTxt">Group Delegations</a></li>
-			</ul>
-			<!-- Fine tabs -->
+                        </ul>
+                        <!-- Fine tabs -->
 
-			<!-- Tab content -->
-			<div class="tab-content">
+                        <!-- Tab content -->
+                        <div class="tab-content">
 
                             <!-- Visibility cnt -->
                             <div id="visibilityCnt" class="tab-pane fade in">
                             <div class="row" id="visibilityFormRow">
-				<legend><div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
-					Change visibility 
-				</div> </legend>
-				<div class="row" class="col-xs-12 col-md-6">
-				<!--<div class="col-xs-12" id="newVisibilityCnt"> -->
-				<div class="col-xs-12 col-md-2" id="newVisibilityCnt">
-											
+                                <legend><div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
+                                        Change visibility
+                                </div> </legend>
+                                <div class="row" class="col-xs-12 col-md-6">
+                                <!--<div class="col-xs-12" id="newVisibilityCnt"> -->
+                                <div class="col-xs-12 col-md-2" id="newVisibilityCnt">
+
                                     <div id="visID"></div>
-				</div>
-				<div class="col-xs-12 col-md-6" id="newVisibilityCnt">	 
-					<div  class="row">	
-											
+                                </div>
+                                <div class="col-xs-12 col-md-6" id="newVisibilityCnt">
+                                        <div  class="row">
+
                                             <button type="button" id="newVisibilityPublicBtn" class="btn pull-right confirmBtn">Make It Public</button> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-												
+
                                             <button type="button" id="newVisibilityPrivateBtn" class="btn pull-right confirmBtn">Make It Private</button>
-											  
-					</div>
-											
-				</div>
-				<!-- <div class="col-xs-12 centerWithFlex" id="newVisibilityResultMsg"> -->
-				<div class="col-xs-12 col-md-4" id="newVisibilityResultMsg">
-											
-				</div> 
-										
-				</div>
-                            </div>    
+
+                                        </div>
+
+                                </div>
+                                <!-- <div class="col-xs-12 centerWithFlex" id="newVisibilityResultMsg"> -->
+                                <div class="col-xs-12 col-md-4" id="newVisibilityResultMsg">
+
+                                </div>
+
+                                </div>
                             </div>
-								
-                            <!-- Ownership cnt -->	
+                            </div>
+
+                            <!-- Ownership cnt -->
                             <div id="ownershipCnt" class="tab-pane fade in active">
                             <div class="row" id="ownershipFormRow">
-				<legend><div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
-					Change ownership
-				</div> </legend>
-				<div class="col-xs-12" id="newOwnershipCnt">
-					<div class="input-group">
-					<input type="text" class="form-control" id="newOwner" placeholder="New owner username">
-					<span class="input-group-btn">
-						<button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
-					</span>
-					</div>
-					<div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
-						New owner username can't be empty
-					</div>    
-				</div>
-					<div class="col-xs-12 centerWithFlex" id="newOwnershipResultMsg">
-											
-					</div>   
-				</div>    
+                                <legend><div class="col-xs-12 centerWithFlex delegationsModalLbl modalFirstLbl" id="changeOwnershipLbl">
+                                        Change ownership
+                                </div> </legend>
+                                <div class="col-xs-12" id="newOwnershipCnt">
+                                        <div class="input-group">
+                                        <input type="text" class="form-control" id="newOwner" placeholder="New owner username">
+                                        <span class="input-group-btn">
+                                                <button type="button" id="newOwnershipConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
+                                        </span>
+                                        </div>
+                                        <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newOwnerMsg">
+                                                New owner username can't be empty
+                                        </div>
+                                </div>
+                                        <div class="col-xs-12 centerWithFlex" id="newOwnershipResultMsg">
+
+                                        </div>
+                                </div>
                             </div>
 
                             <!-- Delegation cnt -->
                             <div id="delegationsCnt" class="tab-pane fade in">
                             <div class="row" id="delegationsFormRow">
-				<legend><div class="col-xs-12 centerWithFlex modalFirstLbl" id="newDelegationLbl">
-					Add new delegation
-				</div></legend>
-				<div class="col-xs-12" id="newDelegationCnt">
-				<div class="input-group">
-					<input type="text" class="form-control" name="newDelegation" id="newDelegation" placeholder="Delegated username">
-					<span class="input-group-btn">
-					<button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
-					</span>
-				</div>
-				<div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newDelegatedMsg">
-					Delegated username can't be empty
-				</div>
-				</div>
+                                <legend><div class="col-xs-12 centerWithFlex modalFirstLbl" id="newDelegationLbl">
+                                        Add new delegation
+                                </div></legend>
+                                <div class="col-xs-12" id="newDelegationCnt">
+                                <div class="input-group">
+                                        <input type="text" class="form-control" name="newDelegation" id="newDelegation" placeholder="Delegated username">
+                                        <span class="input-group-btn">
+                                        <button type="button" id="newDelegationConfirmBtn" class="btn confirmBtn disabled">Confirm</button>
+                                        </span>
+                                </div>
+                                <div class="col-xs-12 centerWithFlex delegationsModalMsg" id="newDelegatedMsg">
+                                        Delegated username can't be empty
+                                </div>
+                                </div>
 
-				<legend><div class="col-xs-12 centerWithFlex" id="currentDelegationsLbl">
-					Current delegations
-				</div></legend>
-					<div class="col-xs-12" id="delegationsTableCnt">
-						<table id="delegationsTable">
-						<thead>
-						<th>Delegated user</th>
-						<th>Remove</th>
-						</thead>
-						<tbody>
-						</tbody>
-						</table>
-					</div>
+                                <legend><div class="col-xs-12 centerWithFlex" id="currentDelegationsLbl">
+                                        Current delegations
+                                </div></legend>
+                                        <div class="col-xs-12" id="delegationsTableCnt">
+                                                <table id="delegationsTable">
+                                                <thead>
+                                                <th>Delegated user</th>
+                                                <th>Remove</th>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                                </table>
+                                        </div>
                             </div>
                             </div>
 
@@ -694,36 +693,36 @@ $lastUsedColors = null;
 
 
 
-			</div>
-		</div>
-		<div id="delegationsModalFooter" class="modal-footer">
+                        </div>
+                </div>
+                <div id="delegationsModalFooter" class="modal-footer">
                     <button type="button" id="delegationsCancelBtn" class="btn cancelBtn" data-dismiss="modal">Close</button>
-		</div>
-		</form>	
-	</div>
-	</div>
+                </div>
+                </form>
+        </div>
+        </div>
     </div>
-	   
+
     <div class="modal fade" id="addMapShow" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modalHeader centerWithFlex">
-					File Location on Map
+                                        File Location on Map
                 </div>
-				<div class="form-row iot-directory-form-row">
-				        <link rel="stylesheet" href="http://dashboard/iot2/css/leaflet.css" />
-						<link rel="stylesheet" href="http://dashboard/iot2/css/leaflet.draw.css" />
-						<div id="addDeviceMapModalBodyShow" style="width: 100%; height: 400px" class="modal-body modalBody">                  
-					</div>
-				</div> 
-				<div class="modal-footer">
+                                <div class="form-row iot-directory-form-row">
+                                        <link rel="stylesheet" href="http://dashboard/iot2/css/leaflet.css" />
+                                                <link rel="stylesheet" href="http://dashboard/iot2/css/leaflet.draw.css" />
+                                                <div id="addDeviceMapModalBodyShow" style="width: 100%; height: 400px" class="modal-body modalBody">
+                                        </div>
+                                </div>
+                                <div class="modal-footer">
                   <button type="button" id="cancelMapBtn" class="btn cancelBtn"  data-dismiss="modal">Cancel</button>
                 </div>
               </div>
             </div>
         </div>
-        
-        
+
+
 
     <!-- -->
     <div class="modal fade" id="loading_div" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -768,30 +767,31 @@ $lastUsedColors = null;
     }).addTo(mymap2);
     mymap2.attributionControl.setPrefix('');
     setTimeout(mymap2.invalidateSize.bind(mymap2));
-//******FINE MAPPA******// 
+//******FINE MAPPA******//
     $(document).ready(function () {
         console.log('filemanager ready');
-        
+
         $.ajax({
             async: true,
             type: 'GET',
             dataType: 'json',
             url: 'getfiledata.php',
             data: {
-                //action: 'get_my_files'
-				action: 'list_files'
+                action: 'get_my_files'
+                //              action: 'list_files'
             },
+            error: function (data) { console.log(data);},
             success: function (data) {
-                console.log('RESULTS:	');
-				console.log(data);
+                console.log('RESULTS:   ');
+                                console.log(data);
                 if (data['code'] === '200'){
-                    var data = data['data'];
+                    var data = data['message'];
                     var len = data.length;
 
                 for (var i = 0; i < len; i++) {
                     var subnature = '';
                     var newfileid = data[i]['newfileid']; //unique id
-                    var deviceid = data[i]['deviceid']; 
+                    var deviceid = data[i]['deviceid'];
                     var filename = data[i]['filename']; //originalfilename
                     var description = data[i]['description'];
                     if ((data[i]['subnature'] === null) || (data[i]['subnature'] === 'null') || (data[i]['subnature'] === undefined)) {
@@ -830,20 +830,20 @@ $lastUsedColors = null;
                         var management_button =  '<div class= "delegatedBtn" >' + visibility + "</div>";
                     }
                     var position_button = '<div class="addMapBtn"><i  data-toggle="modal" data-target="#addMapShow" onclick="drawMap(\''+ latitude + '\',\'' + longitude + '\', \'' + filename + '\', \'' + 'addDeviceMapModalBodyShow' + '\')\" class="fa fa-globe"  style=\"font-size:36px; color: #0000ff\"></i></div>';
-                    
+
                     if(loggedRole==='RootAdmin' || visibility==='MyOwnPublic' || visibility==='MyOwnPrivate' || visibility==='public' || visibility==='delegated'){
                     var view_button='<button type="button" class="viewDashBtn" onclick="func_view(\'' + newfileid + '\',\'' + filetype + '\',\'' + filename + '\')" data-target="#view_file" data-toggle="modal">VIEW</button>';
-                    }   
+                    }
                     else{
                         var view_button='&nbsp;';
                     }
-                    
+
                     $('#value_table tbody').append('<tr><td>' + filename + '</td><td>' + description + '</td><td>' + subnature + '</td><td>' + language + '</td><td>' + filesize + '</td><td>' + date + '</td><td>' + organization + '</td><td>' + position_button + '</td><td>' + edit_button + '</td><td>'+ view_button + '</td><td>' + delete_button + '</td><td>' + management_button + '</td></tr>');
                 }
 
                 }else{
                     console.log(data['message']);
-					alert(data['message']);
+                                        alert(data['message']);
                 }
                 var table = $('#value_table').DataTable({
                     "searching": true,
@@ -861,7 +861,7 @@ $lastUsedColors = null;
                             "next": "Next >>",
                             "previous": "<< Prev"
                         },
-                        "lengthMenu": "Show	_MENU_ "
+                        "lengthMenu": "Show     _MENU_ "
                     }
                 });
               }
@@ -887,7 +887,7 @@ $lastUsedColors = null;
                     for (var i = 0; i < lun; i++) {
                         $('#new_filetype').append('<option value="' + data[i] + '">' + data[i] + '</option>');
                     }
-                   
+
                 }
             });
             $.ajax({
@@ -906,11 +906,11 @@ $lastUsedColors = null;
                     for (var i = 0; i < lun; i++) {
                         $('#new_subnature').append('<option value="' + array_subnature[i]['value'] + '">' + array_subnature[i]['value'] + '</option>');
                     }
-                   
+
                 }
             });
-			
-            
+
+
         });
         //
         $('#conf_new').click(function () {
@@ -931,14 +931,14 @@ $lastUsedColors = null;
                 data:  form_data,
                 success: function (data) {
                     console.log(data['message']);
-					$('#loading_div').modal('hide');
-					var code = data['code'];
-					if (code == '200'){
-						window.location.reload();
-					}else{
-						alert(data['message']);
-					}
-                    
+                                        $('#loading_div').modal('hide');
+                                        var code = data['code'];
+                                        if (code == '200'){
+                                                window.location.reload();
+                                        }else{
+                                                alert(data['message']);
+                                        }
+
                 }
             });
         });
@@ -954,7 +954,7 @@ $lastUsedColors = null;
             var filesize = $('#edit_filesize').val();
             var filetype = $('#edit_filetype').val();
             var date = $('#edit_date').val();
-			var newfileid =$('#edit_newfileid').val();
+                        var newfileid =$('#edit_newfileid').val();
             //
             $('#loading_div').modal('show');
             //
@@ -975,8 +975,8 @@ $lastUsedColors = null;
                     filesize: filesize,
                     filetype: filetype,
                     date: date,
-					newfileid: newfileid
-  
+                                        newfileid: newfileid
+
                 },
                 success: function (data) {
                     console.log(data['message']);
@@ -1012,22 +1012,22 @@ $lastUsedColors = null;
                 }
             });
         });
-		
-		////////////////////
-		/*function download(filename, text) {
-		  var element = document.createElement('a');
-		  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-		  element.setAttribute('download', filename);
 
-		  element.style.display = 'none';
-		  document.body.appendChild(element);
+                ////////////////////
+                /*function download(filename, text) {
+                  var element = document.createElement('a');
+                  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                  element.setAttribute('download', filename);
 
-		  element.click();
+                  element.style.display = 'none';
+                  document.body.appendChild(element);
 
-		  document.body.removeChild(element);
-		}*/
-		///////////////
-        
+                  element.click();
+
+                  document.body.removeChild(element);
+                }*/
+                ///////////////
+
         $('#conf_view').click(function () {
             var fileid = $('#view_fileid').val();
             var filetype = $('#view_filetype').val();
@@ -1035,11 +1035,11 @@ $lastUsedColors = null;
             var mimetype = get_mimetype(filetype);
             $('#loading_div').modal('show');
             //
-			var url_file='getfiledata.php?action=view_file&fileid='+fileid+'&filetype='+filetype;
-			console.log(url_file);
-			window.open(url_file, 'download');
-			$('#loading_div').modal('hide');
-			//
+                        var url_file='getfiledata.php?action=view_file&fileid='+fileid+'&filetype='+filetype;
+                        console.log(url_file);
+                        window.open(url_file, 'download');
+                        $('#loading_div').modal('hide');
+                        //
            /* $.ajax({
                 async: true,
                 type: 'GET',
@@ -1054,16 +1054,16 @@ $lastUsedColors = null;
                     filetype: filetype
                 },
                 success: function (data) {
-					
-                    //console.log(data);	
-					//var obj = JSON.parse(data);
-					//
-					//e.preventDefault();  //stop the browser from following
-					//window.location.href = obj.content;
-					//window.open(obj.content, 'download');
-					//window.location.open(obj.content, 'download');
-					//var file = fileid+"."+filetype;
-					//download(file,obj.content);
+
+                    //console.log(data);
+                                        //var obj = JSON.parse(data);
+                                        //
+                                        //e.preventDefault();  //stop the browser from following
+                                        //window.location.href = obj.content;
+                                        //window.open(obj.content, 'download');
+                                        //window.location.open(obj.content, 'download');
+                                        //var file = fileid+"."+filetype;
+                                        //download(file,obj.content);
                     /*const a = document.createElement('a');
                     a.style = 'display: none';
                     document.body.appendChild(a);
@@ -1078,7 +1078,7 @@ $lastUsedColors = null;
             });*/
         });
         //////////////////
-   
+
         mymap2.on('click',
                 function (e) {
                     var zoom = mymap2.getZoom();
@@ -1118,43 +1118,43 @@ $lastUsedColors = null;
         setTimeout(mymap2.invalidateSize.bind(mymap2));
         //
     });
-    
+
     //map showing file location
-    function drawMap(latitude,longitude, filename, divName){ 
-     
-     if (typeof map === 'undefined' || !map) { 
+    function drawMap(latitude,longitude, filename, divName){
+
+     if (typeof map === 'undefined' || !map) {
              map = L.map(divName).setView([latitude,longitude], 10);
              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                  attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
              }).addTo(map);
 
-             window.node_input_map = map;   
+             window.node_input_map = map;
          }
-         
+
          map.setView([latitude,longitude], 10);
 
      if (typeof theMarker !== 'undefined') {
-             map.removeLayer(theMarker); 
+             map.removeLayer(theMarker);
             }
      theMarker= L.marker([latitude,longitude]).addTo(map).bindPopup(filename);
-     setTimeout(function(){ 
+     setTimeout(function(){
              map.invalidateSize();}, 400);
-  } 
-    
+  }
+
     function fileValidation() {
         var fileInput = document.getElementById('new_file');
-         
+
         var chosenExtension =  $('#new_filetype').val();//extension chosen in the form by the user
         var fileExtension = getFileExtension(fileInput.value);
-        
-             
+
+
         if (chosenExtension !== fileExtension) {
             alert('Invalid file type');
             fileInput.value = '';
             return false;
         }
     }
-    
+
     function getFileExtension(fname){
         return fname.slice((fname.lastIndexOf(".") - 1 >>> 0) + 2);
     }
@@ -1165,14 +1165,14 @@ $lastUsedColors = null;
         $('#delete_fileid').val(fileid);
         $('#delete_filetype').val(filetype);
     }
-    
+
     function func_view(fileid, filetype, filename) {
         $('#view_fileid').val(fileid);
         $('#view_filetype').val(filetype);
         $('#view_filename').val(filename);
     }
-    
-    
+
+
     function edit_coords (){
         ///////////////////////////////////
         //var zoom = mymap2.getZoom();
@@ -1193,7 +1193,7 @@ $lastUsedColors = null;
 
         //////////////////////////////////
     }
-    
+
     function new_coords (){
         ////////
                    var lat = $('#new_latitude').val();
@@ -1225,7 +1225,7 @@ $lastUsedColors = null;
             });
             var marker = L.marker([latitude, longitude], {icon: greyIcon}).addTo(mymap2);
                 //
-                
+
                 $('#edit_description').val(description);
                 $('#edit_filename').val(filename);
                 $('#edit_language').val(language);
@@ -1235,7 +1235,7 @@ $lastUsedColors = null;
                 $('#edit_latitude').val(latitude);
                 $('#edit_longitude').val(longitude);
                 $('#edit_id').val(deviceid);
-				$('#edit_newfileid').val(newfileid);
+                                $('#edit_newfileid').val(newfileid);
         $.ajax({
                 async: true,
                 type: 'GET',
@@ -1257,13 +1257,13 @@ $lastUsedColors = null;
                         $('#edit_subnature').append('<option value="' + array_subnature[i]['value'] + '">' + array_subnature[i]['value'] + '</option>');
                         }
                     }
-                   
+
                 }
             });
-            
+
     };
 
-    
+
     $("#myModal_new").on('shown.bs.modal', function (e) {
         setTimeout(function () {
             mymap.invalidateSize();
@@ -1275,247 +1275,247 @@ $lastUsedColors = null;
             mymap2.invalidateSize();
         }, 0);
     });
-    
-//   START TO CHANGE THE VISIBILITY  & OWNERSHIP 
-				
+
+//   START TO CHANGE THE VISIBILITY  & OWNERSHIP
+
     function func_management(name, deviceid, contextbroker, visibility, k1, k2) {
-	$("#delegationsModal").modal('show');   
-	$("#delegationHeadModalLabel").html("File - " + name);  
+        $("#delegationsModal").modal('show');
+        $("#delegationHeadModalLabel").html("File - " + name);
         var newVisibility = '';
         if(visibility==='MyOwnPrivate'){
-		newVisibility = 'public';
-		$('#visID').css('color', '#f3cf58');
-		$("#visID").html("Visibility - Private");
-		document.getElementById('newVisibilityPrivateBtn').style.visibility = 'hidden';
-		document.getElementById('newVisibilityPublicBtn').style.visibility = 'show';
-				
-	} else //(visibility=='MyOwnPublic'){
-	{
-		newVisibility = 'private';
-		$('#visID').css('color', '#f3cf58');
-		$("#visID").html("Visibility - Public");
-		document.getElementById('newVisibilityPrivateBtn').style.visibility = 'show';
-		document.getElementById('newVisibilityPublicBtn').style.visibility = 'hidden';
-	}			  
-	// To Change from Private to Public 
-	$(document).on("click", "#newVisibilityPublicBtn", function(event){
-		$.ajax({
-		url: 'getfiledata.php',
+                newVisibility = 'public';
+                $('#visID').css('color', '#f3cf58');
+                $("#visID").html("Visibility - Private");
+                document.getElementById('newVisibilityPrivateBtn').style.visibility = 'hidden';
+                document.getElementById('newVisibilityPublicBtn').style.visibility = 'show';
+
+        } else //(visibility=='MyOwnPublic'){
+        {
+                newVisibility = 'private';
+                $('#visID').css('color', '#f3cf58');
+                $("#visID").html("Visibility - Public");
+                document.getElementById('newVisibilityPrivateBtn').style.visibility = 'show';
+                document.getElementById('newVisibilityPublicBtn').style.visibility = 'hidden';
+        }
+        // To Change from Private to Public
+        $(document).on("click", "#newVisibilityPublicBtn", function(event){
+                $.ajax({
+                url: 'getfiledata.php',
                 type: "POST",
-		async: true,
-		dataType: 'json',
-		data: 
-                    {	
-			action: "change_visibility",
-			id: deviceid,
-			contextbroker: contextbroker,
-			visibility: newVisibility
-                    },
-		
-		success: function(data) 
+                async: true,
+                dataType: 'json',
+                data:
                     {
-			if (data["status"] === 'ok')
-			{
+                        action: "change_visibility",
+                        id: deviceid,
+                        contextbroker: contextbroker,
+                        visibility: newVisibility
+                    },
+
+                success: function(data)
+                    {
+                        if (data["status"] === 'ok')
+                        {
                             $('#newVisibilityResultMsg').show();
                             $("#visID").html("");
                             $('#visID').css('color', '#f3cf58');
                             $("#visID").html("Visibility - Private");
                             $('#newVisibilityResultMsg').html('New visibility set to Public');
-						
+
                             $('#newVisibilityPublicBtn').addClass('disabled');
-						
+
                             setTimeout(function()
-						{
-							$('#devicesTable').DataTable().destroy();
-							//fetch_data(true);
-							location.reload();
-						}, 3000);
-			}
-			else if (data["status"] === 'ko')
-			{   console.log(data['msg']);
+                                                {
+                                                        $('#devicesTable').DataTable().destroy();
+                                                        //fetch_data(true);
+                                                        location.reload();
+                                                }, 3000);
+                        }
+                        else if (data["status"] === 'ko')
+                        {   console.log(data['msg']);
                             $('#newVisibilityResultMsg').show();
                             $('#newVisibilityResultMsg').html('Error setting new visibility');
                             $('#newVisibilityPublicBtn').addClass('disabled');
-						
-                            setTimeout(function()
-						{
-							$('#newVisibilityPublicBtn').removeClass('disabled');
-							$('#newVisibilityResultMsg').html('');
-							$('#newVisibilityResultMsg').hide();
-						}, 3000);
-			}
-			else {console.log(data);}
-                    },
-		error: function(errorData)
-				{
-					$('#newVisibilityResultMsg').show();
-					$('#newVisibilityResultMsg').html('Error setting new visibility');
-					$('#newVisibilityPublicBtn').addClass('disabled');
 
-					setTimeout(function()
-					{
-						$('#newVisibilityPublicBtn').removeClass('disabled');
-						$('#newVisibilityResultMsg').html('');
-						$('#newVisibilityResultMsg').hide();
-					}, 3000);
-				}
-			});
-		});
-		
-		
-        // To Change from Public to Private 	
-	$(document).on("click", "#newVisibilityPrivateBtn", function(event){
-		$.ajax({
-			url: 'getfiledata.php',
-			data: 
-                            {	
-				action: "change_visibility", 
-				id: deviceid,
-				contextbroker: contextbroker,
-				visibility: newVisibility
+                            setTimeout(function()
+                                                {
+                                                        $('#newVisibilityPublicBtn').removeClass('disabled');
+                                                        $('#newVisibilityResultMsg').html('');
+                                                        $('#newVisibilityResultMsg').hide();
+                                                }, 3000);
+                        }
+                        else {console.log(data);}
+                    },
+                error: function(errorData)
+                                {
+                                        $('#newVisibilityResultMsg').show();
+                                        $('#newVisibilityResultMsg').html('Error setting new visibility');
+                                        $('#newVisibilityPublicBtn').addClass('disabled');
+
+                                        setTimeout(function()
+                                        {
+                                                $('#newVisibilityPublicBtn').removeClass('disabled');
+                                                $('#newVisibilityResultMsg').html('');
+                                                $('#newVisibilityResultMsg').hide();
+                                        }, 3000);
+                                }
+                        });
+                });
+
+
+        // To Change from Public to Private
+        $(document).on("click", "#newVisibilityPrivateBtn", function(event){
+                $.ajax({
+                        url: 'getfiledata.php',
+                        data:
+                            {
+                                action: "change_visibility",
+                                id: deviceid,
+                                contextbroker: contextbroker,
+                                visibility: newVisibility
                             },
-			type: "POST",
+                        type: "POST",
                         async: true,
-			dataType: 'json',
-			success: function(data) 
-				{
+                        dataType: 'json',
+                        success: function(data)
+                                {
                                 if (data["status"] === 'ok')
                                     {
-						$('#newVisibilityResultMsg').show();
-						$('#newVisibilityResultMsg').html('New visibility set Private');
-						//$('#newVisibilityPrivateBtn').addClass('disabled');
-						//document.getElementById('newVisibilityPrivateBtn').style.visibility = 'hidden';
-						$('#newVisibilityPrivateBtn').addClass('disabled');
-						//document.getElementById('CurrentVisiblityTxt').value = "Current Visiblity: " + newVisibility; 
-						//document.getElementById('newVisibilityPublicBtn').style.visibility = 'show';
-						setTimeout(function()
-						{
-							$('#devicesTable').DataTable().destroy();
-							//fetch_data(true);
-							location.reload();
-						}, 3000); 
-					}
-					else if (data["status"] === 'ko')
-					{
-						$('#newVisibilityResultMsg').show();
-						$('#newVisibilityResultMsg').html('Error setting new visibility');
-						$('#newVisibilityPrivateBtn').addClass('disabled');
-						
-						setTimeout(function()
-						{
-							$('#newVisibilityPrivateBtn').removeClass('disabled');
-							$('#newVisibilityResultMsg').html('');
-							$('#newVisibilityResultMsg').hide();
-						}, 3000);
-					}
-					else {console.log(data);}
-				},
-			error: function(errorData)
-				{
-					$('#newVisibilityResultMsg').show();
-					$('#newVisibilityResultMsg').html('Error setting new visibility');
-					$('#newVisibilityPrivateBtn').addClass('disabled');
+                                                $('#newVisibilityResultMsg').show();
+                                                $('#newVisibilityResultMsg').html('New visibility set Private');
+                                                //$('#newVisibilityPrivateBtn').addClass('disabled');
+                                                //document.getElementById('newVisibilityPrivateBtn').style.visibility = 'hidden';
+                                                $('#newVisibilityPrivateBtn').addClass('disabled');
+                                                //document.getElementById('CurrentVisiblityTxt').value = "Current Visiblity: " + newVisibility;
+                                                //document.getElementById('newVisibilityPublicBtn').style.visibility = 'show';
+                                                setTimeout(function()
+                                                {
+                                                        $('#devicesTable').DataTable().destroy();
+                                                        //fetch_data(true);
+                                                        location.reload();
+                                                }, 3000);
+                                        }
+                                        else if (data["status"] === 'ko')
+                                        {
+                                                $('#newVisibilityResultMsg').show();
+                                                $('#newVisibilityResultMsg').html('Error setting new visibility');
+                                                $('#newVisibilityPrivateBtn').addClass('disabled');
 
-					setTimeout(function()
-					{
-						$('#newVisibilityPrivateBtn').removeClass('disabled');
-						$('#newVisibilityResultMsg').html('');
-						$('#newVisibilityResultMsg').hide();
-					}, 3000);
-				}
-			});
-		});		
-	   
-	   
-	$(document).on("click", "#newOwnershipConfirmBtn", function(event){
-			// I generate a new pair of keys for the new owner
-		var k1new = generateUUID();
-		var k2new = generateUUID(); 
-		$.ajax({
-				 url: 'getfiledata.php',
-				 data:{
-					 action: "change_owner", 
-					 id: deviceid,
-					 contextbroker: contextbroker,
-					 newOwner:  $('#newOwner').val(),
-					 k1: k1new,
-					 k2: k2new
-			 },	
-			type: "POST",
-			async: true,
-			dataType: 'json',
-			success: function(data) 
-			{
-				if (data["status"] === 'ok')
-				{
-					$('#newOwner').val('');
-					$('#newOwner').addClass('disabled');
-					$('#newOwnershipResultMsg').show();
-					$('#newOwnershipResultMsg').html('New ownership set correctly');
-					$('#newOwnershipConfirmBtn').addClass('disabled');
-					
-					
-					setTimeout(function()
-					{
-						$('#devicesTable').DataTable().destroy();
-						//fetch_data(true);
-						location.reload();
-					}, 3000);
-				}
-				else if (data["status"] === 'ko')
-				{
-					$('#newOwner').addClass('disabled');
-					$('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
-					$('#newOwnershipConfirmBtn').addClass('disabled');
-					
-					setTimeout(function()
-					{
-						$('#newOwner').removeClass('disabled');
-						$('#newOwnershipResultMsg').html('');
-						$('#newOwnershipResultMsg').hide();
-					}, 3000);
-				}
-				else {console.log(data);}
-			},
-			error: function(errorData)
-			{
-				$('#newOwner').addClass('disabled');
-				$('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
-				$('#newOwnershipConfirmBtn').addClass('disabled');
+                                                setTimeout(function()
+                                                {
+                                                        $('#newVisibilityPrivateBtn').removeClass('disabled');
+                                                        $('#newVisibilityResultMsg').html('');
+                                                        $('#newVisibilityResultMsg').hide();
+                                                }, 3000);
+                                        }
+                                        else {console.log(data);}
+                                },
+                        error: function(errorData)
+                                {
+                                        $('#newVisibilityResultMsg').show();
+                                        $('#newVisibilityResultMsg').html('Error setting new visibility');
+                                        $('#newVisibilityPrivateBtn').addClass('disabled');
 
-				setTimeout(function()
-				{
-					$('#newOwner').removeClass('disabled');
-					$('#newOwnershipResultMsg').html('');
-					$('#newOwnershipResultMsg').hide();
-				}, 3000);
-			}
-		});
-	});  
-	
+                                        setTimeout(function()
+                                        {
+                                                $('#newVisibilityPrivateBtn').removeClass('disabled');
+                                                $('#newVisibilityResultMsg').html('');
+                                                $('#newVisibilityResultMsg').hide();
+                                        }, 3000);
+                                }
+                        });
+                });
 
 
-	$("#delegationsCancelBtn").off("click");
-	$("#delegationsCancelBtn").on('click', function(){        
-		$('#newDelegation').val("");
+        $(document).on("click", "#newOwnershipConfirmBtn", function(event){
+                        // I generate a new pair of keys for the new owner
+                var k1new = generateUUID();
+                var k2new = generateUUID();
+                $.ajax({
+                                 url: 'getfiledata.php',
+                                 data:{
+                                         action: "change_owner",
+                                         id: deviceid,
+                                         contextbroker: contextbroker,
+                                         newOwner:  $('#newOwner').val(),
+                                         k1: k1new,
+                                         k2: k2new
+                         },
+                        type: "POST",
+                        async: true,
+                        dataType: 'json',
+                        success: function(data)
+                        {
+                                if (data["status"] === 'ok')
+                                {
+                                        $('#newOwner').val('');
+                                        $('#newOwner').addClass('disabled');
+                                        $('#newOwnershipResultMsg').show();
+                                        $('#newOwnershipResultMsg').html('New ownership set correctly');
+                                        $('#newOwnershipConfirmBtn').addClass('disabled');
+
+
+                                        setTimeout(function()
+                                        {
+                                                $('#devicesTable').DataTable().destroy();
+                                                //fetch_data(true);
+                                                location.reload();
+                                        }, 3000);
+                                }
+                                else if (data["status"] === 'ko')
+                                {
+                                        $('#newOwner').addClass('disabled');
+                                        $('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
+                                        $('#newOwnershipConfirmBtn').addClass('disabled');
+
+                                        setTimeout(function()
+                                        {
+                                                $('#newOwner').removeClass('disabled');
+                                                $('#newOwnershipResultMsg').html('');
+                                                $('#newOwnershipResultMsg').hide();
+                                        }, 3000);
+                                }
+                                else {console.log(data);}
+                        },
+                        error: function(errorData)
+                        {
+                                $('#newOwner').addClass('disabled');
+                                $('#newOwnershipResultMsg').html('Error setting new ownership: please try again');
+                                $('#newOwnershipConfirmBtn').addClass('disabled');
+
+                                setTimeout(function()
+                                {
+                                        $('#newOwner').removeClass('disabled');
+                                        $('#newOwnershipResultMsg').html('');
+                                        $('#newOwnershipResultMsg').hide();
+                                }, 3000);
+                        }
+                });
+        });
+
+
+
+        $("#delegationsCancelBtn").off("click");
+        $("#delegationsCancelBtn").on('click', function(){
+                $('#newDelegation').val("");
                 $('#newDelegationGroup').val("");
-                $('#newDelegationOrganization').val("");  
-		$('#newOwner').val("");
-		  $("#newVisibilityResultMsg").html("");
-		  $("#newOwnershipResultMsg").html("");
-		   location.reload(); 
-		  $('#delegationsModal').modal('hide'); 		    								  		
-	});
-			
+                $('#newDelegationOrganization').val("");
+                $('#newOwner').val("");
+                  $("#newVisibilityResultMsg").html("");
+                  $("#newOwnershipResultMsg").html("");
+                   location.reload();
+                  $('#delegationsModal').modal('hide');
+        });
+
 
 
        //populate the beginning of the tables and listen about the removal
        $.ajax({
-                                    
+
            url: 'getfiledata.php',   //Checking the delegation table
-           data:                         
-           {                                                                
-               action: "get_delegations",  // check the action and to be specified 
+           data:
+           {
+               action: "get_delegations",  // check the action and to be specified
                id: deviceid,
                contextbroker: contextbroker
            },
@@ -1523,7 +1523,7 @@ $lastUsedColors = null;
            async: true,
            dataType: 'json',
            success: function(data)
-           {    
+           {
                     if (data["status"]==='ok')
                     {
 
@@ -1542,16 +1542,16 @@ $lastUsedColors = null;
                                     var startindex=delegations[i].groupDelegated.indexOf("cn=");
                                     if (startindex===-1)
                                     {
-											
-					gr="All groups";
+
+                                        gr="All groups";
                                         var endindex_ou=delegations[i].groupDelegated.indexOf(",");
-					var ou=delegations[i].groupDelegated.substring(3, endindex_ou);
+                                        var ou=delegations[i].groupDelegated.substring(3, endindex_ou);
                                     }
                                     else{
-	                                var endindex_gr= delegations[i].groupDelegated.indexOf(",");
-        	                        var gr=delegations[i].groupDelegated.substring(3, endindex_gr);
-                	                var endindex_ou=delegations[i].groupDelegated.indexOf(",", endindex_gr+1);
-                        	        var ou=delegations[i].groupDelegated.substring(endindex_gr+4, endindex_ou);
+                                        var endindex_gr= delegations[i].groupDelegated.indexOf(",");
+                                        var gr=delegations[i].groupDelegated.substring(3, endindex_gr);
+                                        var endindex_ou=delegations[i].groupDelegated.indexOf(",", endindex_gr+1);
+                                        var ou=delegations[i].groupDelegated.substring(endindex_gr+4, endindex_ou);
                                     }
 
                                     var DN=ou+","+gr;
@@ -1568,9 +1568,9 @@ $lastUsedColors = null;
                                                         {
                                                                 action: "remove_delegation",
                                                                 delegationId: $(this).parents('tr').attr('data-delegationId'),
-								userDelegated: $(this).parents('tr').attr('data-delegated'),
-								id: deviceid,                                 
-								contextbroker: contextbroker
+                                                                userDelegated: $(this).parents('tr').attr('data-delegated'),
+                                                                id: deviceid,
+                                                                contextbroker: contextbroker
                                                         },
                                                         type: "POST",
                                                         async: true,
@@ -1602,8 +1602,8 @@ $lastUsedColors = null;
                                                                  {
                                                                   action: "remove_delegation",
                                                                   delegationId: $(this).parents('tr').attr('data-delegationId'),
-							          groupDelegated: $(this).parents('tr').attr('data-delegated'),
-							          id: deviceid,
+                                                                  groupDelegated: $(this).parents('tr').attr('data-delegated'),
+                                                                  id: deviceid,
                                                                   contextbroker: contextbroker
                                                             },
                                                             type: "POST",
@@ -1656,12 +1656,12 @@ $lastUsedColors = null;
                                                         url: 'getfiledata.php',       //which api to use
                                                         data:
                                                         {
-                                    	                    action: "add_delegation",
-                                	                        contextbroker: contextbroker,
-                            	                            id:deviceid,
-                    	                                    delegated_user: newDelegation,
-                	                                        k1: newk1,
-            	                                            k2: newk2
+                                                            action: "add_delegation",
+                                                                contextbroker: contextbroker,
+                                                            id:deviceid,
+                                                            delegated_user: newDelegation,
+                                                                k1: newk1,
+                                                            k2: newk2
                                                         },
                                                         type: "POST",
                                                         async: true,
@@ -1706,7 +1706,7 @@ $lastUsedColors = null;
                                                                 }
                                                         },
                                                         error: function(errorData)
-                                                        {       console.log(data['message']);    
+                                                        {       console.log(data['message']);
                                                                 var errorMsg = "Error calling internal API";
                                                                 $('#newDelegation').val('');
                                                                 $('#newDelegation').addClass('disabled');
@@ -1799,9 +1799,9 @@ $lastUsedColors = null;
                                                                                                }
                });
        });     //group delegation -end
-	
-	}
-        
+
+        }
+
         //Validation of the name of the new owner during typing
     $('#newOwner').on('input', function (e)
     {
@@ -1813,7 +1813,7 @@ $lastUsedColors = null;
             $('#newOwnershipConfirmBtn').addClass('disabled');
         } else
         {
-            
+
             if (($(this).val().trim() === loggedUser))
 
             {
@@ -1828,7 +1828,7 @@ $lastUsedColors = null;
             }
         }
     });
-    
+
     // DELEGATIONS
     function updateGroupList(ouname) {
         $.ajax({
@@ -1882,7 +1882,7 @@ $lastUsedColors = null;
             async: false,
             datatype: 'json',
             success: function (data)
-            { 
+            {
                 if (data["status"] === 'ko')
                 {
                     $('#newDelegatedMsgGroup').css('color', '#f3cf58');
@@ -1891,7 +1891,7 @@ $lastUsedColors = null;
                 {
                     var $dropdown = $("#newDelegationOrganization");
                     $.each(data['content'], function () {
-                        
+
                         $dropdown.append($("<option />").val(this).text(this));
                     });
                 }
@@ -1985,19 +1985,19 @@ $lastUsedColors = null;
         $(this).removeData();
     });
 
-// END TO CHANGE THE VISIBILITY 
+// END TO CHANGE THE VISIBILITY
 
 function generateUUID() { // Public Domain/MIT
     var d = new Date().getTime();
     if (typeof performance !== 'undefined' && typeof performance.now === 'function'){
-			d += performance.now(); //use high-precision timer if available
+                        d += performance.now(); //use high-precision timer if available
     }
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = (d + Math.random() * 16) % 16 | 0;
         d = Math.floor(d / 16);
         return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-		});
-	}
+                });
+        }
 function get_mimetype(filetype){
     var mimetype = "";
     switch(filetype){
