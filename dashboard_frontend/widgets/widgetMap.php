@@ -179,6 +179,27 @@ class KBRoadEditor {
     segmentCallback;
     mode = 'drag';
     arrowMinZoom = 16;
+    typeColors = {
+        cycleway: {
+            color: 'cyan',
+            hover: 'green'
+        },
+        pedestrian: {
+            color: 'yellow',
+            hover: 'green'
+        },
+        footway: {
+            color: 'yellow',
+            hover: 'green'
+        },
+        default: {
+            color: 'blue',
+            hover: 'green',
+            bidirectional: {
+                color: 'red',
+            }
+        },
+    };
     tableMetersZoomNode = {
         "0": 10,
         "1": 10,
@@ -493,9 +514,61 @@ class KBRoadEditor {
             this.segmentClicked(this.segments[this.segmentUpdated]);
     }
 
+    //Restrctions
+    restrictionCallback;
+    selectedRestriction;
+    selectedRestrictionSegment;
+    lastMode;
+    enableRestrictionSelection(segment, callback) {
+        this.restrictionCallback = callback;
+        this.lastMode = this.mode;
+        this.mode = 'restriction';
+        this.selectedRestrictionSegment = segment;
+        this.selectedRestriction = {
+            from: segment.segment,
+        }
+        this.draw();
+    }
+
+    selectRestriction(restriction) {
+        this.selectedRestriction = {
+            via: "http://www.disit.org/km4city/resource/" + restriction.node.value,
+            to: "http://www.disit.org/km4city/resource/" + restriction.to.value,
+            from: "http://www.disit.org/km4city/resource/" + restriction.from.value,
+        };
+        this.draw();
+    }
+
+    segmentClicked(segment) {
+        if (this.mode === 'restriction') {
+            console.log(segment);
+            if (segment.segment === this.selectedRestrictionSegment.segment)
+                return;
+            let attachedNode;
+            if (segment.nodeA === this.selectedRestrictionSegment.nodeA)
+                attachedNode = segment.nodeA;
+            else if (segment.nodeA === this.selectedRestrictionSegment.nodeB)
+                attachedNode = segment.nodeA;
+            else if (segment.nodeB === this.selectedRestrictionSegment.nodeA)
+                attachedNode = segment.nodeB;
+            else if (segment.nodeB === this.selectedRestrictionSegment.nodeB)
+                attachedNode = segment.nodeB;
+            this.restrictionCallback(segment, attachedNode);
+            if (attachedNode) {
+                this.selectedRestriction.to = segment.segment;
+                this.selectedRestriction.via = attachedNode;
+            }
+            this.mode = this.lastMode;
+            this.draw();
+        } else {
+            this.segmentCallback(segment);
+        }
+    }
+    //Restritions
+    /*
     segmentClicked(segment) {
         this.segmentCallback(segment);
-    }
+    }*/
 
     updateSegmentData(segment) {
         const segmentUpdated = segment.segment;
@@ -582,6 +655,172 @@ class KBRoadEditor {
 
 
 //TEST NEW DRAW
+drawSegment(segment) {
+        if (segment.line)
+            this.map.removeLayer(segment.line);
+        if (segment.arrow)
+            this.map.removeLayer(segment.arrow);
+
+        const isVisualized = this.isSegmentVisualized(segment);
+        const opacity = isVisualized ? 1 : 0;
+
+        let type;
+        let colorScheme = this.typeColors.hasOwnProperty(segment.type) ? this.typeColors[segment.type] : this.typeColors.default;
+        let color = colorScheme.color;
+        if (segment.dir.includes('tratto stradale aperto nella direzione positiva')) {
+            type = 'positive';
+        } else if (segment.dir.includes('tratto stradale chiuso in entrambe le direzioni')) {
+            type = 'closed';
+            color = 'gray';
+        } else if (segment.dir.includes('tratto stradale aperto nella direzione negativa')) {
+            type = 'negative';
+        } else {
+            type = 'bidirectional';
+            if(colorScheme.bidirectional){
+            color = colorScheme.bidirectional.color;
+            }
+        }
+
+        if (this.selectedRestriction) {
+            if (this.selectedRestriction.from === segment.segment) {
+                color = 'green';
+            } else if (this.selectedRestriction.to === segment.segment) {
+                color = '#6f00c4';
+            }
+        }
+
+        segment.line = L.polyline([
+            new L.LatLng(segment.nALat, segment.nALong),
+            new L.LatLng(segment.nBLat, segment.nBLong)
+        ], {
+            color,
+            weight: 5,
+            opacity
+        }).addTo(this.map);
+
+        // arrow
+        const patterns = [];
+
+        if (type !== 'negative' && this.map.getZoom() > this.arrowMinZoom) {
+            patterns.push({
+                offset: '80%',
+                repeat: 0,
+                symbol: L.Symbol.arrowHead({
+                    // pixelSize: 10,
+                    pixelSize: this.tableMetersZoomArrow[this.zoomTableSize()],
+                    polygon: true,
+                    pathOptions: {
+                        stroke: true,
+                        fillColor: color,
+                        fillOpacity: opacity,
+                        opacity,
+                        fill: true,
+                        color
+                    }
+                })
+            });
+        }
+        if ((type === 'negative' || type === 'bidirectional') && this.map.getZoom() > this.arrowMinZoom)
+            patterns.push(
+                {
+                    offset: '20%',
+                    repeat: 0,
+                    symbol: L.Symbol.arrowHead({
+                        pixelSize: this.tableMetersZoomArrow[this.zoomTableSize()],
+                        // pixelSize: 10,
+                        polygon: true,
+                        headAngle: 420,
+                        pathOptions: {
+                            stroke: true,
+                            fillColor: color,
+                            fillOpacity: opacity,
+                            opacity,
+                            fill: true,
+                            color
+                        }
+                    })
+                }
+            )
+        var arrow = L.polylineDecorator(segment.line, { patterns }).addTo(this.map);
+        arrow.on({
+            click: () => {
+                segment.line.fire('click');
+            },
+            mouseover: () => {
+                if (this.mode !== 'delete' && this.mode !== 'split' && this.mode !== 'restriction')
+                    return;
+                segment.line.setStyle({ color: 'green' });
+                segment.arrow.setStyle({
+                    fillColor: colorScheme.hover,
+                    color: colorScheme.hover
+                });
+                segment.arrow.bringToFront();
+            },
+            mouseout: () => {
+                segment.line.setStyle({ color });
+                segment.arrow.setStyle({
+                    fillColor: color,
+                    color
+                });
+            }
+        })
+        segment.arrow = arrow;
+
+        // hover effect 
+        segment.line.on('mouseover', () => {
+            if (this.mode !== 'delete' && this.mode !== 'split' && this.mode !== 'restriction')
+                return;
+            segment.line.setStyle({ color: 'green' });
+            segment.arrow.setStyle({
+                fillColor: colorScheme.hover,
+                color: colorScheme.hover
+            });
+        });
+
+        // Change border color back to red on mouseout
+        segment.line.on('mouseout', () => {
+            segment.line.setStyle({ color });
+            segment.arrow.setStyle({
+                fillColor: color,
+                color
+            });
+        });
+
+        segment.line.on({
+            click: () => {
+                if (this.mode === 'delete') {
+                    this.removeSegment(segment);
+                    this.updateHistoricAction();
+                } else if (this.mode === 'split') {
+                    const lineLatLng = segment.line.getLatLngs();
+                    const nodeLat = (lineLatLng[0].lat + lineLatLng[1].lat) / 2;
+                    const nodeLng = (lineLatLng[0].lng + lineLatLng[1].lng) / 2;
+                    const newNode = this.createBlankNode(nodeLat, nodeLng);
+
+                    const segmentA = Object.assign({}, segment);
+                    segmentA.segment += '_A';
+                    const segmentB = Object.assign({}, segment);
+                    segmentB.segment += '_B';
+
+                    this.setNodeToSegment(segmentA, this.nodes[segment.nodeA], "A");
+                    this.setNodeToSegment(segmentA, newNode, "B");
+                    this.setNodeToSegment(segmentB, newNode, "A");
+                    this.setNodeToSegment(segmentB, this.nodes[segment.nodeB], "B");
+
+                    this.segments[segmentA.segment] = segmentA;
+                    this.segments[segmentB.segment] = segmentB;
+
+                    this.removeSegment(segment);
+
+                    this.draw();
+                    this.updateHistoricAction();
+                } else {
+                    this.segmentClicked(segment);
+                }
+            }
+        });
+    }
+/*
 drawSegment(segment) {
         if (segment.line)
             this.map.removeLayer(segment.line);
@@ -737,7 +976,7 @@ drawSegment(segment) {
                 }
             }
         });
-    }
+    }*/
     //END NEW SEGMENT
 
 
@@ -780,16 +1019,42 @@ drawSegment(segment) {
         var pixelRadius = 7.5;
         var metersRadius = pixelRadius / metersPerPixelX;
 
-
-
-        node.circle = L.circle([node.lat, node.long], {
+        
+        var segmentsList = this.segments;
+        var currentType= false;
+        var oacity = 0;
+        var weight = 0;
+        var filterTypes_array = [];
+        filterTypes_array =  this.filterTypes;
+        //
+       for (var element in node.segments) {
+                if (element in segmentsList){
+                    var typeSegment = segmentsList[element].type;
+                    var pos = filterTypes_array.indexOf(typeSegment);
+                    if (pos > -1){
+                        currentType = true;  
+                    }
+                }
+            }
+        //
+      
+    if(currentType == true){
+        oacity = 1;
+        weight = 2;
+    }else{
+        oacity = 0;
+        weight = 0;
+    }
+    node.circle = L.circle([node.lat, node.long], {
             color: 'red',
-            weight: 2,
+            weight: weight,
             fillColor: 'white',
-            fillOpacity: 1,
+            fillOpacity: oacity,
             radius: this.tableMetersZoomNode[this.zoomTableSize()],
             // radius: metersRadius,
         }).addTo(this.map);
+    
+
 
         // hover effect 
         node.circle.on('mouseover', () => {
@@ -8255,6 +8520,8 @@ drawSegment(segment) {
                 var jsonStreetGraph = '';
                 //
                 var scenaryOtherSensors = []; // layer di riferimento per gli altri sensori non traffic.
+                //
+                var scenarioRestrictions = []; //Array delle restrizioni nei segnmenti.
 
                 //############################ UTILS functions #######################################################
                 // handleIntersectionsAndSensors(polygonWKT)
@@ -8308,11 +8575,15 @@ drawSegment(segment) {
                         success: function (data) {
                             //geometryGeoJson
                                 //console.log(data.Service.features[0]);
-                                var geometry = data.Service.features[0].geometry;
-                                var properties = data.Service.features[0].properties;
-                                /////////
-                                var newMarker = gisPrepareCustomMarker( data.Service.features[0], { "lng": geometry.coordinates[0], "lat": geometry.coordinates[1]} );
-                                map.defaultMapRef.addLayer(newMarker);
+                                if (data.Service !== undefined){
+                                     if (data.Service.features !== undefined){
+                                        var geometry = data.Service.features[0].geometry;
+                                        var properties = data.Service.features[0].properties;
+                                        /////////
+                                        var newMarker = gisPrepareCustomMarker( data.Service.features[0], { "lng": geometry.coordinates[0], "lat": geometry.coordinates[1]} );
+                                        map.defaultMapRef.addLayer(newMarker);
+                                        }
+                                    }
                                 ///////////                                  
                             },
                         error: function (geometryErrorData) {
@@ -8525,7 +8796,7 @@ drawSegment(segment) {
                         //occhio x la prod sisema orion-1...
                         //console.log(lAccessToken);
                         //const url = `/superservicemap/api/v1?serviceUri=http://www.disit.org/km4city/resource/iot/orion-1/Organization/${deviceName}&maxResults=10`      
-                        const url =  "<?= $mainsuperservicemap; ?>" +"/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model";
+                        const url =  "<?= $mainsuperservicemap; ?>" +"/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model&maxResults=1000";
                         //const url =  "https://www.disit.org/superservicemap/api/v1/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model"
                         const response = await fetch(url, { // oppure metti urlencoded
                             method: "GET",
@@ -8534,7 +8805,8 @@ drawSegment(segment) {
                         if (!response.ok) {
                             throw new Error(`Error fetching sensor data: ${response.status}`);
                         }
-                        const jsonResponse = await response.json();  
+                        const jsonResponse = await response.json(); 
+                        console.log(jsonResponse); 
                         // Extract deviceName values from the features array                            
                         const deviceNames = jsonResponse.features.filter(feature => feature.properties.values.status === currentStatus).map(feature => feature.properties.deviceName);                          
                         return deviceNames                    
@@ -8594,13 +8866,18 @@ drawSegment(segment) {
 
                 function buildSparqlQueryURLottimizzata(maxX, maxY, minX, minY){
                     //const sparqlEndpoint = "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";                     
-                    const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
+                    //const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
+                    
+                    // query per KB su 235
+                    const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E"; 
+                    
+                    
                     // Sostituisci con l'endpoint SPARQL corretto
                     //http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIX            
                     //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ((?startlat >= ${minY} && ?startlat <= ${maxY} && ?startlong >= ${minX} && ?startlong <= ${maxX}) ||(?endlat >= ${minY} && ?endlat <= ${maxY} && ?endlong >= ${minX} && ?endlong <= ${maxX}) ) } LIMIT 16000`;
                     //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( (?startlat > ${minX} %26%26 ?startlat < ${maxX} %26%26 ?startlong > ${minY} %26%26 ?startlong < ${maxY}) || (?endlat > ${minX} %26%26 ?endlat < ${maxX} %26%26 ?endlong > ${minY} %26%26 ?endlong < ${maxY}) )} LIMIT 16000`;
                     //NEW
-                    const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat > ${minX} %26%26 ?startlat < ${maxX} %26%26 ?startlong > ${minY} %26%26 ?startlong < ${maxY}) || (?endlat > ${minX} %26%26 ?endlat < ${maxX} %26%26 ?endlong > ${minY} %26%26 ?endlong < ${maxY}) )} LIMIT 16000`;
+                    const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
                     return sparqlEndpoint + query;
                 }
 
@@ -8806,7 +9083,8 @@ drawSegment(segment) {
                                 lanes : strada.lanes,
                                 roadElmSpeedLimit : strada.roadElmSpeedLimit,
                                 elemType: strada.elemType,
-                                operatingstatus : strada.operatingstatus
+                                operatingstatus : strada.operatingstatus,
+                                turn : strada.turn
                             }
                             
                             // Convert JSON object to a string
@@ -8823,20 +9101,77 @@ drawSegment(segment) {
                             var fromRestriction = '';
                             var nodeRestriction = '';
                             //console.log(restinction_nodes);
-                            
-                            var index = restinction_nodes.findIndex(function (item) {
-                                    return item.node.value === nodeName;
-                                });
+                            var restriction_array = [];
 
-                            if (index !== -1) {
-                                 restriction_span = restinction_nodes[index].restriction.value;
-                                    toRestriction = restinction_nodes[index].to.value;
-                                    nodeRestriction = restinction_nodes[index].node.value;
-                                    fromRestriction =restinction_nodes[index].from.value;
-                                    color_dir = 'green';
-                                    console.log(restinction_nodes[index]);
+
+                            //
+                            var indices = [];
+                            //
+                            if (!strada.restriction) {
+                                        strada.restriction = [];
+                                            restinction_nodes.forEach((element, index) => {
+                                                            if (element.node.value === nodeName) {
+                                                                indices.push(index);
+                                                            }
+                                                            });
+                                            console.log('indices',indices);
+                                            if (indices.length > 0){
+                                                indices.forEach((element, index) => {
+                                                            restriction_span = restinction_nodes[index].restriction.value;
+                                                            toRestriction = restinction_nodes[index].to.value;
+                                                            nodeRestriction = restinction_nodes[index].node.value;
+                                                            fromRestriction =restinction_nodes[index].from.value;
+                                                            //color_dir = 'green';
+                                                            console.log(restinction_nodes[index]);
+                                                            restriction_array.push(restinction_nodes[index]);
+                                                });
+                                            }else{
+                                                    restriction_span = 'Not defined';
+                                            }                                    
+                            //
                             }else{
-                                restriction_span = 'Not defined';
+                                console.log('restriction',strada.restriction);
+                                //
+                                if(strada.restriction.length > 0){
+                                    console.log('Resctriction');
+                                        if(strada.restriction[0].to){
+                                            //
+                                            let arraysegmentTo = (strada.restriction[0].to).split('/');
+                                            arraysegmentTo = arraysegmentTo[arraysegmentTo.length-2]+'/'+arraysegmentTo[arraysegmentTo.length-1];
+                                            //
+                                            toRestriction = arraysegmentTo;
+                                        }
+                                        if(strada.restriction[0].from){
+                                            //
+                                            let arraysegmentFrom = (strada.restriction[0].from).split('/');
+                                             arraysegmentFrom = arraysegmentFrom[arraysegmentFrom.length-2]+'/'+arraysegmentFrom[arraysegmentFrom.length-1];
+                                            //
+                                            nodeRestriction = arraysegmentFrom;
+                                        }
+                                        if(strada.restriction[0].node){
+                                            //
+                                            let arraysegmentNode = (strada.restriction[0].node).split('/');
+                                            arraysegmentNode = arraysegmentNode[arraysegmentNode.length-1];
+                                             //arraysegmentNode = arraysegmentNode[arraysegmentNode.length-2]+'/'+arraysegmentNode[arraysegmentNode.length-1];
+                                            //
+                                            nodeRestriction = arraysegmentNode;
+                                        }
+                                        if(strada.restriction[0].restriction){
+                                            console.log('restriction',strada.restriction[0].restriction);
+                                            restriction_span =strada.restriction[0].restriction;
+                                        }
+                                }
+                                //
+                            }
+                            
+
+                            if(restriction_span !== 'Not defined'){
+                                if (restriction_array.length > 0){
+                                    var restriction_json = JSON.stringify(restriction_array);
+                                    const selectedRestrition = restriction_array[restriction_array.length -1];
+                                    console.log('selectedRestrition', selectedRestrition);
+                                            roadElementGraph.selectRestriction(selectedRestrition);
+                                }
                             }
 
                             //console.log(restriction_span);
@@ -8871,17 +9206,38 @@ drawSegment(segment) {
                                 //var restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="only_straight_on">TurnRestriction-only_straight_on</option><option value="no_left_turn">TurnRestriction-no_left_turn</option><option value="no_right_turn">TurnRestriction-no_right_turn</option><option value="only_right_turn">TurnRestriction-only_right_turn</option><option value="no_u_turn">TurnRestriction-no_u_turn</option><option value="only_left_turn">TurnRestriction-only_left_turn</option><option value="no_straight_on">TurnRestriction-no_straight_on</option><option value="no_entry">TurnRestriction-no_entry</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option></select>';
                                 var restrinctions = '';
                                 if (restriction_span != 'Not defined'){
-                                    restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option><option value="'+restriction_span+'">TurnRestriction-'+restriction_span+'</option></select>';
+                                    restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons(\''+restriction_json+'\')"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option><option value="'+restriction_span+'">TurnRestriction-'+restriction_span+'</option></select>';
+                                    /*
+                                    for(var i=0; i<restriction_array.length; i++){
+                                        restrinctions = restrinctions + '<select id="updateRestriction" value="'+restriction_array[i].restriction.value+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option><option value="'+restriction_array[i].restriction.value+'">TurnRestriction-'+restriction_array[i].restriction.value+'</option></select>';
+                                    }
+                                    */
                                    // restrinctions = restrinctions.replace('value="'+restriction_span+'"', 'value="'+restriction_span+'" selected');
                                 }else{
-                                    restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option></select>';
+                                    restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons(null)"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option></select>';
                                 }
                                 /////////////
                                 let arraysegment = (strada.segment).split('/');
                                 let segmentId = arraysegment[arraysegment.length-2]+'/'+arraysegment[arraysegment.length-1];
                                 ////////
+                                var restriction_data = '';
+                                if (indices.length > 0){
+                                    
+                                indices.forEach((element, index) => {
+                                            restriction_span = restinction_nodes[index].restriction.value;
+                                            toRestriction = restinction_nodes[index].to.value;
+                                            nodeRestriction = restinction_nodes[index].node.value;
+                                            fromRestriction =restinction_nodes[index].from.value;
+                                            //color_dir = 'green';
+                                            //console.log(restinction_nodes[index]);
+                                            restriction_data = restriction_data + '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/><!--BUTTON SELECT--><input type="button" id="SelectTo" value="Select To" title="Click to select road element"/><!--BUTTON SELECT--></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
+                                            //restriction_array.push(restinction_nodes[index]);
+                                });
+                                 }else{
+                                    restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/><!--BUTTON SELECT--><input type="button" id="SelectTo" value="Select To" title="Click to select road element"/><!--BUTTON SELECT--></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
+                                 }
                                 //
-                                var restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
+                                //var restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/><!--BUTTON SELECT--><input type="button" id="SelectTo" value="Select To" title="Click to select road element"/><!--BUTTON SELECT--></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
                                 ///////                             
                                  //EDITABLE//
                                 descrStrada = `<div id="segmentLabel_edit" style="padding: 5%; width: 450px;">
@@ -8958,7 +9314,7 @@ drawSegment(segment) {
                                                 </tr>
                                                 <tr>
                                                 <td><b>Restrictions:  </b></td>
-                                                <td><select id="updateRestriction" value="`+restriction_span+`" class="form-select" aria-label="Default select example" onchange="updateRestricitons()">
+                                                <td><select id="updateRestriction" value="`+restriction_span+`" class="form-select" aria-label="Default select example" onchange='updateRestricitons(`+restriction_json+`)'>
                                                                 <option value="Select or create restriction" selected>Select or create restriction</option>
                                                                 <option value="Create new AccessRestriction">Create new AccessRestriction</option>
                                                                 <option value="Create new TurnRestriction">Create new TurnRestriction</option>
@@ -8986,7 +9342,7 @@ drawSegment(segment) {
                                                 <td><input id="restrctionFrom" type="text" value="`+segmentId+`" readonly/></td>
                                                 </tr>
                                                 <tr class="restinction_data" style="display: none;">
-                                                <td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="`+toRestriction+`" readonly/></td>
+                                                <td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="`+toRestriction+`" readonly/><input type="button" id="SelectTo" value="Click to select road element" title="Click to select road element"/></td>
                                                 </tr>
                                                 <tr class="restinction_data" style="display: none;">
                                                 <td><b>Node:    </b></td class="restinction_data" style="display: none;">
@@ -9076,23 +9432,46 @@ drawSegment(segment) {
                                             //CHANGE DATA
                                             
                                             console.log(restriction_span);
+                                            console.log('strada', strada.restriction);
                                             if(restriction_span =='AccessRestriction'){
                                                 descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>'+restriction_span+'</option>');
                                                 descrStrada = descrStrada.replaceAll('<tr class="access_data" style="display: none;">','<tr class="access_data">');                                             
                                             }else if(restriction_span =='MaxMinRestriction'){
                                                 descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>'+restriction_span+'</option>');
                                                 descrStrada = descrStrada.replaceAll('<tr class="maxMinRestriction" style="display: none;">','<tr class="maxMinRestriction">');
-                                            }else{          
-                                                descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>TurnRestriction-'+restriction_span+'</option>'); 
-                                                descrStrada = descrStrada.replaceAll('<tr class="restinction_data" style="display: none;">','<tr class="restinction_data">');
-                                                descrStrada = descrStrada.replace('id="restrictionType"', 'id="restrictionType" value="'+restriction_span+'"');
-                                                descrStrada = descrStrada.replace('<option class="turnRestriction" value="'+restriction_span+'">'+restriction_span+'</option>','<option class="turnRestriction" value="'+restriction_span+'" selected>'+restriction_span+'</option>');
+                                            }else{   
+                                                //ADD VALUES//
+                                            /**/ 
+                                            if (indices.length > 0){
+                                                indices.forEach((element, index) => {
+                                                            restriction_span = restinction_nodes[index].restriction.value;
+                                                            //toRestriction = restinction_nodes[index].to.value;
+                                                            //nodeRestriction = restinction_nodes[index].node.value;
+                                                            //fromRestriction =restinction_nodes[index].from.value;
+                                                             descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>TurnRestriction-'+restriction_span+'</option>'); 
+                                                             descrStrada = descrStrada.replaceAll('<tr class="restinction_data" style="display: none;">','<tr class="restinction_data">');
+                                                             descrStrada = descrStrada.replace('id="restrictionType"', 'id="restrictionType" value="'+restriction_span+'"');
+                                                             descrStrada = descrStrada.replace('<option class="turnRestriction" value="'+restriction_span+'">'+restriction_span+'</option>','<option class="turnRestriction" value="'+restriction_span+'" selected>'+restriction_span+'</option>');
+                                                            //restriction_array.push(restinction_nodes[index]);
+                                                });
+                                            }
+                                           /* 
+                                           descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>TurnRestriction-'+restriction_span+'</option>'); 
+                                                             descrStrada = descrStrada.replaceAll('<tr class="restinction_data" style="display: none;">','<tr class="restinction_data">');
+                                                            descrStrada = descrStrada.replace('id="restrictionType"', 'id="restrictionType" value="'+restriction_span+'"');
+                                                             descrStrada = descrStrada.replace('<option class="turnRestriction" value="'+restriction_span+'">'+restriction_span+'</option>','<option class="turnRestriction" value="'+restriction_span+'" selected>'+restriction_span+'</option>');
+                                           */
+                                                ///////////       
+                                                
                                             }
                                             
                                     }
 
                                 //EDITABLE 
-                                ///////////
+                                
+
+                                
+                                 
                                 //descrStrada = ('<div id="segmentLabel_edit" style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street: </b></td><td>'+categoryStreets+'</td></tr><tr><td><b>Nr.Lanes: </b></td><td><input type="number" id="updateLanes" value="'+strada.lanes+'" /></td></tr><tr><td><b>Speed Limit (km/h): </b></td><td><input type="number" id="updateSpeedLimit" value="'+strada.roadElmSpeedLimit+'" /></td></tr><tr><td><b>Direction:</b></td><td>'+directions+'</td></tr><tr><td><b>Restrictions:  </b></td><td>'+restrinctions+'</td></tr>'+restriction_data+'</tbody></table><input type="button" id="updateStreet" value="Update" /></div>');
                                 width_popup = 450;
                             }else{
@@ -9124,11 +9503,45 @@ drawSegment(segment) {
                                     strada.roadElmSpeedLimit = $('#updateSpeedLimit').val();
                                     strada.dir = $('#updateDir').val();
                                     roadElementGraph.draw();
+                                    //RESTRICTIONS
+                                    /*
+                                    var restrictionElement = '';
+                                    scenarioRestrictions.push(restrictionElement);
+                                    strada.restrictions = scenarioRestrictions;
+                                    */
                                     roadElementGraph.updateSegmentData(strada);
                                     //strada. = $('#updateRestriction').val();
                                     //var stradajson = $('#stradajson').text();
 
                                 });
+
+                            $('#SelectTo').click(() => {
+                                console.log('CLICK TO SELECT A ROAD GRAPH');
+                                var restrictionType = $('#restrictionType').val();
+                                roadElementGraph.enableRestrictionSelection(strada, (segmentSelected, nodeAttached) => {
+                                    if (!nodeAttached) {
+                                        // is not attached, sen
+                                        console.log('Error selection node');
+                                        return;
+                                    }
+                                    if (!strada.restriction) {
+                                        strada.restriction = [];
+                                    }
+                                    strada.restriction.push({
+                                        from: strada.segment,
+                                        node: nodeAttached,
+                                        to: segmentSelected.segment,
+                                        restriction: restrictionType
+                                    });
+
+                                    $('#restrictionTo').val(segmentSelected.segment);
+                                    $('#restrictionNode').val(nodeAttached);
+                                    //
+                                    console.log(strada.restriction);
+                                    roadElementGraph.updateSegmentData(strada);
+                            });
+                                //roadElementGraph.updateSegmentData(strada);
+                            });
                         });
                         roadElementGraph.addEventListeners();
                         if (currentStatusEdit == 'streets'){
@@ -9166,9 +9579,6 @@ drawSegment(segment) {
                 }
 
                
-                
-                      
-
                 // funzione per leggere i dati da un device
                 async function readFromDevice(lAccessToken, deviceName){       
                     await getLAccessToken();                            
@@ -9179,7 +9589,14 @@ drawSegment(segment) {
                     };
                     try {                       
                         //occhio x la prod sisema orion-1....
-                        //const url = `/superservicemap/api/v1?serviceUri=http://www.disit.org/km4city/resource/iot/orion-1/Organization/${deviceName}&maxResults=10`      
+                        //const url = `/superservicemap/api/v1?serviceUri=http://www.disit.org/km4city/resource/iot/orion-1/Organization/${deviceName}&maxResults=10` 
+                        if (lorganizzazione == null){
+                            lorganizzazione = 'DISIT';
+                        } 
+                        
+                        if (ilbrokerdellorganizzazione == null){
+                            ilbrokerdellorganizzazione = 'orionUNIFI';
+                        } 
                         const url =  "<?= $mainsuperservicemap; ?>" +"?serviceUri=" + "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + `/${deviceName}&maxResults=10`                                                                 
                         const response = await fetch(url, { // oppure metti urlencoded
                             method: "GET",
@@ -9280,24 +9697,45 @@ drawSegment(segment) {
                     const { dateObserved, name, location, description, modality, referenceKB, sourceData, startTime, endTime, organization} = scenario_data.metadata;               
                     // Remove parentheses from the values in the JSON object
                     var modified_scenario_data_sensors = removeParenthesesFromValues(scenario_data.sensors);
+                    //
+                    var shape = [];
+                    
+                    shape = scenario_data.shape;
+                    console.log(scenario_data.shape);
+                    if(shape.scenarioareaOfInterest.length > 1){
+                        console.log('scenarioareaOfInterest modifed');
+                        var arr = [];
+                        arr[0]=scenario_data.shape.scenarioareaOfInterest[0];
+                        shape['scenarioareaOfInterest'] = arr; 
+                    }else{
+                        console.log('scenarioareaOfInterest not modifed');
+                        shape = scenario_data.shape;
+                    }
+                    console.log(shape);
+                    //
                     //var modified_scenario_data_roadGraph = removeParenthesesFromValues(scenario_data.roadGraph);
-                    const json = JSON.stringify({
-                        "dateObserved": { "value": dateObserved, "type": "string" },
-                        "name": { "value": name, "type": "string" },
-                        "location": { "value": location, "type": "string" },
-                        "description": { "value": description, "type": "string" },
-                        "modality": { "value": modality, "type": "string" },
-                        "referenceKB": { "value": referenceKB, "type": "string" },
-                        "sourceData": { "value": sourceData, "type": "string" },
-                        "startTime": { "value": startTime, "type": "string" },
-                        "endTime": { "value": endTime, "type": "string" },
-                        "status": { "value": "init", "type": "string" },
-                        // shape sotto
-                        "areaOfInterest": { "value": scenario_data.shape, "type": "json" },                        
-                        "trafficSensorList": { "value": {"modified_scenario_data_sensors": modified_scenario_data_sensors} , "type": "json" },    
-                        "roadGraph": { "value": {"schema": "processloader_db", "table": "bigdatafordevice"}, "type": "json" },
-                        "otherSensors": {"value": scenario_data.otherSensors, "type":"json"}      
-                    });
+                        const json = JSON.stringify({
+                            "dateObserved": { "value": dateObserved, "type": "string" },
+                            "name": { "value": name, "type": "string" },
+                            "location": { "value": location, "type": "string" },
+                            "description": { "value": description, "type": "string" },
+                            "modality": { "value": modality, "type": "string" },
+                            "referenceKB": { "value": referenceKB, "type": "string" },
+                            "sourceData": { "value": sourceData, "type": "string" },
+                            "startTime": { "value": startTime, "type": "string" },
+                            "endTime": { "value": endTime, "type": "string" },
+                            "status": { "value": "init", "type": "string" },
+                            // shape sotto
+                            "areaOfInterest": { "value": shape, "type": "json" },                        
+                            "trafficSensorList": { "value": {"modified_scenario_data_sensors": modified_scenario_data_sensors} , "type": "json" },    
+                            "roadGraph": { "value": {"schema": "processloader_db", "table": "bigdatafordevice"}, "type": "json" },
+                            "otherSensors": {"value": scenario_data.otherSensors, "type":"json"},
+                            //turns  -->BOLOGNA
+                            "turn":{"value": scenario_data.turn, "type":"json"}   
+                        });
+                        //
+                        console.log('json',json);
+                    //
                     jsonsolodateobserved = JSON.stringify({
                         "dateObserved": { "value": dateObserved, "type": "string" }});
                     try {
@@ -9903,9 +10341,16 @@ drawSegment(segment) {
             ///
             var element = document.getElementById('filter-list');
            if (element !== null){
-            element.remove();
-            $("#road_types").css('background-color','');
-            $("#road_types").css('color','black');
+            //element.remove();
+            if ($('#filter-list').is(':hidden')) {
+                    $('#filter-list').show();
+                    $("#road_types").css('background-color','#3E64A6');
+                    $("#road_types").css('color','white');
+            }else{
+                  $('#filter-list').hide();
+                    $("#road_types").css('background-color','');
+                    $("#road_types").css('color','black');
+            }
            }else{
             scenaryControl4.onAdd = function(map) {
                     var div = L.DomUtil.create('div');
@@ -10005,6 +10450,7 @@ drawSegment(segment) {
                                     });
                                     roadElementGraph.filterTypes = selectedRoadTypes;
                                     roadElementGraph.draw();
+
                                     $("#SelectNoRoad").prop("checked",false);
                                     $("#selectAllRoad").prop("checked",false);
                         });
@@ -10158,6 +10604,7 @@ drawSegment(segment) {
 		var scenaryControl = L.control({
 			position: 'topright'
 		});
+
 		scenaryControl.onAdd = function(map) {
 			var div = L.DomUtil.create('div');
 			//currentStatusEdit MANAGE STATUS//
@@ -10173,7 +10620,7 @@ drawSegment(segment) {
                                                 <tr>
                                                     <td><label>Load Scenario:</label></td>
                                                     <td>
-                                                        <input type="radio" id="acc-type-init" name="scenario-type" value="init">
+                                                        <input type="radio" id="acc-type-init" name="scenario-type" value="init" checked>
                                                         <label for="acc-type-init">Init</label>
 
                                                         <input type="radio" id="acc-type-acc" name="scenario-type" value="acc">
@@ -10183,7 +10630,7 @@ drawSegment(segment) {
                                                         <label for="acc-type-tdm">TDM</label>
                                                     </td>
                                                 </tr>
-                                                <td id="scenario-init-row" style="display: none;">                                                    
+                                                <td id="scenario-init-row">                                                    
                                                         <label for="scenario-init-list">Scenarios waiting to be processed:</label>
                                                         <input type="text" id="search-scenario-init" placeholder="Search..." hidden>      
                                                         <!--<ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul>-->
@@ -10234,7 +10681,71 @@ drawSegment(segment) {
 			return div;
 		};
 		scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+        getInits();
 
+            //init list
+            async function getInits() {
+                                                    // Ottieni l'ID del radio button selezionato
+                                                    var selectedId = $(this).attr("id");
+                                                    console.log('change: '+selectedId);
+                                                    // Determina il tipo di scenario in base all'ID
+                                                        var scenarioType = "init";
+                                                        // Nascondi la lista degli scenari se il tipo non è "ACC"
+                                                        $("#scenario-list-row").hide();
+                                                        $("#scenario-init-list").empty();
+                                                        //$("scenario-init-row").show()
+                                                        document.getElementById("scenario-init-row").style.display = "block";
+                                                        document.getElementById("scenario-tdm-row").style.display = "none";
+                                                        var initScenarios1 = await getScenarios(scenarioType);
+                                                        var initScenarios2 = await getScenarios("acc");
+                                                        var initScenarios3 = await getScenarios("");
+                                                        //var initScenarios = initScenarios1.concat(initScenarios2); 
+                                                        var initScenarios = initScenarios1.concat(initScenarios2).concat(initScenarios3); 
+                                                        //console.log(initScenarios);
+                                                        var scenarioInitList = $("#scenario-init-list");
+                                                        var searchInput = $("#search-scenario-init");
+                                                        searchInput.on("input", function () {
+                                                            var searchTerm = $(this).val().toLowerCase();
+                                                            filterScenarios(initScenarios, searchTerm);
+                                                        });
+
+                                                        scenarioInitList.empty();
+                                                        initScenarios.sort();
+                                                        initScenarios.forEach(scenario => {
+                                                            var optionValue = scenario.replace("deviceName", "");
+                                                            //var optionText = optionValue + " -> " + scenario;
+                                                            var optionText = optionValue;
+                                                            //console.log(scenario);
+                                                            var listItem = $("<option>").val(scenario).text(optionText);
+                                                            scenarioInitList.append(listItem);
+                                                        });
+
+                                                      //  pulisciTutto();
+                                        
+                                                        function filterScenarios(scenarios, searchTerm) {
+                                                            var scenarioInitList = $("#scenario-init-list");
+                                                            scenarioInitList.empty();
+
+                                                            scenarios.forEach(scenario => {
+                                                                // Modificato il confronto per verificare se il termine di ricerca è incluso nel testo del paragrafo
+                                                                if (scenario.toLowerCase().includes(searchTerm)) {
+                                                                    var optionValue = scenario.replace("deviceName", "");
+                                                                    //var optionText = optionValue + " -> " + scenario;
+                                                                    var optionText = optionValue;
+                                                                    var listItem = $("<option>").val(scenario).text(optionText);                            
+                                                                    scenarioInitList.append(listItem);
+                                                                }
+                                                            });
+                                                        }
+                                                    
+                                                    if (scenarioType) {
+                                                        console.log("Scenario type selected: " + scenarioType);
+                                                        // Esegui qui le azioni specifiche in base al tipo di scenario
+                                                    } else {
+                                                        console.error("Errore nel determinare il tipo di scenario.");
+                                                    }
+        };
+        //
 //update streets
 
         //LOAD SCENARY
@@ -10343,6 +10854,7 @@ drawSegment(segment) {
                                 scenaryData.features.push(shape);
                                 scenaryDrawnItems.addLayer(layer);
                                 map.defaultMapRef.addLayer(scenaryDrawnItems);
+                                console.log('scenaryDrawnItems',scenaryDrawnItems);
                                 //
                                 console.log('shape1',shape);
                                 //scenaryData.features.push(shape[0]);
@@ -10358,13 +10870,16 @@ drawSegment(segment) {
                                 
                                 //console.log(polygonWKT);
                                 let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
-                                //console.dir(resDalDB);
-                                const roadGraph = JSON.parse(resDalDB[0].data).grandidati.roadGraph;
-                                //console.log(roadGraph);
+                                console.dir(resDalDB);
+                                var l = resDalDB.length;
+                                console.log(l);
+                                const roadGraph = JSON.parse(resDalDB[l-1].data).grandidati.roadGraph;
+                                console.log(roadGraph);
                                 //roadElementGraph)
                                 const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
                                 //console.log(sparqlQueryottimizzata);
                                 fetchSparqlData(sparqlQueryottimizzata, polygonWKT, roadGraph,ressvolte);
+                                loadingboxloaded = true;
 
                             }
                             catch(error){
@@ -10373,6 +10888,366 @@ drawSegment(segment) {
                                 //console.log("il device non è stato ancora creato")
                             } 
         
+        });
+
+        //scenario-check-acc1
+        $('#scenario-check-acc1').click(async function(){
+            console.log('scenario-check-acc1 NEW');
+            //console.log("bottone scenario-check-acc 1 chiamato!")
+                            // Rimuovi il bottone del save finale se è rimasto pending
+                            var buttonToRemove = document.getElementById("scenario-save-finale1");
+                            if (buttonToRemove) {
+                                buttonToRemove.remove();
+                                isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+                            }
+                            //rimuovi anche l'AC se è rimasto da uno scenario precedente
+                            if (scenaryData.features.length>=0){
+                                // Rimuovi i layer dei disegni
+                                for (const layerId in scenaryDrawnItems._layers) {
+                                    scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                }
+                                scenaryData.features = []; // reinizializzo questa variabile
+                                // Rimuovi i marker associati
+                                for (const layerId in scenaryMarkers._layers) {
+                                    const marker = scenaryMarkers._layers[layerId];
+                                    scenaryMarkers.removeLayer(marker);
+                                }
+                                // Rimuovi il vecchio grafo
+                                for (const layerId in scenaryGrafo._layers) {
+                                    const grafo = scenaryGrafo._layers[layerId];
+                                    scenaryGrafo.removeLayer(grafo);
+                                }
+                                datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                            }               
+                            await getLAccessToken();
+                            //var scenarioName = $("#scenario-name1").val();
+                            //ildevicename = "deviceName" + scenarioName;
+                            // Ottieni il valore selezionato utilizzando jQuery
+                            ildevicename = $("#scenario-list").val();
+                            console.log('ildevicename',ildevicename);
+                            // Ora puoi utilizzare selectedValue come necessario
+                            //console.log("Selected value: " + ildevicename);
+                            try{
+                                let datidalsensore = await readFromDevice(lAccessToken, ildevicename)  
+                                let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
+                                if (lostatus == 'init'){
+                                    //console.log("stato ancora init e non acc")
+                                    showNotification("status still init and not acc");
+                                }
+                                else if(lostatus == "acc" || lostatus=="tdm") {
+                                    if(lostatus == "acc"){
+                                        //console.log("stato acc ok!")
+                                        showNotification("Successfully loaded!");                                    
+                                    }else if(lostatus == "tdm"){
+                                        //console.log("le tdm sono già state definite")
+                                        showNotification("tdm yet defined");
+                                    } 
+                                    
+                                    
+                                    /*************DRAW SHAPE*****************/
+                                    let datidalsensore = await readFromDevice(lAccessToken, ildevicename);
+                                                    console.dir(datidalsensore);
+                                                    var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
+                                                    //
+                                                    var arrayShape = shape[0].geometry.coordinates[0];
+                                                    var minY = arrayShape[0][1];
+                                                    var minX = arrayShape[0][0];
+                                                    var maxY = arrayShape[0][1];
+                                                    var maxX = arrayShape[0][0];
+                                                    for (let coord of arrayShape){
+                                                        if (coord[1] < minY){
+                                                            minY = coord[1]
+                                                        }
+                                                        if (coord[0] < minX){
+                                                            minX = coord[0]
+                                                        }
+                                                        if (coord[1] > maxY){
+                                                            maxY = coord[1]
+                                                        }
+                                                        if (coord[0] > maxX){
+                                                            maxX = coord[0]
+                                                        }
+                                                    }
+                                                    //
+                                                    scenaryData = new L.geoJSON();
+                                                    scenaryData.type = "FeatureCollection";
+                                                    scenaryData.features= shape;
+                                                    //
+                                                    console.log('scenaryData.feature: ',scenaryData.features);
+                                                    ///////////load sensors
+                                                    var otherSensors_load = "";
+                                                    if (datidalsensore.realtime.results.bindings[0].otherSensors !== undefined){
+                                                        otherSensors_load = datidalsensore.realtime.results.bindings[0].otherSensors.value
+                                                        //console.log('otherSensors_load',otherSensors_load);
+                                                        otherSensors_load = otherSensors_load.slice(1, -1);
+                                                        var arrayURL = otherSensors_load.split(", ");
+                                                        scenaryOtherSensors = arrayURL;
+                                                        //console.log(scenaryOtherSensors);
+                                                        if(scenaryOtherSensors.length > 0){
+                                                                //CARICAMENTO DATI
+                                                                // for(i=0; i<scenaryOtherSensors.length; i++){
+                                                                        var suri = scenaryOtherSensors;
+                                                                        loadScenarioSensor(suri);
+                                                                // }
+                                                                ////                                              
+                                                        }
+
+                                                    }
+                                                    //
+                                                    function coordinateOrder(array) {
+                                                        return array.map(function(coordinate) {
+                                                            return [coordinate[1], coordinate[0]];  // Inverti l'ordine da [latitudine, longitudine] a [longitudine, latitudine]
+                                                        });
+                                                        }
+                                                    //
+                                                    var arrayshape2 = coordinateOrder(arrayShape);
+                                                    var polygon = L.polygon(arrayshape2);
+                                                    console.log('polygon',arrayshape2);
+                                                    //map.defaultMapRef.addLayer(polygon);
+                                                    //
+                                                    scenaryDrawnItems = new L.FeatureGroup();
+                                                    //scenaryDrawnItems.push(polygon);
+                                                    layer = polygon;
+                                                    scenaryData.features.push(shape);
+                                                    scenaryDrawnItems.addLayer(layer);
+                                                    map.defaultMapRef.addLayer(scenaryDrawnItems);
+                                                    //
+                                                    console.log('shape4',shape);
+
+                                                    const polygonWKT = getPolygonWKTFromScenarioArea(shape);
+                                                    svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
+                                                    //console.log(svoltesparqlquery)
+                                                    let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+                                                    console.log('ressvolte:',ressvolte);
+                                                    //
+                                    /****************************/
+                                          
+                                    //qui devo prendere l'AC e il JS20 adesso dal db non più dal device
+                                    let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  ildevicename)                                    
+                                    let tmpRDGraph = JSON.parse(resDalDB[0].data).roadGraph                                    
+                                    //acData =  JSON.parse(datidalsensore.realtime.results.bindings[0].AC.value)
+                                    let tmpAcData = JSON.parse(resDalDB[0].data).AC
+                                    acData = JSON.parse(resDalDB[0].data).AC
+                                    //js20Data = JSON.parse(datidalsensore.realtime.results.bindings[0].JS20.value)
+                                    js20Data = JSON.parse(resDalDB[0].data).JS20;
+                                    //
+                                    loadingboxloaded = true;
+                                    //CREATION NEW SCHEMA
+                                    //let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
+                                    //console.dir(resDalDB);
+                                    const roadGraph = JSON.parse(resDalDB[0].data).roadGraph;
+                                    //console.log(roadGraph);
+                                    const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
+                                    fetchSparqlData(sparqlQueryottimizzata, polygonWKT, tmpAcData,ressvolte);
+                                    //END CREATION NEW SCHEMA
+                                    $('#scenario-save-finale1').on('click', async function() {
+                                            //let scenarioNametest = $("#scenario-name1").val();
+                                            //ildevicenametest = "deviceName" + scenarioNametest;
+                                            
+                                            ildevicenametest = $("#scenario-list").val();
+                                            if(ildevicenametest != ildevicename){//if(ildevicenametest != ildevicename){
+                                                showNotification("Device name is no more consistent");
+                                                // Rimuovi il bottone del save finale se è rimasto pending
+                                                var buttonToRemove = document.getElementById("scenario-save-finale1");
+                                                if (buttonToRemove) {
+                                                    buttonToRemove.remove();
+                                                    isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+                                                }
+                                                //rimuovi anche l'AC se è rimasto da uno scenario precedente
+                                                if (scenaryData.features.length>=0){
+                                                    // Rimuovi i layer dei disegni
+                                                    for (const layerId in scenaryDrawnItems._layers) {
+                                                        scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                                    }
+                                                    scenaryData.features = []; // reinizializzo questa variabile
+                                                    // Rimuovi i marker associati
+                                                    for (const layerId in scenaryMarkers._layers) {
+                                                        const marker = scenaryMarkers._layers[layerId];
+                                                        scenaryMarkers.removeLayer(marker);
+                                                    }
+                                                    // Rimuovi il vecchio grafo
+                                                    for (const layerId in scenaryGrafo._layers) {
+                                                        const grafo = scenaryGrafo._layers[layerId];
+                                                        scenaryGrafo.removeLayer(grafo);
+                                                    }
+                                                    datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                                    istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                                    istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                                                }   
+                                            }else{
+                                                //console.log("scenario save finale 1 viaaa")
+                                                // codice per aggiungere le svolte
+                                                let areaOfInt = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value);
+                                                ilpolygonWKT = getPolygonWKTFromScenarioArea(areaOfInt.scenarioareaOfInterest);
+                                                svoltesparqlquery = buildSparqlQueryURLsvolte(ilpolygonWKT);
+                                                console.log(svoltesparqlquery)
+                                                let ressvolte = await fetchSparqlDataSvolte(svoltesparqlquery);
+                                                let svolte = ressvolte.results.bindings;
+                                                await getLAccessToken();                                            
+                                                try{
+                                                    tdmaato = await sendDataACC(lAccessToken, ildevicename, js20Data, acData, svolte); 
+                                                    // invio anche i grandi dati al DB
+                                                    sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  ildevicename, 
+                                                    { "roadGraph": tmpRDGraph,
+                                                      "AC": tmpAcData,
+                                                      "JS20": js20Data,
+                                                      "TDM": acData
+                                                    })
+                                                    if(tdmaato == "tdmok"){
+                                                        showNotification("Device tdm updated succesfully!");
+                                                    }else{
+                                                        showNotification("Device tdm error");
+                                                    } 
+                                                }catch{
+                                                    showNotification("Device tdm error");
+                                                }
+                                            }
+                                        });
+                                    //
+                                    acData.forEach((strada, index) => {
+                                    // Crea un polilinea tra i punti di inizio e fine della strada
+                                    /*const stradaPolyline = L.polyline(
+                                        [
+                                            [parseFloat(strada.nALat), parseFloat(strada.nALong)],
+                                            [parseFloat(strada.nBLat), parseFloat(strada.nBLong)]
+                                        ],
+                                        {
+                                            color: 'blue', // Colore della strada
+                                            weight: 5, // Spessore della strada
+                                            opacity: 0.7 // Opacità della strada
+                                        }
+                                    );   */                         
+                                    // Aggiungi un popup al polilinea con le informazioni chiave
+                                    /*stradaPolyline.bindPopup(function () {
+                                        // Crea il contenuto del popup con un campo di input per il peso
+                                        return `
+                                            <b>Road:</b> ${strada.road}<br>
+                                            <b>Type:</b> ${strada.type}<br>
+                                            <b>Length:</b> ${strada.length} meters<br>
+                                            <b>Lanes:</b> ${strada.lanes} lanes<br>
+                                            <!-- Altri dettagli del popup -->
+                                            <label for="weightInput">Weight:</label>
+                                            <input type="number" id="weightInput" value="${strada.weight || 5}">
+                                            <button id="applyButton" data-index="${index}">Applica</button>
+                                        `;
+                                    });*/
+                                    // Aggiungi un gestore di eventi per il pulsante "Applica"
+                                    /*stradaPolyline.on('popupopen', function () {
+                                        const applyButton = document.getElementById('applyButton');
+                                        stradaPolyline.setStyle({ color: 'red' });
+
+                                        applyButton.addEventListener('click', function () {
+                                            const weightInput = document.getElementById('weightInput');
+                                            const newWeight = parseFloat(weightInput.value);
+
+                                            if (!isNaN(newWeight) && newWeight >= 0) {
+                                                // Ottieni l'indice dall'attributo data
+                                                const dataIndex = applyButton.getAttribute("data-index");
+                                                const index = parseInt(dataIndex, 10);
+
+                                                // Aggiorna il peso nella polilinea
+                                                //stradaPolyline.setStyle({ weight: newWeight });
+
+                                                // Aggiorna il peso in acData
+                                                acData[index].weight = newWeight.toString();
+
+                                                // Chiudi il popup
+                                                stradaPolyline.closePopup();
+                                            } else {
+                                                alert('Inserisci un peso valido maggiore o uguale a zero.');
+                                            }
+                                        });
+                                    });*/                            
+                                    // Aggiungi un gestore di eventi per ripristinare il colore quando il popup viene chiuso
+                                   /* stradaPolyline.on('popupclose', function () {
+                                        stradaPolyline.setStyle({ color: 'blue' }); // Ripristina il colore predefinito
+                                    });                */               
+                                    //scenaryGrafo.addLayer(stradaPolyline); //  epoi l'aggiungo alla mappa     
+                                   /* if(! isSaveFinalSet){
+                                        let button = document.createElement("button");
+                                        //console.log("lostocreando")
+                                        button.id = "scenario-save-finale1";
+                                        button.innerHTML = "Save Finale";
+                                        document.activeElement.parentElement.appendChild(button);
+                                        isSaveFinalSet = true;
+                                        // ############################ scenario-save-finale1 #################################################
+                                        $('#scenario-save-finale1').on('click', async function() {
+                                            //let scenarioNametest = $("#scenario-name1").val();
+                                            //ildevicenametest = "deviceName" + scenarioNametest;
+                                            
+                                            ildevicenametest = $("#scenario-list").val();
+                                            if(ildevicenametest != ildevicename){//if(ildevicenametest != ildevicename){
+                                                showNotification("Device name is no more consistent");
+                                                // Rimuovi il bottone del save finale se è rimasto pending
+                                                var buttonToRemove = document.getElementById("scenario-save-finale1");
+                                                if (buttonToRemove) {
+                                                    buttonToRemove.remove();
+                                                    isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+                                                }
+                                                //rimuovi anche l'AC se è rimasto da uno scenario precedente
+                                                if (scenaryData.features.length>=0){
+                                                    // Rimuovi i layer dei disegni
+                                                    for (const layerId in scenaryDrawnItems._layers) {
+                                                        scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+                                                    }
+                                                    scenaryData.features = []; // reinizializzo questa variabile
+                                                    // Rimuovi i marker associati
+                                                    for (const layerId in scenaryMarkers._layers) {
+                                                        const marker = scenaryMarkers._layers[layerId];
+                                                        scenaryMarkers.removeLayer(marker);
+                                                    }
+                                                    // Rimuovi il vecchio grafo
+                                                    for (const layerId in scenaryGrafo._layers) {
+                                                        const grafo = scenaryGrafo._layers[layerId];
+                                                        scenaryGrafo.removeLayer(grafo);
+                                                    }
+                                                    datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                                    istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+                                                    istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+                                                }   
+                                            }else{
+                                                //console.log("scenario save finale 1 viaaa")
+                                                // codice per aggiungere le svolte
+                                                let areaOfInt = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value);
+                                                ilpolygonWKT = getPolygonWKTFromScenarioArea(areaOfInt.scenarioareaOfInterest);
+                                                svoltesparqlquery = buildSparqlQueryURLsvolte(ilpolygonWKT);
+                                                console.log(svoltesparqlquery)
+                                                let ressvolte = await fetchSparqlDataSvolte(svoltesparqlquery);
+                                                let svolte = ressvolte.results.bindings;
+                                                await getLAccessToken();                                            
+                                                try{
+                                                    tdmaato = await sendDataACC(lAccessToken, ildevicename, js20Data, acData, svolte); 
+                                                    // invio anche i grandi dati al DB
+                                                    sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  ildevicename, 
+                                                    { "roadGraph": tmpRDGraph,
+                                                      "AC": tmpAcData,
+                                                      "JS20": js20Data,
+                                                      "TDM": acData
+                                                    })
+                                                    if(tdmaato == "tdmok"){
+                                                        showNotification("Device tdm updated succesfully!");
+                                                    }else{
+                                                        showNotification("Device tdm error");
+                                                    } 
+                                                }catch{
+                                                    showNotification("Device tdm error");
+                                                }
+                                            }
+                                        });
+                                    }*/
+                                });
+                                }
+                                else{
+                                    console.log("error non gestito")
+                                }
+                            }
+                            catch(error){
+                                //showNotification("il device non è stato ancora creato");
+                                console.error("An error occurred:", error.message);
+                                //console.log("il device non è stato ancora creato")
+                            }                                               
         });
 
 		//######################### EDITING  #######################################//
@@ -10500,7 +11375,7 @@ drawSegment(segment) {
 		$("#scenario-save").click(async function() {
 			console.log("scenario-save cliccato!")
 			// mi prendo tutti i metadati 
-			var scenarioareaOfInterest = scenaryData.features;
+			var scenarioareaOfInterest = scenaryData.features[0];
 			var scenarioName = $("#scenario-name").val();
 			var scenarioLocation = $("#scenario-location").val();
 			var scenarioDescription = $("#scenario-description").val();
@@ -10567,6 +11442,8 @@ drawSegment(segment) {
                 if (enableOtherSensors == 'No'){
                     scenaryOtherSensors = '';
                 }
+                ///
+
                 ///
 				scenarioData = {
 					"metadata": {
@@ -10647,11 +11524,11 @@ drawSegment(segment) {
 							//showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
 						}, 2000);
 					} catch (error) {
-						console.error("Errore nell'invio dei dati iniziali:", error);
-						showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+						console.error("Error sending initial data:", error);
+						showNotification("Error during initial data sending. Try again later.");
 					}
 				} else {
-					console.error("Errore nella creazione del dispositivo:", creato);
+					console.error("Error during devide reation:", creato);
 					try {
 						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
 						sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, istanzedelgrafochestoconsiderando)
@@ -10662,18 +11539,18 @@ drawSegment(segment) {
 								console.error('Si è verificato un errore:', error);
 							});
 						if (initdatainviati == "dati_init_si") {
-							showNotification("I dati iniziali sono stati inviati con successo!");
+							showNotification("Initial data successfully created");
 							// Se entrambe le operazioni sono andate bene, mostra un messaggio di completamento
 							setTimeout(() => {
-								showNotification("Ora puoi andare sul sito NR e continuare in seguito.");
+								showNotification("Error during initial data sending. Try again later.");
 							}, 1000);
 						} else {
 							console.error("Errore nell'invio dei dati iniziali:", error);
-							showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+							showNotification("Error during initial data sending. Try again later.");
 						}
 					} catch (error) {
 						console.error("Errore nell'invio dei dati iniziali:", error);
-						showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+						showNotification("Error during initial data sending. Try again later.");
 					}
 				}
 			}
@@ -10795,8 +11672,8 @@ $('#updateStreetGraph').click(async function(){
         scenaryMarkers = new L.FeatureGroup();
 		map.defaultMapRef.addLayer(scenaryMarkers);
 		// e anche quello per i disegni sulla mappa
-		scenaryDrawnItems = new L.FeatureGroup();
-		map.defaultMapRef.addLayer(scenaryDrawnItems);
+		//scenaryDrawnItems = new L.FeatureGroup();
+		//map.defaultMapRef.addLayer(scenaryDrawnItems);
 		// e anche quello per il grafo
 		scenaryGrafo = new L.FeatureGroup();
 		map.defaultMapRef.addLayer(scenaryGrafo);
@@ -10876,6 +11753,16 @@ $('#updateStreetGraph').click(async function(){
                     //
                     //
                     var scenarioToRemove = document.getElementById("scenario-edit-form");
+                    //
+                    //check if logged
+                    var loggedUsername = '<?= $_SESSION['loggedUsername'] ?>';
+                    console.log('loggedUsername',loggedUsername);
+                    var check_save = 'disabled';
+                    if ((loggedUsername !== '')&&(loggedUsername !== null )){
+                        check_save = '';
+                    }
+
+                    //
                     if(!scenarioToRemove){
 					scenaryControl2.onAdd = function(map) {
 						var div2 = L.DomUtil.create('div');
@@ -10963,7 +11850,7 @@ $('#updateStreetGraph').click(async function(){
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2">
-                                                        <input type="button" id="scenario-save" value="Save"/>
+                                                        <input type="button" id="scenario-save" value="Save" `+check_save+`/>
                                                         <button id="scenario-cancel" type="button">Cancel</button>
                                                     </td>
                                                 </tr>
@@ -11034,6 +11921,7 @@ $('#updateStreetGraph').click(async function(){
 
             $("#scenario-save").click(async function() {
                //SAVE SCENARIO EDITOR
+            console.log('scenaryDrawnItems: '+scenaryDrawnItems);
 			var scenarioareaOfInterest = scenaryData.features;
 			var scenarioName = $("#scenario-name").val();
 			var scenarioLocation = $("#scenario-location").val();
@@ -11048,10 +11936,54 @@ $('#updateStreetGraph').click(async function(){
             var enableTrafficSensors = $('#scenario-trafficData').val();
             var enableOtherSensors = $('#scenario-otherData').val();
             ////////////
+            var restrinctions = [];
+            var array_rests = [];
+            if (roadElementGraph){
+                        //istanzedelgrafochestoconsiderando =Object.values(roadElementGraph.deepCopySegments())
+                        console.log('roadElementGraph',roadElementGraph);
+                        //
+                        istanzedelgrafochestoconsiderando = roadElementGraph.getSegmentsForSaving();
+                        //Manage Restrictions
+                        if (roadElementGraph.segments){
+                            var segmenti = roadElementGraph.segments;
+                            array_rests = Object.values(segmenti);
+                            let lunghezzaJson = Object.keys(segmenti).length;
+                            console.log(lunghezzaJson);
+                            //
+                            for (var i=0; i<array_rests.length; i++){
+                                    if (array_rests[i].restriction !== undefined){
+                                        console.log(array_rests[i].restriction);
+                                        var length_res = (array_rests[i].restriction).length;
+                                        for(var y=0; y<length_res; y++){  
+                                            if (array_rests[i].restriction[y].from !== undefined){ 
+                                                //
+                                                let arraysegmentTo = (array_rests[i].restriction[y].to).split('/');
+                                                arraysegmentTo = arraysegmentTo[arraysegmentTo.length-2]+'/'+arraysegmentTo[arraysegmentTo.length-1];
+                                                let arraysegmentNode = (array_rests[i].restriction[y].node).split('/');
+                                                arraysegmentNode = arraysegmentNode[arraysegmentNode.length-2]+'/'+arraysegmentNode[arraysegmentNode.length-1];
+                                                let arraysegmentFrom = (array_rests[i].restriction[y].from).split('/');
+                                                arraysegmentFrom = arraysegmentFrom[arraysegmentFrom.length-2]+'/'+arraysegmentFrom[arraysegmentFrom.length-1];
+                                                //
+                                                    var element = '{"node":{ "type":"literal","value":"'+arraysegmentNode+'"},"from":{"type":"literal","value":"'+arraysegmentFrom+'" },"to":{ "type":"literal","value":"'+arraysegmentTo+'"},"restriction":{"type":"literal", "value":"'+array_rests[i].restriction[y].restriction+'" }}';
+                                                    //var element = '{"node":{ "type":"literal","value":""},"from":{"type":"literal","value":"" },"to":{ "type":"literal","value":""},"restriction":{"type":"literal", "value":"" }}';
+                                                    var element_json = JSON.parse(element);
+                                                    restrinctions.push(element_json);
+                                            }   
+                                        }
+                                    }
+                            }
+                            console.log('restrinctions',restrinctions);
+                         }               
+                    }else{
+                        console.log('No roadElementGraph');
+                    }
+
+            ///////////
             console.log('scenarioareaOfInterest',scenarioareaOfInterest);
             //BOLOGNA SAVING PINS
             var markersInPolygon = [];
             var shapes = [];
+            console.log('scenaryDrawnItems',scenaryDrawnItems);
             var polygonBounds = scenaryDrawnItems.getBounds();
                 map.defaultMapRef.eachLayer(function (layer) {
                 if (layer instanceof L.Marker){ 
@@ -11108,10 +12040,7 @@ $('#updateStreetGraph').click(async function(){
                             var istanzedelgrafochestoconsiderandoJSON = JSON.stringify(jsonIstanze_content);
                             istanzedelgrafochestoconsiderando = istanzedelgrafochestoconsiderandoJSON;
                     }*/
-                    if (roadElementGraph){
-                        //istanzedelgrafochestoconsiderando =Object.values(roadElementGraph.deepCopySegments())
-                        istanzedelgrafochestoconsiderando = roadElementGraph.getSegmentsForSaving();
-                    }
+                    
                     //istanzedelgrafochestoconsiderando = JSON.parse(istanzedelgrafochestoconsiderando);
                     
                     
@@ -11122,13 +12051,28 @@ $('#updateStreetGraph').click(async function(){
 						);
 
 						if (distanza < distanzaMinima) {
-							distanzaMinima = distanza;
-							stradaVicina = strada;
+                            if ((strada.type == 'primary')||(strada.type == 'tertiary')||(strada.type == 'residential')||(strada.type == 'secondary')||(strada.type == 'unclassified')){
+                                    distanzaMinima = distanza;
+                                    stradaVicina = strada;
+                                }
 						}
 					});
 					sensore.nearestRoad = stradaVicina;
 					return sensore;
-				});                                                                                              
+				}); 
+                //
+                if (scenaryOtherSensors ==""){
+                    scenaryOtherSensors = [];
+                    console.log('scenaryOtherSensors modified');
+                }else{
+                    console.log(scenaryOtherSensors);
+                }
+                //
+                /*if (scenarioareaOfInterest.length > 1){
+                    scenarioareaOfInterest = scenarioareaOfInterest[0];
+                }*/
+                
+                //
 				scenarioData = {
 					"metadata": {
 						"dateObserved": new Date().toISOString(),
@@ -11152,7 +12096,11 @@ $('#updateStreetGraph').click(async function(){
                     "otherSensors": scenaryOtherSensors,
 					//"roadGraph": Object.values(roadElementGraph.deepCopySegments()), 
                     "roadGraph": "istanzedelgrafochestoconsiderando",  //in prod mettere tra virgolette "istanzedelgrafochestoconsiderando"
+                    "turn" : restrinctions
 				};
+                //
+                console.log('scenarioData:',scenarioData);
+                //
 				ilpoly = getPolygonWKTFromScenarioArea(scenarioareaOfInterest);
 				const coordinates = ilpoly
 					.match(/\d+\.\d+\s\d+\.\d+/g)
@@ -11179,13 +12127,19 @@ $('#updateStreetGraph').click(async function(){
                 console.log("DATI STRINGHE");
                 ***/
                 //END OUTPOUT
+                 //
+                 if (enableRoadGraph == 'No'){
+                            istanzedelgrafochestoconsiderando = [];
+                        }
+                        //
+
 				await getLAccessToken();                          
 				adesso = new Date().toISOString();
 				ildevicename = "deviceName" + scenarioName;
 				creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
 				if (creato == "ok") {
 					showNotification("Scenario successfully created!");
-					try {
+					try {  
 						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);                                     
 						sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
 								"roadGraph": istanzedelgrafochestoconsiderando
@@ -11204,7 +12158,7 @@ $('#updateStreetGraph').click(async function(){
 						}, 2000);
 					} catch (error) {
 						console.error("Errore nell'invio dei dati iniziali:", error);
-						showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+						showNotification("Error during initial data sending. Try again later.");
 					}
 				} else {
 					console.error("Errore nella creazione del dispositivo:", creato);
@@ -11218,17 +12172,17 @@ $('#updateStreetGraph').click(async function(){
 								console.error('Si è verificato un errore:', error);
 							});
 						if (initdatainviati == "dati_init_si") {
-							showNotification("I dati iniziali sono stati inviati con successo!");
+							showNotification("Initial data successully sended!");
 							setTimeout(() => {
-								showNotification("Ora puoi andare sul sito NR e continuare in seguito.");
+								showNotification("Now you can modify them in NR.");
 							}, 1000);
 						} else {
 							console.error("Errore nell'invio dei dati iniziali:", error);
-							showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+							showNotification("Error during initial data sending. Try again later.");
 						}
 					} catch (error) {
 						console.error("Errore nell'invio dei dati iniziali:", error);
-						showNotification("Errore nell'invio dei dati iniziali. Si prega di riprovare più tardi.");
+						showNotification("Error during initial data sending. Try again later.");
 					}
 				}
 			}
@@ -11294,6 +12248,8 @@ $('#updateStreetGraph').click(async function(){
 
 		$("#view_mod").click(async function() {
 			//alert('View modality activated');
+            //$('#acc-type-init').val("init");       
+            //
             $('#segmentLabel').hide();
             $('#menu-lines').hide();
             if(roadElementGraph){
@@ -11357,7 +12313,7 @@ $('#updateStreetGraph').click(async function(){
                                                                     <tr>
                                                                         <td><label>Load Scenario:</label></td>
                                                                         <td>
-                                                                            <input type="radio" id="acc-type-init" name="scenario-type" value="init">
+                                                                            <input type="radio" id="acc-type-init" name="scenario-type" value="init" checked>
                                                                             <label for="acc-type-init">Init</label>
 
                                                                             <input type="radio" id="acc-type-acc" name="scenario-type" value="acc">
@@ -11367,7 +12323,7 @@ $('#updateStreetGraph').click(async function(){
                                                                             <label for="acc-type-tdm">TDM</label>
                                                                         </td>
                                                                     </tr>
-                                                                    <td id="scenario-init-row" style="display: none;">                                                    
+                                                                    <td id="scenario-init-row">                                                    
                                                                             <label for="scenario-init-list">Scenarios waiting to be processed:</label>
                                                                             <input type="text" id="search-scenario-init" placeholder="Search..." hidden>      
                                                                             <!--<ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul> -->
@@ -11416,7 +12372,8 @@ $('#updateStreetGraph').click(async function(){
                                                 return div3;
                                             ////   
                                         }
-                                        scenaryControl3.addTo(map.defaultMapRef); 
+                                        scenaryControl3.addTo(map.defaultMapRef);
+                                        getInits();  
 					///////////////////
                     $('#scenario-load').click(async function(){
             var scenarioLoad = $('#search-scenario-init').val();
@@ -11518,11 +12475,13 @@ $('#updateStreetGraph').click(async function(){
                                 console.log(polygonWKT);
                                 let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
                                 console.dir(resDalDB);
-                                const roadGraph = JSON.parse(resDalDB[0].data).grandidati.roadGraph;
+                                var l = resDalDB.length;
+                                const roadGraph = JSON.parse(resDalDB[l-1].data).grandidati.roadGraph;
                                 console.dir(roadGraph);
                                 //roadElementGraph)
                                 const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
                                 fetchSparqlData(sparqlQueryottimizzata, polygonWKT, roadGraph,ressvolte);
+                                loadingboxloaded = true;
 
                             }
                             catch(error){
@@ -11556,8 +12515,10 @@ $('#updateStreetGraph').click(async function(){
                                                         document.getElementById("scenario-init-row").style.display = "block";
                                                         document.getElementById("scenario-tdm-row").style.display = "none";
                                                         var initScenarios1 = await getScenarios(scenarioType);
-                                                        var initScenarios2 = await getScenarios("");
+                                                        var initScenarios2 = await getScenarios("acc");
+                                                        //var initScenarios3 = await getScenarios("");
                                                         var initScenarios = initScenarios1.concat(initScenarios2); 
+                                                        //var initScenarios = initScenarios1.concat(initScenarios2).concat(initScenarios3); 
                                                         //console.log(initScenarios);
                                                         var scenarioInitList = $("#scenario-init-list");
 
@@ -11572,11 +12533,12 @@ $('#updateStreetGraph').click(async function(){
                                                             var optionValue = scenario.replace("deviceName", "");
                                                             //var optionText = optionValue + " -> " + scenario;
                                                             var optionText = optionValue;
+                                                            //console.log(scenario);
                                                             var listItem = $("<option>").val(scenario).text(optionText);
                                                             scenarioInitList.append(listItem);
                                                         });
 
-                                                        pulisciTutto();
+                                                      //  pulisciTutto();
                                         
                                                         function filterScenarios(scenarios, searchTerm) {
                                                             var scenarioInitList = $("#scenario-init-list");
@@ -11609,7 +12571,7 @@ $('#updateStreetGraph').click(async function(){
                                                             var option = $("<option>").val(scenario).text(scenario);
                                                             scenarioList.append(option);
                                                         });
-                                                        pulisciTutto();
+                                                      //  pulisciTutto();
                                                     } else if (selectedId === "acc-type-tdm") {
                                                         
                                                         scenarioType = "tdm";
@@ -11635,7 +12597,7 @@ $('#updateStreetGraph').click(async function(){
                                                             var listItem = $("<p>").text(optionText); 
                                                             scenarioTDMList.append(listItem);
                                                         });
-                                                        pulisciTutto();
+                                                      //  pulisciTutto();
                                                         function filterScenariosTDM(scenarios, searchTerm) {
                                                             var scenarioTDMList = $("#scenario-tdm-list");
                                                             scenarioTDMList.empty();
@@ -11683,8 +12645,9 @@ $('#updateStreetGraph').click(async function(){
                                 document.getElementById("scenario-init-row").style.display = "block";
                                 document.getElementById("scenario-tdm-row").style.display = "none";
                                 var initScenarios1 = await getScenarios(scenarioType);
-                                var initScenarios2 = await getScenarios("");
-                                var initScenarios = initScenarios1.concat(initScenarios2); 
+                                var initScenarios2 = await getScenarios("acc");
+                                var initScenarios3 = await getScenarios("");
+                                var initScenarios = initScenarios1.concat(initScenarios2).concat(initScenarios3); 
                                 //console.log(initScenarios);
                                 var scenarioInitList = $("#scenario-init-list");
 
@@ -11695,6 +12658,7 @@ $('#updateStreetGraph').click(async function(){
                                 });
 
                                 scenarioInitList.empty();
+                                initScenarios.sort();
                                 initScenarios.forEach(scenario => {
                                     var optionValue = scenario.replace("deviceName", "");
                                     //var optionText = optionValue + " -> " + scenario;
@@ -11703,12 +12667,12 @@ $('#updateStreetGraph').click(async function(){
                                     scenarioInitList.append(listItem);
                                 });
 
-                                pulisciTutto();
+                              //  pulisciTutto();
                  
                                 function filterScenarios(scenarios, searchTerm) {
                                     var scenarioInitList = $("#scenario-init-list");
                                     scenarioInitList.empty();
-
+                                    initScenarios.sort();
                                     scenarios.forEach(scenario => {
                                         // Modificato il confronto per verificare se il termine di ricerca è incluso nel testo del paragrafo
                                         if (scenario.toLowerCase().includes(searchTerm)) {
@@ -11732,11 +12696,12 @@ $('#updateStreetGraph').click(async function(){
                                 //console.log(accScenarios);
                                 var scenarioList = $("#scenario-list");
                                 scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
+                                accScenarios.sort();
                                 accScenarios.forEach(scenario => {
                                     var option = $("<option>").val(scenario).text(scenario);
                                     scenarioList.append(option);
                                 });
-                                pulisciTutto();
+                              //  pulisciTutto();
                             } else if (selectedId === "acc-type-tdm") {
                                 
                                 scenarioType = "tdm";
@@ -11762,7 +12727,7 @@ $('#updateStreetGraph').click(async function(){
                                     var listItem = $("<p>").text(optionText); 
                                     scenarioTDMList.append(listItem);
                                 });
-                                pulisciTutto();
+                              //  pulisciTutto();
                                 function filterScenariosTDM(scenarios, searchTerm) {
                                     var scenarioTDMList = $("#scenario-tdm-list");
                                     scenarioTDMList.empty();
@@ -12173,7 +13138,8 @@ $('#updateStreetGraph').click(async function(){
                                 console.log(polygonWKT);
                                 let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
                                 console.dir(resDalDB);
-                                const roadGraph = JSON.parse(resDalDB[0].data).grandidati.roadGraph;
+                                var l = resDalDB.length;
+                                const roadGraph = JSON.parse(resDalDB[l-1].data).grandidati.roadGraph;
                                 console.dir(roadGraph);
                                 //roadElementGraph)
                                 const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
@@ -12229,15 +13195,15 @@ $('#updateStreetGraph').click(async function(){
                                 let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
                                 if (lostatus == 'init'){
                                     //console.log("stato ancora init e non acc")
-                                    showNotification("stato ancora init e non acc");
+                                    showNotification("status still in init not in acc");
                                 }
                                 else if(lostatus == "acc" || lostatus=="tdm") {
                                     if(lostatus == "acc"){
                                         //console.log("stato acc ok!")
-                                        showNotification("stato acc ok!");                                    
+                                        showNotification("status acc ok!");                                    
                                     }else if(lostatus == "tdm"){
                                         //console.log("le tdm sono già state definite")
-                                        showNotification("le tdm sono già state definite");
+                                        showNotification("tmd are yet defined");
                                     }                             
                                           
                                     //qui devo prendere l'AC e il JS20 adesso dal db non più dal device
@@ -12400,7 +13366,7 @@ $('#updateStreetGraph').click(async function(){
                                 }
                             }
                             catch{
-                                showNotification("il device non è stato ancora creato");
+                                showNotification("Device still not created");
                                 //console.log("il device non è stato ancora creato")
                             }                          
                         });                            
@@ -24015,21 +24981,12 @@ setTimeout(function() {
 
         });//Fine document ready
 
-
-         /////////UPDATE STREET IN SCNEARY EDITOR
-         /*
-         function updateStreet(){
-                //edit_lines
-                $("#updateStreetGraph").click();
-                 $('.leaflet-popup-close-button').click();
-             //console.log(istanzedelgrafochestoconsiderandoJSON);
-        }*/
-
-         function updateRestricitons(){
-                   
+         function updateRestricitons(restriction_json){
+           ////////////// 
                    var restrictions = $('#updateRestriction').val();
                    var restrictions_text = $('#restrictionType').text();
                    $('#restrictionType').val(restrictions);
+                   console.log(restriction_json);
                    //////
                    if ((restrictions !=('Create new AccessRestriction'))&&(restrictions !=('Create new MaxMinRestriction'))&&(restrictions !=('Select or create restriction'))){
                             $('.restinction_data').css('display','');
@@ -24037,6 +24994,17 @@ setTimeout(function() {
                             $(".maxMinRestriction").css('display','none');
                             $(".accessRestriction").css('display','none');
                             $(".access_data").css('display','none');
+                            //
+                            /**/
+                            if ((restriction_json !== null)&&(restriction_json !== undefined)&&(restriction_json.length > 0)){
+                            const index = restriction_json.findIndex(element => element.restriction.value === restrictions);
+                                    $('#restrctionFrom').val(restriction_json[index].from.value);
+                                    $('#restrictionTo').val(restriction_json[index].to.value);
+                                    $('#restrictionNode').val(restriction_json[index].node.value);
+                                    $('#restrictionType').val(restriction_json[index].restriction.value);
+                            }
+                            /**/
+                            //
                    }else if(restrictions =='Create new AccessRestriction'){
                             $('.restinction_data').css('display','none');
                             $(".turnRestriction").css('display','none');
@@ -24056,12 +25024,24 @@ setTimeout(function() {
                             
                             $(".accessRestriction").css('display','none');
                             $(".access_data").css('display','none');
+                            //
+                            $('#restrctionFrom').val('');
+                            $('#restrictionTo').val('');
+                            $('#restrictionNode').val('');
+                            $('#restrictionType').val('');
+                            //
                    }else{
                             $('.restinction_data').css('display','none');
                             $(".turnRestriction").css('display','none');
                             $(".maxMinRestriction").css('display','none');
                             $(".accessRestriction").css('display','none');
                             $(".access_data").css('display','none');
+                            //
+                            $('#restrctionFrom').val('');
+                            $('#restrictionTo').val('');
+                            $('#restrictionNode').val('');
+                            $('#restrictionType').val('');
+                            //
                    }
                    //////
           }

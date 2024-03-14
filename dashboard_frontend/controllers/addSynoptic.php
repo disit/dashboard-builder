@@ -188,11 +188,11 @@
 	
 
  //   {
-        if(isset($useOpenSearch) && $useOpenSearch == "yes" && isset($return_data['_id'])) {
+        //if(isset($useOpenSearch) && $useOpenSearch == "yes" && isset($return_data['_id'])) {
             $synopticId = $return_data['_id'];//mysqli_insert_id($link);
-        } else {
-            $synopticId = mysqli_insert_id($link);
-        }
+       // } else {
+            $synopticId2 = mysqli_insert_id($link);
+       // }
 		
 		$tplStmt = mysqli_prepare($link, "SELECT microAppExtServIcon FROM SynopticTemplates WHERE low_level_type = ?");
 		mysqli_stmt_bind_param($tplStmt, "s", $lowLevelType);
@@ -200,15 +200,15 @@
 			mysqli_stmt_bind_result($tplStmt,$resMicroAppExtServIcon);
 			while(mysqli_stmt_fetch($tplStmt)) {
 				$ext = pathinfo("../img/synopticTemplates/$resMicroAppExtServIcon")["extension"];
-				copy("../img/synopticTemplates/$resMicroAppExtServIcon","../img/synoptics/$synopticId.$ext");
-				if(file_exists("../img/synoptics/$synopticId.$ext")) chmod("../img/synoptics/$synopticId.$ext", 0777); 
-				$microAppExtServIcon = "$synopticId.$ext";
+				copy("../img/synopticTemplates/$resMicroAppExtServIcon","../img/synoptics/$synopticId2.$ext");
+				if(file_exists("../img/synoptics/$synopticId2.$ext")) chmod("../img/synoptics/$synopticId2.$ext", 0777);
+				$microAppExtServIcon = "$synopticId2.$ext";
 			}
 		}
 		
-		mysqli_query($link,"update DashboardWizard set microAppExtServIcon = '$microAppExtServIcon' where id = $synopticId");
+		mysqli_query($link,"update DashboardWizard set microAppExtServIcon = '$microAppExtServIcon' where id = $synopticId2");
 	
-		$u = mysqli_query($link, "UPDATE Dashboard.DashboardWizard SET parameters = '$synBaseUrl$synopticId' WHERE id = $synopticId");
+		$u = mysqli_query($link, "UPDATE Dashboard.DashboardWizard SET parameters = '$synBaseUrl$synopticId2' WHERE id = $synopticId2");
 
         if(isset($useOpenSearch) && $useOpenSearch == "yes" && isset($return_data['_id'])) {
             $open_search->createUpdateDocumentDashboardWizard(
@@ -226,7 +226,7 @@
                 'no',
                 '',
                 '',
-                $synBaseUrl . $synopticId,
+                $synBaseUrl . $synopticId2,
                 '',
                 '',
                 'true',
@@ -279,7 +279,7 @@
 					$tplVarRole = mysqli_real_escape_string($link, substr($variable,0,strpos($variable,"_")));
 					$usrVarName = mysqli_real_escape_string($link, sanitizePostString($variable));
 					if($usrVarName == "do_create_new_shared_variable" || !$usrVarName) $usrVarName = $tplVarName;
-					if(!mysqli_query($link,"INSERT INTO SynopticMappings(synoptic_id,tpl_var_name,tpl_var_role,usr_var_name) values ($synopticId,'$tplVarName','$tplVarRole','$usrVarName')")) $isMapOk = false;
+					if(!mysqli_query($link,"INSERT INTO SynopticMappings(synoptic_id,tpl_var_name,tpl_var_role,usr_var_name) values ('$synopticId2','$tplVarName','$tplVarRole','$usrVarName')")) $isMapOk = false;
 				}
 			}
 			if($isMapOk) {							
@@ -291,10 +291,10 @@
 	
 				$apiUrl = $ownershipApiBaseUrl . "/v1/register/?accessToken=$accessToken";
 				$ownData = array(
-					"elementId" => $synopticId,
+					"elementId" => $synopticId2,
 					"elementType" => $synOwnElmtType,
 					"elementName" => $uniqueNameId,
-					"elementUrl" => "$synBaseUrl$synopticId",
+					"elementUrl" => "$synBaseUrl$synopticId2",
 					"elementDetails" => array(),
 					"accessToken" => $accessToken
 				);
@@ -319,8 +319,9 @@
 					$response['detail'] = json_decode($callResult,true)["error"];
 				}				
 				
-				$response['id'] = $synopticId;
-				$response['url'] = escapeForHTML("$synBaseUrl$synopticId"); 
+				$response['id'] = $synopticId2;
+                $response['id-os'] = $synopticId;
+				$response['url'] = escapeForHTML("$synBaseUrl$synopticId2");
 			}
 			else {
 				$response['result'] = "Ko";
