@@ -64,7 +64,6 @@ $serviceChangeBuffer = array(
     "current" => "",
 );
 
-
 if ($rs) {
     $result = [];
     $count = 0;
@@ -112,6 +111,9 @@ if ($rs) {
                 $instance_uri = "any + status";
             } else if ($sub_nature === "First Aid Data") {
                 $url =  $kbUrlSuperServiceMap . "?serviceUri=" . $row['parameters'] . "&healthiness=true&format=json";
+            } else {
+                $sUri = $row['get_instances'];
+                $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=json&apikey=" . $ssMapAPIKey;
             }
 
             $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
@@ -163,9 +165,20 @@ if ($rs) {
                     }
                 } else {*/
                     // mark as OLD
-                    $query_updateOld = "UPDATE DashboardWizard SET oldEntry = 'old', healthiness = 'false', lastCheck = '" . $check_time . "' WHERE high_level_type = '" . $high_level_type . "' AND nature = '" . $nature . "' AND unique_name_id = '" . $unique_name_id . "' AND get_instances = '" . $get_instances . "';";
+                    $hltWhere = "";
+                    if ($high_level_type == "IoT Device")  {
+                        $hltWhere = "AND (high_level_type = 'IoT Device' OR high_level_type = 'IoT Device Variable');";
+                    }
+                    if ($high_level_type == "Mobile Device")  {
+                        $hltWhere = "AND (high_level_type = 'Mobile Device' OR high_level_type = 'Mobile Device Variable'):";
+                    }
+                    if ($high_level_type == "Data Table Device")  {
+                        $hltWhere = "AND (high_level_type = 'Data Table Device' OR high_level_type = 'Data Table Variable');";
+                    }
+                    $query_updateOld = "UPDATE DashboardWizard SET oldEntry = 'old', healthiness = 'false', lastCheck = '" . $check_time . "' WHERE unique_name_id = '" . $unique_name_id . "' AND get_instances = '" . $get_instances . "' " . $hltWhere;
                     mysqli_query($link, $query_updateOld);
                     array_push($oldEntries, $sUri);
+                    //$serviceChangeBuffer["last"] = $sUri;
                     continue;
                 } else if ($status == "200") {
 

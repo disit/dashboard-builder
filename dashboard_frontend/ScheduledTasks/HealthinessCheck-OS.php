@@ -17,6 +17,20 @@ include '../config.php';
 include '../opensearch/OpenSearchS4C.php';
 $open_search = new OpenSearchS4C();
 $open_search->initDashboardWizard();
+
+$scriptId = 'healthinessUpd';
+$scriptSource = <<<EOD
+ctx._source.oldEntry = params.oldEntry;
+ctx._source.healthiness = params.healthiness;
+ctx._source.lastCheck = params.lastCheck;
+if (params.containsKey('extraUpdateKeys') && params.containsKey('extraUpdateValues')) {
+    for (int i = 0; i < params.extraUpdateKeys.length; i++) {
+        ctx._source[params.extraUpdateKeys[i]] = params.extraUpdateValues[i];
+    }
+}
+EOD;
+$open_search->storeScript($scriptId, $scriptSource);
+
 error_reporting(E_ERROR);
 
 $high_level_type = "";
@@ -130,6 +144,9 @@ if (sizeof($rs) > 0) {
                 $instance_uri = "any + status";
             } else if ($sub_nature === "First Aid Data") {
                 $url =  $kbUrlSuperServiceMap . "?serviceUri=" . $row['parameters'] . "&healthiness=true&format=json";
+            } else {
+                $sUri = $row['get_instances'];
+                $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=json&apikey=" . $ssMapAPIKey;
             }
 
             $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
@@ -181,14 +198,25 @@ if (sizeof($rs) > 0) {
                     }
                 } else {*/
                     // mark as OLD
+                    echo($count . " MARK AS \"OLD\" DEVICE: " . $unique_name_id . "\n");
                     array_push($oldEntries, $sUri);
                     if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
-                        $query_updateOld = "UPDATE DashboardWizard SET oldEntry = 'old', healthiness = 'false', lastCheck = '" . $check_time . "' WHERE high_level_type = '" . $high_level_type . "' AND nature = '" . $nature . "' AND unique_name_id = '" . $unique_name_id . "' AND get_instances = '" . $get_instances . "';";
+                        $query_updateOld = "UPDATE DashboardWizard SET oldEntry = 'old', healthiness = 'false', lastCheck = '" . $check_time . "' WHERE nature = '" . $nature . "' AND unique_name_id = '" . $unique_name_id . "' AND get_instances = '" . $get_instances . "';";
                         mysqli_query($link, $query_updateOld);
                     } else {
+                        $hlt =  [];
+                        if ($high_level_type == "IoT Device")  {
+                            $hlt = ['IoT Device', 'IoT Device Variable'];
+                        }
+                        if ($high_level_type == "Mobile Device")  {
+                            $hlt = ['Mobile Device', 'Mobile Device Variable'];
+                        }
+                        if ($high_level_type == "Data Table Device")  {
+                            $hlt = ['Data Table Device', 'Data Table Variable'];
+                        }
                         $open_search->healthinessUpdate($get_instances, $check_time, 'old', 'false',
-                            [['term' => [
-                                'high_level_type' => $high_level_type,
+                            [['terms' => [
+                                'high_level_type' => $hlt,
 
                             ]],
                             ['term' => ['nature' => $nature,

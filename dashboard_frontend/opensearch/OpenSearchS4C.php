@@ -25,9 +25,20 @@ class OpenSearchS4C
 	
 
     // Initialize connection with opensearch node
-    public function __construct($debug = false,$ip = 'localhost', $port = '9200', $user = 'admin', $password = 'admin')
-    //public function __construct($debug = false,$ip = '192.168.1.55', $port = '9200', $user = 'admin', $password = 'TeHob9oRui3poEfT')
+    public function __construct($debug = false,$ip=NULL, $port=NULL, $user=NULL, $password=NULL)
     {
+        if (!isset($ip)) {
+            $ip = $GLOBALS["openSearchHostIP"];
+        }
+        if (!isset($port)) {
+            $port = $GLOBALS["openSearchPort"];
+        }
+        if (!isset($user)) {
+            $user = $GLOBALS["openSearchUser"];
+        }
+        if (!isset($password)) {
+            $password = $GLOBALS["openSearchPwd"];
+        }
         $this->client = (new \OpenSearch\ClientBuilder())
         ->setHosts(["https://$ip:$port"])
         ->setBasicAuthentication($user, $password)
@@ -36,7 +47,7 @@ class OpenSearchS4C
 
         $this->debug = $debug;
 
-        
+
     }
 
 
@@ -1207,41 +1218,51 @@ class OpenSearchS4C
         $this->client->updateByQuery($params);
     }
 
-    public function healthinessUpdate($get_instances, $lastCheck,$oldEntry = 'old',
-     $healthiness = 'false', $extra = null, $extraUpdate = null
-     ){
+    public function buildParams($extraUpdate) {
+        $params = [];
+        $assignments = explode(';', $extraUpdate);
 
+        foreach ($assignments as $assignment) {
+            $parts = explode('=', $assignment);
+            if (count($parts) == 2) {
+                $key = trim(str_replace('ctx._source.', '', $parts[0]));
+                $value = trim($parts[1], " '");
+                $params[$key] = $value;
+            }
+        }
+
+        return $params;
+    }
+
+    public function storeScript($scriptId, $scriptSource) {
+        try {
+            $this->client->putScript([
+                'id' => $scriptId,
+                'body' => [
+                    'script' => [
+                        'lang' => 'painless',
+                        'source' => $scriptSource
+                    ]
+                ]
+            ]);
+        } catch (Exception $e) {
+            echo 'Exception: ',  $e->getMessage(), "\n";
+        }
+    }
+
+/*    public function healthinessUpdate($get_instances, $lastCheck, $oldEntry = 'old', $healthiness = 'false', $extra = null, $extraUpdate = null) {
         $match = [
             ['term' => [
                 'get_instances' => $get_instances
             ]]
         ];
 
-
         if($extra !== null){
-
             if(is_array($extra) && count($extra) > 1 ){
-
                 $match = array_merge($match, $extra);
-
-
             }else{
                 array_push($match, $extra);
             }
-            
-        }
-
-        $ctx = "ctx._source.oldEntry = '$oldEntry';
-        ctx._source.healthiness = '$healthiness';
-        ctx._source.lastCheck = '$lastCheck';";
-
-        if($extraUpdate !== null){
-            $ctx .= $extraUpdate;
-        }
-
-        if($this->debug){
-            var_dump($match);
-            var_dump("CTX: ",$ctx);
         }
 
         $params = [
@@ -1252,8 +1273,15 @@ class OpenSearchS4C
                 ]],
                 'script' => [
                     'source' =>
-                    $ctx,
-                    'lang' => 'painless'
+                        "ctx._source.oldEntry = params.oldEntry;
+                ctx._source.healthiness = params.healthiness;
+                ctx._source.lastCheck = params.lastCheck;" . $extraUpdate,
+                    'lang' => 'painless',
+                    'params' => [
+                        'oldEntry' => $oldEntry,
+                        'healthiness' => $healthiness,
+                        'lastCheck' => $lastCheck
+                    ]
                 ]
             ]
         ];
@@ -1261,10 +1289,85 @@ class OpenSearchS4C
         $this->client->cluster()->putSettings([
             'body' => [
                 'transient' => [
-                    'script.max_compilations_rate' => '300/1m'
+                    'script.max_compilations_rate' => '500/1m'
                 ]
             ]
         ]);
+
+        try {
+            $this->client->updateByQuery($params);
+        } catch (Exception $e) {
+            echo 'Exception: ',  $e->getMessage(), "\n";
+        }
+    }*/
+
+    public function healthinessUpdate($get_instances, $lastCheck, $oldEntry = 'old', $healthiness = 'false', $extra = null, $extraUpdate = null) {
+        $match = [
+            ['term' => [
+                'get_instances' => $get_instances
+            ]]
+        ];
+
+        if($extra !== null){
+            if(is_array($extra) && count($extra) > 1 ){
+                $match = array_merge($match, $extra);
+            }else{
+                array_push($match, $extra);
+            }
+        }
+
+        if ($extraUpdate != NULL) {
+            $extraParams = $this->buildParams($extraUpdate);
+            $extraUpdateKeys = array_keys($extraParams);
+            $extraUpdateValues = array_values($extraParams);
+            $params = [
+                'index' => self::default_index_name,
+                'body' => [
+                    'query' => ['bool'=>[
+                        'must'=>$match
+                    ]],
+                    'script' => [
+                        'id' => 'healthinessUpd',
+                        'params' => [
+                            'oldEntry' => $oldEntry,
+                            'healthiness' => $healthiness,
+                            'lastCheck' => $lastCheck,
+                            'extraUpdateKeys' => $extraUpdateKeys,
+                            'extraUpdateValues' => $extraUpdateValues
+                        ]
+                    ]
+                ]
+            ];
+        } else {
+            //$extraUpdateKeys = NULL;
+            //$extraUpdateValues = NULL;
+            $params = [
+                'index' => self::default_index_name,
+                'body' => [
+                    'query' => ['bool'=>[
+                        'must'=>$match
+                    ]],
+                    'script' => [
+                        'id' => 'healthinessUpd',
+                        'params' => [
+                            'oldEntry' => $oldEntry,
+                            'healthiness' => $healthiness,
+                            'lastCheck' => $lastCheck
+                        //    'extraUpdateKeys' => $extraUpdateKeys,
+                        //    'extraUpdateValues' => $extraUpdateValues
+                        ]
+                    ]
+                ]
+            ];
+        }
+
+        //$this->client->cluster()->putSettings([
+        //    'body' => [
+        //        'transient' => [
+        //            'script.max_compilations_rate' => '500/1m'
+        //        ]
+        //    ]
+        //]);
 
         try {
             $this->client->updateByQuery($params);
@@ -1317,18 +1420,6 @@ class OpenSearchS4C
         ini_set('memory_limit', '4096M');
         require 'vendor/autoload.php';
 
-        // Credenziali e configurazione del server OpenSearch
-        /*$hosts = [
-            [
-                'host' => 'localhost',
-                'port' => '9200',
-                'user' => 'admin',
-                'pass' => 'admin'
-            ]
-        ];
-
-        $client = ClientBuilder::create()->setHosts($hosts)->build();   */
-
         $params = ['index' => 'dashboardwizard'];
 
         // Esporta le impostazioni dell'indice
@@ -1367,18 +1458,6 @@ class OpenSearchS4C
     public function exportModelDocsToJson($maxDocs) {
         ini_set('memory_limit', '4096M');
         require 'vendor/autoload.php';
-
-        // Credenziali e configurazione del server OpenSearch
-        /*$hosts = [
-            [
-                'host' => 'localhost',
-                'port' => '9200',
-                'user' => 'admin',
-                'pass' => 'admin'
-            ]
-        ];
-
-        $client = ClientBuilder::create()->setHosts($hosts)->build();   */
 
         $params = ['index' => 'dashboardwizard'];
 
@@ -1465,13 +1544,16 @@ class OpenSearchS4C
                     $hash = md5(json_encode($source));
                 } else {
                     $hash = md5(json_encode([
-                        'high_level_type' => $source['high_level_type'],
-                        'sub_nature' => $source['sub_nature'],
+                    //    'high_level_type' => $source['high_level_type'],
+                    //    'sub_nature' => $source['sub_nature'],
                         'low_level_type' => $source['low_level_type'],
                         'unique_name_id' => $source['unique_name_id'],
-                        'instance_uri' => $source['instance_uri'],
+                    //    'instance_uri' => $source['instance_uri'],
                         'get_instances' => $source['get_instances'],
-                        'organizations' => $source['organizations']
+                        'organizations' => $source['organizations'],
+                        'value_name' => $source['value_name'],
+                        'value_type' => $source['value_type']
+
                     ]));
                 }
                 if (isset($documents[$hash])) {
@@ -1491,10 +1573,16 @@ class OpenSearchS4C
             // Skip the first document (it's the original)
             array_shift($ids);
 
-            // Delete the duplicates
+            // Print and delete the duplicates
             foreach ($ids as $id) {
                 $params = ['index' => 'dashboardwizard', 'id' => $id];
-                echo ("Found duplicate: " . $id . "\n");
+                $doc = $this->client->get($params);
+                echo ("\nFound duplicate: " . $id . "\n");
+                echo ("device_name: " . $doc['_source']['device_name'] . "\n");
+                echo ("unique_name_id: " . $doc['_source']['unique_name_id'] . "\n");
+                echo ("value_name: " . $doc['_source']['value_name'] . "\n");
+                echo ("value_type: " . $doc['_source']['value_type'] . "\n");
+                echo ("low_level_type: " . $doc['_source']['low_level_type'] . "\n");
                 if ($deleteFlag) {
                     $this->client->delete($params);
                     echo("Deleted duplicate: " . $id . "\n");

@@ -116,7 +116,14 @@ if (!isset($_SESSION)) {
   transform: translate(-50%, -50%);
 }
 
-
+#headerDraggable{
+    background-color: #A1BBD8; 
+    width:100%; 
+    heigth: 8%;
+    padding: 1%;
+    cursor: pointer;
+    font-weight: bold
+}
 </style>
 
     <!-- Bring in the leaflet KML plugin -->
@@ -164,6 +171,13 @@ if (!isset($_SESSION)) {
 <!-- -->
 <script type="text/javascript" src="../js/leaflet-editable-polyline.js"></script>
 <!--<script type="text/javascript" src="../js/scenaryEditor.js"></script>-->
+
+<!-- PROJ4 -->
+
+<script type="text/javascript" src="../js/proj4.js"></script>
+<!--
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.10.0/proj4.js" integrity="sha512-e3rsOu6v8lmVnZylXpOq3DO/UxrCgoEMqosQxGygrgHlves9HTwQzVQ/dLO+nwSbOSAecjRD7Y/c4onmiBVo6w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+ -->
 
 <script type='text/javascript'>
 ////////////ADREANI Nuova Classe
@@ -532,11 +546,58 @@ class KBRoadEditor {
 
     selectRestriction(restriction) {
         this.selectedRestriction = {
-            via: "http://www.disit.org/km4city/resource/" + restriction.node.value,
-            to: "http://www.disit.org/km4city/resource/" + restriction.to.value,
-            from: "http://www.disit.org/km4city/resource/" + restriction.from.value,
+            via: "http://www.disit.org/km4city/resource/" + restriction.node.value || restriction.node,
+            to: "http://www.disit.org/km4city/resource/" + restriction.to.value || restriction.to,
+            from: "http://www.disit.org/km4city/resource/" + restriction.from.value || restriction.from,
         };
         this.draw();
+    }
+
+    segmentColored;
+
+    selectRestrictionColor(restriction) {
+       /* this.selectedRestriction = {
+            via: restriction.node,
+            to: restriction.to,
+            from: restriction.from,
+        };*/
+        //this.mode = 'drag';
+        const tmpSegment = this.segmentColored;
+        this.segmentColored = this.segments[restriction.to];
+        this.selectedRestriction = null;
+        //this.segments[restriction.to].line.color='black';
+        //this.drawSegment();
+
+        if (this.segmentColored) {
+            this.drawSegment(this.segmentColored,{color:'#BD438D'});
+            //old color: 6f00c4
+        }
+        if (tmpSegment) {
+            this.drawSegment(tmpSegment);
+        }
+        this.drawAllNodes();
+    }
+
+    checkConnection(segmentA, segmentB) {
+        let attachedNode;
+            if (segmentA.nodeA === segmentB.nodeA)
+                attachedNode = segmentA.nodeA;
+            else if (segmentA.nodeA === segmentB.nodeB)
+                attachedNode = segmentA.nodeA;
+            else if (segmentA.nodeB === segmentB.nodeA)
+                attachedNode = segmentA.nodeB;
+            else if (segmentA.nodeB === segmentB.nodeB)
+                attachedNode = segmentA.nodeB;
+        return attachedNode
+    }
+
+    checkConnectionByID(idA, idB) {
+        const segmentA = this.segments[idA];
+        const segmentB = this.segments[idB];
+        if (!segmentA || !segmentB) {
+            return;
+        }
+        return this.checkConnection(segmentA, segmentB);
     }
 
     segmentClicked(segment) {
@@ -597,7 +658,7 @@ class KBRoadEditor {
         const newSegment = {
             road: `http://www.disit.org/km4city/resource/${timestamp}`,
             segment: `http://www.disit.org/km4city/resource/${timestamp}/0`,
-            type: "",
+            type: "unclassified",
             dir: "tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)",
             length: 1,
             lanes: "1",
@@ -655,7 +716,7 @@ class KBRoadEditor {
 
 
 //TEST NEW DRAW
-drawSegment(segment) {
+drawSegment(segment,props) {
         if (segment.line)
             this.map.removeLayer(segment.line);
         if (segment.arrow)
@@ -685,17 +746,20 @@ drawSegment(segment) {
             if (this.selectedRestriction.from === segment.segment) {
                 color = 'green';
             } else if (this.selectedRestriction.to === segment.segment) {
-                color = '#6f00c4';
+                color = '#BD438D';
             }
         }
-
+        if(this.segmentColored && this.segmentColored.segment === segment.segment){
+                color= '#BD438D';
+        }
         segment.line = L.polyline([
             new L.LatLng(segment.nALat, segment.nALong),
             new L.LatLng(segment.nBLat, segment.nBLong)
         ], {
             color,
             weight: 5,
-            opacity
+            opacity,
+            ...props
         }).addTo(this.map);
 
         // arrow
@@ -715,7 +779,8 @@ drawSegment(segment) {
                         fillOpacity: opacity,
                         opacity,
                         fill: true,
-                        color
+                        color,
+                        ...props
                     }
                 })
             });
@@ -736,7 +801,8 @@ drawSegment(segment) {
                             fillOpacity: opacity,
                             opacity,
                             fill: true,
-                            color
+                            color,
+                            ...props
                         }
                     })
                 }
@@ -757,10 +823,11 @@ drawSegment(segment) {
                 segment.arrow.bringToFront();
             },
             mouseout: () => {
-                segment.line.setStyle({ color });
+                segment.line.setStyle({ color, ...props });
                 segment.arrow.setStyle({
                     fillColor: color,
-                    color
+                    color,
+                    ...props
                 });
             }
         })
@@ -779,10 +846,11 @@ drawSegment(segment) {
 
         // Change border color back to red on mouseout
         segment.line.on('mouseout', () => {
-            segment.line.setStyle({ color });
+            segment.line.setStyle({ color, ...props });
             segment.arrow.setStyle({
                 fillColor: color,
-                color
+                color,
+                ...props
             });
         });
 
@@ -8498,8 +8566,8 @@ drawSegment(segment) {
                 //lobal variables........
                 const SENSOR_API_URL = "https://www.snap4city.org/superservicemap/api/v1/?";
                 var lAccessToken = null; // variabile per tenere il mio access token per le richieste                
-                var lorganizzazione = null;
-                var ilbrokerdellorganizzazione = null;
+                var lorganizzazione = '<?=$scenaryEditorDefaultOrganization; ?>';
+                var ilbrokerdellorganizzazione = '<?=$scenaryEditorDefaultOrgBroker; ?>';
                 var drawerControl = null; // layer di riferimento dell tool per la selezione di disegni su mappa
                 var scenaryDrawnItems = null; // layer di riferimento per gli oggetti disengati sulla mappa              
                 var scenaryControl = null;  // layer di riferimento per il pannello di controllo dello scenary builder
@@ -8531,6 +8599,98 @@ drawSegment(segment) {
                 // removeParenthesesFromValues(obj)
                 // removeTrattiniFromValues(obj)
                 // showNotification(message)
+
+
+
+                /////////////////CHECK possible restrictions 
+                // richiede libreria proj4.js (https://github.com/proj4js/proj4js)
+
+                            function getCartesianFromLatLon(lat, lon){
+                            var source = new proj4.Proj('EPSG:4326');    //source coordinates will be in Longitude/Latitude, WGS84
+                                var dest = new proj4.Proj('EPSG:3785');     //destination coordinates in meters, global spherical mercators projection, see http://spatialreference.org/ref/epsg/3785/
+                            // transforming point coordinates
+                            var p = new proj4.Point(lon,lat);   //any object will do as long as it has 'x' and 'y' properties
+                            //console.log(p);
+                            var p2 = proj4.transform(source, dest, p);      //do the transformation.  x and y are modified in place
+                            //console.log(p2);
+                            return p2;
+                            }
+
+                            function checkPossibleRestrictions(reID, graph, prefix, types){
+                                var restrictions = [];
+                            const keyvalue = prefix + reID;
+                                const re = graph[keyvalue]; //Object.keys(graph).find(key => graph[key] === keyvalue);  
+                            const reEndNode = re.nodeB;
+                            var linkedRE = [];
+                            for (let key in graph){
+                                //console.log(key);
+                                if(key != keyvalue){	// escludo il RE in esame
+                                    const sNode = graph[key].nodeA;
+                                const type = graph[key].type;
+                                if (sNode === reEndNode && types.includes(type)){
+                                    linkedRE.push(key);
+                                }
+                                }
+                            }
+                            console.log(linkedRE);
+                            
+                            const xyzS = getCartesianFromLatLon(re.nALat, re.nALong); 
+                            const xyzE = getCartesianFromLatLon(re.nBLat, re.nBLong);  
+                            const vx = xyzE.x - xyzS.x;
+                            const vy = xyzE.y - xyzS.y;
+                            const nn = Math.sqrt( (vx*vx) + (vy*vy) );
+                            const vxn = vx/nn;
+                            const vyn = vy/nn;
+                            
+                            for (let i=0; i < linkedRE.length; i++){
+                                var key = linkedRE[i];
+                                console.log(key);
+                                
+                                const xyzS_ = getCartesianFromLatLon(graph[key].nALat, graph[key].nALong);
+                                const xyzE_ = getCartesianFromLatLon(graph[key].nBLat, graph[key].nBLong);
+                                const vx_ = xyzE_.x - xyzS_.x;
+                                const vy_ = xyzE_.y - xyzS_.y;
+                                const nn_ = Math.sqrt( (vx_*vx_) + (vy_*vy_) );
+                                const vxn_ = vx_/nn_;
+                                const vyn_ = vy_/nn_;
+                                    
+                                const dot = (vxn*vxn_) + (vyn*vyn_);
+                                const det = (vxn*vyn_) - (vyn*vxn_);
+                                const angle = Math.atan2(det, dot)*180/Math.PI;
+                                console.log(angle);
+                                //var angle = Math.acos( dot )*180/Math.PI;
+                                //console.log(angle);
+                                
+                                if ((-45 <= angle && angle <= 0) || (0 <= angle && angle <= 45)) {
+                                    restrictions.push({
+                                    id: key,
+                                    turn: ['only_straight_on', 'no_straight_on']
+                                });    
+                                }
+                                if (-135 <= angle && angle <= -45) {
+                                    restrictions.push({
+                                    id: key,
+                                    turn: ['only_right_turn', 'no_right_turn']
+                                });    
+                                }
+                                if (45 <= angle && angle <= 135) {
+                                    restrictions.push({
+                                    id: key,
+                                    turn: ['only_left_turn', 'no_left_turn']
+                                });    
+                                }
+                                if ((-135 <= angle && angle <= -180) || (135 <= angle && angle <= 180)) {
+                                    restrictions.push({
+                                    id: key,
+                                    turn: ['no_u_turn']
+                                });    
+                                }
+                            }
+                            return restrictions;
+                            }
+
+                ////////END CHECK possible restriction
+
 
                               
 
@@ -8760,7 +8920,72 @@ drawSegment(segment) {
                 // sendDataINIT(lAccessToken, deviceName, scenario_data)
                 // sendDataACC(lAccessToken, deviceName, js20Data,acData,svolte) 
 
-             
+
+                function dragPopup(elmnt, elementaDraggable = null) {
+                                var pos1 = 0,
+                                    pos2 = 0,
+                                    pos3 = 0,
+                                    pos4 = 0;
+                                if (elementaDraggable != null) {
+                                    // if present, the header is where you move the DIV from:
+                                    elementaDraggable.onmousedown = dragMouseDown;
+                                    //elementaDraggable.bind('touchstart', e => {e.preventDefault(); dragMouseDown(e)});
+                                } else {
+                                    // otherwise, move the DIV from anywhere inside the DIV:
+                                    elmnt.onmousedown = dragMouseDown;
+                                    //elmnt.bind('touchstart', e => {e.preventDefault(); dragMouseDown(e)});
+                                }
+
+                                function dragMouseDown(e) {
+                                    e = e || window.event;
+                                    if (e.clientX) {
+                                        e.preventDefault();
+                                    } else {
+                                        e.clientX = e.originalEvent.targetTouches[0].clientX;
+                                        e.clientY = e.originalEvent.targetTouches[0].clientY;
+                                    }
+                                    pos3 = e.clientX;
+                                    pos4 = e.clientY;
+                                    document.onmouseup = closeDragElement;
+                                    document.addEventListener('touchend', closeDragElement);
+                                    document.onmousemove = elementDrag;
+                                    document.addEventListener('touchmove', elementDrag);
+                                    // document.ontouchmove = elementDrag;
+                                }
+
+                                function elementDrag(e) {
+                                    e = e || window.event;
+                                    if (e.clientX && e.clientY) {
+                                        e.preventDefault();
+                                    } else {
+                                        e.clientX = e.targetTouches[0].clientX;
+                                        e.clientY = e.targetTouches[0].clientY;
+                                    }
+                                    pos1 = pos3 - e.clientX;
+                                    pos2 = pos4 - e.clientY;
+                                    pos3 = e.clientX;
+                                    pos4 = e.clientY;
+
+
+                                    const y = elmnt.offsetTop - pos2;
+                                    const x = elmnt.offsetLeft - pos1;
+                                    //popupCoord = viewport.unproject([x, y]);
+                                    elmnt.style.top = y + "px";
+                                    elmnt.style.left = x + "px";
+                                    //elmnt.left = x;
+                                    //reloadPopupDiv();
+                                }
+
+                                function closeDragElement() {
+                                    document.onmouseup = null;
+                                    document.ontouchend = null;
+                                    document.onmousemove = null;
+                                    document.ontouchmove = null;
+
+                                    document.removeEventListener('touchend', closeDragElement);
+                                    document.removeEventListener('touchmove', elementDrag);
+                                }
+                }
 
                 //function to get the access token
                 async function getLAccessToken() {                    
@@ -9062,6 +9287,9 @@ drawSegment(segment) {
                 /// FINE BOLOGNA-COLLINI
                 var currentStatusEdit = $('#currentStatusEdit').val();
                 ///ADREANI
+            ///////
+            $('.leaflet-popup-content-wrapper').addClass('draggable');
+            ///////
             if (!roadElementGraph){
                         roadElementGraph = new KBRoadEditor(map.defaultMapRef, existentRoadGraph ? existentRoadGraph: istanzedelgrafochestoconsiderando, (strada) => {
                             // segment. ci sono i dati
@@ -9102,19 +9330,23 @@ drawSegment(segment) {
                             var nodeRestriction = '';
                             //console.log(restinction_nodes);
                             var restriction_array = [];
+                            
 
-
+                            //console.log('strada.restriction',strada.restriction);
                             //
                             var indices = [];
                             //
                             if (!strada.restriction) {
                                         strada.restriction = [];
                                             restinction_nodes.forEach((element, index) => {
-                                                            if (element.node.value === nodeName) {
+                                                            const nodeFounded = roadElementGraph.checkConnectionByID(
+                                                                'http://www.disit.org/km4city/resource/' + element.to.value,
+                                                                strada.segment);
+                                                            if (nodeFounded) {
                                                                 indices.push(index);
                                                             }
                                                             });
-                                            console.log('indices',indices);
+                                            //console.log('indices',indices);
                                             if (indices.length > 0){
                                                 indices.forEach((element, index) => {
                                                             restriction_span = restinction_nodes[index].restriction.value;
@@ -9122,18 +9354,21 @@ drawSegment(segment) {
                                                             nodeRestriction = restinction_nodes[index].node.value;
                                                             fromRestriction =restinction_nodes[index].from.value;
                                                             //color_dir = 'green';
-                                                            console.log(restinction_nodes[index]);
+                                                            //console.log(restinction_nodes[index]);
                                                             restriction_array.push(restinction_nodes[index]);
+                                                            ///////////
                                                 });
                                             }else{
                                                     restriction_span = 'Not defined';
-                                            }                                    
+                                            }   
+                                            
+                                            
                             //
                             }else{
                                 console.log('restriction',strada.restriction);
                                 //
                                 if(strada.restriction.length > 0){
-                                    console.log('Resctriction');
+                                    //console.log('Resctriction');
                                         if(strada.restriction[0].to){
                                             //
                                             let arraysegmentTo = (strada.restriction[0].to).split('/');
@@ -9146,7 +9381,7 @@ drawSegment(segment) {
                                             let arraysegmentFrom = (strada.restriction[0].from).split('/');
                                              arraysegmentFrom = arraysegmentFrom[arraysegmentFrom.length-2]+'/'+arraysegmentFrom[arraysegmentFrom.length-1];
                                             //
-                                            nodeRestriction = arraysegmentFrom;
+                                            fromRestriction = arraysegmentFrom;
                                         }
                                         if(strada.restriction[0].node){
                                             //
@@ -9157,7 +9392,7 @@ drawSegment(segment) {
                                             nodeRestriction = arraysegmentNode;
                                         }
                                         if(strada.restriction[0].restriction){
-                                            console.log('restriction',strada.restriction[0].restriction);
+                                            //console.log('restriction',strada.restriction[0].restriction);
                                             restriction_span =strada.restriction[0].restriction;
                                         }
                                 }
@@ -9169,10 +9404,29 @@ drawSegment(segment) {
                                 if (restriction_array.length > 0){
                                     var restriction_json = JSON.stringify(restriction_array);
                                     const selectedRestrition = restriction_array[restriction_array.length -1];
-                                    console.log('selectedRestrition', selectedRestrition);
+                                    //console.log('selectedRestrition', selectedRestrition);
                                             roadElementGraph.selectRestriction(selectedRestrition);
                                 }
                             }
+
+                             ////////////
+                             const prefix ="";
+                            const graph2 = roadElementGraph.segments;
+                            const types = roadElementGraph.filterTypes; // <= VERIFICA
+                            const reID = strada.segment;
+                            //console.log('reID:',reID);
+                            console.dir(graph2);
+                            //console.log('types',types);
+                            const posRestrictions_check = checkPossibleRestrictions(reID, graph2, prefix, types);
+                            const posRestrictions = JSON.stringify(posRestrictions_check);
+                           // console.log('posRestrictions',posRestrictions);
+                            /*if (posRestrictions.length > 0){
+                                for(var x=0; x<posRestrictions.length; x++){
+                                    console.log(posRestrictions[x].id);     
+                                }
+                             }*/
+                            //////// 
+                            ////////////////
 
                             //console.log(restriction_span);
                             if (status !=='in esercizio'){
@@ -9192,9 +9446,9 @@ drawSegment(segment) {
                                 }else{
                                     dir = 'Closed';
                                 }
-                            descrStrada = ('<div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="'+strada.segment+'" style="display:none"><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>'+strada.type+'</td></tr><tr><td><b>Nr.Lanes:</b></td><td>'+strada.lanes+'</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>'+strada.roadElmSpeedLimit+'</td></tr><tr><td><b>Direction:</b></td><td>'+dir+'</td></tr><tr><td><b>Restrictions:</b></td><td>'+restriction_span+'</td></tr></tbody></table></div>');
+                            descrStrada = ('<div id="headerDraggable" >Road: '+strada.segment+'</div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="'+strada.segment+'" style="display:none"><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>'+strada.type+'</td></tr><tr><td><b>Nr.Lanes:</b></td><td>'+strada.lanes+'</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>'+strada.roadElmSpeedLimit+'</td></tr><tr><td><b>Direction:</b></td><td>'+dir+'</td></tr><tr><td><b>Restrictions:</b></td><td>'+restriction_span+'</td></tr></tbody></table></div>');
                             //
-                            var width_popup = 350;
+                            var width_popup = 450;
                             //if (currentStatusEdit == 'streets'){
                             if (roadElementGraph.mode !== 'view') {
                                 
@@ -9206,7 +9460,7 @@ drawSegment(segment) {
                                 //var restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="only_straight_on">TurnRestriction-only_straight_on</option><option value="no_left_turn">TurnRestriction-no_left_turn</option><option value="no_right_turn">TurnRestriction-no_right_turn</option><option value="only_right_turn">TurnRestriction-only_right_turn</option><option value="no_u_turn">TurnRestriction-no_u_turn</option><option value="only_left_turn">TurnRestriction-only_left_turn</option><option value="no_straight_on">TurnRestriction-no_straight_on</option><option value="no_entry">TurnRestriction-no_entry</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option></select>';
                                 var restrinctions = '';
                                 if (restriction_span != 'Not defined'){
-                                    restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons(\''+restriction_json+'\')"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option><option value="'+restriction_span+'">TurnRestriction-'+restriction_span+'</option></select>';
+                                    restrinctions = '<select id="updateRestriction" value="'+restriction_span+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons(\''+posRestrictions+'\',\''+restriction_json+'\')"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option><option value="'+restriction_span+'">TurnRestriction-'+restriction_span+'</option></select>';
                                     /*
                                     for(var i=0; i<restriction_array.length; i++){
                                         restrinctions = restrinctions + '<select id="updateRestriction" value="'+restriction_array[i].restriction.value+'" class="form-select" aria-label="Default select example" onchange="updateRestricitons()"><option value="Select or create restriction" selected>Select or create restriction</option><option value="Create new AccessRestriction">Create new AccessRestriction</option><option value="Create new TurnRestriction">Create new TurnRestriction</option><option value="Create new MaxMinRestriction">Create new MaxMinRestriction</option><option value="'+restriction_array[i].restriction.value+'">TurnRestriction-'+restriction_array[i].restriction.value+'</option></select>';
@@ -9230,17 +9484,22 @@ drawSegment(segment) {
                                             fromRestriction =restinction_nodes[index].from.value;
                                             //color_dir = 'green';
                                             //console.log(restinction_nodes[index]);
-                                            restriction_data = restriction_data + '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/><!--BUTTON SELECT--><input type="button" id="SelectTo" value="Select To" title="Click to select road element"/><!--BUTTON SELECT--></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
+                                            //restriction_data = restriction_data + '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/><!--BUTTON SELECT--><input type="button" id="SelectTo" value="Select To" title="Click to select road element"/><!--BUTTON SELECT--></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
+                                              restriction_data = restriction_data + '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><select id="restrictionTo"><option value="'+toRestriction+'">'+toRestriction+'</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
                                             //restriction_array.push(restinction_nodes[index]);
                                 });
                                  }else{
-                                    restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/><!--BUTTON SELECT--><input type="button" id="SelectTo" value="Select To" title="Click to select road element"/><!--BUTTON SELECT--></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
+                                    //restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/><!--BUTTON SELECT--><input type="button" id="SelectTo" value="Select To" title="Click to select road element"/><!--BUTTON SELECT--></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
+                                      restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><select id="restrictionTo"><option value="'+toRestriction+'">'+toRestriction+'</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
                                  }
                                 //
                                 //var restriction_data = '<tr class="restinction_data" style="display: none;"><td><b>Type:    </b></td><td><select id="restrictionType"><option class="turnRestriction" value="only_straight_on">only_straight_on</option><option class="turnRestriction" value="no_left_turn">no_left_turn</option><option class="turnRestriction" value="no_right_turn">no_right_turn</option><option class="turnRestriction" value="only_right_turn">only_right_turn</option><option class="turnRestriction" value="no_u_turn">no_u_turn</option><option class="turnRestriction" value="only_left_turn">only_left_turn</option><option class="turnRestriction" value="no_straight_on">no_straight_on</option><option class="turnRestriction" value="no_entry">no_entry</option><!-- --><option class="accessRestriction" value="AccessRestriction">AccessRestriction</option><option class="maxMinRestriction" value="MaxMinRestriction">MaxMinRestriction</option></select></td></tr><tr class="restinction_data" style="display: none;"><td><b>From:</b></td><td><input id="restrctionFrom" type="text" value="'+segmentId+'" readonly/></td></tr><tr class="restinction_data" style="display: none;"><td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="'+toRestriction+'" readonly/><!--BUTTON SELECT--><input type="button" id="SelectTo" value="Select To" title="Click to select road element"/><!--BUTTON SELECT--></td></tr><tr class="restinction_data" style="display: none;"><td><b>Node:    </b></td class="restinction_data" style="display: none;"><td><input type="text" id="restrictionNode" value="'+nodeRestriction+'" readonly/></td></tr>';
-                                ///////                             
+                                ///////  
+                               
+                                                        
                                  //EDITABLE//
-                                descrStrada = `<div id="segmentLabel_edit" style="padding: 5%; width: 450px;">
+                                descrStrada = `<div id="headerDraggable">Road: `+strada.segment+`</div>
+                                                <div id="segmentLabel_edit" style="padding: 5%; width: 400px;">   
                                                 <input type="text" id="segment" value="`+strada.segment+`" style="display: none"/>
                                                 <textarea id="stradajson" style="display:none">'+stradajson+'</textarea>
                                                 <table>
@@ -9248,49 +9507,47 @@ drawSegment(segment) {
                                                 <tr>
                                                 <td><b>Category Street: </b></td>
                                                 <td><select id="updateType" value="`+strada.type+`" class="form-select" aria-label="Default select example">
-                                                            <option value="footway">footway</option>
-                                                            <option value="primary">primary</option>
-                                                            <option value="tertiary">tertiary</option>
-                                                            <option value="residential">residential</option>
-                                                            <option value="pedestrian">pedestrian</option>
-                                                            <option value="unclassified">unclassified</option>
-                                                                <!-- -->
-                                                                    <option value="trunk_link">trunk_link</option>
-                                                                    <option value="motorway">motorway</option>
-                                                                    <option value="track">track</option>
-                                                                    <option value="secondary_link">secondary_link</option>
-                                                                    <option value="service">service</option>
-                                                                    <option value="tertiary_link>"tertiary_link</option>
-                                                                    <option value="path">path</option>
-                                                                    <option value="cycleway">cycleway</option>
-                                                                    <option value="living_street">living_street</option>
-                                                                    <option value="primary_link">primary_link</option>
-                                                                    <option value="steps">steps</option>
-                                                                    <option value="motorway_link">motorway_link</option>
-                                                                    <option value="services">services</option>
-                                                                    <option value="road">road</option>
-                                                                    <option value="construction">construction</option>
-                                                                    <option value="raceway">raceway</option>
-                                                                    <option value="bridleway">bridleway</option>
-                                                                    <option value="abandoned">abandoned</option>
-                                                                    <option value="platform">platform</option>
-                                                                    <option value="bus_stop">bus_stop</option>
-                                                                    <option value="rest_area">rest_area</option>
-                                                                    <option value="yes">yes</option>
-                                                                    <option value="corridor">corridor</option>
-                                                                    <option value="island">island</option>
-                                                                    <option value="crossing">crossing</option>
-                                                                    <option value="via_ferrata">via_ferrata</option>
-                                                                    <option value="emergency_bay">emergency_bay</option>
-                                                                    <option value="no">no</option>
-                                                                    <option value="disused">disused</option>
-                                                                    <option value="emergency_access_point">emergency_access_point
-                                                                    <option value="elevator">elevator</option>
-                                                                    <option value="razed">razed</option>
-                                                                    <option value="private">private</option>
-                                                                    <option value="traffic_island">traffic_island</option>
-                                                                    <option value="bus_guideway">bus_guideway</option>
-                                                                    <option value="ohm:military:Trench">ohm:military:Trench</option>
+                                                                        <option value="abandoned">abandoned</option>
+                                                                        <option value="bridleway">bridleway</option>
+                                                                        <option value="bus_guideway">bus_guideway</option>
+                                                                        <option value="bus_stop">bus_stop</option>
+                                                                        <option value="construction">construction</option>
+                                                                        <option value="corridor">corridor</option>
+                                                                        <option value="crossing">crossing</option>
+                                                                        <option value="cycleway">cycleway</option>
+                                                                        <option value="disused">disused</option>
+                                                                        <option value="elevator">elevator</option>
+                                                                        <option value="emergency_access_point">emergency_access_point</option>
+                                                                        <option value="emergency_bay">emergency_bay</option>
+                                                                        <option value="footway">footway</option>
+                                                                        <option value="island">island</option>
+                                                                        <option value="living_street">living_street</option>
+                                                                        <option value="motorway">motorway</option>
+                                                                        <option value="motorway_link">motorway_link</option>
+                                                                        <option value="no">no</option>
+                                                                        <option value="path">path</option>
+                                                                        <option value="pedestrian">pedestrian</option>
+                                                                        <option value="platform">platform</option>
+                                                                        <option value="primary">primary</option>
+                                                                        <option value="primary_link">primary_link</option>
+                                                                        <option value="private">private</option>
+                                                                        <option value="raceway">raceway</option>
+                                                                        <option value="razed">razed</option>
+                                                                        <option value="residential">residential</option>
+                                                                        <option value="rest_area">rest_area</option>
+                                                                        <option value="road">road</option>
+                                                                        <option value="secondary_link">secondary_link</option>
+                                                                        <option value="service">service</option>
+                                                                        <option value="services">services</option>
+                                                                        <option value="steps">steps</option>
+                                                                        <option value="tertiary">tertiary</option>
+                                                                        <option value="tertiary_link">tertiary_link</option>
+                                                                        <option value="track">track</option>
+                                                                        <option value="traffic_island">traffic_island</option>
+                                                                        <option value="trunk_link">trunk_link</option>
+                                                                        <option value="unclassified">unclassified</option>
+                                                                        <option value="via_ferrata">via_ferrata</option>
+                                                                        <option value="yes">yes</option>
                                                                 <!-- -->
                                                         </select>
                                                 </td>
@@ -9314,7 +9571,7 @@ drawSegment(segment) {
                                                 </tr>
                                                 <tr>
                                                 <td><b>Restrictions:  </b></td>
-                                                <td><select id="updateRestriction" value="`+restriction_span+`" class="form-select" aria-label="Default select example" onchange='updateRestricitons(`+restriction_json+`)'>
+                                                <td><select id="updateRestriction" value="`+restriction_span+`" class="form-select" aria-label="Default select example" onchange='updateRestricitons(`+posRestrictions+`,`+restriction_json+`)'>
                                                                 <option value="Select or create restriction" selected>Select or create restriction</option>
                                                                 <option value="Create new AccessRestriction">Create new AccessRestriction</option>
                                                                 <option value="Create new TurnRestriction">Create new TurnRestriction</option>
@@ -9342,14 +9599,20 @@ drawSegment(segment) {
                                                 <td><input id="restrctionFrom" type="text" value="`+segmentId+`" readonly/></td>
                                                 </tr>
                                                 <tr class="restinction_data" style="display: none;">
-                                                <td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="`+toRestriction+`" readonly/><input type="button" id="SelectTo" value="Click to select road element" title="Click to select road element"/></td>
+                                                <!--<td><b>To:    </b></td><td><input type="text" id="restrictionTo" value="`+toRestriction+`" readonly/><input type="button" id="SelectTo" value="Click to select road element" title="Click to select road element"/></td>-->
+                                                <td><b>To:    </b></td><td><select id="restrictionTo"><option value="`+toRestriction+`">`+toRestriction+`</option></select></td>
                                                 </tr>
                                                 <tr class="restinction_data" style="display: none;">
                                                 <td><b>Node:    </b></td class="restinction_data" style="display: none;">
                                                 <td><input type="text" id="restrictionNode" value="`+nodeRestriction+`" readonly/>
                                                 </td>
+                                                <tr>
+                                                <td>
+                                                <input type="button" id="deleteRestriction" value="Delete resctriction" style="display: none;"/>
+                                                </td>
                                                 </tr>
-                                                <tr class="access_data" style="display: none;">
+                                                </tr>
+                                                <tr class="access_data" style="display: none;" >
                                                 <td><b>Direction:</b></td>
                                                 <td>
                                                 <select id="direction_access">
@@ -9394,7 +9657,7 @@ drawSegment(segment) {
                                                     <option value="mofa">mofa</opton> 
                                                     <option value="tourist_bus">tourist_bus</opton> 
                                                     <option value="taxi">taxi</opton> 
-                                                    <option value="hov"> hov</opton> 
+                                                    <option value="hov">hov</opton> 
                                                     <option value="ski">ski</opton> 
                                                     <option value="snowmobile">snowmobile</opton> 
                                                     <option value="wheelchair">wheelchair</opton>
@@ -9434,14 +9697,48 @@ drawSegment(segment) {
                                             console.log(restriction_span);
                                             console.log('strada', strada.restriction);
                                             if(restriction_span =='AccessRestriction'){
+                                                //
+                                                var who_access = strada.who;
+                                                var direction_access = strada.direction;
+                                                var access_access = strada.access;
+                                                //
                                                 descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>'+restriction_span+'</option>');
-                                                descrStrada = descrStrada.replaceAll('<tr class="access_data" style="display: none;">','<tr class="access_data">');                                             
+                                                descrStrada = descrStrada.replaceAll('<tr class="access_data" style="display: none;">','<tr class="access_data">');
+                                                //
+                                                descrStrada = descrStrada.replace('<option value="'+access_access+'">'+access_access+'</option>','<option value="'+access_access+'" selected>'+access_access+'</option>');
+                                                descrStrada = descrStrada.replace('<option value="'+who_access+'">'+who_access+'</option>','<option value="'+who_access+'" selected>'+who_access+'</option>');
+                                                descrStrada = descrStrada.replace('<option value="'+direction_access+'">'+direction_access+'</option>','<option value="'+direction_access+'" selected>'+direction_access+'</option>');
+                                                //                                             
                                             }else if(restriction_span =='MaxMinRestriction'){
                                                 descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>'+restriction_span+'</option>');
                                                 descrStrada = descrStrada.replaceAll('<tr class="maxMinRestriction" style="display: none;">','<tr class="maxMinRestriction">');
+                                                //
+                                                var what_minmax = strada.what;
+                                                var limit_minmax = strada.limit;
+                                                descrStrada = descrStrada.replaceAll('<option value="'+what_minmax+'">'+what_minmax+'</option>','<option value="'+what_minmax+'" selected>'+what_minmax+'</option>');
+                                                descrStrada = descrStrada.replaceAll('<input type="number" id="limit_minmax" value=""','<input type="number" id="limit_minmax" value="'+limit_minmax+'"');
+                                                //
                                             }else{   
                                                 //ADD VALUES//
                                             /**/ 
+                                            console.log('restinction_nodes',strada.restriction);
+                                            if((strada.restriction).length > 0){
+                                                var rs = strada.restriction;
+                                                for(var i=0;i<rs.length; i++){
+                                                    var rt = rs[i].restriction;
+                                                    console.log(rt);
+                                                    console.log('1) restriction_span:',restriction_span);
+                                                    descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+rt+'" selected>TurnRestriction-'+rt+'</option>'); 
+                                                             descrStrada = descrStrada.replaceAll('<tr class="restinction_data" style="display: none;">','<tr class="restinction_data">');
+                                                             descrStrada = descrStrada.replace('id="restrictionType"', 'id="restrictionType" value="'+rt+'" disabled');
+                                                             descrStrada = descrStrada.replace('<option class="turnRestriction" value="'+rt+'">'+rt+'</option>','<option class="turnRestriction" value="'+rt+'" selected>'+rt+'</option>');
+
+                                                }
+                                                //descrStrada = descrStrada.replace('id="restrictionType" value="'+rt+'" disabled', 'id="restrictionType" value="'+restriction_span+'" disabled');
+                                                roadElementGraph.selectRestrictionColor(rs[0]);
+                                                descrStrada = descrStrada.replace('<input type="button" id="deleteRestriction" value="Delete resctriction" style="display: none;"/>','<input type="button" id="deleteRestriction" value="Delete resctriction" />');
+                                            }
+
                                             if (indices.length > 0){
                                                 indices.forEach((element, index) => {
                                                             restriction_span = restinction_nodes[index].restriction.value;
@@ -9450,10 +9747,11 @@ drawSegment(segment) {
                                                             //fromRestriction =restinction_nodes[index].from.value;
                                                              descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>TurnRestriction-'+restriction_span+'</option>'); 
                                                              descrStrada = descrStrada.replaceAll('<tr class="restinction_data" style="display: none;">','<tr class="restinction_data">');
-                                                             descrStrada = descrStrada.replace('id="restrictionType"', 'id="restrictionType" value="'+restriction_span+'"');
-                                                             descrStrada = descrStrada.replace('<option class="turnRestriction" value="'+restriction_span+'">'+restriction_span+'</option>','<option class="turnRestriction" value="'+restriction_span+'" selected>'+restriction_span+'</option>');
+                                                             descrStrada = descrStrada.replace('id="restrictionType"', 'id="restrictionType" value="'+restriction_span+'" disabled');
+                                                             descrStrada = descrStrada.replace('<option class="turnRestriction" value="'+restriction_span+'">'+restriction_span+'</option>','<option class="turnRestriction" value="'+restriction_span+'" selected>'+restriction_span+'</option>');        
                                                             //restriction_array.push(restinction_nodes[index]);
                                                 });
+                                                descrStrada = descrStrada.replace('<input type="button" id="deleteRestriction" value="Delete resctriction" style="display: none;"/>','<input type="button" id="deleteRestriction" value="Delete resctriction" />');
                                             }
                                            /* 
                                            descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>TurnRestriction-'+restriction_span+'</option>'); 
@@ -9485,38 +9783,119 @@ drawSegment(segment) {
                                 }else{
                                     dir = 'Closed';
                                 }
-                                width_popup = 350;
+                                width_popup = 400;
                                 var restriction_data_details = '';
                                 //descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+dir+'<br /><span><b>Restrictions: </b></span>'+restriction_span+'<br /><span></div>');
-                                  descrStrada = ('<div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="'+strada.segment+'" style="display:none"><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>'+strada.type+'</td></tr><tr><td><b>Nr.Lanes:</b></td><td>'+strada.lanes+'</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>'+strada.roadElmSpeedLimit+'</td></tr><tr><td><b>Direction:</b></td><td>'+dir+'</td></tr><tr><td><b>Restrictions:</b></td><td>'+restriction_span+'</td></tr></tbody></table></div>');
+                                  descrStrada = ('<div id="headerDraggable">Road: '+strada.segment+'</div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="'+strada.segment+'" style="display:none"><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>'+strada.type+'</td></tr><tr><td><b>Nr.Lanes:</b></td><td>'+strada.lanes+'</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>'+strada.roadElmSpeedLimit+'</td></tr><tr><td><b>Direction:</b></td><td>'+dir+'</td></tr><tr><td><b>Restrictions:</b></td><td>'+restriction_span+'</td></tr></tbody></table></div>');
 
                                   if(restriction_span !=='Not defined'){
                                                  descrStrada = descrStrada.replace('</tbody></table>','<tr><td><b>From:</b></td><td>'+fromRestriction+'</td></tr><tr><td><b>To:</b></td><td>'+toRestriction+'</td></tr><tr><td><b>No:</b></td><td>'+nodeRestriction+'</td></tr></tbody></table>');    
                                   }
                             }
-                            ////////////
+                            
                             strada.line.bindPopup(descrStrada, {maxWidth : width_popup});
                             strada.line.openPopup();
+                            //var popupDiv = $('.leaflet-popup-content')[0];
+                            //dragPopup(document.getElementById('segmentLabel_edit').parentElement.parentElement.parentElement, document.getElementById('segmentLabel_edit'));
+                            //headerDraggable
+                            dragPopup(document.getElementById('headerDraggable').parentElement.parentElement.parentElement, document.getElementById('headerDraggable'));
+                            strada.line.on('popupclose', function(){
+                                roadElementGraph.selectRestrictionColor({});
+                                console.log('popup chiuso');
+                            });
+
+                            $('#deleteRestriction').click(() => {
+                                var restrctionFrom = 'http://www.disit.org/km4city/resource/'+$('#restrctionFrom').val();
+                                var index = -1; // Inizializza l'indice a -1 per indicare che non è stato trovato nessun elemento
+
+                                // Loop attraverso l'array per cercare l'elemento con "from" uguale al valore desiderato
+                               var data = strada.restriction;
+                                            for (var i = 0; i < data.length; i++) {
+                                                if (data[i].from !== undefined){
+                                                        if (data[i].from === restrctionFrom) {
+                                                            index = i; // Memorizza l'indice dell'elemento trovato
+                                                            break; // Esci dal ciclo una volta trovato l'elemento
+                                                        }
+                                                }
+                                            }
+                                            if (index !== -1) {
+                                        // Se l'elemento è stato trovato, rimuovilo dall'array
+                                        data.splice(index, 1);
+                                        console.log("Elemento rimosso dall'array.");
+                                        console.log('data', data);
+                                    } else {
+                                        console.log("Elemento non trovato nell'array.");
+                                    }
+                                
+                                console.log('strada.restriction: ',strada.restriction);
+                                console.log('restrctionFrom: ',restrctionFrom);
+                                console.log('index: ',index);
+                            });
+
                             $('#updateStreet').click(() => {
                                     strada.type = $('#updateType').val();
                                     strada.lanes = $('#updateLanes').val();
                                     strada.roadElmSpeedLimit = $('#updateSpeedLimit').val();
                                     strada.dir = $('#updateDir').val();
                                     roadElementGraph.draw();
-                                    //RESTRICTIONS
-                                    /*
-                                    var restrictionElement = '';
-                                    scenarioRestrictions.push(restrictionElement);
-                                    strada.restrictions = scenarioRestrictions;
-                                    */
+                                    segmentSelected = $('#restrctionFrom').val();
+                                    //RESTRICTIONS////
+                                    var restrictionType = $('#restrictionType').val();
+                                    var restrictionTypeText = $('#updateRestriction').val();
+                                    //
+                                    console.log('restrictionTypeText',restrictionTypeText);
+                                    //
+                                    if(restrictionTypeText != 'Select or create restriction'){
+                                        if(restrictionTypeText == 'Create new TurnRestriction'){
+                                                strada.restriction.push({
+                                                    from: 'http://www.disit.org/km4city/resource/'+segmentSelected,
+                                                    node: 'http://www.disit.org/km4city/resource/'+$('#restrictionNode').val(),
+                                                    to:  $('#restrictionTo').val(),
+                                                    restriction: restrictionType
+                                                });
+                                                $('#deleteRestriction').css('display','');
+                                        }else if(restrictionTypeText == 'Create new AccessRestriction'){
+                                            //
+                                            var direction_access = $('#direction_access').val();
+                                            var access_access = $('#access_access').val();
+                                            var who_access = $('#who_access').val();
+                                            strada.restriction.push({
+                                                    direction: direction_access,
+                                                    access: access_access,
+                                                    who:  who_access,
+                                                    restriction: 'AccessRestriction'
+                                                });
+                                            //
+                                            $('#deleteRestriction').css('display','');    
+                                        }else if(restrictionTypeText == 'Create new MaxMinRestriction'){
+                                            var what_minmax = $('#what_minmax').val();
+                                            var limit_minmax = $('#limit_minmax').val();
+                                            strada.restriction.push({
+                                                    limit: limit_minmax,
+                                                    what:  what_minmax,
+                                                    restriction: 'MaxMinRestriction'
+                                                });
+                                                $('#deleteRestriction').css('display','');
+                                        }else{
+                                            console.log('Not Considered status');
+                                            $('#deleteRestriction').css('display','none');
+                                        }
+                                        //
+                                       
+                                        //
+                                    }
+
                                     roadElementGraph.updateSegmentData(strada);
-                                    //strada. = $('#updateRestriction').val();
-                                    //var stradajson = $('#stradajson').text();
+                                    roadElementGraph.selectRestrictionColor({});
+                                    console.log('strada',strada);
+                                    ///////////DATI RESTRIZIONE////
+                                    
 
                                 });
 
                             $('#SelectTo').click(() => {
                                 console.log('CLICK TO SELECT A ROAD GRAPH');
+                                
                                 var restrictionType = $('#restrictionType').val();
                                 roadElementGraph.enableRestrictionSelection(strada, (segmentSelected, nodeAttached) => {
                                     if (!nodeAttached) {
@@ -9539,9 +9918,138 @@ drawSegment(segment) {
                                     //
                                     console.log(strada.restriction);
                                     roadElementGraph.updateSegmentData(strada);
+                                    ///
                             });
                                 //roadElementGraph.updateSegmentData(strada);
                             });
+
+                            ////////////////////////////////CHANGE RESTRICTION/////////////
+                            $('#updateRestriction').change(()=> {
+                                var restrictionTo = $('#restrictionTo').val();
+                                $('#restrictionType').prop('disabled', false);
+                                $('#restrictionTo').prop('disabled', false);
+
+                                var updateRestriction = $('#updateRestriction').val();
+                                console.log('updateRestriction:',updateRestriction);
+                                if (!updateRestriction.includes('new')&&!updateRestriction.includes('selected')){
+                                         $('#restrictionType').prop('disabled', true);
+                                         $('#restrictionTo').prop('disabled', true);
+                                         $('#deleteRestriction').css('display','');
+                                         console.log('changing');
+                                         $('#restrictionType').val(updateRestriction);
+                                }else{
+                                         $('#restrictionType').prop('disabled', false);
+                                         $('#restrictionTo').prop('disabled', false);
+                                         $('#deleteRestriction').css('display','none');
+                                }
+
+                                console.log('restrictionTo',restrictionTo);
+
+                                
+                                var listSegments = roadElementGraph.segments;
+                                var elementTo = listSegments[restrictionTo];
+                                var node = '';
+                                    if(elementTo !=="" && elementTo != undefined){
+                                                var toNodeA = elementTo.nodeA;
+                                                var toNodeB = elementTo.nodeB;
+                                                //
+                                                var fromNodeA = strada.nodeA;
+                                                var fromNodeB = strada.nodeB;
+                                                //
+                                                if (fromNodeA == toNodeB){
+                                                    node = fromNodeA;
+                                                }
+                                                if (fromNodeB == toNodeA){
+                                                    node = fromNodeB;
+                                                }
+                                                //
+                                                var spitid= node.split('/');
+                                                                var r = spitid.length;
+                                                                var nodeLast = spitid[r-1];
+                                                //
+                                                $('#restrictionNode').val(nodeLast);
+                                        
+                                        console.log('elementTo; ',elementTo);
+                                        roadElementGraph.selectRestrictionColor({
+                                            to: elementTo.segment
+                                        });
+                                    }
+                            });
+                            
+                            ///////////BOLOGNA SELECT TURN RESTRCTION
+                            $('#restrictionTo').change(()=> {
+                               var to =  $('#restrictionTo').val();
+                                        console.log('CHANGE',to);
+                                        $(".turnRestriction").css('display','none');
+                                        var actual_value=$('#restrictionTo').val();
+                                                for(var z=0; z<posRestrictions.length; z++){
+                                                    if(posRestrictions[z].id == actual_value){
+                                                    for(var u=0; u<posRestrictions[z].turn.length; u++){
+                                                           var type= posRestrictions[z].turn[u];
+                                                           $(".turnRestriction[value='"+type+"']").css('display','');
+                                                           $('#restrictionType').val(type);
+                                                        }
+                                                        $('#restrictionType').prop('disabled', false);
+                                                        $('#restrictionTo').prop('disabled', false);
+                                                    }
+                                                }
+                                        var node = '';
+                                        //console.log(roadElementGraph.segments);
+                                        var listSegments = roadElementGraph.segments;
+                                        var elementTo = listSegments[to];
+                                                    if(elementTo !==''){
+                                                    var toNodeA = elementTo.nodeA;
+                                                    var toNodeB = elementTo.nodeB;
+                                                    //
+                                                    var fromNodeA = strada.nodeA;
+                                                    var fromNodeB = strada.nodeB;
+                                                    //
+                                                    if (fromNodeA == toNodeB){
+                                                        node = fromNodeA;
+                                                    }
+                                                    if (fromNodeB == toNodeA){
+                                                        node = fromNodeB;
+                                                    }
+                                                    //
+                                                    console.log('node', node);
+                                                    //
+                                                    var spitid= node.split('/');
+                                                                    var r = spitid.length;
+                                                                    var nodeLast = spitid[r-1];
+                                                    //
+                                                    $('#restrictionNode').val(nodeLast);
+                                                }
+
+                                        ///
+                                        var restrictionType = $('#restrictionType').val();
+                                        /*strada.restriction.push({
+                                                            from: strada.segment,
+                                                            node: node,
+                                                            to: to,
+                                                            restriction: restrictionType
+                                                        });*/
+                                       //roadElementGraph.updateSegmentData(strada);
+                                       console.log('strada.restriction',strada.restriction);
+                                       //
+
+                                       //
+                                       roadElementGraph.selectRestrictionColor({
+                                                            from: strada.segment,
+                                                            node: node,
+                                                            to: to,
+                                                            restriction: restrictionType
+                                                        });
+                                        //**** */
+                            });
+                           
+                            
+           ////////////// 
+           //CHECK POSSIBLE RESTICTIONS
+           //function updateRestricitons(posRestrictions,restriction_json){
+                  
+
+
+                            /////////////////////////////
                         });
                         roadElementGraph.addEventListeners();
                         if (currentStatusEdit == 'streets'){
@@ -9590,13 +10098,13 @@ drawSegment(segment) {
                     try {                       
                         //occhio x la prod sisema orion-1....
                         //const url = `/superservicemap/api/v1?serviceUri=http://www.disit.org/km4city/resource/iot/orion-1/Organization/${deviceName}&maxResults=10` 
-                        if (lorganizzazione == null){
+                        /*if (lorganizzazione == null){
                             lorganizzazione = 'DISIT';
                         } 
                         
                         if (ilbrokerdellorganizzazione == null){
                             ilbrokerdellorganizzazione = 'orionUNIFI';
-                        } 
+                        } */
                         const url =  "<?= $mainsuperservicemap; ?>" +"?serviceUri=" + "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + `/${deviceName}&maxResults=10`                                                                 
                         const response = await fetch(url, { // oppure metti urlencoded
                             method: "GET",
@@ -10227,7 +10735,7 @@ drawSegment(segment) {
 			////Aggiunta pulsanti editing
 			var div1 = L.DomUtil.create('div');
             div1.id="scenary_selector";
-			div1.innerHTML = `<div id="menu-lines" style="max-width: 55px" hidden>
+			div1.innerHTML = `<div id="menu-lines" style="max-width: 55px;" hidden>
                                      <div id="scenario-div">
                                         <table>
                                             <tr>
@@ -10318,8 +10826,7 @@ drawSegment(segment) {
                                                     </div>
                                                 </div></div>`;
 
-
-
+            //$('#scenary_selector').css('max-height','33%');
 			// Disabilita l'interazione di questo div con la mappa per evitare conflitti
 			if (L.Browser.touch) {
 				L.DomEvent.disableClickPropagation(div1);
@@ -10367,62 +10874,68 @@ drawSegment(segment) {
                                                                 <td colspan="2"><input type="checkbox" id="selectAllRoad" value="all" checked/>Select All</td>
                                                                 <td colspan="2"><input type="checkbox" id="SelectNoRoad" value="noone" />Unselect All</td>
                                                             </tr>
-                                                            <tr><td colspan="2"><input type="checkbox" class="checkRoadType" value="primary" checked/>Primary</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tertiary" checked/>tertiary</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="footway" checked/>footway</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="residential" checked/>residential</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="trunk_link" checked/>trunk_link</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="motorway" checked/>motorway</td>
-                                                            </tr>
                                                             <tr>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="track" checked/>track</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="secondary_link" checked/>secondary_link</td>  
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="service" checked/>service</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tertiary_link" checked/>tertiary_link</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="path" checked/>path</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="via_ferrata" checked/>via_ferrata</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="cycleway" checked/>cycleway</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="living_street" checked/>living_street</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="primary_link" checked/>primary_link</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="emergency_bay" checked/>emergency_bay</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="steps" checked/>steps</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="motorway_link" checked/>motorway_link</td>
-                                                                </tr>
-                                                            <tr>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="services" checked/>services</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="disused" checked/>disused</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="road" checked/>road</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="construction" checked/>construction</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="raceway" checked/>raceway</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="emergency_access_point" checked/>emergency_access_point</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bridleway" checked/>bridleway</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="abandoned" checked/>abandoned</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="platform" checked/>platform</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="elevator" checked/>elevator</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bridleway" checked/>bridleway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bus_guideway" checked/>bus_guideway</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="bus_stop" checked/>bus_stop</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="rest_area" checked/>rest_area</td>
-                                                                </tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="construction" checked/>construction</td>
+                                                            </tr>
                                                             <tr>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="yes" checked/>yes</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="no" checked/>no</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="corridor" checked/>corridor</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="island" checked/>island</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="crossing" checked/>crossing</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="cycleway" checked/>cycleway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="disused" checked/>disused</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="elevator" checked/>elevator</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="emergency_access_point" checked/>emergency_access_point</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="emergency_bay" checked/>emergency_bay</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="footway" checked/>footway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="island" checked/>island</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="living_street" checked/>living_street</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="motorway" checked/>motorway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="motorway_link" checked/>motorway_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="no" checked/>no</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="path" checked/>path</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="platform" checked/>platform</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="primary" checked/>primary</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="primary_link" checked/>primary_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="private" checked/>private</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="raceway" checked/>raceway</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="razed" checked/>razed</td>
                                                             </tr>
-                                                            <tr> 
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="private" checked/>private</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="pedestrian" checked/>pedestrian</td>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="residential" checked/>residential</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="rest_area" checked/>rest_area</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="road" checked/>road</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="secondary_link" checked/>secondary_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="service" checked/>service</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="services" checked/>services</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="steps" checked/>steps</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tertiary" checked/>tertiary</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tertiary_link" checked/>tertiary_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="track" checked/>track</td>
+                                                            </tr>
+                                                            <tr>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="traffic_island" checked/>traffic_island</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="trunk_link" checked/>trunk_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="unclassified" checked/>unclassified</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="via_ferrata" checked/>via_ferrata</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="yes" checked/>yes</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="pedestrian" checked/>pedestrian</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="bus_guideway" checked/>bus_guideway</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="ohm:military:Trench" checked/>ohm:military:Trench</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="unclassified" checked/>unclassified</td>
-                                                                
                                                             </tr>
+
                                                     </tbody>
                                                 </table>
                                             </div>`;
@@ -11323,9 +11836,9 @@ drawSegment(segment) {
 				}
 		});
 
-        $('#updateRestriction').change(function() {
+       /* $('#updateRestriction').change(function() {
             alert('updateRestriction');
-        });
+        });*/
 
 		//################ cancel function dei metadati del builder ######################################
 
@@ -11621,6 +12134,8 @@ $('#updateStreetGraph').click(async function(){
                                    // $("#edit_lines").click();
                         
                     });
+
+
 ////BOLOGNA
 		//edit-lines
 	$("#edit_lines").click(async function() {
@@ -11696,6 +12211,7 @@ $('#updateStreetGraph').click(async function(){
                                     }
                                 });
                    map.defaultMapRef.addControl(drawerControl2);
+                  
           
             /////////
 			try {
@@ -24981,12 +25497,16 @@ setTimeout(function() {
 
         });//Fine document ready
 
-         function updateRestricitons(restriction_json){
+         function updateRestricitons(posRestrictions,restriction_json,node){
            ////////////// 
+           //CHECK POSSIBLE RESTICTIONS
+           ////////////CHECK POSSIBILITIES
+           console.log('posRestrictions 0',posRestrictions);
+           console.log('restriction_json',restriction_json);
+           /////////////
                    var restrictions = $('#updateRestriction').val();
                    var restrictions_text = $('#restrictionType').text();
                    $('#restrictionType').val(restrictions);
-                   console.log(restriction_json);
                    //////
                    if ((restrictions !=('Create new AccessRestriction'))&&(restrictions !=('Create new MaxMinRestriction'))&&(restrictions !=('Select or create restriction'))){
                             $('.restinction_data').css('display','');
@@ -24994,16 +25514,65 @@ setTimeout(function() {
                             $(".maxMinRestriction").css('display','none');
                             $(".accessRestriction").css('display','none');
                             $(".access_data").css('display','none');
+                            $("#deleteRestriction").css('display','none');
                             //
                             /**/
                             if ((restriction_json !== null)&&(restriction_json !== undefined)&&(restriction_json.length > 0)){
                             const index = restriction_json.findIndex(element => element.restriction.value === restrictions);
                                     $('#restrctionFrom').val(restriction_json[index].from.value);
-                                    $('#restrictionTo').val(restriction_json[index].to.value);
+                                    //$('#restrictionTo').val(restriction_json[index].to.value);
+                                    $('#restrictionTo').append('<option value="'+restriction_json[index].to.value+'">'+restriction_json[index].to.value+'</option>');
                                     $('#restrictionNode').val(restriction_json[index].node.value);
                                     $('#restrictionType').val(restriction_json[index].restriction.value);
+                            }else{
+                                if (posRestrictions.length > 0){
+                                    //console.log('restriction_json',restriction_json);
+                                            $('#restrictionTo').empty();
+                                            for(var x=0; x<posRestrictions.length; x++){
+                                                        console.log(posRestrictions[x].id); 
+                                                        console.log(posRestrictions[x].turn);
+                                                        var id_to = posRestrictions[x].id;
+                                                        var spitid= id_to.split('/');
+                                                        var r = spitid.length;
+                                                        var restrictionTo = spitid[r-2]+'/'+spitid[r-1];
+
+                                                        console.log(spitid);
+                                                        $('#restrictionTo').append('<option value="'+posRestrictions[x].id+'" order="'+x+'">'+restrictionTo+'</option>');
+
+                                                        $(".turnRestriction").css('display','none');
+                                                        $('#restrictionType').val(posRestrictions[0].turn[0]);
+                                                        for(var u=0; u<posRestrictions[0].turn.length; u++){
+                                                           var type= posRestrictions[0].turn[u];
+                                                           $(".turnRestriction[value='"+type+"']").css('display','');
+                                                           //$('#restrictionType').val(type);
+                                                           console.log(type);
+                                                        }
+                                                           
+                                            }
+                                            //
+                                            $('#restrictionTo').change(function() {
+                                                var actual_value=$('#restrictionTo').val();
+                                                console.log(actual_value);
+                                                $(".turnRestriction").css('display','none');
+                                                for(var z=0; z<posRestrictions.length; z++){
+                                                    if(posRestrictions[z].id == actual_value){
+                                                    for(var u=0; u<posRestrictions[z].turn.length; u++){
+                                                           var type= posRestrictions[z].turn[u];
+                                                           $(".turnRestriction[value='"+type+"']").css('display','');
+                                                           $('#restrictionType').val(type);
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                            ///
+
+                                           // $('#restrictionNode').val(restriction_json);
+                                            ///
+                                        }
+                                //
+
+                                //
                             }
-                            /**/
                             //
                    }else if(restrictions =='Create new AccessRestriction'){
                             $('.restinction_data').css('display','none');
@@ -25011,12 +25580,14 @@ setTimeout(function() {
                             $(".maxMinRestriction").css('display','none');
                             $(".accessRestriction").css('display','');
                             $(".access_data").css('display','');
+                            $("#deleteRestriction").css('display','none');
                    }else if(restrictions =='Create new MaxMinRestriction'){
                             $('.restinction_data').css('display','none');
                             $(".turnRestriction").css('display','none');
                             $(".maxMinRestriction").css('display','');
                             $(".accessRestriction").css('display','none');
                             $(".access_data").css('display','none');
+                            $("#deleteRestriction").css('display','none');
                    }else if(restrictions =='Select or create restriction'){
                             $('.restinction_data').css('display','none');
                             $(".turnRestriction").css('display','none');
@@ -25029,6 +25600,7 @@ setTimeout(function() {
                             $('#restrictionTo').val('');
                             $('#restrictionNode').val('');
                             $('#restrictionType').val('');
+                            $("#deleteRestriction").css('display','none');
                             //
                    }else{
                             $('.restinction_data').css('display','none');
@@ -25041,6 +25613,7 @@ setTimeout(function() {
                             $('#restrictionTo').val('');
                             $('#restrictionNode').val('');
                             $('#restrictionType').val('');
+                            $("#deleteRestriction").css('display','none');
                             //
                    }
                    //////
@@ -25077,15 +25650,24 @@ setTimeout(function() {
     .leaflet-popup-content {
         margin: 0;
         line-height: 1.5;
-        width: 450px;
+        width: auto;
     }
     .leaflet-popup-tip-container {
         display: none;
     }
 
     .leaflet-popup-content-wrapper{
-        width: 450 px;
+        width: auto;
     }
+
+    .draggable {
+            -webkit-user-drag: element; /* Per Chrome e Safari */
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-drag: element;
+        }
 
 </style>
 <!-- FINE OD POPUP STYLE -->
