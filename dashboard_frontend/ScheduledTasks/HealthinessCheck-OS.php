@@ -108,16 +108,6 @@ if (sizeof($rs) > 0) {
             $kb_based = $row['kb_based'];
             $parameters = $row['parameters'];
 
-        /*    if (stripos($unique_name_id, 'tusc_weather_sensor') !== false ||
-                stripos($unique_name_id, '-Rest') !== false ||
-                stripos($unique_name_id, '-Papier') !== false ||
-                stripos($unique_name_id, '-Glas') !== false ||
-                stripos($unique_name_id, '-Plastic') !== false ||
-                stripos($unique_name_id, 'SIRSensor_') !== false ||
-                stripos($unique_name_id, 'ARPAT_') !== false) {
-                    $stop_flag = 1;
-            }*/
-
           //  if (strpos($row['get_instances'] , 'weather_sensor_ow') == false) {
             array_push($result, $row);
             if ($row['high_level_type'] == 'From Dashboad to IOT Device' || $row['high_level_type'] == 'From IOT Device to Dashboard') {
@@ -237,10 +227,6 @@ if (sizeof($rs) > 0) {
                          $check_time = str_replace("T", " ", $date_now_ok[0]);
                          //     print_r($check_time);*/
 
-                    if ($sub_nature === 'Car_park') {
-                        $stop_flag = 1;
-                    }
-
                     if ($realtime_data['measuredTime']) {
                         $last_date = str_replace("T", " ", $realtime_data['measuredTime']['value']);
                     } else if ($realtime_data['instantTime']) {
@@ -254,7 +240,7 @@ if (sizeof($rs) > 0) {
                         foreach ($realtime_data as $key => $item) {
 
                             if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
-                                if ($key != 'capacity' || $sub_nature != 'Car_park') {
+                            //    if ($key != 'capacity') {
 
                                 /*    if ($realtime_data[$key]['valueDate']) {
                                         $last_date = str_replace("T", " ", $realtime_data[$key]['valueDate']);
@@ -305,9 +291,7 @@ if (sizeof($rs) > 0) {
                                             ], "ctx._source.last_date = '$ldopen';ctx._source.last_value = '$measure'");
                                     }
 
-                                }
-                            } else {
-                                $stop_flag = 1;
+                            //    }
                             }
 
                         }
@@ -390,7 +374,7 @@ if (sizeof($rs) > 0) {
                                 foreach ($healthiness as $key => $item) {
 
                                     if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
-                                        if ($key != 'capacity' || $sub_nature != 'Car_park') {
+                                    //    if ($key != 'capacity' || $sub_nature != 'Car_park') {
 
                                             $measure = $realtime_data[$key]['value'];
                                             // if ($realtime_data[$key]['unit'] != '') {
@@ -429,11 +413,8 @@ if (sizeof($rs) > 0) {
                                                     '', $healthy, ["term" => ["low_level_type" => $key]]);
                                             }
 
-                                        }
-                                    } else {
-                                        $stop_flag = 1;
+                                    //    }
                                     }
-
                                 }
                             }
                             //**********************************************************************************

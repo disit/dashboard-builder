@@ -18,7 +18,8 @@ include('process-form.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
 session_start();
-checkSession('AreaManager');
+//checkSession('AreaManager');
+checkSession('Manager');
 
 $lastUsedColors = null;
 

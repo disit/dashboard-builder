@@ -1164,6 +1164,9 @@ class OpenSearchS4C
                             //['term' => ['high_level_type' => 'Sensor-Actuator']]
                         ]
                     ]
+                ],
+                'sort' => [
+                    ['_id' => ['order' => 'desc']]
                 ]
             ]
         ];

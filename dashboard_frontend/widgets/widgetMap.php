@@ -213,6 +213,10 @@ class KBRoadEditor {
                 color: 'red',
             }
         },
+        tram: {
+            color: 'green',
+            hover: 'green'
+        }
     };
     tableMetersZoomNode = {
         "0": 10,
@@ -299,7 +303,8 @@ class KBRoadEditor {
                             "traffic_island",
                             "bus_guideway",
                             "ohm:military:Trench",
-                            "unclassified"];
+                            "unclassified",
+                            "tram"];
 
 
         this.map.on('mousedown', (e) => {
@@ -8591,6 +8596,12 @@ drawSegment(segment) {
                 //
                 var scenarioRestrictions = []; //Array delle restrizioni nei segnmenti.
 
+                var currentLoadedScenario = ''; //Device di uno scneario caricato
+                var currentLoadedVersion = ''; //Versione di uno scneario caricato
+
+
+                var saveLoadGraph = []; //Array per salvare lo stato completo di un grafo caricato 
+
                 //############################ UTILS functions #######################################################
                 // handleIntersectionsAndSensors(polygonWKT)
                 // getPolygonWKTFromScenarioArea(scenarioareaOfInterest)
@@ -8679,7 +8690,8 @@ drawSegment(segment) {
                                     turn: ['only_left_turn', 'no_left_turn']
                                 });    
                                 }
-                                if ((-135 <= angle && angle <= -180) || (135 <= angle && angle <= 180)) {
+                                
+                                if ((-180 <= angle && angle <= -135) || (135 <= angle && angle <= 180)) {
                                     restrictions.push({
                                     id: key,
                                     turn: ['no_u_turn']
@@ -8990,7 +9002,9 @@ drawSegment(segment) {
                 //function to get the access token
                 async function getLAccessToken() {                    
                     if ("<?= $_SESSION['refreshToken'] ?>" != null && "<?= $_SESSION['refreshToken'] ?>" != "") {
-                        const result = await $.ajax({
+                        //OLD
+
+                       /* const result = await $.ajax({
                             url: "../controllers/getAccessToken.php",
                             data: {
                                 refresh_token: "<?= $_SESSION['refreshToken'] ?>"
@@ -8999,19 +9013,46 @@ drawSegment(segment) {
                             async: true,
                             dataType: 'json',
                             success: function (dataSso) {
-                                    lAccessToken = dataSso.accessToken;                                                                            
+                                    lAccessToken = dataSso.accessToken;  
+                                    return lAccessToken;                                                                          
                             },
                             error: function (errorData) {
                                 console.log("Error in AJAX request for access token.");                                    
                             }
-                        });
-                        return result;
+                        });*/
+
+                        //NEW
+                        let result;
+                                                try {
+                                                    result = await $.ajax({
+                                                        url: "../controllers/getAccessToken.php",
+                                                        data: {
+                                                            refresh_token: "<?= $_SESSION['refreshToken'] ?>"
+                                                        },
+                                                        type: "GET"
+                                                    });
+                                                    //console.log('result',result);
+                                                    return result; 
+                                                   
+                                                } catch (error) {
+                                                    console.error('Error: ',error);
+                                                }
+                                               
                     }
                 }
                 
                 // funzione per prendere gli scenari presenti creati dall'utente 
                 async function getScenarios(currentStatus) { // currentStatus è init acc o tdm
-                    await getLAccessToken();                            
+                    console.log('Get List of scenarios');
+                    var listScen = await getLAccessToken(); 
+                    if (listScen != undefined){
+                    var listScen1 = JSON.parse(listScen);
+                    if(listScen1.accessToken){
+                    lAccessToken = listScen1.accessToken;
+                    }
+                   console.log('listScen1', listScen1);
+                    }
+                                               
                     const header = {
                         "Content-Type": "application/json",
                         "Accept": "application/json",
@@ -9276,23 +9317,34 @@ drawSegment(segment) {
                         //console.log(jsonStreetGraph);
                         //
                         //stradeInfo.forEach(strada => {
-
+                            var checkedValues = $('.checkRoadType:checked').map(function() {
+                                return this.value;
+                            }).get();
+                            console.log('checkedValues in KB class',checkedValues);
+                            console.log('checkedValues Length in KB class',checkedValues.length);
         ///BOLOGNA -COLLINI -> CREAZIONE GRAFO STRADE
                         jsonStreetGraph.forEach(strada => {
                             //AGGIORNAMENTO DEL JSON DEI ROAD GRAPH
-                            istanzedelgrafochestoconsiderando.push(strada);
-                               
+                            //Controllo Sulle CheckedVlues
+                             istanzedelgrafochestoconsiderando.push(strada);
+                               //
                             
                         });
                 /// FINE BOLOGNA-COLLINI
                 var currentStatusEdit = $('#currentStatusEdit').val();
                 ///ADREANI
+                 // Convert JSON object to a string
+                 
+                            //Check on filters
+                            //roadElementGraph.filterTypes;
             ///////
             $('.leaflet-popup-content-wrapper').addClass('draggable');
             ///////
             if (!roadElementGraph){
+                console.log('roadElementGraph.filterTypes 0',checkedValues);
                         roadElementGraph = new KBRoadEditor(map.defaultMapRef, existentRoadGraph ? existentRoadGraph: istanzedelgrafochestoconsiderando, (strada) => {
                             // segment. ci sono i dati
+                            console.log('istanzedelgrafochestoconsiderando',istanzedelgrafochestoconsiderando);
                             // segment.line e la poliline da appenderre il popup
                             //var descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+strada+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+strada.dir+'<br /><span><b>Restrictions: </b></span><br /><span></div>');
                             ////////POPUPS BOLOGNA
@@ -9315,8 +9367,6 @@ drawSegment(segment) {
                                 turn : strada.turn
                             }
                             
-                            // Convert JSON object to a string
-                                
 
                             var stradajson = JSON.stringify(jsonObject);
                            // console.log(stradajson);
@@ -9415,6 +9465,7 @@ drawSegment(segment) {
                             const types = roadElementGraph.filterTypes; // <= VERIFICA
                             const reID = strada.segment;
                             //console.log('reID:',reID);
+                            console.log('types',types);
                             console.dir(graph2);
                             //console.log('types',types);
                             const posRestrictions_check = checkPossibleRestrictions(reID, graph2, prefix, types);
@@ -9427,6 +9478,7 @@ drawSegment(segment) {
                              }*/
                             //////// 
                             ////////////////
+                            //roadElementGraph.filterTypes = selectedRoadTypes;
 
                             //console.log(restriction_span);
                             if (status !=='in esercizio'){
@@ -9544,6 +9596,7 @@ drawSegment(segment) {
                                                                         <option value="tertiary_link">tertiary_link</option>
                                                                         <option value="track">track</option>
                                                                         <option value="traffic_island">traffic_island</option>
+                                                                        <option value="tram">tram</option>
                                                                         <option value="trunk_link">trunk_link</option>
                                                                         <option value="unclassified">unclassified</option>
                                                                         <option value="via_ferrata">via_ferrata</option>
@@ -9606,13 +9659,8 @@ drawSegment(segment) {
                                                 <td><b>Node:    </b></td class="restinction_data" style="display: none;">
                                                 <td><input type="text" id="restrictionNode" value="`+nodeRestriction+`" readonly/>
                                                 </td>
-                                                <tr>
-                                                <td>
-                                                <input type="button" id="deleteRestriction" value="Delete resctriction" style="display: none;"/>
-                                                </td>
                                                 </tr>
-                                                </tr>
-                                                <tr class="access_data" style="display: none;" >
+                                                <tr class="access_data" style="display: none;">
                                                 <td><b>Direction:</b></td>
                                                 <td>
                                                 <select id="direction_access">
@@ -9625,14 +9673,14 @@ drawSegment(segment) {
                                                 <td><b>Access:</b></td>
                                                 <td>
                                                 <select id="access_access">
-                                                            <option value="no">no</option>
-                                                            <option value="yes">yes</option>
-                                                            <option value="designated">designated</option> 
-                                                            <option value="use_sidepath">use_sidepath</option> 
-                                                            <option value="destination">destination</option> 
-                                                            <option value="private">private</option> 
-                                                            <option value="permissive">permissive</option> 
-                                                            <option value="dismount">dismount</option>
+                                                            <option class="access_select" value="no">no</option>
+                                                            <option class="access_select" value="yes">yes</option>
+                                                            <option class="access_select" value="designated">designated</option> 
+                                                            <option class="access_select" value="use_sidepath">use_sidepath</option> 
+                                                            <option class="access_select" value="destination">destination</option> 
+                                                            <option class="access_select" value="private">private</option> 
+                                                            <option class="access_select" value="permissive">permissive</option> 
+                                                            <option class="access_select" value="dismount">dismount</option>
                                                 </select>
                                                 </td>
                                                 </tr>
@@ -9683,6 +9731,11 @@ drawSegment(segment) {
                                                 <input type="number" id="limit_minmax" value="" /></td>
                                                 </td>
                                                 </tr>
+                                                <tr>
+                                                <td>
+                                                <input type="button" id="deleteRestriction" value="Delete resctriction" style="display: none;"/>
+                                                </td>
+                                                </tr>
                                                 </tbody>
                                                 </table>
                                                 <input type="button" id="updateStreet" value="Update" />
@@ -9698,25 +9751,60 @@ drawSegment(segment) {
                                             console.log('strada', strada.restriction);
                                             if(restriction_span =='AccessRestriction'){
                                                 //
-                                                var who_access = strada.who;
-                                                var direction_access = strada.direction;
-                                                var access_access = strada.access;
+                                                var who_access = '';
+                                                var direction_access = '';
+                                                var access_access = '';
+                                                //
+                                                if((strada.restriction).length > 0){
+                                                var rs = strada.restriction;
+                                                            for(var i=0;i<rs.length; i++){
+                                                                var rt = rs[i].restriction;
+                                                                //what_minmax = rs[i].what;            
+                                                                //limit_minmax = rs[i].limit;
+                                                                who_access = rs[i].who;
+                                                                direction_access = rs[i].direction;
+                                                                access_access = rs[i].access;
+                                                            }
+                                                        }
+
+                                                    console.log('who_access:',who_access);
+                                                    console.log('direction_access:',direction_access);
+                                                    console.log('access_access:',access_access);
                                                 //
                                                 descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>'+restriction_span+'</option>');
-                                                descrStrada = descrStrada.replaceAll('<tr class="access_data" style="display: none;">','<tr class="access_data">');
                                                 //
-                                                descrStrada = descrStrada.replace('<option value="'+access_access+'">'+access_access+'</option>','<option value="'+access_access+'" selected>'+access_access+'</option>');
-                                                descrStrada = descrStrada.replace('<option value="'+who_access+'">'+who_access+'</option>','<option value="'+who_access+'" selected>'+who_access+'</option>');
-                                                descrStrada = descrStrada.replace('<option value="'+direction_access+'">'+direction_access+'</option>','<option value="'+direction_access+'" selected>'+direction_access+'</option>');
+                                                //direction_access
+                                                descrStrada = descrStrada.replaceAll('<tr class="access_data" style="display: none;">','<tr class="access_data">');
+                                                //descrStrada = descrStrada.replace('<select id="who_access">','<select id="who_access" value="'+who_access+'" selected>');
+                                                //descrStrada = descrStrada.replace('<select id="access_access">','<select id="access_access" value="'+access_access+'" selected>');
+                                                //descrStrada = descrStrada.replace('<select id="direction_access">','<select id="direction_access" value="'+direction_access+'">');
+                                                //
+                                                descrStrada = descrStrada.replace('<option class="access_select" value="'+access_access+'">','<option class="access_select" value="'+access_access+'" selected>');
+                                                descrStrada = descrStrada.replace('<option value="'+who_access+'">','<option value="'+who_access+'" selected>');
+                                                descrStrada = descrStrada.replace('<option value="'+direction_access+'">','<option value="'+direction_access+'" selected>');
+                                                descrStrada = descrStrada.replace('<input type="button" id="deleteRestriction" value="Delete resctriction" style="display: none;"/>','<input type="button" id="deleteRestriction" value="Delete resctriction" />');
                                                 //                                             
                                             }else if(restriction_span =='MaxMinRestriction'){
                                                 descrStrada = descrStrada.replace('Select or create restriction</option>','Select or create restriction</option><option value="'+restriction_span+'" selected>'+restriction_span+'</option>');
                                                 descrStrada = descrStrada.replaceAll('<tr class="maxMinRestriction" style="display: none;">','<tr class="maxMinRestriction">');
                                                 //
-                                                var what_minmax = strada.what;
-                                                var limit_minmax = strada.limit;
+                                                var what_minmax = '';
+                                                var limit_minmax = '';                                          
+                                                //
+                                                if((strada.restriction).length > 0){
+                                                var rs = strada.restriction;
+                                                            for(var i=0;i<rs.length; i++){
+                                                                var rt = rs[i].restriction;
+                                                                what_minmax = rs[i].what;            
+                                                                limit_minmax = rs[i].limit;
+                                                            }
+                                                        }
+                                                console.log('what_minmax:',what_minmax);
+                                                console.log('limit_minmax:',limit_minmax);
+                                                //
                                                 descrStrada = descrStrada.replaceAll('<option value="'+what_minmax+'">'+what_minmax+'</option>','<option value="'+what_minmax+'" selected>'+what_minmax+'</option>');
                                                 descrStrada = descrStrada.replaceAll('<input type="number" id="limit_minmax" value=""','<input type="number" id="limit_minmax" value="'+limit_minmax+'"');
+                                                descrStrada = descrStrada.replace('<input type="button" id="deleteRestriction" value="Delete resctriction" style="display: none;"/>','<input type="button" id="deleteRestriction" value="Delete resctriction" />');
                                                 //
                                             }else{   
                                                 //ADD VALUES//
@@ -9784,12 +9872,57 @@ drawSegment(segment) {
                                     dir = 'Closed';
                                 }
                                 width_popup = 400;
+                                ////
+                             console.log('restinction_nodes',strada.restriction);
+                             var indices = strada.restriction;
+                                if (indices.length > 0){
+                                                indices.forEach((element, index) => {
+                                                            restriction_span = element.restriction;
+                                                            //
+                                                            //toRestriction = element.to;
+                                                            toRestriction = (element.to).split('/');
+                                                            toRestriction = toRestriction[toRestriction.length-2]+'/'+toRestriction[toRestriction.length-1];
+                                                            //
+                                                            //nodeRestriction = element.node;
+                                                            nodeRestriction = (element.node).split('/');
+                                                            nodeRestriction = nodeRestriction[nodeRestriction.length-1];
+                                                            //
+                                                            fromRestriction = (element.from).split('/');
+                                                            fromRestriction = fromRestriction[fromRestriction.length-2]+'/'+fromRestriction[fromRestriction.length-1];
+                                                            //color_dir = 'green';
+                                                            //console.log(restinction_nodes[index]);
+                                                            restriction_array.push(element);
+                                                            ///////////
+                                                });
+                                            }
+                                console.log('restriction_array:',restriction_array);
+
+
+                                    ///
                                 var restriction_data_details = '';
                                 //descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+dir+'<br /><span><b>Restrictions: </b></span>'+restriction_span+'<br /><span></div>');
                                   descrStrada = ('<div id="headerDraggable">Road: '+strada.segment+'</div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="'+strada.segment+'" style="display:none"><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>'+strada.type+'</td></tr><tr><td><b>Nr.Lanes:</b></td><td>'+strada.lanes+'</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>'+strada.roadElmSpeedLimit+'</td></tr><tr><td><b>Direction:</b></td><td>'+dir+'</td></tr><tr><td><b>Restrictions:</b></td><td>'+restriction_span+'</td></tr></tbody></table></div>');
 
                                   if(restriction_span !=='Not defined'){
-                                                 descrStrada = descrStrada.replace('</tbody></table>','<tr><td><b>From:</b></td><td>'+fromRestriction+'</td></tr><tr><td><b>To:</b></td><td>'+toRestriction+'</td></tr><tr><td><b>No:</b></td><td>'+nodeRestriction+'</td></tr></tbody></table>');    
+                                            var string_restriciton = '';
+                                                if(restriction_array.length > 0){
+                                                    for(var u=0; u<restriction_array.length; u++){
+                                                        ///
+                                                        toRestriction = (restriction_array[u].to).split('/');
+                                                            toRestriction = toRestriction[toRestriction.length-2]+'/'+toRestriction[toRestriction.length-1];
+                                                            //
+                                                            //nodeRestriction = element.node;
+                                                            nodeRestriction = (restriction_array[u].node).split('/');
+                                                            nodeRestriction = nodeRestriction[nodeRestriction.length-1];
+                                                            //
+                                                            fromRestriction = (restriction_array[u].from).split('/');
+                                                            fromRestriction = fromRestriction[fromRestriction.length-2]+'/'+fromRestriction[fromRestriction.length-1];
+                                                        ///
+                                                        string_restriciton = string_restriciton + '<tr><td><b>Restrictions:</b></td><td>'+restriction_array[u].restriction+'</td></tr><tr><td><b>From:</b></td><td>'+fromRestriction+'</td></tr><tr><td><b>To:</b></td><td>'+toRestriction+'</td></tr><tr><td><b>Node:</b></td><td>'+nodeRestriction+'</td></tr>';
+                                                    }
+                                                }
+                                                descrStrada = descrStrada.replace('<tr><td><b>Restrictions:</b></td><td>'+restriction_span+'</td></tr></tbody></table>',string_restriciton+'</tbody></table>');   
+                                                 //descrStrada = descrStrada.replace('</tbody></table>','<tr><td><b>From:</b></td><td>'+fromRestriction+'</td></tr><tr><td><b>To:</b></td><td>'+toRestriction+'</td></tr><tr><td><b>No:</b></td><td>'+nodeRestriction+'</td></tr></tbody></table>');    
                                   }
                             }
                             
@@ -9816,6 +9949,19 @@ drawSegment(segment) {
                                                             index = i; // Memorizza l'indice dell'elemento trovato
                                                             break; // Esci dal ciclo una volta trovato l'elemento
                                                         }
+                                                        
+                                                        
+
+                                                }else if (data[i].restriction === 'MaxMinRestriction') {
+                                                            index = i; // Memorizza l'indice dell'elemento trovato
+                                                            break; // Esci dal ciclo una volta trovato l'elemento
+                                                        }
+                                                else if (data[i].restriction === 'AccessRestriction') {
+                                                            index = i; // Memorizza l'indice dell'elemento trovato
+                                                            break; // Esci dal ciclo una volta trovato l'elemento
+                                                        }
+                                                else{
+                                                    //do nothing
                                                 }
                                             }
                                             if (index !== -1) {
@@ -9865,6 +10011,7 @@ drawSegment(segment) {
                                                     who:  who_access,
                                                     restriction: 'AccessRestriction'
                                                 });
+                                                console.log('ACCESS:',strada);
                                             //
                                             $('#deleteRestriction').css('display','');    
                                         }else if(restrictionTypeText == 'Create new MaxMinRestriction'){
@@ -10044,6 +10191,8 @@ drawSegment(segment) {
                            
                             
            ////////////// 
+           //roadElementGraph.filterTypes = checkedValues;
+                       // console.log(roadElementGraph.filterTypes);
            //CHECK POSSIBLE RESTICTIONS
            //function updateRestricitons(posRestrictions,restriction_json){
                   
@@ -10051,16 +10200,27 @@ drawSegment(segment) {
 
                             /////////////////////////////
                         });
+                        //
+                        
+                        //
                         roadElementGraph.addEventListeners();
                         if (currentStatusEdit == 'streets'){
                             roadElementGraph.mode = 'drag';
                         }else{
                             roadElementGraph.mode = "view";
                         }
-                    }else{
+        }else{
+            console.log('roadElementGraph.filterTypes 1',checkedValues);
                     roadElementGraph.reset();
+                    //CHECK SUI VALORI////////////
+                   /* if (checkedValues.length > 0){
+                                 roadElementGraph.filterTypes = checkedValues;
+                                 
+                            }*/
+                            ////////////////
                     roadElementGraph.loadGraph(istanzedelgrafochestoconsiderando);
                     roadElementGraph.draw();
+                     
                 }
                 $('#jsonIstanze').text('');
                        
@@ -10089,11 +10249,21 @@ drawSegment(segment) {
                
                 // funzione per leggere i dati da un device
                 async function readFromDevice(lAccessToken, deviceName){       
-                    await getLAccessToken();                            
+                    //await getLAccessToken();  
+                    var listScen = await getLAccessToken(); 
+                    if (listScen != undefined){
+                    var listScen1 = JSON.parse(listScen);
+                            if(listScen1.accessToken){
+                            lAccessToken = listScen1.accessToken;
+                            }
+                        console.log('listScen1', listScen1);
+                    }
+                    //
                     const header = {
                         "Content-Type": "application/json",
                         "Accept": "application/x-www-form-urlencoded",
-                        "Authorization": `Bearer ${lAccessToken}`
+                        "Authorization": `Bearer ${lAccessToken}`,
+                        "Accept-Encoding": "gzip, deflate"
                     };
                     try {                       
                         //occhio x la prod sisema orion-1....
@@ -10105,7 +10275,8 @@ drawSegment(segment) {
                         if (ilbrokerdellorganizzazione == null){
                             ilbrokerdellorganizzazione = 'orionUNIFI';
                         } */
-                        const url =  "<?= $mainsuperservicemap; ?>" +"?serviceUri=" + "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + `/${deviceName}&maxResults=10`                                                                 
+                        const url =  "<?= $mainsuperservicemap; ?>" +"?serviceUri=" + "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + `/${deviceName}&maxResults=10`;
+                        console.log(url);                                                                 
                         const response = await fetch(url, { // oppure metti urlencoded
                             method: "GET",
                             headers: header
@@ -10270,7 +10441,16 @@ drawSegment(segment) {
 
                 // funzione di Alberto per l'invio dei dati accorpati
                 async function sendDataACC(lAccessToken, deviceName, js20Data,acData,svolte){
-                    await getLAccessToken(); 
+                    //await getLAccessToken(); 
+                    var listScen = await getLAccessToken();
+                    if (listScen != undefined){ 
+                    var listScen1 = JSON.parse(listScen);
+                        if(listScen1.accessToken){
+                        lAccessToken = listScen1.accessToken;
+                        }
+                    console.log('listScen1', listScen1);
+                    }
+                    //
                     const header = {
                         "Content-Type": "application/json",
                         "Accept": "application/json",
@@ -10523,6 +10703,10 @@ drawSegment(segment) {
 		map.defaultMapRef.on('draw:created', function(e) {
             //console.log('scenaryGrafo:');
             //console.log(scenaryGrafo);
+            if(saveLoadGraph.length > 0){
+                       saveLoadGraph = [];
+                 }
+            //
             map.defaultMapRef.eachLayer(function (layer) {
                     // Verifica se il layer è un poligono, rettangolo o marker
                  if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
@@ -10666,6 +10850,7 @@ drawSegment(segment) {
 			// Append the loading box to the map container
 			const mapContainer = this.getContainer(); // Assuming `this` refers to the map object
 			mapContainer.appendChild(loadingBox);
+            console.log('mapContainer: ',mapContainer);
 			//document.body.appendChild(loadingBox);                                                        
 			// Before making the requests, show the loading box
 			loadingBox.style.display = "block";
@@ -10847,17 +11032,18 @@ drawSegment(segment) {
             });
             ///
             var element = document.getElementById('filter-list');
+            console.log('element filter-list', element);
            if (element !== null){
-            //element.remove();
-            if ($('#filter-list').is(':hidden')) {
-                    $('#filter-list').show();
-                    $("#road_types").css('background-color','#3E64A6');
-                    $("#road_types").css('color','white');
-            }else{
-                  $('#filter-list').hide();
-                    $("#road_types").css('background-color','');
-                    $("#road_types").css('color','black');
-            }
+                        //element.remove();
+                        if ($('#filter-list').is(':hidden')) {
+                                $('#filter-list').show();
+                                $("#road_types").css('background-color','#3E64A6');
+                                $("#road_types").css('color','white');
+                        }else{
+                            $('#filter-list').hide();
+                                $("#road_types").css('background-color','');
+                                $("#road_types").css('color','black');
+                        }
            }else{
             scenaryControl4.onAdd = function(map) {
                     var div = L.DomUtil.create('div');
@@ -10925,12 +11111,14 @@ drawSegment(segment) {
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="traffic_island" checked/>traffic_island</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tram" checked/>tram</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="trunk_link" checked/>trunk_link</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="unclassified" checked/>unclassified</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="via_ferrata" checked/>via_ferrata</td>
-                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="yes" checked/>yes</td>
+                                                                
                                                             </tr>
                                                             <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="yes" checked/>yes</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="pedestrian" checked/>pedestrian</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="bus_guideway" checked/>bus_guideway</td>
                                                                 <td colspan="2"><input type="checkbox" class="checkRoadType" value="ohm:military:Trench" checked/>ohm:military:Trench</td>
@@ -10948,7 +11136,7 @@ drawSegment(segment) {
 			}
 			return div;
 		};
-		scenaryControl4.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+		///scenaryControl4.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
 
         //
                         $('.checkRoadType').click(function(){
@@ -11064,11 +11252,19 @@ drawSegment(segment) {
             $("#line_delete").css('color','white');
         });
 
+       
+
         $("#line_reset").click(function() {
             console.log('CLICK ON CANCEL');
+            //
+            if(saveLoadGraph.length > 0){
+                saveLoadGraph = [];
+            }
+            //
             roadElementGraph.clearSegments();
             roadElementGraph.clearNodes();
             roadElementGraph.reset();
+            currentLoadedScenario = '';
 
             
             map.defaultMapRef.eachLayer(function (layer) {
@@ -11148,17 +11344,45 @@ drawSegment(segment) {
                                                         <input type="text" id="search-scenario-init" placeholder="Search..." hidden>      
                                                         <!--<ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul>-->
                                                         <select id="scenario-init-list" style="max-height: 120px; overflow: auto;"></select>  
+                                                        <!-- -->
+                                                        <br />
+                                                        <label for="scenario-version-list">Scenario version:</label>
+                                                        <select id="scenario-version-list" style="max-height: 120px; overflow: auto;"></select>
+                                                        <br />
                                                         <button id="scenario-load">Load Scenario</button>                                                                                             
                                                 </td>                                                   
-                                                <tr id="scenario-list-row" style="display: none;">
+                                               <!-- <tr id="scenario-list-row" style="display: none;">
                                                     <td><label for="scenario-list">Scenario List:</label></td>
                                                     <td>
                                                         <select id="scenario-list" name="scenario-list"></select>
                                                     </td>
+                                                    <br />
+                                                                        <td><label for="acc-list">acc version:</label></td>
+                                                                        <td>
+                                                                            <select id="acc-list" name="acc-list"></select>
+                                                                        </td><br />
                                                     <td colspan="2">
                                                         <button id="scenario-check-acc1">Load ACC</button>
                                                     </td>
-                                                </tr>                                                         
+                                                </tr> -->    
+                                                <tr class="scenario-list-row" style="display: none;">
+                                                    <td><label for="scenario-list">Scenario List:</label></td>
+                                                    <td>
+                                                        <select id="scenario-list" name="scenario-list"></select>
+                                                    </td>
+                                                </tr>
+                                                <tr class="scenario-list-row" style="display: none;">
+                                                                        <td><label for="acc-list">acc version:</label></td>
+                                                                        <td>
+                                                                            <select id="acc-list" name="acc-list"></select>
+                                                                        </td>
+                                                                        </tr>
+                                                <tr class="scenario-list-row" style="display: none;">
+                                                    <td colspan="2">
+                                                        <button id="scenario-check-acc1">Load ACC</button>
+                                                    </td>
+                                                </tr>
+                                                <!-- -->
                                                 
                                                 <tr id="scenario-tdm-row" style="display: none;">
                                                     <td>
@@ -11183,7 +11407,6 @@ drawSegment(segment) {
                                     </div>                                
                                 </div>`;
 
-
 			// Disabilita l'interazione di questo div con la mappa per evitare conflitti
 			if (L.Browser.touch) {
 				L.DomEvent.disableClickPropagation(div);
@@ -11196,6 +11419,8 @@ drawSegment(segment) {
 		scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
         getInits();
 
+        
+
             //init list
             async function getInits() {
                                                     // Ottieni l'ID del radio button selezionato
@@ -11204,7 +11429,7 @@ drawSegment(segment) {
                                                     // Determina il tipo di scenario in base all'ID
                                                         var scenarioType = "init";
                                                         // Nascondi la lista degli scenari se il tipo non è "ACC"
-                                                        $("#scenario-list-row").hide();
+                                                        $(".scenario-list-row").hide();
                                                         $("#scenario-init-list").empty();
                                                         //$("scenario-init-row").show()
                                                         document.getElementById("scenario-init-row").style.display = "block";
@@ -11212,9 +11437,10 @@ drawSegment(segment) {
                                                         var initScenarios1 = await getScenarios(scenarioType);
                                                         var initScenarios2 = await getScenarios("acc");
                                                         var initScenarios3 = await getScenarios("");
+                                                        
                                                         //var initScenarios = initScenarios1.concat(initScenarios2); 
                                                         var initScenarios = initScenarios1.concat(initScenarios2).concat(initScenarios3); 
-                                                        //console.log(initScenarios);
+                                                        //console.log('initScenarios',initScenarios);
                                                         var scenarioInitList = $("#scenario-init-list");
                                                         var searchInput = $("#search-scenario-init");
                                                         searchInput.on("input", function () {
@@ -11234,6 +11460,64 @@ drawSegment(segment) {
                                                         });
 
                                                       //  pulisciTutto();
+                                                       ////////SELECT EVENT
+                                                        $('#scenario-init-list').change(function(){
+                                                                    var selectedOption = $(this).val();
+                                                                    console.log("Selected option: " + selectedOption);
+                                                                        var suri = "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectedOption; 
+                                                                        var url = "<?= $endprocessloader; ?>" +`getOneSpecific.php?suri=${suri}`; 
+                                                                        $('#scenario-version-list').empty();
+                                                                         $.ajax({
+                                                                            type: 'GET',
+                                                                            url: url,
+                                                                            dataType: "json",
+                                                                            contentType: 'application/json; charset=utf-8',
+                                                                            async: false,
+                                                                            success: function (data) {
+                                                                                console.log(data);
+                                                                               // scenario-version-list
+                                                                               var obj = (data);
+                                                                               for(var i=0; i<obj.length; i++){
+                                                                                    //console.log(obj[i]);
+                                                                                    $('#scenario-version-list').append(`<option value='`+obj[i].data+`'>`+obj[i].dateObserved+`</option>`);
+                                                                                }
+                                                                            }
+                                                                         });                                                                                           
+                                                                      });
+                                                                      
+                                                        /////////////////
+                                                        //SELECT ACC
+                                                        $('#scenario-list').change(function() {
+                                                                var selectedOption = $(this).val();
+                                                                console.log("Selected option: " + selectedOption);
+                                                                var suri = "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + selectedOption;
+                                                                var url = "<?= $endprocessloader; ?>" + `getOneSpecific.php?suri=${suri}`;
+                                                                $('#acc-list').empty();
+                                                                $.ajax({
+                                                                    type: 'GET',
+                                                                    url: url,
+                                                                    dataType: "json",
+                                                                    contentType: 'application/json; charset=utf-8',
+                                                                    async: false,
+                                                                    success: function(data) {
+                                                                        console.log(data);
+                                                                        // scenario-version-list
+                                                                        var obj = (data);
+                                                                        for (var i = 0; i < obj.length; i++) {
+                                                                            //console.log(obj[i]);
+                                                                            if(obj[i].data){
+                                                                           /// $('#acc-list').append(`<option value='` + obj[i].data + `'>` + obj[i].dateObserved + `</option>`);
+                                                                           var acc1 = JSON.parse(obj[i].data);
+                                                                            if (acc1.AC){
+                                                                                    console.log('AC',acc1.AC);
+                                                                                    $('#acc-list').append(`<option value='` + obj[i].data + `'>` + obj[i].dateObserved + `</option>`);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                });
+                                                            });
+                                                      
                                         
                                                         function filterScenarios(scenarios, searchTerm) {
                                                             var scenarioInitList = $("#scenario-init-list");
@@ -11257,14 +11541,203 @@ drawSegment(segment) {
                                                     } else {
                                                         console.error("Errore nel determinare il tipo di scenario.");
                                                     }
+
+            ////////Creazione del LoadFIlters (invisibile)
+            /////////////////////////////////////////
+            var scenaryControl0 = L.control({
+                    position: 'bottomright'
+            });    
+            scenaryControl0.onAdd = function(map) {
+                    var div = L.DomUtil.create('div');
+			            //currentStatusEdit MANAGE STATUS//
+                        //$("#road_types").css('background-color','#3E64A6');
+                       // $("#road_types").css('color','white');
+                        //
+                         div.id="filter-list";
+                         div.style.display = "none";
+                         div.innerHTML = `<div id="scenario-div" style="margin: 10px;">
+                                                <table>
+                                                    <tbody style="margin-right: 5px; margin-left: 5px;">
+                                                    <tr style="margin-bottom: 20px">
+                                                                <td colspan="2"><span><b>Road Types:</b></span></td>
+                                                                <td colspan="2"><input type="checkbox" id="selectAllRoad" value="all" />Select All</td>
+                                                                <td colspan="2"><input type="checkbox" id="SelectNoRoad" value="noone" />Unselect All</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="abandoned" checked/>abandoned</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bridleway" checked/>bridleway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bus_guideway" checked/>bus_guideway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bus_stop" checked/>bus_stop</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="construction" checked/>construction</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="corridor" checked/>corridor</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="crossing" checked/>crossing</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="cycleway" checked/>cycleway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="disused" checked/>disused</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="elevator" checked/>elevator</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="emergency_access_point" checked/>emergency_access_point</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="emergency_bay" checked/>emergency_bay</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="footway" checked/>footway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="island" checked/>island</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="living_street" checked/>living_street</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="motorway" checked/>motorway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="motorway_link" checked/>motorway_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="no" checked/>no</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="path" checked/>path</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="platform" checked/>platform</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="primary" checked/>primary</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="primary_link" checked/>primary_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="private" checked/>private</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="raceway" checked/>raceway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="razed" checked/>razed</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="residential" checked/>residential</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="rest_area" checked/>rest_area</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="road" checked/>road</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="secondary_link" checked/>secondary_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="service" checked/>service</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="services" checked/>services</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="steps" checked/>steps</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tertiary" checked/>tertiary</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tertiary_link" checked/>tertiary_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="track" checked/>track</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="traffic_island" checked/>traffic_island</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="tram" checked/>tram</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="trunk_link" checked/>trunk_link</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="unclassified" checked/>unclassified</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="via_ferrata" checked/>via_ferrata</td>
+                                                                
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="yes" checked/>yes</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="pedestrian" checked/>pedestrian</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="bus_guideway" checked/>bus_guideway</td>
+                                                                <td colspan="2"><input type="checkbox" class="checkRoadType" value="ohm:military:Trench" checked/>ohm:military:Trench</td>
+                                                            </tr>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>`;
+                         // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+			if (L.Browser.touch) {
+				L.DomEvent.disableClickPropagation(div);
+				L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+			} else {
+				L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+			}
+			return div;
+            div.css('display', 'none');
+		};
+		scenaryControl0.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+        
+            ////////////////////////////////////////
+            $('.checkRoadType').click(function(){
+                                    
+                                    //
+                                    if(saveLoadGraph.length > 0){
+                                        roadElementGraph.reset();
+                                        roadElementGraph.loadGraph(saveLoadGraph);
+                                    }
+                                    //roadElementGraph.loadGraph(istanzedelgrafochestoconsiderando);
+                                    var checkboxes = document.querySelectorAll('.checkRoadType:checked');
+                                    var selectedRoadTypes = [];
+                                    checkboxes.forEach(function(checkbox) {
+                                        if (checkbox.checked) {
+                                            selectedRoadTypes.push(checkbox.value);
+                                        }
+                                    });
+                                    roadElementGraph.filterTypes = selectedRoadTypes;
+                                    roadElementGraph.draw();
+
+                                    $("#SelectNoRoad").prop("checked",false);
+                                    $("#selectAllRoad").prop("checked",false);
+                        });
+
+                        $('#selectAllRoad').click(function(){
+                                    $(".checkRoadType").prop("checked", true);
+                                    $("#SelectNoRoad").prop("checked",false);
+                                    //roadElementGraph.reset();
+                                    //roadElementGraph.loadGraph(istanzedelgrafochestoconsiderando);
+                                    var checkboxes = document.querySelectorAll('.checkRoadType:checked');
+                                    var selectedRoadTypes = [];
+                                    checkboxes.forEach(function(checkbox) {
+                                        if (checkbox.checked) {
+                                            selectedRoadTypes.push(checkbox.value);
+                                        }
+                                    });
+                                    roadElementGraph.filterTypes = selectedRoadTypes;
+                                    roadElementGraph.draw();
+                        });
+
+                        $('#SelectNoRoad').click(function(){
+                                    $(".checkRoadType").prop("checked", false);
+                                    $("#selectAllRoad").prop("checked",false);
+                                    //roadElementGraph.reset();
+                                    //roadElementGraph.loadGraph(istanzedelgrafochestoconsiderando);
+                                    var checkboxes = document.querySelectorAll('.checkRoadType:checked');
+                                    var selectedRoadTypes = [];
+                                    checkboxes.forEach(function(checkbox) {
+                                        if (checkbox.checked) {
+                                            selectedRoadTypes.push(checkbox.value);
+                                        }
+                                    });
+                                    roadElementGraph.filterTypes = selectedRoadTypes;
+                                    roadElementGraph.draw();
+                        });
+            //////////////////////////////////////////
         };
         //
+        
 //update streets
 
         //LOAD SCENARY
         $('#scenario-load').click(async function(){
-            var scenarioLoad = $('#search-scenario-init').val();
-            console.log('load scenario: '+scenarioLoad);
+           // var scenarioLoad = $('#search-scenario-init').val();
+            var scenarioLoad = $('#scenario-init-list').val();
+           
+            console.log('load scenario3: '+scenarioLoad);
+            var serviceUri_list = [];
+            ///
+            currentLoadedScenario = scenarioLoad;
+            //
+            currentLoadedVersion = $('#scenario-version-list').prop('selectedIndex');
+            console.log('selectedIndex:',currentLoadedVersion);
+            ////
+            /////ADDING A LOADING BOX////////////
+            const loadingBox = document.createElement("div");
+			loadingBox.id = "loading-box";
+			loadingBox.style.position = "absolute";
+			loadingBox.style.top = "20%";
+			loadingBox.style.left = "50%";
+			loadingBox.style.transform = "translate(-50%, -50%)";
+			loadingBox.style.backgroundColor = "#fff";
+			loadingBox.style.border = "1px solid #ccc";
+			loadingBox.style.padding = "20px";
+			loadingBox.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.2)";
+			loadingBox.style.zIndex = "9999";
+			loadingBox.innerHTML = '<p style="color: black";>The road graph is loading...</p>';
+			// Append the loading box to the map container
+			//const mapContainer = $('#<?= $_REQUEST['name_w'] ?>_map').getContainer(); // Assuming `this` refers to the map object
+			//$('#<?= $_REQUEST['name_w'] ?>_map').appendChild(loadingBox);
+			//document.body.appendChild(loadingBox);   
+            //loadingBox.addTo(map.defaultMapRef);                                                     
+			// Before making the requests, show the loading box
+			loadingBox.style.display = "block";
+			loadingboxloaded = false;
+            //////////END ADDING LOADING BOX//////////
+
             //var selectScenario = $('#search-scenario-init').val();
             var selectScenario = $('#scenario-init-list').val();
                             var buttonToRemove = document.getElementById("scenario-save-finale1");
@@ -11302,7 +11775,7 @@ drawSegment(segment) {
                             //console.log("Selected value: " + ildevicename);
                             try{
                                 let datidalsensore = await readFromDevice(lAccessToken, selectScenario);
-                                console.dir(datidalsensore);
+                                console.dir('datidalsensore',datidalsensore);
                                 var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
                                 //
                                 var arrayShape = shape[0].geometry.coordinates[0];
@@ -11367,7 +11840,7 @@ drawSegment(segment) {
                                 scenaryData.features.push(shape);
                                 scenaryDrawnItems.addLayer(layer);
                                 map.defaultMapRef.addLayer(scenaryDrawnItems);
-                                console.log('scenaryDrawnItems',scenaryDrawnItems);
+                                //console.log('scenaryDrawnItems',scenaryDrawnItems);
                                 //
                                 console.log('shape1',shape);
                                 //scenaryData.features.push(shape[0]);
@@ -11382,17 +11855,77 @@ drawSegment(segment) {
                                 //
                                 
                                 //console.log(polygonWKT);
-                                let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
-                                console.dir(resDalDB);
+                                //let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
+                                //CREARE UNA LISTA 
+
+                                //
+                                /*console.dir(resDalDB);
                                 var l = resDalDB.length;
                                 console.log(l);
-                                const roadGraph = JSON.parse(resDalDB[l-1].data).grandidati.roadGraph;
+                                const roadGraph = JSON.parse(resDalDB[l-1].data).grandidati.roadGraph;*/
+                                var roadGraph = ''; 
+                                var version = $('#scenario-version-list').val();
+                                var selectedVersion = JSON.parse(version);
+                                console.log('version',selectedVersion);
+                                var filters = '';
+
+                                if ((selectedVersion !=='')&&(selectedVersion != null))
+                                {
+                                    if (selectedVersion.grandidati.filters){
+                                        filters= selectedVersion.grandidati.filters;
+                                    }
+                                    roadGraph = selectedVersion.grandidati.roadGraph;
+                                    console.log('filters;   ',filters);
+                                }else{
+                                    let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario);
+                                    console.dir(resDalDB);
+                                    var l = resDalDB.length;
+                                     console.log(l);
+                                     roadGraph = JSON.parse(resDalDB[l-1].data).grandidati.roadGraph; 
+                                     if (JSON.parse(resDalDB[l-1].data).grandidati.filters){
+                                        filters= JSON.parse(resDalDB[l-1].data).grandidati.filters;
+                                    }
+                                }
+
+                                //Set Checkbox
+                                const checkboxes = document.querySelectorAll('.checkRoadType');
+                                // Array di valori delle caselle di controllo selezionate
+                                const checkedValues = filters;
+                                // Itera su tutte le caselle di controllo
+                                console.log('checkedValues: ',checkedValues);
+                                if (checkedValues.length > 0){
+                                    $('#selectAllRoad').unchecked = true;
+                                        checkboxes.forEach((checkbox) => {
+                                                    // Verifica se il valore della casella di controllo è incluso nell'array di valori selezionati
+                                                    if (checkedValues.includes(checkbox.value)) {
+                                                        // Seleziona la casella di controllo
+                                                        checkbox.checked = true;
+                                                        //console.log('Value: ',checkbox.value);
+                                                        
+                                                    } else {
+                                                        // Deseleziona la casella di controllo
+                                                        checkbox.checked = false;
+                                                    }
+                                        });
+                                        ////
+                                        var filteredResults = $.grep(roadGraph, function(item) {
+                                                return $.inArray(item.type, checkedValues) !== -1;
+                                            });
+                                            //istanzedelgrafochestoconsiderando = roadGraph;
+                                            saveLoadGraph = roadGraph;
+                                            roadGraph =  filteredResults;
+                                        //////
+
+                                    }
+                                //
+                               
                                 console.log(roadGraph);
                                 //roadElementGraph)
                                 const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
                                 //console.log(sparqlQueryottimizzata);
                                 fetchSparqlData(sparqlQueryottimizzata, polygonWKT, roadGraph,ressvolte);
                                 loadingboxloaded = true;
+                                showNotification("Loading Scenario...please wait");
 
                             }
                             catch(error){
@@ -11598,7 +12131,14 @@ drawSegment(segment) {
                                                 console.log(svoltesparqlquery)
                                                 let ressvolte = await fetchSparqlDataSvolte(svoltesparqlquery);
                                                 let svolte = ressvolte.results.bindings;
-                                                await getLAccessToken();                                            
+                                               // await getLAccessToken();  
+                                               var listScen = await getLAccessToken(); 
+                                               if (listScen != undefined){
+                                                var listScen1 = JSON.parse(listScen);
+                                                if (listScen1.accessToken){
+                                                lAccessToken = listScen1.accessToken;
+                                                }
+                                               }                                 
                                                 try{
                                                     tdmaato = await sendDataACC(lAccessToken, ildevicename, js20Data, acData, svolte); 
                                                     // invio anche i grandi dati al DB
@@ -11843,6 +12383,11 @@ drawSegment(segment) {
 		//################ cancel function dei metadati del builder ######################################
 
 		$("#scenario-cancel").click(function() {
+            //
+            if(saveLoadGraph.length > 0){
+                saveLoadGraph = [];
+            }
+            //
             roadElementGraph.clearSegments();
             roadElementGraph.clearNodes();
 			if (scenaryData.features.length >= 0) {
@@ -11886,7 +12431,8 @@ drawSegment(segment) {
 
 
 		$("#scenario-save").click(async function() {
-			console.log("scenario-save cliccato!")
+			console.log("scenario-save cliccato!");
+            console.log('SAVE 2');
 			// mi prendo tutti i metadati 
 			var scenarioareaOfInterest = scenaryData.features[0];
 			var scenarioName = $("#scenario-name").val();
@@ -12005,7 +12551,14 @@ drawSegment(segment) {
 				);
 				centroid[0] /= coordinates.length;
 				centroid[1] /= coordinates.length;
-				await getLAccessToken(); // metto nella variabile di riferimento il ttttokken                           
+				//await getLAccessToken(); // metto nella variabile di riferimento il ttttokken
+                var listScen = await getLAccessToken(); 
+                if (listScen != undefined){
+                    var listScen1 = JSON.parse(listScen);
+                    if(listScen1.accessToken){
+                    lAccessToken = listScen1.accessToken;    
+                    }    
+                }                 
 				// includo il codice di Alberto per la creazione del device e invio dati per la versione INIT
 
 				adesso = new Date().toISOString();
@@ -12140,6 +12693,90 @@ $('#updateStreetGraph').click(async function(){
 		//edit-lines
 	$("#edit_lines").click(async function() {
         console.log('edit modality');
+        console.log('currentLoadedScenario', currentLoadedScenario);
+        var devNameLoadScenario= '';
+        var locationLoadScenario='';
+        var descriptionLoadScenario='';
+        var referenceLoadScenario='';
+        var starttime='';
+        var endTime = '';
+        var trafficSensorList = 'Yes';
+        var otherSensors = 'Yes';
+        //
+        if ((currentLoadedScenario !="")&&(currentLoadedScenario !='undefined')){
+         devNameLoadScenario = currentLoadedScenario.replace("deviceName", "");
+			//alert('Editing modality activated');
+        var devNameLoadUrl=   "<?= $mainsuperservicemap; ?>" +"?serviceUri=" + "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + `/${currentLoadedScenario}&maxResults=10&fromTime=2023-01-01T00:00:00`;
+        //////////
+                                var listScen = await getLAccessToken(); 
+                                            if (listScen != undefined){
+                                            var listScen1 = JSON.parse(listScen);
+                                            if(listScen1.accessToken){
+                                            lAccessToken = listScen1.accessToken;
+                                            }
+                                        console.log('listScen1', listScen1);
+                                            }
+                                const header = {
+                                            "Content-Type": "application/json",
+                                            "Accept": "application/json",
+                                            "Authorization": `Bearer ${lAccessToken}`
+                                    };
+                                            try {                       
+
+                                                const response = await fetch(devNameLoadUrl, { // oppure metti urlencoded
+                                                    method: "GET",
+                                                    headers: header
+                                                });
+                                                if (!response.ok) {
+                                                    throw new Error(`Error fetching sensor data: ${response.status}`);
+                                                }
+                                                const jsonResponse = await response.json(); 
+                                                var realtime = jsonResponse.realtime;
+                                                var bind = realtime.results.bindings;
+                                                //
+                                                //
+                                                console.log('currentLoadedVersion: ',currentLoadedVersion);
+
+                                                if (currentLoadedVersion !=''){
+                                                    console.log('IN');
+                                                        locationLoadScenario = bind[currentLoadedVersion].location.value;
+                                                        referenceLoadScenario = bind[currentLoadedVersion].referenceKB.value;
+                                                        descriptionLoadScenario = bind[currentLoadedVersion].description.value;
+                                                        starttime= bind[currentLoadedVersion].startTime.value;
+                                                        endTime =  bind[currentLoadedVersion].endTime.value;
+                                                        //
+                                                        var trafficSensorList0 =  bind[currentLoadedVersion].trafficSensorList.value;
+                                                        var otherSensors0 =  bind[currentLoadedVersion].otherSensors.value;
+                                                        if(trafficSensorList0.length > 0){
+                                                            trafficSensorList = 'Yes';
+                                                        }else{
+                                                            trafficSensorList = 'No';
+                                                        }
+                                                        if(otherSensors0.length > 0){
+                                                            otherSensors = 'Yes';
+                                                        }else{
+                                                            otherSensors = 'No';
+                                                        }
+                                                        //
+                                                }else{
+                                                    console.log('OUT');
+                                                    locationLoadScenario = bind[0].location.value;
+                                                        referenceLoadScenario = bind[0].referenceKB.value;
+                                                        descriptionLoadScenario = bind[0].description.value;
+                                                        starttime= bind[0].startTime.value;
+                                                        endTime =  bind[0].endTime.value;
+                                                }
+                                                //
+                                                //console.log('REPSONSE',jsonResponse); 
+                                                // Extract deviceName values from the features array                                                     
+                                               // return jsonResponse;                    
+                                            } catch (error) {
+                                                console.error("Oops: Something Else", error);
+                                            }
+                                //////////
+                                console.log('devNameLoadUrl: ',devNameLoadUrl); 
+            }
+        /////////////
 			//alert('Editing modality activated');
             if (roadElementGraph)
                 roadElementGraph.mode = 'drag';
@@ -12293,20 +12930,20 @@ $('#updateStreetGraph').click(async function(){
                                             <table>
                                                 <tr>
                                                     <td><label for="scenario-name">Scenario name:</label></td>
-                                                    <td><input id="scenario-name" type="text" name="name" placeholder="Scenario name"></td>
+                                                    <td><input id="scenario-name" type="text" name="name" placeholder="Scenario name" value="`+devNameLoadScenario+`"></td>
                                                 </tr>
                                                 <tr>
                                                     <td><label for="scenario-location">Location:</label></td>
-                                                    <td><input id="scenario-location" type="text" name="location" placeholder="Location"></td>
+                                                    <td><input id="scenario-location" type="text" name="location" value="`+locationLoadScenario+`" placeholder="Location"></td>
                                                 </tr>
                                                 <tr>
                                                     <td><label for="scenario-description">Scenario description:</label></td>
-                                                    <td><input id="scenario-description" type="text" name="description" placeholder="Scenario description"></td>
+                                                    <td><input id="scenario-description" type="text" name="description" value="`+descriptionLoadScenario+`" placeholder="Scenario description"></td>
                                                 </tr>
                                                 <!-- Aggiungi altre righe per i campi -->
                                                 <tr>
                                                     <td><label for="scenario-referenceKB">ReferenceKB:</label></td>
-                                                    <td><input id="scenario-referenceKB" type="text" name="SURI of the reference KB" placeholder="Reference KB"></td>
+                                                    <td><input id="scenario-referenceKB" type="text" name="SURI of the reference KB" value="`+referenceLoadScenario+`" placeholder="Reference KB"></td>
                                                 </tr>
                                                 <!--<tr>
                                                     <td><label for="scenario-modality">Modality:</label></td>
@@ -12332,7 +12969,7 @@ $('#updateStreetGraph').click(async function(){
                                                 <tr>
                                                     <td><label for="scenario-roadData">Save Road Graph:</label></td>
                                                     <td>
-                                                    <select id="scenario-roadData" name="roadData">
+                                                    <select id="scenario-roadData" name="roadData" >
                                                             <option value="Yes">Yes</option>
                                                             <option value="No">No</option>
                                                         </select>
@@ -12341,7 +12978,7 @@ $('#updateStreetGraph').click(async function(){
                                                 <tr>
                                                     <td><label for="scenario-trafficData">Save traffic Sensors:</label></td>
                                                     <td>
-                                                    <select id="scenario-trafficData" name="trafficData">
+                                                    <select id="scenario-trafficData" name="trafficData" value="`+trafficSensorList+`">
                                                             <option value="Yes">Yes</option>
                                                             <option value="No">No</option>
                                                         </select>
@@ -12350,7 +12987,7 @@ $('#updateStreetGraph').click(async function(){
                                                 <tr>
                                                     <td><label for="scenario-otherData">Save other Sensors:</label></td>
                                                     <td>
-                                                        <select id="scenario-otherData" name="otherData">
+                                                        <select id="scenario-otherData" name="otherData" value="`+otherSensors+`">
                                                             <option value="Yes">Yes</option>
                                                             <option value="No">No</option>
                                                         </select>
@@ -12358,11 +12995,11 @@ $('#updateStreetGraph').click(async function(){
                                                 </tr>
                                                 <tr>
                                                     <td><label for="scenario-startDatetime">From:</label></td>
-                                                    <td><input id="scenario-startDatetime" type="datetime-local" name="datetimeFrom"></td>
+                                                    <td><input id="scenario-startDatetime" type="datetime-local" name="datetimeFrom" value="`+starttime+`"></td>
                                                 </tr>
                                                 <tr>
                                                     <td><label for="scenario-endDatetime">To:</label></td>
-                                                    <td><input id="scenario-endDatetime" type="datetime-local" name="datetimeTo"></td>
+                                                    <td><input id="scenario-endDatetime" type="datetime-local" name="datetimeTo"  value="`+endTime+`"></td>
                                                 </tr>
                                                 <tr>
                                                     <td colspan="2">
@@ -12459,6 +13096,20 @@ $('#updateStreetGraph').click(async function(){
                         console.log('roadElementGraph',roadElementGraph);
                         //
                         istanzedelgrafochestoconsiderando = roadElementGraph.getSegmentsForSaving();
+                        console.log('getSegmentsForSaving:', istanzedelgrafochestoconsiderando);
+                        console.log('segments:', roadElementGraph.segments);
+                       // istanzedelgrafochestoconsiderando = roadElementGraph.segments;
+
+                       var arrayAlfanumerico = roadElementGraph.segments;
+                       var arrayNumerico = Object.keys(arrayAlfanumerico).map((key, index) => {
+                                            //
+                                            const { line, arrow, ...rest } = arrayAlfanumerico[key];
+                                             return { ...rest, id: index + 1 };
+                                            //return { ...arrayAlfanumerico[key], id: index + 1 };
+                                            });
+                        istanzedelgrafochestoconsiderando = arrayNumerico;        
+                       console.log('segments V2:', arrayNumerico);
+
                         //Manage Restrictions
                         if (roadElementGraph.segments){
                             var segmenti = roadElementGraph.segments;
@@ -12499,7 +13150,7 @@ $('#updateStreetGraph').click(async function(){
             //BOLOGNA SAVING PINS
             var markersInPolygon = [];
             var shapes = [];
-            console.log('scenaryDrawnItems',scenaryDrawnItems);
+            //console.log('scenaryDrawnItems',scenaryDrawnItems);
             var polygonBounds = scenaryDrawnItems.getBounds();
                 map.defaultMapRef.eachLayer(function (layer) {
                 if (layer instanceof L.Marker){ 
@@ -12612,6 +13263,7 @@ $('#updateStreetGraph').click(async function(){
                     "otherSensors": scenaryOtherSensors,
 					//"roadGraph": Object.values(roadElementGraph.deepCopySegments()), 
                     "roadGraph": "istanzedelgrafochestoconsiderando",  //in prod mettere tra virgolette "istanzedelgrafochestoconsiderando"
+                    "filters": '',
                     "turn" : restrinctions
 				};
                 //
@@ -12643,13 +13295,33 @@ $('#updateStreetGraph').click(async function(){
                 console.log("DATI STRINGHE");
                 ***/
                 //END OUTPOUT
+                var list_filters = [];
+                const checkboxes = document.querySelectorAll('.checkRoadType');
+                checkboxes.forEach((checkbox) => {
+                        // Verifica se la casella di controllo è selezionata
+                        if (checkbox.checked) {
+                            // Selezionata, aggiungi la casella di controllo all'array
+                            list_filters.push(checkbox.value);
+                        }
+                        });
+
                  //
                  if (enableRoadGraph == 'No'){
                             istanzedelgrafochestoconsiderando = [];
                         }
                         //
+                console.log('istanzedelgrafochestoconsiderando',istanzedelgrafochestoconsiderando);
 
-				await getLAccessToken();                          
+				//await getLAccessToken(); 
+                var listScen = await getLAccessToken(); 
+                if (listScen != undefined){
+                    var listScen1 = JSON.parse(listScen);
+                    if(listScen1.accessToken){
+                    lAccessToken = listScen1.accessToken;
+                    }
+                }
+                   console.log('listScen1', listScen1);
+
 				adesso = new Date().toISOString();
 				ildevicename = "deviceName" + scenarioName;
 				creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
@@ -12658,7 +13330,8 @@ $('#updateStreetGraph').click(async function(){
 					try {  
 						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);                                     
 						sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
-								"roadGraph": istanzedelgrafochestoconsiderando
+								"roadGraph": istanzedelgrafochestoconsiderando,
+                                "filters": list_filters
 							})
 							.then(data => {
 								console.log('Risposta dal server:', data);
@@ -12680,7 +13353,11 @@ $('#updateStreetGraph').click(async function(){
 					console.error("Errore nella creazione del dispositivo:", creato);
 					try {
 						initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
-						sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, istanzedelgrafochestoconsiderando)
+						//sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, istanzedelgrafochestoconsiderando)
+                        sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
+								"roadGraph": istanzedelgrafochestoconsiderando,
+                                "filters": list_filters
+							})
 							.then(data => {
 								console.log('Risposta dal server:', data);
 							})
@@ -12690,7 +13367,7 @@ $('#updateStreetGraph').click(async function(){
 						if (initdatainviati == "dati_init_si") {
 							showNotification("Initial data successully sended!");
 							setTimeout(() => {
-								showNotification("Now you can modify them in NR.");
+								//showNotification("Now you can modify them in NR.");
 							}, 1000);
 						} else {
 							console.error("Errore nell'invio dei dati iniziali:", error);
@@ -12844,17 +13521,46 @@ $('#updateStreetGraph').click(async function(){
                                                                             <input type="text" id="search-scenario-init" placeholder="Search..." hidden>      
                                                                             <!--<ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul> -->
                                                                             <select id="scenario-init-list" style="max-height: 120px; overflow: auto;"></select> 
+                                                                                <!-- -->
+                                                                                <br />
+                                                                                <label for="scenario-version-list">Scenario version:</label>
+                                                                                <select id="scenario-version-list" style="max-height: 120px; overflow: auto;"></select>
+                                                                                <br />
+                                                                                <!-- -->
                                                                             <button id="scenario-load">Load Scenario</button>                                                                                                  
                                                                     </td>                                                                      
-                                                                    <tr id="scenario-list-row" style="display: none;">
+                                                                    <!--<tr id="scenario-list-row" style="display: none;">
                                                                         <td><label for="scenario-list">Scenario List:</label></td>
                                                                         <td>
                                                                             <select id="scenario-list" name="scenario-list"></select>
                                                                         </td>
+                                                                        <br />
+                                                                        <td><label for="acc-list">acc version:</label></td>
+                                                                        <td>
+                                                                            <select id="acc-list" name="acc-list"></select>
+                                                                        </td>
+                                                                        </tr>
+                                                                        <tr class="scenario-list-row" style="display: none;">
                                                                         <td colspan="2">
                                                                             <button id="scenario-check-acc1">Load ACC</button>
                                                                         </td>
-                                                                    </tr>                                                         
+                                                                    </tr> --> 
+                                                                    <tr class="scenario-list-row" style="display: none;">
+                                                    <td><label for="scenario-list">Scenario List:</label></td>
+                                                    <td>
+                                                        <select id="scenario-list" name="scenario-list"></select>
+                                                    </td>
+                                                    </tr>
+                                                <tr class="scenario-list-row" style="display: none;">
+                                                                        <td><label for="acc-list">acc version:</label></td>
+                                                                        <td>
+                                                                            <select id="acc-list" name="acc-list"></select>
+                                                                        </td><br />
+                                                    <td colspan="2">
+                                                        <button id="scenario-check-acc1">Load ACC</button>
+                                                    </td>
+                                                </tr>
+                                                                    <!-- -->
                                                                     <tr id="scenario-tdm-row" style="display: none;">
                                                                         <td>
                                                                             <label for="search-scenario-tdm">Scenarios processed check the TFRS Manager:</label>
@@ -12889,11 +13595,69 @@ $('#updateStreetGraph').click(async function(){
                                             ////   
                                         }
                                         scenaryControl3.addTo(map.defaultMapRef);
-                                        getInits();  
+                                        getInits(); 
+                                        ////////////
+                                         ////////SELECT EVENT
+                                         $('#scenario-init-list').change(function(){
+                                                                    var selectedOption = $(this).val();
+                                                                    console.log("Selected option: " + selectedOption);
+                                                                        var suri = "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectedOption; 
+                                                                        var url = "<?= $endprocessloader; ?>" +`getOneSpecific.php?suri=${suri}`; 
+                                                                        $('#scenario-version-list').empty();
+                                                                         $.ajax({
+                                                                            type: 'GET',
+                                                                            url: url,
+                                                                            dataType: "json",
+                                                                            contentType: 'application/json; charset=utf-8',
+                                                                            async: false,
+                                                                            success: function (data) {
+                                                                                console.log(data);
+                                                                               // scenario-version-list
+                                                                               var obj = (data);
+                                                                               for(var i=0; i<obj.length; i++){
+                                                                                    //console.log(obj[i]);
+                                                                                    $('#scenario-version-list').append(`<option value='`+obj[i].data+`'>`+obj[i].dateObserved+`</option>`);
+                                                                                }
+                                                                            }
+                                                                         });                                                                                           
+                                                                      });
+                                                        /////////////////
+                                        ////////SELECT ACC
+                                        $('#scenario-list').change(function() {
+                                                    var selectedOption = $(this).val();
+                                                    console.log("Selected option: " + selectedOption);
+                                                    var suri = "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + selectedOption;
+                                                    var url = "<?= $endprocessloader; ?>" + `getOneSpecific.php?suri=${suri}`;
+                                                    $('#acc-list').empty();
+                                                    $.ajax({
+                                                        type: 'GET',
+                                                        url: url,
+                                                        dataType: "json",
+                                                        contentType: 'application/json; charset=utf-8',
+                                                        async: false,
+                                                        success: function(data) {
+                                                            console.log(data);
+                                                            // scenario-version-list
+                                                            var obj = (data);
+                                                            for (var i = 0; i < obj.length; i++) {
+                                                               //console.log(obj[i]);
+                                                                if(obj[i].data){
+                                                                    var acc1 = JSON.parse(obj[i].data);
+                                                                    if (acc1.AC){
+                                                                        console.log('AC',acc1.AC);
+                                                                        $('#acc-list').append(`<option value='` + obj[i].data + `'>` + obj[i].dateObserved + `</option>`);
+                                                                    }
+                                                                
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                });
+                                ////////////////
 					///////////////////
                     $('#scenario-load').click(async function(){
             var scenarioLoad = $('#search-scenario-init').val();
-            console.log('load scenario: '+scenarioLoad);
+            console.log('load scenario1: '+scenarioLoad);
             var selectScenario = $('#scenario-init-list').val();
             //var selectScenario = $('#search-scenario-init').val();
                             var buttonToRemove = document.getElementById("scenario-save-finale1");
@@ -12989,10 +13753,25 @@ $('#updateStreetGraph').click(async function(){
                                 }
                                 //
                                 console.log(polygonWKT);
-                                let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
-                                console.dir(resDalDB);
-                                var l = resDalDB.length;
-                                const roadGraph = JSON.parse(resDalDB[l-1].data).grandidati.roadGraph;
+                                //let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario); 
+                                //console.dir(resDalDB);
+                                //var l = resDalDB.length;
+                                //const roadGraph = JSON.parse(resDalDB[l-1].data).grandidati.roadGraph;
+                                var roadGraph = ''; 
+                                var version = $('#scenario-version-list').val();
+                                var selectedVersion = JSON.parse(version);
+                                console.log('version',selectedVersion);
+                                if ((selectedVersion !=='')&&(selectedVersion != null)){
+                                    roadGraph = selectedVersion.grandidati.roadGraph;
+                                }else{
+                                    let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" +  selectScenario);
+                                    console.dir(resDalDB);
+                                    var l = resDalDB.length;
+                                     console.log(l);
+                                     roadGraph = JSON.parse(resDalDB[l-1].data).grandidati.roadGraph; 
+                                }
+                               
+                                console.log(roadGraph);
                                 console.dir(roadGraph);
                                 //roadElementGraph)
                                 const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
@@ -13026,7 +13805,7 @@ $('#updateStreetGraph').click(async function(){
                                                     if (selectedId === "acc-type-init") {
                                                         scenarioType = "init";
                                                         // Nascondi la lista degli scenari se il tipo non è "ACC"
-                                                        $("#scenario-list-row").hide();
+                                                        $(".scenario-list-row").hide();
                                                         //$("scenario-init-row").show()
                                                         document.getElementById("scenario-init-row").style.display = "block";
                                                         document.getElementById("scenario-tdm-row").style.display = "none";
@@ -13074,7 +13853,7 @@ $('#updateStreetGraph').click(async function(){
                                                     } else if (selectedId === "acc-type-acc") {
                                                         scenarioType = "acc";
                                                         // Mostra la lista degli scenari solo se il tipo è "ACC"
-                                                        $("#scenario-list-row").show();
+                                                        $(".scenario-list-row").show();
                                                         //$("scenario-init-list-row").hide()
                                                         document.getElementById("scenario-init-row").style.display = "none";
                                                         document.getElementById("scenario-tdm-row").style.display = "none";
@@ -13084,14 +13863,15 @@ $('#updateStreetGraph').click(async function(){
                                                         var scenarioList = $("#scenario-list");
                                                         scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
                                                         accScenarios.forEach(scenario => {
-                                                            var option = $("<option>").val(scenario).text(scenario);
+                                                            var scenarioName = scenario.replace("deviceName", "");
+                                                            var option = $("<option>").val(scenario).text(scenarioName);
                                                             scenarioList.append(option);
                                                         });
                                                       //  pulisciTutto();
                                                     } else if (selectedId === "acc-type-tdm") {
                                                         
                                                         scenarioType = "tdm";
-                                                        $("#scenario-list-row").hide();
+                                                        $(".scenario-list-row").hide();
                                                         $("#scenario-init-row").hide();
                                                         $("#scenario-tdm-row").show();
 
@@ -13156,7 +13936,7 @@ $('#updateStreetGraph').click(async function(){
                             if (selectedId === "acc-type-init") {
                                 scenarioType = "init";
                                 // Nascondi la lista degli scenari se il tipo non è "ACC"
-                                $("#scenario-list-row").hide();
+                                $(".scenario-list-row").hide();
                                 //$("scenario-init-row").show()
                                 document.getElementById("scenario-init-row").style.display = "block";
                                 document.getElementById("scenario-tdm-row").style.display = "none";
@@ -13164,7 +13944,7 @@ $('#updateStreetGraph').click(async function(){
                                 var initScenarios2 = await getScenarios("acc");
                                 var initScenarios3 = await getScenarios("");
                                 var initScenarios = initScenarios1.concat(initScenarios2).concat(initScenarios3); 
-                                //console.log(initScenarios);
+                                //console.log('initScenarios',initScenarios);
                                 var scenarioInitList = $("#scenario-init-list");
 
                                 var searchInput = $("#search-scenario-init");
@@ -13203,7 +13983,7 @@ $('#updateStreetGraph').click(async function(){
                             } else if (selectedId === "acc-type-acc") {
                                 scenarioType = "acc";
                                 // Mostra la lista degli scenari solo se il tipo è "ACC"
-                                $("#scenario-list-row").show();
+                                $(".scenario-list-row").show();
                                 //$("scenario-init-list-row").hide()
                                 document.getElementById("scenario-init-row").style.display = "none";
                                 document.getElementById("scenario-tdm-row").style.display = "none";
@@ -13214,14 +13994,15 @@ $('#updateStreetGraph').click(async function(){
                                 scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
                                 accScenarios.sort();
                                 accScenarios.forEach(scenario => {
-                                    var option = $("<option>").val(scenario).text(scenario);
+                                    var scenarioName = scenario.replace("deviceName", "");
+                                    var option = $("<option>").val(scenario).text(scenarioName);
                                     scenarioList.append(option);
                                 });
                               //  pulisciTutto();
                             } else if (selectedId === "acc-type-tdm") {
                                 
                                 scenarioType = "tdm";
-                                $("#scenario-list-row").hide();
+                                $(".scenario-list-row").hide();
                                 $("#scenario-init-row").hide();
                                 $("#scenario-tdm-row").show();
 
@@ -13416,12 +14197,34 @@ $('#updateStreetGraph').click(async function(){
                                                         <select id="scenario-init-list" style="max-height: 120px; overflow: auto;"></select> 
                                                         <button id="scenario-load">Load Scenario</button>                                                                                              
                                                 </td>   
-                                                
+                                                <!--
                                                 <tr id="scenario-list-row" style="display: none;">
                                                     <td><label for="scenario-list">Scenario List:</label></td>
                                                     <td>
                                                         <select id="scenario-list" name="scenario-list"></select>
                                                     </td>
+                                                    <br />
+                                                                        <td><label for="acc-list">acc version:</label></td>
+                                                                        <td>
+                                                                            <select id="acc-list" name="acc-list"></select>
+                                                                        </td><br/>
+                                                    <td colspan="2">
+                                                        <button id="scenario-check-acc1">Load ACC</button>
+                                                    </td>
+                                                </tr>-->
+                                                <tr class="scenario-list-row" style="display: none;">
+                                                    <td><label for="scenario-list">Scenario List:</label></td>
+                                                    <td>
+                                                        <select id="scenario-list" name="scenario-list"></select>
+                                                    </td>
+                                                </tr>
+                                                <tr class="scenario-list-row" style="display: none;">
+                                                                        <td><label for="acc-list">acc version:</label></td>
+                                                                        <td>
+                                                                            <select id="acc-list" name="acc-list"></select>
+                                                                        </td>
+                                                </tr>
+                                                <tr class="scenario-list-row" style="display: none;">
                                                     <td colspan="2">
                                                         <button id="scenario-check-acc1">Load ACC</button>
                                                     </td>
@@ -13472,7 +14275,7 @@ $('#updateStreetGraph').click(async function(){
                             if (selectedId === "acc-type-init") {
                                 scenarioType = "init";
                                 // Nascondi la lista degli scenari se il tipo non è "ACC"
-                                $("#scenario-list-row").hide();
+                                $(".scenario-list-row").hide();
                                 //$("scenario-init-row").show()
                                 document.getElementById("scenario-init-row").style.display = "block";
                                 document.getElementById("scenario-tdm-row").style.display = "none";
@@ -13516,7 +14319,7 @@ $('#updateStreetGraph').click(async function(){
                             } else if (selectedId === "acc-type-acc") {
                                 scenarioType = "acc";
                                 // Mostra la lista degli scenari solo se il tipo è "ACC"
-                                $("#scenario-list-row").show();
+                                $(".scenario-list-row").show();
                                 //$("scenario-init-list-row").hide()
                                 document.getElementById("scenario-init-row").style.display = "none";
                                 document.getElementById("scenario-tdm-row").style.display = "none";
@@ -13526,14 +14329,15 @@ $('#updateStreetGraph').click(async function(){
                                 var scenarioList = $("#scenario-list");
                                 scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
                                 accScenarios.forEach(scenario => {
-                                    var option = $("<option>").val(scenario).text(scenario);
+                                    var scenarioName = scenario.replace("deviceName", "");
+                                    var option = $("<option>").val(scenario).text(scenarioName);
                                     scenarioList.append(option);
                                 });
                                 pulisciTutto();
                             } else if (selectedId === "acc-type-tdm") {
                                 
                                 scenarioType = "tdm";
-                                $("#scenario-list-row").hide();
+                                $(".scenario-list-row").hide();
                                 $("#scenario-init-row").hide();
                                 $("#scenario-tdm-row").show();
 
@@ -13569,6 +14373,7 @@ $('#updateStreetGraph').click(async function(){
                                         }
                                     });
                                 }
+                                
                             }
 
                             if (scenarioType) {
@@ -13582,7 +14387,9 @@ $('#updateStreetGraph').click(async function(){
                         //############ Load Stato zero  #######//
                         $('#scenario-load').click(async function(){
             var scenarioLoad = $('#search-scenario-init').val();
-            console.log('load scenario: '+scenarioLoad);
+            console.log('load scenario2: '+scenarioLoad);
+            currentLoadedScenario = scenarioLoad;
+            //
             var selectScenario = $('#scenario-init-list').val();
             //var selectScenario = $('#search-scenario-init').val();
                             var buttonToRemove = document.getElementById("scenario-save-finale1");
@@ -13842,7 +14649,14 @@ $('#updateStreetGraph').click(async function(){
                                                 console.log(svoltesparqlquery)
                                                 let ressvolte = await fetchSparqlDataSvolte(svoltesparqlquery);
                                                 let svolte = ressvolte.results.bindings;
-                                                await getLAccessToken();                                            
+                                                //await getLAccessToken();
+                                                var listScen = await getLAccessToken(); 
+                                                if (listScen != undefined){
+                                                        var listScen1 = JSON.parse(listScen);
+                                                        if(listScen1.accessToken){
+                                                        lAccessToken = listScen1.accessToken;
+                                                        } 
+                                                    }                                         
                                                 try{
                                                     tdmaato = await sendDataACC(lAccessToken, ildevicename, js20Data, acData, svolte); 
                                                     // invio anche i grandi dati al DB
@@ -14335,6 +15149,9 @@ $('#updateStreetGraph').click(async function(){
                         
                         map.defaultMapRef.on('draw:created', function(e) {
                             console.log('Re drawing');
+                            if(saveLoadGraph.length > 0){
+                                    saveLoadGraph = [];
+                                }
                             $('#jsonIstanze').text('');
                             var type = e.layerType,
                                 layer = e.layer;
@@ -25602,6 +26419,13 @@ setTimeout(function() {
                             $('#restrictionType').val('');
                             $("#deleteRestriction").css('display','none');
                             //
+                   }else if(restrictions =='AccessRestriction'){
+                             $('.restinction_data').css('display','none');
+                            $(".turnRestriction").css('display','none');
+                            $(".maxMinRestriction").css('display','none');
+                            $(".accessRestriction").css('display','none');
+                            $(".access_data").css('display','');
+                            $("#deleteRestriction").css('display','none');
                    }else{
                             $('.restinction_data').css('display','none');
                             $(".turnRestriction").css('display','none');
@@ -25613,7 +26437,7 @@ setTimeout(function() {
                             $('#restrictionTo').val('');
                             $('#restrictionNode').val('');
                             $('#restrictionType').val('');
-                            $("#deleteRestriction").css('display','none');
+                            $("#deleteRestriction").css('display','');
                             //
                    }
                    //////
