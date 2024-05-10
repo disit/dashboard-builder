@@ -1506,7 +1506,7 @@ drawSegment(segment) {
             var altViewMode = null;
             var orgParams = null;
             var serviceUrl = null;
-            var code = null;
+            var code, connections = null;
             var selectedData = {};
             var getSmartCityAPIData = null;
             var getShapeSmartCityAPIData = null;
@@ -1612,6 +1612,9 @@ drawSegment(segment) {
                         selectedData.event = "click";
                         selectedData.layers = [];
                         selectedData.layers[0] = marker.feature.properties;
+                        if (connections != null) {
+                            selectedData.connections = connections;
+                        }
                         selectedDataJson = JSON.stringify(selectedData);
 
                         try {
@@ -3404,6 +3407,9 @@ drawSegment(segment) {
                         selectedData.event = "click";
                         selectedData.layers = [];
                         selectedData.layers[0] = marker.feature.properties;
+                        if (connections != null) {
+                            selectedData.connections = connections;
+                        }
                         selectedDataJson = JSON.stringify(selectedData);
 			
                         try {
@@ -6152,6 +6158,9 @@ drawSegment(segment) {
                                     }
                                 }
                                 let boxCoord = map.getBounds();
+                                if (connections != null) {
+                                    selectedData.connections = connections;
+                                }
                                 selectedDataJson = JSON.stringify(selectedData);
 
                                 let j=1;
@@ -9143,7 +9152,7 @@ drawSegment(segment) {
                     //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ((?startlat >= ${minY} && ?startlat <= ${maxY} && ?startlong >= ${minX} && ?startlong <= ${maxX}) ||(?endlat >= ${minY} && ?endlat <= ${maxY} && ?endlong >= ${minX} && ?endlong <= ${maxX}) ) } LIMIT 16000`;
                     //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( (?startlat > ${minX} %26%26 ?startlat < ${maxX} %26%26 ?startlong > ${minY} %26%26 ?startlong < ${maxY}) || (?endlat > ${minX} %26%26 ?endlat < ${maxX} %26%26 ?endlong > ${minY} %26%26 ?endlong < ${maxY}) )} LIMIT 16000`;
                     //NEW
-                    const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
+                    const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
                     return sparqlEndpoint + query;
                 }
 
@@ -21441,7 +21450,7 @@ console.log(apiUrl);
 
                             if (map.eventsOnMap.length > 0) {
                                 for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                                    if (map.eventsOnMap[i].type === 'addBimShape') {
+                                    if (map.eventsOnMap[i] && map.eventsOnMap[i].type && map.eventsOnMap[i].type === 'addBimShape') {
                                         removeBimShapeColorLegend(i, true);
                                         map.eventsOnMap.splice(i, 1);
                                         //map.defaultMapRef.off('click', heatmapClick);
@@ -21986,10 +21995,10 @@ console.log(apiUrl);
                     //    bimShapeOnMap = false;
                     //    animationFlag = false;
                         for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                            if (map.eventsOnMap[i].eventType === 'bimShapeEvent') {
+                            if (map.eventsOnMap[i] && map.eventsOnMap[i].eventType && map.eventsOnMap[i].eventType === 'bimShapeEvent') {
                                 removeBimShape(true);
                                 map.eventsOnMap.splice(i, 1);
-                            } else if (map.eventsOnMap[i].type === 'addBimShape') {
+                            } else if (map.eventsOnMap[i] && map.eventsOnMap[i].type && map.eventsOnMap[i].type === 'addBimShape') {
                                 removeBimShapeColorLegend(i, true);
                                 map.eventsOnMap.splice(i, 1);
                             }
@@ -22718,6 +22727,7 @@ setTimeout(function() {
                     nodeRedInputName = widgetData.params.name;
                     nrInputId = widgetData.params.nrInputId;
 					code = widgetData.params.code;
+                    connections = widgetData.params.connections;
 
                     getOrganizationParams(function(params) {
                         orgParams = params[0];
@@ -22901,6 +22911,9 @@ setTimeout(function() {
                         selectedData.coordinates = {};
                         selectedData.coordinates.latitude = e.latlng.lat;
                         selectedData.coordinates.longitude = e.latlng.lng;
+                        if (connections != null) {
+                            selectedData.connections = connections;
+                        }
                         selectedDataJson = JSON.stringify(selectedData);
                         if(widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
                             try {
