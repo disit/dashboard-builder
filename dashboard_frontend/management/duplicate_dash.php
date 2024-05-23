@@ -103,6 +103,9 @@ if($result1)
             }
             else
             {
+                if ($key == "drawFlowEditor") {
+                    $value = str_replace("'", "\\'", $value);
+                }
                 $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
             }
             
@@ -236,6 +239,8 @@ if($result1)
                                  if (($key == "parameters" && $row4['type_w'] == "widgetMap") || ($key == "parameters" && $row4['type_w'] == "widget3DMapDeck") || ($key == "styleParameters" && $row4['type_w'] == "widgetTable"))  {
                                  //    $newQueryFields = $newQueryFields . ", " . $key;
                                      $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
+                                 } else if ($key == "code") {
+                                     $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(addcslashes($value, "'"));
                                  } else {
                                  //    $newQueryFields = $newQueryFields . ", " . $key;
                                      if ($key == "title_w" || $key == "parameters") {

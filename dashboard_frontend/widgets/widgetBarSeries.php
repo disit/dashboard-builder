@@ -55,7 +55,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var manualLabels = [];
         var sortSeriesStr, sortedSeries = null;
         var followPointerFlag = false;
-        var code, clickedVar, clickedCat, selectedDataJson = null;
+        var code, connections, clickedVar, clickedCat, selectedDataJson = null;
 
         console.log("Entrato in widgetBarSeries --> " + widgetName);
 
@@ -229,6 +229,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             }
                             j = j+1;
                         }
+                        $("#" + widgetName + "_loading").css("display", "block");
                         if(t == -1){
                             $('body').trigger({
                                 type: "resetContent_"+widgetName
@@ -787,6 +788,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         for (var n = 0; n < seriesDataArray.length; n++) {
                                             if (seriesDataArray[n].metricType == clickedCat && seriesDataArray[n].metricName == clickedVar) {
                                                 selectedData.value = seriesDataArray[n];
+                                                if (connections != null) {
+                                                    selectedData.connections = connections;
+                                                }
                                                 selectedDataJson = JSON.stringify(selectedData);
                                                 try {
 						                            if(selectedData.value.metricName != "")
@@ -899,7 +903,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     $( '#'+newId ).mouseover(function() {
                                         $('#'+newId).css('cursor', 'pointer');
                                     });
-				    	
+                                    if (connections != null) {
+                                        selectedData.connections = connections;
+                                    }
                                     selectedDataJson = JSON.stringify(selectedData);
                                     try {
                                         execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
@@ -969,6 +975,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     $( '#'+newId ).mouseover(function() {
                                         $('#'+newId).css('cursor', 'pointer');
                                     });
+                                    if (connections != null) {
+                                        selectedData.connections = connections;
+                                    }
                                     selectedDataJson = JSON.stringify(selectedData);
                                     try {
                                         execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
@@ -1924,6 +1933,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 serviceUri = widgetData.params.serviceUri;
                 idMetric = widgetData.params.id_metric;
                 code = widgetData.params.code;
+                connections = widgetData.params.connections;
 
                 if (nrMetricType != null) {
                     openWs();
@@ -2271,7 +2281,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
         ///////////////////
         function set_time(timestamp){ 
-            //// 
+            ////
             try {
                     execute_<?= $_REQUEST['name_w'] ?>(timestamp); 
                 } catch(e) {

@@ -1,0 +1,547 @@
+:root {
+    --primary-color: #00a2d3;
+    --secondary-color: #333435;
+    --tertiary-color: #6c8793;
+
+    --text-color: #ffffff;
+    --border-color-node: #ffffff;
+    --border-color: #515151;
+}
+
+/* accordion css start*/
+.accordion {
+    --bs-accordion-color: var(--bs-body-color);
+    --bs-accordion-bg: var(--bs-body-bg);
+    --bs-accordion-transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, border-radius 0.15s ease;
+    --bs-accordion-border-color: var(--bs-border-color);
+    --bs-accordion-border-width: var(--bs-border-width);
+    --bs-accordion-border-radius: var(--bs-border-radius);
+    --bs-accordion-inner-border-radius: calc(var(--bs-border-radius) - (var(--bs-border-width)));
+    --bs-accordion-btn-padding-x: 1.25rem;
+    --bs-accordion-btn-padding-y: 1rem;
+    --bs-accordion-btn-color: var(--bs-body-color);
+    --bs-accordion-btn-bg: var(--bs-accordion-bg);
+    --bs-accordion-btn-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23212529'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    --bs-accordion-btn-icon-width: 1.25rem;
+    --bs-accordion-btn-icon-transform: rotate(-180deg);
+    --bs-accordion-btn-icon-transition: transform 0.2s ease-in-out;
+    --bs-accordion-btn-active-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23052c65'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    --bs-accordion-btn-focus-border-color: #86b7fe;
+    --bs-accordion-btn-focus-box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    --bs-accordion-body-padding-x: 1.25rem;
+    --bs-accordion-body-padding-y: 1rem;
+    --bs-accordion-active-color: var(--bs-primary-text-emphasis);
+    --bs-accordion-active-bg: var(--bs-primary-bg-subtle);
+}
+
+.accordion-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--bs-accordion-btn-padding-y) var(--bs-accordion-btn-padding-x);
+    font-size: 1rem;
+    color: var(--bs-accordion-btn-color);
+    text-align: left;
+    background-color: var(--bs-accordion-btn-bg);
+    border: 0;
+    border-radius: 0;
+    overflow-anchor: none;
+    transition: var(--bs-accordion-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .accordion-button {
+        transition: none;
+    }
+}
+
+.accordion-button::after {
+    flex-shrink: 0;
+    width: var(--bs-accordion-btn-icon-width);
+    height: var(--bs-accordion-btn-icon-width);
+    margin-left: auto;
+    content: "";
+    background-image: var(--bs-accordion-btn-icon);
+    background-repeat: no-repeat;
+    background-size: var(--bs-accordion-btn-icon-width);
+    transition: var(--bs-accordion-btn-icon-transition);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .accordion-button::after {
+        transition: none;
+    }
+}
+
+.accordion-button:hover {
+    z-index: 2;
+}
+
+.accordion-button:focus {
+    z-index: 3;
+    border-color: var(--bs-accordion-btn-focus-border-color);
+    outline: 0;
+    box-shadow: var(--bs-accordion-btn-focus-box-shadow);
+}
+
+.accordion-header {
+    margin-bottom: 0;
+}
+
+.accordion-item {
+    color: var(--bs-accordion-color);
+    background-color: var(--bs-accordion-bg);
+    border: var(--bs-accordion-border-width) solid var(--bs-accordion-border-color);
+}
+
+.accordion-item:first-of-type {
+    border-top-left-radius: var(--bs-accordion-border-radius);
+    border-top-right-radius: var(--bs-accordion-border-radius);
+}
+
+.accordion-item:first-of-type .accordion-button {
+    border-top-left-radius: var(--bs-accordion-inner-border-radius);
+    border-top-right-radius: var(--bs-accordion-inner-border-radius);
+}
+
+.accordion-item:not(:first-of-type) {
+    border-top: 0;
+}
+
+.accordion-item:last-of-type {
+    border-bottom-right-radius: var(--bs-accordion-border-radius);
+    border-bottom-left-radius: var(--bs-accordion-border-radius);
+}
+
+.accordion-item:last-of-type .accordion-button.collapsed {
+    border-bottom-right-radius: var(--bs-accordion-inner-border-radius);
+    border-bottom-left-radius: var(--bs-accordion-inner-border-radius);
+}
+
+.accordion-item:last-of-type .accordion-collapse {
+    border-bottom-right-radius: var(--bs-accordion-border-radius);
+    border-bottom-left-radius: var(--bs-accordion-border-radius);
+}
+
+.accordion-body {
+    padding: var(--bs-accordion-body-padding-y) var(--bs-accordion-body-padding-x);
+}
+
+.accordion-flush .accordion-collapse {
+    border-width: 0;
+}
+
+.accordion-flush .accordion-item {
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+}
+
+.accordion-flush .accordion-item:first-child {
+    border-top: 0;
+}
+
+.accordion-flush .accordion-item:last-child {
+    border-bottom: 0;
+}
+
+.accordion-flush .accordion-item .accordion-button,
+.accordion-flush .accordion-item .accordion-button.collapsed {
+    border-radius: 0;
+}
+
+[data-bs-theme=dark] .accordion-button::after {
+    --bs-accordion-btn-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236ea8fe'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    --bs-accordion-btn-active-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%236ea8fe'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+}
+/* accordion css end */
+
+#flowEditor div.modal-dialog {
+    width: 98vw;
+}
+
+#flowEditorLabelBody {
+    height: 88vh !important;
+    padding: 0px !important;
+}
+
+.wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.btn-export {
+    float: right;
+    position: absolute;
+    top: 10px;
+    right: 100px;
+    color: white;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    background: #00a2d3;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 5;
+}
+
+.btn-legenda {
+    float: right;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: white;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    background: #e3195a;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 5;
+    text-decoration: none;
+}
+
+.legenda{
+    float: right;
+    position: absolute;
+    width: 300px;
+    top: 60px;
+    right: 10px;
+    color: white;
+    border: 1px solid var(--border-color);
+    background: var(--tertiary-color);
+    padding: 5px 10px;
+    border-radius: 4px;
+    z-index: 5;
+}
+
+.btn-lock {
+    float: right;
+    position: absolute;
+    bottom: 10px;
+    right: 140px;
+    display: flex;
+    font-size: 24px;
+    color: white;
+    padding: 5px 10px;
+    background: #6c8793;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    z-index: 5;
+    cursor: pointer;
+}
+
+.bar-zoom {
+    float: right;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    font-size: 24px;
+    color: white;
+    padding: 5px 10px;
+    background: #6c8793;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    z-index: 5;
+}
+
+.bar-zoom i {
+    cursor: pointer;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#drawflow {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--secondary-color);
+    background-size: 25px 25px;
+    background-image:
+        linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+}
+
+
+
+/* Editing Drawflow */
+
+.drawflow .drawflow-node {
+    background: var(--tertiary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color-node);
+    -webkit-box-shadow: 0 0 15px 2px var(--border-color-node);
+    box-shadow: 0 0 15px 2px var(--border-color-node);
+    padding: 0px;
+    width: auto;
+}
+
+.drawflow .drawflow-node .drawflow-delete {
+    display: none;
+}
+
+.drawflow .drawflow-node.selected  {
+    background: var(--tertiary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color-node);
+    -webkit-box-shadow: 0 0 15px 13px var(--primary-color);
+    box-shadow: 0 0 15px 13px var(--primary-color);
+}
+
+.drawflow .connection .main-path {
+    stroke: var(--primary-color);
+    stroke-width: 6px;
+}
+
+.drawflow .connection .main-path.selected {
+    stroke: var(--border-color-node); 
+}
+
+.drawflow .drawflow-node .input, .drawflow .drawflow-node .output {
+    height: 20px;
+    width: 20px;
+    border: 1px solid var(--border-color-node);
+}
+
+.drawflow .drawflow-node .input:hover, .drawflow .drawflow-node .output:hover {
+    -webkit-box-shadow: 0 0 5px 4px var(--border-color-node);
+    box-shadow: 0 0 5px 4px var(--border-color-node);
+}
+
+.drawflow .drawflow-node .output {
+    right: 10px;
+    background: var(--primary-color);
+}
+
+.drawflow .drawflow-node .input {
+    left: -10px;
+    background: var(--primary-color);
+}
+
+.drawflow-delete {
+    border: 2px solid var(--primary-color);
+    background: var(--border-color-node);
+    color: var(--primary-color);
+    -webkit-box-shadow: 0 2px 20px 2px var(--primary-color);
+    box-shadow: 0 2px 20px 2px var(--primary-color);
+}
+
+.drawflow-node .title-box {
+    height: 50px;
+    line-height: 50px;
+    background: var(--primary-color);
+    border-bottom: 1px solid var(--border-color-node);
+    border-radius: 4px 4px 0px 0px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.drawflow .title-box svg {
+    position: initial;
+}
+
+.drawflow-node .box-full {
+    margin: 20px 20px 20px 20px;
+    width: 600px;
+    font-size: 14px;
+}
+
+.drawflow-node input, .drawflow-node select, .drawflow-node textarea {
+    border: 1px solid var(--border-color);
+    width: 100%;
+    height: 30px;
+    padding: 5px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #555555;
+    overflow: auto;
+    overflow-wrap: normal;
+    white-space: pre;
+}
+
+.drawflow label{
+    font-weight: bold;
+}
+
+.drawflow .connection .point {
+    stroke: var(--border-color);
+    stroke-width: 2;
+    fill: white; 
+}
+
+.drawflow .connection .point.selected, .drawflow .connection .point:hover {
+    fill: #4ea9ff;
+}
+
+.drawflow .widget-body{
+    display: flex;
+    height: 400px;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    border: 1px solid white;
+    background: var(--secondary-color);
+}
+
+.drawflow .widget-body-one-hundred{
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+    width: 100%;
+    padding: 5px;
+}
+
+.drawflow .widget-body-sixty{
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+    border-right : 1px solid white;
+    width: 60%;
+    padding: 5px;
+}
+
+.drawflow .widget-body-forty{
+    overflow: auto;
+    width: 40%;
+}
+
+.drawflow .widget-body-element-widget-name{
+    width: 100%;
+}
+
+.drawflow-node .widget-body-element-events-room{
+    width: 100%;
+}
+
+.drawflow-node .widget-body-element-events-room{
+    flex-grow: 1;
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+
+.drawflow-node .widget-body-element-code-room{
+    flex-grow: 1;
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+    width : 100%;
+}
+
+.drawflow-node .widget-body-element-code-room.hide{
+    display: none;
+}
+
+.drawflow-node .widget-body-element-code-box{
+    flex-grow: 1;
+}
+
+.drawflow-node .ports-room{
+    height: 74%;
+    padding: 5px;
+}
+
+.drawflow-node .port-box{
+    width: 100%;
+    border: 1px solid white;
+    padding: 5px;
+    background: var(--secondary-color);
+    color:var(--text-color);
+}
+
+.drawflow-node .port-box-button{
+    width: 100%;
+    border: 1px solid white;
+    box-shadow: none;
+}
+
+.drawflow-node .port-box-name{
+    font-weight: bold;
+    font-size: 22px;
+    color: inherit;
+    text-align: center;
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.drawflow-node .widget-body-forty .create-ports{
+    height: 26%;
+    padding: 5px;
+    border-top: 1px solid white;
+}
+
+.drawflow .port-red{
+    background: #e81224;
+    color: white;
+}
+.drawflow .port-green{
+    background: #16c60c;
+    color: black;
+}
+.drawflow .port-blue{
+    background: #0078d7;
+    color: white;
+}
+.drawflow .port-yellow{
+    background: #fff100;
+    color: black;
+}
+.drawflow .port-orange{
+    background: #f7630c;
+    color: black;
+}
+.drawflow .port-purple{
+    background: #886ce4;
+    color: white;
+}
+.drawflow .port-brown{
+    background: #8e562e;
+    color: white;
+}
+.drawflow .port-black{
+    background: #383838;
+    color: white;
+}
+.drawflow .port-white{
+    background: #f2f2f2;
+    color: black;
+}
+
+.btn-delete-port-box {
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    background: #e3195a;
+    border: 0;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.btn-add-port-box {
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    border: 1px solid var(--border-color);
+    background: #00a2d3;
+    border: 0;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.drawflow-node .separator{
+    margin-top: 8px;
+    margin-bottom : 8px;
+}
+
+.drawflow-node .bottom-separator{
+    margin-bottom : 8px;
+}

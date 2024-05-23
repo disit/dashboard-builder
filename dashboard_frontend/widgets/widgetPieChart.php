@@ -70,7 +70,7 @@
             chartSeriesObject, startAngle, endAngle, groupByAttr = null;
         var flipFlag, emptyLegendFlagFromWs = false;
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
-        var code, clickedVar, clickedVarType = null;
+        var code, connections, clickedVar, clickedVarType = null;
         var selectedDataJson = [];
         var fromCode = null;
         var showLegendFlag = false;
@@ -1131,6 +1131,10 @@
                                         $( '#'+newId ).mouseover(function() {
                                             $('#'+newId).css('cursor', 'pointer');
                                         });
+                                        if (connections != null) {
+                                            selectedDataJson.connections = connections;
+                                        }
+                                        //selectedDataJson = JSON.stringify(selectedDataJson);
                                         if(code) {
                                             try {
                                                 execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
@@ -1314,7 +1318,7 @@
                     }
                 };
 
-                //Workaround temporaneo per far vedere pie tradizionali con piï¿½ di 3 fette
+                //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
                 if(seriesValues.length > 0)
                 {
                     chartSeriesObject.push(singleObject);
@@ -1662,7 +1666,7 @@
                                 colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i] + '"></div>');
                             }
 
-                            //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora ï¿½ inutile, non esistono soglie sull'anello piï¿½ interno
+                            //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
                             if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
                                 if (thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.length > 0) {
                                     labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
@@ -1723,7 +1727,7 @@
 
                             item.css("display", "block");
 
-                            //Workaround temporaneo per far vedere pie tradizionali con piï¿½ di 3 fette
+                            //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
                             if (series.secondAxis.labels.length > 0) {
                                 $('#<?= $_REQUEST['name_w'] ?>_legendContainer1').append(item);
 
@@ -1857,7 +1861,7 @@
                             colorContainer = $('<div class="legendColorContainer" style="background-color: ' + defaultColorsArray[i % 10] + '"></div>');
                         }
 
-                        //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora ï¿½ inutile, non esistono soglie sull'anello piï¿½ interno
+                        //Aggiunta degli eventuali caret per i menu a comparsa per le legende sulle soglie - Qui per ora è inutile, non esistono soglie sull'anello più interno
                         if ((thresholdsJson !== null) && ((metricNameFromDriver === "undefined") || (metricNameFromDriver === undefined) || (metricNameFromDriver === "null") || (metricNameFromDriver === null))) {
                             if (thresholdObject.thresholdObject.secondAxis.fields[i].thrSeries.length > 0) {
                                 labelContainer = $('<div class="legendLabelContainer thrLegend dropup">' +
@@ -1918,7 +1922,7 @@
 
                         item.css("display", "block");
 
-                        //Workaround temporaneo per far vedere pie tradizionali con piï¿½ di 3 fette
+                        //Workaround temporaneo per far vedere pie tradizionali con più di 3 fette
                         if (series.secondAxis.labels.length > 0) {
 
                             let legendSameItemFlag = false;
@@ -2198,6 +2202,7 @@
                 chartAxesColor = widgetData.params.chartAxesColor;
                 serviceUri = widgetData.params.serviceUri;
 				code = widgetData.params.code;
+                connections = widgetData.params.connections;
 				//
 				//parameters = widgetData.params.parameters;
 				//
@@ -2365,6 +2370,7 @@
                 echo 'wsRetryActive = "' . $wsRetryActive . '";';
                 echo 'wsRetryTime = ' . $wsRetryTime . ';';
                 echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                //echo 'webSocket = new SharedWebSocket(widgetName, metricName, "' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
                 ?>
 
                 webSocket.addEventListener('open', openWsConn);

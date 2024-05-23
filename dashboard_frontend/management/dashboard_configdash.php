@@ -77,7 +77,8 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
     
     <!-- jQuery -->
-    <script src="../js/jquery-1.10.1.min.js"></script>
+    <!-- <script src="../js/jquery-1.10.1.min.js"></script> -->
+    <script src="../js/jquery-2.2.4.min.js"></script>
     
     <!-- Bootstrap Core JavaScript -->
     <script src="../js/bootstrap.min.js"></script>
@@ -479,6 +480,13 @@
                     <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("WizardOS")?></div>
                 </div>
             </a>    -->
+            <!-- csbl editor -->
+            <a id="link_start_editor" href="#" data-toggle="modal" data-target="#flowEditor" onclick="openEditor();" style="display:none">
+                <div id="csbl_editor_button" class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
+                    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-magic" style="color: #8f00ff"></i></div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("CSBL Editor")?></div>
+                </div>
+            </a>
             <a id="link_add_widget" href="#" data-toggle="modal">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                     <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-plus-circle" style="color: #ffcc00"></i></div>
@@ -1239,7 +1247,25 @@
         </div> <!-- Fine modal dialog -->
     </div><!-- Fine modale -->
     <!-- Fine modale wizard -->
-    
+
+    <!-- Modale editor (for csbl) -->
+    <div class="modal fade" id="flowEditor" tabindex="-1" role="dialog" aria-labelledby="flowEditorLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modalContentWizardForm"> 
+                <div class="modalHeader centerWithFlex">
+                 <?= _("CSBL Editor")?>
+                </div>
+            
+                <div id="flowEditorLabelBody" class="modal-body modalBody">
+                    <!-- marco modal-->
+                    <?php include "flowEditorCode.php" ?>
+                </div>
+                
+            </div>    <!-- Fine modal content -->
+        </div> <!-- Fine modal dialog -->
+    </div><!-- Fine modale -->
+    <!-- Fine modale editor -->
+
     <!--Select theme-->
     <div class="modal fade" id="modal-select-theme" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog" role="document">
@@ -2880,6 +2906,26 @@
                     var svgArray = null;
                     var customSvgFlag = false;
                     var newBox = null;
+                    var trustedUser = false;
+
+                    $.ajax({
+                        url: "../controllers/getTrustedUsers.php",
+                        data: {
+                            user: "<?= $dashboardEditorName ?>"
+                        },
+                        type: "POST",
+                        async: true,
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data['detail'] == "Ok") {
+                                trustedUser = true;
+                                $("#link_start_editor").show();
+                            }
+                        },
+                        error: function (err) {
+                            console.log('Error in retrieving Trusted User. ' + err.Message);
+                        }
+                    });
                     
                     function checkJson(str) {
                         try {
@@ -18095,6 +18141,7 @@
                                 var viewMode = data['viewMode'];
                                 var rowParams = data['rowParams'];
                                 var code = data['code'];
+                                var connections = data['connections'];
                                 
                                 var parameters, styleParameters, currentParams, infoJson = null;
                                 
@@ -18356,7 +18403,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -18371,7 +18418,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -18997,7 +19044,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -19012,7 +19059,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -19370,7 +19417,7 @@
 																			$('#enableCKEditor').val("ckeditor");
 																			// if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -19385,7 +19432,7 @@
 																			$('#ck_editor').show();
 																			//if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -19801,7 +19848,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -19816,7 +19863,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -19980,7 +20027,7 @@
                                                                 $('#ck_editor').show();
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -19993,7 +20040,7 @@
                                                             if ($('#enableCKEditor').val() === "ckeditor") {
                                                                 $('#ck_editor').show();
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -20109,7 +20156,7 @@
 																			$('#ck_editor').show();
 																			$('#enableCKEditor').val("ckeditor");
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -20122,7 +20169,7 @@
 																		if ($('#enableCKEditor').val() === "ckeditor") {
 																			$('#ck_editor').show();
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -20321,7 +20368,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -20336,7 +20383,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -20763,7 +20810,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -20778,7 +20825,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -21164,7 +21211,7 @@
 																			$('#enableCKEditor').val("ckeditor");
 																			// if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -21179,7 +21226,7 @@
 																			$('#ck_editor').show();
 																			//if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -21530,7 +21577,7 @@
 																			$('#enableCKEditor').val("ckeditor");
 																			// if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -21545,7 +21592,7 @@
 																			$('#ck_editor').show();
 																			//if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -27281,16 +27328,19 @@
 														//console.log(code);
 														if ($('#enableCKEditor') != null && $('#enableCKEditor').val() == "ckeditor") {
 															$('#ck_editor').show();
-                                                                //$('#enableCKEditor').val("ckeditor");
-                                                                // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
+                                                            //$('#enableCKEditor').val("ckeditor");
+                                                            // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                             if (code != null && code != "null") {
-                                                                var codeForCKEditor = $('<div>').text(code).html();
-                                                                var text_ck_area = document.createElement("text_ck_area");
-                                                                text_ck_area.innerHTML = codeForCKEditor;
-                                                                var newInfoDecoded = text_ck_area.innerText;
-                                                                //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
+                                                            } else {
+                                                                var codeForCKEditor = $('<div>').text(prepareCkEditorTemplate(code), connections).html();
                                                             }
+                                                            var text_ck_area = document.createElement("text_ck_area");
+                                                            text_ck_area.innerHTML = codeForCKEditor;
+                                                            var newInfoDecoded = text_ck_area.innerText;
+                                                            //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                            CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                            //}
 														}
 
                                                         $('#enableCKEditor').change(function () {
@@ -27299,7 +27349,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -27421,7 +27471,7 @@
 																			$('#ck_editor').show();
 																			$('#enableCKEditor').val("ckeditor");
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -27434,7 +27484,7 @@
 																		if ($('#enableCKEditor').val() === "ckeditor") {
 																			$('#ck_editor').show();
 																			if (code != null && code != "null") {
-																				var codeForCKEditor = $('<div>').text(code).html();
+																				var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
 																				var text_ck_area = document.createElement("text_ck_area");
 																				text_ck_area.innerHTML = codeForCKEditor;
 																				var newInfoDecoded = text_ck_area.innerText;
@@ -29173,15 +29223,18 @@
 														
 														if ($('#enableCKEditor') != null && $('#enableCKEditor').val() == "ckeditor") {
 															$('#ck_editor').show();
-                                                                // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
+                                                            // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                             if (code != null && code != "null") {
-                                                                var codeForCKEditor = $('<div>').text(code).html();
-                                                                var text_ck_area = document.createElement("text_ck_area");
-                                                                text_ck_area.innerHTML = codeForCKEditor;
-                                                                var newInfoDecoded = text_ck_area.innerText;
-                                                                //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
+                                                            } else {
+                                                                var codeForCKEditor = $('<div>').text(prepareCkEditorTemplate(code), connections).html();
                                                             }
+                                                            var text_ck_area = document.createElement("text_ck_area");
+                                                            text_ck_area.innerHTML = codeForCKEditor;
+                                                            var newInfoDecoded = text_ck_area.innerText;
+                                                            //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                            CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                            //}
 														}
 
                                                         $('#enableCKEditor').change(function () {
@@ -29189,7 +29242,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -30590,13 +30643,16 @@
                                                                 //$('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                             if (code != null && code != "null") {
-                                                                var codeForCKEditor = $('<div>').text(code).html();
-                                                                var text_ck_area = document.createElement("text_ck_area");
-                                                                text_ck_area.innerHTML = codeForCKEditor;
-                                                                var newInfoDecoded = text_ck_area.innerText;
-                                                                //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
+                                                            } else {
+                                                                var codeForCKEditor = $('<div>').text(prepareCkEditorTemplate(code), connections).html();
                                                             }
+                                                            var text_ck_area = document.createElement("text_ck_area");
+                                                            text_ck_area.innerHTML = codeForCKEditor;
+                                                            var newInfoDecoded = text_ck_area.innerText;
+                                                            //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                            CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                            //}
 														}
 
                                                     /*    let par = (JSON.stringify(currentParams));
@@ -30607,7 +30663,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -30623,7 +30679,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -30643,6 +30699,7 @@
                                                             $('#widgetInfoModalFooter div.compactMenuMsg').html('Saving&nbsp;<i class="fa fa-circle-o-notch fa-spin" style="font-size:14px"></i>');
 
                                                             var newInfo = CKEDITOR.instances['widgetInfoEditorExtCont'].getData();
+                                                            //var newInfo = CKEDITOR.instances['widgetInfoEditorExtCont'].document.getBody().getText();
                                                             /*if (newInfo.trim() === '') {
                                                                 newInfo = null;
                                                             }   */
@@ -31952,7 +32009,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -31969,7 +32026,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -31984,7 +32041,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -33476,13 +33533,16 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
-                                                                    var text_ck_area = document.createElement("text_ck_area");
-                                                                    text_ck_area.innerHTML = codeForCKEditor;
-                                                                    var newInfoDecoded = text_ck_area.innerText;
-                                                                    //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
+                                                                } else {
+                                                                    var codeForCKEditor = $('<div>').text(prepareCkEditorTemplate(code), connections).html();
                                                                 }
+                                                                var text_ck_area = document.createElement("text_ck_area");
+                                                                text_ck_area.innerHTML = codeForCKEditor;
+                                                                var newInfoDecoded = text_ck_area.innerText;
+                                                                //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                                CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                //}
 														}
 
                                                         let par = (JSON.stringify(currentParams));
@@ -33496,7 +33556,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -33512,7 +33572,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -33867,7 +33927,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -33884,7 +33944,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -33899,7 +33959,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -35118,13 +35178,16 @@
                                                             $('#enableCKEditor').val("ckeditor");
                                                             // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                             if (code != null && code != "null") {
-                                                                var codeForCKEditor = $('<div>').text(code).html();
-                                                                var text_ck_area = document.createElement("text_ck_area");
-                                                                text_ck_area.innerHTML = codeForCKEditor;
-                                                                var newInfoDecoded = text_ck_area.innerText;
-                                                                //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
-                                                                CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
+                                                            } else {
+                                                                var codeForCKEditor = $('<div>').text(prepareCkEditorTemplate(code), connections).html();
                                                             }
+                                                            var text_ck_area = document.createElement("text_ck_area");
+                                                            text_ck_area.innerHTML = codeForCKEditor;
+                                                            var newInfoDecoded = text_ck_area.innerText;
+                                                            //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
+                                                            CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                            //}
                                                     }
 
                                                         let par = (JSON.stringify(currentParams));
@@ -35136,7 +35199,7 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -35151,7 +35214,7 @@
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -37103,7 +37166,7 @@
                                                                 $('#ck_editor').show();
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -37118,7 +37181,7 @@
                                                             if ($('#enableCKEditor').val() === "ckeditor") {
                                                                 $('#ck_editor').show();
                                                                 //if (rowParams.substring(0, 8) != "https://" && rowParams.substring(0, 7) != "http://" && rowParams.substring(0, 3) != "NR_") {
-                                                                    var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;

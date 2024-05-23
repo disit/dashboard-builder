@@ -55,7 +55,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var seriesDataArray = [];
         var serviceUri = "";
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
-        var code = null;
+        var code, connections = null;
         
         if(((embedWidget === true)&&(embedWidgetPolicy === 'auto'))||((embedWidget === true)&&(embedWidgetPolicy === 'manual')&&(showTitle === "no"))||((embedWidget === false)&&(showTitle === "no")))
         {
@@ -863,6 +863,12 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     // increase yaxis range of 20% with respect to max and min series values
                     yaxisMin[m] = Math.min(0, currentMinVal - currentMinVal * 0.2);
                     yaxisMax[m] = currentMaxVal + currentMaxVal * 0.2;
+                    if (isNaN(yaxisMin[m])) {
+                        yaxisMin[m] = 0;
+                    }
+                    if (isNaN(yaxisMax[m])) {
+                        yaxisMax[m] = 0;
+                    }
                 } else {
                     yaxisMin[m] = 0;
                     yaxisMax[m] = 10;
@@ -1224,6 +1230,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     $( '#'+newId ).mouseover(function() {
                                         $('#'+newId).css('cursor', 'pointer');
                                     });
+                                    if (connections != null) {
+                                        selectedData.connections = connections;
+                                    }
                                     selectedDataJson = JSON.stringify(selectedData);
                                     try {
                                         execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
@@ -1261,6 +1270,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         selectedData.value = {};
                                         selectedData.value.metricType = this.category;
                                         selectedData.value.metricName = this.series.name;
+                                        if (connections != null) {
+                                            selectedData.connections = connections;
+                                        }
                                         selectedDataJson = JSON.stringify(selectedData);
                                         try {
                                             execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
@@ -1778,6 +1790,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 chartAxesColor = widgetData.params.chartAxesColor;
                 serviceUri = widgetData.params.serviceUri;
 				code = widgetData.params.code;
+                connections = widgetData.params.connections;
 
                 if (nrMetricType != null) {
                     openWs();
@@ -1937,6 +1950,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 echo 'wsRetryActive = "' . $wsRetryActive . '";';
                 echo 'wsRetryTime = ' . $wsRetryTime . ';';
                 echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
+                //echo 'webSocket = new SharedWebSocket(widgetName, metricName, "' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
                 ?>
 
                 webSocket.addEventListener('open', openWsConn);

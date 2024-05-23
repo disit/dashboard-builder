@@ -345,17 +345,58 @@
               break;
 
             case "updateCkEditor":
-              $newInfo = mysqli_real_escape_string($link, $_REQUEST['newText']);
-              // $newInfo = preg_replace("/<\\/?script[^>]*>/", "", $newInfo);
-              $query = "UPDATE Dashboard.Config_widget_dashboard SET code = " . returnManagedStringForDb($newInfo) . " WHERE name_w = '$widgetName'";
-              $result = mysqli_query($link, $query);
+                /*  if (strpos($widgetName, "widgetExternalContent") === false) {
+                      $decodeNewText = decodeHTML($_REQUEST['newText']);
+                  } else {
+                    $decodeNewText = decodeHTML($_REQUEST['newText']);
+                  } */
+                $queryConn = "SELECT connections FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetName'";
+                $rConn = mysqli_query($link, $queryConn);
+                $connections = NULL;
+                if($rConn) {
+                    $rowConn = mysqli_fetch_assoc($rConn);
+                    $connections = $rowConn['connections'];
+                }
 
-              if ($result) {
-                  $response['detail'] = 'Ok';
-              } else {
-                  $response['detail'] = 'queryKo';
-              }
-              break;
+                if (!is_null($connections) || (strpos($_REQUEST['newText'], "events_code_start") !== false && strpos($_REQUEST['newText'], "events_code_end") !== false) || strpos($_REQUEST['newText'], "csbl_editor_edited") !== false) {
+                    //$newInfo = mysqli_real_escape_string($link, strpos($widgetName, "widgetExternalContent") === false ? decodeHTML($_REQUEST['newText']) : $_REQUEST['newText']);
+                    $newInfo = mysqli_real_escape_string($link, decodeHTML($_REQUEST['newText']));
+                } else {
+                    $newInfo = mysqli_real_escape_string($link, $_REQUEST['newText']);
+                }
+
+                // $newInfo = preg_replace("/<\\/?script[^>]*>/", "", $newInfo);
+                $query = "UPDATE Dashboard.Config_widget_dashboard SET code = " . returnManagedStringForDb($newInfo) . " WHERE name_w = '$widgetName'";
+                $result = mysqli_query($link, $query);
+
+                if ($result) {
+                    $response['detail'] = 'Ok';
+                } else {
+                    $response['detail'] = 'queryKo';
+                }
+                break;
+
+            case "updateCsblEditor":
+                $newInfo = mysqli_real_escape_string($link, $_REQUEST['newText']);
+                $connTab = mysqli_real_escape_string($link, $_REQUEST['connections']);
+                // $newInfo = preg_replace("/<\\/?script[^>]*>/", "", $newInfo);
+                $query = "UPDATE Dashboard.Config_widget_dashboard SET code = " . returnManagedStringForDb($newInfo) . " WHERE name_w = '$widgetName'";
+                $result = mysqli_query($link, $query);
+
+                if ($result) {
+                    //$response['detail'] = 'Ok';
+                    $query2 = "UPDATE Dashboard.Config_widget_dashboard SET connections = " . returnManagedStringForDb($connTab) . " WHERE name_w = '$widgetName'";
+                    $result2 = mysqli_query($link, $query2);
+
+                    if ($result2) {
+                        $response['detail'] = 'Ok';
+                    } else {
+                        $response['detail'] = 'query2_Ko';
+                    }
+                } else {
+                    $response['detail'] = 'queryKo';
+                }
+                break;
 
             case "updateChartColor":  
               $newColor = mysqli_real_escape_string($link, $_REQUEST['newColor']);

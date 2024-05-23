@@ -735,6 +735,25 @@
             }
             break;
 
+        case "updateDrawFlowEditor":
+            if (json_validator($_REQUEST['drawFlowJson'])) {
+                $newValue = mysqli_real_escape_string($link, $_REQUEST['drawFlowJson']);
+
+                $query = "UPDATE Dashboard.Config_dashboard SET drawFlowEditor = '$newValue' WHERE Id = '$dashboardId'";
+                $result = mysqli_query($link, $query);
+
+                if($result) {
+                    $response['detail'] = 'Ok';
+                } else {
+                    $response['detail'] = 'queryKo';
+                }
+
+            } else {
+                $response['detail'] = 'notValidJson';
+            }
+
+            break;
+
         default:
             break;
     }

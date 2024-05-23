@@ -441,7 +441,9 @@ if(isset($_REQUEST['notBySession'])&&($_REQUEST['notBySession'] == "true"))
                             "nodeRedInputOnValue" => $row5['onValue'],
                             "nodeRedInputDataPrecision" => $row5['dataPrecision'],
                             "rowParams" => $row5['rowParameters'],
-                            "code" => $row5['code']
+                            "code" => $row5['code'],
+                            "connections" => $row5['connections'],
+                            "drawFlowEditor" => $row5['drawFlowEditor']
                         );
                     }
                 }

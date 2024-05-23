@@ -23,23 +23,35 @@ mysqli_select_db($link, $dbname);
 
 $response = [];
 
+if (isset($_REQUEST['user'])) {
 
-$q = "SELECT * FROM Dashboard.TrustedUsers;";
+    $user = mysqli_real_escape_string($link, $_REQUEST['user']);
+    $q = "SELECT * FROM Dashboard.TrustedUsers WHERE userName = '$user';";
+    $r = mysqli_query($link, $q);
 
-$r = mysqli_query($link, $q);
-
-if($r)
-{
-    $response['trustedUsers'] = [];
-    while($row = mysqli_fetch_assoc($r))
-    {
-        array_push($response['trustedUsers'], $row['userName']);
+    if ($r) {
+        if ($row = mysqli_fetch_assoc($r)) {
+            $response['detail'] = 'Ok';
+        }
+    } else {
+        $response['detail'] = 'Ko';
     }
-    $response['detail'] = 'Ok';
-}
-else
-{
-    $response['detail'] = 'Ko';
+
+} else {
+
+    $q = "SELECT * FROM Dashboard.TrustedUsers;";
+    $r = mysqli_query($link, $q);
+
+    if ($r) {
+        $response['trustedUsers'] = [];
+        while ($row = mysqli_fetch_assoc($r)) {
+            array_push($response['trustedUsers'], $row['userName']);
+        }
+        $response['detail'] = 'Ok';
+    } else {
+        $response['detail'] = 'Ko';
+    }
+
 }
 
 echo json_encode($response);

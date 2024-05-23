@@ -3372,7 +3372,7 @@
             
             //Inizio eventuale codice ad hoc basato sui dati della metrica
             //showTitle è dalle impostazioni su singolo widget, show header dalle impostazioni su embed dashboard
-            if((hostFile === "index") && (showHeader === false))
+            if((hostFile != "config") && (showHeader === false))
             {
                 $('#<?= $_REQUEST['name_w'] ?>_header').css("display", "none");
                 height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));
@@ -3381,7 +3381,7 @@
             }
             else
             {
-                if((hostFile === "index")&&(showTitle === "no")&&(showHeader === true))
+                if((hostFile != "config")&&(showTitle === "no")&&(showHeader === true))
                 {
                     $('#<?= $_REQUEST['name_w'] ?>_header').css("display", "none");
                     height = parseInt($("#<?= $_REQUEST['name_w'] ?>_div").prop("offsetHeight"));

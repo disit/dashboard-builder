@@ -82,7 +82,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var areaOpacity = null;
         var chart = null;
         var idYAxis = null;
-        var code = null;
+        var code, connections = null;
         var yAxisMin, yAxisMax, secondaryYAxisMin, secondaryYAxisMax = null;
         var timeNavigationButtonClick = null;
         var fromCode = null;
@@ -1421,6 +1421,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             });
 
                                             try {
+                                                if (connections != null) {
+                                                    param.connections = connections;
+                                                }
                                                 execute_<?= $_REQUEST['name_w'] ?>(param);
                                             } catch(e) {
                                                 console.log("Error in JS function from time zoom on " + widgetName);
@@ -1543,6 +1546,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             "series":rowParameters
                                         }
                                         //
+                                        if (connections != null) {
+                                            param.connections = connections;
+                                        }
                                         try {
                                             execute_<?= $_REQUEST['name_w'] ?>(param);
                                         } catch(e) {
@@ -1764,6 +1770,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                 "series": rowParameters,
                                                 //    "metricName": this.series.name
                                             }
+                                            if (connections != null) {
+                                                param.connections = connections;
+                                            }
                                             if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
                                                 try {
                                                     execute_<?= $_REQUEST['name_w'] ?>(param);
@@ -1841,6 +1850,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         $( '#'+newId ).mouseover(function() {
                                             $('#'+newId).css('cursor', 'pointer');
                                         });
+                                        if (connections != null) {
+                                            selectedData.connections = connections;
+                                        }
 									    selectedDataJson = JSON.stringify(selectedData);
                                     
 										if (styleParameters.enableCKEditor == "ckeditor" && code) {
@@ -1931,10 +1943,14 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         var param1 = "Min: " + this.series[0].processedYData[min_pos] + "<br>Max: " + this.series[0].processedYData[max_pos];
                                         // var sUri = getServiceUri(rowParameters);
                                         var param = {
+                                            "event" : "zoom",
                                             "t1" : minX,
                                             "t2" : maxX,
-                                            "series": rowParameters,
+                                            "series": rowParameters
                                         //    "metricName": this.series[0].name
+                                        }
+                                        if (connections != null) {
+                                            param.connections = connections;
                                         }
                                         if(styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code){
                                             let j=1;
@@ -2095,6 +2111,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             "t2": null,
 											"series":rowParameters
                                         }
+                                          if (connections != null) {
+                                              param.connections = connections;
+                                          }
 										//
 										try {
                                             	execute_<?= $_REQUEST['name_w'] ?>(param);
@@ -2294,6 +2313,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                 "series": rowParameters,
                                             //    "metricName": this.series.name
                                             }
+                                            if (connections != null) {
+                                                param.connections = connections;
+                                            }
                                             if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
                                                 try {
                                                     execute_<?= $_REQUEST['name_w'] ?>(param);
@@ -2372,6 +2394,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         $( '#'+newId ).mouseover(function() {
                                             $('#'+newId).css('cursor', 'pointer');
                                         });
+                                        if (connections != null) {
+                                            selectedData.connections = connections;
+                                        }
                                         selectedDataJson = JSON.stringify(selectedData);
 
                                         if (styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code) {
@@ -4362,6 +4387,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 dayhourview = widgetData.params.dayhourview;
                 computationType = widgetData.params.computationType;
 				code = widgetData.params.code;
+                connections = widgetData.params.connections;
 
                 if (nrMetricType != null) {
                     openWs();

@@ -12,6 +12,8 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+console.log("Widgets Common Functions.")
+
 //Globals
 var loadingFontDim = 13;
 var loadingIconDim = 20;
@@ -22,12 +24,53 @@ var getIconsPoolUrl = "../widgets/getIconsPool.php";
 var getBubbleMetricsUrl = "../widgets/getBubbleMetricsProxy.php";
 var getSvgSingleVariableTemplatesUrl = "../controllers/getSvgSingleVarTemplates.php";
 var getOrthomapsUrl = "../widgets/getOrthomaps.php";
+var configVars = [];
 
+
+$.ajax({
+    url: '../configForJs.php',
+    type: 'GET',
+    success: function (data) {
+        try {
+            configVars = JSON.parse(data);
+        } catch (e) {
+            console.log("Error in parsing configuration vars as JSON.");
+        }
+    }
+});
 
 //Usata in tutti gli widget, ma destinata ad essere eliminata: già inglobata in setWidgetLayout
 function setHeaderFontColor(widget, color)
 {
     $("#" + widget).css("color", color);
+}
+
+/*function isColorFullyTransparent(rgbaColor) {
+    // Rimuovi spazi e parentesi
+    rgbaColor = rgbaColor.replace(/\s/g, '').replace(/[()]/g, '');
+
+    // Dividi i valori RGBA
+    const rgbaValues = rgbaColor.split(',');
+
+    // Estrai il valore di alpha
+    const alpha = parseFloat(rgbaValues[3]);
+
+    // Verifica se l'alpha è uguale a 0 (trasparenza al 100%)
+    return alpha === 0;
+}*/
+
+function isColorTransparent(rgbaColor) {
+    // Rimuovi spazi e parentesi
+    rgbaColor = rgbaColor.replace(/\s/g, '').replace(/[()]/g, '');
+
+    // Dividi i valori RGBA
+    const rgbaValues = rgbaColor.split(',');
+
+    // Estrai il valore di alpha
+    const alpha = parseFloat(rgbaValues[3]);
+
+    // Verifica se l'alpha è minore di 1 (trasparenza parziale)
+    return alpha < 1;
 }
 
 //Usata in tutti gli widget
@@ -64,6 +107,7 @@ function showWidgetContent(widgetName)
 function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer)
 {
     var titleWidth, contentHeight = null;
+    var newLayout = (hostFile === 'baloon' || hostFile === 'baloon-dark' || hostFile === 'gea' || hostFile === 'gea-night' || hostFile === 'pa') ? true : false;
 
     if((!widgetName.includes('widgetExternalContent'))&&(!widgetName.includes('widgetMap'))&&(!widgetName.includes('widgetGisWFS')))
     {
@@ -173,7 +217,12 @@ function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderC
         //TBD - Da specializzare in presenza/assenza di infoButton e bottoniFullscreen
     }
 
-    $("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
+    if (newLayout && isColorTransparent(widgetHeaderColor)) {
+        $("#" + widgetName + "_header").css("cssText", "background-color: transparent !important;");
+        $("#" + widgetName + "_titleDiv").css("cssText", "background-color: transparent !important;");
+    } else {
+        $("#" + widgetName + "_titleDiv").css("color", widgetHeaderFontColor);
+    }
     $("#" + widgetName + "_countdownContainerDiv").css("color", widgetHeaderFontColor);
 	
     if(showHeader)
@@ -189,7 +238,16 @@ function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderC
     }
     
     //Impostazione colore di background del widget
-    $("#" + widgetName + "_content").css("background-color", widgetContentColor);
+    if (newLayout && isColorTransparent(widgetContentColor)) {
+        $("#" + widgetName).css("background-color", widgetContentColor);
+        //$("li#" + widgetName).css('border', '1px solid grey');  // add borderColor parameter from view
+        $("#" + widgetName + "_noDataAlertText").css("background-color", "transparent");
+        $("#" + widgetName + "_noDataAlertIcon").css("background-color", "transparent");
+        $("#" + widgetName + "_chartContainer").css("background-color", "transparent");
+        $("#" + widgetName + "_content").css("background-color", "transparent");
+    } else {
+            $("#" + widgetName + "_content").css("background-color", widgetContentColor);
+    }
     
     $("#" + widgetName + "_content").css("height", contentHeight);
     if(widgetHeaderColor === widgetHeaderFontColor)
@@ -1995,4 +2053,604 @@ function triggerMetricsForTrends(wName, listenerName, data, selMetrics, baseKbUr
         targetWidget: wName,
         passedData: dataProcessedArray
     });
+}
+
+function htmlEncode(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+function prepareDataObjFromKBFeatures(features) {
+    for (var f in features) {
+
+    }
+}
+
+function convertHtmlEntities(str) {
+    var map = {
+        '&lt;': '<',
+        '&gt;': '>',
+        '&amp;': '&'
+    };
+
+    return str.replace(/&lt;|&gt;|&amp;/g, function(match) {
+        return map[match];
+    });
+}
+
+function csblTrigger(output_type, port_name, data, eventType, dt1_iso, dt2_iso, conn, coordsAndType) {
+
+
+    //Find and check validity of the specific port of an event of a widget
+    let check_validity = false,
+        conn_id;
+    let connections;
+    if (conn.constructor === Array) {
+        connections = conn;
+    } else {
+        connections = JSON.parse(conn.replace(/var connections = /g, '').replace(/;/g, '').replace(/\\/g, ''));
+    }
+    Object.keys(connections).forEach(id => {
+        if (connections[id].port_name === port_name) {
+            if (connections[id].output_type === output_type) {
+                conn_id = id;
+                check_validity = true;
+            }
+        }
+    });
+
+    if (check_validity) {
+        let widget_type, widget_name;
+        for (let i = 0; i < connections[conn_id].linked_target_widgets.length; i++) {
+
+            widget_type = connections[conn_id].linked_target_widgets[i].widget_type;
+            widget_name = connections[conn_id].linked_target_widgets[i].widget_name;
+
+            switch (widget_type) {
+                case 'widgetRadarSeries':
+                    $('body').trigger({
+                        type: "showRadarSeriesFromExternalContent_" + widget_name,
+                        targetWidget: widget_name,
+                        passedData: data
+                    });
+                    break;
+
+                case 'widgetTimeTrend':
+                    $('body').trigger({
+                        type: "showTimeTrendFromExternalContent_" + widget_name,
+                        targetWidget: widget_name,
+                        passedData: data,
+                        t1: dt1_iso,
+                        t2: dt2_iso,
+                        event: eventType
+                    });
+                    break;
+
+                case 'widgetCurvedLineSeries':
+                    $('body').trigger({
+                        type: "showCurvedLinesFromExternalContent_" + widget_name,
+                        targetWidget: widget_name,
+                        field: data==null ? null : data[0].smField,
+                        passedData: data,
+                        t1: dt1_iso,
+                        t2: dt2_iso,
+                        event: eventType
+                    });
+                    break;
+
+                case 'widgetPieChart':
+                    $('body').trigger({
+                        type: "showPieChartFromExternalContent_" + widget_name,
+                        targetWidget: widget_name,
+                        passedData: data
+                    });
+                    break;
+
+                case 'widgetBarSeries':
+                    $('body').trigger({
+                        type: "showBarSeriesFromExternalContent_" + widget_name,
+                        targetWidget: widget_name,
+                        passedData: data
+                    });
+                    break;
+
+                case 'widgetMap':
+                    for (let n = 0; n < coordsAndType.length; n++) {
+                        $('body').trigger({
+                            type: "addSelectorPin",
+                            target: widget_name,
+                            passedData: coordsAndType[n]
+                        });
+                    }
+                    break;
+
+                case 'widgetSpeedometer':
+                    break;
+
+                case 'widgetGaugeChart':
+                    break;
+
+                case 'widgetKnob':
+                    break;
+
+                case 'widgetNumericKeyboard':
+                    break;
+
+                case 'widgetSingleContent':
+                    break;
+
+                case 'widgetExternalContent':
+                    break;
+
+                case 'widgetTable':
+                    break;
+
+                case 'widgetDeviceTable':
+                    break;
+
+                case 'widgetEventTable':
+                    break;
+
+                case 'widgetButton':
+                    break;
+
+                case 'widgetOnOffButton':
+                    break;
+
+                case 'widgetImpulseButton':
+                    break;
+
+                default:
+            }
+        }
+    }
+}
+
+function sendMapSURI(port_name, jsonData){
+    //data code
+    var data = [];
+    let h = 0;
+    if (jsonData.layers[0].values) {
+        var metrics = Object.keys(jsonData.layers[0].values);
+        for (var l in jsonData.layers) {
+            for (var m in metrics) {
+                data[h] = {};
+                data[h].serviceUri = jsonData.layers[l].serviceUri;
+                data[h].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + jsonData.layers[l].serviceUri;
+                data[h].metricHighLevelType = "Sensor";
+                data[h].metricName = jsonData.layers[l].organization + ":" + jsonData.layers[l].serviceUri.split("resource/iot/")[1].split("/")[0] + ":" + jsonData.layers[l].deviceName;
+                data[h].metricType = metrics[m];
+                h++;
+            }
+        }
+        csblTrigger("ListSURI", port_name, data, jsonData.event, null, null, jsonData.connections);
+    } else if (Object.keys(jsonData.layers).length > 1) {
+        getSmartCityAPIData = fetchAjax(configVars['kbUrlSuperServiceMap'] + "iot-search/?selection=" + jsonData.bounds._southWest.lat + ";" + jsonData.bounds._southWest.lng + ";" + jsonData.bounds._northEast.lat + ";" + jsonData.bounds._northEast.lng + ";&categories=" + jsonData.layers[0].tipo + "&maxResults=200&format=json", null, "GET", 'json', true, 0);
+        getSmartCityAPIData.done(function(jsonData) {
+            var metrics = Object.keys(jsonData.features[0].properties.values);
+            for (var l in jsonData.features) {
+                for (var m in metrics) {
+                    data[h] = {};
+                    data[h].serviceUri = jsonData.features[l].properties.serviceUri;
+                    data[h].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + jsonData.features[l].properties.serviceUri;
+                    data[h].metricHighLevelType = "Sensor";
+                    data[h].metricName = jsonData.features[0].properties.organization + ":" + jsonData.features[0].properties.serviceUri.split("resource/iot/")[1].split("/")[0] + ":" + jsonData.features[l].properties.deviceName;
+                    data[h].metricType = metrics[m];
+                    h++;
+                }
+            }
+            csblTrigger("ListSURI", port_name, data, jsonData.event, null, null, jsonData.connections);
+        });
+    } else {
+        getSmartCityAPIData = fetchAjax(configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + jsonData.layers[0].serviceUri + "&maxResults=200&format=json", null, "GET", 'json', true, 0);
+        getSmartCityAPIData.done(function(s4cData) {
+            if (s4cData.realtime != null) {
+                var metrics = Object.values(s4cData.realtime.head.vars);
+                for (var l in s4cData.Service.features) {
+                    for (var m in metrics) {
+                        data[h] = {};
+                        data[h].serviceUri = s4cData.Service.features[0].properties.serviceUri;
+                        data[h].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + s4cData.Service.features[0].properties.serviceUri;
+                        data[h].metricHighLevelType = "Sensor";
+                        data[h].metricName = s4cData.Service.features[0].properties.organization + ":" + s4cData.Service.features[0].properties.serviceUri.split("resource/iot/")[1].split("/")[0] + ":" + s4cData.Service.features[0].properties.name;
+                        data[h].metricType = metrics[m];
+                        h++;
+                    }
+                }
+                csblTrigger("ListSURI", port_name, data, jsonData.event, null, null, jsonData.connections);
+            }
+        });
+    }
+    //end data code
+}
+
+function sendSURI(port_name, jsonData){
+    //data code
+    var data = [];
+    data[0] = {};
+    var coordsAndType = [];
+    coordsAndType[0] = {};
+    var serviceUri = "";
+    if (jsonData.value) {
+        if (jsonData.value.metricName.includes(":")) {
+            serviceUri = configVars['baseServiceURI'] + jsonData.value.metricName.split(":")[1] + "/" + jsonData.value.metricName.split(":")[0] + "/" + jsonData.value.metricName.split(":")[2];
+            data[0].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + serviceUri + "&format=json";
+            data[0].metricHighLevelType = "IoT Device Variable";
+            coordsAndType[0].query = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + serviceUri + "&format=json";
+            coordsAndType[0].queryType = "Default";
+        } else {
+            serviceUri = jsonData.value.metricId;
+            data[0].metricId = serviceUri;
+            data[0].metricHighLevelType = "MyKPI";
+            coordsAndType[0].query = "datamanager/api/v1/poidata/" + serviceUri;
+            coordsAndType[0].queryType = "MyPOI";
+        }
+        data[0].metricName = jsonData.value.metricName;
+        data[0].metricType = jsonData.value.metricType;
+        data[0].smField = jsonData.value.metricType;
+        data[0].serviceUri = serviceUri;
+
+        coordsAndType[0].desc = data[0].metricName;
+        coordsAndType[0].color1 = "#ebb113";
+        coordsAndType[0].color2 = "#eb8a13";
+        csblTrigger("SURI", port_name, data, jsonData.event, null, null, jsonData.connections, coordsAndType);
+    } else {
+        let conn = jsonData.connections;
+        delete jsonData["connections"]
+        let event = jsonData.event;
+        delete jsonData["event"];
+        let count = 0;
+        jsonData.forEach((item) => {
+            data[count] = {};
+            coordsAndType[count] = {};
+            if (item.metricName.includes(":")) {
+                serviceUri = configVars['baseServiceURI'] + item.metricName.split(":")[1] + "/" + item.metricName.split(":")[0] + "/" + item.metricName.split(":")[2];
+                data[count].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + serviceUri + "&format=json";
+                data[count].metricHighLevelType = "IoT Device Variable";
+                coordsAndType[count].query = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + serviceUri + "&format=json";
+                coordsAndType[count].queryType = "Default";
+            } else {
+                serviceUri = item.metricId;
+                data[count].metricId = serviceUri;
+                data[count].metricHighLevelType = "MyKPI";
+                coordsAndType[count].query = "datamanager/api/v1/poidata/" + serviceUri;
+                coordsAndType[count].queryType = "MyPOI";
+            }
+            data[count].metricName = item.metricName;
+            data[count].metricType = item.metricType;
+            data[count].smField = item.metricType;
+            data[count].serviceUri = serviceUri;
+
+            coordsAndType[count].desc = data[count].metricName;
+            coordsAndType[count].color1 = "#ebb113";
+            coordsAndType[count].color2 = "#eb8a13";
+
+            /*console.log("Value: " + item.value);
+            console.log("Metric Type: " + item.metricType);
+            console.log("Metric Name: " + item.metricName);
+            console.log("Metric Value Unit: " + item.metricValueUnit);
+            console.log("Measured Time: " + item.measuredTime);
+            console.log("--------------------");    */
+            count++;
+            //csblTrigger("SURI", port_name, data[count], event, null, null, conn, coordsAndType[count]);
+        });
+        csblTrigger("SURI", port_name, data, event, null, null, conn, coordsAndType);
+    }
+    //end data code
+}
+
+function sendListSURIAndMetrics(port_name, jsonData){
+    //data code
+    var coordsAndType = [];
+    var data = [];
+    var h = 0;
+    var i = 0;
+    var serviceUri = "";
+    for (var l in jsonData.layers) {
+        if (jsonData.layers[l].visible == true) {
+            coordsAndType[i] = {};
+            coordsAndType[i].desc = jsonData.layers[l].name;
+            coordsAndType[i].color1 = "#ebb113";
+            coordsAndType[i].color2 = "#eb8a13";
+            if (!jsonData.metrics || jsonData.metrics.length<1) {
+                if (jsonData.layers[l].realtimeAttributes) {
+                    jsonData.metrics = Object.keys(jsonData.layers[l].realtimeAttributes);
+                }
+                if (jsonData.layers[l].kpidata) {
+                    jsonData.metrics = jsonData.layers[l].name;
+                }
+            }
+            for (var m in jsonData.metrics) {
+                data[h] = {};
+                if (jsonData.layers[l].name.includes(":")) {
+                    serviceUri = configVars['baseServiceURI'] + jsonData.layers[l].name.split(":")[1] + "/" + jsonData.layers[l].name.split(":")[0] + "/" + jsonData.layers[l].name.split(":")[2];
+                    data[h].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + serviceUri + "&format=json";
+                    data[h].metricHighLevelType = "IoT Device Variable";
+                    coordsAndType[i].query = "<?= $kbUrlSuperServiceMap ?>?serviceUri=" + serviceUri + "&format=json";
+                    coordsAndType[i].queryType = "Default";
+                } else if ((jsonData.layers[l].brokerName && jsonData.layers[l].brokerName != "") && (jsonData.layers[l].organization && jsonData.layers[l].organization != "")) {
+                    serviceUri = configVars['baseServiceURI'] + jsonData.layers[l].brokerName + "/" + jsonData.layers[l].organization + "/" + jsonData.layers[l].name;
+                    data[h].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + serviceUri + "&format=json";
+                    data[h].metricHighLevelType = "IoT Device Variable";
+                    coordsAndType[i].query = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + serviceUri + "&format=json";
+                    coordsAndType[i].queryType = "Default";
+                } else if (jsonData.layers[l].serviceUri && jsonData.layers[l].serviceUri != "") {
+                    serviceUri = jsonData.layers[l].serviceUri;
+                    data[h].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + serviceUri + "&format=json";
+                    data[h].metricHighLevelType = "IoT Device Variable";
+                    coordsAndType[i].query = "<?= $kbUrlSuperServiceMap ?>?serviceUri=" + serviceUri + "&format=json";
+                    coordsAndType[i].queryType = "Default";
+                } else {
+                    if (jsonData.layers[l].name.includes("_")) {
+                        serviceUri = "datamanager/api/v1/poidata/" + jsonData.layers[l].name.split("_")[1];
+                    } else {
+                        serviceUri = "datamanager/api/v1/poidata/" + jsonData.layers[l].name;
+                    }
+                    data[h].metricId = serviceUri;
+                    data[h].metricHighLevelType = "MyKPI";
+                    coordsAndType[i].query = serviceUri;
+                    coordsAndType[i].queryType = "MyPOI";
+                }
+                data[h].metricName = jsonData.layers[l].name;
+                data[h].metricType = jsonData.metrics[m];
+                data[h].smField = jsonData.metrics[m];
+                data[h].serviceUri = serviceUri;
+
+                h++;
+            }
+            i++;
+        }
+    }
+    csblTrigger("ListSURI", port_name, data, jsonData.event, null, null, jsonData.connections, coordsAndType);
+    //end data code
+}
+
+function sendJSON(port_name, jsonData){
+
+    csblTrigger("sendJSON", port_name, jsonData, jsonData.event, null, null, jsonData.connections);
+
+}
+
+function sendTimeRange(port_name, jsonData){
+
+    if (jsonData.event == "reset zoom") {
+        var dt1_iso = null;
+        var dt2_iso = null;
+    } else {
+        var minT = jsonData["t1"];
+        var maxT = jsonData["t2"];
+        var dt1 = new Date(minT);
+        var dt1_iso = dt1.toISOString().split(".")[0];
+        var dt2 = new Date(maxT);
+        var dt2_iso = dt2.toISOString().split(".")[0];
+    }
+
+    csblTrigger("DateTime_Interval", port_name, null, jsonData.event, dt1_iso, dt2_iso, jsonData.connections);
+}
+
+function extractSubstring(str, start, end) {
+    //var start = "var connections = [{";
+    //var end = "}];";
+    var pattern = new RegExp(start + "(.*?)" + end, "s");
+    var match = str.match(pattern);
+    return match ? start + match[1] + end : null;
+}
+
+function removeSubstring(str, result) {
+    var escapedResult = result.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    return str.replace(escapedResult, '');
+}
+
+function insertSubstring(str, insertStr, afterStr) {
+    var pos = str.indexOf(afterStr.trim());
+    if (pos !== -1) {
+        return str.slice(0, pos + afterStr.length) + insertStr + str.slice(pos + afterStr.length);
+    }
+    return str;
+}
+
+function encodeHTML(str) {
+    var map = {
+        '\n': '<br />',
+        '\t': '&nbsp;&nbsp;&nbsp;&nbsp;',
+        ' ': '&nbsp;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;'
+    };
+
+    var convertedStr = "<p>" + str.replace(/[\n\t "<>&']/g, function(m) { return map[m]; }) + "</p>";
+    return convertedStr;
+}
+
+function decodeHTML(html) {
+    var map = {
+        '<br />': '\n',
+        '&nbsp;&nbsp;&nbsp;&nbsp;': '\t',
+        '&nbsp;': ' ',
+        '&quot;': '"',
+        '&#39;': "'",
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>'
+    };
+
+    return html.replace(/<br \/>|&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;|&quot;|&#39;|&amp;|&lt;|&gt;/g, function(m) { return map[m]; });
+}
+
+function checkCsblEncoding(code,conn) {
+    if (!code) {
+        return null;
+    }
+    if (conn != null || (code.includes("events_code_start") && code.includes("events_code_end")))
+        return encodeHTML(code);
+    else
+        return code;
+}
+
+function replaceTabsWithSpaces(str) {
+    return str.replace(/\\t/g, "    ");
+}
+
+function compareObj(obj1, obj2) {
+    var keysObj1 = Object.keys(obj1);
+    var keysObj2 = Object.keys(obj2);
+
+    if (keysObj1.length !== keysObj2.length) {
+        return false;
+    }
+
+    for (var key of keysObj1) {
+        if (obj1[key] !== obj2[key]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+function prepareCkEditorTemplate(ckEditorStr) {
+    if (ckEditorStr == null || ckEditorStr.trim() === "") {
+        let mod=1;
+        if (mod===0) {
+            return "/*&nbsp;<br>\n" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;Use the following template (comments included)<br>\n" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;if you want your CK Editor code to be compliant<br>\n" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;with the CSBL Editor expected format.<br>\n" +
+                "*/<br>\n" +
+                "<br>\n" +
+                "function execute(){<br>\n" +
+                "<br>\n" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var e;<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (IsJsonString(param)) {<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e = JSON.parse(param);<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e = param;<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>" +
+                "<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var connections = [{&quot;port_name&quot;:&quot;&lt;PORT_NAME&gt;&quot;,&quot;output_type&quot;:&quot;&lt;PORT_TYPE&gt;&quot;,&quot;linked_target_widgets&quot;:[{&quot;widget_name&quot;:&quot;&lt;TARGET_WIDGET_NAME&gt;&quot;,&quot;widget_type&quot;:&quot;&lt;TARGET_WIDGET_TYPE&gt;&quot;}]}];<br>" +
+                "<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!e.connections || e.connections == []) e.connections = connections;<br>" +
+                "<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//events_code_start<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(e.event == &quot;&lt;EVENT_NAME&gt;&quot;){<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//events_code_part_start<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//events_code_part_end<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//events_code_end<br>" +
+                "<br>\n" +
+                "}";
+        } else {
+            return "/*&nbsp;<br>\n" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;Use the following template (comments included)<br>\n" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;if you want your CK Editor code to be compliant<br>\n" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;with our CSBL Editor.<br>\n" +
+                "*/<br>\n" +
+                "<br>\n" +
+                "function execute(){<br>\n" +
+                "<br>\n" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Connections JSON Template (CSBL Editor)<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var connections = [{&quot;port_name&quot;:&quot;&lt;PORT_NAME&gt;&quot;,&quot;output_type&quot;:&quot;&lt;OUT_PORT_TYPE&gt;&quot;,&quot;linked_target_widgets&quot;:[{&quot;widget_name&quot;:&quot;&lt;TARGET_WIDGET_NAME&gt;&quot;,&quot;widget_type&quot;:&quot;&lt;TARGET_WIDGET_TYPE&gt;&quot;}]}];<br>" +
+                "<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var e=readInput(param, connections);<br>" +
+                "<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//events_code_start<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(e.event == &quot;&lt;EVENT_NAME&gt;&quot;){<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//events_code_part_start<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//events_code_part_end<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//events_code_end<br>" +
+                "<br>\n" +
+                "}";
+        }
+    } else return ckEditorStr;
+}
+
+function encodeMixedHTML(str) {
+
+    // Replace & with its HTML equivalent
+    str = str.replace(/&/g, '&amp;');
+
+    // Replace <p>, </p>, <br> and <br /> tags with temporary markers
+    str = str.replace(/<p>/g, 'TEMP_P_START');
+    str = str.replace(/<\/p>/g, 'TEMP_P_END');
+    str = str.replace(/<br \/>/g, 'TEMP_BR_ALT');
+    str = str.replace(/<br>/g, 'TEMP_BR');
+
+    // Encode remaining < and > tags
+    str = str.replace(/</g, '&lt;');
+    str = str.replace(/>/g, '&gt;');
+
+    // Restore <p>, </p>, <br> and <br /> tags
+    str = str.replace(/TEMP_P_START/g, '<p>');
+    str = str.replace(/TEMP_P_END/g, '</p>');
+    str = str.replace(/TEMP_BR_ALT/g, '<br />');
+    str = str.replace(/TEMP_BR/g, '<br>');
+
+    // Replace " with its HTML equivalent
+    str = str.replace(/"/g, '&quot;');
+
+    // Replace spaces between HTML tags with &nbsp;
+    //str = str.split('>').join('>&nbsp;').split('<').join('&nbsp;<').replace(/&nbsp;<\/p>/g, '</p>').replace(/<p>&nbsp;/g, '<p>');
+
+    return str;
+
+}
+
+function encodeMixHTML(html) {
+    var temp = document.createElement('div');
+    temp.innerHTML = html;
+    var textNodes = temp.querySelectorAll('*:not(p):not(br)');
+
+    textNodes.forEach(function(node) {
+        var children = node.childNodes;
+        for (var i = 0; i < children.length; i++) {
+            if (children[i].nodeType === 3) {
+                var textNode = children[i];
+                var textContent = textNode.nodeValue;
+                var encodedTextContent = textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                textNode.nodeValue = encodedTextContent;
+            }
+        }
+    });
+
+    return temp.innerHTML;
+}
+
+function transformString(originalString) {
+    // Sostituisci i caratteri < e > con le loro entità HTML equivalenti, escludendo quelli nei tag <p>, </p> e <br />
+    let transformedString = originalString.replace(/<(?!p>|\/p>|br\s*\/?>)/gi, '&lt;').replace(/(?!<\/p|<br|<p)>/gi, '&gt;');
+
+    // Sostituisci gli spazi tra i tag HTML con &nbsp;
+    transformedString = transformedString.replace(/(?<=\>)( +)(?=\<)/g, function(match) {
+        return '&nbsp;'.repeat(match.length);
+    });
+
+    return transformedString;
+}
+
+function removeTags(str) {
+    // Rimuovi i tag <p>, </p> e <br />
+    str = str.replace(/<p>/g, '');
+    str = str.replace(/<\/p>/g, '');
+    str = str.replace(/<br \/>/g, '');
+
+    return str;
+}
+
+function readInput(param, connections) {
+    let e;
+    if (IsJsonString(param)) {
+        e = JSON.parse(param);
+    } else {
+        e = param;
+    }
+
+    if ((!e.connections || e.connections === []) && connections != null) e.connections = connections;
+
+    return e;
 }

@@ -883,3 +883,27 @@ function console_log($output, $with_script_tags = true) {
     }
     echo $js_code;
 }
+
+function decodeHTML($html) {
+    $htmlStringWithoutPTags = strip_tags($html);
+    $map = array(
+        '<br />' => '\n',
+    //    '&nbsp;&nbsp;&nbsp;&nbsp;' => '\t',
+        '&nbsp;' => ' ',
+        '&quot;' => '"',
+        '&#39;' => "'",
+        '&amp;' => '&',
+        '&lt;' => '<',
+        '&gt;' => '>'
+    );
+
+    return str_replace(array_keys($map), array_values($map), $htmlStringWithoutPTags);
+}
+
+function json_validator($data) {
+    if (!empty($data)) {
+        return is_string($data) &&
+        is_array(json_decode($data, true)) ? true : false;
+    }
+    return false;
+}

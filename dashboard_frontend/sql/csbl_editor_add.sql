@@ -1,0 +1,2 @@
+ALTER TABLE `Dashboard`.`Config_dashboard` ADD COLUMN `drawFlowEditor` MEDIUMTEXT NULL DEFAULT NULL AFTER `theme`;
+ALTER TABLE `Dashboard`.`Config_widget_dashboard` ADD COLUMN `connections` MEDIUMTEXT NULL DEFAULT NULL AFTER `code`;
