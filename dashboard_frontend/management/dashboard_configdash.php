@@ -37968,6 +37968,7 @@
                     $error='no';
                     try  {
                         include '../config.php';
+                        if($chatBaseUrl) {
                         include "../rocket-chat-rest-client/RocketChatClient.php";
                         include "../rocket-chat-rest-client/RocketChatUser.php";
                         include "../rocket-chat-rest-client/RocketChatChannel.php";
@@ -38013,11 +38014,12 @@
                                 $admin->logout();
                                 }
                         }
+                        }
                     }catch (Exception $e) {
                         $error=$e->getMessage();
                     }
                     ?>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+<?php if($chatBaseUrl) : ?>
                     setTimeout(function() {
                         console.log('<?php echo $newMessage; ?>');
                         console.log("Show33333");
@@ -38044,7 +38046,7 @@
                         
                     }, 50);
                     
-                    
+<?php endif; ?>                    
         changeMetricTable = $('#changeMetricTable').DataTable({
             "bLengthChange": false,
             "bInfo": false,
