@@ -13,21 +13,6 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-function getAccessToken($token_endpoint, $username, $password, $client_id){
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL,$token_endpoint);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS,
-        "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $curl_response = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($curl_response)->access_token;
-
-}
-
 include '../config.php';
 include '../opensearch/OpenSearchS4C.php';
 $open_search = new OpenSearchS4C();
@@ -80,7 +65,10 @@ $serviceChangeBufferMyKPI = array(
 
 $rsMyKPI = $open_search->getMyKPI();
 
-$accessToken = getAccessToken($token_endpoint, $username, $password, $client_id);
+$accessToken=get_access_token($token_endpoint, $username, $password, $client_id, $client_secret);
+if (empty($accessToken)) {
+    exit("\nAccess Token Not Valid. Program Terminated.\n");
+}
 
 //if ($rsMyKPI) {
 if (sizeof($rsMyKPI) > 0) {

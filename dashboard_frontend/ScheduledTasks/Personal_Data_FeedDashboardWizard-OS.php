@@ -47,6 +47,7 @@ $lastCheck = str_replace("T", " ", $start_scritp_time_string[0]);
 $host_pd= $host_PD;
 $token_endpoint= $token_endpoint_PD;
 $client_id= $client_id_PD;
+$client_secret= $client_secret_PD;
 $username= $usernamePD;
 $password= $passwordPD;
 
@@ -99,7 +100,10 @@ $lastCheck_KPI = "";
 $organizations_KPI = "";
 $parameters_KPI = "";
 
-$accessToken=get_access_token($token_endpoint, $username, $password, $client_id);
+$accessToken=get_access_token($token_endpoint, $username, $password, $client_id, $client_secret);
+if (empty($accessToken)) {
+    exit("\nAccess Token Not Valid. Program Terminated.\n");
+}
 
 $test = "yes";
 if ($test === "yes") {

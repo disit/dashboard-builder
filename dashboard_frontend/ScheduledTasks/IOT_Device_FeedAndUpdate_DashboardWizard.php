@@ -200,10 +200,11 @@ $env = $genFileContent['environment']['value'];
 $host_pd= $personalDataFileContent["host_PD"][$env];
 $token_endpoint= $personalDataFileContent["token_endpoint_PD"][$env];
 $client_id= $personalDataFileContent["client_id_PD"][$genFileContent['environment']['value']];
+$client_secret= $personalDataFileContent["client_secret_PD"][$genFileContent['environment']['value']];
 $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']['value']];
 $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
 
-$accessToken=get_access_token($token_endpoint, $username, $password, $client_id);
+$accessToken=get_access_token($token_endpoint, $username, $password, $client_id, $client_secret);
 if (empty($accessToken)) {
     exit("\nAccess Token Not Valid. Program Terminated.\n");
 }
