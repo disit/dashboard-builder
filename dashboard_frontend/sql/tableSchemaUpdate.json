@@ -1,0 +1,12 @@
+{
+  "Config_dashboard": {
+    "subtitle_header": {
+      "edit": "VARCHAR(300) CHARACTER SET utf8 COLLATE utf8_general_ci"
+    }
+  },
+  "Config_widget_dashboard": {
+    "title_w": {
+      "edit": "VARCHAR(600) CHARACTER SET utf8 COLLATE utf8_general_ci"
+    }
+  }
+}
