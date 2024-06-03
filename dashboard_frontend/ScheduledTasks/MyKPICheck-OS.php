@@ -37,6 +37,7 @@ $parameters = "";
 $host_pd= $host_PD;
 $token_endpoint= $token_endpoint_PD;
 $client_id= $client_id_PD;
+$client_secret = $client_secret_PD;
 $username= $usernamePD;
 $password= $passwordPD;
 

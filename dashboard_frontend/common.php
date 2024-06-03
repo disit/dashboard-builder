@@ -814,13 +814,13 @@ function serializeToJsonString($obj)
     return addslashes(json_encode($obj, JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK));
 }
 
-function get_access_token($token_endpoint, $username, $password, $client_id){
+function get_access_token($token_endpoint, $username, $password, $client_id, $client_secret = ""){
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL,$token_endpoint);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS,
-        "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id);
+        "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id.($client_secret ? "&client_secret=$client_secret" : ""));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $curl_response = curl_exec($ch);
@@ -906,4 +906,9 @@ function json_validator($data) {
         is_array(json_decode($data, true)) ? true : false;
     }
     return false;
+}
+
+function decodeNbsp($html) {
+    $htmlStringWithoutPTags = strip_tags($html);
+    return str_replace("&nbsp;", " ", $htmlStringWithoutPTags);
 }
