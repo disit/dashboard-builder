@@ -1,0 +1,1 @@
+ALTER TABLE `Dashboard`.`Config_dashboard` ADD COLUMN `metaData` TEXT NULL DEFAULT NULL AFTER `drawFlowEditor`;

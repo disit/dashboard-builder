@@ -2,6 +2,9 @@
   "Config_dashboard": {
     "drawFlowEditor": {"type": "MEDIUMTEXT", "extra": "NULL DEFAULT NULL AFTER `theme`"}
   },
+  "Config_dashboard": {
+    "metaData": {"type": "TEXT", "extra": "NULL DEFAULT NULL AFTER `drawFlowEditor`"}
+  },
   "Config_widget_dashboard": {
     "connections": {"type": "MEDIUMTEXT", "extra": ""}
   }
