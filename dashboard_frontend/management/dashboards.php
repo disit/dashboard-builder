@@ -116,9 +116,12 @@ else
         <!-- Bootstrap Core CSS -->
         <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
         <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
-
+	<?php if(isset($_SESSION['loggedRole']) && ($_SESSION['loggedRole'] == 'RootAdmin' || $_SESSION['loggedRole'] == 'AreaManager')) { ?>
+        <link href="../css/addWidgetWizardOS-W.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <?php } else { ?>
+        <link href="../css/addWidgetWizard.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <?php } ?>
         
-
         <!-- Custom CSS -->
         <?php include "theme-switcher.php"?>
 
@@ -133,6 +136,12 @@ else
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/css/shepherd.min.css">
         <!--  <link rel="stylesheet" href="../css/shepherd.min.css">  -->
     <link href="../css/s4c-css/s4c-snapTour.css" rel="stylesheet">
+
+        <!-- Dual List Box for Dashboard Metadata Classification -->
+        <script src="../js/jquery.bootstrap-duallistbox.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap-duallistbox.css">
+        <link rel="stylesheet" type="text/css" href="../css/dual_list.css">
+
 </head>
 
     <style type="text/css">
@@ -658,6 +667,7 @@ if (isset($_GET['pageTitle'])) {
                                     <li id="orgTab" class="nav-item"><a data-toggle="tab" href="#groupOrgCnt" class="nav-link dashboardWizardTabTxt"><?= _("Organization")?></a></li>
                                     <!-- THUMBNAIL -->
                                     <li id="orgThumbnail" class="nav-item"><a data-toggle="tab" href="#groupthumbnailCnt" class="nav-link dashboardWizardTabTxt"><?= _("Thumbnail") ?></a></li>
+                                    <li id="dashboard_metadata" class="nav-item"><a data-toggle="tab" href="#dashMetadataCnt" class="nav-link dashboardWizardTabTxt"><?= _("Metadata") ?></a></li>
                                 </ul> 
                                 <!-- Fine tabs -->
 
@@ -920,6 +930,50 @@ if (isset($_GET['pageTitle'])) {
                                     </div>
                                     <!-- Fine Group Trend cnt -->
                                 </div>
+                                <div id="dash_class_modal" hidden>
+                                    <div class="col-xs-12 centerWithFlex delegationsModalTxt modalFirstLbl" id="metadataDashTitle">
+                                    </div>
+                                    <div id="dashMetadataCnt" class="tab-pane fade in">
+                                        <div class="row" id="dashMetadataFormRow" >
+                                            <div class="container delegationsModalTxt">
+                                                <!-- Sub Nature Section -->
+                                                <div class="form-group">
+                                                    <label for="sub-nature">Sub Nature</label>
+                                                    <select multiple="multiple" size="20" name="sub-nature[]" id="sub-nature" class="duallistbox">
+                                                        <!-- Options will be populated by AJAX -->
+                                                    </select>
+                                                </div>
+
+                                                <!-- Description Textarea -->
+                                                <div class="form-group">
+                                                    <label for="description">Description</label>
+                                                    <textarea id="description" name="description"></textarea>
+                                                </div>
+
+                                                <!-- Area Textarea -->
+                                                <div class="form-group">
+                                                    <label for="area">Area</label>
+                                                    <textarea id="area" name="area"></textarea>
+                                                </div>
+
+                                                <!-- SSBL Text Box -->
+                                                <div class="form-group">
+                                                    <label for="ssbl">SSBL</label>
+                                                    <input type="text" id="ssbl" name="ssbl" class="form-control small-select" readonly>
+                                                </div>
+
+                                                <!-- CSBL Text Box -->
+                                                <div class="form-group">
+                                                    <label for="csbl">CSBL</label>
+                                                    <input type="text" id="csbl" name="csbl" class="form-control small-select" readonly>
+                                                </div>
+
+                                                <!-- Save Button -->
+                                                <button id="save-button" class="btn btn-primary">Save</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <!--ORGANITAZIONS -->
                                     <div id="orgmodal" hidden>
                                         <div id="groupOrgCnt" class="tab-pane fade in">
@@ -1085,6 +1139,21 @@ if (isset($_GET['pageTitle'])) {
             return true;
         }
 
+        function selectOptions(elem, values) {
+            if (values.length === 0) {
+                // Deselect all options
+                elem.find('option').prop('selected', false);
+            } else {
+                // Deselect all options
+                elem.find('option').prop('selected', false);
+                values.forEach(function (value) {
+                    elem.find('option[value="' + value + '"]').prop('selected', true);
+                });
+            }
+            // Refresh the Dual Listbox
+            elem.bootstrapDualListbox('refresh');
+        }
+
         $('#mainContentCnt').height($('#mainMenuCnt').height() - $('#headerTitleCnt').height());
         //   if (location.href.includes("[search]=My+own")) {
         if (location.href.includes("My+orgMy%3FlinkId") || location.href.includes("My+orgMy?linkId") || location.href.includes("My+orgMy")) {
@@ -1169,6 +1238,10 @@ if (isset($_GET['pageTitle'])) {
         var org = "<?= @$_SESSION['loggedOrganization'] ?>";
         var userVisibilitySet = null;
         var authorizedPages = [];
+        var dashMetadata = null;
+        var subnatureData = [];
+        var dualListBox = null;
+        var valuesToSelect = [];
 
         // Solve the Firefox limit to 640k character issue for DynaTable (when displaying list of dashboards and cards)
         var dynaTablePushState = true;
@@ -2473,6 +2546,49 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                         console.log(JSON.stringify(errorData));
                                     }
                                 });
+
+                                $.ajax({
+                                    url: '../controllers/getDashMetadata.php',
+                                    type: 'GET',
+                                    async: true,
+                                    data: {
+                                        dashboardId: $('#delegationsDashId').val()
+                                    },
+                                    dataType: 'json',
+                                    success: function(response) {
+                                        if (response.status === 'Ok') {
+                                            $('#ssbl').val(response.ssbl==="ssbl" ? "Yes" : "No");
+                                            $('#csbl').val(response.csbl==="csbl" ? "Yes" : "No");
+                                            dashMetadata = [];
+                                            dashMetadata['ssbl'] = response.ssbl;
+                                            dashMetadata['csbl'] = response.csbl;
+                                            dashMetadata['metadata'] = response.metadata;
+                                            dashMetadata['area'] = response.area;
+                                            if (dashMetadata['metadata']) {
+                                                let metadata = dashMetadata['metadata'];
+                                                $('#description').val(metadata['description']);
+                                                $('#area').val(metadata['area']);
+                                                if (metadata['sub_nature'] && metadata['sub_nature'].length > 0) {
+                                                    valuesToSelect = metadata['sub_nature']; // Values to be selected in the right column
+                                                    if (dualListBox) {
+                                                        selectOptions(dualListBox, valuesToSelect);
+                                                    }
+                                                }
+                                            } else {
+                                                $('#description').val("");
+                                                $('#area').val(dashMetadata['area']);
+                                                //valuesToSelect = [];
+                                                //selectOptions(dualListBox, []);
+                                            }
+                                        } else {
+                                            console.error('Error fetching metadata:', response);
+                                        }
+                                    },
+                                    error: function(error) {
+                                        console.error('Error:', error);
+                                    }
+                                });
+
                             });
                         }
 
@@ -3363,7 +3479,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
 
         //   function loadWizardModal (allDashboardsList) {
 <?php if (!$_SESSION['isPublic']) : ?>
-            $("#addWidgetWizardLabelBody").load("<?php if($_SESSION['loggedRole'] == 'RootAdmin') echo('addWidgetWizardInclusionCodeOS.php'); else echo('addWidgetWizardInclusionCode.php'); ?>", function () {
+            $("#addWidgetWizardLabelBody").load("<?php if($_SESSION['loggedRole'] == 'RootAdmin' || $_SESSION['loggedRole'] == 'AreaManager') echo('addWidgetWizardInclusionCodeOS.php'); else echo('addWidgetWizardInclusionCode.php'); ?>", function () {
 
                 if (!allDashboardsList) {
                     getAllGlobalDashboards();
@@ -3649,6 +3765,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                 }
                 }
             });
+            $('#dash_class_modal').hide();
             $('#trendmodal').hide();
             $('#delegationsModalRightCnt').hide();
             $('#delegationsModalLeftCnt').hide();
@@ -3747,6 +3864,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
 
 
             //trendmodal
+            $('#dash_class_modal').hide();
             $('#trendmodal').show();
             $('#delegationsModalRightCnt').hide();
             $('#delegationsModalLeftCnt').hide();
@@ -3798,6 +3916,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
             //SELECTION CURRENT ORG///
             
             //////*********////////
+            $('#dash_class_modal').hide();
              $('#trendmodal').hide();
             $('#delegationsModalRightCnt').hide();
             //$('#delegationsModalLeftCnt').hide();
@@ -3829,8 +3948,181 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                 }
             });
         });
+
+        $('#dashboard_metadata').off("click");
+        $('#dashboard_metadata').click(function () {
+
+            $('#trendmodal').hide();
+            $('#dash_class_modal').show();
+            $('#delegationsModalRightCnt').hide();
+            $('#delegationsModalLeftCnt').hide();
+            $('#graphmodal').hide();
+            $('#orgmodal').hide();
+            $('#list_metrics').empty();
+            $('#hierarchy').empty();
+            $('#graphTab').removeClass('active');
+
+            let metadata = null;
+
+            // Initialize the dual listboxes
+            dualListBox = $('.duallistbox').bootstrapDualListbox({
+                nonSelectedListLabel: 'Non-selected',
+                selectedListLabel: 'Selected',
+                preserveSelectionOnMove: 'moved',
+                moveOnSelect: false,
+                filterPlaceHolder: 'Filter',
+                infoText: 'Showing all {0}',
+                infoTextFiltered: '<span class="label label-warning">Filtered</span> {0} from {1}',
+                infoTextEmpty: 'Empty list',
+                filterTextClear: 'Show all',
+                moveAllLabel: '',
+                removeAllLabel: '<<'
+            });
+
+            // Populate Sub Nature options if the left column is empty
+            if ($('#bootstrap-duallistbox-nonselected-list_sub-nature\\[\\]').children().length === 0) {
+                $.ajax({
+                    url: "https://processloader.snap4city.org/processloader/api/dictionary/?type=subnature",
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        if(data.result === "OK") {
+                            subnatureData = data.content;
+                            const subNatureSelect = $('#sub-nature');
+                            data.content.forEach(function(item) {
+                                subNatureSelect.append(new Option(item.label, item.value));
+                            });
+                            subNatureSelect.bootstrapDualListbox('refresh');
+                            valuesToSelect = [];
+                            if (dashMetadata) {
+                                if (dashMetadata['metadata']) {
+                                    metadata = dashMetadata['metadata'];
+                                    if (metadata['sub_nature'] && metadata['sub_nature'].length > 0) {
+                                        valuesToSelect = metadata['sub_nature'];
+                                        selectOptions(dualListBox, valuesToSelect);
+                                    }
+                                } else {
+                                    selectOptions(dualListBox, valuesToSelect);
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                if (dashMetadata && dashMetadata['metadata']) {
+                    metadata = dashMetadata['metadata'];
+                    if (metadata['sub_nature'] && metadata['sub_nature'].length > 0) {
+                        valuesToSelect = metadata['sub_nature'];
+                        selectOptions(dualListBox, valuesToSelect);
+                    }
+                }
+            }
+
+            // Remove the "move all" button
+            $('.moveall').remove();
+
+            $('.remove, .removeall').css('width', '50%');
+
+            $('#save-button').off('click');
+            $('#save-button').click(function() {
+                const selectedSubNatures = $('#sub-nature').val();
+                let natureValues = [];
+
+                if (selectedSubNatures && selectedSubNatures.length > 0) {
+                    // Extracting nature values for each sub_nature...
+                    selectedSubNatures.forEach(subnatureLabel => {
+                        subnatureData.forEach(item => {
+                            if (item.value === subnatureLabel && item.parent_value) {
+                                natureValues.push(item.parent_value[0]);
+                            }
+                        });
+                    });
+
+                    // ...removing duplicates
+                    natureValues = [...new Set(natureValues)];
+                }
+
+                const description = $('#description').val();
+                const area = $('#area').val();
+                const ssbl = $('#ssbl').val();
+                const csbl = $('#csbl').val();
+
+                const data = {
+                    nature: natureValues,
+                    sub_nature: selectedSubNatures || [],
+                    description,
+                    area,
+                    ssbl,
+                    csbl
+                };
+
+                $.ajax({
+                    url: '../controllers/updateDashboard.php',
+                    type: "POST",
+                    async: true,
+                    dataType: 'json',
+                    data: {
+                        action: 'saveMetadata',
+                        jsonData: JSON.stringify(data),
+                        dashboardId: $('#delegationsDashId').val()
+                    },
+                    success: function(response) {
+                        console.log('Success:', response);
+                    },
+                    error: function(error) {
+                        console.error('Error:', error);
+                    }
+                });
+            });
+
+            // AJAX call to getDashMetadata.php
+            /*    $.ajax({
+                    url: '../controllers/getDashMetadata.php',
+                    type: 'GET',
+                    data: {
+                        dashboardId: $('#delegationsDashId').val()
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'Ok') {
+                            $('#ssbl').val(response.ssbl);
+                            $('#csbl').val(response.csbl);
+                        } else {
+                            console.error('Error fetching metadata:', response);
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error:', error);
+                    }
+                });*/
+
+            if (dashMetadata) {
+                if (dashMetadata['metadata']) {
+                    metadata = dashMetadata['metadata'];
+                    $('#description').val(metadata['description']);
+                    $('#area').val(metadata['area']);
+                    if (metadata['sub_nature'] && metadata['sub_nature'].length > 0) {
+                        valuesToSelect = metadata['sub_nature']; // Values to be selected in the right column
+                        selectOptions(dualListBox, valuesToSelect);
+                    }
+                } else {
+                    $('#description').val("");
+                    $('#area').val(dashMetadata['area']);
+                    valuesToSelect = [];
+                    selectOptions(dualListBox, []);
+                }
+                $('#ssbl').val(dashMetadata['ssbl']==="ssbl" ? "Yes" : "No");
+                $('#csbl').val(dashMetadata['csbl']==="csbl" ? "Yes" : "No");
+            } else {
+                $('#description').val("");
+                // $('#area').val(metadata['area']);
+            }
+
+        });
+
         //Manage other tabs
         $('.dashboardWizardTabTxt').click(function () {
+            $('#dash_class_modal').hide();
             $('#trendmodal').hide();
             $('#graphmodal').hide();
             $('#orgmodal').hide();
@@ -3850,6 +4142,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
         $('#delegationsCancelBtn').click(function () {
             $('#container_accesses').empty();
             $('#container_minutes').empty();
+            $('#dash_class_modal').hide();
             $('#trendmodal').hide();
             $('#graphmodal').hide();
             $('#orgmodal').hide();
@@ -3874,6 +4167,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
         $('#groupDelegationsTab').click(function () {
             $('#container_accesses').empty();
             $('#container_minutes').empty();
+            $('#dash_class_modal').hide();
             $('#trendmodal').hide();
             $('#graphmodal').hide();
             $('#orgmodal').hide();
@@ -3896,6 +4190,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
         $('#delegationsModal').on('hidden.bs.modal', function () {
            $('#container_accesses').empty();
             $('#container_minutes').empty();
+            $('#dash_class_modal').hide();
             $('#trendmodal').hide();
             $('#graphmodal').hide();
             $('#orgmodal').hide();

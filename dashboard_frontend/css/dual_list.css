@@ -1,0 +1,106 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    width: 80%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: larger;
+}
+
+.form-group textarea {
+    width: 75%;
+    padding: 10px;
+    box-sizing: border-box;
+    resize: both; /* Permette il resize sia orizzontale che verticale */
+    color: black; /* Forza il colore del testo a nero */
+}
+
+.small-select {
+    width: 100px;
+    box-sizing: border-box;
+    color: black; /* Forza il colore del testo a nero */
+}
+
+#save-button {
+    padding: 10px 20px;
+    cursor: pointer;
+    position: relative;
+}
+
+.duallistbox-container {
+    width: 100% !important;
+    color: black; /* Forza il colore del testo a nero */
+}
+
+.moveall {
+    display: none;
+}
+
+.btn {
+    border: 1px solid #ccc;
+}
+
+.btn.move, .btn.remove {
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.btn.remove, .btn.removeall {
+    width: 50%;
+    box-sizing: border-box;
+}
+
+.dual-listbox .buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.dual-listbox .buttons .btn {
+    flex: 1;
+    margin: 2px;
+}
+
+/* Specific CSS for dark arrow buttons */
+.btn-outline-secondary {
+    color: black; /* Forza il colore delle frecce a nero */
+    border-color: black; /* Forza il colore del bordo a nero */
+}
+
+.btn-outline-secondary:hover {
+    color: black; /* Mantiene il colore nero delle frecce anche al passaggio del mouse */
+}
+
+#bootstrap-duallistbox-nonselected-list_sub-nature\[\],
+#bootstrap-duallistbox-selected-list_sub-nature\[\] {
+    padding: 10px;
+    overflow-y: auto; /* Aggiunge lo scroll verticale quando necessario */
+    max-height: 800px; /* Altezza massima per visualizzare correttamente lo scroll */
+    color: black; /* Forza il colore del testo a nero */
+    height: 300px !important;
+}
+
+/* Forza il colore del testo a nero per i bottoni di filtraggio */
+.btn.btn-sm.clear1 {
+    color: black;
+}
+
+/* Forza il colore del testo a nero per i bottoni clear2 */
+.btn.btn-sm.clear2 {
+    color: black;
+}
+
+#ssbl, #csbl {
+    background-color: #b8bfc7; /* Colore di sfondo grigio */
+    color: #6c757d; /* Colore del testo più chiaro */
+}
