@@ -2401,6 +2401,9 @@
                             <input type="hidden" id="parametersM" name="parametersM" />
                             <input type="hidden" id="parametersDiff" name="parametersDiff" />
                             <input type="hidden" id="barsColorsM" name="barsColorsM" />
+                            <!-- CKEDITOR DeviceTable-->
+                            <div id="deviceTableEditorSM" name="deviceTableEditorSM" ></div>
+                            <!-- -->
                         </div>
                         <div class="well wellCustom2right" id="specificParamsMRight">
                            <!-- <legend class="legend-form-group">Specific widget properties</legend>-->
@@ -18129,11 +18132,76 @@
                             dataType: 'json',
                             success: function (data) 
                             {
+                                
                                 var entityJson = JSON.parse(data.entityJson);
                                 var attributeName = data.attributeName;
                                 var widgetTypeM = data.type_widget;
                                 if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb" || widgetTypeM == "widgetSelectorTech" || widgetTypeM == "widgetCurvedLineSeries" || widgetTypeM == "widgetCalendar" || widgetTypeM == "widgetDataCube" || widgetTypeM == "widgetBarSeries") {
                                     $("#specificParamsM").css("width", "100%");
+                                }
+
+                                if (widgetTypeM == "widgetDeviceTable"){
+                                    //console.log('get_data:',dat.rowParamsa);
+                                    var rowParams = data.rowParams;
+                                    var title_td = '<div><h5><b>Configuration properties</b></h5></div>';
+                                    $('#deviceTableEditorSM').append(title_td);
+                                    var textarea = $('<textarea id="text_dt"></textarea>').addClass('ckeditor');
+                                    var buttonDT = ('<div class="compactMenuBtns"><button type="button" class="compactMenuConfirmBtn" id="sourceDTSaveBtn"><i class="fa fa-floppy-o" aria-hidden="true"></i></button> </div>');
+                                    textarea.val(rowParams);
+                                    $('#deviceTableEditorSM').append(textarea);
+                                    CKEDITOR.replace(textarea[0], {
+                                                            allowedContent: true,
+                                                            language: 'en',
+                                                            contentsCss: 'body {font-family: "Montserrat", sans-serif, Arial, Verdana, "Trebuchet MS";font-size: 13px;color: black;background-color: white;margin: 20px;}',
+                                                            width: '100%'
+                                                        });
+                                    $('#deviceTableEditorSM').append(buttonDT);
+                                    //
+                                                        $('#sourceDTSaveBtn').click(function(){
+
+                                                                    var newInfo = CKEDITOR.instances['text_dt'].getData();
+                                                                    var html = newInfo;
+                                                                    var tempDiv = document.createElement("div");
+                                                                    tempDiv.innerHTML = newInfo;
+                                                                    var plainText = tempDiv.textContent || tempDiv.innerText || "";
+                                                                    console.log(plainText);
+                                                                        try {
+                                                                            JSON.parse(plainText);       
+                                                                    //
+                                                                    $.ajax({
+                                                                    url: "../controllers/updateWidget.php",
+                                                                data: {
+                                                                    action: "updateDTparams",
+                                                                    widgetName: name_widget_m,
+                                                                    //    newText: newInfoDecoded
+                                                                    newText: plainText
+                                                                     },
+                                                                        type: "POST",
+                                                                        async: true,
+                                                                        dataType: 'json',
+                                                                        success: function (data) {
+                                                                            if (data.detail === 'Ok') {
+                                                                                alert('Saved!');
+                                                                            } else {
+                                                                                alert('Error');
+                                                                            }
+                                                                        },
+                                                                        error: function (errorData) {
+                                                                            alert('Error');
+                                                                        }
+                                                                    });
+
+                                                                } catch (e) {
+                                                                            console.log('error',e);
+                                                                            alert('Uncorrect syntax in Configuration properties');
+                                                                        }
+                                                            /* */
+
+                                                            
+                                                        });
+                                    //
+                                }else{
+                                    $('#deviceTableEditorSM').empty();
                                 }
                                 var paramsRaw = data['param_w'];
                                 var styleParamsRaw = data['styleParameters'];
@@ -19924,7 +19992,8 @@
 											//////////////////////////
                                             break;				
 /////////////////////////////////INSERT widgetDeviceTable /////////////////								
-									case "widgetDeviceTable": 
+									case "widgetDeviceTable":
+                                        //console.log('widgetDeviceTable 2');
                                        /* $('#link_help_modal-add-widget-m').css("display", "");
                                         $('#inputTitleWidgetM').attr('disabled', false);
                                         $("label[for='inputTitleWidgetM']").html("Title");
@@ -19962,6 +20031,18 @@
                                         
                                         //Campo di registrazione widget sul Notificatore
                                         editWidgetGeneratorRegisterField(data['notificatorRegistered'], data['notificatorEnabled'], data['param_w']);*/
+                                        //////////////////////////////
+                                        /*var codeForCKEditorDT = $('<div>').text('test').html();
+                                        //var text_ck_area = document.createElement("text_ck_area");
+                                        //text_ck_area.innerHTML = codeForCKEditor;
+                                        //var newInfoDecoded = text_ck_area.innerText;
+                                         //CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                         //
+                                         //
+                                         $('#deviceTableEditorSM').css('display','inline');
+                                         $('#deviceTableEditorSM').append(codeForCKEditorDT);*/
+
+                                        //////
 										$.ajax({
                                                 url: "../controllers/getTrustedUsers.php",
                                                 data: {
@@ -19971,9 +20052,10 @@
                                                 async: true,
                                                 dataType: 'json',
                                                 success: function (data) {
+                                                    // console.log('TRUSTED 0');
                                                     if (data['detail'] == "Ok" && data['trustedUsers'].includes("<?= $dashboardEditorName ?>")) {
                                                         //Nuova riga
-														console.log('TRUSTED');
+														
                                                         //Source Selection
                                                         newFormRow = $('<div class="row"></div>');
                                                         $("#specificParamsMRight").append(newFormRow);
@@ -19992,6 +20074,7 @@
                                                         //Nuova riga Tab Destro: CKEDITOR
                                                         //Modalità del widget (none, map, gis, link esterno)
                                                         newFormRow = $('<div class="row" id="ck_editor"></div>');
+                                                        // console.log(newFormRow);
                                                         $("#specificParamsMRight").append(newFormRow);
                                                         newLabel = $('<label for="widgetCkEditor" class="col-md-2 control-label"><?php echo _("Widget CKEditor"); ?></label>');
                                                         newInnerDiv = $('<div class="col-md-12"></div>');
@@ -20027,7 +20110,8 @@
                                                                 $('#ck_editor').show();
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 if (code != null && code != "null") {
-                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
+                                                                   // var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
+                                                                    var codeForCKEditor = $('<div>').text(code).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
@@ -27404,6 +27488,144 @@
 										///	
 										///
                                         break;
+                                        /////////////////////////////////INSERT widgetDeviceTable /////////////////								
+									case "widgetDeviceTable":
+                                        console.log('widgetDeviceTable 1');
+                                        //////
+                                        console.dir('code',code);
+										$.ajax({
+                                                url: "../controllers/getTrustedUsers.php",
+                                                data: {
+
+                                                },
+                                                type: "POST",
+                                                async: true,
+                                                dataType: 'json',
+                                                success: function (data) {
+                                                    //console.log('TRUSTED 1');
+                                                    console.dir(data['trustedUsers']);
+                                                    if (data['detail'] == "Ok" && data['trustedUsers'].includes("<?= $dashboardEditorName ?>")) {
+                                                        //Nuova riga
+														//console.log('TRUSTED');
+                                                        // console.log(data);
+                                                        //Source Selection
+                                                        newFormRow = $('<div class="row"></div>');
+                                                        $("#specificParamsMRight").append(newFormRow);
+                                                        newLabel = $('<label for="enableCKEditor" class="col-md-2 control-label"><?php echo _("Enable CK Editor"); ?></label>');
+                                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                                        newSelect = $('<select class="form-control" id="enableCKEditor" name="enableCKEditor"></select>');
+                                                        newSelect.append('<option value="no">no</option>');
+                                                        newSelect.append('<option value="ckeditor">yes</option>');
+                                                        newInnerDiv.append(newSelect);
+                                                        newFormRow.append(newLabel);
+                                                        newFormRow.append(newInnerDiv);
+                                                        newLabel.show();
+                                                        newInnerDiv.show();
+                                                        newSelect.show();
+
+                                                        //Nuova riga Tab Destro: CKEDITOR
+                                                        //Modalità del widget (none, map, gis, link esterno)
+                                                        newFormRow = $('<div class="row" id="ck_editor"></div>');
+                                                        $("#specificParamsMRight").append(newFormRow);
+                                                        newLabel = $('<label for="widgetCkEditor" class="col-md-2 control-label"><?php echo _("Widget CKEditor"); ?></label>');
+                                                        newInnerDiv = $('<div class="col-md-12"></div>');
+                                                        newBox = $('<div id="widgetEditor">');
+                                                        newBox.append('<div class="row">');
+                                                        newBox.append('<div class="col-xs-12 centerWithFlex" style="font-weight: bold; color: white; margin-bottom: 15px;">');
+                                                        newBox.append('<?= _("Here you can insert Javascript code to be executed in the widget. Please save your script by clicking on the save button on the bottom.")?>');
+                                                        newBox.append('</div></div>');
+                                                        newBox.append('<div class="row">');
+                                                        newBox.append('<div class="col-xs-12" style="padding-left: 0px !important; padding-right: 0px !important;">');
+                                                        newBox.append('<textarea id ="widgetInfoEditorExtCont" name="widgetInfoEditorExtCont" rows="20"></textarea>');
+                                                        newBox.append('<div class="compactMenuBtns"><button type="button" class="compactMenuConfirmBtn" id="sourceSelectionSaveBtn"><i class="fa fa-floppy-o" aria-hidden="true"></i></button> </div>')
+                                                        newBox.append('</div></div></div>');
+                                                        newInnerDiv.append(newBox);
+                                                        //newFormRow.append(newLabel);
+                                                        newFormRow.append(newInnerDiv);
+                                                        //newLabel.show();
+                                                        newInnerDiv.show();
+                                                        //newInput.show();
+                                                        $('#ck_editor').hide();
+
+                                                        var editor = CKEDITOR.replace('widgetInfoEditorExtCont', {
+                                                            allowedContent: true,
+                                                            language: 'en',
+                                                            contentsCss: 'body {font-family: "Montserrat", sans-serif, Arial, Verdana, "Trebuchet MS";font-size: 13px;color: black;background-color: white;margin: 20px;}',
+                                                            width: '100%'
+                                                        });
+
+                                                        let par = (JSON.stringify(currentParams));
+                                                        if (par && !par.includes("latLng") && !par.includes("null")) {
+                                                            $("#parametersM").val(JSON.stringify(currentParams));
+                                                            if (currentParams['mode'] == "ckeditor") {
+                                                                $('#ck_editor').show();
+                                                                $('#enableCKEditor').val("ckeditor");
+                                                                if (code != null && code != "null") {
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
+                                                                    //var codeForCKEditor = $('<div>').text(code).html();
+                                                                    //
+                                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                                    text_ck_area.innerHTML = codeForCKEditor;
+                                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                }
+                                                            }
+                                                        }
+
+                                                        $('#enableCKEditor').change(function () {
+                                                            if ($('#enableCKEditor').val() === "ckeditor") {
+                                                                $('#ck_editor').show();
+                                                                if (code != null && code != "null") {
+                                                                    var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
+                                                                    //var codeForCKEditor = $('<div>').text(code).html();
+                                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                                    text_ck_area.innerHTML = codeForCKEditor;
+                                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                                    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                }
+                                                                $("#parametersM").val('{"mode": "ckeditor"}');
+                                                            } else {
+                                                                $('#ck_editor').hide();
+                                                                $("#parametersM").val('');
+                                                            }
+                                                        });
+
+                                                        $('#sourceSelectionSaveBtn').click(function () {
+                                                            var button = $(this);
+                                                            $('#widgetInfoModalFooter div.compactMenuMsg').show();
+                                                            $('#widgetInfoModalFooter div.compactMenuMsg').html('Saving&nbsp;<i class="fa fa-circle-o-notch fa-spin" style="font-size:14px"></i>');
+                                                            var newInfo = CKEDITOR.instances['widgetInfoEditorExtCont'].getData();
+
+
+                                                            $.ajax({
+                                                                url: "../controllers/updateWidget.php",
+                                                                data: {
+                                                                    action: "updateCkEditor",
+                                                                    widgetName: name_widget_m,
+                                                                    newText: newInfo
+                                                                },
+                                                                type: "POST",
+                                                                async: true,
+                                                                dataType: 'json',
+                                                                success: function (data) {
+                                                                    if (data.detail === 'Ok') {
+                                                                        alert('Saved!');
+                                                                    } else {
+                                                                        alert('Error');
+                                                                    }
+                                                                },
+                                                                error: function (errorData) {
+                                                                    alert('Error');
+                                                                }
+                                                            });
+                                                        });
+                                                    }
+                                                },
+                                                error: function (errorData) {
+                                                    console.log('Error in retrieving Trusted Users.');
+                                                }
+                                            });
+                                        break;
 										///////////ADD CKEDITOR
 										case "widgetEvent":
 											console.log('INTO WIDGET EVENT');
@@ -33944,12 +34166,15 @@
                                                                 $('#enableCKEditor').val("ckeditor");
                                                                 // if (code.substring(0, 8) != "https://" && code.substring(0, 7) != "http://" && code.substring(0, 3) != "NR_") {
                                                                 if (code != null && code != "null") {
+                                                                    //console.log(code);
                                                                     var codeForCKEditor = $('<div>').text(checkCsblEncoding(code,connections)).html();
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = codeForCKEditor;
                                                                     var newInfoDecoded = text_ck_area.innerText;
                                                                     //    CKEDITOR.instances['widgetInfoEditorExtCont'].setData(codeForCKEditor);
                                                                     CKEDITOR.instances['widgetInfoEditorExtCont'].setData(newInfoDecoded);
+                                                                }else{
+                                                                    //console.log('vuoto');
                                                                 }
                                                             }
                                                         }
@@ -37968,7 +38193,6 @@
                     $error='no';
                     try  {
                         include '../config.php';
-                        if($chatBaseUrl) {
                         include "../rocket-chat-rest-client/RocketChatClient.php";
                         include "../rocket-chat-rest-client/RocketChatUser.php";
                         include "../rocket-chat-rest-client/RocketChatChannel.php";
@@ -38013,7 +38237,6 @@
                                 $idChat=$infoChannel->channel->_id;
                                 $admin->logout();
                                 }
-                        }
                         }
                     }catch (Exception $e) {
                         $error=$e->getMessage();

@@ -2548,7 +2548,7 @@ function prepareCkEditorTemplate(ckEditorStr) {
             return "/*&nbsp;<br>\n" +
                 "&nbsp;&nbsp;&nbsp;&nbsp;Use the following template (comments included)<br>\n" +
                 "&nbsp;&nbsp;&nbsp;&nbsp;if you want your CK Editor code to be compliant<br>\n" +
-                "&nbsp;&nbsp;&nbsp;&nbsp;with our CSBL Editor.<br>\n" +
+                "&nbsp;&nbsp;&nbsp;&nbsp;with the CSBL Editor.<br>\n" +
                 "*/<br>\n" +
                 "<br>\n" +
                 "function execute(){<br>\n" +

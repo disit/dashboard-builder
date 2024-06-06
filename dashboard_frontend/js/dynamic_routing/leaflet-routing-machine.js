@@ -18228,8 +18228,11 @@ module.exports = L.Routing = {
                         latLng = wp.latLng;
                         locs.push(latLng.lng + ',' + latLng.lat);
                     }
-                    
-                    return this.options.serviceUrl + "?vehicle="+this.options.vehicle+"&waypoints="+ locs.join(';') +"&avoid_area="+this.options.avoid_area + "&weighting="+this.options.weighting + "&startDatetime="+this.options.startDatetime;
+                    if (this.options.startDatetime && this.options.weighting) {
+                        return this.options.serviceUrl + "?vehicle=" + this.options.vehicle + "&waypoints=" + locs.join(';') + "&avoid_area=" + this.options.avoid_area + "&weighting=" + this.options.weighting + "&startDatetime=" + this.options.startDatetime;
+                    } else {
+                        return this.options.serviceUrl + "?vehicle=" + this.options.vehicle + "&waypoints=" + locs.join(';') + "&avoid_area=" + this.options.avoid_area;
+                    }
 		},
                 
                 _convertInstructions: function(instructions) {

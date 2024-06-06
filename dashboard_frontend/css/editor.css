@@ -6,6 +6,16 @@
     --text-color: #ffffff;
     --border-color-node: #ffffff;
     --border-color: #515151;
+
+    --port-red-color: #e81224;
+    --port-green-color: #16c60c;
+    --port-blue-color: #0078d7;
+    --port-yellow-color: #fff100;
+    --port-orange-color: #f7630c;
+    --port-purple-color: #886ce4;
+    --port-brown-color: #8e562e;
+    --port-black-color: #383838;
+    --port-white-color: #f2f2f2;
 }
 
 /* accordion css start*/
@@ -477,40 +487,75 @@
 }
 
 .drawflow .port-red{
-    background: #e81224;
+    background: var(--port-red-color) !important;
     color: white;
 }
+.port-red_conn {
+    stroke: var(--port-red-color) !important;
+}
+
 .drawflow .port-green{
-    background: #16c60c;
+    background: var(--port-green-color) !important;
     color: black;
 }
+port-green_conn {
+    stroke: var(--port-green-color) !important;
+}
+
 .drawflow .port-blue{
-    background: #0078d7;
+    background: var(--port-blue-color) !important;
     color: white;
 }
+.port-blue_conn {
+    stroke: var(--port-blue-color) !important;
+}
+
 .drawflow .port-yellow{
-    background: #fff100;
+    background: var(--port-yellow-color) !important;
     color: black;
 }
+.port-yellow_conn {
+    stroke: var(--port-yellow-color) !important;
+}
+
 .drawflow .port-orange{
-    background: #f7630c;
+    background: var(--port-orange-color) !important;
     color: black;
 }
+.port-orange_conn {
+    stroke: var(--port-orange-color) !important;
+}
+
 .drawflow .port-purple{
-    background: #886ce4;
+    background: var(--port-purple-color) !important;
     color: white;
 }
+.port-purple_conn {
+    stroke: var(--port-purple-color) !important;
+}
+
 .drawflow .port-brown{
-    background: #8e562e;
+    background: var(--port-brown-color) !important;
     color: white;
 }
+.port-brown_conn {
+    stroke: var(--port-brown-color) !important;
+}
+
 .drawflow .port-black{
-    background: #383838;
+    background: var(--port-black-color) !important;
     color: white;
 }
+.port-black_conn {
+    stroke: var(--port-black-color) !important;
+}
+
 .drawflow .port-white{
-    background: #f2f2f2;
+    background: var(--port-white-color) !important;
     color: black;
+}
+.port-white_conn {
+    stroke: var(--port-white-color) !important;
 }
 
 .btn-delete-port-box {

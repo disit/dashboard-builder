@@ -1390,6 +1390,9 @@
                                 if (strpos($type_w, "widgetTable") !== false) {
                                     $title_w = "Table";
                                 }
+                                if (strpos($type_w, "widgetDeviceTable") !== false) {
+                                    $title_w = "Device table";
+                                }
                                 $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
 
                                 $creator = $_SESSION['loggedUsername'];
@@ -3083,6 +3086,9 @@
                             }
                             if (strpos($type_w, "widgetTable") !== false) {
                                 $title_w = "Table";
+                            }
+                            if (strpos($type_w, "widgetDeviceTable") !== false) {
+                                $title_w = "Device table";
                             }
                             $title_w = htmlentities($title_w, ENT_QUOTES|ENT_HTML5);
 

@@ -1,7 +1,7 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.css">
+<link rel="stylesheet" href="../css/drawflow.min.css">
 <link rel="stylesheet" type="text/css" href="../css/editor.css" />
 
-<script src="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.js"></script>
+<script src="../js/drawFlow.js"></script>
 
 <div class="wrapper">
     <div id="drawflow">
@@ -81,7 +81,9 @@
             success: function (data) {
                 dashboard = data.dashboardWidgets;
                 dashboard = convertToEditorAPI(dashboard);
-                setTimeout(function(){importDashboard(dashboard, data.dashboardParams.drawFlowEditor)},1000);
+                setTimeout(function(){
+                    importDashboard(dashboard, data.dashboardParams.drawFlowEditor)
+                },1000);
             },
             error: function (errorData) {
                 alert('Error');
@@ -574,17 +576,18 @@
         "widgetMap" : {"widget_ports":"IN/OUT", "widget_type":"widgetMap", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""},"click":{"ev_name":"click","code":""},"geo_drill_down":{"ev_name":"zoom","code":""}}},
         "widgetSpeedometer" : {"widget_ports":"IN", "widget_type":"widgetSpeedometer", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
         "widgetGaugeChart" : {"widget_ports":"IN", "widget_type":"widgetGaugeChart", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
-        "widgetKnob" : {"widget_ports":"IN/OUT", "widget_type":"widgetKnob", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
-        "widgetNumericKeyboard" : {"widget_ports":"IN/OUT", "widget_type":"widgetNumericKeyboard", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
+        //"widgetKnob" : {"widget_ports":"IN/OUT", "widget_type":"widgetKnob", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
+        //"widgetNumericKeyboard" : {"widget_ports":"IN/OUT", "widget_type":"widgetNumericKeyboard", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
         "widgetSingleContent" : {"widget_ports":"IN", "widget_type":"widgetSingleContent", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
         "widgetExternalContent" : {"widget_ports":"IN", "widget_type":"widgetExternalContent", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
         //"widgetExternalContent" : {"widget_ports":"IN/OUT", "widget_type":"widgetExternalContent", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
         "widgetTable" : {"widget_ports":"IN", "widget_type":"widgetTable", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
-        "widgetDeviceTable" : {"widget_ports":"IN", "widget_type":"widgetDeviceTable", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
-        "widgetEventTable" : {"widget_ports":"OUT", "widget_type":"widgetEventTable", "next_port_box": 0, "port_boxes":{}, "events":{"click":{"ev_name":"click","code":""}}},
+        "widgetDeviceTable" : {"widget_ports":"IN/OUT", "widget_type":"widgetDeviceTable", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
+        //"widgetEventTable" : {"widget_ports":"OUT", "widget_type":"widgetEventTable", "next_port_box": 0, "port_boxes":{}, "events":{"click":{"ev_name":"click","code":""}}},
         "widgetButton" : {"widget_ports":"OUT", "widget_type":"widgetButton", "next_port_box": 0, "port_boxes":{}, "events":{"click":{"ev_name":"click","code":""}}},
-        "widgetOnOffButton" : {"widget_ports":"IN/OUT", "widget_type":"widgetOnOffButton", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
-        "widgetImpulseButton" : {"widget_ports":"OUT", "widget_type":"widgetImpulseButton", "next_port_box": 0, "port_boxes":{}, "events":{"click":{"ev_name":"click","code":""}}}
+        //"widgetOnOffButton" : {"widget_ports":"IN/OUT", "widget_type":"widgetOnOffButton", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
+        "widgetImpulseButton" : {"widget_ports":"OUT", "widget_type":"widgetImpulseButton", "next_port_box": 0, "port_boxes":{}, "events":{"click":{"ev_name":"click","code":""}}},
+        "widgetSpeedometer" : {"widget_ports":"IN", "widget_type":"widgetCalendar", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
     };
 
     let port_box = {"port_name": "", "associated_output_node": 0, "port_type":{}};
@@ -605,8 +608,8 @@
 
 
     editor.on('nodeSelected', function (id) {
-        console.log("Node selected")
-        console.log(editor.getNodeFromId(id));
+        //console.log("Node selected")
+        //console.log(editor.getNodeFromId(id));
     })
 
     editor.on('connectionCreated', function (connection) {
@@ -649,8 +652,8 @@
         let nodeContent = document.getElementById("node-"+id).childNodes[1];
         editor.drawflow.drawflow[module].data[id].html = nodeContent.innerHTML;
 
-        console.log("updateHTMLFromNodeId("+id+")");
-        console.log(editor);
+        //console.log("updateHTMLFromNodeId("+id+")");
+        //console.log(editor);
     }
 
 
@@ -708,7 +711,7 @@
 
         console.log("importDashboard(dashboard)");
         console.log(dashboard);
-        console.log(editor);
+        //console.log(editor);
     }
 
     //add node into our editor based on widget type //TODO to finish
@@ -932,7 +935,39 @@
                         Object.keys(jsonPortsConnections[port_id].linked_target_widgets).forEach(target_id =>{
                             for(let input_id=1;input_id<=Object.keys(editor.drawflow.drawflow[module].data).length;input_id++)
                                 if(editor.drawflow.drawflow[module].data[input_id].name == jsonPortsConnections[port_id].linked_target_widgets[target_id].widget_name){
+                                    // editor.addConnection(id,input_id,"output_"+output_class,"input_1",port_types[i].color_class+"_conn");
                                     editor.addConnection(id,input_id,"output_"+output_class,"input_1");
+                                    // document.getElementById("node_" + parseInt(id) + "_output_" + parseInt(input_id) + "_conn_" + "output_"+output_class).classList.add(port_types[i].color_class+"_conn");
+                                    // Seleziona l'elemento SVG specifico tramite il suo ID
+                                    /*
+                                    var svgElement = document.getElementById("node_" + parseInt(id) + "_output_" + parseInt(input_id) + "_conn_output_"+output_class);
+
+                                    // Crea il popup
+                                    var popup = document.createElement('div');
+                                    popup.textContent = 'Questo è un popup!';
+                                    popup.style.display = 'none';
+                                    popup.style.position = 'relative';
+
+                                    // Aggiungi il popup al body
+                                    document.body.appendChild(popup);
+
+                                    // Aggiungi l'evento mouseover
+                                    svgElement.addEventListener('mouseover', function(event) {
+                                        // Mostra il popup e posizionalo vicino al mouse
+                                        popup.style.display = 'block';
+                                        //popup.style.left = event.pageX + 'px';
+                                        //popup.style.top = event.pageY + 'px';
+                                        popup.style.left = event.pageX;
+                                        popup.style.top = event.pageY;
+                                    });
+
+                                    // Aggiungi l'evento mouseout
+                                    svgElement.addEventListener('mouseout', function() {
+                                        // Nasconde il popup
+                                        popup.style.display = 'none';
+                                    });
+                                     */
+
                                     break;
                                 }
                         });
@@ -1146,6 +1181,7 @@
             `);
 
             document.getElementById("port-button-"+id+"-"+port_box_id).classList.add(port_type.color_class);
+            document.getElementById("node_"+ id + "_output_" + editor.drawflow.drawflow[module].data[id].data.port_boxes[port_box_id].associated_output_node).classList.add(port_type.color_class);
 
             //take port box output type list based on widget type
             let output_type_select = document.getElementById("output-type-"+id+"-"+port_box_id);
@@ -1218,10 +1254,12 @@
         Object.keys(port_types).forEach(pbt_id =>{
             if(document.getElementById("port-button-"+id+"-"+port_box_id).classList.contains(port_types[pbt_id].color_class)){
                 document.getElementById("port-button-"+id+"-"+port_box_id).classList.remove(port_types[pbt_id].color_class);
+                document.getElementById("node_"+ id + "_output_" + editor.drawflow.drawflow[module].data[id].data.port_boxes[port_box_id].associated_output_node).classList.remove(port_types[pbt_id].color_class);
             }
             if(port_types[pbt_id].output_type==document.getElementById("output-type-"+id+"-"+port_box_id).value){
                 editor.drawflow.drawflow[module].data[id].data.port_boxes[port_box_id].port_type = JSON.parse(JSON.stringify(port_types[pbt_id]));
                 document.getElementById("port-button-"+id+"-"+port_box_id).classList.add(port_types[pbt_id].color_class);
+                document.getElementById("node_"+ id + "_output_" + editor.drawflow.drawflow[module].data[id].data.port_boxes[port_box_id].associated_output_node).classList.add(port_types[pbt_id].color_class);
             }
         });
 
@@ -1269,6 +1307,16 @@
         
         editor.removeNodeOutput(id, "output_"+editor.getNodeFromId(id).data.port_boxes[port_box_id].associated_output_node);
 
+        var steps = Object.keys(editor.getNodeFromId(id).data.port_boxes).length - port_box_id - 1;
+        for (let n=0; n<steps; n++) {   // shift output div elements according to corresponding port boxes
+            var divToCorrect = document.getElementById("node_1_output_" + parseInt(Object.keys(editor.getNodeFromId(id).data.port_boxes).length-n));
+            var currentId = divToCorrect.id;
+            var numberPart = currentId.split('_').pop();
+            var number = parseInt(numberPart);
+            var newNumber = number - 1;
+            var newId = "node_1_output_" + newNumber;
+            divToCorrect.id = newId;
+        }
 
         //console.log("removeOutputPort("+id+","+port_box_id+")");
         //console.log(editor);

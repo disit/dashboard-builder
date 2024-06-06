@@ -96,15 +96,15 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $apiCall = curl_exec($ch);
-    	if ($apiCall) {
-		    $apiArray = json_decode($apiCall, true);
-	        if(!apiArray) {
-		        $message_output["code"] = "404";
-			    $message_output["message"] = "failed get_all_device";
-			    $message_output["extra"] = $apiCall;
+        if ($apiCall) {
+                    $apiArray = json_decode($apiCall, true);
+                if(!apiArray) {
+                        $message_output["code"] = "404";
+                            $message_output["message"] = "failed get_all_device";
+                            $message_output["extra"] = $apiCall;
                 echo json_encode($message_output);
                 exit();
-	        }
+                }
             $data = $apiArray["data"];
             $devices_list = [];
             $length = count($data);
@@ -133,7 +133,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
                         "Authorization: Bearer " . $accessToken,
                     ]);
                     curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
-		            $deviceCall01 = curl_exec($ch1);
+                            $deviceCall01 = curl_exec($ch1);
                     if ($deviceCall01){
                         $response0 = json_decode($deviceCall01, true);
                         $var_length = count($response0["attributes"]);
@@ -192,10 +192,10 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
                         "organization" => $current_device["organization"],
                         "contextbroker" => $current_device["contextBroker"],
                     ];
-        			array_push($devices_list, $file);
+                                array_push($devices_list, $file);
                 }
             }
-		    $message_output["code"] = "200";
+                    $message_output["code"] = "200";
             $message_output["status"] = "OK";
             $message_output["message"] = "get devices successfully";
             $message_output["data"] = $devices_list;
@@ -239,6 +239,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
             $debug = $debug . $current_device["devicetype"] . '-';
             if ($current_device["devicetype"] == "File") {
                 $deviceid = $current_device["id"];
+                $debug = $debug . $deviceid;
                 $value_array = [
                     "action" => "get_device_data",
                     "id" => $deviceid,
@@ -316,7 +317,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
             if ($element_in_array == 0) {
                 $message_output["code"] = "404";
                 $message_output["message"] = "devices not found";
-                //$message_output["debug"] = $debug;
+                $message_output["debug"] = $debug;
                 echo json_encode($message_output);
                 exit();
             }
@@ -416,7 +417,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
                 $format = $content_model->format;
                 $attributes = $content_model->attributes;
                 curl_close($ch_model);
-                $date_observed = date("Y-m-d") . "T" . date("H:i:s") . ".000Z";
+                $date_observed = date("Y-m-d") . "T" . date("H-i-s") . ".000Z";
                 $device_id = md5($originalfilename) . $date_observed;
                 $data_array = [
                     "action" => "insert",
@@ -499,12 +500,12 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
                     $response01 = json_decode($deviceCall01, true);
                     if ($response01) {
                         $message_output["code"] = "200";
-			$message_output["message"] = "Device attributes successfully inserted";
-			$message_output["result"] = [ "fileid" => $new_fileid, "filetype" => $filetype, "device_id" => $device_id ];
+                        $message_output["message"] = "Device attributes successfully inserted";
+                        $message_output["result"] = [ "fileid" => $new_fileid, "filetype" => $filetype, "device_id" => $device_id ];
                     } else {
                         $message_output["code"] = "500";
-			$message_output["message"] = "Error during device attributes creation by api";
-			$message_output["extra"] = $deviceCall01;
+                        $message_output["message"] = "Error during device attributes creation by api";
+                        $message_output["extra"] = $deviceCall01;
                         echo json_encode($message_output);
                         exit();
                     }
@@ -566,26 +567,92 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
         }
         echo json_encode($message_output);
     } elseif ($action == "view_file") {
-        $fileid = mysqli_real_escape_string($link, $_GET["fileid"]);
+        $fileid = mysqli_real_escape_string($link, $_REQUEST["fileid"]);
         $fileid = filter_var($fileid, FILTER_SANITIZE_STRING);
-        $filetype = mysqli_real_escape_string($link, $_GET["filetype"]);
+        $filetype = mysqli_real_escape_string($link, $_REQUEST["filetype"]);
         $filetype = filter_var($filetype, FILTER_SANITIZE_STRING);
         $filename = $fileid . "." . $filetype;
         $filepath = $protecteduploads_directory . "/" . $filename;
+        //check if device belongs to user (mereu stuff)
+        $devices_list = [];
+        $dataArray = [
+            "action" => "get_all_device",
+            "token" => $accessToken,
+            "model" => $model,
+            "nodered" => "access",
+        ];
+        $apiCall = "";
+        $ch = curl_init();
+        $url = sprintf(
+            "%s?%s",
+            $iot_directory_device,
+            http_build_query($dataArray)
+        );
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json",
+            "Authorization: Bearer " . $accessToken,
+        ]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $apiCall = curl_exec($ch);
+        $apiArray = json_decode($apiCall, true);
+        $data = $apiArray["data"];
+        $device_belongs_to_me = false;
+        for ($i = 0; $i < count($data); $i++) {
+            $current_device = $data[$i];
+            if ($current_device["devicetype"] == "file") {
+                $deviceid = $current_device["id"];
+                $value_array = [
+                    "action" => "get_device_data",
+                    "id" => $deviceid,
+                    "type" => "file",
+                    "contextbroker" => $iot_contextbroker,
+                    "version" => "v1",
+                    "nodered" => "access",
+                ];
+                $ch1 = curl_init();
+                $url01 = sprintf(
+                    "%s?%s",
+                    $iot_directory_device,
+                    http_build_query($value_array)
+                );
+                curl_setopt($ch1, CURLOPT_URL, $url01);
+                curl_setopt($ch1, CURLOPT_HTTPHEADER, [
+                    "Content-Type: application/json",
+                    "Authorization: Bearer " . $accessToken,
+                ]);
+                curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
+                $deviceCall01 = curl_exec($ch1);
+                $response0 = json_decode($deviceCall01, true);
+                $var_length = count($response0["attributes"]);
+                curl_close($ch1);
+                if ($response0["attributes"][7]["value"] == $fileid) {
+                    $device_belongs_to_me = true;
+                    break;
+                }
+            }
+        }
+
         if (file_exists($filepath)) {
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mimetype = finfo_file($finfo, $filepath);
-            header("Content-Description: File Transfer");
-            //do not assume the file type, try to get it from the extension
-            header("Content-Type: ".mime_content_type($filename));
-            header("Content-Disposition: inline; filename=" . basename($filepath));
-            header("Content-Transfer-Encoding: binary");
-            header("Expires: 0");
-            header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-            header("Pragma: public");
-            header("Content-Length: " . filesize($filepath));
-            readfile($filepath);
-            exit();
+            if ($device_belongs_to_me) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimetype = finfo_file($finfo, $filepath);
+                header("Content-Description: File Transfer");
+                //do not assume the file type, try to get it from the extension
+                header("Content-Type: ".mime_content_type($filename));
+                header("Content-Disposition: inline; filename=" . basename($filepath));
+                header("Content-Transfer-Encoding: binary");
+                header("Expires: 0");
+                header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+                header("Pragma: public");
+                header("Content-Length: " . filesize($filepath));
+                readfile($filepath);
+                exit();
+            }
+            else {
+                $mesagge_output["code"] = "403";
+                $message_output["message"] = "Access Denied: the requested file does not belong to the user.";
+            }
         } else {
             $mesagge_output["code"] = "404";
             $message_output["message"] = "The file you were looking for does not exist.";
@@ -685,7 +752,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
         $response = json_decode($deviceCall, true);
         curl_close($curl);
         if ($response) {
-            $date_observed = date("Y-m-d") . "T" . date("H:i:s") . ".000Z";
+            $date_observed = date("Y-m-d") . "T" . date("H-i-s") . ".000Z";
             $new_attributes =
                 '{"description":{"value":"' .
                 $description .

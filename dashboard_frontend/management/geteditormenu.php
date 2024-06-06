@@ -509,6 +509,7 @@ if (isset($_SESSION['loggedRole'])) {
 
                 $result['main'] = copy_table($link, 'MainMenu', 'MobMainMenu');
                 $result['submenu'] = copy_table($link, 'MainMenuSubmenus', 'MobMainMenuSubmenus');
+
                 echo json_encode($result);
                 //
             } else {
@@ -650,7 +651,7 @@ if (isset($_SESSION['loggedRole'])) {
 //
 function copy_table($link, $origin, $destination) {
     //
-    $json_res = "";
+    $json_res = [];
     $json_res['origin'] = $origin;
     $json_res['destination'] = $destination;
     //
@@ -677,8 +678,10 @@ function copy_table($link, $origin, $destination) {
         $count_rows = 0;
         while ($row_orig = mysqli_fetch_assoc($result_origin)) {
             if ($destination === "MobMainMenuSubmenus") {
+                if ($row_orig['menuOrder'] != ''){
                 $query = 'INSERT INTO ' . $destination . ' (id,menu, linkUrl,linkId, text, privileges, iconColor, pageTitle, menuOrder, organizations,icon, openMode, externalApp) VALUES("' . htmlspecialchars($row_orig['id']) . '",' . htmlspecialchars($row_orig['menu']) . ',"' . htmlspecialchars($row_orig['linkUrl']) . '","' . htmlspecialchars($row_orig['linkId']) . '","' . htmlspecialchars($row_orig['text']) . '","' . htmlspecialchars($row_orig['privileges']) . '","' . htmlspecialchars($row_orig['iconColor']) . '","' . htmlspecialchars($row_orig['pageTitle']) . '","' . htmlspecialchars($row_orig['menuOrder']) . '","' . htmlspecialchars($row_orig['organizations']) . '","' . htmlspecialchars($row_orig['icon']) . '","' . htmlspecialchars($row_orig['openMode']) . '","' . htmlspecialchars($row_orig['externalApp']) . '");';
                 $result = mysqli_query($link, $query) or die(mysqli_error($link));
+                }
                 //
                 //
                 if ($result) {
@@ -744,14 +747,16 @@ function copy_table($link, $origin, $destination) {
     }
     $json_res['origin'] = $origin;
     $json_res['destination'] = $destination;
+    $json_res['Copied Rows'] = $count_rows;
     $json_res['counted rows'] = $count_rows;
-    //MEssage result
+    //MEssage result 
+    //
     if ($count_rows == $count_rows) {
         $json_res['result'] = 'success';
-    } else {
+   } else {
         $json_res['result'] = 'not success';
     }
-    return $json_res;
+    return ($json_res);
     //
 }
 

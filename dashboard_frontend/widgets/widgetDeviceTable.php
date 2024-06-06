@@ -325,10 +325,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 			
 			//$('#example thead th').click(function() {
 			////////
-                    //$('.sorting_<?= $_REQUEST['name_w'] ?>').off('click');
-					//$('.sorting_<?= $_REQUEST['name_w'] ?>').click(function (){
-						$('.sorting').off('click');
-						$('.sorting').click(function() {
+                    $('.sorting_<?= $_REQUEST['name_w'] ?>').off('click');
+					$('.sorting_<?= $_REQUEST['name_w'] ?>').click(function (){
+						//$('.sorting').off('click');
+						//$('.sorting').click(function() {
 						//console.log('click sorting');
 						action_<?= $_REQUEST['name_w'] ?> = 'changedOrdering';
 						var text = $(this).text();
@@ -584,6 +584,230 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 											//$('#maintable_<?= $_REQUEST['name_w'] ?>').empty();
 											//showWidgetContent(widgetName);
 											//$("#maintable_<?= $_REQUEST['name_w'] ?> tbody").empty();
+											console.log('VUOto!!');
+											if (newValue_<?= $_REQUEST['name_w'] ?>.responsive){
+											if ((newValue_<?= $_REQUEST['name_w'] ?>.responsive == 'false')||(newValue_<?= $_REQUEST['name_w'] ?>.responsive == false)){
+												//
+												responsive_table_<?= $_REQUEST['name_w'] ?> = false;
+												//
+											}else{
+												responsive_table_<?= $_REQUEST['name_w'] ?> = true;
+											}
+										}else{
+											responsive_table_<?= $_REQUEST['name_w'] ?> = true;
+										}
+										var features = data.features;
+											var values = ['dateObserved'];
+											var keys = Object.keys(values);
+											column_list_<?= $_REQUEST['name_w'] ?> = keys;
+											var pos_key = keys.indexOf(order_column);
+											if ($('#num_column_<?= $_REQUEST['name_w'] ?>').val() == ''){
+														$('#num_column_<?= $_REQUEST['name_w'] ?>').val(pos_key+1);
+											}
+											var count = 0;
+											var n_rows = $('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
+											if (n_feat > n_rows){
+												n_feat = n_rows;
+											}
+											console.log('n_feat: '+n_feat);
+													for (var i = 0; i <= n_feat; i++) {	
+														console.log('data1:	',data);
+														if (data.features[i] !== undefined){					
+															temp = data.features[i].properties.values;
+														
+														specificData = "";				
+														temp = data.features[i].properties.values;
+														temp.device = data.features[i].properties.deviceName;
+														temp.serviceUri = data.features[i].properties.serviceUri;
+														}
+														//CHECK FORMAT//
+														if(columnTitles_<?= $_REQUEST['name_w'] ?>.length > 0){
+															for(var z=0; z<columnTitles_<?= $_REQUEST['name_w'] ?>.length; z++){
+																var col_val= columnTitles_<?= $_REQUEST['name_w'] ?>[z].value;
+																if (temp.hasOwnProperty(col_val)){
+																	var content_column = temp[col_val];
+																	if(columnTitles_<?= $_REQUEST['name_w'] ?>[z].format){
+																		var colformat= columnTitles_<?= $_REQUEST['name_w'] ?>[z].format;
+																		var d = new Date(content_column);
+																		var d2 = moment(d).format(colformat);
+																		temp[col_val] = d2;													
+																	}
+																}
+															}
+														}
+														//
+														dataSet_<?= $_REQUEST['name_w'] ?>.push(temp);
+													}
+													if(missingFieldsDevices.missingFieldsPerDevice === null){
+													createTable();
+												///////////////////	
+												var n_page = Math.ceil(fullCount/maintable_length);
+														var last_page = 0;
+														last_page = (fullCount - maintable_length);
+														var list_links = '';
+														var first_int = 0;
+														var end_int = 0;
+														//
+														list_links = list_links + '<li class="paginate_button pag_hidden1"></li>';
+														//
+														for (var i=0;i<n_page; i++){
+															var n = i+1;
+															var active ='';
+															var hidden = '';
+															//
+															first_int = (i * maintable_length);
+															end_int= first_int + maintable_length;
+															
+															list_links = list_links + '<li class="paginate_button n_lnk pag_<?= $_REQUEST['name_w'] ?>" id="page_<?= $_REQUEST['name_w'] ?>'+i+'" start="'+first_int+'" end="'+end_int+'"current='+i+'><a href="#"  id="page_<?= $_REQUEST['name_w'] ?>link_<?= $_REQUEST['name_w'] ?>_'+i+'" aria-controls="maintable" data-dt-idx="2" tabindex="0" start="'+first_int+'" end="'+end_int+'">'+n+'</a></li>';
+														}
+														list_links = list_links + '<li class="paginate_button pag_hidden2"></li>';
+														
+														var dis_next = "";
+														if (current_page_<?= $_REQUEST['name_w'] ?> == i-1){dis_next = "disabled";}else{dis_next = "";}
+														var dis_prev = "";
+														if (current_page_<?= $_REQUEST['name_w'] ?> == 0){ dis_prev = "disabled"; }else{ dis_prev = "";}
+														var next = current_page_<?= $_REQUEST['name_w'] ?>++;
+														var prev = current_page_<?= $_REQUEST['name_w'] ?>-1;
+														$('#paging_table_<?= $_REQUEST['name_w'] ?>').html('<ul class="pagination"><li class="paginate_button '+dis_prev+' first '+dis_prev+' first_<?= $_REQUEST['name_w'] ?>" id="maintable_first" tabindex="0" start="0" end="'+maintable_length+'" current="0"><a href="#" aria-controls="maintable" data-dt-idx="0" tabindex="0" start="0" end="'+maintable_length+'">First</a></li><li class="paginate_button '+dis_prev+' previous '+dis_prev+' previous_<?= $_REQUEST['name_w'] ?>" id="maintable_previous" start="'+first_int+'" end="'+end_int+'" current='+(prev-1)+'><a href="#" aria-controls="maintable" data-dt-idx="1" tabindex="0">&lt;&lt; Prev</a></li>'+list_links+'<li class="paginate_button'+dis_next+' next_<?= $_REQUEST['name_w'] ?> '+dis_next+' " id="maintable_next_<?= $_REQUEST['name_w'] ?>" start="'+first_int+'" end="'+end_int+'"current="'+(next+1)+'"><a href="#" aria-controls="maintable" data-dt-idx="3" tabindex="0">Next &gt;&gt;</a></li><li class="paginate_button'+dis_next+' last '+dis_next+' last_<?= $_REQUEST['name_w'] ?>" id="maintable_last" start="'+first_int+'" end="'+end_int+'"current='+(n_page-1)+'><a href="#" aria-controls="maintable" data-dt-idx="4" tabindex="0" start="'+first_int+'" end="'+fullCount+'">Last</a></li></ul>');
+														$('#page_<?= $_REQUEST['name_w'] ?>'+prev).addClass('active');
+														////
+														//
+														$('.n_lnk').each(function() {
+															//console.log($(this).text());
+															if(isNaN($(this).text())){
+															}else{
+																var cont = $(this).text();
+																if ((cont > current_page_<?= $_REQUEST['name_w'] ?> + 2)||(cont < current_page_<?= $_REQUEST['name_w'] ?> - 2)){
+																	$(this).hide();
+																	if (cont < current_page_<?= $_REQUEST['name_w'] ?> - 2){
+																		$('.pag_hidden1').html('<a>...</a>');
+																	}
+																	if (cont > current_page_<?= $_REQUEST['name_w'] ?> + 2){
+																		$('.pag_hidden2').html('<a>...</a>');
+																	}
+																}
+																
+															}
+														});
+														////
+														$('.pag_<?= $_REQUEST['name_w'] ?>').off('click');
+														$('.pag_<?= $_REQUEST['name_w'] ?>').click(function () {
+															var start = $(this).attr('start');
+															var end = $(this).attr('end');
+															var current = $(this).attr('current');
+															console.log('CLICK SULLA PAGINA');
+															$('#start_value_<?= $_REQUEST['name_w'] ?>').val(start);
+															$('.paginate_button.active').removeClass('active');
+															//
+															var n_rows = $('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
+															var new_start = start+n_rows;
+															var new_end = end+n_rows;
+															$('.next_<?= $_REQUEST['name_w']?>').attr('start', new_start);
+															$('.previous_<?= $_REQUEST['name_w']?>').attr('end', new_end);
+															//
+															action_<?= $_REQUEST['name_w'] ?> = 'ChangePage';
+															change_page(start, end, current);
+															//
+															var first_p = current-1;
+															if (first_p == -1){
+																$('#page_<?= $_REQUEST['name_w'] ?>0').addClass('active');
+															}
+															//console.log('current in paginate:'+first_p+ '	#page_<?= $_REQUEST['name_w'] ?>'+first_p);
+															//$('#page_<?= $_REQUEST['name_w'] ?>'+first_p).addClass('active');
+															
+														});
+														$('.first_<?= $_REQUEST['name_w'] ?>').off('click');
+														$('.first_<?= $_REQUEST['name_w'] ?>').click(function () {
+															$('.paginate_button.active').removeClass('active');
+															var start = $(this).attr('start');
+															var end = $(this).attr('end');
+															var current = $(this).attr('current');
+															$('#start_value_<?= $_REQUEST['name_w'] ?>').val(start);
+															//
+															var n_rows = $('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
+															var new_start = start+n_rows;
+															var new_end = end+n_rows;
+															$('.next_<?= $_REQUEST['name_w']?>').attr('start', new_start);
+															$('.previous_<?= $_REQUEST['name_w']?>').attr('end', new_end);
+															//
+															action_<?= $_REQUEST['name_w'] ?> = 'FirstPage';
+															change_page(start, end, current);
+															//
+															var first_p = current-1;
+															if (first_p == -1){
+																$('#page_<?= $_REQUEST['name_w'] ?>0').addClass('active');
+															}
+															console.log('current in paginate:'+first_p+ '	#page_<?= $_REQUEST['name_w'] ?>'+first_p);
+															$('#page_<?= $_REQUEST['name_w'] ?>'+first_p).addClass('active');
+															
+														});
+														$('.last_<?= $_REQUEST['name_w'] ?>').off('click');
+														$('.last_<?= $_REQUEST['name_w'] ?>').click(function () {
+															var start = $(this).attr('start');
+															var end = $(this).attr('end');
+															var current = $(this).attr('current');
+															$('#start_value_<?= $_REQUEST['name_w'] ?>').val(start);
+															//
+															var n_rows = $('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
+															var new_start = start+n_rows;
+															var new_end = end+n_rows;
+															$('.next_<?= $_REQUEST['name_w']?>').attr('start', new_start);
+															$('.previous_<?= $_REQUEST['name_w']?>').attr('end', new_end);
+															//
+															action_<?= $_REQUEST['name_w'] ?> = 'LastPage';
+															change_page(start, end, current);
+															//
+															var first_p = current-1;
+															if (first_p == -1){
+																$('#page_<?= $_REQUEST['name_w'] ?>0').addClass('active');
+															}
+															console.log('current in paginate:'+first_p+ '	#page_<?= $_REQUEST['name_w'] ?>'+first_p);
+															//$('#page_<?= $_REQUEST['name_w'] ?>'+first_p).addClass('active');
+															
+														});
+														$('.next_<?= $_REQUEST['name_w'] ?>').off('click');
+														$('.next_<?= $_REQUEST['name_w'] ?>').click(function () {
+															if (!$(this).hasClass( "disabled" )){
+															var start = $('#start_value_<?= $_REQUEST['name_w'] ?>').val();
+															var end = $('.active').attr('end');
+															var current = $('#current_page_<?= $_REQUEST['name_w'] ?>').val();
+															var next_page = parseInt(current) +1;
+															var next_end =$('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
+															var next_start =	parseInt(start) + parseInt(next_end);
+															console.log('next_start: '+next_start);
+															console.log('next_end: '+next_end);
+															console.log('next: '+next);
+															action_<?= $_REQUEST['name_w'] ?> = 'NextPage';
+															$('#start_value_<?= $_REQUEST['name_w'] ?>').val(next_start);
+															change_page(next_start, next_end, next_page);
+															}
+															//
+														});
+														$('.previous_<?= $_REQUEST['name_w'] ?>').off('click');
+														$('.previous_<?= $_REQUEST['name_w'] ?>').click(function () {
+															if (!$(this).hasClass( "disabled" )){
+															var start = $('#start_value_<?= $_REQUEST['name_w'] ?>').val();
+															var end = $('.active').attr('end');
+															var current = $('#current_page_<?= $_REQUEST['name_w'] ?>').val();
+															var next_page = parseInt(current) -1;
+															var next_end =$('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
+															var next_start =	parseInt(start) - parseInt(next_end);
+															console.log('next_start: '+next_start);
+															console.log('next_end: '+next_end);
+															console.log('next: '+next);
+															action_<?= $_REQUEST['name_w'] ?> = 'PreviousPage';
+															$('#start_value_<?= $_REQUEST['name_w'] ?>').val(next_start);
+															change_page(next_start, next_end, next_page);
+															}
+															//
+														});
+												/////////////////////////////		
+										}else{
+											stdSend(missingFieldsDevices);
+											$('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
+											showWidgetContent(widgetName);
+										}
+							console.log('Vuoto da riempire');
 
 							}else{
 							//

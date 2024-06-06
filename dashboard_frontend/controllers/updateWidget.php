@@ -215,6 +215,7 @@
               
             case "updateTitle":  
               $newTitle = mysqli_real_escape_string($link, $_REQUEST['newTitle']);
+              $newTitle = decodeNbsp($newTitle);
            //  if (strpos($newTitle, '\'') != false || strpos($newTitle, '"') != false) {
               if (strpos($newTitle, '"') != false) {
                   $response['detail'] = 'queryQuotesKo';
@@ -528,6 +529,18 @@
 
             default:
               break;
+              case "updateDTparams":
+                $newInfo = mysqli_real_escape_string($link, $_REQUEST['newText']);
+                // $newInfo = preg_replace("/<\\/?script[^>]*>/", "", $newInfo);
+                $query = "UPDATE Dashboard.Config_widget_dashboard SET rowParameters = " . returnManagedStringForDb($newInfo) . " WHERE name_w = '$widgetName'";
+                $result = mysqli_query($link, $query);
+  
+                if ($result) {
+                    $response['detail'] = 'Ok';
+                } else {
+                    $response['detail'] = 'queryKo';
+                }
+                break;
 	}
 	
 	mysqli_commit($link);

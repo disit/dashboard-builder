@@ -1456,14 +1456,14 @@ $lastUsedColors = null;
                     success: function (data) {
 
                         if (data['main']['result'] === 'success') {
-                            $('#main_t1').html('Table <b>' + data['main']['origin'] + '</b> successly copied in table <b>' + data['main']['destination']+'</b>. Number of copied Rows: '+ data['main']['Copied Rows']);
+                            $('#main_t1').html('Table <b>' + data['main']['origin'] + '</b> successfully copied in table <b>' + data['main']['destination']+'</b>. Number of copied Rows: '+ data['main']['Copied Rows']);
                         } else {
-                            $('#main_t1').html('Table <b>' + data['main']['origin'] + '</b> Not successly copied in table <b>' + data['main']['destination']+'</b><br />');
+                            $('#main_t1').html('Table <b>' + data['main']['origin'] + '</b> Not successfully copied in table <b>' + data['main']['destination']+'</b><br />');
                         }
                         if (data['submenu']['result'] === 'success') {
-                            $('#main_s1').html('Table <b>' + data['submenu']['origin'] + '</b> successly copied in table <b>' + data['submenu']['destination']+'</b>. Number of copied Rows: '+ data['submenu']['Copied Rows']);
+                            $('#main_s1').html('Table <b>' + data['submenu']['origin'] + '</b> successfully copied in table <b>' + data['submenu']['destination']+'</b>. Number of copied Rows: '+ data['submenu']['Copied Rows']);
                         } else {
-                            $('#main_s1').html('Table <b>' + data['submenu']['origin'] + '</b> Not successly copied in table <b>' + data['submenu']['destination']+'</b>');
+                            $('#main_s1').html('Table <b>' + data['submenu']['origin'] + '</b> Not successfully copied in table <b>' + data['submenu']['destination']+'</b>');
                         }
                         $('#result_copy').modal({
                             show: 'true'

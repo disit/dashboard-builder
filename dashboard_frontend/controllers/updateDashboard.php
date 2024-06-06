@@ -163,6 +163,7 @@
 
         case "updateTitle":
             $newTitle = mysqli_real_escape_string($link, $_REQUEST['newTitle']);
+            $newTitle = decodeNbsp($newTitle);
             $dashboardTitle = mysqli_real_escape_string($link, $_REQUEST['dashboardTitle']);
 
             if (strpos($newTitle, '&') !== false) {
@@ -282,6 +283,7 @@
 
         case "updateSubtitle":
             $newSubtitle = mysqli_real_escape_string($link, $_REQUEST['newSubtitle']);
+            $newSubtitle = decodeNbsp($newSubtitle);
 
             $query = "UPDATE Dashboard.Config_dashboard SET subtitle_header = '$newSubtitle' WHERE Id = '$dashboardId'";
             $result = mysqli_query($link, $query);
@@ -747,6 +749,45 @@
                 } else {
                     $response['detail'] = 'queryKo';
                 }
+
+            } else {
+                $response['detail'] = 'notValidJson';
+            }
+
+            break;
+
+        case "saveMetadata":
+            if (json_validator($_REQUEST['jsonData'])) {
+
+                $data = json_decode($_REQUEST['jsonData'], true);
+
+                $nature = ($data['nature']);
+                $sub_nature = ($data['sub_nature']);
+                $description = mysqli_real_escape_string($link, $data['description']);
+                $area = mysqli_real_escape_string($link, $data['area']);
+                $ssbl = mysqli_real_escape_string($link, $data['ssbl']);
+                $csbl = mysqli_real_escape_string($link, $data['csbl']);
+
+                $metadata = [
+                    'nature' => $nature,
+                    'sub_nature' => $sub_nature,
+                    'description' => $description,
+                    'area' => $area,
+                    'server_side_bl' => $ssbl==="Yes" ? "ssbl" : "No",
+                    'client_side_bl' => $csbl==="Yes" ? "csbl" : "No",
+                ];
+
+                $updatedMetadata = mysqli_real_escape_string($link, json_encode($metadata));
+
+                $updateQuery = "UPDATE Dashboard.Config_dashboard SET metadata = '$updatedMetadata' WHERE Id = '$dashboardId'";
+                $updateResult = mysqli_query($link, $updateQuery);
+
+                if ($updateResult) {
+                    $response['detail'] = 'Ok';
+                } else {
+                    $response['detail'] = 'queryKo';
+                }
+                break;
 
             } else {
                 $response['detail'] = 'notValidJson';
