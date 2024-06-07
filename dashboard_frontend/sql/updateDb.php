@@ -2,6 +2,11 @@
 
 include '../config.php';
 
+if ( isset( $_SERVER ) && isset( $_SERVER['REQUEST_METHOD'] ) ) {
+    echo 'This script must be run from the command line';
+    exit;
+} 
+
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 error_reporting(E_ERROR);
@@ -19,32 +24,35 @@ $tablesUpdateMap = json_decode(file_get_contents('tableColumnsUpdate.json'), tru
 $tablesSchemaUpdateMap = json_decode(file_get_contents('tableSchemaUpdate.json'), true);
 $tableRecordUpdateMap = json_decode(file_get_contents('tableRecordUpdate.json'), true);
 
+$NL = "\n";
+//$NL = "<br>";
+
 foreach ($tablesCreationMap as $tab => $query) {
-    echo "<br>" . "---Checking New Tables..." . "<br>";
+    echo $NL . "---Checking New Tables..." . $NL;
     $result = $conn->query("SHOW TABLES LIKE '$tab'");
     if ($result->num_rows > 0) {
-        echo "Table '$tab' already exists in the Database."."<br>";
+        echo "Table '$tab' already exists in the Database.".$NL;
         continue;
     }
 
     if ($conn->query($query) === TRUE) {
-        echo "Table '$tab' has been successfully created."."<br>";
+        echo "Table '$tab' has been successfully created.".$NL;
     } else {
-        echo "Error in creating table '$tab': " . $conn->error . "<br>";
+        echo "Error in creating table '$tab': " . $conn->error . $NL;
     }
 }
 
 foreach ($tablesUpdateMap as $table => $columns) {
-    echo "<br>" . "---Adding New Tables Columns..." . "<br>";
+    echo $NL . "---Adding New Tables Columns..." . $NL;
     $result = $conn->query("SHOW TABLES LIKE '$table'");
     if ($result->num_rows == 0) {
-        echo "Error: table '$table' does not exists in the Database."."<br>";
+        echo "Error: table '$table' does not exists in the Database.".$NL;
         continue;
     }
 
     foreach ($columns as $column => $details) {
         if (!isset($details['type'])) {
-            echo "Error: no data type has been specified for column '$column' in table '$table'"."<br>";
+            echo "Error: no data type has been specified for column '$column' in table '$table'".$NL;
             continue;
         }
 
@@ -53,44 +61,44 @@ foreach ($tablesUpdateMap as $table => $columns) {
         if ($result->num_rows == 0) {
             $queryCol = "ALTER TABLE `$table` ADD `$column` {$details['type']} {$details['extra']}";
             if ($conn->query($queryCol) === TRUE) {
-                echo "The Column '$column' has been successfully added to Table '$table'"."<br>";
+                echo "The Column '$column' has been successfully added to Table '$table'".$NL;
             } else {
-                echo "Error in adding column '$column' to table '$table': " . $conn->error . "<br>";
+                echo "Error in adding column '$column' to table '$table': " . $conn->error . $NL;
             }
         } else {
-            echo "Table '$table' already has the column '$column'"."<br>";
+            echo "Table '$table' already has the column '$column'".$NL;
         }
     }
 }
 
 foreach ($tablesSchemaUpdateMap as $table => $columns) {
-    echo "<br>" . "---Checking Updates to Tables Schema..." . "<br>";
+    echo $NL . "---Checking Updates to Tables Schema..." . $NL;
     $result = $conn->query("SHOW TABLES LIKE '$table'");
     if ($result->num_rows == 0) {
-        echo "Error: table '$table' does not exists in the Database."."<br>";
+        echo "Error: table '$table' does not exists in the Database.".$NL;
         continue;
     }
 
     foreach ($columns as $column => $details) {
         if (!isset($details['edit'])) {
-            echo "Error: no modifications have been specified for column '$column' in table '$table'"."<br>";
+            echo "Error: no modifications have been specified for column '$column' in table '$table'".$NL;
             continue;
         }
 
         $queryCol = "ALTER TABLE `$table` MODIFY `$column` {$details['edit']}";
         if ($conn->query($queryCol) === TRUE) {
-            echo "The Column '$column' has been successfully modified in Table '$table'"."<br>";
+            echo "The Column '$column' has been successfully modified in Table '$table'".$NL;
         } else {
-            echo "Error in modifying column '$column' in table '$table': " . $conn->error . "<br>";
+            echo "Error in modifying column '$column' in table '$table': " . $conn->error . $NL;
         }
     }
 }
 
 foreach ($tableRecordUpdateMap as $table => $queries) {
-    echo  "<br>" . "---Updating/Inserting Records..." . "<br>";
+    echo  $NL . "---Updating/Inserting Records..." . $NL;
     $result = $conn->query("SHOW TABLES LIKE '$table'");
     if ($result->num_rows == 0) {
-        echo "Error: table '$table' does not exists in the Database."."<br>";
+        echo "Error: table '$table' does not exists in the Database.".$NL;
         continue;
     }
     $column = $queries['column'];
@@ -99,12 +107,12 @@ foreach ($tableRecordUpdateMap as $table => $queries) {
     $insertQuery = $queries['insert'];
 
     if ($conn->query($updateQuery) === TRUE) {
-        echo "Update query info: " . $conn->info . "<br>";  // Debug information
+        echo "Update query info: " . $conn->info . $NL;  // Debug information
         if (strpos($conn->info, 'Rows matched: 1') !== false) {
             if (strpos($conn->info, 'Changed: 1') !== false) {
-                echo "Record in table '$table' has been successfully updated." . "<br>";
+                echo "Record in table '$table' has been successfully updated." . $NL;
             } else if (strpos($conn->info, 'Changed: 0') !== false) {
-                echo "Record in table '$table' was already updated and has not been modified." . "<br>";
+                echo "Record in table '$table' was already updated and has not been modified." . $NL;
             }
         } else {
             // Check if the record already exists
@@ -113,18 +121,18 @@ foreach ($tableRecordUpdateMap as $table => $queries) {
 
             if ($checkResult && $checkResult->num_rows == 0) {
                 if ($conn->query($insertQuery) === TRUE) {
-                    echo "Record has been successfully inserted into table '$table'."."<br>";
+                    echo "Record has been successfully inserted into table '$table'.".$NL;
                 } else {
-                    echo "Error in inserting record into table '$table': " . $conn->error . "<br>";
+                    echo "Error in inserting record into table '$table': " . $conn->error . $NL;
                 }
             } else {
-                echo "Record already exists in table '$table'."."<br>";
+                echo "Record already exists in table '$table'.".$NL;
             }
         }
     } else {
-        echo "Error in updating record in table '$table': " . $conn->error . "<br>";
+        echo "Error in updating record in table '$table': " . $conn->error . $NL;
     }
 }
 
-echo "<br>" . "End of Update Script." . "<br>";
+echo $NL . "End of Update Script." . $NL;
 $conn->close();
