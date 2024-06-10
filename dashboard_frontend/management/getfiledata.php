@@ -110,12 +110,12 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
             $length = count($data);
             for ($i = 0; $i < $length; $i++) {
                 $current_device = $data[$i];
-                if ($current_device["devicetype"] == "File") {
+                if (strcasecmp($current_device["devicetype"], "File")==0) {
                     $deviceid = $current_device["id"];
                     $value_array = [
                         "action" => "get_device_data",
                         "id" => $deviceid,
-                        "type" => "File",
+                        "type" => $current_device["devicetype"],
                         "contextbroker" => $iot_contextbroker,
                         "version" => "v1",
                         "nodered" => "access",
@@ -237,13 +237,13 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
         for ($i = 0; $i < $length; $i++) {
             $current_device = $data[$i];
             $debug = $debug . $current_device["devicetype"] . '-';
-            if ($current_device["devicetype"] == "File") {
+            if (strcasecmp($current_device["devicetype"],"File") == 0) {
                 $deviceid = $current_device["id"];
                 $debug = $debug . $deviceid;
                 $value_array = [
                     "action" => "get_device_data",
                     "id" => $deviceid,
-                    "type" => "file",
+                    "type" => $current_device["devicetype"],
                     "contextbroker" => $iot_contextbroker,
                     "version" => "v1",
                     "nodered" => "access",
@@ -600,12 +600,12 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
         $device_belongs_to_me = false;
         for ($i = 0; $i < count($data); $i++) {
             $current_device = $data[$i];
-            if ($current_device["devicetype"] == "file") {
+            if (strcasecmp($current_device["devicetype"], "File") == 0) {
                 $deviceid = $current_device["id"];
                 $value_array = [
                     "action" => "get_device_data",
                     "id" => $deviceid,
-                    "type" => "file",
+                    "type" => $current_device["devicetype"],
                     "contextbroker" => $iot_contextbroker,
                     "version" => "v1",
                     "nodered" => "access",
@@ -626,7 +626,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
                 $response0 = json_decode($deviceCall01, true);
                 $var_length = count($response0["attributes"]);
                 curl_close($ch1);
-                if ($response0["attributes"][7]["value"] == $fileid) {
+		if ($response0["attributes"][7]["value"] == $fileid) {
                     $device_belongs_to_me = true;
                     break;
                 }
