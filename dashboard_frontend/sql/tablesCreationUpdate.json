@@ -1,3 +1,4 @@
 {
-  "sessions": "CREATE TABLE IF NOT EXISTS sessions (id varchar(32) NOT NULL, access int(10) unsigned DEFAULT NULL, data text, PRIMARY KEY (id));"
+  "sessions": "CREATE TABLE IF NOT EXISTS `Dashboard`.`sessions` (`id` varchar(32) NOT NULL, `access` int(10) unsigned DEFAULT NULL, `data` text, PRIMARY KEY (id));",
+  "TrustedUserGroups": "CREATE TABLE IF NOT EXISTS `Dashboard`.`TrustedUserGroups` (`id` INT NOT NULL,`username` VARCHAR(45) NULL, PRIMARY KEY (`id`));"
 }
