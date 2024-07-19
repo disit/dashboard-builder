@@ -43,7 +43,7 @@ if(isset($_GET['accessToken'])) {
 			// Controlla se ci sono errori
 			if(curl_errno($ch)) {
 				//echo 'Errore cURL: ' . curl_error($ch);
-				$output_message['code'] = '400';
+				$output_message['status'] = 'KO';
 				$output_message['message'] = 'Errore cURL: ' . curl_error($ch);
 				echo json_encode($output_message);
 			} else {
@@ -55,14 +55,14 @@ $obj = json_decode($response, true);
 
 if (array_key_exists('error', $obj)) {
 	//header("HTTP/1.1 401 Unauthorized");
-	$output_message['code'] = '401';
-	$output_message['message'] = 'Error in accessTokan';
+	$output_message['status'] = 'KO';
+	$output_message['message'] = 'Error in accessToken';
 	echo json_encode($output_message);
 	die();
-}else if (array_key_exists('name', $obj)) {
+}else if (array_key_exists('preferred_username', $obj)) {
 	//echo($obj['name']);
 
-	$name = $obj['name'];
+	$name = $obj['preferred_username'];
 	////////
 	$link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
@@ -84,10 +84,11 @@ if (array_key_exists('error', $obj)) {
 				////////**************************////////
 				$connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
 				ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3)or die("ERROR IN ldap_set_option");
-				$bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);			
+				$bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);			
 				//
 				if ($group !=""){
-						$groupDn =  "cn=$group,ou=$organization,dc=ldap,dc=organization,dc=com";
+						//$groupDn =  "cn=$group,ou=$organization,dc=ldap,dc=organization,dc=com";
+						$groupDn =  "cn=$group,ou=$organization,$ldapBaseDN";
 						$dn = "cn=" . strtolower($username) . "," . $ldapBaseDN;
 						$dn_role = "cn=" . $username . "," . $ldapBaseDN;
 						//
@@ -98,7 +99,7 @@ if (array_key_exists('error', $obj)) {
 								//var_dump($entry);
 												if (ldap_mod_add($connection, $groupDn, ['member' => $dn])) {
 
-													$output_message['code'] = '200';
+													$output_message['status'] = 'OK';
 													$output_message['message'] = 'User successfully add to the group';
 													echo json_encode($output_message);
 													die();
@@ -107,19 +108,19 @@ if (array_key_exists('error', $obj)) {
 													$ldapErrorStr = ldap_err2str($ldapErrorNo);
 												if (($ldapErrorNo === 20)||($ldapErrorNo === '20')){
 
-													$output_message['code'] = '403';
+													$output_message['status'] = 'KO';
 													$output_message['message'] = 'User is yet in the group';
 													echo json_encode($output_message);
 													die();
 												}else if (($ldapErrorNo === 32)||($ldapErrorNo === '32')){
 
-													$output_message['code'] = '403';
+													$output_message['status'] = 'KO';
 													$output_message['message'] = 'wrong Group or Organization';
 													echo json_encode($output_message);
 													die();
 												}else{
 
-													$output_message['code'] = '403';
+													$output_message['status'] = 'KO';
 													$output_message['message'] = 'Error during adding operation';
 													echo json_encode($output_message);
 													die();
@@ -128,7 +129,7 @@ if (array_key_exists('error', $obj)) {
 							//
 						}else{
 							//
-							$output_message['code'] = '404';
+							$output_message['status'] = 'KO';
 							$output_message['message'] = 'Error not found group';
 							echo json_encode($output_message);
 							die();
@@ -139,7 +140,7 @@ if (array_key_exists('error', $obj)) {
 				/////////*************/////////////
 			}else{
 				//
-				$output_message['code'] = '401';
+				$output_message['status'] = 'KO';
 				$output_message['message'] = 'Unauthorized request. missing parameters';
 				echo json_encode($output_message);
 				die();
@@ -153,16 +154,17 @@ if (array_key_exists('error', $obj)) {
 				//
 				$connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
 				ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3)or die("ERROR IN ldap_set_option");
-				$bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
+				$bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
 				////
-						$groupDn =  "cn=$group,ou=$organization,dc=ldap,dc=organization,dc=com";
+						//$groupDn =  "cn=$group,ou=$organization,dc=ldap,dc=organization,dc=com";
+						$groupDn =  "cn=$group,ou=$organization,$ldapBaseDN";
 						$dn = "cn=" . strtolower($username) . "," . $ldapBaseDN;
 						$dn_role = "cn=" . $username . "," . $ldapBaseDN;
 						//
 						/////////////
 				if (ldap_mod_del($connection, $groupDn, ['member' => $dn])){
 							//
-							$output_message['code'] = '200';
+							$output_message['status'] = 'OK';
 							$output_message['message'] = 'User successfully deleted from group';
 							echo json_encode($output_message);
 							die();
@@ -170,8 +172,8 @@ if (array_key_exists('error', $obj)) {
 					$ldapErrorNo = ldap_errno($connection);
 					$ldapErrorStr = ldap_err2str($ldapErrorNo);
 					//
-					$output_message['code'] = '401';
-					$output_message['message'] = $ldapErrorNo;
+					$output_message['status'] = 'KO';
+					$output_message['message'] = $ldapErrorStr;
 					echo json_encode($output_message);
 					die();
 				}
@@ -179,8 +181,8 @@ if (array_key_exists('error', $obj)) {
 				////
 			}else{
 				//
-				$output_message['code'] = '401';
-				$output_message['message'] = 'Unauthorized request. missing paramters';
+				$output_message['status'] = 'KO';
+				$output_message['message'] = 'Unauthorized request. missing parameters';
 				echo json_encode($output_message);
 		die();
 			}
@@ -188,21 +190,22 @@ if (array_key_exists('error', $obj)) {
 	
 	// Libera la memoria associata al risultato
 	mysqli_free_result($result);
-	$output_message['code'] = '401';
-	$output_message['message'] = 'Unauthorized request. missing paramters';
+	$output_message['status'] = 'KO';
+	$output_message['message'] = 'Unauthorized request. missing parameters';
 	echo json_encode($output_message);
 } else {
 	// Stampa l'errore
 	
-	$output_message['code'] = '401';
-	$output_message['message'] = 'User not authorizated';
+	$output_message['status'] = 'KO';
+	$output_message['message'] = "User ($name)  not authorizated1";
 	echo json_encode($output_message);
 	die();
 }
 /////////
 } else {
-	$output_message['code'] = '401';
-	$output_message['message'] = 'User not authorizated';
+	$output_message['status'] = 'KO';
+	$output_message['message'] = 'User not authorizated2';
+        $output_message['obj'] = $obj;
 	echo json_encode($output_message);
 	die();
 }
@@ -211,8 +214,8 @@ curl_close($ch);
 
 	}else{
 
-		$output_message['code'] = '401';
-		$output_message['message'] = 'Unauthorized request. missing paramters';
+		$output_message['status'] = 'KO';
+		$output_message['message'] = 'Unauthorized request. missing parameters';
 		echo json_encode($output_message);
 		die();
 	}
@@ -220,8 +223,8 @@ curl_close($ch);
 	
 	}else{
 
-		$output_message['code'] = '401';
-		$output_message['message'] = 'Unauthorized request. missing paramters';
+		$output_message['status'] = 'KO';
+		$output_message['message'] = 'Unauthorized request. missing parameters';
 		echo json_encode($output_message);
 		die();
 	}
@@ -229,7 +232,7 @@ curl_close($ch);
 
 }else{
 
-		$output_message['code'] = '401';
+		$output_message['status'] = 'KO';
 		$output_message['message'] = 'Unauthorized request. AccessToken required';
 		echo json_encode($output_message);
 		die();

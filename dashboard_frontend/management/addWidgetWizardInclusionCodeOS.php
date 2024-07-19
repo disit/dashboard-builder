@@ -26,7 +26,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
     }
 
     function isCreationWizardUI(){
-        if(!empty($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],'dashboards.php') !== false){
+        if(!empty($_SERVER['HTTP_REFERER']) && (strpos($_SERVER['HTTP_REFERER'],'dashboards.php') !== false || strpos($_SERVER['HTTP_REFERER'],'dashboard_configdash.php') !== false)){
 
             return true;
         }else{

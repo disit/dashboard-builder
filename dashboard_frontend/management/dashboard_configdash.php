@@ -33245,7 +33245,8 @@
 
                                             //Costruiamo la tabella dei colori e il corrispondente JSON una tantum e mostriamola/nascondiamola a seconda di cosa sceglie l'utente, per non perdere eventuali colori immessi in precedenza.
                                             for (var i = 0; i < series.secondAxis.labels.length; i++) {
-                                                colorsArray1M[i] = styleParameters.colors1[i];
+                                                if (styleParameters.colors1 != null)
+                                                    colorsArray1M[i] = styleParameters.colors1[i];
                                                 newRow = $('<tr></tr>');
                                                 if (styleParameters.editDeviceLabels != null) {
                                                     if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value == "value name") {
@@ -33268,7 +33269,8 @@
                                             }
 
                                             for (var i = 0; i < series.firstAxis.labels.length; i++) {
-                                                colorsArray2M[i] = styleParameters.colors2[i];
+                                                if (styleParameters.colors2 != null)
+                                                    colorsArray2M[i] = styleParameters.colors2[i];
                                                 newRow = $('<tr></tr>');
                                                 if (styleParameters.editDeviceLabels != null) {
                                                     if (styleParameters.editDeviceLabels[i] && document.getElementById("groupByAttrM").value == "value type") {

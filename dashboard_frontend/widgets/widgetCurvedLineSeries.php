@@ -3722,7 +3722,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         $("#<?= $_REQUEST['name_w'] ?>_table").hide();
                                         //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                                         if (errorsLog != null) {
-                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text(errorsLog);
+                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text(errorsLog);
                                         } else {
                                             $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available in the Selected Time-Range.");
                                         }

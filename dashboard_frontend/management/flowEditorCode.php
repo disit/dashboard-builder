@@ -587,7 +587,7 @@
         "widgetButton" : {"widget_ports":"OUT", "widget_type":"widgetButton", "next_port_box": 0, "port_boxes":{}, "events":{"click":{"ev_name":"click","code":""}}},
         //"widgetOnOffButton" : {"widget_ports":"IN/OUT", "widget_type":"widgetOnOffButton", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
         "widgetImpulseButton" : {"widget_ports":"OUT", "widget_type":"widgetImpulseButton", "next_port_box": 0, "port_boxes":{}, "events":{"click":{"ev_name":"click","code":""}}},
-        "widgetSpeedometer" : {"widget_ports":"IN", "widget_type":"widgetCalendar", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
+        "widgetCalendar" : {"widget_ports":"IN", "widget_type":"widgetCalendar", "next_port_box": 0, "port_boxes":{}, "events":{"external_commands":{"ev_name":"externalCommands","code":""}}},
     };
 
     let port_box = {"port_name": "", "associated_output_node": 0, "port_type":{}};

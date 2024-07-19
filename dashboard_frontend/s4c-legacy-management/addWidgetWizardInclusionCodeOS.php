@@ -23,7 +23,7 @@
     }
 
     function isCreationWizardUI(){
-        if(!empty($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],'dashboards.php') !== false){
+        if(!empty($_SERVER['HTTP_REFERER']) && (strpos($_SERVER['HTTP_REFERER'],'dashboards.php') !== false || strpos($_SERVER['HTTP_REFERER'],'dashboard_configdash.php') !== false)){
 
             return true;
         }else{
@@ -7662,9 +7662,9 @@
 
             $("#link_start_wizard").click(function ()
             {
-                choosenWidgetIconName = null;
-                widgetWizardSelectedRows = {};
-                widgetWizardSelectedRowsTable.clear().draw(false);
+            //    choosenWidgetIconName = null;
+            //    widgetWizardSelectedRows = {};
+            //    widgetWizardSelectedRowsTable.clear().draw(false);
             });
             
             choosenWidgetIconName = null;					// VERIFICA CON INSPECTOR !

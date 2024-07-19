@@ -2166,18 +2166,29 @@ function csblTrigger(output_type, port_name, data, eventType, dt1_iso, dt2_iso, 
                     break;
 
                 case 'widgetSpeedometer':
-                    break;
-
                 case 'widgetGaugeChart':
+                case 'widgetSingleContent':
+                    let title="";
+                    if (data[0].metricName.includes(":")) {
+                        let parts = data[0].metricName.split(":");
+                        title = parts[parts.length - 1].trim(); // Assegna l'ultima parte della stringa e rimuove eventuali spazi bianchi
+                    } else {
+                        title = data[0].metricName.trim(); // Assegna l'intera stringa e rimuove eventuali spazi bianchi
+                    }
+                    title = title + " - " + data[0].metricType;
+                    $('body').trigger({
+                        type: "showLastDataFromExternalContentGis_" + widget_name,
+                        targetWidget: widget_name,
+                        field: data[0].metricType,
+                        widgetTitle: title,
+                        serviceUri: data[0].serviceUri
+                    });
                     break;
 
                 case 'widgetKnob':
                     break;
 
                 case 'widgetNumericKeyboard':
-                    break;
-
-                case 'widgetSingleContent':
                     break;
 
                 case 'widgetExternalContent':

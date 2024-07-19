@@ -48,7 +48,9 @@ if($action === "dates"){
         echo('ERROR');
     }
 }elseif ($action === "shape_type"){
-    $query_types = "SELECT od_id FROM od_metadata WHERE organization='".$organization."'";
+    $lastDelimiterPos = strrpos($od_id, "_");
+    $od_id_base = substr($od_id, 0, $lastDelimiterPos + 1);
+    $query_types = "SELECT od_id FROM od_metadata WHERE organization='".$organization."' AND od_id LIKE '".$od_id_base."%' ";
     $result = $link->query($query_types) or die($link->errorInfo());
     $process_list = array();
     foreach ($result as $row) {

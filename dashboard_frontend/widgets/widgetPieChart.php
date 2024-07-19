@@ -212,7 +212,7 @@
                 var newValue = event.passedData;
                 //console.log(newValue);
                 // console.log('RECEIVED PASSED DATA');
-                var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
+                // var point = $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer').highcharts().series[0].points[0];
                    // point.update(newValue);
 
 
