@@ -316,7 +316,8 @@
     <script src="../js/highcharts-localization.js"></script>
 
     <!-- New WS -->
-   <script src="https://www.snap4city.org/synoptics/socket.io/socket.io.js"></script>
+   <!-- <script src="https://www.snap4city.org/synoptics/socket.io/socket.io.js"></script> -->
+    <script src="/synoptics/socket.io/socket.io.js"></script>
 
     <!-- DataTables -->
     <script type="text/javascript" charset="utf8" src="../js/DataTables/datatables.js"></script>

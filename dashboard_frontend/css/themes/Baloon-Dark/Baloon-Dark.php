@@ -322,7 +322,7 @@ if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     <script src="../js/highcharts-localization.js"></script>
 
     <!-- New WS -->
-   <script src="https://www.snap4city.org/synoptics/socket.io/socket.io.js"></script>
+   <script src="/synoptics/socket.io/socket.io.js"></script>
 
     <script type='text/javascript'>
         var array_metrics = new Array();
