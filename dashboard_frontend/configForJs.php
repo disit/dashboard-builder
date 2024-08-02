@@ -10,21 +10,18 @@ $j = 0;
 
 $variables = [];
 
-for($i = 0; $i < count($filesList); $i++)
-{
-    if(($filesList[$i] != ".")&&($filesList[$i] != "..")&&($filesList[$i] != "environment.ini"))
-    {
+$configVarsStr = isset($_GET['configVarsStr']) ? explode(',', $_GET['configVarsStr']) : [];
+
+for ($i = 0; $i < count($filesList); $i++) {
+    if (($filesList[$i] != ".") && ($filesList[$i] != "..") && ($filesList[$i] != "environment.ini")) {
         $fileContent = parse_ini_file("conf/" . $filesList[$i]);
 
-        foreach($fileContent as $key => $value)
-        {
-            if(($key != "fileDesc")&&($key != "customForm"))
-            {
-                if(is_array($value))
-                {
+        foreach ($fileContent as $key => $value) {
+            if (($key != "fileDesc") && ($key != "customForm")) {
+                if (is_array($value)) {
                     $varName = $key;
-                    $env = getenv("DBB_".strtoupper($key));
-                    if($env===FALSE)
+                    $env = getenv("DBB_" . strtoupper($key));
+                    if ($env === FALSE)
                         $variables[$varName] = $fileContent[$key][$activeEnv];
                     else
                         $variables[$varName] = $env;
@@ -35,5 +32,8 @@ for($i = 0; $i < count($filesList); $i++)
     }
 }
 
-// Restituisci i dati al JavaScript
-echo json_encode($variables);
+$filteredVariables = array_filter($variables, function($key) use ($configVarsStr) {
+    return in_array($key, $configVarsStr);
+}, ARRAY_FILTER_USE_KEY);
+
+echo json_encode($filteredVariables);

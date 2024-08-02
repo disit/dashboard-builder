@@ -24,20 +24,39 @@ var getIconsPoolUrl = "../widgets/getIconsPool.php";
 var getBubbleMetricsUrl = "../widgets/getBubbleMetricsProxy.php";
 var getSvgSingleVariableTemplatesUrl = "../controllers/getSvgSingleVarTemplates.php";
 var getOrthomapsUrl = "../widgets/getOrthomaps.php";
-var configVars = [];
+var configVars = {};
 
+function getConfigData(configVars, callback) {
+    let params = configVars.join(',');
 
-$.ajax({
-    url: '../configForJs.php',
-    type: 'GET',
-    success: function (data) {
-        try {
-            configVars = JSON.parse(data);
-        } catch (e) {
-            console.log("Error in parsing configuration vars as JSON.");
+    $.ajax({
+        url: '../configForJs.php',
+        method: 'GET',
+        data: { configVarsStr: params },
+        success: function(response) {
+            let data = JSON.parse(response);
+            callback(null, data);
+        },
+        error: function(error) {
+            callback(error);
         }
+    });
+}
+
+let configVarsStr = ['kbUrlSuperServiceMap', 'baseServiceURI'];
+
+getConfigData(configVarsStr, function(err, data) {
+    if (err) {
+        console.error('Error:', err);
+    } else {
+        Object.keys(data).forEach(key => {
+            configVars[key] = data[key];
+        });
+        // console.log('Updated configVars:', configVars);
+        // console.log('kbUrlSuperServiceMap:', configVars['kbUrlSuperServiceMap']);
     }
 });
+
 
 //Usata in tutti gli widget, ma destinata ad essere eliminata: già inglobata in setWidgetLayout
 function setHeaderFontColor(widget, color)
