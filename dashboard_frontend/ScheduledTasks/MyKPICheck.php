@@ -20,7 +20,7 @@ function getAccessToken($token_endpoint, $username, $password, $client_id){
     curl_setopt($ch, CURLOPT_URL,$token_endpoint);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS,
-        "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id);
+        "username=".$username."&password=".$password."&scope=openid&grant_type=password&client_id=".$client_id);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $curl_response = curl_exec($ch);
