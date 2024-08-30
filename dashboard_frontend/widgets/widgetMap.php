@@ -229,6 +229,10 @@ if (!isset($_SESSION)) {
                 color: 'cyan',
                 hover: 'green'
             },
+            steps: {
+                color: 'yellow',
+                hover: 'green'
+            },
             pedestrian: {
                 color: 'yellow',
                 hover: 'green'
@@ -512,8 +516,14 @@ if (!isset($_SESSION)) {
             $('#line_split').click(() => this.mode = 'split');
 
             // undo and redo functionality
-            $('#line_undo').click(() => this.undo());
-            $('#line_redo').click(() => this.redo());
+            $('#line_undo').click(() => {
+                console.log('undo');
+                this.undo();
+            });
+            $('#line_redo').click(() => {
+                console.log('redo');
+                this.redo();             
+            });
         }
 
         deepCopySegments() {
@@ -1587,6 +1597,7 @@ if (!isset($_SESSION)) {
         var records_per_page = 1;
         var wmsLayer = null;
         var trafficWmsLayer = null;
+        var newTfrLayer = null;
         var wmsLayerFullscreen = null;
         var iconsFileBuffer = [];
         var bubbleSelectedMetric = [];
@@ -1631,7 +1642,8 @@ if (!isset($_SESSION)) {
         var popupOnClick = true;
         var leafletMaxZoom = 23;
         var leafletNativeMaxZoom = 19;
-
+        var widgetParams = null;
+        
         function removeBimShapeColorLegend(index, resetPageFlag) {
             map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
             map.defaultMapRef.removeLayer(geoJsonLayerShape);
@@ -1652,6 +1664,137 @@ if (!isset($_SESSION)) {
                 return false;
             }
         }
+
+        function getColorForDensity(density, lanes) {
+
+            if(lanes == null) {
+                lanes = 1;
+            }
+            
+            var thresholds = {
+                2: { green: 0.6, yellow: 1.2, orange: 1.8 },
+                3: { green: 0.9, yellow: 1.5, orange: 2 },
+                4: { green: 1.2, yellow: 1.6, orange: 2 },
+                5: { green: 1.6, yellow: 2, orange: 2.4 },
+                6: { green: 2, yellow: 2.4, orange: 2.8 }
+            };
+
+            var defaultThresholds = { green: 0.3, yellow: 0.6, orange: 0.9 };
+            var FIPILIThresholds = { green: 0.25, yellow: 0.5, orange: 0.75 };
+
+            var green, yellow, orange;
+
+            var seg = typeof seg !== 'undefined' ? seg : {};
+
+            if (seg != null && seg.FIPILI == 1) {
+                ({ green, yellow, orange } = FIPILIThresholds);
+            } else if (thresholds[lanes]) {
+                ({ green, yellow, orange } = thresholds[lanes]);
+            } else {
+                ({ green, yellow, orange } = defaultThresholds);
+            }
+
+            if (density <= green) {
+                return "#00FF00";
+            } else if (density <= yellow) {
+                return "#FFFF00";
+            } else if (density <= orange) {
+                return "#FF8C00";
+            } else {
+                return "#FF0000";
+            }
+        }
+
+        function getDensityDataByRoadElement(data, roadElement) {
+            // Funzione per convertire la data ISO in millisecondi Unix epoch
+        /*    function isoToUnixTimestamp(dateStr) {
+                return new Date(dateStr).getTime();
+            }   */
+
+            // Funzione per convertire la data ISO in millisecondi Unix epoch, sempre in ora locale
+            function isoToUnixTimestamp(dateStr) {
+                const date = new Date(dateStr);
+                const localTime = date.getTime() - (date.getTimezoneOffset() * 60 * 1000);
+                return localTime;
+            }
+
+            // Array per contenere le coppie [dateObserved, density]
+            let result = [];
+
+            // Itera sui risultati dell'array JSON
+            data.forEach(item => {
+                if (item.roadElements === roadElement) {
+                    // Aggiungi la coppia [dateObserved, density] all'array risultato
+                    result.push([isoToUnixTimestamp(item.dateObserved), item.density]);
+                }
+            });
+
+            return result;
+        }
+        
+
+        function tfrPopup(e, road, L) {
+            var popupContent = road.roadElements;
+            // L.popup().setLatLng(e.latlng);
+            L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map.defaultMapRef);
+
+            var apiUrl = "<?= $kbUrlSuperServiceMap; ?>" + "trafficflow/?scenario=" + road.scenario;
+
+            var getRoadElementTrend = fetchAjax(apiUrl, null, "GET", 'json', true, 0);
+
+            getRoadElementTrend.done(function (jsonData) {
+                if (jsonData.status === "ok") {
+                    jsonData.result = jsonData.result.filter(item => item.roadElements === road.roadElements);
+                }
+            });
+
+            try {
+                execute_<?= $_REQUEST['name_w'] ?>(road);
+            } catch (e) {
+                console.log("Error in JS function from marker click on " + widgetName);
+            }
+        }
+        
+
+        function createTfrLayer(roads) {
+            var tfrLayer = new L.LayerGroup();
+            let viewMode = "";
+            // viewMode = "line";
+            viewMode = "coord";
+
+            roads.result.forEach(function (road) {
+                var coords = [];
+
+                if (viewMode == "coord" && typeof road.start != null) {
+                    coords = [{ start: [road.start.location.lon, road.start.location.lat], end: [road.end.location.lon, road.end.location.lat] }];
+                } else if (road.line && road.line.coordinates && road.line.coordinates.length > 0) {
+                    road.line.coordinates.forEach(function(coord, index) {
+                        if (index < road.line.coordinates.length - 1) {
+                            coords.push({ start: coord, end: road.line.coordinates[index + 1] });
+                        }
+                    });
+                }
+
+                coords.forEach(function (coordPair) {
+                    // var color = getColorForDensity(road.density, 1);
+                    var color = getColorForDensity(road.density/50, road.lane_numbers);
+                    var wktLine = "LINESTRING(" + coordPair.start[0] + " " + coordPair.start[1] + "," + coordPair.end[0] + " " + coordPair.end[1] + ")";
+                    var wkt = new Wkt.Wkt();
+                    wkt.read(wktLine, "newMap");
+                    var obj = wkt.toObject(L.polyline);
+                    obj.setStyle({ color: color });
+
+                    obj.on('click', function(event) {
+                        tfrPopup(event, road, L);
+                    });
+
+                    obj.addTo(tfrLayer);
+                });
+            });
+
+            return tfrLayer;
+        }
+
 
         function onMapEntityClick(feature, marker) {
 
@@ -3168,21 +3311,6 @@ if (!isset($_SESSION)) {
                 });
             } else {
 
-                /*   var markerIcon = L.divIcon({
-                       className: 'custom-div-icon',
-                       html: '<div class="pinContainer" style="position: relative; width:32px; height: 32px;">\n' +
-                           '\t<svg id="gocciaSvg" class="dropMarker" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="32px" height="32px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 6500 6500" style="position: absolute; top: 0; left: 0; width: 48px; height: 48px;">\n' +
-                           '\t <g id="Layer_goccia2">\n' +
-                           '\t  <path id="goccia_path" class="fil0" d="M3164 61l167 0c307,11 612,82 876,212 64,31 116,58 178,96 270,161 514,383 694,639 407,578 543,1395 283,2052 -21,52 -33,92 -55,144 -21,48 -44,89 -66,133 -42,84 -92,163 -141,245l-1606 2680c-49,82 -83,177 -209,177l-94 -18 -287 -411c-292,-476 -619,-982 -901,-1453 -101,-167 -204,-322 -305,-492 -202,-338 -429,-639 -566,-1004 -114,-302 -127,-534 -127,-857 0,-673 410,-1351 947,-1732 108,-76 212,-138 336,-199 265,-131 569,-201 876,-212z" fill="#2192c3" stroke="#d85b49" stroke-width="3"/>\n' +
-                           '\t </g>\n' +
-                           '\t</svg>\n' +
-                           '\t<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '-white.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">\n' +
-                           '</div>',
-                   //    html: L.Util.template(iconSvgSettings.mapIconUrl),
-                    //   iconSize: [30, 42],
-                       //iconAnchor: [15, 42]
-                       iconAnchor: [16, 37]
-                   }); */
                 var filePinPath = "../img/outputPngIcons/pin-generico.png";
                 if (feature.properties.iconFilePath != null && feature.properties.altViewMode != "CustomPin" && feature.properties.altViewMode != "DynamicCustomPin") {
                     if (feature.properties.iconFilePath.includes("/nature/")) {
@@ -3192,7 +3320,6 @@ if (!isset($_SESSION)) {
                     } else if (feature.properties.iconFilePath.includes("/hlt/")) {
                         filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
                     }
-
 
                     if (feature.properties.pinattr == "pin" && feature.properties.pincolor == "Default") {
                         var newIconPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '_default.png';
@@ -3243,15 +3370,6 @@ if (!isset($_SESSION)) {
                     var newIconPath = '../img/outputPngIcons/pin-generico.png';
                 }
                 //   iconsFileBuffer.push(newIconPath);
-
-                /*    if (feature.properties.altViewMode == "CustomPin") {
-                        let svgContainer = null;
-                        let tplPath = feature.properties.iconFilePath;
-                        svgContainer = $('<div id="' + widgetName + '_svgCtn' + countSvgCnt + '">');
-                        $("#" + widgetName).append(svgContainer);
-                        buildSvgIcon(tplPath, feature.properties.lastValue[bubbleSelectedMetric[currentCustomSvgLayer]], 'error', null, svgContainer, widgetName, "map", countSvgCnt, totalSvgCnt, currentCustomSvgLayer, svgContainerArray);
-
-                    }*/
 
                 //   var mapPinImg = '../img/gisMapIconsNew/Accommodation.png';
                 var markerIcon = L.icon({
@@ -3310,15 +3428,6 @@ if (!isset($_SESSION)) {
                         event.target.setIcon(hoverIcon);
                     } else {
 
-
-                        /*   $(event.target.getElement()).children(0).children(0).children(0).find('path').attr("fill", "white");
-                           $(event.target.getElement()).children(0).children(0)[1].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';  */
-
-                        /*   $(event.target.getElement()).find('path').attr("fill", "white");
-                           $(event.target.getElement()).find('img')[0].outerHTML = '<img src="../img/widgetSelectorIconsPool/subnature/' + feature.properties.serviceType + '.svg" alt="" style="position: absolute; top:1px; left:5px; width: 22px; height: 22px;">';
-                        */
-
-                        //    var hoverImg = '../img/gisMapIcons/over/' + feature.properties.serviceType + '_over.png';
                         var filePinPath = "../img/outputPngIcons/pin-generico.png";
                         if (feature.properties.iconFilePath != null) {
                             if (feature.properties.iconFilePath.includes("/nature/")) {
@@ -3329,13 +3438,6 @@ if (!isset($_SESSION)) {
                                 filePinPath = feature.properties.iconFilePath.split("/hlt/")[1].split(".svg")[0];
                             }
                             var newIconOverPath = '../img/outputPngIcons/' + filePinPath + '/' + filePinPath + '-over' + '.png';
-
-                            /*    if (!UrlExists(newIconOverPath)) {
-                                    newIconOverPath = '../img/outputPngIcons/generic/generic-over' + '_' + widgetName.split("_widget")[1] + '.png';
-                                    if (!UrlExists(newIconOverPath)) {
-                                        newIconOverPath = '../img/outputPngIcons/pin-generico.png';
-                                    }
-                                }*/
 
                             if (iconsFileBuffer[newIconOverPath] == null) {
                                 if (!UrlExists(newIconOverPath)) {
@@ -3536,9 +3638,6 @@ if (!isset($_SESSION)) {
                     var popupText, realTimeData, measuredTime, rtDataAgeSec, targetWidgets, color1, color2 = null;
                     var urlToCall, fake, fakeId = null;
 
-                    //alert("CLICK!");
-
-
                     if (feature.properties.fake === 'true') {
                         urlToCall = "../serviceMapFake.php?getSingleGeoJson=true&singleGeoJsonId=" + feature.id;
                         fake = true;
@@ -3627,21 +3726,11 @@ if (!isset($_SESSION)) {
                             popupText += '</tbody>';
                             popupText += '</table>';
 
-                            /*if (geoJsonServiceData.hasOwnProperty('busLines')) {
-                                if (geoJsonServiceData.busLines.results.bindings.length > 0) {
-                                    popupText += '<b>Lines: </b>';
-                                    for (var i = 0; i < geoJsonServiceData.busLines.results.bindings.length; i++) {
-                                        popupText += '<span style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + geoJsonServiceData.busLines.results.bindings[i].busLine.value + '</span> ';
-                                    }
-                                }
-                            }*/
-
                             if (geoJsonServiceData.hasOwnProperty("BusStop")) {
                                 popupText += '<div class="tplProgressBar" style="display:none; width:100%; height:1em; margin-top:1em; background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');"></div>';
                             }
 
                             popupText += '</div>';
-
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
 
                             if ((serviceProperties.serviceUri !== '') && (serviceProperties.serviceUri !== undefined) && (serviceProperties.serviceUri !== 'undefined') && (serviceProperties.serviceUri !== null) && (serviceProperties.serviceUri !== 'null')) {
@@ -4218,16 +4307,7 @@ if (!isset($_SESSION)) {
                                                                     eventDesc = mapevt["desc"];
                                                                 }
                                                             });
-                                                            /*var doCreate = true;
-                                                            gisLayersOnMap[eventDesc].getLayers().forEach(function(layer){
-                                                                if( ( layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri ) ||
-                                                                    ( (!layer["feature"]) &&  layer["_latlng"]["lat"] == lat.toFixed(layer["_latlng"]["lat"].countDecimals()) && layer["_latlng"]["lng"] == lon.toFixed(layer["_latlng"]["lng"].countDecimals())  )){
-                                                                    try { layer.closePopup(); } catch(e) {}
-                                                                    layer.fire('click');
-                                                                    doCreate=false;
-                                                                }
-                                                            });
-                                                            if(!doCreate) return;												*/
+
                                                             for (var l = 0; l < gisLayersOnMap[eventDesc].getLayers().length; l++) {
                                                                 var layer = gisLayersOnMap[eventDesc].getLayers()[l];
                                                                 if ((layer["feature"] && layer["feature"]["properties"]["serviceUri"] == serviceuri) ||
@@ -4735,247 +4815,33 @@ if (!isset($_SESSION)) {
                             });
 
                             $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').off('click');
-                                /*  $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet - popup').on('click', function () {
-                            var compLatLngId = $(this).find('input[type=hidden]').val();
+                        },
+                        error: function (errorData) {
+                            console.log("Error in data retrieval");
+                            console.log(JSON.stringify(errorData));
+                            var serviceProperties = feature.properties;
 
-                            $('#<?= $_REQUEST['name_w'] ?>_map div.leaflet-popup').css("z-index", "-1");
-                            $(this).css("z-index", "999999");
+                            var underscoreIndex = serviceProperties.serviceType.indexOf("_");
+                            var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
+                            var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
+                            serviceSubclass = serviceSubclass.replace(/_/g, " ");
 
-                            $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck').off('click');
-                            $('#<?= $_REQUEST['name_w'] ?>_map input.gisPopupKeepDataCheck[data-id="' + compLatLngId + '"]').click(function () {
-                                if ($(this).attr("data-keepData") === "false") {
-                                    $(this).attr("data-keepData", "true");
-                                }
-                                else {
-                                    $(this).attr("data-keepData", "false");
-                                }
-                            });
+                            popupText = '<h3 class="gisPopupTitle">' + serviceProperties.name + '</h3>' +
+                                '<p><b>Typology: </b>' + serviceClass + " - " + serviceSubclass + '</p>' +
+                                '<p><i>Data are limited due to an issue in their retrieval</i></p>';
 
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseenter');
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('mouseleave');
-                            $(this).find('button.lastValueBtn[data-id="' + compLatLngId + '"]').hover(function () {
-                                if ($(this).attr("data-lastDataClicked") === "false") {
-                                    $(this).css("background", $(this).attr('data-color1'));
-                                    $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                    $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                    $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                    $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                    $(this).css("font-weight", "bold");
-                                }
-
-                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                var colIndex = $(this).parent().index();
-                                //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html();
-                                var title = $(this).parents("tr").find("td").eq(0).html();
-
-                                for (var i = 0; i < widgetTargetList.length; i++) {
-                                    $.event.trigger({
-                                        type: "mouseOverLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                        eventGenerator: $(this),
-                                        targetWidget: widgetTargetList[i],
-                                        value: $(this).attr("data-lastValue"),
-                                        color1: $(this).attr("data-color1"),
-                                        color2: $(this).attr("data-color2"),
-                                        widgetTitle: title
-                                    });
-                                }
-                            },
-                                function () {
-                                    if ($(this).attr("data-lastDataClicked") === "false") {
-                                        $(this).css("background", $(this).attr('data-color2'));
-                                        $(this).css("font-weight", "normal");
-                                    }
-                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-
-                                    for (var i = 0; i < widgetTargetList.length; i++) {
-                                        $.event.trigger({
-                                            type: "mouseOutLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i],
-                                            value: $(this).attr("data-lastValue"),
-                                            color1: $(this).attr("data-color1"),
-                                            color2: $(this).attr("data-color2")
-                                        });
-                                    }
-                                });
-
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseenter');
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('mouseleave');
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + compLatLngId + '"]').hover(function () {
-                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                }
-                                else {
-                                    if ($(this).attr("data-timeTrendClicked") === "false") {
-                                        $(this).css("background", $(this).attr('data-color1'));
-                                        $(this).css("background", "-webkit-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                        $(this).css("background", "background: -o-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                        $(this).css("background", "background: -moz-linear-gradient(left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                        $(this).css("background", "background: linear-gradient(to left, " + $(this).attr('data-color1') + ", " + $(this).attr('data-color2') + ")");
-                                        $(this).css("font-weight", "bold");
-                                    }
-
-                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                    var colIndex = $(this).parent().index();
-                                    //var title = $(this).parents("tbody").find("tr").eq(0).find("th").eq(colIndex).html() + " - " + $(this).attr("data-range-shown");
-                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
-
-                                    for (var i = 0; i < widgetTargetList.length; i++) {
-                                        $.event.trigger({
-                                            type: "mouseOverTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i],
-                                            value: $(this).attr("data-lastValue"),
-                                            color1: $(this).attr("data-color1"),
-                                            color2: $(this).attr("data-color2"),
-                                            widgetTitle: title
-                                        });
-                                    }
-                                }
-                            },
-                                function () {
-                                    if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                        $(this).css("background-color", "#e6e6e6");
-                                        $(this).off("hover");
-                                        $(this).off("click");
-                                    }
-                                    else {
-                                        if ($(this).attr("data-timeTrendClicked") === "false") {
-                                            $(this).css("background", $(this).attr('data-color2'));
-                                            $(this).css("font-weight", "normal");
-                                        }
-
-                                        var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                        for (var i = 0; i < widgetTargetList.length; i++) {
-                                            $.event.trigger({
-                                                type: "mouseOutTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                                eventGenerator: $(this),
-                                                targetWidget: widgetTargetList[i],
-                                                value: $(this).attr("data-lastValue"),
-                                                color1: $(this).attr("data-color1"),
-                                                color2: $(this).attr("data-color2")
-                                            });
-                                        }
-                                    }
-                                });
-
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').off('click');
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').click(function (event) {
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').each(function (i) {
-                                    $(this).css("background", $(this).attr("data-color2"));
-                                });
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').css("font-weight", "normal");
-                                $(this).css("background", $(this).attr("data-color1"));
-                                $(this).css("font-weight", "bold");
-                                $('#<?= $_REQUEST['name_w'] ?>_map button.lastValueBtn').attr("data-lastDataClicked", "false");
-                                $(this).attr("data-lastDataClicked", "true");
-                                var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                var colIndex = $(this).parent().index();
-                                var title = $(this).parents("tr").find("td").eq(0).html();
-
-                                for (var i = 0; i < widgetTargetList.length; i++) {
-                                    $.event.trigger({
-                                        type: "showLastDataFromExternalContentGis_" + widgetTargetList[i],
-                                        eventGenerator: $(this),
-                                        targetWidget: widgetTargetList[i],
-                                        value: $(this).attr("data-lastValue"),
-                                        color1: $(this).attr("data-color1"),
-                                        color2: $(this).attr("data-color2"),
-                                        widgetTitle: title,
-                                        marker: markersCache["" + $(this).attr("data-id") + ""],
-                                        mapRef: map.defaultMapRef,
-                                        field: $(this).attr("data-field"),
-                                        serviceUri: $(this).attr("data-serviceUri"),
-                                        fake: $(this).attr("data-fake"),
-                                        fakeId: $(this).attr("data-fakeId")
-                                    });
-                                }
-                            });
-
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').off('click');
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').click(function (event) {
-                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                }
-                                else {
-                                    //    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').each(function (i) {
-                                    //        $(this).css("background", $(this).attr("data-color2"));
-                                    //    });
-                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').css("font-weight", "normal");
-                                    $(this).css("background", $(this).attr("data-color1"));
-                                    $(this).css("font-weight", "bold");
-                                    $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn').attr("data-timeTrendClicked", "false");
-                                    $(this).attr("data-timeTrendClicked", "true");
-                                    var widgetTargetList = $(this).attr("data-targetWidgets").split(',');
-                                    var colIndex = $(this).parent().index();
-                                    var title = $(this).parents("tr").find("td").eq(0).html() + " - " + $(this).attr("data-range-shown");
-                                    var lastUpdateTime = $(this).parents('div.recreativeEventMapContactsContainer').find('span.popupLastUpdate').html();
-
-                                    var now = new Date();
-                                    var lastUpdateDate = new Date(lastUpdateTime);
-                                    var diff = parseFloat(Math.abs(now - lastUpdateDate) / 1000);
-                                    var range = $(this).attr("data-range");
-
-                                    for (var i = 0; i < widgetTargetList.length; i++) {
-                                        $.event.trigger({
-                                            type: "showTimeTrendFromExternalContentGis_" + widgetTargetList[i],
-                                            eventGenerator: $(this),
-                                            targetWidget: widgetTargetList[i],
-                                            range: range,
-                                            color1: $(this).attr("data-color1"),
-                                            color2: $(this).attr("data-color2"),
-                                            widgetTitle: title,
-                                            field: $(this).attr("data-field"),
-                                            serviceUri: $(this).attr("data-serviceUri"),
-                                            marker: markersCache["" + $(this).attr("data-id") + ""],
-                                            mapRef: map.defaultMapRef,
-                                            fake: $(this).attr("data-fake"),
-                                            fakeId: $(this).attr("data-fakeId")
-                                        });
-                                    }
-                                }
-                            });
-
-                            $('#<?= $_REQUEST['name_w'] ?>_map button.timeTrendBtn[data-id="' + latLngId + '"]').each(function (i) {
-                                if (isNaN(parseFloat($(this).parents('tr').find('td').eq(1).html())) || ($(this).attr("data-disabled") === "true")) {
-                                    $(this).css("background-color", "#e6e6e6");
-                                    $(this).off("hover");
-                                    $(this).off("click");
-                                }
-                            });
-                        }); */
-
-                },
-                error: function (errorData) {
-                    console.log("Error in data retrieval");
-                    console.log(JSON.stringify(errorData));
-                    var serviceProperties = feature.properties;
-
-                    var underscoreIndex = serviceProperties.serviceType.indexOf("_");
-                    var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
-                    var serviceSubclass = serviceProperties.serviceType.substr(underscoreIndex);
-                    serviceSubclass = serviceSubclass.replace(/_/g, " ");
-
-                    popupText = '<h3 class="gisPopupTitle">' + serviceProperties.name + '</h3>' +
-                        '<p><b>Typology: </b>' + serviceClass + " - " + serviceSubclass + '</p>' +
-                        '<p><i>Data are limited due to an issue in their retrieval</i></p>';
-
-                    event.target.bindPopup(popupText, {
-                        offset: [15, 0],
-                        minWidth: 215,
-                        maxWidth: 600
-                    }).openPopup();
+                            event.target.bindPopup(popupText, {
+                                offset: [15, 0],
+                                minWidth: 215,
+                                maxWidth: 600
+                            }).openPopup();
+                        }
+                    });
                 }
             });
-        }
-    });
 
-    return marker;
-            }
+            return marker;
+        }
 
     function gisPrepareCustomMarkerFullScreen(feature, latlng) {
         var mapPinImg = '../img/gisMapIcons/' + feature.properties.serviceType + '.png';
@@ -8694,9 +8560,16 @@ if (!isset($_SESSION)) {
 
         var currentLoadedScenario = ''; //Device di uno scneario caricato
         var currentLoadedVersion = ''; //Versione di uno scneario caricato
+        var currentLoadedStatus = '';
         ///
         var arrayTrafficDensity = [];
         var arrayTrafficSensors = [];
+
+        //loadedACC PAramters
+        var loadedtmpAcData = '';
+        var loadedAcData = '';
+        var loadedjs20Data = '';
+        var loadtmpRDGraph = '';
 
 
         var saveLoadGraph = []; //Array per salvare lo stato completo di un grafo caricato 
@@ -9190,6 +9063,18 @@ if (!isset($_SESSION)) {
                 scenaryData = new L.geoJSON();
                 scenaryData.type = "FeatureCollection";
                 scenaryData.features = [];
+                currentLoadedScenario = '';
+                currentLoadedStatus = '';
+                //
+                loadedtmpAcData = '';
+                loadedAcData = '';
+                loadedjs20Data = '';
+                loadtmpRDGraph = '';
+                //
+                //$('#scenario-version-list').empty();
+                //$('#acc-list').empty();
+                //$('#scenario-check-tdm').empty();
+
             /*if (buttonToRemove) {
                 buttonToRemove.remove();
                 isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
@@ -9360,8 +9245,16 @@ if (!isset($_SESSION)) {
         try {
             //occhio x la prod sisema orion-1...
             //console.log(lAccessToken);
-            //const url = `/superservicemap/api/v1?serviceUri=http://www.disit.org/km4city/resource/iot/orion-1/Organization/${deviceName}&maxResults=10`      
-            const url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model&maxResults=1000";
+            //const url = `/superservicemap/api/v1?serviceUri=http://www.disit.org/km4city/resource/iot/orion-1/Organization/${deviceName}&maxResults=10`
+            var url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model&maxResults=1000"; 
+            if (currentStatus == 'All'){
+                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model&maxResults=1000";
+            }  else{
+                //url = "https://www.snap4city.org/superservicemap/api/v1/iot-search/time-range/?selection=43.7756;11.2490&maxDists=1000&model=TFRS-Model&valueFilters=status:"+currentStatus+"&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";
+                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=43.7756;11.2490&maxDists=1000&model=TFRS-Model&valueFilters=status:"+currentStatus+"&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";
+            }   
+            //url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model&maxResults=1000"; 
+            
             //const url =  "https://www.disit.org/superservicemap/api/v1/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model"
             const response = await fetch(url, { // oppure metti urlencoded
                 method: "GET",
@@ -9452,7 +9345,9 @@ if (!isset($_SESSION)) {
         //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ((?startlat >= ${minY} && ?startlat <= ${maxY} && ?startlong >= ${minX} && ?startlong <= ${maxX}) ||(?endlat >= ${minY} && ?endlat <= ${maxY} && ?endlong >= ${minX} && ?endlong <= ${maxX}) ) } LIMIT 16000`;
         //const query = `SELECT ?strada ?elementostradale ?highwaytype ?startlat ?startlong ?endlat ?endlong ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } FILTER ( (?startlat > ${minX} %26%26 ?startlat < ${maxX} %26%26 ?startlong > ${minY} %26%26 ?startlong < ${maxY}) || (?endlat > ${minX} %26%26 ?endlat < ${maxX} %26%26 ?endlong > ${minY} %26%26 ?endlong < ${maxY}) )} LIMIT 16000`;
         //NEW
-        const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
+        //const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
+        // questa ha funzionato -> const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
+        const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
         return sparqlEndpoint + query;
     }
 
@@ -9849,7 +9744,7 @@ if (!isset($_SESSION)) {
                         dir = 'Closed';
                     }
                     var segmentID= (strada.segment).split('/resource/')[1];
-                    descrStrada = ('<div id="headerDraggable" >Road:' + segmentID + '</div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (m/s):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table></div>');
+                    descrStrada = ('<div id="headerDraggable" >Road:' + segmentID + '</div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table></div>');
                     //
                     var width_popup = 450;
                     //if (currentStatusEdit == 'streets'){
@@ -9970,7 +9865,7 @@ if (!isset($_SESSION)) {
                                                 <td><b>Nr.Lanes: </b></td><td><input type="number" id="updateLanes" value="`+ strada.lanes + `" /></td>
                                                 </tr>
                                                 <tr>
-                                                <td><b>Speed Limit (m/s): </b></td><td><input type="number" id="updateSpeedLimit" value="`+ strada.roadElmSpeedLimit + `" /></td>
+                                                <td><b>Speed Limit (km/h): </b></td><td><input type="number" id="updateSpeedLimit" value="`+ strada.roadElmSpeedLimit + `" /></td>
                                                 </tr>
                                                 <tr>
                                                 <td><b>Weight:</b></td></td><td><input type="number" id="update_strada_weight" value="`+ strada_weight + `" /></td><td>
@@ -10274,7 +10169,7 @@ if (!isset($_SESSION)) {
                         var segmentID= (strada.segment).split('/resource/')[1];
                         var baseURL = (strada.segment).split(segmentID)[0];
                         //descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+dir+'<br /><span><b>Restrictions: </b></span>'+restriction_span+'<br /><span></div>');
-                        descrStrada = ('<div id="headerDraggable">Road: </div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>BaseUrl:</b></td><td>'+baseURL+'</td></tr><tr><td><b>SegmentID: </b></td><td>' + segmentID + '</td></tr><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (m/s):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table></div>');
+                        descrStrada = ('<div id="headerDraggable">Road: </div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>BaseUrl:</b></td><td>'+baseURL+'</td></tr><tr><td><b>SegmentID: </b></td><td>' + segmentID + '</td></tr><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table></div>');
 
                         if (restriction_span !== 'Not defined') {
                             var string_restriciton = '';
@@ -10838,7 +10733,11 @@ if (!isset($_SESSION)) {
         }
         console.log(shape);
         console.log('modified_scenario_data_sensors JSON',modified_scenario_data_sensors);
+
         //
+        if (currentLoadedStatus == ''){
+            currentLoadedStatus = "init";
+        }
         //var modified_scenario_data_roadGraph = removeParenthesesFromValues(scenario_data.roadGraph);
         const json = JSON.stringify({            
             "dateObserved": { "value": dateObserved, "type": "string" },
@@ -10851,7 +10750,8 @@ if (!isset($_SESSION)) {
             "sourceData": { "value": sourceData, "type": "string" },
             "startTime": { "value": startTime, "type": "string" },
             "endTime": { "value": endTime, "type": "string" },
-            "status": { "value": "init", "type": "string" },
+            //"status": { "value": "init", "type": "string" },
+            "status": { "value": currentLoadedStatus, "type": "string" },
             // shape sotto
             "areaOfInterest": { "value": shape, "type": "json" },
             "trafficSensorList": { "value": { "modified_scenario_data_sensors": modified_scenario_data_sensors }, "type": "json" },
@@ -11620,8 +11520,13 @@ if (!isset($_SESSION)) {
 
             map.defaultMapRef.on('draw:created', function (e) {
                 //
-                console.log('event draw:');
+                console.log('event draw:');     
                 pulisciTutto();
+                currentLoadedStatus = "init";
+                loadedtmpAcData = '';
+                loadedAcData = '';
+                loadedjs20Data = '';
+                loadtmpRDGraph = '';
                 $('#jsonIstanze').text('');
                 //console.log(scenaryGrafo);
                 /*
@@ -12211,66 +12116,6 @@ if (!isset($_SESSION)) {
             $("#line_reset").click(function () {
                 console.log('CLICK ON CANCEL');
                 pulisciTutto();
-                //
-                /*
-                if (saveLoadGraph.length > 0) {
-                    saveLoadGraph = [];
-                }
-                //
-                roadElementGraph.clearSegments();
-                roadElementGraph.clearNodes();
-                roadElementGraph.reset();
-                currentLoadedScenario = '';
-                
-                if(istanzedeisensorichestoconsiderando.length > 0){
-                    istanzedeisensorichestoconsiderando.forEach(function (sersor) {
-                            sersor.delete();
-                    });
-                 }
-
-
-                map.defaultMapRef.eachLayer(function (layer) {
-                    // Verifica se il layer è un poligono, rettangolo o marker
-                    if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
-                        map.defaultMapRef.removeLayer(layer);
-                    }
-                });
-                //Object.values(roadElementGraph.deepCopySegments());
-                ///
-                if (scenaryData.features.length >= 0) {
-                    // Rimuovi i layer dei disegni
-                    for (const layerId in scenaryDrawnItems._layers) {
-                        scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
-                    }
-                    scenaryData.features = []; // reinizializzo questa variabile
-                    // Rimuovi i marker associati
-                    for (const layerId in scenaryMarkers._layers) {
-                        const marker = scenaryMarkers._layers[layerId];
-                        scenaryMarkers.removeLayer(marker);
-                    }
-                    // Rimuovi il vecchio grafo
-                    for (const layerId in scenaryGrafo._layers) {
-                        const grafo = scenaryGrafo._layers[layerId];
-                        scenaryGrafo.removeLayer(grafo);
-                    }
-                    datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
-                    istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
-                    istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
-                    arrayTrafficDensity = [];
-                    arrayTrafficSensors = [];
-                }
-                // qui gestisco il cancel ovvero se l'utente vuole resettare il control panel via
-                $("#scenario-name").val("");
-                $("#scenario-location").val("");
-                $("#scenario-description").val("");
-                $("#scenario-startDatetime").val("");
-                $("#scenario-modality").val("generic");
-                $("#scenario-modality").val("sensors");
-                $("#scenario-referenceKB").val("");
-                $("#scenario-endDatetime").val("");
-                scenaryData = new L.geoJSON();
-                scenaryData.type = "FeatureCollection";
-                scenaryData.features = [];*/
             });
 
             //################## poi mi metto subito lo scenary control #################################                       
@@ -12466,7 +12311,7 @@ if (!isset($_SESSION)) {
                                                             </tr>
                                                             <tr>
                                                                 <td colspan="2" style="color:blue"><input type="checkbox" class="checkRoadType" value="services" checked/>services</td>
-                                                                <td colspan="2" style="color:blue"><input type="checkbox" class="checkRoadType" value="steps" checked/>steps</td>
+                                                                <td colspan="2" style="color:yellow"><input type="checkbox" class="checkRoadType" value="steps" checked/>steps</td>
                                                                 <td colspan="2" style="color:blue"><input type="checkbox" class="checkRoadType" value="tertiary" checked/>tertiary</td>
                                                                 <td colspan="2" style="color:blue"><input type="checkbox" class="checkRoadType" value="tertiary_link" checked/>tertiary_link</td>
                                                                 <td colspan="2" style="color:blue"><input type="checkbox" class="checkRoadType" value="track" checked/>track</td>
@@ -12858,6 +12703,230 @@ if (!isset($_SESSION)) {
             };
             //
 
+            //load Accorped Scenario
+            async function loadACCScenario() {
+                                console.log('Load Acc Scenario by function');
+                                //currentLoadedScenario = $('#scenario-list').val();
+                                var buttonToRemove = document.getElementById("scenario-save-finale1");
+                                pulisciTutto();
+                                //await getLAccessToken();
+                                //ildevicename = $("#scenario-list").val();
+                                //console.log('ildevicename', ildevicename);
+                                //
+                                //LOADING METADATA
+                                //currentLoadedScenario = $('#scenario-list').val();
+                                //var buttonToRemove = document.getElementById("scenario-save-finale1");
+                                //pulisciTutto();
+                                await getLAccessToken();
+                                ildevicename = $("#scenario-list").val();
+                                console.log('ildevicename', ildevicename);
+                                currentLoadedScenario = ildevicename;
+                                currentLoadedStatus = "acc";
+                                console.log('currentLoadedScenario', currentLoadedScenario);
+                                try {
+                                    let datidalsensore = await readFromDevice(lAccessToken, ildevicename)
+                                    let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
+                                    /*if (lostatus == 'init') {
+                                        //console.log("stato ancora init e non acc")
+                                        showNotification("status still init and not acc");
+                                    } else if (lostatus == "acc" || lostatus == "tfr") {*/
+                                        if (lostatus == "acc") {
+                                            //console.log("stato acc ok!")
+                                            showNotification("Successfully loaded!");
+                                        } else if (lostatus == "tfr") {
+                                            //console.log("le tdm sono già state definite")
+                                            showNotification("tdm yet defined");
+                                        }
+
+
+                                        /*************DRAW SHAPE*****************/
+                                        //let datidalsensore = await readFromDevice(lAccessToken, ildevicename);
+                                        console.dir(datidalsensore);
+                                        var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
+                                        //
+                                        var arrayShape = shape[0].geometry.coordinates[0];
+                                        var minY = arrayShape[0][1];
+                                        var minX = arrayShape[0][0];
+                                        var maxY = arrayShape[0][1];
+                                        var maxX = arrayShape[0][0];
+                                        for (let coord of arrayShape) {
+                                            if (coord[1] < minY) {
+                                                minY = coord[1]
+                                            }
+                                            if (coord[0] < minX) {
+                                                minX = coord[0]
+                                            }
+                                            if (coord[1] > maxY) {
+                                                maxY = coord[1]
+                                            }
+                                            if (coord[0] > maxX) {
+                                                maxX = coord[0]
+                                            }
+                                        }
+                                        //
+                                        scenaryData = new L.geoJSON();
+                                        scenaryData.type = "FeatureCollection";
+                                        scenaryData.features = shape;
+                                        //
+                                        console.log('scenaryData.feature: ', scenaryData.features);
+                                        ///////////load sensors
+                                        var otherSensors_load = "";
+                                        if (datidalsensore.realtime.results.bindings[0].otherSensors !== undefined) {
+                                            otherSensors_load = datidalsensore.realtime.results.bindings[0].otherSensors.value
+                                            //console.log('otherSensors_load',otherSensors_load);
+                                            otherSensors_load = otherSensors_load.slice(1, -1);
+                                            var arrayURL = otherSensors_load.split(", ");
+                                            scenaryOtherSensors = arrayURL;
+                                            //console.log(scenaryOtherSensors);
+                                            if (scenaryOtherSensors.length > 0) {
+                                                //CARICAMENTO DATI
+                                                // for(i=0; i<scenaryOtherSensors.length; i++){
+                                                var suri = scenaryOtherSensors;
+                                                loadScenarioSensor(suri);
+                                                // }
+                                                ////                                              
+                                            }
+
+                                        }
+                                        //
+                                        function coordinateOrder(array) {
+                                            return array.map(function(coordinate) {
+                                                return [coordinate[1], coordinate[0]]; // Inverti l'ordine da [latitudine, longitudine] a [longitudine, latitudine]
+                                            });
+                                        }
+                                        //
+                                        var arrayshape2 = coordinateOrder(arrayShape);
+                                        var polygon = L.polygon(arrayshape2);
+                                        console.log('polygon', arrayshape2);
+                                        //map.defaultMapRef.addLayer(polygon);
+                                        //
+                                        scenaryDrawnItems = new L.FeatureGroup();
+                                        //scenaryDrawnItems.push(polygon);
+                                        layer = polygon;
+                                        scenaryData.features.push(shape);
+                                        scenaryDrawnItems.addLayer(layer);
+                                        map.defaultMapRef.addLayer(scenaryDrawnItems);
+                                        //
+                                        console.log('shape4', shape);
+
+                                        const polygonWKT = getPolygonWKTFromScenarioArea(shape);
+                                        svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
+                                        //console.log(svoltesparqlquery)
+                                        let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+                                        console.log('ressvolte:', ressvolte);
+                                        //
+                                        /****************************/
+
+                                        //qui devo prendere l'AC e il JS20 adesso dal db non più dal device
+                                        let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename);
+                                        console.dir('resDalDB', resDalDB);
+                                        let tmpRDGraph = '';
+                                        let tmpAcData = '';
+                                        var total_resDalDB = resDalDB.length;
+                                        //FILTRARE I RISULTATI SULLA BASE DEL DATE OBSERVED
+                                        
+                                        var version = $('#acc-list option:selected').text();
+                                        for(var i=0; i<total_resDalDB; i++){
+                                            //console.log(resDalDB[i].data);
+                                                if(resDalDB[i].dateObserved == version){
+                                                    if (JSON.parse(resDalDB[i].data).grandidati) {
+                                                            tmpRDGraph = JSON.parse(resDalDB[i].data).grandidati.roadGraph;
+                                                            tmpAcData = JSON.parse(resDalDB[i].data).grandidati.AC;
+                                                            acData = JSON.parse(resDalDB[i].data).grandidati.AC;
+                                                            js20Data = JSON.parse(resDalDB[i].data).grandidati.JS20;
+                                                            console.log('tmpAcData', tmpAcData);
+
+                                                            tmpAcData.forEach(obj => {
+                                                                for (let key in obj) {
+                                                                    if (Array.isArray(obj[key])) {
+                                                                        obj[key] = obj[key][0];
+                                                                    }
+                                                                }
+                                                            });
+
+                                                            // ENRICO: aggiusto le lanes e roadElemSpeedLimit per visualizzazione dell'accorpato di questi parametri
+                                                            for (let index = 0; index < tmpAcData.length; index++) {
+                                                                if (tmpAcData[index]['sensor'] == '0') {
+                                                                    tmpAcData[index]['lanes'] = tmpAcData[index]['lanes'][1][0];
+                                                                    tmpAcData[index]['roadElmSpeedLimit'] = tmpAcData[index]['vmax'];
+                                                                }
+                                                            }
+
+                                                            //
+                                                        } else {
+                                                            let tmpRDGraph = JSON.parse(resDalDB[i].data).roadGraph;
+                                                            tmpAcData = JSON.parse(resDalDB[i].data).AC;
+                                                            acData = JSON.parse(resDalDB[i].data).AC;
+                                                            js20Data = JSON.parse(resDalDB[i].data).JS20;
+                                                            //
+                                                            for (let key in tmpAcData) {
+                                                                if (Array.isArray(tmpAcData[key])) {
+                                                                    tmpAcData[key] = tmpAcData[key][0];
+                                                                }
+                                                            }
+                                                            //
+                                                            console.log('tmpAcData', tmpAcData);
+                                                        }
+
+                                                }
+                                        }
+                                        loadedtmpAcData = tmpAcData;
+                                        loadedAcData = acData;      
+                                        loadedjs20Data = js20Data;
+                                        loadtmpRDGraph = tmpRDGraph;
+
+                                        /*if (JSON.parse(resDalDB[0].data).grandidati) {
+                                            tmpRDGraph = JSON.parse(resDalDB[0].data).grandidati.roadGraph;
+                                            tmpAcData = JSON.parse(resDalDB[0].data).grandidati.AC;
+                                            acData = JSON.parse(resDalDB[0].data).grandidati.AC;
+                                            js20Data = JSON.parse(resDalDB[0].data).grandidati.JS20;
+                                            console.log('tmpAcData', tmpAcData);
+
+                                            tmpAcData.forEach(obj => {
+                                                for (let key in obj) {
+                                                    if (Array.isArray(obj[key])) {
+                                                        obj[key] = obj[key][0];
+                                                    }
+                                                }
+                                            });
+
+                                            // ENRICO: aggiusto le lanes e roadElemSpeedLimit per visualizzazione dell'accorpato di questi parametri
+                                            for (let index = 0; index < tmpAcData.length; index++) {
+                                                if (tmpAcData[index]['sensor'] == '0') {
+                                                    tmpAcData[index]['lanes'] = tmpAcData[index]['lanes'][1][0];
+                                                    tmpAcData[index]['roadElmSpeedLimit'] = tmpAcData[index]['vmax'];
+                                                }
+                                            }
+
+                                            //
+                                        } else {
+                                            let tmpRDGraph = JSON.parse(resDalDB[0].data).roadGraph;
+                                            tmpAcData = JSON.parse(resDalDB[0].data).AC;
+                                            acData = JSON.parse(resDalDB[0].data).AC;
+                                            js20Data = JSON.parse(resDalDB[0].data).JS20;
+                                            //
+                                            for (let key in tmpAcData) {
+                                                if (Array.isArray(tmpAcData[key])) {
+                                                    tmpAcData[key] = tmpAcData[key][0];
+                                                }
+                                            }
+                                            //
+                                            console.log('tmpAcData', tmpAcData);
+                                        }*/
+                                        //
+                                        loadingboxloaded = true;
+                                        const roadGraph = JSON.parse(resDalDB[0].data).grandidati.AC;
+                                        const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
+                                        fetchSparqlData(sparqlQueryottimizzata, polygonWKT, tmpAcData, ressvolte, 'load');
+                                        //END CREATION NEW SCHEMA
+                                    /*} else {
+                                        console.log("error non gestito")
+                                    }*/
+                                } catch (error) {
+                                    console.error("An error occurred:", error.message);
+                                }
+        }
+
             //load Scenario
             async function loadScenario(){
                 var scenarioLoad = $('#scenario-init-list').val();
@@ -12866,6 +12935,7 @@ if (!isset($_SESSION)) {
                 console.log('load scenario function: ' + scenarioLoad);
                 currentLoadedScenario = scenarioLoad;
                 currentLoadedVersion = $('#scenario-version-list').prop('selectedIndex');
+                currentLoadedStatus = "init";
                 console.log('selectedIndex:', currentLoadedVersion);
                 ////
                 /////ADDING A LOADING BOX////////////
@@ -13143,6 +13213,10 @@ if (!isset($_SESSION)) {
 
             //scenario-check-acc1
             $('#scenario-check-acc1').click(async function () {
+                loadACCScenario();
+            });
+            
+            $('#scenario-check-acc2').click(async function () {
                 console.log('scenario-check-acc1 NEW');
                 //
                 //LOADING METADATA
@@ -13191,13 +13265,13 @@ if (!isset($_SESSION)) {
                         //console.log("stato ancora init e non acc")
                         showNotification("status still init and not acc");
                     }
-                    else if (lostatus == "acc" || lostatus == "tdm") {
+                    else if (lostatus == "acc" || lostatus == "tfr") {
                         if (lostatus == "acc") {
                             //console.log("stato acc ok!")
                             showNotification("Successfully loaded!");
-                        } else if (lostatus == "tdm") {
+                        } else if (lostatus == "tfr") {
                             //console.log("le tdm sono già state definite")
-                            showNotification("tdm yet defined");
+                            showNotification("tfr yet defined");
                         }
 
 
@@ -13610,13 +13684,13 @@ if (!isset($_SESSION)) {
                 //console.log("stato ancora init e non acc")
                 showNotification("status still init and not acc");
             }
-            else if (lostatus == "acc" || lostatus == "tdm") {
-                if (lostatus == "tdm") {
+            else if (lostatus == "acc" || lostatus == "tfr") {
+                if (lostatus == "tfr") {
                     //console.log("stato acc ok!")
                     showNotification("Successfully loaded!");
-                } else if (lostatus == "tdm") {
+                } else if (lostatus == "tfr") {
                     //console.log("le tdm sono già state definite")
-                    showNotification("tdm yet defined");
+                    showNotification("tfr yet defined");
                 }
 
 
@@ -14490,7 +14564,8 @@ if (!isset($_SESSION)) {
 
                 $("#scenario-cancel").click(function () {
                     console.log('CLICK ON CANCEL');
-                    roadElementGraph.clearSegments();
+                    pulisciTutto();
+                    /*roadElementGraph.clearSegments();
                     roadElementGraph.clearNodes();
                     //Object.values(roadElementGraph.deepCopySegments());
                     map.defaultMapRef.eachLayer(function (layer) {
@@ -14531,7 +14606,7 @@ if (!isset($_SESSION)) {
                     $("#scenario-endDatetime").val("");
                     scenaryData = new L.geoJSON();
                     scenaryData.type = "FeatureCollection";
-                    scenaryData.features = [];
+                    scenaryData.features = [];*/
                 });
 
                 $('#scenario-summary').click(async function () {
@@ -14638,6 +14713,7 @@ if (!isset($_SESSION)) {
                     //SAVE SCENARIO EDITOR
                     console.log('istanzedeisensorichestoconsiderando: ');
                     console.log(istanzedeisensorichestoconsiderando);
+                    console.log('currentLoadedStatus: '+currentLoadedStatus);
                     var scenarioareaOfInterest = scenaryData.features;
                     var scenarioName = $("#scenario-name").val();
                     var scenarioLocation = $("#scenario-location").val();
@@ -14912,6 +14988,7 @@ if (!isset($_SESSION)) {
 
                         adesso = new Date().toISOString();
                         ildevicename = "deviceName" + scenarioName;
+                        currentLoadedScenario = ildevicename;
                         creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
                         if (creato == "ok") {
                             showNotification("Scenario successfully created!");
@@ -14943,6 +15020,8 @@ if (!isset($_SESSION)) {
                             try {
                                 initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
                                 //sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, istanzedelgrafochestoconsiderando)
+                                //INVIO DATI AL DB STATO INIT
+                                if (currentLoadedStatus == 'init'){
                                 sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
                                     "roadGraph": istanzedelgrafochestoconsiderando_forSaving,
                                     "filters": list_filters,
@@ -14954,8 +15033,80 @@ if (!isset($_SESSION)) {
                                     .catch(error => {
                                         console.error('Si è verificato un errore:', error);
                                     });
+                                }
+
+                                //INVIO DATI AL DB STATO ACC
+                                 if (currentLoadedStatus == 'acc'){
+                                    //NEW FORMAT DATA.
+                                    // JSON originale
+                                    let originalJson = istanzedelgrafochestoconsiderando_forSaving;
+                                    // Campi che devono essere trasformati in array
+                                    let fieldsToArray = [ "considered", "delta_x", "dir", "length", "nALat", "nALong", "nBLat",  "nBLong", "nodeA", "nodeB", "realRoad", "realSegment", "recRoad",  "recSeg", "road", "segment", "sensor", "type", "virtual", "weight",  "vmax"];
+                                    // JSON con formato desiderato
+                                    let newJson = [{}];
+                                    // Assegnazione automatica dei campi
+                                                originalJson.forEach((item, i) => {
+                                                    newJson[i] = {};  // Inizializza un nuovo oggetto per ogni elemento
+
+                                                    // Trasformazione dei campi specificati in array
+                                                    fieldsToArray.forEach(field => {
+                                                        if (item.hasOwnProperty(field)) {
+                                                            newJson[i][field] = [item[field]];
+                                                        } else {
+                                                            console.log(i + ' non ha ' + field);
+                                                        }
+                                                    });
+
+                                                    // Aggiunta di elemType con la struttura appropriata
+                                                    if (item.hasOwnProperty("elemType")) {
+                                                        // Se elemType è già un oggetto con chiavi numeriche
+                                                        if (typeof item.elemType === 'object' && item.elemType.hasOwnProperty('1')) {
+                                                            newJson[i]["elemType"] = {
+                                                                "1": item.elemType["1"]
+                                                            };
+                                                        } else {
+                                                            newJson[i]["elemType"] = {
+                                                                "1": item.elemType
+                                                            };
+                                                        }
+                                                    }
+
+                                                    // Aggiunta di lanes con la struttura appropriata
+                                                    if (item.hasOwnProperty("lanes")) {
+                                                        // Se lanes è un array
+                                                        if (Array.isArray(item.lanes)) {
+                                                            newJson[i]["lanes"] = {
+                                                                "1": item.lanes
+                                                            };
+                                                        } else {
+                                                            newJson[i]["lanes"] = {
+                                                                "1": [item.lanes]
+                                                            };
+                                                        }
+                                                    }
+                                                });
+                                    // Stampa il nuovo JSON
+                                    console.log(newJson);
+                                    ///
+                                    sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
+                                                    "roadGraph": loadtmpRDGraph,
+                                                    "filters": list_filters,
+                                                    "sensors": sensoriArray,
+                                                    "AC": newJson,
+                                                    "TDM": istanzedelgrafochestoconsiderando_forSaving,
+                                                    "JS20": loadedjs20Data 
+                                                })
+                                                    .then(data => {
+                                                        console.log('Risposta dal server:', data);
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Si è verificato un errore:', error);
+                                                    });
+                                }
                                 if (initdatainviati == "dati_init_si") {
                                     showNotification("Initial data successully sended!");
+                                    console.log('currentLoadedStatus: ',currentLoadedStatus);
+                                    console.log('istanzedelgrafochestoconsiderando_forSaving',istanzedelgrafochestoconsiderando_forSaving);
                                     setTimeout(() => {
                                         //showNotification("Now you can modify them in NR.");
                                     }, 1000);
@@ -15093,110 +15244,83 @@ if (!isset($_SESSION)) {
                     var currentStatusEdit = $('#currentStatusEdit').val();
                     div3.id = "modality-load";
                     div3.innerHTML = `<div id="scenario-div">
-                                                        <div id="notification" style="display: none;">
-                                                            <p id="notification-message">bells</p>
-                                                        </div>                                    
-                                                        <div id="scenario-content">                                        
-                                                            <div id="acc-content">
-                                                                <!-- LOAD SCNERIO NEW VERSION -->
-                                                                <table>
-                                                                    <tr>
-                                                                        <td><label>Load Scenario:</label></td>
-                                                                        <td>
-                                                                            <input type="radio" id="acc-type-init" name="scenario-type" value="init" checked>
-                                                                            <label for="acc-type-init">Init</label>
-
-                                                                            <input type="radio" id="acc-type-acc" name="scenario-type" value="acc">
-                                                                            <label for="acc-type-acc">Acc</label>
-
-                                                                            <input type="radio" id="acc-type-tdm" name="scenario-type" value="tdm">
-                                                                            <label for="acc-type-tdm">tfr</label>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <td id="scenario-init-row">                                                    
-                                                                            <label for="scenario-init-list">Scenarios waiting to be processed:</label>
-                                                                            <input type="text" id="search-scenario-init" placeholder="Search..." hidden>      
-                                                                            <!--<ul id="scenario-init-list" style="max-height: 120px; overflow: auto;"></ul> -->
-                                                                            <select id="scenario-init-list" style="max-height: 120px; overflow: auto;"></select> 
-                                                                                <!-- -->
-                                                                                <br />
-                                                                                <label for="scenario-version-list">Scenario version:</label>
-                                                                                <select id="scenario-version-list" style="max-height: 120px; overflow: auto;"></select>
-                                                                                <br />
-                                                                                <!-- -->
-                                                                            <button id="scenario-load">Load Scenario</button>
-                                                                            <button id="scenario-init-reload">Clean</button>                                                                                                  
-                                                                    </td>                                                                      
-                                                                    <!--<tr id="scenario-list-row" style="display: none;">
-                                                                        <td><label for="scenario-list">Scenario List:</label></td>
-                                                                        <td>
-                                                                            <select id="scenario-list" name="scenario-list"></select>
-                                                                        </td>
-                                                                        <br />
-                                                                        <td><label for="acc-list">acc version:</label></td>
-                                                                        <td>
-                                                                            <select id="acc-list" name="acc-list"></select>
-                                                                        </td>
-                                                                        </tr>
-                                                                        <tr class="scenario-list-row" style="display: none;">
-                                                                        <td colspan="2">
-                                                                            <button id="scenario-check-acc1">Load ACC</button>
-                                                                            <button id="scenario-check-acc-reaload">Clean</button>
-                                                                        </td>
-                                                                    </tr> --> 
-                                                                    <tr class="scenario-list-row" style="display: none;">
-                                                    <td><label for="scenario-list">Scenario List:</label></td>
-                                                    <td>
-                                                        <select id="scenario-list" name="scenario-list"></select>
-                                                    </td>
-                                                    </tr>
-                                                <tr class="scenario-list-row" style="display: none;">
-                                                                        <td><label for="acc-list">acc version:</label></td>
-                                                                        <td>
-                                                                            <select id="acc-list" name="acc-list"></select>
-                                                                        </td><br />
-                                                    <td colspan="2">
-                                                        <button id="scenario-check-acc1">Load ACC</button>
-                                                        <button id="scenario-check-acc-reaload">Clean</button>
-                                                    </td>
-                                                </tr>
-                                                                    <!-- -->
-                                                                    <tr class="scenario-tdm-row" style="display: none;">
-                                                                        <!--<td>
-                                                                            <label for="search-scenario-tdm">Scenarios processed check the TFRS Manager:</label>
-                                                                            <input type="text" id="search-scenario-tdm" placeholder="Search...">
-                                                                            <ul id="scenario-tdm-list" style="max-height: 120px; overflow: auto;"></ul>-->
-                                                                            <td><label for="scenario-tdm-list">tfr Scenarios:</label>
-                                                                           <select id="scenario-tdm-list" style="max-height: 120px; overflow: auto;"></select>
-                                                                            <!--- -->
-                                                                        </td>                                                    
-                                                                    </tr>
-                                                                    <tr class="scenario-tdm-row" style="display: none;">
-                                                                        <td><label for="tdm-list">tfr version:</label></td>
-                                                                        <td>
-                                                                            <select id="tdm-list" name="tdm-list"></select>
-                                                                        </td>
-                                                                     </tr>
-                                                                    <tr class="scenario-tdm-row">
-                                                                        <td colspan="2">
-                                                                            <button id="scenario-check-tdm">Load tfr</button>
-                                                                        </td>
-                                                                    </tr>
-                                                                    <!-- questo era il codice in cui mettevi il nome dello scenario e via
-                                                                    <tr>
-                                                                        <td><label for="scenario-name">Scenario name:</label></td>
-                                                                        <td><input id="scenario-name1" type="text" name="name" placeholder="Scenario name"></td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td colspan="2">
-                                                                            <button id="scenario-check-acc1">Load ACC</button>
-                                                                            <button id="scenario-check-acc-reaload">Clean</button>
-                                                                        </td>
-                                                                    </tr>-->
-                                                                </table>
-                                                            </div>
-                                                        </div>                                
-                                                    </div>`;
+  <div id="notification" style="display: none;">
+    <p id="notification-message">bells</p>
+  </div>
+  <div id="scenario-content">
+    <div id="acc-content">
+      <table>
+        <tr>
+          <td>
+            <label>Load Scenario:</label>
+          </td>
+          <td>
+            <input type="radio" id="acc-type-init" name="scenario-type" value="init" checked>
+            <label for="acc-type-init">Init</label>
+            <input type="radio" id="acc-type-acc" name="scenario-type" value="acc">
+            <label for="acc-type-acc">Acc</label>
+            <input type="radio" id="acc-type-tdm" name="scenario-type" value="tdm">
+            <label for="acc-type-tdm">tfr</label>
+          </td>
+        </tr>
+        <td id="scenario-init-row">
+          <label for="scenario-init-list">Scenarios waiting to be processed:</label>
+          <input type="text" id="search-scenario-init" placeholder="Search..." hidden>
+          <select id="scenario-init-list" style="max-height: 120px; overflow: auto;"></select>
+          <br />
+          <label for="scenario-version-list">Scenario version:</label>
+          <select id="scenario-version-list" style="max-height: 120px; overflow: auto;"></select>
+          <br />
+          <button id="scenario-load">Load Scenario</button>
+          <button id="scenario-init-reload">Clean</button>
+        </td>
+        <tr class="scenario-list-row" style="display: none;">
+          <td>
+            <label for="scenario-list">Scenario List:</label>
+          </td>
+          <td>
+            <select id="scenario-list" name="scenario-list"></select>
+          </td>
+        </tr>
+        <tr class="scenario-list-row" style="display: none;">
+          <td>
+            <label for="acc-list">acc version:</label>
+          </td>
+          <td>
+            <select id="acc-list" name="acc-list"></select>
+          </td>
+          <tr class="scenario-list-row" style="display: none;">
+            <td colspan="2">
+              <button id="scenario-check-acc1">Load ACC</button>
+              <button id="scenario-check-acc-reaload">Clean</button>
+            </td>
+          </tr>
+          <tr class="scenario-tdm-row" style="display: none;">
+            <td>
+              <label for="scenario-tdm-list">tfr Scenarios:</label>
+            </td>
+            <td>
+              <select id="scenario-tdm-list" name="scenario-tdm-list"></select>
+            </td>
+            </td>
+          </tr>
+          <tr class="scenario-tdm-row" style="display: none;">
+            <td>
+              <label for="tdm-list">tfr version:</label>
+            </td>
+            <td>
+              <select id="tdm-list" name="tdm-list"></select>
+            </td>
+          </tr>
+          <tr class="scenario-tdm-row">
+            <td colspan="2">
+              <button id="scenario-check-tdm">Load tfr</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>`;
                     /////
                     ////
                     // Disabilita l'interazione di questo div con la mappa per evitare conflitti
@@ -15216,7 +15340,7 @@ if (!isset($_SESSION)) {
                 getInits();
                 ////////////
                 ////////SELECT EVENT
-                $('#scenario-init-list').change(async function () {
+                /*$('#scenario-init-list').change(async function () {
                     var selectedOption = $(this).val();
                     console.log("Selected option: " + selectedOption);
                     var suri = "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + selectedOption;
@@ -15255,10 +15379,10 @@ if (!isset($_SESSION)) {
                             }
                         }
                     });
-                });
+                });*/
                 /////////////////
                 ////////SELECT ACC
-                $('#scenario-list').change(function () {
+                /*$('#scenario-list').change(function () {
                     var selectedOption = $(this).val();
                     console.log("Selected option: " + selectedOption);
                     var suri = "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + selectedOption;
@@ -15288,9 +15412,9 @@ if (!isset($_SESSION)) {
                             }
                         }
                     });
-                });
+                });*/
                 //SELECT TDM
-                $('#scenario-tdm-list').change(function () {
+                /*$('#scenario-tdm-list').change(function () {
                     var selectedOption = $(this).val();
                     console.log("Selected option: " + selectedOption);
                     var suri = "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + selectedOption;
@@ -15324,6 +15448,12 @@ if (!isset($_SESSION)) {
                             }
                         }
                     });
+                });*/
+                
+                $('#scenario-check-acc-reaload').click(async function () {
+                        console.log('CLICK REALOD');
+                        //window.location.reload();
+                        pulisciTutto();
                 });
                 ////////////////
                 $('#scenario-init-reload').click(async function () {
@@ -15473,135 +15603,116 @@ if (!isset($_SESSION)) {
             console.error("An error occurred:", error.message);
         }
         //sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT);
+        $('#scenario-check-acc1').click(async function() {
+                console.log('scenario-check-acc1 CHANGED VIEW');
+                loadACCScenario();
+            });
 
         //////////////VIEW CHANGING ///////////
         $("input[name='scenario-type']").change(async function () {
-            // Ottieni l'ID del radio button selezionato
-            var selectedId = $(this).attr("id");
-            console.log('change: ' + selectedId);
+                    var selectedId = $(this).attr("id");
+                    console.log('CHANGE 01');
+                    console.log('change: ' + selectedId);
 
-            // Determina il tipo di scenario in base all'ID
-            var scenarioType;
-            if (selectedId === "acc-type-init") {
-                scenarioType = "All";
-                // Nascondi la lista degli scenari se il tipo non è "ACC"
-                $(".scenario-list-row").hide();
-                $('#scenario-version-list').empty();
-                //$("scenario-init-row").show()
-                document.getElementById("scenario-init-row").style.display = "block";
-                //document.getElementById("scenario-tdm-row").style.display = "none";
-                $(".scenario-tdm-row").hide();
-                var initScenarios = await getScenarios(scenarioType);
-                //var initScenarios2 = await getScenarios("acc");
-                //var initScenarios3 = await getScenarios("");
-                //var initScenarios = initScenarios1.concat(initScenarios2); 
-                //var initScenarios = initScenarios1.concat(initScenarios2).concat(initScenarios3); 
-                //console.log(initScenarios);
-                var scenarioInitList = $("#scenario-init-list");
+                    var scenarioType;
+                    if (selectedId === "acc-type-init") {
+                        scenarioType = "init";
+                        $(".scenario-list-row").hide();
+                        document.getElementById("scenario-init-row").style.display = "block";
+                        $(".scenario-tdm-row").hide();
+                        //var initScenarios1 = await getScenarios(scenarioType);
+                        //var initScenarios2 = await getScenarios("acc");
+                        //var initScenarios3 = await getScenarios("tfr");
+                        //var initScenarios = initScenarios1.concat(initScenarios2).concat(initScenarios3);
+                        var initScenarios0 = await getScenarios(scenarioType);
+                        var initScenarios = [...new Set(initScenarios0)];
+                        var scenarioInitList = $("#scenario-init-list");
+                        var searchInput = $("#search-scenario-init");
+                        searchInput.on("input", function () {
+                            var searchTerm = $(this).val().toLowerCase();
+                            filterScenarios(initScenarios, searchTerm);
+                        });
 
-                var searchInput = $("#search-scenario-init");
-                searchInput.on("input", function () {
-                    var searchTerm = $(this).val().toLowerCase();
-                    filterScenarios(initScenarios, searchTerm);
-                });
-
-                scenarioInitList.empty();
-                initScenarios.forEach(scenario => {
-                    var optionValue = scenario.replace("deviceName", "");
-                    //var optionText = optionValue + " -> " + scenario;
-                    var optionText = optionValue;
-                    //console.log(scenario);
-                    var listItem = $("<option>").val(scenario).text(optionText);
-                    scenarioInitList.append(listItem);
-                });
-
-                //  pulisciTutto();
-
-                function filterScenarios(scenarios, searchTerm) {
-                    var scenarioInitList = $("#scenario-init-list");
-                    scenarioInitList.empty();
-
-                    scenarios.forEach(scenario => {
-                        // Modificato il confronto per verificare se il termine di ricerca è incluso nel testo del paragrafo
-                        if (scenario.toLowerCase().includes(searchTerm)) {
+                        scenarioInitList.empty();
+                        initScenarios.sort();
+                        initScenarios.forEach(scenario => {
                             var optionValue = scenario.replace("deviceName", "");
-                            //var optionText = optionValue + " -> " + scenario;
                             var optionText = optionValue;
                             var listItem = $("<option>").val(scenario).text(optionText);
                             scenarioInitList.append(listItem);
+                        });
+
+                        function filterScenarios(scenarios, searchTerm) {
+                            var scenarioInitList = $("#scenario-init-list");
+                            scenarioInitList.empty();
+                            initScenarios.sort();
+                            scenarios.forEach(scenario => {
+                                if (scenario.toLowerCase().includes(searchTerm)) {
+                                    var optionValue = scenario.replace("deviceName", "");
+                                    var optionText = optionValue;
+                                    var listItem = $("<option>").val(scenario).text(optionText);
+                                    scenarioInitList.append(listItem);
+                                }
+                            });
                         }
-                    });
-                }
-            } else if (selectedId === "acc-type-acc") {
-                scenarioType = "acc";
-                // Mostra la lista degli scenari solo se il tipo è "ACC"
-                $(".scenario-list-row").show();
-                //$("scenario-init-list-row").hide()
-                document.getElementById("scenario-init-row").style.display = "none";
-                $(".scenario-tdm-row").hide();
-                // Popola la lista degli scenari ACC
-                var accScenarios = await getScenarios(scenarioType);
-                console.log('TO LOAD',accScenarios);
-                var scenarioList = $("#scenario-list");
-                scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
-                //  
-                //
-                accScenarios.forEach(scenario => {
-                    var scenarioName = scenario.replace("deviceName", "");
-                    var option = $("<option>").val(scenario).text(scenarioName);
-                    scenarioList.append(option);
-                });
-                //  pulisciTutto();
-            } else if (selectedId === "acc-type-tdm") {
+                    } else if (selectedId === "acc-type-acc") {
+                        scenarioType = "acc";
+                        $(".scenario-list-row").show();
+                        document.getElementById("scenario-init-row").style.display = "none";
+                        $(".scenario-tdm-row").hide();
+                        //var initScenarios1 = await getScenarios(scenarioType);
+                        //var initScenarios2 = await getScenarios("tfr");
+                        //var accScenarios = initScenarios1.concat(initScenarios2);
+                        var accScenarios0 = await getScenarios(scenarioType);
+                        var scenarioList = $("#scenario-list");
+                        scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
+                        var accScenarios = [...new Set(accScenarios0)];
+                        accScenarios.sort();
+                        accScenarios.forEach(scenario => {
+                            var scenarioName = scenario.replace("deviceName", "");
+                            var option = $("<option>").val(scenario).text(scenarioName);
+                            scenarioList.append(option);
+                        });
+                        //  pulisciTutto();
+                    } else if (selectedId === "acc-type-tdm") {
 
-                scenarioType = "tdm";
-                $(".scenario-list-row").hide();
-                $("#scenario-init-row").hide();
-                $(".scenario-tdm-row").show();
+                        scenarioType = "tfr";
+                        $(".scenario-list-row").hide();
+                        $("#scenario-init-row").hide();
+                        $(".scenario-tdm-row").show();
 
-                var tdmScenarios = await getScenarios(scenarioType);
-                //console.log(tdmScenarios);
-                var scenarioTDMList = $("#scenario-tdm-list");
+                        var tdmScenarios0 = await getScenarios(scenarioType);
+                        var scenarioTDMList = $("#scenario-tdm-list");
 
-                var searchInputTDM = $("#search-scenario-tdm");
-                searchInputTDM.on("input", function () {
-                    var searchTermTDM = $(this).val().toLowerCase();
-                    var list_tdm = filterScenariosTDM(tdmScenarios, searchTermTDM);
-                    console.log('list_tdm', list_tdm);
-                });
+                        scenarioTDMList.empty();
+                        var tdmScenarios = [...new Set(tdmScenarios0)];
+                        tdmScenarios.forEach(scenario => {
 
-                scenarioTDMList.empty();
-                tdmScenarios.forEach(scenario => {
-                    console.log("tdmScenarios", tdmScenarios);
-                    var optionValue = scenario.replace("deviceName", "");
-                    //var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
-                    var listItem = $("<option>").val(scenario).text(optionValue);
-                    scenarioTDMList.append(listItem);
-                });
-                //  pulisciTutto();
-                function filterScenariosTDM(scenarios, searchTerm) {
-                    var scenarioTDMList = $("#scenario-tdm-list");
-                    scenarioTDMList.empty();
-
-                    scenarios.forEach(scenario => {
-                        if (scenario.toLowerCase().includes(searchTerm) || scenario.toLowerCase().includes('acc')) {
                             var optionValue = scenario.replace("deviceName", "");
-                            //var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
-                            var optionText = $("<option>").val(scenario).text(optionValue);
-                            //var listItem = $("<p>").text(optionText);      
-                            scenarioTDMList.append(optionText);
+                            var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                            var listItem = $("<option>").val(scenario).text(optionValue);
+                            scenarioTDMList.append(listItem);
+                        });
+                        function filterScenariosTDM(scenarios, searchTerm) {
+                            var scenarioTDMList = $("#scenario-tdm-list");
+                            scenarioTDMList.empty();
+                            scenarios.forEach(scenario => {
+                                if (scenario.toLowerCase().includes(searchTerm) || scenario.toLowerCase().includes('acc')) {
+                                    var optionValue = scenario.replace("deviceName", "");
+                                    var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                                    var listItem = $("<option>").val(scenario).text(optionText);
+                                    scenarioTDMList.append(listItem);
+                                }
+                            });
                         }
-                    });
-                }
-            }
+                    }
 
-            if (scenarioType) {
-                console.log("Scenario type selected: " + scenarioType);
-                // Esegui qui le azioni specifiche in base al tipo di scenario
-            } else {
-                console.error("Errore nel determinare il tipo di scenario.");
-            }
-        });
+                    if (scenarioType) {
+                        console.log("Scenario type selected: " + scenarioType);
+                    } else {
+                        console.error("Errore nel determinare il tipo di scenario.");
+                    }
+                });
         /////END VIEW CHANGING
         fetchSparqlData(sparqlQuery, polygonWKT, null, null, 'create');
         //Funzione per attivare la modiche delle polyline 
@@ -15615,6 +15726,7 @@ if (!isset($_SESSION)) {
     $("input[name='scenario-type']").change(async function () {
         // Ottieni l'ID del radio button selezionato
         var selectedId = $(this).attr("id");
+        console.log('CHANGE 02');
         console.log('change: ' + selectedId);
 
         // Determina il tipo di scenario in base all'ID
@@ -15627,10 +15739,11 @@ if (!isset($_SESSION)) {
             document.getElementById("scenario-init-row").style.display = "block";
             //document.getElementById("scenario-tdm-row").style.display = "none";
             $(".scenario-tdm-row").hide();
-            var initScenarios1 = await getScenarios(scenarioType);
-            var initScenarios2 = await getScenarios("acc");
-            var initScenarios3 = await getScenarios("");
-            var initScenarios = initScenarios1.concat(initScenarios2).concat(initScenarios3);
+            //var initScenarios1 = await getScenarios(scenarioType);
+            //var initScenarios2 = await getScenarios("acc");
+            //var initScenarios3 = await getScenarios("tfr");
+            //var initScenarios = initScenarios1.concat(initScenarios2).concat(initScenarios3);
+            var initScenarios0 = await getScenarios(scenarioType);
             //console.log('initScenarios',initScenarios);
             var scenarioInitList = $("#scenario-init-list");
 
@@ -15639,7 +15752,7 @@ if (!isset($_SESSION)) {
                 var searchTerm = $(this).val().toLowerCase();
                 filterScenarios(initScenarios, searchTerm);
             });
-
+            var initScenarios = [...new Set(initScenarios0)];
             scenarioInitList.empty();
             initScenarios.sort();
             initScenarios.forEach(scenario => {
@@ -15676,10 +15789,14 @@ if (!isset($_SESSION)) {
             //document.getElementById("scenario-tdm-row").style.display = "none";
             $(".scenario-tdm-row").hide();
             // Popola la lista degli scenari ACC
-            var accScenarios = await getScenarios(scenarioType);
+           // var accScenarios1 = await getScenarios(scenarioType);
+            //var accScenarios2 = await getScenarios("tfr");
             //console.log(accScenarios);
+           // var accScenarios = accScenarios1.concat(accScenarios2);
+           var accScenarios0 = await getScenarios(scenarioType);
             var scenarioList = $("#scenario-list");
             scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
+            var accScenarios = [...new Set(accScenarios0)];
             accScenarios.sort();
             accScenarios.forEach(scenario => {
                 var scenarioName = scenario.replace("deviceName", "");
@@ -15689,12 +15806,12 @@ if (!isset($_SESSION)) {
             //  pulisciTutto();
         } else if (selectedId === "acc-type-tdm") {
 
-            scenarioType = "tdm";
+            scenarioType = "tfr";
             $(".scenario-list-row").hide();
             $("#scenario-init-row").hide();
             $(".scenario-tdm-row").show();
 
-            var tdmScenarios = await getScenarios(scenarioType);
+            var tdmScenarios0 = await getScenarios(scenarioType);
             //console.log(tdmScenarios);
             var scenarioTDMList = $("#scenario-tdm-list");
             /*
@@ -15705,6 +15822,8 @@ if (!isset($_SESSION)) {
             });*/
 
             scenarioTDMList.empty();
+            var tdmScenarios = [...new Set(tdmScenarios0)];
+            tdmScenarios.sort();
             tdmScenarios.forEach(scenario => {
 
                 var optionValue = scenario.replace("deviceName", "");
@@ -15974,8 +16093,9 @@ if (!isset($_SESSION)) {
             scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
 
             //####################### Gestisci l'evento change per tutti i radio button del tipo scenario #######
-            $("input[name='scenario-type']").change(async function () {
+           /* $("input[name='scenario-type']").change(async function () {
                 // Ottieni l'ID del radio button selezionato
+                console.log('CHANGE 03');
                 var selectedId = $(this).attr("id");
 
                 // Determina il tipo di scenario in base all'ID
@@ -16033,7 +16153,10 @@ if (!isset($_SESSION)) {
                     //document.getElementById("scenario-tdm-row").style.display = "none";
                     $(".scenario-tdm-row").none();
                     // Popola la lista degli scenari ACC
-                    var accScenarios = await getScenarios(scenarioType);
+                    //var accScenarios = await getScenarios(scenarioType);
+                    var initScenarios1 = await getScenarios(scenarioType);
+                    var initScenarios2 = await getScenarios("tfr");
+                    var accScenarios = initScenarios1.concat(initScenarios2);
                     //console.log(accScenarios);
                     var scenarioList = $("#scenario-list");
                     scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
@@ -16045,7 +16168,7 @@ if (!isset($_SESSION)) {
                     pulisciTutto();
                 } else if (selectedId === "acc-type-tdm") {
 
-                    scenarioType = "tdm";
+                    scenarioType = "tfr";
                     $(".scenario-list-row").hide();
                     $("#scenario-init-row").hide();
                     $(".scenario-tdm-row").show();
@@ -16091,7 +16214,7 @@ if (!isset($_SESSION)) {
                 } else {
                     console.error("Errore nel determinare il tipo di scenario.");
                 }
-            });
+            });*/
 
             //############ Load Stato zero  #######//
             $('#scenario-load').click(async function () {
@@ -16200,6 +16323,7 @@ if (!isset($_SESSION)) {
             });
 
             $('#scenario-check-acc1').click(async function () {
+                console.log('LOAD ACC1');
                 //console.log("bottone scenario-check-acc 1 chiamato!")
                 // Rimuovi il bottone del save finale se è rimasto pending
                 //
@@ -18811,10 +18935,18 @@ if (!isset($_SESSION)) {
                     } else if (option == "maxTrafficOpacity") {
                         if (trafficWmsLayer) {
                             trafficWmsLayer.setOpacity(value);
-                            current_traffic_opacity = value;
-                            $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_traffic_opacity).toFixed(parseInt(decimals)));
-                            $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_traffic_opacity).toFixed(parseInt(decimals)));
+                        } else if (newTfrLayer) {
+                            newTfrLayer.eachLayer(function(layer) {
+                                if (layer instanceof L.Polyline) {
+                                    layer.setStyle({
+                                        opacity: value
+                                    });
+                                }
+                            });
                         }
+                        current_traffic_opacity = value;
+                        $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_traffic_opacity).toFixed(parseInt(decimals)));
+                        $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_traffic_opacity).toFixed(parseInt(decimals)));
                     }
                     if (map.heatmapLayer != null) {
                         map.heatmapLayer.configure(map.cfg);
@@ -19156,7 +19288,13 @@ if (!isset($_SESSION)) {
                 if (isAnimated) {
                     map.defaultMapRef.removeLayer(map.eventsOnMap[index]);
                 } else {
-                    map.defaultMapRef.removeLayer(trafficWmsLayer);
+                    if (trafficWmsLayer) {
+                        map.defaultMapRef.removeLayer(trafficWmsLayer);
+                        trafficWmsLayer = null;
+                    } else if (newTfrLayer) {
+                        map.defaultMapRef.removeLayer(newTfrLayer);
+                        newTfrLayer = null;
+                    }
                 }
                 map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
                 map.defaultMapRef.removeControl(map.eventsOnMap[index + 1].legendColors);
@@ -19664,7 +19802,9 @@ if (!isset($_SESSION)) {
                 odOnMap = false;
                 //    current_page = 0;
                 try {
-                    const isAddingTrafficHeatmap = (event.passedData.includes(geoServerUrl) && event.passedData.includes("trafficflowmanager=true"));
+                    const isAddingTrafficHeatmap = (event.passedData.includes(geoServerUrl) && event.passedData.includes("trafficflowmanager=true")) 
+                        || event.passedData.includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") 
+                        || event.passedData.includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow");
                     if (map.eventsOnMap.length > 0) {
                         const normalHeatmapPresent = map.eventsOnMap.some(event => (event.eventType === 'heatmap' || event.eventType === 'od' || (event._url && event._url.includes("animate") && !event.options.pane.includes("TrafficFlowManager"))))
                         for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
@@ -19790,14 +19930,21 @@ if (!isset($_SESSION)) {
                     let longitude_min = map.defaultMapRef.getBounds()._southWest.lng;
                     let longitude_max = map.defaultMapRef.getBounds()._northEast.lng;
                     // INIZIO TRAFFICFLOWMANAGER
-                    if (baseQuery.includes(geoServerUrl) && baseQuery.includes("trafficflowmanager=true")) {
+                    if ((baseQuery.includes(geoServerUrl) && baseQuery.includes("trafficflowmanager=true"))
+                        || baseQuery.includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow")
+                        || baseQuery.includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow")) {
                         heatmap.eventType = "traffic_heatmap";
-                        console.log("TrafficFlowManager INIT");
+                        // console.log("TrafficFlowManager INIT");
 
                         // Get dataset name and metadata API url from passed data
-                        const datasetName = baseQuery.split("WMS&layers=")[1].split("&")[0];
+                        let datasetName = "";
+                        if (baseQuery.includes("WMS&layers=")) {
+                            datasetName = baseQuery.split("WMS&layers=")[1].split("&")[0];
+                        } else {
+                            datasetName = baseQuery.split("scenario=")[1].split("&")[0];
+                        }
                         const apiUrl = geoServerUrl + "trafficflowmanager/api/metadata?fluxName=" + datasetName;
-                        console.log(apiUrl);
+                        // console.log(apiUrl);
                         // Get layers metadata from API
                         //     heatmapData = null;
                         $.ajax({
@@ -19817,15 +19964,34 @@ if (!isset($_SESSION)) {
                                 trafficMapName = trafficData[0].fluxName;
                                 trafficMapDate = timestamp.replace('T', ' ');
 
-                                // Add layer to map
-                                trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
-                                    layers: trafficData[0].layerName,
-                                    format: 'image/png',
-                                    crs: L.CRS.EPSG4326,
-                                    transparent: true,
-                                    opacity: current_traffic_opacity,
-                                    pane: 'TrafficFlowManager:' + datasetName
-                                }).addTo(map.defaultMapRef);
+                                if (baseQuery.includes("WMS&layers=")) {
+                                    // Add layer to map
+                                    trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
+                                        layers: trafficData[0].layerName,
+                                        format: 'image/png',
+                                        crs: L.CRS.EPSG4326,
+                                        transparent: true,
+                                        opacity: current_traffic_opacity,
+                                        pane: 'TrafficFlowManager:' + datasetName
+                                    }).addTo(map.defaultMapRef);
+                                } else {
+                                    let apiOsUrl = "<?= $kbUrlSuperServiceMap; ?>" + "trafficflow/?scenario=" + trafficMapName + "&dateObservedStart=" + encodeURIComponent(timestamp) + "&dateObservedEnd=" + encodeURIComponent(timestamp) + "&kind=reconstructed";
+                                    $.ajax({
+                                        url: apiOsUrl,
+                                        method: 'GET',
+                                        success: function (roads) {
+
+                                            newTfrLayer = new L.LayerGroup();
+                                            newTfrLayer = createTfrLayer(roads);
+                                            newTfrLayer.addTo(map.defaultMapRef);
+
+                                        },
+                                        error: function (xhr, status, error) {
+                                            console.error('Error fetching new traffic data:', error);
+                                        }
+                                    });
+
+                                }
 
                                 // Add Legend
                                 map.trafficLegendHeatmap.addTo(map.defaultMapRef);
@@ -20171,11 +20337,19 @@ if (!isset($_SESSION)) {
                 let longitude_min = map.defaultMapRef.getBounds()._southWest.lng;
                 let longitude_max = map.defaultMapRef.getBounds()._northEast.lng;
                 // INIZIO TRAFFICFLOWMANAGER PAGINE/ANIMAZIONE
-                if (event.passedData.includes(geoServerUrl) && event.passedData.includes("trafficflowmanager=true")) {
+                if ((event.passedData.includes(geoServerUrl) && event.passedData.includes("trafficflowmanager=true"))
+                    || event.passedData.includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow")
+                    || event.passedData.includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow")) {
 
                     //        console.log("TrafficFlowManager addHeatmapFromClient INIT page=" + current_page_traffic);
                     const animationWidth = event.passedData.includes("&width=") ? event.passedData.split("&width=")[1].split("&")[0] : "512";
-                    const datasetName = event.passedData.split("WMS&layers=")[1].split("&")[0];
+                    // const datasetName = event.passedData.split("WMS&layers=")[1].split("&")[0];
+                    let datasetName = "";
+                    if (event.passedData.includes("WMS&layers=")) {
+                        datasetName = event.passedData.split("WMS&layers=")[1].split("&")[0];
+                    } else {
+                        datasetName = event.passedData.split("scenario=")[1].split("&")[0];
+                    }
                     map.defaultMapRef.createPane('TrafficFlowManager:' + datasetName);
                     map.defaultMapRef.getPane('TrafficFlowManager:' + datasetName).style.zIndex = 420;
                     const timestamp = trafficData[current_page_traffic].dateTime;
@@ -20187,15 +20361,34 @@ if (!isset($_SESSION)) {
                         // Update map date
                         trafficMapDate = timestamp.replace('T', ' ');
 
-                        // Add correct layer to the map
-                        trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
-                            layers: trafficData[current_page_traffic].layerName,
-                            format: 'image/png',
-                            crs: L.CRS.EPSG4326,
-                            transparent: true,
-                            opacity: current_traffic_opacity,
-                            pane: 'TrafficFlowManager:' + datasetName
-                        }).addTo(map.defaultMapRef);
+                        if (event.passedData.includes("WMS&layers=")) {
+                            // Add correct layer to the map
+                            trafficWmsLayer = L.tileLayer.wms(geoServerUrl + "geoserver/wms", {
+                                layers: trafficData[current_page_traffic].layerName,
+                                format: 'image/png',
+                                crs: L.CRS.EPSG4326,
+                                transparent: true,
+                                opacity: current_traffic_opacity,
+                                pane: 'TrafficFlowManager:' + datasetName
+                            }).addTo(map.defaultMapRef);
+                        } else {
+                            let apiOsUrl = "<?= $kbUrlSuperServiceMap; ?>" + "trafficflow/?scenario=" + trafficMapName + "&dateObservedStart=" + encodeURIComponent(timestamp) + "&dateObservedEnd=" + encodeURIComponent(timestamp) + "&kind=reconstructed";
+                            $.ajax({
+                                url: apiOsUrl,
+                                method: 'GET',
+                                success: function (roads) {
+
+                                    newTfrLayer = new L.LayerGroup();
+                                    newTfrLayer = createTfrLayer(roads);
+                                    newTfrLayer.addTo(map.defaultMapRef);
+
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error('Error fetching new traffic data:', error);
+                                }
+                            });
+
+                        }
 
                         // Add legend and heatmap
                         map.trafficLegendHeatmap.addTo(map.defaultMapRef);
@@ -24217,7 +24410,13 @@ if (!isset($_SESSION)) {
                 if (event.isTrafficHeatmap) {
                     // rimuovi traffic heatmap
                     if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
-                        map.defaultMapRef.removeLayer(trafficWmsLayer);
+                        if (trafficWmsLayer != null) {
+                            map.defaultMapRef.removeLayer(trafficWmsLayer);
+                            trafficWmsLayer = null;
+                        } else if (newTfrLayer != null) {
+                            map.defaultMapRef.removeLayer(newTfrLayer);
+                            newTfrLayer = null;
+                        }
                         map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
                         map.defaultMapRef.removeControl(map.eventsOnMap[i + 1].legendColors);
                         map.eventsOnMap.splice(i, 2);
@@ -24529,6 +24728,7 @@ if (!isset($_SESSION)) {
                 nrInputId = widgetData.params.nrInputId;
                 code = widgetData.params.code;
                 connections = widgetData.params.connections;
+                widgetParams = widgetData.params;
 
                 getOrganizationParams(function (params) {
                     orgParams = params[0];
@@ -25047,22 +25247,7 @@ if (!isset($_SESSION)) {
                                         }
                                         countObjKeys++;
                                     });
-                                    /*    if (geoJsonData.hasOwnProperty("BusStop")) {
-                                            fatherGeoJsonNode = geoJsonData.BusStop;
-                                        }
-                                        else {
-                                            if (geoJsonData.hasOwnProperty("Sensor")) {
-                                                fatherGeoJsonNode = geoJsonData.Sensor;
-                                            }
-                                            else {
-                                                if (geoJsonData.hasOwnProperty("Service")) {
-                                                    fatherGeoJsonNode = geoJsonData.Service;
-                                                }
-                                                else {
-                                                    fatherGeoJsonNode = geoJsonData.Services;
-                                                }
-                                            }
-                                        }*/
+
                                 }
 
                                 for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
@@ -25647,39 +25832,6 @@ if (!isset($_SESSION)) {
                         legend.addTo(fullscreendefaultMapRef);
                     }
                     if (map.eventsOnMap[i].eventType === 'heatmap' || map.eventsOnMap[i].eventType === undefined) {
-                        /*  let cfg = {
-                              // radius should be small ONLY if scaleRadius is true (or small radius is intended)
-                              // if scaleRadius is false it will be the constant radius used in pixels
-                              "radius": 0.0008,
-                              "maxOpacity": .8,
-                              // scales the radius based on map zoom
-                              "scaleRadius": true,
-                              // if set to false the heatmap uses the global maximum for colorization
-                              // if activated: uses the data maximum within the current map boundaries
-                              //   (there will always be a red spot with useLocalExtremas true)
-                              "useLocalExtrema": false,
-                              // which field name in your data represents the latitude - default "lat"
-                              latField: 'latitude',
-                              // which field name in your data represents the longitude - default "lng"
-                              lngField: 'longitude',
-                              // which field name in your data represents the data value - default "value"
-                              valueField: 'value',
-                              gradient: {
-                                  // enter n keys between 0 and 1 here
-                                  // for gradient color customization
-                                  '.0': 'blue',
-                                  '.1': 'cyan',
-                                  '.2': 'green',
-                                  '.3': 'yellowgreen',
-                                  '.4': 'yellow',
-                                  '.5': 'gold',
-                                  '.6': 'orange',
-                                  '.7': 'darkorange',
-                                  '.8': 'tomato',
-                                  '.9': 'orangered',
-                                  '1.0': 'red'
-                              }
-                          };*/
 
                         fullscreendefaultMapRef.off('click');
 
@@ -25689,10 +25841,7 @@ if (!isset($_SESSION)) {
                             latLngId = latLngId.replace(".", "");//Incomprensibile il motivo ma con l'espressione regolare /./g non funziona
 
                             var popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + '); text-transform: none;">' + dataObj.mapName + '</h3>';
-                            /*  if((serviceProperties.serviceUri !== '')&&(serviceProperties.serviceUri !== undefined)&&(serviceProperties.serviceUri !== 'undefined')&&(serviceProperties.serviceUri !== null)&&(serviceProperties.serviceUri !== 'null')) {
-                                  popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
-                                 // popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
-                              }*/
+
                             popupText += '<div class="recreativeEventMapBtnContainer"><span data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Heatmap Details</span></div>';
 
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer" style="height:100px; width:270px;">';
@@ -25706,10 +25855,6 @@ if (!isset($_SESSION)) {
 
                             //Corpo
                             popupText += '<tbody>';
-
-                            //    var myKPIFromTimeRangeUTC = new Date(myKPIFromTimeRange).toUTCString();
-                            //    var myKPIFromTimeRangeISO = new Date(myKPIFromTimeRangeUTC).toISOString();
-                            //    var myKPIFromTimeRangeISOTrimmed = myKPIFromTimeRangeISO.substring(0, isoDate.length - 8);
 
                             var dateTime = new Date(dataObj.dataTime);// Milliseconds to date
                             dateTime = dateTime.getDate() + "\/" + parseInt(dateTime.getMonth() + 1) + "\/" + dateTime.getFullYear() + " " + dateTime.getHours() + ":" + dateTime.getMinutes() + ":" + dateTime.getSeconds();
@@ -26789,100 +26934,6 @@ if (!isset($_SESSION)) {
 
                         }
 
-                            /*    function setOption(option, value, decimals) {
-                                    if (baseQuery.includes("heatmap.php")) {
-                                        if (option == "radius") {       // AGGIUNGERE SE FLAG è TRUE SI METTE IL VALORE DI CONFIG
-                                            if (resetPageFlag) {
-                                                if (resetPageFlag === true) {
-                                                    current_radius = map.cfg['radius'];
-                                                } else {
-                                                    current_radius = Math.max(value, 2);
-                                                }
-                                            } else {
-                                                current_radius = Math.max(value, 2);
-                                            }
-                                            map.cfg["radius"] = current_radius.toFixed(1);
-                                            if (decimals) {
-                                                $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_radius).toFixed(parseInt(decimals)));
-                        $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_radius).toFixed(parseInt(decimals)));
-                    }
-                } else if (option == "maxOpacity") {
-                    if (resetPageFlag) {
-                        if (resetPageFlag === true) {
-                            current_opacity = map.cfg['maxOpacity'];
-                        } else {
-                            current_opacity = value;
-                        }
-                    } else {
-                        current_opacity = value;
-                    }
-                    map.cfg["maxOpacity"] = current_opacity;
-                    if (decimals) {
-                        $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity).toFixed(parseInt(decimals)));
-                        $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity).toFixed(parseInt(decimals)));
-                    }
-                }
-                // update the heatmap with the new configuration
-                map.heatmapLayer.configure(map.cfg);
-            } else {
-                if (option == "maxOpacity") {
-                    if (wmsLayerFullscreen) {
-                        wmsLayerFullscreen.setOpacity(value);
-                        current_opacity = value;
-                        if (decimals) {
-                            $("#<?= $_REQUEST['name_w'] ?>_range" + option).text(parseFloat(current_opacity).toFixed(parseInt(decimals)));
-                            $("#<?= $_REQUEST['name_w'] ?>_slider" + option).attr("value", parseFloat(current_opacity).toFixed(parseInt(decimals)));
-                        }
-                        // });
-                    }
-                }
-            }
-            map.heatmapLayer.configure(map.cfg);
-        } */
-
-                            /*    function setOption(option, value, decimals) {
-                                    if (baseQuery.includes("heatmap.php")) {
-                                        cfg[option] = value;
-                                        if (decimals) {
-                                            $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen_range" + option).text(parseFloat(value).toFixed(parseInt(decimals)));
-                                            $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen_slider" + option).attr("value", parseFloat(value).toFixed(parseInt(decimals)));
-    }
-                                        if (option == "radius") {       // AGGIUNGERE SE FLAG è TRUE SI METTE IL VALORE DI CONFIG
-        if (resetPageFlag) {
-            if (resetPageFlag === true) {
-                current_radius = map.cfg['radius'];
-            } else {
-                current_radius = Math.max(value, 2);
-            }
-        } else {
-            current_radius = Math.max(value, 2);
-        }
-    } else if (option == "maxOpacity") {
-        if (resetPageFlag) {
-            if (resetPageFlag === true) {
-                current_opacity = map.cfg['maxOpacity'];
-            } else {
-                current_opacity = value;
-            }
-        } else {
-            current_opacity = value;
-        }
-    }
-    // update the heatmap with the new configuration
-    fullscreenHeatmap.configure(cfg);
-                                    } else {
-        if (option == "maxOpacity") {
-            if (wmsLayerFullscreen) {
-                // wmsLayerFullscreen.eachLayer(function (layer) {
-                var density = wmsLayerFullscreen.options["opacity"];
-                wmsLayerFullscreen.setStyle(getStyle(density));
-                current_opacity = value;
-                // });
-            }
-        }
-    }
-                                }   */
-
     function upSlider(color, step, decimals, max) {
         let value = $("#<?= $_REQUEST['name_w'] ?>_modalLinkOpen_slider" + color).attr("value");
         if (parseFloat(parseFloat(value) + parseFloat(step)) <= max) {
@@ -27151,19 +27202,6 @@ if (!isset($_SESSION)) {
     return legendHeatmapDiv;
                                 };
 
-    /*  fullscreendefaultMapRef.eachLayer(function (layer) {
-          fullscreendefaultMapRef.removeLayer(layer);
-      });*/
-
-    /*   let cfg = JSON.parse(heatmapRange[0].leafletConfigJSON);
-
-       if (current_radius != null) {
-           cfg['radius'] = current_radius;
-       }
-       if (current_opacity != null) {
-           cfg['maxOpacity'] = current_opacity;
-       }*/
-
     if (current_radius != null) {
         map.cfg['radius'] = current_radius;
     }
@@ -27275,51 +27313,6 @@ if (!isset($_SESSION)) {
             // ANIMATED GIF LAYER
             var animatedLayer = L.imageOverlay(imageUrl, imageBounds, { opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName }).addTo(fullscreendefaultMapRef);
 
-                                    /*    // add legend to map
-                                        map.legendHeatmap.addTo(map.defaultMapRef);
-                                        //    $("<?= $_REQUEST['name_w'] ?>_animation").prop("checked",true);
-            document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").checked = true;
-            //     $("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
-            $("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider('disable');
-            //     document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
-            //     document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
-            map.eventsOnMap.push(animatedLayer);
-            var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
-
-            var heatmapLegendColors = L.control({ position: 'bottomleft' });
-
-            heatmapLegendColors.onAdd = function (map) {
-
-                var div = L.DomUtil.create('div', 'info legend'),
-                    grades = ["Legend"];
-                //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
-                var legendImgPath = heatmapRange[0].iconPath; // OLD-API
-                div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
-                return div;
-            };
-
-            heatmapLegendColors.addTo(map.defaultMapRef);
-            //  map.eventsOnMap.push(heatmap);
-
-            event.legendColors = heatmapLegendColors;
-            map.eventsOnMap.push(event);
-
-            loadingDiv.empty();
-            loadingDiv.append(loadOkText);
-
-            parHeight = loadOkText.height();
-            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-            loadOkText.css("margin-top", parMarginTop + "px");
-
-            setTimeout(function () {
-                loadingDiv.css("opacity", 0);
-                setTimeout(function () {
-                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                    });
-                    loadingDiv.remove();
-                }, 350);
-            }, 1000);   */
         }
     }
 

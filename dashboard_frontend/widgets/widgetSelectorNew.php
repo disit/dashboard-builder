@@ -1019,7 +1019,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         }
 
                         // Cristiano : Dynamic Routing
-                        if($(this).attr("data-query").includes("scenario") && widgetTargetList.length > 0) {
+                        if($(this).attr("data-query").includes("scenario") && !$(this).attr("data-query").includes("trafficflow/") && widgetTargetList.length > 0) {
                             
                             if ($(this).attr("data-onMap") === "false") {
                                 $(this).attr("data-onMap", "true");
@@ -1090,7 +1090,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         }
                         // end Cristiano
-                        
+
                         //TrafficRealTimeDetails - Stefano
                         if (($(this).attr("data-query").includes("trafficRTDetails")) && (widgetTargetList.length > 0)) {
 
@@ -1212,17 +1212,17 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         }
 
                         //Heatmap - Daniele
-                        if (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) && (widgetTargetList.length > 0)) {
+                        if (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver") || $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") || $(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow")) && (widgetTargetList.length > 0)) {
 
                             if ($(this).attr("data-onMap") === "false") {
 
                                 var thisQuery = $(this).attr("data-query");
                                 var sourceSelector = event.currentTarget.offsetParent;
 
-                                const isAddingTrafficFlowManagerHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true")
+                                const isAddingTrafficFlowManagerHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true") || $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") || $(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow");
 
                                 $('.gisPinLink').each(function( index ) {
-                                    if((($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) && $(this).attr("data-query") != thisQuery) || $(this).attr("data-query").includes("<?= $od_hostname ?>")) {
+                                    if((($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) && $(this).attr("data-query") != thisQuery) || $(this).attr("data-query").includes("<?= $od_hostname ?>") || $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") || $(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow")) {
                                         if (sourceSelector == $(this).offsetParent()[0]) {
                                             if ($(this).attr("data-onMap") === "true") {
 
@@ -1230,7 +1230,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                 // non rimuovere pin dal selettore se:
                                                 // 1. cliccato su heatmap e sto rimuovendo pin traffico, oppure
                                                 // 2. cliccato su traffico e sto rimuovendo pin heatmap
-                                                const isRemovingTrafficFlowManagerPin = $(this).attr("data-query").includes("&trafficflowmanager=true");
+                                                const isRemovingTrafficFlowManagerPin = $(this).attr("data-query").includes("&trafficflowmanager=true") || $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") || $(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow");
                                                 if ((!isAddingTrafficFlowManagerHeatmap && isRemovingTrafficFlowManagerPin) || (isAddingTrafficFlowManagerHeatmap && !isRemovingTrafficFlowManagerPin)) {
                                                     return;
                                                 }
@@ -1262,6 +1262,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 passedParams.desc = $(this).attr("data-desc");
                                 passedParams.color1 = $(this).attr("data-color1");
                                 passedParams.color2 = $(this).attr("data-color2");
+                                passedParams.desc = $(this).attr("data-desc");
+                                passedParams.targets = $(this).attr("data-targets");
 
                                 $.event.trigger({
                                     type: "addHeatmap",
@@ -1286,7 +1288,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
                                 }
 
-                                const isTrafficHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true")
+                                const isTrafficHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true") || $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") || $(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow");
 
                                 $.event.trigger({
                                     type: "removeHeatmap",
@@ -1301,15 +1303,15 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             if ($(this).attr("data-onMap") === "false") {
                                 var sourceSelector = event.currentTarget.offsetParent;
 
-                                const isAddingTrafficFlowManagerHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true")
+                                const isAddingTrafficFlowManagerHeatmap = $(this).attr("data-query").includes("&trafficflowmanager=true") || $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") || $(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow");
 
                                 $('.gisPinLink').each(function( index ) {
-                                    if((($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) && $(this).attr("data-query") != thisQuery) || $(this).attr("data-query").includes("<?= $od_hostname ?>")) {
+                                    if((($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) && $(this).attr("data-query") != thisQuery) || $(this).attr("data-query").includes("<?= $od_hostname ?>") || $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") || $(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow")) {
                                     //if($(this).attr("data-query").includes("wmsserver.snap4city.org")) {
                                         if (sourceSelector == $(this).offsetParent()[0]) {
                                             if ($(this).attr("data-onMap") === "true") {
 
-                                                const isRemovingTrafficFlowManagerPin = $(this).attr("data-query").includes("&trafficflowmanager=true");
+                                                const isRemovingTrafficFlowManagerPin = $(this).attr("data-query").includes("&trafficflowmanager=true") || $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") || $(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow");
                                                 if ((!isAddingTrafficFlowManagerHeatmap && isRemovingTrafficFlowManagerPin) || (isAddingTrafficFlowManagerHeatmap && !isRemovingTrafficFlowManagerPin)) {
                                                     return;
                                                 }
@@ -1372,7 +1374,18 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         }
 
-                        if ((($(this).attr("data-query").includes("scenario")) !== true) && (($(this).attr("data-query").includes("whatif")) !== true) &&  (($(this).attr("data-query").includes("Fase2scenar")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("scenary")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) !== true) && (($(this).attr("data-query").includes("<?= $od_hostname ?>")) !== true) && (widgetTargetList.length > 0)) {
+              //        if ((($(this).attr("data-query").includes("scenario")) !== true ) && (($(this).attr("data-query").includes("whatif")) !== true) &&  (($(this).attr("data-query").includes("Fase2scenar")) !== true) && (($(this).attr("data-query").includes("trafficRTDetails")) !== true) && (($(this).attr("data-query").includes("scenary")) !== true) && (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver")) !== true) && (($(this).attr("data-query").includes("<?= $od_hostname ?>")) !== true) && $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") !== true && (widgetTargetList.length > 0)) {
+                        if (!$(this).attr("data-query").includes("scenario") &&
+                            !$(this).attr("data-query").includes("whatif") &&
+                            !$(this).attr("data-query").includes("Fase2scenar") &&
+                            !$(this).attr("data-query").includes("trafficRTDetails") &&
+                            !$(this).attr("data-query").includes("scenary") &&
+                            !$(this).attr("data-query").includes("heatmap.php") &&
+                            !$(this).attr("data-query").includes(geoServerUrl + "geoserver") &&
+                            !$(this).attr("data-query").includes("<?= $od_hostname ?>") &&
+                            !$(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") &&
+                            !$(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow") &&
+                            widgetTargetList.length > 0) {
 
                             if ($(this).attr("data-onMap") === "false") {
 
@@ -1410,6 +1423,10 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                 $(this).attr("data-onMap", "true");
                                 if ($(this).attr("data-pinattr") == "pin") {
 
+                                } else {
+                                    $(this).find("i.gisPinIcon").html("near_me");
+                                    $(this).find("i.gisPinIcon").css("color", "white");
+                                    $(this).find("i.gisPinIcon").css("text-shadow", "black 2px 2px 4px");
                                 }
                             //    $(this).hide();
                             //    $(this).parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").show();
