@@ -10650,7 +10650,7 @@ if (!isset($_SESSION)) {
     }
 
     // funzione per mandare il road graph al database mysql nel processloader_db -> bigdatadevice
-    async function sendDataToDB(suri, idati) {
+    async function sendDataToDB(suri, idati, dateObserved = "") {
         var listScen = await getLAccessToken();
         if (listScen != undefined) {
             var listScen1 = JSON.parse(listScen);
@@ -10660,7 +10660,27 @@ if (!isset($_SESSION)) {
             //console.log('listScen1', listScen1);
         }
 
-        const url = "<?= $endprocessloader; ?>" + `postIt.php?suri=${suri}&accessToken=${lAccessToken}`;
+        //parte controllo dateObserved se passato e se valido
+        if (dateObserved === '') {
+            dateObserved = new Date();
+            dateObserved.setHours(dateObserved.getHours() + 2);
+            dateObserved = dateObserved.toISOString().replace('T', ' ').split('.')[0];
+        } else {
+            try {
+                let parsedDate = new Date(dateObserved);
+                parsedDate.setHours(parsedDate.getHours() + 2);
+                if (isNaN(parsedDate.getTime())) {
+                    throw new Error('Invalid date format');
+                }
+                dateObserved = parsedDate.toISOString().replace('T', ' ').split('.')[0];
+            } catch (error) {
+                console.log("dateObserved non è nel formato corretto ('%Y-%m-%d %H:%M:%S')");
+                console.log("aggiornato all'ora corrente");
+                dateObserved = new Date().toISOString().replace('T', ' ').split('.')[0];
+            }
+        }
+
+        const url = "<?= $endprocessloader; ?>" + `postIt.php?suri=${suri}&accessToken=${lAccessToken}&dateObserved=${dateObserved}`;
         const data = {
             grandidati: idati
         };
@@ -10715,6 +10735,8 @@ if (!isset($_SESSION)) {
         //const url = `https://www.snap4city.org/orionfilter/orionUNIFI/v2/entities/${deviceName}/attrs?elementid=${deviceName}&type=${deviceType}`;
         const url = "<?= $baseorionfilter; ?>" + `${ilbrokerdellorganizzazione}/v2/entities/${deviceName}/attrs?elementid=${deviceName}&type=${deviceType}`;
         const { dateObserved, name, location, description, modality, referenceKB, sourceData, startTime, endTime, organization } = scenario_data.metadata;
+        // update prima di salvare i dati nel device del dateObserved
+
         // Remove parentheses from the values in the JSON object
         var modified_scenario_data_sensors = removeParenthesesFromValues(scenario_data.sensors);
         //
@@ -14903,9 +14925,10 @@ if (!isset($_SESSION)) {
                         }*/
 
                         //
+                        var ilDateObserved = new Date().toISOString();
                         scenarioData = {
                             "metadata": {
-                                "dateObserved": new Date().toISOString(),
+                                "dateObserved": ilDateObserved,
                                 "name": ilbrokerdellorganizzazione + "_" + lorganizzazione + "_deviceName" + scenarioName,
                                 "location": scenarioLocation,
                                 "description": scenarioDescription,
@@ -14998,7 +15021,7 @@ if (!isset($_SESSION)) {
                                     "roadGraph": istanzedelgrafochestoconsiderando_forSaving,
                                     "filters": list_filters,
                                     "sensors": sensoriArray
-                                })
+                                },ilDateObserved)
                                     .then(data => {
                                         console.log('Risposta dal server:', data);
                                     })
@@ -15018,7 +15041,7 @@ if (!isset($_SESSION)) {
                         } else {
                             console.error("Errore nella creazione del dispositivo:", creato);
                             try {
-                                initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
+                                initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);                                
                                 //sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, istanzedelgrafochestoconsiderando)
                                 //INVIO DATI AL DB STATO INIT
                                 if (currentLoadedStatus == 'init'){
@@ -15026,7 +15049,7 @@ if (!isset($_SESSION)) {
                                     "roadGraph": istanzedelgrafochestoconsiderando_forSaving,
                                     "filters": list_filters,
                                     "sensors": sensoriArray
-                                })
+                                },ilDateObserved)
                                     .then(data => {
                                         console.log('Risposta dal server:', data);
                                     })
@@ -15095,7 +15118,7 @@ if (!isset($_SESSION)) {
                                                     "AC": newJson,
                                                     "TDM": istanzedelgrafochestoconsiderando_forSaving,
                                                     "JS20": loadedjs20Data 
-                                                })
+                                                },ilDateObserved)
                                                     .then(data => {
                                                         console.log('Risposta dal server:', data);
                                                     })
