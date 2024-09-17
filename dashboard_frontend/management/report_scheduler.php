@@ -74,7 +74,7 @@ if (isset($_SESSION['loggedRole'])) {
 //
             $n = count($array);
 //echo($n);
-            $report_actived = "";
+            $report_actived = array();
             $report_actived['status'] = "No";
             $report_actived['period'] = "No";
             $report_actived['folder'] = '';
@@ -299,7 +299,7 @@ if (isset($_SESSION['loggedRole'])) {
 /////
                 $source_data = array();
                 $source_data['reportUnitURI'] = $report_s;
-                $source_data['parameters'] = "";
+                $source_data['parameters'] = array(); 
                 //$source_data['parameters']['parameterValues'] = "";
                 $source_data['parameters']['parameterValues']['unique_id'][0] = $service;
 //
@@ -345,7 +345,7 @@ if (isset($_SESSION['loggedRole'])) {
                 //$trgger_data['simpleTrigger']['recurrenceIntervalUnit'] = "MINUTE";
 
                 if ($periods == 'hourly') {
-                    $trigger_data['simpleTrigger'] = "";
+                    $trigger_data['simpleTrigger'] = array();
                     $trigger_data['simpleTrigger']['version'] = 1;
                     $trigger_data['simpleTrigger']['timezone'] = "Etc/UTC";
                     $trigger_data['simpleTrigger']['startType'] = 2;
@@ -355,7 +355,7 @@ if (isset($_SESSION['loggedRole'])) {
                     $trigger_data['simpleTrigger']['recurrenceInterval'] = "1";
                     $trigger_data['simpleTrigger']['recurrenceIntervalUnit'] = "HOUR";
                 } else {
-                    $trigger_data['calendarTrigger'] = "";
+                    $trigger_data['calendarTrigger'] = array();
                     $trigger_data['calendarTrigger']['version'] = 0;
                     $trigger_data['calendarTrigger']['timezone'] = 'Etc/UTC';
                     $trigger_data['calendarTrigger']['startType'] = 2;

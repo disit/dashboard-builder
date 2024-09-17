@@ -1641,6 +1641,11 @@ $(document).on('click', '#modify_report', function () {
     var periods = $('#periods').val();
     var jobs = $('#job').val();
     var data_unique_name_id =  $('#data-unique_name_id').val();
+    var selectedRow = $('tr.selected');
+
+    if (selectedRow.length) {
+        data_unique_name_id = selectedRow.attr('data-unique_name_id');
+    }
     console.log ('activation: '+activation+' periods:'+periods);
     //
                 $.ajax({
