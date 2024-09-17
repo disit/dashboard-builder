@@ -282,7 +282,7 @@
     <script src="../js/highcharts-localization.js"></script>
 
     <!-- New WS -->
-    <script src="https://www.snap4city.org/synoptics/socket.io/socket.io.js"></script>
+    <script src="/synoptics/socket.io/socket.io.js"></script>
 
 </head>
 
@@ -23640,7 +23640,7 @@
 
                                                 $("li.gs_w").each(function () {
                                                     if ($(this).attr("id") != null) {
-                                                        if (($(this).attr("id").includes("BarContent")) || ($(this).attr("id").includes("ColumnContent")) || ($(this).attr("id").includes("GaugeChart")) || ($(this).attr("id").includes("PieChart")) || ($(this).attr("id").includes("SingleContent")) || ($(this).attr("id").includes("Speedometer")) || ($(this).attr("id").includes("TimeTrend"))) {
+                                                        if (($(this).attr("id").includes("BarContent")) || ($(this).attr("id").includes("ColumnContent")) || ($(this).attr("id").includes("GaugeChart")) || ($(this).attr("id").includes("PieChart")) || ($(this).attr("id").includes("SingleContent")) || ($(this).attr("id").includes("Speedometer")) || ($(this).attr("id").includes("TimeTrend")) || ($(this).attr("id").includes("CurvedLineSeries"))) {
                                                             widgetId = $(this).attr("id");
                                                             widgetTitle = $(this).find("div.titleDiv").html();
                                                             newTableRow.find('select').append('<option value="' + widgetId + '">' + widgetTitle + '</option>');

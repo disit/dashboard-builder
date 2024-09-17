@@ -35,11 +35,17 @@ if (isset($_REQUEST['toTime'])){
      $toTime = '';
 }
  $result_data['data'] = [];
+ $key = '';
+ if (isset($_REQUEST['apikey'])){
+     $key = '&apikey='.$_REQUEST['apikey'];
+}else{
+      $key = '';
+}
  //
 //$data_api ='https://helsinki.snap4city.org/ServiceMap/api/v1/?serviceUri=http://www.disit.org/km4city/resource/iot/orionFinland/Helsinki/373773207E330101&format=json&fromTime=2020-02-01T00:00:00&toTime=2021-03-01T00:00:00&valueName=PM10';
 //$data_api ='https://helsinki.snap4city.org/ServiceMap/api/v1/?serviceUri=http://www.disit.org/km4city/resource/iot/orionFinland/Helsinki/'.$unique_id.'&format=json'.$fromTime.''.$toTime.''.$valueName;
 //
-$data_api = $base_url.$fromTime.''.$toTime.''.$valueName;
+$data_api = $base_url.$fromTime.''.$toTime.''.$valueName.''. $key;
 //echo($data_api);
 $result=file_get_contents($data_api);
 $data = json_decode($result, true);

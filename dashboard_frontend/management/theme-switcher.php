@@ -1,5 +1,6 @@
 <?php
 $defaultTheme = isset($layoutDefault) ? $layoutDefault : 'dark'; // Set the default theme
+$themeBaseUri = isset($themeBaseUri) ? $themeBaseUri : '/dashboardSmartCity';
 
 // Check if the theme is already set in the cookie
 if (isset($_COOKIE['selected_theme'])) {
