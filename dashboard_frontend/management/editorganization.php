@@ -27,6 +27,11 @@ require '../sso/autoload.php';
 session_start();
 //checkSession('RootAdmin');
 
+if(!isset($ldapAdmin2DN))
+    $ldapAdmin2DN = $ldapAdminDN;
+if(!isset($ldapAdmin2Pwd))
+    $ldapAdmin2Pwd = $ldapAdminPwd;
+
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 error_reporting(E_ERROR);

@@ -22,6 +22,13 @@ require '../sso/autoload.php';
 session_start();
 //checkSession('RootAdmin');
 
+if(!isset($ldapAdmin2DN))
+    $ldapAdmin2DN = $ldapAdminDN;
+if(!isset($ldapAdmin2Pwd))
+    $ldapAdmin2Pwd = $ldapAdminPwd;
+if(!isset($ldapBase2DN))
+    $ldapBase2DN = $ldapBaseDN;
+
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 error_reporting(E_ERROR);
@@ -39,8 +46,8 @@ $name = 'Organization';
     $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
     if ($connection) {
         ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-        $bind = ldap_bind($connection, $ldapBase2DN, $ldapAdmin2Pwd);
-        $resultldap = ldap_search($connection, $ldapBase2DN, '(cn=Dashboard)');
+        $bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
+        $resultldap = ldap_search($connection, $ldapBaseDN, '(cn=Dashboard)');
         $entries = ldap_get_entries($connection, $resultldap);
         ///
         $resultldapOrg = ldap_search($connection, $ldapBaseDN, '(objectClass=organizationalUnit)');
@@ -283,7 +290,7 @@ $name = 'Organization';
                 $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
                 if ($connection) {
                     ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                    $bind = ldap_bind($connection, $ldapBase2DN, $ldapAdmin2Pwd);
+                    $bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
                     $resultldap = ldap_search($connection, $ldapBaseDN, '(cn=Dashboard)');
                     $entries = ldap_get_entries($connection, $resultldap);
                     ///
@@ -348,7 +355,7 @@ $name = 'Organization';
             //if ($ldapOrganization == true) {
                 $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
                 ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                $bind = ldap_bind($connection, $ldapBase2DN, $ldapAdmin2Pwd);
+                $bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
                 $resultldap = ldap_search($connection, $ldapBaseDN, '(cn=Dashboard)');
                 $entries = ldap_get_entries($connection, $resultldap);
                 //
@@ -363,7 +370,7 @@ $name = 'Organization';
                    // $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
                    // if ($connection) {
                         ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                        $bind = ldap_bind($connection, $ldapBase2DN, $ldapAdmin2Pwd);
+                        $bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
         
                         $searchFilter = "(objectClass=*)"; // Filtra gli elementi con OU 'Organization' e di classe 'person'
                          $searchResult = ldap_search($connection, $ldapBaseDN, '(objectClass=*)');
@@ -456,7 +463,7 @@ $name = 'Organization';
             $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
             if ($connection) {
                 ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                $bind = ldap_bind($connection, $ldapBase2DN, $ldapAdmin2Pwd);
+                $bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
                 if($bind){
                     $ldapUsername = "cn=" . $user . "," . $ldapBaseDN;
                     //echo('ldapUsername: '.$ldapUsername);
@@ -469,7 +476,7 @@ $name = 'Organization';
                                // $result['index'] = 1;
                                $message = "User successfully added to organization";
                             } else {
-                                $message = "error during updating new organization";
+                                $message = "error during updating new organization error:".ldap_error($connection);
                                 //$result['org'] = "error during updating new organization";
                                 //$result['index'] = 0;
                             }
@@ -588,7 +595,7 @@ $name = 'Organization';
                 $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
                 if ($connection) {
                     ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                    $bind = ldap_bind($connection, $ldapBase2DN, $ldapAdmin2Pwd);
+                    $bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
                     ////
                     if ($bind) {
                         //
@@ -694,7 +701,7 @@ $name = 'Organization';
             $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
             if ($connection) {
                 ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                $bind = ldap_bind($connection, $ldapBase2DN, $ldapAdmin2Pwd);
+                $bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
 			if($bind){
                         $org2 = strtolower($organization);
                         //$newEntryDn = "cn=userrootadmin,dc=ldap,dc=organization,dc=com"; 
@@ -737,7 +744,7 @@ $name = 'Organization';
             $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
             if ($connection) {
                 ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                $bind = ldap_bind($connection, $ldapBase2DN, $ldapAdmin2Pwd);
+                $bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
 
                 $searchFilter = "(objectClass=*)"; // Filtra gli elementi con OU 'Organization' e di classe 'person'
                  $searchResult = ldap_search($connection, $ldapBaseDN, '(objectClass=*)');
@@ -775,7 +782,7 @@ $name = 'Organization';
         //echo($entryToDeleteDn);
             if ($connection) {
                 ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                if (ldap_bind($connection, $ldapBase2DN, $ldapAdmin2Pwd)) {
+                if (ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd)) {
                     // Prova a cancellare l'entry
                     if (ldap_delete($connection, $entryToDeleteDn)) {
                         echo "Group successfully deleted.";
