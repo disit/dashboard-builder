@@ -2684,3 +2684,22 @@ function readInput(param, connections) {
 
     return e;
 }
+
+function darkenColor(hexColor, percent) {
+    hexColor = hexColor.replace(/^#/, '');
+
+    var r = parseInt(hexColor.substring(0, 2), 16);
+    var g = parseInt(hexColor.substring(2, 4), 16);
+    var b = parseInt(hexColor.substring(4, 6), 16);
+
+    r = Math.floor(r * (1 - percent));
+    g = Math.floor(g * (1 - percent));
+    b = Math.floor(b * (1 - percent));
+
+    var newColor = "#" +
+        ("0" + r.toString(16)).slice(-2) +
+        ("0" + g.toString(16)).slice(-2) +
+        ("0" + b.toString(16)).slice(-2);
+
+    return newColor;
+}

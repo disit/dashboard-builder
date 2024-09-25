@@ -209,6 +209,9 @@ if (!isset($_SESSION)) {
  -->
 
 <script type='text/javascript'>
+const popupResizeObserver = new ResizeObserver(function(mutations) {
+    mutations[0].target._draggable.disable()
+});
     ////////////ADREANI Nuova Classe
     class KBRoadEditor {
         sensors;
@@ -263,6 +266,9 @@ if (!isset($_SESSION)) {
             },
             restrictionFrom: {
                 color: 'green'
+            },
+            errorColor: {
+                color: '#900C3F'
             }
         };
         tableMetersZoomNode = {
@@ -282,14 +288,14 @@ if (!isset($_SESSION)) {
             "13": 10,
             "14": 10,
             "15": 10,
-            "16": 5,
-            "17": 5,
-            "18": 3,
-            "19": 2,
-            "20": 1,
-            "21": 0.8,
-            "22": 0.6,
-            "23": 0.4,
+            "16": 2.5, //5,
+            "17": 2.5, //5,
+            "18": 1.5, //3,
+            "19": 1, //2,
+            "20": 0.5, //1,
+            "21": 0.4, //0.8,
+            "22": 0.3, //0.6,
+            "23": 0.2, //0.4,
         }
         tableMetersZoomArrow = {
             "17": 13,
@@ -877,11 +883,15 @@ if (!isset($_SESSION)) {
                 type = 'negative';
             }else if (segment.dir.includes('none')) {
                 type = 'positive';
-            } else {
+            } else if (segment.dir.includes('tratto stradale aperto in entrambe le direzioni (default)')){
                 type = 'bidirectional';
                 if (colorScheme.bidirectional) {
                     color = colorScheme.bidirectional.color;
                 }
+            }
+
+            if (segment.hasError && segment.hasError == true) {
+                color = this.typeColors['errorColor'].color;
             }
 
             if (this.selectedRestriction) {
@@ -967,7 +977,9 @@ if (!isset($_SESSION)) {
                     segment.arrow.bringToFront();
                 },
                 mouseout: () => {
-                    if(
+                    if(segment.hasError && segment.hasError == true){
+                        color = this.typeColors['errorColor'].color;
+                    } else if(
                         !this.selectedRestriction.hasOwnProperty('to') ||
                         (
                             this.selectedRestriction.to != segment.segment &&
@@ -1005,7 +1017,9 @@ if (!isset($_SESSION)) {
 
             // Change border color back to red on mouseout
             segment.line.on('mouseout', () => {
-                if(
+                if(segment.hasError && segment.hasError == true){
+                        color = this.typeColors['errorColor'].color;
+                } else if(
                     !this.selectedRestriction.hasOwnProperty('to') ||
                     (
                         this.selectedRestriction.to != segment.segment &&
@@ -1546,16 +1560,43 @@ if (!isset($_SESSION)) {
         }
 
         draw() {
+            var visibleNodeIdxs = [];
             for (let segmentID in this.segments) {
-                const segment = this.segments[segmentID];
-                this.drawSegment(segment);
+                if (this.isSegmentInsideMap(this.segments[segmentID])){
+                    const segment = this.segments[segmentID];
+                    visibleNodeIdxs.push(this.segments[segmentID].nodeA);
+                    visibleNodeIdxs.push(this.segments[segmentID].nodeB);
+                    this.drawSegment(segment);
+                }
             }
+            visibleNodeIdxs = [...new Set(visibleNodeIdxs)];
 
-            for (let nodeID in this.nodes) {
-                const node = this.nodes[nodeID];
+            for (let nodeIDX in visibleNodeIdxs){ //this.nodes) {
+                const node = this.nodes[visibleNodeIdxs[nodeIDX]];
                 this.drawNode(node);
             }
         }
+
+        isSegmentInsideMap(segment) {
+            const pointA = {
+                lat: segment.nALat,
+                lng: segment.nALong
+            };
+            const pointB = {
+                lat: segment.nBLat,
+                lng: segment.nBLong
+            }
+            // Get the current bounds of the map
+            var bounds = this.map.getBounds();
+            
+            // Check if either of the points is inside the map bounds
+            var isPointAInside = bounds.contains(L.latLng(pointA.lat, pointA.lng));
+            var isPointBInside = bounds.contains(L.latLng(pointB.lat, pointB.lng));
+            
+            // Return true if at least one point is inside
+            return isPointAInside || isPointBInside;
+        }
+
     }
 
     //////////////FINE Adrean Nuova Classe
@@ -2061,9 +2102,14 @@ if (!isset($_SESSION)) {
 
             // draggable
             var makeDraggable = function (popup, excluding) {
+                popupResizeObserver.observe(popup._wrapper)
                 var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
                 L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
+                console.log("POPUP", popup._wrapper, $(popup._wrapper).children(".leaflet-popup-content"))
                 var draggable = new L.Draggable(popup._container, popup._wrapper);
+                var popup_content = $(popup._wrapper).children(".leaflet-popup-content")[0]
+                popup._wrapper._draggable = draggable
+                $(popup_content).css("width", "")
                 draggable.enable();
                 $(".draggableAndResizablePopup").css("cursor", "move");
                 draggable.on('dragend', function () {
@@ -2588,7 +2634,7 @@ if (!isset($_SESSION)) {
             roads.result.forEach(function (road) {
                 var coords = [];
 
-                if (viewMode == "coord" && typeof road.start != null) {
+                if (viewMode == "coord" && road.start != null) {
                     coords = [{ start: [road.start.location.lon, road.start.location.lat], end: [road.end.location.lon, road.end.location.lat] }];
                 } else if (road.line && road.line.coordinates && road.line.coordinates.length > 0) {
                     road.line.coordinates.forEach(function(coord, index) {
@@ -3114,9 +3160,14 @@ if (!isset($_SESSION)) {
 
                             // draggable
                             var makeDraggable = function (popup, excluding) {
+                            	popupResizeObserver.observe(popup._wrapper)
                                 var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
                                 L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
+                                console.log("POPUP", popup._wrapper, $(popup._wrapper).children(".leaflet-popup-content"))
                                 var draggable = new L.Draggable(popup._container, popup._wrapper);
+                                var popup_content = $(popup._wrapper).children(".leaflet-popup-content")[0]
+                                popup._wrapper._draggable = draggable
+                                $(popup_content).css("width", "")
                                 draggable.enable();
                                 $(".draggableAndResizablePopup").css("cursor", "move");
                                 draggable.on('dragend', function () {
@@ -4831,9 +4882,14 @@ if (!isset($_SESSION)) {
 
                             // draggable
                             var makeDraggable = function (popup, excluding) {
+                            	popupResizeObserver.observe(popup._wrapper)
                                 var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
                                 L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
+                                console.log("POPUP", popup._wrapper, $(popup._wrapper).children(".leaflet-popup-content"))
                                 var draggable = new L.Draggable(popup._container, popup._wrapper);
+                                var popup_content = $(popup._wrapper).children(".leaflet-popup-content")[0]
+                                popup._wrapper._draggable = draggable
+                                $(popup_content).css("width", "")
                                 draggable.enable();
                                 $(".draggableAndResizablePopup").css("cursor", "move");
                                 draggable.on('dragend', function () {
@@ -7026,10 +7082,14 @@ if (!isset($_SESSION)) {
         oms = new OverlappingMarkerSpiderfier(map.defaultMapRef, { keepSpiderfied: true });
         oms.addListener('click', function (marker) {
             marker.openPopup();
-            if ($('#currentStatusEdit').val() == 'streets') {
-                dragPopup(document.getElementById('considerOrNotConsiderPanel').parentElement.parentElement.parentElement.parentElement.parentElement, document.getElementById('considerOrNotConsiderPanel'));
-            } else {
-                dragPopup(document.getElementById('considerOrNotConsiderPanelView').parentElement.parentElement.parentElement.parentElement.parentElement, document.getElementById('considerOrNotConsiderPanelView'));
+            try{                
+                if ($('#currentStatusEdit').val() == 'streets') {
+                    dragPopup(document.getElementById('considerOrNotConsiderPanel').parentElement.parentElement.parentElement.parentElement.parentElement, document.getElementById('considerOrNotConsiderPanel'));
+                } else {
+                    dragPopup(document.getElementById('considerOrNotConsiderPanelView').parentElement.parentElement.parentElement.parentElement.parentElement, document.getElementById('considerOrNotConsiderPanelView'));
+                }
+            } catch {
+                console.log('It is a other sensor popup');
             }
         });
 
@@ -10022,7 +10082,12 @@ if (!isset($_SESSION)) {
         // funzione per pulire tutte le cose relative al caso accorpato
         function pulisciTutto() {
 
-            restriction_data = [];
+            console.log('>>> START CLEANING <<<');
+
+            $('#road_types').prop('disabled', true);
+            
+            restriction_data = [];            
+            saveLoadGraph = [];
 
             $('#selectAllRoad').prop("checked", false);
             $('#SelectNoRoad').prop("checked", false);
@@ -10055,7 +10120,7 @@ if (!isset($_SESSION)) {
             }
 
             var buttonToRemove = document.getElementById("scenario-save-finale1");
-            console.log('Pulisci Tutto!');
+            //console.log('Pulisci Tutto!');
             if (istanzedeisensorichestoconsiderando.length > 0){
                 istanzedeisensorichestoconsiderando.forEach(function (sersor) {
                             sersor.delete();
@@ -10069,7 +10134,7 @@ if (!isset($_SESSION)) {
                 roadElementGraph = false;
             }
             if (scenaryData.features.length >= 0) {
-                console.log('scenaryData features ', scenaryData.features.length);
+                //console.log('scenaryData features ', scenaryData.features.length);
                 // Rimuovi i layer dei disegni
                 for (const layerId in scenaryDrawnItems._layers) {
                     scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
@@ -10161,6 +10226,8 @@ if (!isset($_SESSION)) {
                 istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
                 istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
             }*/
+
+            console.log('>>> DONE CLEANING <<<');
         }
 
         //############################## API and SPARQL functionsss #########################################
@@ -10317,10 +10384,21 @@ if (!isset($_SESSION)) {
                 var obj = (data);
                 for (var i = 0; i < obj.length; i++) {
                     var acc1 = JSON.parse(obj[i].data);
+
+                    var dt = obj[i].dateObserved; // datetime from DB in GTM/UTC
+                    var localeDT = new Date(dt.replace(" ", "T") + "Z"); //.toLocaleString(); //.replaceAll('/','-').replace(',',''); // datetime converted to local timezone
+                    var year = localeDT.getFullYear();
+                    var month = String(localeDT.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+                    var day = String(localeDT.getDate()).padStart(2, '0');
+                    var hours = String(localeDT.getHours()).padStart(2, '0');
+                    var minutes = String(localeDT.getMinutes()).padStart(2, '0');
+                    var seconds = String(localeDT.getSeconds()).padStart(2, '0'); 
+                    var localeDTstring = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
                     if ( ((acc1.AC) || (acc1.grandidati.AC)) && mode=='acc' ) { // get dates of scenarios in ACC
-                        targetlist.append(`<option value='` + obj[i].data + `'>` + obj[i].dateObserved + `</option>`);
+                        targetlist.append(`<option value='` + obj[i].data + `'>` + localeDTstring + `</option>`);
                     } else if ( !((acc1.AC) || (acc1.grandidati.AC)) && mode=='init' ){                        
-                        targetlist.append(`<option value='` + obj[i].data + `'>` + obj[i].dateObserved + `</option>`);
+                        targetlist.append(`<option value='` + obj[i].data + `'>` + localeDTstring + `</option>`);
                     }
                 }
                 targetlist[0].disabled = false;
@@ -10443,7 +10521,7 @@ if (!isset($_SESSION)) {
         //NEW
         //const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
         // questa ha funzionato -> const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
-        const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
+        const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 60000`;
         return sparqlEndpoint + query;
     }
 
@@ -10452,7 +10530,7 @@ if (!isset($_SESSION)) {
         const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";
         //const sparqlEndpoint =  "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";  
         // Sostituisci con l'endpoint SPARQL corretto            
-        const query = `SELECT ?node_id as ?node ?where_id as ?from ?toward_id as ?to ?restriction WHERE {?r a km4c:TurnRestriction; km4c:node ?node; km4c:where ?where; km4c:toward ?toward; km4c:restriction ?restriction. ?node dct:identifier ?node_id. ?where dct:identifier ?where_id. ?toward dct:identifier ?toward_id. ?node geo:geometry ?p. FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'), ?p ) ) } LIMIT 16000`;
+        const query = `SELECT ?node_id as ?node ?where_id as ?from ?toward_id as ?to ?restriction WHERE {?r a km4c:TurnRestriction; km4c:node ?node; km4c:where ?where; km4c:toward ?toward; km4c:restriction ?restriction. ?node dct:identifier ?node_id. ?where dct:identifier ?where_id. ?toward dct:identifier ?toward_id. ?node geo:geometry ?p. FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'), ?p ) ) } LIMIT 60000`;
         return sparqlEndpoint + query;
     }
 
@@ -10563,10 +10641,16 @@ if (!isset($_SESSION)) {
         // //console.log(restrinctions_list); 
         // //
         // //const allowedHighwayTypes = ["primary", "tertiary", "residential", "unclassified"];              
+        
+        $('#road_types').prop('disabled', true);
+        $('#view_mod').prop('disabled', true);
+        $('#edit_lines').prop('disabled', true);
+        
         try {
             if(modality == 'create'){
 
                 restriction_data = [];
+                saveLoadGraph = [];
 
                 // get road graph from KB
                 const response = await fetch(sparqlQuery);
@@ -11193,7 +11277,21 @@ if (!isset($_SESSION)) {
                             }
 
                         }
+                        
+                        if(strada.errors && strada.errors.length >0){
+                            var errorField = '<td style="color:#FF0000">';
+                            for(let i = 0; i < strada.errors.length; i++){
+                                if(i>0){
+                                    errorField = errorField + '</br>';
+                                }
+                                errorField = errorField + strada.errors[i];                                
+                            }
+                            errorField = errorField + '</td>';
+                            descrStrada = descrStrada.replace('</tbody>', '<tr><td><b style="color:#FF0000">Errors</b></td>'+ errorField +'</tr></tbody>');
+                        }
+                         
                         //EDITABLE 
+                        
                         width_popup = 450;
 
                     } else { // POPUP CONSTRUCTION WHEN IN VIEW, i.e. NOT (roadElementGraph.mode !== 'view') 
@@ -11289,6 +11387,18 @@ if (!isset($_SESSION)) {
                                 }
                             }
                             descrStrada = descrStrada.replace('<tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table>', string_restriciton + '</tbody></table>');
+                        }
+
+                        if(strada.errors && strada.errors.length >0){
+                            var errorField = '<td style="color:#FF0000">';
+                            for(let i = 0; i < strada.errors.length; i++){
+                                if(i>0){
+                                    errorField = errorField + '</br>';
+                                }
+                                errorField = errorField + strada.errors[i];                                
+                            }
+                            errorField = errorField + '</td>';
+                            descrStrada = descrStrada.replace('</tbody>', '<tr><td><b style="color:#FF0000">Errors</b></td>'+ errorField +'</tr></tbody>');
                         }
                     } // END POPUP CONSTRUCTION (BOTH IN EDIT AND IN VIEW)
 
@@ -11942,15 +12052,21 @@ if (!isset($_SESSION)) {
 
         } catch (error) {
             console.error("Error fetching SPARQL data:", error);
+            // $('#road_types').prop('disabled', false);
+            $('#view_mod').prop('disabled', false);
+            $('#edit_lines').prop('disabled', false);
         }
-
-
+        if(currentLoadedStatus == 'init'){
+            $('#road_types').prop('disabled', false);
+        }
+        $('#view_mod').prop('disabled', false);
+        $('#edit_lines').prop('disabled', false);
 
     }
 
 
     // funzione per leggere i dati da un device
-    async function readFromDevice(lAccessToken, deviceName) {
+    async function readFromDevice(lAccessToken, deviceName, dateObserved=null) {
         //await getLAccessToken();  
         var listScen = await getLAccessToken();
         if (listScen != undefined) {
@@ -11977,17 +12093,43 @@ if (!isset($_SESSION)) {
             if (ilbrokerdellorganizzazione == null){
                 ilbrokerdellorganizzazione = 'orionUNIFI';
             } */
-            const url = "<?= $mainsuperservicemap; ?>" + "?serviceUri=" + "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + `/${deviceName}&maxResults=10`;
-            console.log(url);
-            const response = await fetch(url, { // oppure metti urlencoded
-                method: "GET",
-                headers: header
-            });
-            if (!response.ok) {
-                throw new Error(`Error fetching sensor data: ${response.status}`);
+            var jsonResponse = ''
+            if(dateObserved == null){
+                const url = "<?= $mainsuperservicemap; ?>" + "?serviceUri=" + "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + `/${deviceName}&maxResults=10`;
+                console.log(url);
+                const response = await fetch(url, { // oppure metti urlencoded
+                    method: "GET",
+                    headers: header
+                });
+                if (!response.ok) {
+                    throw new Error(`Error fetching sensor data: ${response.status}`);
+                }
+                jsonResponse = await response.json();                
+            } else {
+                dateObserved = dateObserved.split('.')[0];
+                const url = "<?= $mainsuperservicemap; ?>" + "?serviceUri=" + "<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + `/${deviceName}&realtime=true&fromTime=2020-01-01T00:00:00`;
+                console.log(url);
+                const response = await fetch(url, { // oppure metti urlencoded
+                    method: "GET",
+                    headers: header
+                });
+                if (!response.ok) {
+                    throw new Error(`Error fetching sensor data: ${response.status}`);
+                }
+                var res = await response.json();
+                var newBindings = [];             
+                for (let i = 0; i < res.realtime.results.bindings.length; i++){
+                    var dt = res.realtime.results.bindings[i].dateObserved.value;
+                    dt = dt.split('.');
+                    dt = dt[0];
+                    if (dt == dateObserved){
+                        newBindings.push(res.realtime.results.bindings[i]);
+                    }
+                }
+                res.realtime.results.bindings = newBindings;
+                jsonResponse = res;
             }
-            const jsonResponse = await response.json();
-            return jsonResponse
+            return jsonResponse;
         } catch (error) {
             console.error("Oops: Something Else", error);
         }
@@ -12046,23 +12188,26 @@ if (!isset($_SESSION)) {
 
         //parte controllo dateObserved se passato e se valido
         if (dateObserved === '') {
-            dateObserved = new Date();
-            dateObserved.setHours(dateObserved.getHours() + 2);
-            dateObserved = dateObserved.toISOString().replace('T', ' ').split('.')[0];
-        } else {
-            try {
-                let parsedDate = new Date(dateObserved);
-                parsedDate.setHours(parsedDate.getHours() + 2); // TODO: remove the fixed timezone (what happens when passing from legal to solar hour?)
-                if (isNaN(parsedDate.getTime())) {
-                    throw new Error('Invalid date format');
-                }
-                dateObserved = parsedDate.toISOString().replace('T', ' ').split('.')[0];
-            } catch (error) {
-                console.log("dateObserved non è nel formato corretto ('%Y-%m-%d %H:%M:%S')");
-                console.log("aggiornato all'ora corrente");
-                dateObserved = new Date().toISOString().replace('T', ' ').split('.')[0];
-            }
-        }
+            // dateObserved = new Date();
+            // dateObserved.setHours(dateObserved.getHours() + 2);
+            // dateObserved = dateObserved.toISOString().replace('T', ' ').split('.')[0];
+            dateObserved = new Date().toISOString(); // this is set in GMT/UTC timezone
+        } 
+        // else {
+        //     try {
+        //         let parsedDate = new Date(dateObserved);
+        //         parsedDate.setHours(parsedDate.getHours() + 2); // TODO: remove the fixed timezone (what happens when passing from legal to solar hour?)
+        //         if (isNaN(parsedDate.getTime())) {
+        //             throw new Error('Invalid date format');
+        //         }
+        //         dateObserved = parsedDate.toISOString().replace('T', ' ').split('.')[0];
+        //     } catch (error) {
+        //         console.log("dateObserved non è nel formato corretto ('%Y-%m-%d %H:%M:%S')");
+        //         console.log("aggiornato all'ora corrente");
+        //         dateObserved = new Date().toISOString().replace('T', ' ').split('.')[0];
+        //     }
+        // }
+        dateObserved = dateObserved.replace('T', ' ').split('.')[0];
 
         const url = "<?= $endprocessloader; ?>" + `postIt.php?suri=${suri}&accessToken=${lAccessToken}&dateObserved=${dateObserved}`;
         const data = {
@@ -12925,6 +13070,11 @@ if (!isset($_SESSION)) {
             map.defaultMapRef.on('draw:created', function (e) {
                 //
                 console.log('event draw:');     
+
+                $('#road_types').prop('disabled', true);
+                $('#view_mod').prop('disabled', true);
+                $('#edit_lines').prop('disabled', true);
+
                 pulisciTutto();
                 currentLoadedStatus = "init";
                 riferimentoSensoriAccorpato = [];
@@ -13310,49 +13460,49 @@ if (!isset($_SESSION)) {
                         return div;
                     };
                     
-                    $('.checkRoadType').click(function () {
-                        console.log('click 2');
-                        var checkboxes = document.querySelectorAll('.checkRoadType:checked');
-                        var selectedRoadTypes = [];
-                        checkboxes.forEach(function (checkbox) {
-                            if (checkbox.checked) {
-                                selectedRoadTypes.push(checkbox.value);
-                            }
-                        });
-                        roadElementGraph.filterTypes = selectedRoadTypes;
-                        roadElementGraph.draw();
+                    // $('.checkRoadType').click(function () {
+                    //     console.log('click 2');
+                    //     var checkboxes = document.querySelectorAll('.checkRoadType:checked');
+                    //     var selectedRoadTypes = [];
+                    //     checkboxes.forEach(function (checkbox) {
+                    //         if (checkbox.checked) {
+                    //             selectedRoadTypes.push(checkbox.value);
+                    //         }
+                    //     });
+                    //     roadElementGraph.filterTypes = selectedRoadTypes;
+                    //     roadElementGraph.draw();
 
-                        $("#SelectNoRoad").prop("checked", false);
-                        $("#selectAllRoad").prop("checked", false);
-                    });
+                    //     $("#SelectNoRoad").prop("checked", false);
+                    //     $("#selectAllRoad").prop("checked", false);
+                    // });
 
-                    $('#selectAllRoad').click(function () {
-                        $(".checkRoadType").prop("checked", true);
-                        $("#SelectNoRoad").prop("checked", false);
-                        var checkboxes = document.querySelectorAll('.checkRoadType:checked');
-                        var selectedRoadTypes = [];
-                        checkboxes.forEach(function (checkbox) {
-                            if (checkbox.checked) {
-                                selectedRoadTypes.push(checkbox.value);
-                            }
-                        });
-                        roadElementGraph.filterTypes = selectedRoadTypes;
-                        roadElementGraph.draw();
-                    });
+                    // $('#selectAllRoad').click(function () {
+                    //     $(".checkRoadType").prop("checked", true);
+                    //     $("#SelectNoRoad").prop("checked", false);
+                    //     var checkboxes = document.querySelectorAll('.checkRoadType:checked');
+                    //     var selectedRoadTypes = [];
+                    //     checkboxes.forEach(function (checkbox) {
+                    //         if (checkbox.checked) {
+                    //             selectedRoadTypes.push(checkbox.value);
+                    //         }
+                    //     });
+                    //     roadElementGraph.filterTypes = selectedRoadTypes;
+                    //     roadElementGraph.draw();
+                    // });
 
-                    $('#SelectNoRoad').click(function () {
-                        $(".checkRoadType").prop("checked", false);
-                        $("#selectAllRoad").prop("checked", false);
-                        var checkboxes = document.querySelectorAll('.checkRoadType:checked');
-                        var selectedRoadTypes = [];
-                        checkboxes.forEach(function (checkbox) {
-                            if (checkbox.checked) {
-                                selectedRoadTypes.push(checkbox.value);
-                            }
-                        });
-                        roadElementGraph.filterTypes = selectedRoadTypes;
-                        roadElementGraph.draw();
-                    });
+                    // $('#SelectNoRoad').click(function () {
+                    //     $(".checkRoadType").prop("checked", false);
+                    //     $("#selectAllRoad").prop("checked", false);
+                    //     var checkboxes = document.querySelectorAll('.checkRoadType:checked');
+                    //     var selectedRoadTypes = [];
+                    //     checkboxes.forEach(function (checkbox) {
+                    //         if (checkbox.checked) {
+                    //             selectedRoadTypes.push(checkbox.value);
+                    //         }
+                    //     });
+                    //     roadElementGraph.filterTypes = selectedRoadTypes;
+                    //     roadElementGraph.draw();
+                    // });
                 }
             });
 
@@ -13657,11 +13807,51 @@ if (!isset($_SESSION)) {
 
             getInits();
 
+            window.addEventListener('message', async function(event) {
+                // Optionally, check event.origin to ensure it's from a trusted source
+                //console.log('Message received from iframe:', event.data);
+
+                if (event.data.event === 'customEventShowACC') {
+                    if (document.getElementById('view_mod').style.backgroundColor == ''){
+                        await goIntoViewMode();
+                    }
+                    const receivedData = event.data.payload;
+                    console.log('customEventShowACC data:', receivedData);
+                    loadACCScenario(event.data);
+                }
+
+                if (event.data.event === 'customEventShowTFRErrors') {
+                    if (document.getElementById('view_mod').style.backgroundColor == ''){
+                        await goIntoViewMode();
+                    }
+                    const receivedData = event.data.payload;
+                    console.log('customEventShowTFRErrors data:', receivedData);
+                    // load the scenario in init
+                    await loadACCScenario(event.data);
+                    // color the segments with errors
+                    for(let i = 0; i < event.data.payload.errors.length; i++){
+                        const reID = event.data.payload.errors[i].reID;
+                        const errString = event.data.payload.errors[i].description;
+
+                        roadElementGraph.segments[reID].hasError = true;
+                        roadElementGraph.segments[reID].errors = [];
+                        roadElementGraph.segments[reID].errors.push(errString);
+                    }
+                    //roadElementGraph.segments['http://www.disit.org/km4city/resource/OS00000000606RE/1'].line.setStyle({color: 'yellow'})
+                    roadElementGraph.draw();
+                }
+            }, false);
+
             
 
             //init list
             async function getInits() {
                 console.log("GET INITS FUNCTION");
+
+                $('#road_types').prop('disabled', true);
+                $('#view_mod').prop('disabled', true);
+                $('#edit_lines').prop('disabled', true);
+
                 //debugger; // Execution will pause here if DevTools are open
                 // Ottieni l'ID del radio button selezionato
                 var selectedId = $(this).attr("id");
@@ -13914,6 +14104,12 @@ if (!isset($_SESSION)) {
                             selectedRoadTypes.push(checkbox.value);
                         }
                     });
+
+                    if (saveLoadGraph.length > 0) {
+                        roadElementGraph.reset();
+                        roadElementGraph.loadGraph(saveLoadGraph);
+                    }
+                    
                     roadElementGraph.filterTypes = selectedRoadTypes;
                     roadElementGraph.draw();
                     //
@@ -13944,23 +14140,45 @@ if (!isset($_SESSION)) {
                     console.log('All Off', istanzedeisensorichestoconsiderando);
                     //
                 });
+
+                // $('#road_types').prop('disabled', false);
+                $('#view_mod').prop('disabled', false);
+                $('#edit_lines').prop('disabled', false);
+                if(roadElementGraph && currentLoadedStatus=='init'){
+                    $('#road_types').prop('disabled', false);
+                }
+
             };
             //
 
             //load Accorped Scenario
-            async function loadACCScenario() {
+            async function loadACCScenario(data = null) {
                 console.log('Load Acc Scenario by function');
                 var buttonToRemove = document.getElementById("scenario-save-finale1");
                 pulisciTutto();
                 //LOADING METADATA
                 await getLAccessToken();
-                ildevicename = $("#scenario-list").val();
-                console.log('ildevicename', ildevicename);
-                currentLoadedScenario = ildevicename;
+
+                if(data != null){
+                    ildevicename = 'deviceName' + data.payload.deviceName;
+                    console.log('ildevicename', ildevicename);
+                    currentLoadedScenario = ildevicename;
+
+                    currentLoadedDate = data.payload.datetime; //local datetime got from the form of the scenairo interface
+                    currentLoadedDate = new Date(currentLoadedDate).toISOString(); // convert datetime to GTM/UTC ISOString
+                } else {
+                    ildevicename = $("#scenario-list").val();
+                    console.log('ildevicename', ildevicename);
+                    currentLoadedScenario = ildevicename;
+
+                    currentLoadedDate = $('#acc-list option:selected').text().replace(" ", "T"); //local datetime got from the form of the scenairo interface
+                    currentLoadedDate = new Date(currentLoadedDate).toISOString(); // convert datetime to GTM/UTC ISOString
+                }
+
                 currentLoadedStatus = "acc";
                 console.log('currentLoadedScenario', currentLoadedScenario);
                 try {
-                    let datidalsensore = await readFromDevice(lAccessToken, ildevicename)
+                    let datidalsensore = await readFromDevice(lAccessToken, ildevicename, currentLoadedDate);
                     questofather = datidalsensore.realtime.results.bindings[0].fatherDateObserved;
                     questofather = (questofather === undefined) ? 'not present' : questofather; // se è non definito lo metti not present
                     let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
@@ -14031,9 +14249,9 @@ if (!isset($_SESSION)) {
                     console.log('shape4', shape);
 
                     const polygonWKT = getPolygonWKTFromScenarioArea(shape);
-                    svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
-                    let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
-                    console.log('ressvolte:', ressvolte);
+                    //svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
+                    //let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+                    //console.log('ressvolte:', ressvolte);
                     
                     //qui devo prendere l'AC e il JS20 adesso dal db non più dal device
                     let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename);                    
@@ -14044,7 +14262,7 @@ if (!isset($_SESSION)) {
                     var total_resDalDB = resDalDB.length;
 
                     //FILTRARE I RISULTATI SULLA BASE DEL DATE OBSERVED
-                    var version = $('#acc-list option:selected').text();
+                    var version = currentLoadedDate.split('.')[0].replace('T', ' '); //$('#acc-list option:selected').text();
                     for (var i = 0; i < total_resDalDB; i++) {
                         if (resDalDB[i].dateObserved == version) {
                             if (JSON.parse(resDalDB[i].data).grandidati) {
@@ -14063,7 +14281,7 @@ if (!isset($_SESSION)) {
                                 riferimentoSensoriAccorpato = []; //svuoto se è rimasto pieno da qualcosa successo prima
                                 for (let index = 0; index < tmpAcData.length; index++) {
                                     if([tmpAcData[index]['sensor'][0]]!="0"){
-                                        tmpAcData[index]['roadElmSpeedLimit'] = tmpAcData[index]['vmax']
+                                        tmpAcData[index]['roadElmSpeedLimit'] = [Math.round(tmpAcData[index]['vmax'][0]/0.2777)];
                                         riferimentoSensoriAccorpato.push(tmpAcData[index]);
                                     }
                                 }
@@ -14083,7 +14301,7 @@ if (!isset($_SESSION)) {
                                 for (let index = 0; index < tmpAcData.length; index++) {
                                     if (tmpAcData[index]['sensor'] == '0') {
                                         tmpAcData[index]['lanes'] = tmpAcData[index]['lanes'][1][0];
-                                        tmpAcData[index]['roadElmSpeedLimit'] = tmpAcData[index]['vmax'];
+                                        tmpAcData[index]['roadElmSpeedLimit'] = Math.round(tmpAcData[index]['vmax']/0.2777);
                                     }
                                 }
 
@@ -14114,7 +14332,7 @@ if (!isset($_SESSION)) {
                     loadingboxloaded = true;
                     const roadGraph = JSON.parse(resDalDB[0].data).grandidati.AC;
                     const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
-                    fetchSparqlData(null, null, polygonWKT, tmpAcData, ressvolte, 'load');
+                    fetchSparqlData(null, null, polygonWKT, tmpAcData, null, 'load');
                     //END CREATION NEW SCHEMA
                 } catch (error) {
                     console.error("An error occurred:", error.message);
@@ -14128,6 +14346,10 @@ if (!isset($_SESSION)) {
                 
                 console.log('load scenario function: ' + scenarioLoad);
                 currentLoadedScenario = scenarioLoad;
+
+                currentLoadedDate = $('#scenario-version-list option:selected').text().replace(" ", "T"); //local datetime got from the form of the scenairo interface
+                currentLoadedDate = new Date(currentLoadedDate).toISOString(); // convert datetime to GTM/UTC ISOString
+
                 currentLoadedVersion = $('#scenario-version-list').prop('selectedIndex');
                 currentLoadedStatus = "init";
                 console.log('selectedIndex:', currentLoadedVersion);
@@ -14154,7 +14376,7 @@ if (!isset($_SESSION)) {
                 getLAccessToken();
                 ildevicename = $("#scenario-list").val();
                 try {
-                    let datidalsensore = await readFromDevice(lAccessToken, selectScenario);
+                    let datidalsensore = await readFromDevice(lAccessToken, selectScenario, currentLoadedDate);
                     console.dir('datidalsensore', datidalsensore);
                     var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
                     //
@@ -14230,17 +14452,16 @@ if (!isset($_SESSION)) {
                     // //console.log(svoltesparqlquery)
                     // let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
                     
-                    
-                    
-                    //
-                    //
-                    var roadGraph = '';
-                    var version = $('#scenario-version-list').val();
-                    var selectedVersion = JSON.parse(version);
-                    console.log('version', selectedVersion);
+                    var roadGraph = '';                    
                     var filters = '';
                     var sensors = [];
 
+                    // Data from DB is fetched during the creation of the datetime list ('#scenario-version-list') 
+                    // and appended in the <option> tag in the value field. Then the value field is red,
+                    // parsed as a JSON as saved in the selectedVersion variable
+                    var version = $('#scenario-version-list').val();
+                    var selectedVersion = JSON.parse(version);
+                    console.log('version', selectedVersion);
                     if ((selectedVersion !== '') && (selectedVersion != null)) {
                         if (selectedVersion.grandidati.filters) {
                             filters = selectedVersion.grandidati.filters;
@@ -14255,6 +14476,8 @@ if (!isset($_SESSION)) {
                             restriction_data = selectedVersion.grandidati.restrictions;
                         }
                     } else {
+                        // since DB data are already fetched when creating the datetime list, 
+                        // the flow should not enter in this block of code
                         let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + selectScenario);
                         console.dir(resDalDB);
                         var l = resDalDB.length;
@@ -14418,359 +14641,359 @@ if (!isset($_SESSION)) {
                 loadACCScenario();
             });
 
-            $('#scenario-check-acc2').click(async function () {
-                console.log('scenario-check-acc1 NEW');
-                //
-                //LOADING METADATA
-                currentLoadedScenario = $('#scenario-list').val();
-                // Rimuovi il bottone del save finale se è rimasto pending
-                var buttonToRemove = document.getElementById("scenario-save-finale1");
-                pulisciTutto();
-                await getLAccessToken();
-                // Ottieni il valore selezionato utilizzando jQuery
-                ildevicename = $("#scenario-list").val();
-                console.log('ildevicename', ildevicename);
-                // Ora puoi utilizzare selectedValue come necessario
-                try {
-                    let datidalsensore = await readFromDevice(lAccessToken, ildevicename)
-                    let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
-                    if (lostatus == 'init') {
-                        showNotification("status still init and not acc");
-                    } else if (lostatus == "acc" || lostatus == "tfr") {
-                        if (lostatus == "acc") {
-                            showNotification("Successfully loaded!");
-                        } else if (lostatus == "tfr") {
-                            showNotification("tfr yet defined");
-                        }
+            // $('#scenario-check-acc2').click(async function () {
+            //     console.log('scenario-check-acc1 NEW');
+            //     //
+            //     //LOADING METADATA
+            //     currentLoadedScenario = $('#scenario-list').val();
+            //     // Rimuovi il bottone del save finale se è rimasto pending
+            //     var buttonToRemove = document.getElementById("scenario-save-finale1");
+            //     pulisciTutto();
+            //     await getLAccessToken();
+            //     // Ottieni il valore selezionato utilizzando jQuery
+            //     ildevicename = $("#scenario-list").val();
+            //     console.log('ildevicename', ildevicename);
+            //     // Ora puoi utilizzare selectedValue come necessario
+            //     try {
+            //         let datidalsensore = await readFromDevice(lAccessToken, ildevicename)
+            //         let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
+            //         if (lostatus == 'init') {
+            //             showNotification("status still init and not acc");
+            //         } else if (lostatus == "acc" || lostatus == "tfr") {
+            //             if (lostatus == "acc") {
+            //                 showNotification("Successfully loaded!");
+            //             } else if (lostatus == "tfr") {
+            //                 showNotification("tfr yet defined");
+            //             }
 
-                        // DRAW SHAPE
-                        let datidalsensore = await readFromDevice(lAccessToken, ildevicename);
-                        console.dir(datidalsensore);
-                        var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
-                        //
-                        var arrayShape = shape[0].geometry.coordinates[0];
-                        var minY = arrayShape[0][1];
-                        var minX = arrayShape[0][0];
-                        var maxY = arrayShape[0][1];
-                        var maxX = arrayShape[0][0];
-                        for (let coord of arrayShape) {
-                            if (coord[1] < minY) {
-                                minY = coord[1]
-                            }
-                            if (coord[0] < minX) {
-                                minX = coord[0]
-                            }
-                            if (coord[1] > maxY) {
-                                maxY = coord[1]
-                            }
-                            if (coord[0] > maxX) {
-                                maxX = coord[0]
-                            }
-                        }
-                        //
-                        scenaryData = new L.geoJSON();
-                        scenaryData.type = "FeatureCollection";
-                        scenaryData.features = shape;
-                        //
-                        console.log('scenaryData.feature: ', scenaryData.features);
-                        ///////////load sensors
-                        var otherSensors_load = "";
-                        if (datidalsensore.realtime.results.bindings[0].otherSensors !== undefined) {
-                            otherSensors_load = datidalsensore.realtime.results.bindings[0].otherSensors.value;
-                            otherSensors_load = otherSensors_load.slice(1, -1);
-                            var arrayURL = otherSensors_load.split(", ");
-                            scenaryOtherSensors = arrayURL;
-                            if (scenaryOtherSensors.length > 0) {
-                                //CARICAMENTO DATI
-                                var suri = scenaryOtherSensors;
-                                loadScenarioSensor(suri);                           
-                            }
+            //             // DRAW SHAPE
+            //             let datidalsensore = await readFromDevice(lAccessToken, ildevicename);
+            //             console.dir(datidalsensore);
+            //             var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
+            //             //
+            //             var arrayShape = shape[0].geometry.coordinates[0];
+            //             var minY = arrayShape[0][1];
+            //             var minX = arrayShape[0][0];
+            //             var maxY = arrayShape[0][1];
+            //             var maxX = arrayShape[0][0];
+            //             for (let coord of arrayShape) {
+            //                 if (coord[1] < minY) {
+            //                     minY = coord[1]
+            //                 }
+            //                 if (coord[0] < minX) {
+            //                     minX = coord[0]
+            //                 }
+            //                 if (coord[1] > maxY) {
+            //                     maxY = coord[1]
+            //                 }
+            //                 if (coord[0] > maxX) {
+            //                     maxX = coord[0]
+            //                 }
+            //             }
+            //             //
+            //             scenaryData = new L.geoJSON();
+            //             scenaryData.type = "FeatureCollection";
+            //             scenaryData.features = shape;
+            //             //
+            //             console.log('scenaryData.feature: ', scenaryData.features);
+            //             ///////////load sensors
+            //             var otherSensors_load = "";
+            //             if (datidalsensore.realtime.results.bindings[0].otherSensors !== undefined) {
+            //                 otherSensors_load = datidalsensore.realtime.results.bindings[0].otherSensors.value;
+            //                 otherSensors_load = otherSensors_load.slice(1, -1);
+            //                 var arrayURL = otherSensors_load.split(", ");
+            //                 scenaryOtherSensors = arrayURL;
+            //                 if (scenaryOtherSensors.length > 0) {
+            //                     //CARICAMENTO DATI
+            //                     var suri = scenaryOtherSensors;
+            //                     loadScenarioSensor(suri);                           
+            //                 }
 
-                        }
-                        //
-                        function coordinateOrder(array) {
-                            return array.map(function (coordinate) {
-                                return [coordinate[1], coordinate[0]];  // Inverti l'ordine da [latitudine, longitudine] a [longitudine, latitudine]
-                            });
-                        }
-                        //
-                        var arrayshape2 = coordinateOrder(arrayShape);
-                        var polygon = L.polygon(arrayshape2);
-                        console.log('polygon', arrayshape2);
+            //             }
+            //             //
+            //             function coordinateOrder(array) {
+            //                 return array.map(function (coordinate) {
+            //                     return [coordinate[1], coordinate[0]];  // Inverti l'ordine da [latitudine, longitudine] a [longitudine, latitudine]
+            //                 });
+            //             }
+            //             //
+            //             var arrayshape2 = coordinateOrder(arrayShape);
+            //             var polygon = L.polygon(arrayshape2);
+            //             console.log('polygon', arrayshape2);
 
-                        scenaryDrawnItems = new L.FeatureGroup();
-                        layer = polygon;
-                        scenaryData.features.push(shape);
-                        scenaryDrawnItems.addLayer(layer);
-                        map.defaultMapRef.addLayer(scenaryDrawnItems);
-                        //
-                        console.log('shape4', shape);
+            //             scenaryDrawnItems = new L.FeatureGroup();
+            //             layer = polygon;
+            //             scenaryData.features.push(shape);
+            //             scenaryDrawnItems.addLayer(layer);
+            //             map.defaultMapRef.addLayer(scenaryDrawnItems);
+            //             //
+            //             console.log('shape4', shape);
 
-                        const polygonWKT = getPolygonWKTFromScenarioArea(shape);
-                        svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
-                        let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
-                        console.log('ressvolte:', ressvolte);
+            //             const polygonWKT = getPolygonWKTFromScenarioArea(shape);
+            //             svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
+            //             let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+            //             console.log('ressvolte:', ressvolte);
                         
-                        //qui devo prendere l'AC e il JS20 adesso dal db non più dal device
-                        let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename);
-                        console.dir('resDalDB', resDalDB[0]);
-                        let tmpRDGraph = '';
-                        let tmpAcData = '';
+            //             //qui devo prendere l'AC e il JS20 adesso dal db non più dal device
+            //             let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename);
+            //             console.dir('resDalDB', resDalDB[0]);
+            //             let tmpRDGraph = '';
+            //             let tmpAcData = '';
 
-                        if (JSON.parse(resDalDB[0].data).grandidati) {
-                            tmpRDGraph = JSON.parse(resDalDB[0].data).grandidati.roadGraph;
-                            tmpAcData = JSON.parse(resDalDB[0].data).grandidati.AC;
-                            acData = JSON.parse(resDalDB[0].data).grandidati.AC;
-                            js20Data = JSON.parse(resDalDB[0].data).grandidati.JS20;
-                            console.log('tmpAcData', tmpAcData);
+            //             if (JSON.parse(resDalDB[0].data).grandidati) {
+            //                 tmpRDGraph = JSON.parse(resDalDB[0].data).grandidati.roadGraph;
+            //                 tmpAcData = JSON.parse(resDalDB[0].data).grandidati.AC;
+            //                 acData = JSON.parse(resDalDB[0].data).grandidati.AC;
+            //                 js20Data = JSON.parse(resDalDB[0].data).grandidati.JS20;
+            //                 console.log('tmpAcData', tmpAcData);
                             
-                            tmpAcData.forEach(obj => {
-                                for (let key in obj) {
-                                    if (Array.isArray(obj[key])) {
-                                        obj[key] = obj[key][0];
-                                    }
-                                }
-                            });
+            //                 tmpAcData.forEach(obj => {
+            //                     for (let key in obj) {
+            //                         if (Array.isArray(obj[key])) {
+            //                             obj[key] = obj[key][0];
+            //                         }
+            //                     }
+            //                 });
 
-                            // ENRICO: aggiusto le lanes e roadElemSpeedLimit per visualizzazione dell'accorpato di questi parametri
-                            for (let index = 0; index < tmpAcData.length; index++) {
-                                if (tmpAcData[index]['sensor'] == '0') {
-                                    tmpAcData[index]['lanes'] = tmpAcData[index]['lanes'][1][0];
-                                    tmpAcData[index]['roadElemSpeedLimit'] = tmpAcData[index]['vmax'];
-                                }
-                            }
-                        } else {
-                            let tmpRDGraph = JSON.parse(resDalDB[0].data).roadGraph;
-                            tmpAcData = JSON.parse(resDalDB[0].data).AC;
-                            acData = JSON.parse(resDalDB[0].data).AC;
-                            js20Data = JSON.parse(resDalDB[0].data).JS20;
-                            //
-                            for (let key in tmpAcData) {
-                                if (Array.isArray(tmpAcData[key])) {
-                                    // Assegnare il primo elemento dell'array come nuovo valore della proprietà
-                                    tmpAcData[key] = tmpAcData[key][0];
-                                }
-                            }
-                            //
-                            console.log('tmpAcData', tmpAcData);
-                        }
-                        //
-                        loadingboxloaded = true;
-                        //CREATION NEW SCHEMA
-                        const roadGraph = JSON.parse(resDalDB[0].data).grandidati.AC;
-                        const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
-                        fetchSparqlData(null, null, polygonWKT, tmpAcData, ressvolte, 'load');
-                        //END CREATION NEW SCHEMA
+            //                 // ENRICO: aggiusto le lanes e roadElemSpeedLimit per visualizzazione dell'accorpato di questi parametri
+            //                 for (let index = 0; index < tmpAcData.length; index++) {
+            //                     if (tmpAcData[index]['sensor'] == '0') {
+            //                         tmpAcData[index]['lanes'] = tmpAcData[index]['lanes'][1][0];
+            //                         tmpAcData[index]['roadElemSpeedLimit'] = tmpAcData[index]['vmax'];
+            //                     }
+            //                 }
+            //             } else {
+            //                 let tmpRDGraph = JSON.parse(resDalDB[0].data).roadGraph;
+            //                 tmpAcData = JSON.parse(resDalDB[0].data).AC;
+            //                 acData = JSON.parse(resDalDB[0].data).AC;
+            //                 js20Data = JSON.parse(resDalDB[0].data).JS20;
+            //                 //
+            //                 for (let key in tmpAcData) {
+            //                     if (Array.isArray(tmpAcData[key])) {
+            //                         // Assegnare il primo elemento dell'array come nuovo valore della proprietà
+            //                         tmpAcData[key] = tmpAcData[key][0];
+            //                     }
+            //                 }
+            //                 //
+            //                 console.log('tmpAcData', tmpAcData);
+            //             }
+            //             //
+            //             loadingboxloaded = true;
+            //             //CREATION NEW SCHEMA
+            //             const roadGraph = JSON.parse(resDalDB[0].data).grandidati.AC;
+            //             const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
+            //             fetchSparqlData(null, null, polygonWKT, tmpAcData, ressvolte, 'load');
+            //             //END CREATION NEW SCHEMA
                         
-                        $('#scenario-save-finale1').on('click', async function () {
+            //             $('#scenario-save-finale1').on('click', async function () {
                             
-                            ildevicenametest = $("#scenario-list").val();
-                            if (ildevicenametest != ildevicename) {
-                                showNotification("Device name is no more consistent");
-                                // Rimuovi il bottone del save finale se è rimasto pending
-                                var buttonToRemove = document.getElementById("scenario-save-finale1");
-                                if (buttonToRemove) {
-                                    buttonToRemove.remove();
-                                    isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
-                                }
-                                //rimuovi anche l'AC se è rimasto da uno scenario precedente
-                                if (scenaryData.features.length >= 0) {
-                                    // Rimuovi i layer dei disegni
-                                    for (const layerId in scenaryDrawnItems._layers) {
-                                        scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
-                                    }
-                                    scenaryData.features = []; // reinizializzo questa variabile
-                                    // Rimuovi i marker associati
-                                    for (const layerId in scenaryMarkers._layers) {
-                                        const marker = scenaryMarkers._layers[layerId];
-                                        scenaryMarkers.removeLayer(marker);
-                                    }
-                                    // Rimuovi il vecchio grafo
-                                    for (const layerId in scenaryGrafo._layers) {
-                                        const grafo = scenaryGrafo._layers[layerId];
-                                        scenaryGrafo.removeLayer(grafo);
-                                    }
-                                    datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
-                                    istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
-                                    istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
-                                }
-                            } else {
-                                // codice per aggiungere le svolte
-                                let areaOfInt = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value);
-                                ilpolygonWKT = getPolygonWKTFromScenarioArea(areaOfInt.scenarioareaOfInterest);
-                                svoltesparqlquery = buildSparqlQueryURLsvolte(ilpolygonWKT);
-                                console.log(svoltesparqlquery)
-                                let ressvolte = await fetchSparqlDataSvolte(svoltesparqlquery);
-                                let svolte = ressvolte.results.bindings;
-                                var listScen = await getLAccessToken();
-                                if (listScen != undefined) {
-                                    var listScen1 = JSON.parse(listScen);
-                                    if (listScen1.accessToken) {
-                                        lAccessToken = listScen1.accessToken;
-                                    }
-                                }
-                                try {
-                                    tdmaato = await sendDataACC(lAccessToken, ildevicename, js20Data, acData, svolte);
-                                    // invio anche i grandi dati al DB
-                                    sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename,
-                                        {
-                                            "roadGraph": tmpRDGraph,
-                                            "AC": tmpAcData,
-                                            "JS20": js20Data,
-                                            "TDM": acData
-                                        })
-                                    if (tdmaato == "tdmok") {
-                                        showNotification("Device tdm updated succesfully!");
-                                    } else {
-                                        showNotification("Device tdm error");
-                                    }
-                                } catch {
-                                    showNotification("Device tdm error");
-                                }
-                            }
-                        });     
-                    } else {
-                        console.log("error non gestito")
-                    }
-                } catch (error) {
-                    console.error("An error occurred:", error.message);
-                }                                               
-            });
+            //                 ildevicenametest = $("#scenario-list").val();
+            //                 if (ildevicenametest != ildevicename) {
+            //                     showNotification("Device name is no more consistent");
+            //                     // Rimuovi il bottone del save finale se è rimasto pending
+            //                     var buttonToRemove = document.getElementById("scenario-save-finale1");
+            //                     if (buttonToRemove) {
+            //                         buttonToRemove.remove();
+            //                         isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+            //                     }
+            //                     //rimuovi anche l'AC se è rimasto da uno scenario precedente
+            //                     if (scenaryData.features.length >= 0) {
+            //                         // Rimuovi i layer dei disegni
+            //                         for (const layerId in scenaryDrawnItems._layers) {
+            //                             scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+            //                         }
+            //                         scenaryData.features = []; // reinizializzo questa variabile
+            //                         // Rimuovi i marker associati
+            //                         for (const layerId in scenaryMarkers._layers) {
+            //                             const marker = scenaryMarkers._layers[layerId];
+            //                             scenaryMarkers.removeLayer(marker);
+            //                         }
+            //                         // Rimuovi il vecchio grafo
+            //                         for (const layerId in scenaryGrafo._layers) {
+            //                             const grafo = scenaryGrafo._layers[layerId];
+            //                             scenaryGrafo.removeLayer(grafo);
+            //                         }
+            //                         datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+            //                         istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+            //                         istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+            //                     }
+            //                 } else {
+            //                     // codice per aggiungere le svolte
+            //                     let areaOfInt = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value);
+            //                     ilpolygonWKT = getPolygonWKTFromScenarioArea(areaOfInt.scenarioareaOfInterest);
+            //                     svoltesparqlquery = buildSparqlQueryURLsvolte(ilpolygonWKT);
+            //                     console.log(svoltesparqlquery)
+            //                     let ressvolte = await fetchSparqlDataSvolte(svoltesparqlquery);
+            //                     let svolte = ressvolte.results.bindings;
+            //                     var listScen = await getLAccessToken();
+            //                     if (listScen != undefined) {
+            //                         var listScen1 = JSON.parse(listScen);
+            //                         if (listScen1.accessToken) {
+            //                             lAccessToken = listScen1.accessToken;
+            //                         }
+            //                     }
+            //                     try {
+            //                         tdmaato = await sendDataACC(lAccessToken, ildevicename, js20Data, acData, svolte);
+            //                         // invio anche i grandi dati al DB
+            //                         sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename,
+            //                             {
+            //                                 "roadGraph": tmpRDGraph,
+            //                                 "AC": tmpAcData,
+            //                                 "JS20": js20Data,
+            //                                 "TDM": acData
+            //                             })
+            //                         if (tdmaato == "tdmok") {
+            //                             showNotification("Device tdm updated succesfully!");
+            //                         } else {
+            //                             showNotification("Device tdm error");
+            //                         }
+            //                     } catch {
+            //                         showNotification("Device tdm error");
+            //                     }
+            //                 }
+            //             });     
+            //         } else {
+            //             console.log("error non gestito")
+            //         }
+            //     } catch (error) {
+            //         console.error("An error occurred:", error.message);
+            //     }                                               
+            // });
 
             /////////TDM çLOad
-            $('#scenario-check-tdm').click(async function () {
-                console.log('scenario-check-tdm NEW');
-                // Rimuovi il bottone del save finale se è rimasto pending
-                var buttonToRemove = document.getElementById("scenario-save-finale1");
-                if (buttonToRemove) {
-                    buttonToRemove.remove();
-                    isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
-                }
-                //rimuovi anche l'AC se è rimasto da uno scenario precedente
-                if (scenaryData.features.length >= 0) {
-                    // Rimuovi i layer dei disegni
-                    for (const layerId in scenaryDrawnItems._layers) {
-                        scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
-                    }
-                    scenaryData.features = []; // reinizializzo questa variabile
-                    // Rimuovi i marker associati
-                    for (const layerId in scenaryMarkers._layers) {
-                        const marker = scenaryMarkers._layers[layerId];
-                        scenaryMarkers.removeLayer(marker);
-                    }
-                    // Rimuovi il vecchio grafo
-                    for (const layerId in scenaryGrafo._layers) {
-                        const grafo = scenaryGrafo._layers[layerId];
-                        scenaryGrafo.removeLayer(grafo);
-                    }
-                    datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
-                    istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
-                    istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
-                }
-                await getLAccessToken();
-                ildevicename = $("#scenario-tdm-list").val();
-                console.log('ildevicename', ildevicename);
-                // Ora puoi utilizzare selectedValue come necessario
-                try {
-                    let datidalsensore = await readFromDevice(lAccessToken, ildevicename)
-                    let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
-                    if (lostatus == 'init') {
-                        showNotification("status still init and not acc");
-                    }
-                    else if (lostatus == "acc" || lostatus == "tfr") {
-                        if (lostatus == "tfr") {
-                            showNotification("Successfully loaded!");
-                        } else if (lostatus == "tfr") {
-                            showNotification("tfr yet defined");
-                        }
+            // $('#scenario-check-tdm').click(async function () {
+            //     console.log('scenario-check-tdm NEW');
+            //     // Rimuovi il bottone del save finale se è rimasto pending
+            //     var buttonToRemove = document.getElementById("scenario-save-finale1");
+            //     if (buttonToRemove) {
+            //         buttonToRemove.remove();
+            //         isSaveFinalSet = false; // Imposta la variabile a false per indicare che il bottone è stato rimosso
+            //     }
+            //     //rimuovi anche l'AC se è rimasto da uno scenario precedente
+            //     if (scenaryData.features.length >= 0) {
+            //         // Rimuovi i layer dei disegni
+            //         for (const layerId in scenaryDrawnItems._layers) {
+            //             scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+            //         }
+            //         scenaryData.features = []; // reinizializzo questa variabile
+            //         // Rimuovi i marker associati
+            //         for (const layerId in scenaryMarkers._layers) {
+            //             const marker = scenaryMarkers._layers[layerId];
+            //             scenaryMarkers.removeLayer(marker);
+            //         }
+            //         // Rimuovi il vecchio grafo
+            //         for (const layerId in scenaryGrafo._layers) {
+            //             const grafo = scenaryGrafo._layers[layerId];
+            //             scenaryGrafo.removeLayer(grafo);
+            //         }
+            //         datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+            //         istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+            //         istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+            //     }
+            //     await getLAccessToken();
+            //     ildevicename = $("#scenario-tdm-list").val();
+            //     console.log('ildevicename', ildevicename);
+            //     // Ora puoi utilizzare selectedValue come necessario
+            //     try {
+            //         let datidalsensore = await readFromDevice(lAccessToken, ildevicename)
+            //         let lostatus = datidalsensore.realtime.results.bindings[0].status.value;
+            //         if (lostatus == 'init') {
+            //             showNotification("status still init and not acc");
+            //         }
+            //         else if (lostatus == "acc" || lostatus == "tfr") {
+            //             if (lostatus == "tfr") {
+            //                 showNotification("Successfully loaded!");
+            //             } else if (lostatus == "tfr") {
+            //                 showNotification("tfr yet defined");
+            //             }
 
-                        // DRAW SHAPE
-                        let datidalsensore = await readFromDevice(lAccessToken, ildevicename);
-                        console.dir(datidalsensore);
-                        var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
-                        //
-                        var arrayShape = shape[0].geometry.coordinates[0];
-                        var minY = arrayShape[0][1];
-                        var minX = arrayShape[0][0];
-                        var maxY = arrayShape[0][1];
-                        var maxX = arrayShape[0][0];
-                        for (let coord of arrayShape) {
-                            if (coord[1] < minY) {
-                                minY = coord[1]
-                            }
-                            if (coord[0] < minX) {
-                                minX = coord[0]
-                            }
-                            if (coord[1] > maxY) {
-                                maxY = coord[1]
-                            }
-                            if (coord[0] > maxX) {
-                                maxX = coord[0]
-                            }
-                        }
-                        //
-                        scenaryData = new L.geoJSON();
-                        scenaryData.type = "FeatureCollection";
-                        scenaryData.features = shape;
-                        //
-                        console.log('scenaryData.feature: ', scenaryData.features);
-                        ///////////load sensors
-                        var otherSensors_load = "";
-                        if (datidalsensore.realtime.results.bindings[0].otherSensors !== undefined) {
-                            otherSensors_load = datidalsensore.realtime.results.bindings[0].otherSensors.value;
-                            otherSensors_load = otherSensors_load.slice(1, -1);
-                            var arrayURL = otherSensors_load.split(", ");
-                            scenaryOtherSensors = arrayURL;
-                            if (scenaryOtherSensors.length > 0) {
-                                var suri = scenaryOtherSensors;
-                                loadScenarioSensor(suri);                                      
-                            }
-                        }
-                        //
-                        function coordinateOrder(array) {
-                            return array.map(function (coordinate) {
-                                return [coordinate[1], coordinate[0]];  // Inverti l'ordine da [latitudine, longitudine] a [longitudine, latitudine]
-                            });
-                        }
-                        //
-                        var arrayshape2 = coordinateOrder(arrayShape);
-                        var polygon = L.polygon(arrayshape2);
-                        console.log('polygon', arrayshape2);
-                        //
-                        scenaryDrawnItems = new L.FeatureGroup();
-                        layer = polygon;
-                        scenaryData.features.push(shape);
-                        scenaryDrawnItems.addLayer(layer);
-                        map.defaultMapRef.addLayer(scenaryDrawnItems);
-                        //
-                        console.log('shape5', shape);
+            //             // DRAW SHAPE
+            //             let datidalsensore = await readFromDevice(lAccessToken, ildevicename);
+            //             console.dir(datidalsensore);
+            //             var shape = JSON.parse(datidalsensore.realtime.results.bindings[0].areaOfInterest.value).scenarioareaOfInterest;
+            //             //
+            //             var arrayShape = shape[0].geometry.coordinates[0];
+            //             var minY = arrayShape[0][1];
+            //             var minX = arrayShape[0][0];
+            //             var maxY = arrayShape[0][1];
+            //             var maxX = arrayShape[0][0];
+            //             for (let coord of arrayShape) {
+            //                 if (coord[1] < minY) {
+            //                     minY = coord[1]
+            //                 }
+            //                 if (coord[0] < minX) {
+            //                     minX = coord[0]
+            //                 }
+            //                 if (coord[1] > maxY) {
+            //                     maxY = coord[1]
+            //                 }
+            //                 if (coord[0] > maxX) {
+            //                     maxX = coord[0]
+            //                 }
+            //             }
+            //             //
+            //             scenaryData = new L.geoJSON();
+            //             scenaryData.type = "FeatureCollection";
+            //             scenaryData.features = shape;
+            //             //
+            //             console.log('scenaryData.feature: ', scenaryData.features);
+            //             ///////////load sensors
+            //             var otherSensors_load = "";
+            //             if (datidalsensore.realtime.results.bindings[0].otherSensors !== undefined) {
+            //                 otherSensors_load = datidalsensore.realtime.results.bindings[0].otherSensors.value;
+            //                 otherSensors_load = otherSensors_load.slice(1, -1);
+            //                 var arrayURL = otherSensors_load.split(", ");
+            //                 scenaryOtherSensors = arrayURL;
+            //                 if (scenaryOtherSensors.length > 0) {
+            //                     var suri = scenaryOtherSensors;
+            //                     loadScenarioSensor(suri);                                      
+            //                 }
+            //             }
+            //             //
+            //             function coordinateOrder(array) {
+            //                 return array.map(function (coordinate) {
+            //                     return [coordinate[1], coordinate[0]];  // Inverti l'ordine da [latitudine, longitudine] a [longitudine, latitudine]
+            //                 });
+            //             }
+            //             //
+            //             var arrayshape2 = coordinateOrder(arrayShape);
+            //             var polygon = L.polygon(arrayshape2);
+            //             console.log('polygon', arrayshape2);
+            //             //
+            //             scenaryDrawnItems = new L.FeatureGroup();
+            //             layer = polygon;
+            //             scenaryData.features.push(shape);
+            //             scenaryDrawnItems.addLayer(layer);
+            //             map.defaultMapRef.addLayer(scenaryDrawnItems);
+            //             //
+            //             console.log('shape5', shape);
 
-                        const polygonWKT = getPolygonWKTFromScenarioArea(shape);
-                        svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
-                        let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
-                        console.log('ressvolte:', ressvolte);
+            //             const polygonWKT = getPolygonWKTFromScenarioArea(shape);
+            //             svoltesparqlquery = buildSparqlQueryURLsvolte(polygonWKT);
+            //             let ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+            //             console.log('ressvolte:', ressvolte);
 
-                        //qui devo prendere l'AC e il JS20 adesso dal db non più dal device
-                        let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename)
-                        let tmpRDGraph = JSON.parse(resDalDB[0].data).roadGraph;
-                        let tmpAcData = JSON.parse(resDalDB[0].data).TDM;
-                        acData = JSON.parse(resDalDB[0].data).AC;
-                        js20Data = JSON.parse(resDalDB[0].data).JS20;
-                        //
-                        loadingboxloaded = true;
-                        //CREATION NEW SCHEMA
-                        const roadGraph = JSON.parse(resDalDB[0].data).roadGraph;
-                        const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
-                        fetchSparqlData(null, null, polygonWKT, tmpAcData, ressvolte, 'load');
-                        //END CREATION NEW SCHEMA
-                        //
-                    } else {
-                        console.log("error non gestito")
-                    }
-                } catch (error) {
-                    console.error("An error occurred:", error.message);
-                }
-            });
+            //             //qui devo prendere l'AC e il JS20 adesso dal db non più dal device
+            //             let resDalDB = await getDataFromDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename)
+            //             let tmpRDGraph = JSON.parse(resDalDB[0].data).roadGraph;
+            //             let tmpAcData = JSON.parse(resDalDB[0].data).TDM;
+            //             acData = JSON.parse(resDalDB[0].data).AC;
+            //             js20Data = JSON.parse(resDalDB[0].data).JS20;
+            //             //
+            //             loadingboxloaded = true;
+            //             //CREATION NEW SCHEMA
+            //             const roadGraph = JSON.parse(resDalDB[0].data).roadGraph;
+            //             const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(maxY, maxX, minY, minX);
+            //             fetchSparqlData(null, null, polygonWKT, tmpAcData, ressvolte, 'load');
+            //             //END CREATION NEW SCHEMA
+            //             //
+            //         } else {
+            //             console.log("error non gestito")
+            //         }
+            //     } catch (error) {
+            //         console.error("An error occurred:", error.message);
+            //     }
+            // });
 
             //######################### EDITING  #######################################//
             $('#showStreetGraph').change(function () {
@@ -14808,47 +15031,48 @@ if (!isset($_SESSION)) {
             });
 
             //################ cancel function dei metadati del builder ######################################
-            $("#scenario-cancel").click(function () {
-                //
-                if (saveLoadGraph.length > 0) {
-                    saveLoadGraph = [];
-                }
-                //
-                roadElementGraph.clearSegments();
-                roadElementGraph.clearNodes();
-                if (scenaryData.features.length >= 0) {
-                    // Rimuovi i layer dei disegni
-                    for (const layerId in scenaryDrawnItems._layers) {
-                        scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
-                    }
-                    scenaryData.features = []; // reinizializzo questa variabile
-                    // Rimuovi i marker associati
-                    for (const layerId in scenaryMarkers._layers) {
-                        const marker = scenaryMarkers._layers[layerId];
-                        scenaryMarkers.removeLayer(marker);
-                    }
-                    // Rimuovi il vecchio grafo
-                    for (const layerId in scenaryGrafo._layers) {
-                        const grafo = scenaryGrafo._layers[layerId];
-                        scenaryGrafo.removeLayer(grafo);
-                    }
-                    datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
-                    istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
-                    istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
-                }
-                // qui gestisco il cancel ovvero se l'utente vuole resettare il control panel via
-                $("#scenario-name").val("");
-                $("#scenario-location").val("");
-                $("#scenario-description").val("");
-                $("#scenario-startDatetime").val("");
-                $("#scenario-modality").val("generic");
-                $("#scenario-modality").val("sensors");
-                $("#scenario-referenceKB").val("");
-                $("#scenario-endDatetime").val("");
-                scenaryData = new L.geoJSON();
-                scenaryData.type = "FeatureCollection";
-                scenaryData.features = [];
-            });
+            // $("#scenario-cancel").click(function () {
+            //     console.log("#scenario-cancel 1")
+            //     //
+            //     if (saveLoadGraph.length > 0) {
+            //         saveLoadGraph = [];
+            //     }
+            //     //
+            //     roadElementGraph.clearSegments();
+            //     roadElementGraph.clearNodes();
+            //     if (scenaryData.features.length >= 0) {
+            //         // Rimuovi i layer dei disegni
+            //         for (const layerId in scenaryDrawnItems._layers) {
+            //             scenaryDrawnItems.removeLayer(scenaryDrawnItems._layers[layerId]);
+            //         }
+            //         scenaryData.features = []; // reinizializzo questa variabile
+            //         // Rimuovi i marker associati
+            //         for (const layerId in scenaryMarkers._layers) {
+            //             const marker = scenaryMarkers._layers[layerId];
+            //             scenaryMarkers.removeLayer(marker);
+            //         }
+            //         // Rimuovi il vecchio grafo
+            //         for (const layerId in scenaryGrafo._layers) {
+            //             const grafo = scenaryGrafo._layers[layerId];
+            //             scenaryGrafo.removeLayer(grafo);
+            //         }
+            //         datidaisensorichestoconsiderando = []; // reinizializzo questa variabile
+            //         istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
+            //         istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
+            //     }
+            //     // qui gestisco il cancel ovvero se l'utente vuole resettare il control panel via
+            //     $("#scenario-name").val("");
+            //     $("#scenario-location").val("");
+            //     $("#scenario-description").val("");
+            //     $("#scenario-startDatetime").val("");
+            //     $("#scenario-modality").val("generic");
+            //     $("#scenario-modality").val("sensors");
+            //     $("#scenario-referenceKB").val("");
+            //     $("#scenario-endDatetime").val("");
+            //     scenaryData = new L.geoJSON();
+            //     scenaryData.type = "FeatureCollection";
+            //     scenaryData.features = [];
+            // });
 
             //##################### salvo lo scenario ##################################################        
             // $("#scenario-save").click(async function () {
@@ -15369,6 +15593,7 @@ if (!isset($_SESSION)) {
                         ///
 
                         $("#scenario-cancel").click(function () {
+                            console.log("#scenario-cancel 2")
                             console.log('CLICK ON CANCEL');
                             pulisciTutto();
                         });
@@ -15493,7 +15718,17 @@ if (!isset($_SESSION)) {
                                 // istanzedelgrafochestoconsiderando = roadElementGraph.getSegmentsForSaving();
                                 var arrayAlfanumerico = roadElementGraph.segments;
                                 var arrayNumerico = Object.keys(arrayAlfanumerico).map((key, index) => {
-                                    const { line, arrow, ...rest } = arrayAlfanumerico[key];
+                                    // const { line, arrow, hasError, errors ...rest } = arrayAlfanumerico[key];
+                                    // return { ...rest, id: index + 1 };
+                                    const obj = arrayAlfanumerico[key];
+                                    // Check if the keys exist, then destructure them if they do
+                                    const { line, arrow, hasError, errors, ...rest } = {
+                                        ...('line' in obj && { line: obj.line }),
+                                        ...('arrow' in obj && { arrow: obj.arrow }),
+                                        ...('hasError' in obj && { hasError: obj.hasError }),
+                                        ...('errors' in obj && { errors: obj.errors }),
+                                        ...obj
+                                    };
                                     return { ...rest, id: index + 1 };
                                 });
                                 istanzedelgrafochestoconsiderando = arrayNumerico;
@@ -15766,13 +16001,13 @@ if (!isset($_SESSION)) {
 
                                     //INVIO DATI AL DB STATO ACC // TODO: TO BE REVISED!!!
                                     if (currentLoadedStatus == 'acc') {
-                                        // mi prendo la data attuale da mandare nel DB
-                                        ilDateObserved = new Date().toISOString();
-                                        // mentre per il dato che andrà sul device ci devo mettere + 2 ore
-                                        let ilDateObserved2 = new Date(ilDateObserved);                                    
-                                        ilDateObserved2.setHours(ilDateObserved2.getHours() + 2);
-                                        ilDateObserved2 = ilDateObserved2.toISOString();
-                                        scenarioData.metadata.dateObserved = ilDateObserved2; // lo devo aggiornare sennò prende lo stesso dell'acc che carico                                                                                        
+                                        // // mi prendo la data attuale da mandare nel DB
+                                        // ilDateObserved = new Date().toISOString();
+                                        // // mentre per il dato che andrà sul device ci devo mettere + 2 ore
+                                        // let ilDateObserved2 = new Date(ilDateObserved);                                    
+                                        // ilDateObserved2.setHours(ilDateObserved2.getHours() + 2);
+                                        // ilDateObserved2 = ilDateObserved2.toISOString();
+                                        // scenarioData.metadata.dateObserved = ilDateObserved2; // lo devo aggiornare sennò prende lo stesso dell'acc che carico                                                                                        
                                         initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData, questofather.value);
                                         //NEW FORMAT DATA
                                         let acc_pronto_per_il_risalvataggio = istanzedelgrafochestoconsiderando_forSaving.map(item => {
@@ -15813,7 +16048,7 @@ if (!isset($_SESSION)) {
                                                     "realSegment": [item.realSegment],
                                                     "realRoad": [item.realRoad],
                                                     "weight": [parseFloat(item.weight)] ,
-                                                    "vmax": [parseFloat(item.roadElmSpeedLimit)],
+                                                    "vmax": [parseFloat(item.roadElmSpeedLimit)*0.2777],
                                                     "delta_x": [item.delta_x]
                                                 };
                                             }else{
@@ -15841,7 +16076,7 @@ if (!isset($_SESSION)) {
                                                     "realSegment": [item.realSegment],
                                                     "realRoad": [item.realRoad],
                                                     "weight": [parseFloat(item.weight)],
-                                                    "vmax": [parseFloat(item.roadElmSpeedLimit)],
+                                                    "vmax": [parseFloat(item.roadElmSpeedLimit)*0.2777],
                                                     "delta_x": [item.delta_x]
                                                 };
                                             }
@@ -15893,7 +16128,7 @@ if (!isset($_SESSION)) {
                                                 "realSegment": [sensorItem.realSegment],
                                                 "realRoad": [sensorItem.realRoad],
                                                 "weight": [parseFloat(sensorItem.weight)],
-                                                "vmax": [parseFloat(sensorItem.roadElmSpeedLimit)],
+                                                "vmax": [parseFloat(sensorItem.roadElmSpeedLimit)*0.2777],
                                                 "delta_x": [sensorItem.delta_x]
                                             };
                                         });
@@ -15937,19 +16172,18 @@ if (!isset($_SESSION)) {
                     }
 
                     // cancel function dei metadati del builder 
-                    $("#scenario-cancel").click(function () {
-                        console.log('CLICK ON CANCEL');
-                        pulisciTutto();                        
-                    });
+                    // $("#scenario-cancel").click(function () {
+                    //     console.log("#scenario-cancel 3")
+                    //     console.log('CLICK ON CANCEL');
+                    //     pulisciTutto();                        
+                    // });
 
                 } catch (error) {
                     console.error("An error occurred:", error.message);
                 }
             });
 
-
-            $("#view_mod").click(async function () {
-
+            async function goIntoViewMode(){
                 //$('input[name="scenario-type"][value="init"]').prop('checked', true).trigger('change');
                 
                 $('#segmentLabel').hide();
@@ -16227,6 +16461,290 @@ if (!isset($_SESSION)) {
                     //     console.error("Errore nel determinare il tipo di scenario.");
                     // }
                 });
+            }
+
+
+            $("#view_mod").click(async function () {
+
+                goIntoViewMode();
+
+                // //$('input[name="scenario-type"][value="init"]').prop('checked', true).trigger('change');
+                
+                // $('#segmentLabel').hide();
+                // $('#menu-lines').hide();
+                // if (roadElementGraph) {
+                //     roadElementGraph.mode = "view";
+                // }
+                // $('#currentStatusEdit').val('view');
+                // //db_new
+                // $('.sensorPopup_edit').css('display', 'none');
+                // $('.sensorPopup_view').css('display', 'inline');
+                // $("#view_mod").css('background-color', '#3E64A6');
+                // $("#view_mod").css('color', 'white');
+                // $("#edit_lines").css('background-color', '');
+                // $("#edit_lines").css('color', 'black');
+                // //scenario-edit-form
+                // // Trova l'elemento con la classe "leaflet-draw" nell'intero documento
+                // var drawControl = document.querySelector('.leaflet-draw');
+                // if (drawControl) {
+                //     drawControl.parentNode.removeChild(drawControl);
+                // }
+
+                // var scenarioToRemove = document.getElementById("modality-load");
+                // if (scenarioToRemove) {
+                //     scenarioToRemove.remove();
+                //     isSaveFinalSet = false;
+                // }
+                // //$('#showStreetGraph').hide();
+                // var scenarioToRemove = document.getElementById("scenario-edit-form");
+
+                // console.log(scenarioToRemove);
+                // if (scenarioToRemove) {
+                //     scenarioToRemove.remove();
+                //     isSaveFinalSet = false;
+                // }
+                // try {
+                //     ////
+                //     if (scenaryData.features.length >= 0) {
+                //         for (const layerId in scenaryGrafo._layers) {
+                //             const grafo = scenaryGrafo._layers[layerId];
+                //             scenaryGrafo.removeLayer(grafo);
+                //         }
+
+                //         var scenaryControl3 = L.control({
+                //             position: 'topright'
+                //         });
+                //         scenaryControl3.onAdd = function (map) {
+                //             var div3 = L.DomUtil.create('div');
+                //             var currentStatusEdit = $('#currentStatusEdit').val();
+                //             div3.id = "modality-load";
+                //             div3.innerHTML = `
+                //                 <div id="scenario-div">
+                //                     <div id="notification" style="display: none;">
+                //                         <p id="notification-message">bells</p>
+                //                     </div>
+                //                     <div id="scenario-content">
+                //                         <div id="acc-content">
+                //                             <table>
+                //                                 <tr>
+                //                                     <td>
+                //                                         <label>Load Scenario:</label>
+                //                                     </td>
+                //                                     <td>
+                //                                         <input type="radio" id="acc-type-init" name="scenario-type" value="init" checked>
+                //                                         <label for="acc-type-init">Init</label>
+                //                                         <input type="radio" id="acc-type-acc" name="scenario-type" value="acc">
+                //                                         <label for="acc-type-acc">Acc</label>
+                //                                         <!-- <input type="radio" id="acc-type-tdm" name="scenario-type" value="tdm">
+                //                                         <label for="acc-type-tdm">tfr</label> -->
+                //                                     </td>
+                //                                 </tr>
+                //                                 <td id="scenario-init-row">
+                //                                     <label for="scenario-init-list">Scenarios waiting to be processed:</label>
+                //                                     <input type="text" id="search-scenario-init" placeholder="Search..." hidden>
+                //                                     <select id="scenario-init-list" style="max-height: 120px; overflow: auto;"></select>
+                //                                     <br />
+                //                                     <label for="scenario-version-list">Scenario version:</label>
+                //                                     <select id="scenario-version-list" style="max-height: 120px; overflow: auto;"></select>
+                //                                     <br />
+                //                                     <button id="scenario-load">Load Scenario</button>
+                //                                     <button id="scenario-init-reload">Clean</button>
+                //                                 </td>
+                //                                 <tr class="scenario-list-row" style="display: none;">
+                //                                     <td>
+                //                                         <label for="scenario-list">Scenario List:</label>
+                //                                     </td>
+                //                                     <td>
+                //                                         <select id="scenario-list" name="scenario-list"></select>
+                //                                     </td>
+                //                                 </tr>
+                //                                 <tr class="scenario-list-row" style="display: none;">
+                //                                     <td>
+                //                                         <label for="acc-list">acc version:</label>
+                //                                     </td>
+                //                                 <td>
+                //                                     <select id="acc-list" name="acc-list"></select>
+                //                                 </td>
+                //                                 <tr class="scenario-list-row" style="display: none;">
+                //                                     <td colspan="2">
+                //                                         <button id="scenario-check-acc1">Load ACC</button>
+                //                                         <button id="scenario-check-acc-reaload">Clean</button>
+                //                                     </td>
+                //                                 </tr>
+                //                                 <tr class="scenario-tdm-row" style="display: none;">
+                //                                     <td>
+                //                                         <label for="scenario-tdm-list">tfr Scenarios:</label>
+                //                                     </td>
+                //                                     <td>
+                //                                         <select id="scenario-tdm-list" name="scenario-tdm-list"></select>
+                //                                     </td>
+                //                                     </td>
+                //                                 </tr>
+                //                                 <tr class="scenario-tdm-row" style="display: none;">
+                //                                     <td>
+                //                                         <label for="tdm-list">tfr version:</label>
+                //                                     </td>
+                //                                     <td>
+                //                                         <select id="tdm-list" name="tdm-list"></select>
+                //                                     </td>
+                //                                 </tr>
+                //                                 <tr class="scenario-tdm-row">
+                //                                     <td colspan="2">
+                //                                         <button id="scenario-check-tdm">Load tfr</button>
+                //                                     </td>
+                //                                 </tr>
+                //                             </table>
+                //                         </div>
+                //                     </div>
+                //                 </div>`;
+                            
+                //             // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+                //             if (L.Browser.touch) {
+                //                 L.DomEvent.disableClickPropagation(div3);
+                //                 L.DomEvent.on(div3, 'mousewheel', L.DomEvent.stopPropagation);
+                //             } else {
+                //                 L.DomEvent.on(div3, 'click', L.DomEvent.stopPropagation);
+                //             }
+                //             return div3;
+                //             ////   
+                //         }
+                //         scenaryControl3.addTo(map.defaultMapRef);
+                        
+                //         getInits();
+                    
+
+                //         $('#scenario-check-acc-reaload').click(async function () {
+                //             console.log('CLICK REALOD');
+                //             //window.location.reload();
+                //             pulisciTutto();
+                //         });
+            
+                //         $('#scenario-init-reload').click(async function () {
+                //             console.log('CLICK REALOD');
+                //             //window.location.reload();
+                //             pulisciTutto();
+                //         });
+            
+                //         $('#scenario-load').click(async function () {
+                //             loadScenario();
+                //         });
+
+                    
+                //     }
+                // } catch (error) {
+                //     console.error("An error occurred:", error.message);
+                // }
+                // //sparqlQuery = buildSparqlQueryURL(enlargedPolygonWKT);
+                // $('#scenario-check-acc1').click(async function () {
+                //     console.log('scenario-check-acc1 CHANGED VIEW');
+                //     loadACCScenario();
+                // });
+
+                // //////////////VIEW CHANGING ///////////
+                // $("input[name='scenario-type']").change(async function () {
+                //     //var selectedId = $(this).attr("id");
+                //     var select_scenario_type = null;
+                //     if (document.querySelector('input[name="scenario-type"][value="init"]').checked) {
+                //         select_scenario_type = document.querySelector('input[name="scenario-type"][value="init"]').id;
+                //     } else if(document.querySelector('input[name="scenario-type"][value="acc"]').checked){
+                //         select_scenario_type = document.querySelector('input[name="scenario-type"][value="acc"]').id;
+                //     } else if (document.querySelector('input[name="scenario-type"][value="tdm"]').checked) {
+                //         select_scenario_type = document.querySelector('input[name="scenario-type"][value="tdm"]').id;
+                //     }
+                //     changeScenarioTypeToLoad(select_scenario_type);
+                //     // console.log('CHANGE 01');
+                //     // console.log('change: ' + selectedId);
+
+                //     // var scenarioType;
+                //     // if (selectedId === "acc-type-init") {
+                //     //     scenarioType = "init";
+                //     //     $(".scenario-list-row").hide();
+                //     //     document.getElementById("scenario-init-row").style.display = "block";
+                //     //     $(".scenario-tdm-row").hide();
+                //     //     var initScenarios0 = await getScenarios(scenarioType);
+                //     //     var initScenarios = [...new Set(initScenarios0)];
+                //     //     var scenarioInitList = $("#scenario-init-list");
+                //     //     var searchInput = $("#search-scenario-init");
+                //     //     searchInput.on("input", function () {
+                //     //         var searchTerm = $(this).val().toLowerCase();
+                //     //         filterScenarios(initScenarios, searchTerm);
+                //     //     });
+
+                //     //     scenarioInitList.empty();
+                //     //     initScenarios.sort();
+                //     //     initScenarios.forEach(scenario => {
+                //     //         var optionValue = scenario.replace("deviceName", "");
+                //     //         var optionText = optionValue;
+                //     //         var listItem = $("<option>").val(scenario).text(optionText);
+                //     //         scenarioInitList.append(listItem);
+                //     //     });
+
+                //     //     function filterScenarios(scenarios, searchTerm) {
+                //     //         var scenarioInitList = $("#scenario-init-list");
+                //     //         scenarioInitList.empty();
+                //     //         initScenarios.sort();
+                //     //         scenarios.forEach(scenario => {
+                //     //             if (scenario.toLowerCase().includes(searchTerm)) {
+                //     //                 var optionValue = scenario.replace("deviceName", "");
+                //     //                 var optionText = optionValue;
+                //     //                 var listItem = $("<option>").val(scenario).text(optionText);
+                //     //                 scenarioInitList.append(listItem);
+                //     //             }
+                //     //         });
+                //     //     }
+                //     // } else if (selectedId === "acc-type-acc") {
+                //     //     scenarioType = "acc";
+                //     //     $(".scenario-list-row").show();
+                //     //     document.getElementById("scenario-init-row").style.display = "none";
+                //     //     $(".scenario-tdm-row").hide();
+                //     //     var accScenarios0 = await getScenarios(scenarioType);
+                //     //     var scenarioList = $("#scenario-list");
+                //     //     scenarioList.empty(); // Pulisci eventuali opzioni preesistenti
+                //     //     var accScenarios = [...new Set(accScenarios0)];
+                //     //     accScenarios.sort();
+                //     //     accScenarios.forEach(scenario => {
+                //     //         var scenarioName = scenario.replace("deviceName", "");
+                //     //         var option = $("<option>").val(scenario).text(scenarioName);
+                //     //         scenarioList.append(option);
+                //     //     });
+                //     // } else if (selectedId === "acc-type-tdm") {
+                //     //     scenarioType = "tfr";
+                //     //     $(".scenario-list-row").hide();
+                //     //     $("#scenario-init-row").hide();
+                //     //     $(".scenario-tdm-row").show();
+
+                //     //     var tdmScenarios0 = await getScenarios(scenarioType);
+                //     //     var scenarioTDMList = $("#scenario-tdm-list");
+
+                //     //     scenarioTDMList.empty();
+                //     //     var tdmScenarios = [...new Set(tdmScenarios0)];
+                //     //     tdmScenarios.forEach(scenario => {
+
+                //     //         var optionValue = scenario.replace("deviceName", "");
+                //     //         var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                //     //         var listItem = $("<option>").val(scenario).text(optionValue);
+                //     //         scenarioTDMList.append(listItem);
+                //     //     });
+                //     //     function filterScenariosTDM(scenarios, searchTerm) {
+                //     //         var scenarioTDMList = $("#scenario-tdm-list");
+                //     //         scenarioTDMList.empty();
+                //     //         scenarios.forEach(scenario => {
+                //     //             if (scenario.toLowerCase().includes(searchTerm) || scenario.toLowerCase().includes('acc')) {
+                //     //                 var optionValue = scenario.replace("deviceName", "");
+                //     //                 var optionText = optionValue + " -> " + ilbrokerdellorganizzazione + "_" + lorganizzazione + "_" + scenario;
+                //     //                 var listItem = $("<option>").val(scenario).text(optionText);
+                //     //                 scenarioTDMList.append(listItem);
+                //     //             }
+                //     //         });
+                //     //     }
+                //     // }
+
+                //     // if (scenarioType) {
+                //     //     console.log("Scenario type selected: " + scenarioType);
+                //     // } else {
+                //     //     console.error("Errore nel determinare il tipo di scenario.");
+                //     // }
+                // });
                 ///END VIEW CHANGING
 
                 // console.error("WHY I AM HERE??? [14703]");
@@ -16882,20 +17400,21 @@ if (!isset($_SESSION)) {
             //     }
             // });
 
-            $("#scenario-cancel").click(function () {
-                map.defaultMapRef.removeLayer(scenarioDrawnItems);
-                scenarioDrawnItems = new L.FeatureGroup();
-                map.defaultMapRef.addLayer(scenarioDrawnItems);
-                $("#scenario-name").val("");
-                $("#scenario-description").val("");
-                $("#scenario-startDatetime").val("");
-                $("#scenario-endDatetime").val("");
-                $("#scenario-visibility").prop('checked', false);
+            // $("#scenario-cancel").click(function () {
+            //     console.log("#scenario-cancel 4")
+            //     map.defaultMapRef.removeLayer(scenarioDrawnItems);
+            //     scenarioDrawnItems = new L.FeatureGroup();
+            //     map.defaultMapRef.addLayer(scenarioDrawnItems);
+            //     $("#scenario-name").val("");
+            //     $("#scenario-description").val("");
+            //     $("#scenario-startDatetime").val("");
+            //     $("#scenario-endDatetime").val("");
+            //     $("#scenario-visibility").prop('checked', false);
 
-                scenarioData = new L.geoJSON();
-                scenarioData.type = "FeatureCollection";
-                scenarioData.features = [];
-            });
+            //     scenarioData = new L.geoJSON();
+            //     scenarioData.type = "FeatureCollection";
+            //     scenarioData.features = [];
+            // });
         }
     });
 
@@ -23190,15 +23709,18 @@ if (!isset($_SESSION)) {
                 } else if (feature.properties.lastValue) {
                     color = getBimColor(feature.properties.lastValue[bubbleSelectedMetric[descBim]]);
                 }
+                
+                var borderColor = darkenColor(color, 0.2);
+
                 return {
-                    //weight: 2,
-                    //opacity: 1,
-                    //color: 'white',
-                    //dashArray: '3',
-                    stroke: false,
+                    stroke: true,
+                    color: borderColor,
+                    weight: 1,
+                    opacity: 1,
                     fillOpacity: 0.6,
-                    fillColor: color //getColor(feature.properties.density)
+                    fillColor: color
                 };
+
             }
 
             $(document).on('newBimShape', newBimShape = function (event) {
