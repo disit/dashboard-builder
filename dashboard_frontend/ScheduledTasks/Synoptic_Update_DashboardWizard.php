@@ -13,21 +13,6 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-function getAccessToken($token_endpoint, $username, $password, $client_id){
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL,$token_endpoint);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS,
-        "username=".$username."&password=".$password."&scope=openid&grant_type=password&client_id=".$client_id);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $curl_response = curl_exec($ch);
-    curl_close($ch);
-    return json_decode($curl_response)->access_token;
-
-}
-
 include '../config.php';
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
@@ -50,10 +35,11 @@ $env = $genFileContent['environment']['value'];
 $host_PD= $personalDataFileContent["host_PD"][$env];
 $token_endpoint= $personalDataFileContent["token_endpoint_PD"][$env];
 $client_id= $personalDataFileContent["client_id_PD"][$genFileContent['environment']['value']];
+$client_secret= $personalDataFileContent["client_secret_PD"][$genFileContent['environment']['value']];
 $username= $personalDataFileContent["usernamePD"][$genFileContent['environment']['value']];
 $password= $personalDataFileContent["passwordPD"][$genFileContent['environment']['value']];
 
-$accessToken=getAccessToken($token_endpoint, $username, $password, $client_id);
+$accessToken=get_access_token($token_endpoint, $username, $password, $client_id, $client_secret);
 $apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=SynopticID";
 
 $apiResults = file_get_contents($apiUrl);
