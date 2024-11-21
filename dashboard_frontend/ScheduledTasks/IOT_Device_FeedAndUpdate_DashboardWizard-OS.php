@@ -336,7 +336,7 @@ if($rsIP) {
         echo("\n--------- Ingestion IOT for kbIP: " . $kbHostIp . "\n");
 
         while ($sparqlErrorFlag === false) {
-            $sparqlOffset = ($sparqlLimit * $sparqlBatchCounter) + 1;
+            $sparqlOffset = ($sparqlLimit * $sparqlBatchCounter);
             $queryIotSensorDecoded = "select distinct ?s ?n ?a ?avn ?avt ?dt ?u ?serviceType ?org ?imp ?brokerName ?model ?mobile ?lat ?lon { " .
                 "?s a sosa:Sensor option (inference \"urn:ontology\"). " .
                 "?s schema:name ?n. " .
