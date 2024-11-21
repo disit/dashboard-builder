@@ -57,11 +57,11 @@ $a = "";
 $dt = "";
 $sparqlErrorFlag = false;
 $sparqlBatchCounter = 0;
-$sparqlLimit = 1000;
+$sparqlLimit = 3000;
 $sparqlOffset = 0;
 
 while ($sparqlErrorFlag === false) {
-    $sparqlOffset = ($sparqlLimit * $sparqlBatchCounter) + 1;
+    $sparqlOffset = ($sparqlLimit * $sparqlBatchCounter);
     $queryAscapiEtlDecoded = "select distinct ?s ?a ?n ?avn ?avt ?dt ?u ?serviceType ?ow ?org ?lat ?lon {{ " .
         "?s km4c:hasAttribute ?a. " .
         "?a km4c:data_type ?dt. " .
