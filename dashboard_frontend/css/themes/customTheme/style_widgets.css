@@ -23,11 +23,9 @@ div[id*='widgetSpeedometer'] > div.highcharts-container > svg > .highcharts-radi
     fill: black!important;
 }
 
-:is(.highcharts-axis-labels, .highcharts-legend-item, .highcharts-axis) > text {
+/* :is(.highcharts-axis-labels, .highcharts-legend-item, .highcharts-axis) > text {
     fill: white!important;
-}
-
-
+} */
 
 
 /* ---- END ---- */
@@ -213,7 +211,7 @@ div.widgetSeparator
   width: 100%;
   height: 100%;
   margin: 0 auto;
-  overflow-y: scroll;
+  /* overflow-y: scroll; */
   background: var(--wdgt-bg-color);
   /* border-top: 2px solid var(--sec-04-color); */
   padding-top: 10px;
@@ -4309,9 +4307,9 @@ span.displayLabel, span.displayVal{
 
 /* ::::::: Device Table ::::::: */
 
-li[data-widgettype="widgetDeviceTable"] .content{
+/* li[data-widgettype="widgetDeviceTable"] .content{
   background: var(--wdgt-bg-color)!important;
-}
+} */
 
 ul.pagination {
     display: flex;
@@ -4457,17 +4455,17 @@ ul.pagination li a, .pagination > li:last-child > a, .pagination > li:last-child
   border: 1px solid var(--wdgt-bg-color)!important;
 }
 
-table.dataTable.stripe tbody tr.odd, table.dataTable.display tbody tr.odd{
+/* table.dataTable.stripe tbody tr.odd, table.dataTable.display tbody tr.odd{
   background: var(--profileButton-bg-color)!important;
 }
 
 table.dataTable.display tbody tr.odd > .sorting_1, table.dataTable.order-column.stripe tbody tr.odd > .sorting_1{
   background: var(--tab-bg-color)!important;
-}
+} */
 
-table.dataTable tbody tr{
+/* table.dataTable tbody tr{
   background: var(--wdgt-bg-color)!important;
-}
+} */
 
 table.dataTable.display tbody tr:hover > .sorting_1, table.dataTable.order-column.hover tbody tr:hover > .sorting_1, table.dataTable.display tbody tr.even>.sorting_1, table.dataTable.order-column.stripe tbody tr.even>.sorting_1{
   background: var(--wdgt-bg-color)!important;

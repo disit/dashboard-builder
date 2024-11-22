@@ -835,11 +835,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
                 if((thresholdsJson !== null)&&(thresholdsJson !== undefined)&&(thresholdsJson !== 'undefined')&&((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null)))
                 {
-                    if(thresholdsJson.thresholdObject.firstAxis.desc === styleParameters.xAxisDataset)
+                    if(thresholdsJson.thresholdObject != null && thresholdsJson.thresholdObject.firstAxis.desc === styleParameters.xAxisDataset)
                     {
                         thresholdObject = thresholdsJson.thresholdObject.firstAxis.fields[i].thrSeries;
                     }
-                    else
+                    else if (thresholdsJson.thresholdObject != null)
                     {
                         thresholdObject = thresholdsJson.thresholdObject.secondAxis.fields[i].thrSeries;
                     }
@@ -2951,7 +2951,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                  name: objName,
                                  //    data: extractedData.values,
                                  data: timeSlicedData,
-                                 color: styleParameters.barsColors[i],
+                                 // color: styleParameters.barsColors[i],
+                                 color: (rowParameters[i].customColor != null && rowParameters[i].customColor.trim() !== '') ? rowParameters[i].customColor : styleParameters.barsColors[i],
                                  yAxis: idYAxis,
                                  dataLabels: {
                                      useHTML: false,
@@ -3039,7 +3040,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                 showInLegend: true,
                                 name: objName,
                                 data: singleSeriesData,
-                                color: styleParameters.barsColors[i],
+                                //color: styleParameters.barsColors[i],
+                                color: (rowParameters[i].customColor != null && rowParameters[i].customColor.trim() !== '') ? rowParameters[i].customColor : styleParameters.barsColors[i],
                                 yAxis: idYAxis,
                                 dataLabels: {
                                     useHTML: false,
@@ -3139,7 +3141,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             //    name: aggregationGetData[i].metricName,
                                 name: objName,
                                 data: singleSeriesData,
-                                color: styleParameters.barsColors[i],
+                                // color: styleParameters.barsColors[i],
+                                color: (rowParameters[i].customColor != null && rowParameters[i].customColor.trim() !== '') ? rowParameters[i].customColor : styleParameters.barsColors[i],
                                 yAxis: idYAxis,
                                 dataLabels: {
                                     useHTML: false,
@@ -3224,7 +3227,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         showInLegend: true,
                                         name: objName,
                                         data: singleSeriesData,
-                                        color: styleParameters.barsColors[i],
+                                        // color: styleParameters.barsColors[i],
+                                        color: (rowParameters[i].customColor != null && rowParameters[i].customColor.trim() !== '') ? rowParameters[i].customColor : styleParameters.barsColors[i],
                                         yAxis: idYAxis,
                                         dataLabels: {
                                             useHTML: false,
@@ -3448,7 +3452,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         showInLegend: true,
                                         name: objName,
                                         data: singleSeriesData,
-                                        color: styleParameters.barsColors[i],
+                                        // color: styleParameters.barsColors[i],
+                                        color: (rowParameters[i].customColor != null && rowParameters[i].customColor.trim() !== '') ? rowParameters[i].customColor : styleParameters.barsColors[i],
                                         yAxis: idYAxis,
                                         dataLabels: {
                                             useHTML: false,
@@ -3501,7 +3506,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                  }
             }
             for (var i = 0; i < chartSeriesObject.length; i++) {
-                chartSeriesObject[i].data = chartSeriesObject[i].data.sort((a, b) => a[0] - b[0])
+                if (chartSeriesObject[i].data != null) {
+                    chartSeriesObject[i].data = chartSeriesObject[i].data.sort((a, b) => a[0] - b[0])
+                }
             }
             return null; 
         }

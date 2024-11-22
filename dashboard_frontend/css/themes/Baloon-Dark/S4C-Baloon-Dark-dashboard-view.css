@@ -114,7 +114,7 @@
   --profileButton-bg-color: #68BCDB;
   --profileButton-color: #FFF;
   --scrollbar-color: #000;
-  --scrollbar-bg-color: #3a3a3a;
+  --scrollbar-bg-color: #6b6b6b;
   --tab-bg-color: #F5F5F5;
   --tab-text-color: #B2BCC0;
   --tab-hover-color: #ececec;
@@ -516,6 +516,10 @@ nav#s4c-sidebar ul.secondary-menu li a{
 .content .header{
   font-size: 45px;
   font-weight: 600;
+}
+
+.content{
+  color: white;
 }
 
 /* .content p{

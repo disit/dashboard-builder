@@ -1424,6 +1424,7 @@ if (isset($_GET['pageTitle'])) {
                 if (editLbl === 'show')
                 {
                     cardDiv = cardDiv + '<span tooltip="<?php echo _("Edit"); ?>"><button type="button" class="dashBtnCard editDashBtnCard"><i class="fa-solid fa-pen"></i></button></span>';
+                    cardDiv = cardDiv + '<span tooltip="<?php echo _("Edit with New Opensearch Wizard (BETA)"); ?>"><button type="button" class="dashBtnCard editDashBtnCardNew"><i class="fa-solid fa-pen-to-square"></i></button></span>';
                 }
 
                 switch (managementLbl)

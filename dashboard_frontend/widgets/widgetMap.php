@@ -21,6 +21,11 @@ if (!isset($_SESSION)) {
 ?>
 
 <style type="text/css">
+        .p5Canvas{
+            z-index: 400;
+            pointer-events: none;
+    }
+
     .left {
         float: left;
     }
@@ -185,6 +190,8 @@ if (!isset($_SESSION)) {
 
 <script src="../js/jquery.datetimepicker.min.js"></script>
 <link rel="stylesheet" href="../css/jquery.datetimepicker.min.css" />
+<!-- dBologna VectorFlow -->
+<script src="../js/p5.js"></script>
 
 <!-- SCENARY EDITOR ADREANI -->
 <!-- FINE ADREANI -->
@@ -229,6 +236,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         mode = 'drag';
         showAll = true;
         arrowMinZoom = 16;
+        nodeMinZoom = 17;
+        typeMinZoom = 17;
+        typeMinZoomFilter = [
+            "steps",
+            "pedestrian",
+            "path",
+            "footway"
+        ];
         typeColors = {
             cycleway: {
                 color: 'cyan',
@@ -316,6 +331,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             this.selectedSensorById;
 
             this.restrictions = restrictions;
+
+            this.mode = 'drag';
 
             this.loadGraph(graph);
             this.filterTypes = [];
@@ -525,11 +542,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
         addEventListeners() {
             // setthis.mode event
-            $('#line_view').click(() => this.mode = 'view');
-            $('#line_create').click(() => this.mode = 'create');
-            $('#line_drag').click(() => this.mode = 'drag');
-            $('#line_delete').click(() => this.mode = 'delete');
-            $('#line_split').click(() => this.mode = 'split');
+            // $('#line_view').click(() => this.mode = 'view');
+            // $('#line_create').click(() => this.mode = 'create');
+            // $('#line_drag').click(() => this.mode = 'drag');
+            // $('#line_delete').click(() => this.mode = 'delete');
+            // $('#line_split').click(() => this.mode = 'split');
 
             // undo and redo functionality
             $('#line_undo').click(() => {
@@ -783,6 +800,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
         createLinkNodes(nodeA, nodeB) {
             const timestamp = this.getTimestamp();
+            for (let id in this.segments){
+                const tmp = timestamp.toString().slice(0,-3);
+                if(this.segments[id].segment.includes(tmp)){
+                    return;
+                }
+            }
             const newSegment = {
                 road: `http://www.disit.org/km4city/resource/${timestamp}`,
                 segment: `http://www.disit.org/km4city/resource/${timestamp}/0`,
@@ -790,13 +813,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 dir: "tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)",
                 length: 1,
                 lanes: "1",
-                roadElmSpeedLimit: null,
+                roadElmSpeedLimit: 50,
                 elemType: "",
                 operatingstatus: ""
             }
             this.setNodeToSegment(newSegment, nodeA, "A");
             this.setNodeToSegment(newSegment, nodeB, "B");
             this.segments[newSegment.segment] = newSegment;
+            console.log('New segment added to scenario. ID: ' + this.segments[newSegment.segment].segment);
             return newSegment;
         }
 
@@ -987,6 +1011,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         )
                     ){
                         colorScheme = this.typeColors.hasOwnProperty(segment.type) ? this.typeColors[segment.type] : this.typeColors.default;
+                        if(colorScheme == this.typeColors.default && segment.dir == "tratto stradale aperto in entrambe le direzioni (default)"){
+                            colorScheme = this.typeColors.default.bidirectional;
+                        }
                         color = colorScheme.color;
                     } else if (this.selectedRestriction.to == segment.segment) {
                         color = this.typeColors['restrictionTo'].color;
@@ -1027,6 +1054,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     )
                 ){
                     colorScheme = this.typeColors.hasOwnProperty(segment.type) ? this.typeColors[segment.type] : this.typeColors.default;
+                    if(colorScheme == this.typeColors.default && segment.dir == "tratto stradale aperto in entrambe le direzioni (default)"){
+                        colorScheme = this.typeColors.default.bidirectional;
+                    }
                     color = colorScheme.color;
                 } else if (this.selectedRestriction.to == segment.segment) {
                     color = this.typeColors['restrictionTo'].color;
@@ -1128,7 +1158,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     } else if(this.mode === 'assignSensor'){
                             console.log('here change assigned');
                             console.log(this.selectedSensorById);
-                            this.selectedSensorById.sensorUri = segment.segment;
+                            if(this.selectedSensorById.sensorUri == this.selectedSensorById.assignedRoadElement){
+                                this.selectedSensorById.sensorUri = segment.segment;
+                            }
                             this.selectedSensorById.assignedRoadElement = segment.segment;
                             this.selectedSensorById.moveSensor(segment.line.getLatLngs());
                            // this.selectedSensorById.sensorUri = segment.segment;
@@ -1468,6 +1500,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     this.updateHistoricAction();
                 },
                 mousedown: () => {
+                    console.log("mousedown - mode = " + this.mode);
                     if (this.mode !== 'drag' && this.mode !== 'create')
                         return;
 
@@ -1526,22 +1559,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 continue;
                             const secondNode = this.nodes[secondNodeID];
                             if (bounds.contains(new L.LatLng(secondNode.lat, secondNode.long))) {
-                                node.circle.setStyle({ color: 'purple' });
-                                secondNode.circle.setStyle({ color: 'purple' });
+                                node.circle.setStyle({ color: 'purple', fillColor: '#66FF66'});
+                                secondNode.circle.setStyle({ color: 'purple', fillColor: '#66FF66'});
                                 node.lastNodeFound = secondNode;
                                 nodeFound = true;
                                 break;
                             }
                         }
                         if (!nodeFound && node.lastNodeFound) {
-                            node.circle.setStyle({ color: 'green' });
-                            node.lastNodeFound.circle.setStyle({ color: 'red' });
+                            node.circle.setStyle({ color: 'green', fillColor: 'white' });
+                            node.lastNodeFound.circle.setStyle({ color: 'red', fillColor: 'white' });
                             delete node.lastNodeFound;
                         }
-                    });
-                    //
-
-                    
+                    });                  
                 }
             });
             this.map.on('mouseup', (e) => {
@@ -1560,20 +1590,29 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         }
 
         draw() {
+            this.clearSegments();
+            this.clearNodes();
             var visibleNodeIdxs = [];
+            var mapZoom = this.map.getZoom();
             for (let segmentID in this.segments) {
                 if (this.isSegmentInsideMap(this.segments[segmentID])){
-                    const segment = this.segments[segmentID];
-                    visibleNodeIdxs.push(this.segments[segmentID].nodeA);
-                    visibleNodeIdxs.push(this.segments[segmentID].nodeB);
-                    this.drawSegment(segment);
+                    if( 
+                        mapZoom >= this.typeMinZoom || 
+                        !(this.typeMinZoomFilter.includes(this.segments[segmentID].type))
+                    ){
+                        const segment = this.segments[segmentID];
+                        visibleNodeIdxs.push(this.segments[segmentID].nodeA);
+                        visibleNodeIdxs.push(this.segments[segmentID].nodeB);
+                        this.drawSegment(segment);
+                    }
                 }
             }
             visibleNodeIdxs = [...new Set(visibleNodeIdxs)];
-
-            for (let nodeIDX in visibleNodeIdxs){ //this.nodes) {
-                const node = this.nodes[visibleNodeIdxs[nodeIDX]];
-                this.drawNode(node);
+            if( mapZoom >= this.nodeMinZoom){
+                for (let nodeIDX in visibleNodeIdxs){ //this.nodes) {
+                    const node = this.nodes[visibleNodeIdxs[nodeIDX]];
+                    this.drawNode(node);
+                }
             }
         }
 
@@ -1879,20 +1918,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
         function getDensityDataByRoadElement(data, roadElement) {
 
-            // Funzione per convertire la data ISO in millisecondi Unix epoch, sempre in ora locale
             function isoToUnixTimestamp(dateStr) {
-                const date = new Date(dateStr);
-                const localTime = date.getTime() - (date.getTimezoneOffset() * 60 * 1000);
-                return localTime;
+                let date = new Date(dateStr);
+                return date.getTime();
             }
 
-            // Array per contenere le coppie [dateObserved, density]
             let result = [];
 
-            // Itera sui risultati dell'array JSON
             data.forEach(item => {
                 if (item.roadElements === roadElement) {
-                    // Aggiungi la coppia [dateObserved, density] all'array risultato
                     result.push([isoToUnixTimestamp(item.dateObserved), item.density]);
                 }
             });
@@ -2606,13 +2640,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             L.popup().setLatLng(e.latlng);
             // L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map.defaultMapRef);
 
-            var apiUrl = "<?= $kbUrlSuperServiceMap; ?>" + "trafficflow/?scenario=" + road.scenario;
+            var apiUrl = "<?= $kbUrlSuperServiceMap; ?>" + "trafficflow/?scenario=" + road.scenario + "&roadElement=" + road.roadElements;
 
             var getRoadElementTrend = fetchAjax(apiUrl, null, "GET", 'json', true, 0);
 
             getRoadElementTrend.done(function (jsonData) {
                 if (jsonData.status === "ok") {
-                    jsonData.result = jsonData.result.filter(item => item.roadElements === road.roadElements);
                     populateTfrPopup(jsonData.result, road, e);
                 }
             });
@@ -9953,6 +9986,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             notificationMessage.innerText = message;
             // Mostra la notifica
             notification.style.display = "block";
+            notification.style.width = '220px';
             // Nasconde la notifica dopo 5 secondi (5000 millisecondi)
             setTimeout(() => {
                 notification.style.display = "none";
@@ -10131,7 +10165,16 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 roadElementGraph.clearSegments();
                 roadElementGraph.clearNodes();
                 roadElementGraph.reset();
-                roadElementGraph = false;
+                roadElementGraph.mode = 'drag';
+                roadElementGraph = undefined;
+                $("#line_create").css('background-color', '');
+                $("#line_create").css('color', 'black');
+                $("#line_drag").css('background-color', '#3E64A6');
+                $("#line_drag").css('color', 'white');
+                $("#line_split").css('background-color', '');
+                $("#line_split").css('color', 'black');
+                $("#line_delete").css('background-color', '');
+                $("#line_delete").css('color', 'black');
             }
             if (scenaryData.features.length >= 0) {
                 //console.log('scenaryData features ', scenaryData.features.length);
@@ -10521,7 +10564,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         //NEW
         //const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
         // questa ha funzionato -> const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
-        const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 60000`;
+        const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )}`; // LIMIT 100000`;
         return sparqlEndpoint + query;
     }
 
@@ -10530,7 +10573,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         const sparqlEndpoint = "<?= $sparqlURI; ?>" + "sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";
         //const sparqlEndpoint =  "https://www.disit.org/smosm/sparql?format=json&default-graph-uri=&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on&query=PREFIX+km4c%3A+%3Chttp%3A%2F%2Fwww.disit.org%2Fkm4city%2Fschema%23%3EPREFIX+rdf%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3EPREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3EPREFIX+rdfsn%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3EPREFIX+dct%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E";  
         // Sostituisci con l'endpoint SPARQL corretto            
-        const query = `SELECT ?node_id as ?node ?where_id as ?from ?toward_id as ?to ?restriction WHERE {?r a km4c:TurnRestriction; km4c:node ?node; km4c:where ?where; km4c:toward ?toward; km4c:restriction ?restriction. ?node dct:identifier ?node_id. ?where dct:identifier ?where_id. ?toward dct:identifier ?toward_id. ?node geo:geometry ?p. FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'), ?p ) ) } LIMIT 60000`;
+        const query = `SELECT ?node_id as ?node ?where_id as ?from ?toward_id as ?to ?restriction WHERE {?r a km4c:TurnRestriction; km4c:node ?node; km4c:where ?where; km4c:toward ?toward; km4c:restriction ?restriction. ?node dct:identifier ?node_id. ?where dct:identifier ?where_id. ?toward dct:identifier ?toward_id. ?node geo:geometry ?p. FILTER ( bif:st_intersects ( bif:st_geomfromtext ('${polygonWKT}'), ?p ) ) }`; // LIMIT 100000`;
         return sparqlEndpoint + query;
     }
 
@@ -10769,6 +10812,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     // segment.line e la poliline da appenderre il popup
                     //var descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+strada+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+strada.dir+'<br /><span><b>Restrictions: </b></span><br /><span></div>');
                     ////////POPUPS BOLOGNA
+
+                    var segmentNameToShow = '';
+                    if(strada.realSegment){
+                        segmentNameToShow = strada.realSegment;
+                    } else {
+                        segmentNameToShow = strada.segment;
+                    }
+
                     var jsonObject = {
                         road: strada.road,
                         segment: strada.segment,
@@ -10946,8 +10997,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         let arraysegment = (strada.segment).split('/');
                         let segmentId = arraysegment[arraysegment.length - 2] + '/' + arraysegment[arraysegment.length - 1];
 
-                        var segmentID= (strada.segment).split('/resource/')[1];
-                        var baseURL = (strada.segment).split(segmentID)[0];
+                        var segmentID = '';
+                        var baseURL = '';
+                        if(segmentNameToShow == strada.segment){
+                            segmentID= (strada.segment).split('/resource/')[1];
+                            baseURL = (strada.segment).split(segmentID)[0];
+                        } else {
+                            segmentID= segmentNameToShow;
+                            baseURL = "";
+                        }
                         //EDITABLE//
                         descrStrada = `
                         <div id="headerDraggable">Road:</div>
@@ -11340,8 +11398,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         console.log('restriction_array:', restriction_array);
 
                         var restriction_data_details = '';
-                        var segmentID= (strada.segment).split('/resource/')[1];
-                        var baseURL = (strada.segment).split(segmentID)[0];
+                        var segmentID = '';
+                        var baseURL = '';
+                        if(segmentNameToShow == strada.segment){
+                            segmentID= (strada.segment).split('/resource/')[1];
+                            baseURL = (strada.segment).split(segmentID)[0];
+                        } else {
+                            segmentID= segmentNameToShow;
+                            baseURL = "";
+                        }
                         //descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+dir+'<br /><span><b>Restrictions: </b></span>'+restriction_span+'<br /><span></div>');
                         descrStrada = ('<div id="headerDraggable">Road: </div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>BaseUrl:</b></td><td>'+baseURL+'</td></tr><tr><td><b>SegmentID: </b></td><td>' + segmentID + '</td></tr><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table></div>');
 
@@ -12327,6 +12392,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             if (!response.ok) {
                 //console.log(response)
                 throw new Error(`HTTP Error: ${response.status}`);
+                showNotification("Error during scenario data updating. Try again later.");
                 return "dati_init_no"
             }
             else {
@@ -12335,6 +12401,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             }
         } catch (error) {
             //console.error("Oops: Something Else", error);
+            showNotification("Error during scenario data updating. Try again later.");
             return "dati_init_no";
         }
     }
@@ -12463,7 +12530,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     class IlSensore {
         //costruttore della classe che prende solo il sensorUri e le coordinate dato che le ho
         //ENRICO Question: ci siamo scordati il campo considered ? l'ho messo nel costruttore ora cerco di capire come mettere il marker
-        constructor(sensorUri, coordinates, alContorno = false, trafficDensity, trafficSensor, direction = '', tipo_del_sensore_in_base_alla_strada, status, idSensor, considerato=true) {
+        constructor(
+            sensorUri, coordinates, alContorno = false, 
+            trafficDensity, trafficSensor, direction = '', 
+            tipo_del_sensore_in_base_alla_strada, status, 
+            idSensor, considerato=true, assignedRoadElement=null
+        ) {
             if (alContorno) {
                 this.consideredIcon = L.icon({
                     iconUrl: '../img/gisMapIcons/over/RoadSensor_over.png',
@@ -12535,6 +12607,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     this.idSensor = idSensor;
                 } 
                 this.assignedRoadElement = sensorUri;
+            }
+
+            if(assignedRoadElement != null){
+                this.assignedRoadElement = assignedRoadElement;
             }
 
             
@@ -12863,10 +12939,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             var beforeResource = assignedRoadElement.slice(0, splitPoint);  // Parte prima e inclusa 'resource/'
             var afterResource = assignedRoadElement.slice(splitPoint);      // Parte dopo 'resource/'
 
-            var popupContent = `<div id="sensorPopup" style="width: 100%">
+            var popupContent = `<div id="sensorPopup" style="width: 450px">
                                     <div id="sensorPopup_edit" style="display:none">
                                         <div id="considerOrNotConsiderPanel" style="background-color: #AF5050; color: white">Sensor: ${this.idSensor}</div>
-                                        <div id="segmentLabel_view" style="padding:5%; max-width:450px; width: auto;"><table>
+                                        <div id="segmentLabel_view" style="padding:5%; max-width:450px; width: 450px; background-color: white;"><table>
                                         <tbody>
                                         <tr>
                                         <td><b>Traffic density:</b></td><td><select id="select_ttt" value="${this.trafficDensity}" style="width:230px; min-width:230px">`+ ttt_text + `</select></td>
@@ -12875,14 +12951,17 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         <td><b>Traffic sensor:</b></td><td><select id="select_ts" value="${this.trafficSensor}" style="width:230px; min-width:230px">`+ ts_text + `</select></td>
                                         </tr>
                                         <tr>
-                                        <td><b>Baseurl:</b></td>
-                                        <td>`+beforeResource+`
+                                        <td><b>Assigned road:</b></td>
+                                        <td>
+                                            `+beforeResource+` <br />
+                                            `+afterResource+`
                                         </td>
                                         </tr>
                                         <tr>  
                                         <td>
-                                        <b>SegmentID:</b></td>
-                                        <td>`+afterResource+`<p id="idSensorSelected" style="display:none">${this.idSensor}</p></td><td></td>
+                                        <b>Sensor ID:</b></td>
+                                        <!-- <td>`+afterResource+`<p id="idSensorSelected" style="display:none">${this.idSensor}</p></td><td></td> -->
+                                        <td><p id="idSensorSelected" >${this.idSensor}</p></td>
                                         </tr>
                                         <tr>
                                         <td><button id="sensor_save">Save</button></td><td><button id="considerOrNotConsiderBtn">${this.considerato ? "Don't Consider" : "Consider"}</button>
@@ -12894,7 +12973,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     </div>
                                     <div id="sensorPopup_view">
                                     <div id="considerOrNotConsiderPanelView" style="background-color: #AF5050; color: white">Sensor: ${this.idSensor}</div>
-                                        <div id="segmentLabel_view" style="padding:5%; max-width:450px; width: auto;"><table>
+                                        <div id="segmentLabel_view" style="padding:5%; max-width:450px; width: 450px; background-color: white;"><table>
                                         <tbody>
                                         <tr>
                                         <td><b>Traffic density:</b></td><td><p id="current_ttt_text">${this.trafficDensity}</p></td>
@@ -12903,14 +12982,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         <td><b>Traffic sensor:</b></td><td><p id="current_ts_text">${this.trafficSensor}</p></td>
                                         </tr>
                                         <tr>
-                                        <td><b>Baseurl:</b></td>
-                                        <td>`+beforeResource+`
+                                        <td><b>Assigned road:</b></td>
+                                        <td>
+                                            `+beforeResource+` <br />
+                                            `+afterResource+`
                                         </td>
                                         </tr>
                                         <tr>
-                                        <td>
-                                        <b>SegmentID:</b></td>
-                                        <td>`+afterResource+`</td>
+                                        <td><b>Sensor ID:</b></td>
+                                        <td><p id="idSensorSelected" >${this.idSensor}</p></td>
                                         </tr>
                                         </tbody>
                                         </table>
@@ -13520,8 +13600,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 $("#line_delete").css('background-color', '');
                 $("#line_delete").css('color', 'black');
                 //
-                $('#line_assign').css('background-color', '');
-                $("#line_assign").css('color', 'black');
+                // $('#line_assign').css('background-color', '');
+                // $("#line_assign").css('color', 'black');
+
+                if(roadElementGraph){
+                    roadElementGraph.mode = 'create';
+                }
             });
 
             $('#line_drag').click(function () {
@@ -13538,8 +13622,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 $("#line_delete").css('background-color', '');
                 $("#line_delete").css('color', 'black');
                 //
-                $('#line_assign').css('background-color', '');
-                $("#line_assign").css('color', 'black');
+                // $('#line_assign').css('background-color', '');
+                // $("#line_assign").css('color', 'black');
+
+                if(roadElementGraph){
+                    roadElementGraph.mode = 'drag';
+                }
             });
 
             $('#line_split').click(function () {
@@ -13556,8 +13644,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 $("#line_delete").css('background-color', '');
                 $("#line_delete").css('color', 'black');
                 //
-                $('#line_assign').css('background-color', '');
-                $("#line_assign").css('color', 'black');
+                // $('#line_assign').css('background-color', '');
+                // $("#line_assign").css('color', 'black');
+
+                if(roadElementGraph){
+                    roadElementGraph.mode = 'split';
+                }
             });
 
             $('#line_delete').click(function () {
@@ -13574,27 +13666,30 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 $("#line_delete").css('background-color', '#3E64A6');
                 $("#line_delete").css('color', 'white');
                 //
-                $('#line_assign').css('background-color', '');
-                $("#line_assign").css('color', 'black');
+                // $('#line_assign').css('background-color', '');
+                // $("#line_assign").css('color', 'black');
+                if(roadElementGraph){
+                    roadElementGraph.mode = 'delete';
+                }
             });
 
-            $('#line_assign').click(function () {
-                //lline_create
-                $("#line_create").css('background-color', '');
-                $("#line_create").css('color', 'black');
-                //line_drag
-                $("#line_drag").css('background-color', '');
-                $("#line_drag").css('color', 'black');
-                //line_split
-                $("#line_split").css('background-color', '');
-                $("#line_split").css('color', 'black');
-                //line_delete
-                $("#line_delete").css('background-color', '');
-                $("#line_delete").css('color', 'black');
-                //
-                $('#line_assign').css('background-color', '#3E64A6');
-                $("#line_assign").css('color', 'white');
-            });
+            // $('#line_assign').click(function () {
+            //     //lline_create
+            //     $("#line_create").css('background-color', '');
+            //     $("#line_create").css('color', 'black');
+            //     //line_drag
+            //     $("#line_drag").css('background-color', '');
+            //     $("#line_drag").css('color', 'black');
+            //     //line_split
+            //     $("#line_split").css('background-color', '');
+            //     $("#line_split").css('color', 'black');
+            //     //line_delete
+            //     $("#line_delete").css('background-color', '');
+            //     $("#line_delete").css('color', 'black');
+            //     //
+            //     $('#line_assign').css('background-color', '#3E64A6');
+            //     $("#line_assign").css('color', 'white');
+            // });
 
 
             $("#line_reset").click(function () {
@@ -14530,10 +14625,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             if (point.considered) {
                                 point_considered = point.considered;
                             }
+                            if (point.assignedRoadElement){
+                                point_assignedRoadElement = point.assignedRoadElement;
+                            }
                             console.log('point:', point);
 
                             try {
-                                const ilSensore0 = new IlSensore(point.sensorUri, [point.coordinates[0], point.coordinates[1]], point.virtual, trafficDensityLoad, trafficSensorLoad, directionRoad, nearestRoad, nearestRoadStatus, point_idSensor, point_considered);
+                                const ilSensore0 = new IlSensore(point.sensorUri, [point.coordinates[0], point.coordinates[1]], point.virtual, trafficDensityLoad, trafficSensorLoad, directionRoad, nearestRoad, nearestRoadStatus, point_idSensor, point_considered, point_assignedRoadElement);
                                 istanzedeisensorichestoconsiderando.push(ilSensore0);
                                 scenaryMarkers.addLayer(ilSensore0.marker);
                                 if (ilSensore0.status == 'off') {
@@ -14545,42 +14643,43 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 console.error("Error fetching sensor data:", error);
                             }
                         }
-                    } else {
-                        //
-                        if (datidalsensore.realtime.results.bindings[0].trafficSensorList !== undefined) {
-                            trafficSensorList_load = datidalsensore.realtime.results.bindings[0].trafficSensorList.value;
+                    } 
+                    // else { // OBSOLETO 
+                    //     //
+                    //     if (datidalsensore.realtime.results.bindings[0].trafficSensorList !== undefined) {
+                    //         trafficSensorList_load = datidalsensore.realtime.results.bindings[0].trafficSensorList.value;
 
-                            var arrayURL2 = JSON.parse(trafficSensorList_load);
-                            trafficSensorList_load_list = arrayURL2.modified_scenario_data_sensors;
-                            console.log(trafficSensorList_load_list);
-                            if (trafficSensorList_load.length > 0) {
-                                //CARICAMENTO DATI
-                                var array_ts = [];
-                                for (i = 0; i < trafficSensorList_load_list.length; i++) {
-                                    var point = trafficSensorList_load_list[i];
-                                    console.log('point', point);
-                                    try {
-                                        console.log('ilSensore');
-                                        const ilSensore1 = new IlSensore(point.sensorUri, [point.coordinates[0], point.coordinates[1]], true, '', '', point.direction, point.tipo_del_sensore_in_base_alla_strada, point.status);
-                                        console.log(ilSensore1);
-                                        istanzedeisensorichestoconsiderando.push(ilSensore1);
-                                        scenaryMarkers.addLayer(ilSensore1.marker);
-                                        //////////
-                                    } catch (error) {
-                                        console.error("Error fetching sensor data:", error);
-                                    }
-                                }
-                                ////                                              
-                            } else {
-                                console.log('NOT FOUND trafficSensors');
-                            }
+                    //         var arrayURL2 = JSON.parse(trafficSensorList_load);
+                    //         trafficSensorList_load_list = arrayURL2.modified_scenario_data_sensors;
+                    //         console.log(trafficSensorList_load_list);
+                    //         if (trafficSensorList_load.length > 0) {
+                    //             //CARICAMENTO DATI
+                    //             var array_ts = [];
+                    //             for (i = 0; i < trafficSensorList_load_list.length; i++) {
+                    //                 var point = trafficSensorList_load_list[i];
+                    //                 console.log('point', point);
+                    //                 try {
+                    //                     console.log('ilSensore');
+                    //                     const ilSensore1 = new IlSensore(point.sensorUri, [point.coordinates[0], point.coordinates[1]], true, '', '', point.direction, point.tipo_del_sensore_in_base_alla_strada, point.status);
+                    //                     console.log(ilSensore1);
+                    //                     istanzedeisensorichestoconsiderando.push(ilSensore1);
+                    //                     scenaryMarkers.addLayer(ilSensore1.marker);
+                    //                     //////////
+                    //                 } catch (error) {
+                    //                     console.error("Error fetching sensor data:", error);
+                    //                 }
+                    //             }
+                    //             ////                                              
+                    //         } else {
+                    //             console.log('NOT FOUND trafficSensors');
+                    //         }
 
-                        } else {
-                            console.log('trafficSensors UNDEFINED');
-                        }
-                        //
-                        //NED ELSE
-                    }
+                    //     } else {
+                    //         console.log('trafficSensors UNDEFINED');
+                    //     }
+                    //     //
+                    //     //NED ELSE
+                    // }
                     ////////
                     console.log('istanzedeisensorichestoconsiderando', istanzedeisensorichestoconsiderando);
                     console.log('istanzedelgrafochestoconsiderando', istanzedelgrafochestoconsiderando);
@@ -15715,11 +15814,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             var restrictions = null;
 
                             if (roadElementGraph && restriction_data) {
-                                // istanzedelgrafochestoconsiderando = roadElementGraph.getSegmentsForSaving();
                                 var arrayAlfanumerico = roadElementGraph.segments;
                                 var arrayNumerico = Object.keys(arrayAlfanumerico).map((key, index) => {
-                                    // const { line, arrow, hasError, errors ...rest } = arrayAlfanumerico[key];
-                                    // return { ...rest, id: index + 1 };
                                     const obj = arrayAlfanumerico[key];
                                     // Check if the keys exist, then destructure them if they do
                                     const { line, arrow, hasError, errors, ...rest } = {
@@ -15735,36 +15831,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                                 //Manage Restrictions
                                 restrictions = restriction_data;
-                                // var array_rests = [];
-                                // if (roadElementGraph.segments) {
-                                //     var segmenti = roadElementGraph.segments;
-                                //     array_rests = Object.values(segmenti);
-                                //     let lunghezzaJson = Object.keys(segmenti).length;
-                                //     console.log(lunghezzaJson);
-                                //     //
-                                //     for (var i = 0; i < array_rests.length; i++) {
-                                //         if (array_rests[i].restriction !== undefined) {
-                                //             console.log(array_rests[i].restriction);
-                                //             var length_res = (array_rests[i].restriction).length;
-                                //             for (var y = 0; y < length_res; y++) {
-                                //                 if (array_rests[i].restriction[y].from !== undefined) {
-                                //                     //
-                                //                     let arraysegmentTo = (array_rests[i].restriction[y].to).split('/');
-                                //                     arraysegmentTo = arraysegmentTo[arraysegmentTo.length - 2] + '/' + arraysegmentTo[arraysegmentTo.length - 1];
-                                //                     let arraysegmentNode = (array_rests[i].restriction[y].node).split('/');
-                                //                     arraysegmentNode = arraysegmentNode[arraysegmentNode.length - 2] + '/' + arraysegmentNode[arraysegmentNode.length - 1];
-                                //                     let arraysegmentFrom = (array_rests[i].restriction[y].from).split('/');
-                                //                     arraysegmentFrom = arraysegmentFrom[arraysegmentFrom.length - 2] + '/' + arraysegmentFrom[arraysegmentFrom.length - 1];
-                                //                     //
-                                //                     var element = '{"node":{ "type":"literal","value":"' + arraysegmentNode + '"},"from":{"type":"literal","value":"' + arraysegmentFrom + '" },"to":{ "type":"literal","value":"' + arraysegmentTo + '"},"restriction":{"type":"literal", "value":"' + array_rests[i].restriction[y].restriction + '" }}';
-                                //                     var element_json = JSON.parse(element);
-                                //                     restrinctions.push(element_json);
-                                //                 }
-                                //             }
-                                //         }
-                                //     }
-                                //     console.log('restrinctions', restrinctions);
-                                // }
+
                             } else {
                                 alert("No road graph in memory");
                                 return null;
@@ -15772,13 +15839,48 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                             ///////////
                             console.log('scenarioareaOfInterest', scenarioareaOfInterest);
+
                             //BOLOGNA SAVING PINS
+                            function isPointInPolygon(point, polygon) {
+                                var x = point.lat, y = point.lng;
+                                
+                                var inside = false;
+                                
+                                // Get the array of latlngs for the polygon
+                                var latlngs = polygon.getLatLngs()[0]; // Assuming polygon is simple and not multipolygon
+                                
+                                // Ray-casting algorithm
+                                for (var i = 0, j = latlngs.length - 1; i < latlngs.length; j = i++) {
+                                    var xi = latlngs[i].lat, yi = latlngs[i].lng;
+                                    var xj = latlngs[j].lat, yj = latlngs[j].lng;
+
+                                    var intersect = ((yi > y) !== (yj > y)) &&
+                                                    (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                                    if (intersect) inside = !inside;
+                                }
+                                
+                                return inside;
+                            }
+
                             var markersInPolygon = [];
                             var shapes = [];
-                            var polygonBounds = scenaryDrawnItems.getBounds();
+                            //var polygonBounds = scenaryDrawnItems.getBounds();
+                            const coords = scenaryData.features[0].geometry.coordinates[0];
+                            var coords_latlon = []
+                            for(let c = 0; c < coords.length; c++){
+                                var tmp = coords[c];
+                                coords_latlon.push([tmp[1], tmp[0]]);
+                            }
+                            const scenaryPolygon = L.polygon(coords_latlon);
                             map.defaultMapRef.eachLayer(function (layer) {
                                 if (layer instanceof L.Marker) {
-                                    if (polygonBounds.contains(layer.getLatLng())) {
+                                    // if (polygonBounds.contains(layer.getLatLng())) {
+                                    //     if (layer.feature != undefined) {
+                                    //         var item = layer.feature.properties.serviceUri;
+                                    //         markersInPolygon.push(item);
+                                    //     }
+                                    // }
+                                    if (isPointInPolygon(layer.getLatLng(), scenaryPolygon)) {
                                         if (layer.feature != undefined) {
                                             var item = layer.feature.properties.serviceUri;
                                             markersInPolygon.push(item);
@@ -15833,32 +15935,42 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                             // TODO: what happns if a sensors is already assigned to a road? (e.g. virtual sensor on the border)
                             const stradeAssegnate = new Set(); // Usato per tenere traccia delle strade già assegnate
-                            const sensoriArrayConStradaVicina = sensoriArray.map(sensore => {
-                                let stradaVicina = null;
-                                let distanzaMinima = Infinity;
-                                //BOLOGNA                                    
-                                istanzedelgrafochestoconsiderando.forEach(strada => {
-                                    const distanza = Math.sqrt(
-                                        Math.pow(sensore.coordinates[1] - strada.nALat, 2) +
-                                        Math.pow(sensore.coordinates[0] - strada.nALong, 2)
-                                    );
-                                    // Verifica se la distanza è minore di quella minima precedentemente registrata,
-                                    // se la strada non è già stata assegnata e se il tipo di strada è uno dei tipi specificati
-                                    if (distanza < distanzaMinima &&
-                                        !stradeAssegnate.has(strada) &&
-                                        ['primary', 'tertiary', 'residential', 'secondary', 'unclassified'].includes(strada.type)) {
-                                        distanzaMinima = distanza;
-                                        stradaVicina = strada;
+
+                            for(let i = 0; i < sensoriArray.length; i++){
+                                if(sensoriArray[i].assignedRoadElement){
+                                    const strada = istanzedelgrafochestoconsiderando.find(obj => obj["segment"] === sensoriArray[i].assignedRoadElement);
+                                    stradeAssegnate.add(strada);
+                                    sensoriArray[i].nearestRoad = strada;
+                                }
+                            }
+
+                            sensoriArray = sensoriArray.map(sensore => {
+                                if(!sensore.nearestRoad){
+                                    let stradaVicina = null;
+                                    let distanzaMinima = Infinity;
+                                    //BOLOGNA                                    
+                                    istanzedelgrafochestoconsiderando.forEach(strada => {
+                                        const distanza = Math.sqrt(
+                                            Math.pow(sensore.coordinates[1] - strada.nALat, 2) +
+                                            Math.pow(sensore.coordinates[0] - strada.nALong, 2)
+                                        );
+                                        // Verifica se la distanza è minore di quella minima precedentemente registrata,
+                                        // se la strada non è già stata assegnata e se il tipo di strada è uno dei tipi specificati
+                                        if (distanza < distanzaMinima &&
+                                            !stradeAssegnate.has(strada) &&
+                                            ['primary', 'tertiary', 'residential', 'secondary', 'unclassified'].includes(strada.type)) {
+                                            distanzaMinima = distanza;
+                                            stradaVicina = strada;
+                                        }
+                                    });
+                                    if (stradaVicina) {
+                                        sensore.nearestRoad = stradaVicina;
+                                        sensore.assignedRoadElement = stradaVicina.segment;
+                                        stradeAssegnate.add(stradaVicina);
                                     }
-                                });
-                                if (stradaVicina) {
-                                    sensore.nearestRoad = stradaVicina;
-                                    stradeAssegnate.add(stradaVicina);
                                 }
                                 return sensore;
                             });
-
-                            console.dir('sensoriArrayConStradaVicina', sensoriArrayConStradaVicina);
                             
                             if (scenaryOtherSensors == "") {
                                 scenaryOtherSensors = [];
@@ -15888,7 +16000,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 "shape": {
                                     "scenarioareaOfInterest": scenarioareaOfInterest
                                 },
-                                "sensors": sensoriArrayConStradaVicina,
+                                "sensors": sensoriArray,
                                 "otherSensors": scenaryOtherSensors, 
                                 "roadGraph": "istanzedelgrafochestoconsiderando",  //in prod mettere tra virgolette "istanzedelgrafochestoconsiderando"
                                 "filters": '',
@@ -15939,68 +16051,80 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             adesso = new Date().toISOString();
                             ildevicename = "deviceName" + scenarioName;
                             currentLoadedScenario = ildevicename;
-                            // TODO: before creating a device it would be better to check if the device exist and not rely on creation failure
-                            creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
-                            // TODO: if the device is created or not always sent data (in the same way for the INIT)!
-                            if (creato == "ok") { // device did not exist and it has been created successfully
-                                showNotification("Scenario successfully created!");
-                                try {
-                                    initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
-                                    sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
-                                        "roadGraph": istanzedelgrafochestoconsiderando_forSaving,
-                                        "filters": list_filters,
-                                        "sensors": sensoriArray,
-                                        "restrictions": restrictions
-                                    }, ilDateObserved).then(data => {
-                                        console.log('Risposta dal server:', data);
-                                    }).catch(error => {
-                                        console.error('Si è verificato un errore:', error);
-                                    });
-                                    setTimeout(() => {
-                                        //showNotification("E i dati iniziali sono stati inviati con successo!");
-                                    }, 1000);
-                                    setTimeout(() => {
-                                        //showNotification("Ora puoi accorpare da Node-Red e continuare in seguito.");
-                                    }, 2000);
 
-                                    if (initdatainviati == "dati_init_si") {
-                                        showNotification("Initial data successully sended!");
-                                        console.log('currentLoadedStatus: ', currentLoadedStatus);
-                                        console.log('istanzedelgrafochestoconsiderando_forSaving', istanzedelgrafochestoconsiderando_forSaving);
-                                        setTimeout(() => {
-                                            //showNotification("Now you can modify them in NR.");
-                                        }, 1000);
-                                    } else {
-                                        console.error("Errore nell'invio dei dati iniziali:", error);
-                                        showNotification("Error during initial data sending. Try again later.");
-                                    }
-
-
-                                } catch (error) {
-                                    console.error("Errore nell'invio dei dati iniziali:", error);
-                                    showNotification("Error during initial data sending. Try again later.");
+                            // check if device exist
+                            var deviceExist = false;
+                            try{
+                                const data = await readFromDevice(null, ildevicename, null);
+                                if(data){
+                                    deviceExist = true;
+                                } else {
+                                    deviceExist = false;
                                 }
-                            } else { // device creation failed, it assume that te device exist // TODO TO BE REVISED!                                
+                            } catch {
+                                deviceExist = false;
+                            }
+
+                            if(!deviceExist){                                
+                                creato = await createDevice(lAccessToken, ildevicename, scenarioareaOfInterest[0].geometry, centroid);
+                                if (creato == "ok") { // device did not exist and it has been created successfully
+                                    showNotification("Scenario successfully created!");
+                                    try {
+                                        initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
+                                        if (initdatainviati == "dati_init_si") {
+                                            sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
+                                                "roadGraph": istanzedelgrafochestoconsiderando_forSaving,
+                                                "filters": list_filters,
+                                                "sensors": sensoriArray,
+                                                "restrictions": restrictions
+                                            }, ilDateObserved).then(data => {
+                                                console.log('Risposta dal server:', data);
+                                                console.log('currentLoadedStatus: ', currentLoadedStatus);
+                                                console.log('istanzedelgrafochestoconsiderando_forSaving', istanzedelgrafochestoconsiderando_forSaving);
+                                                setTimeout(() => {
+                                                    showNotification("Scenario device successfully created and data sent correctly.");
+                                                }, 1000);
+                                            }).catch(error => {
+                                                console.error('Si è verificato un errore:', error);
+                                                showNotification("Error in sending data to DB.");
+                                            });                                            
+                                        } else {
+                                            console.error("Error during initial data sending:", error);
+                                            showNotification("Error during initial data sending to device.");
+                                        }
+                                    } catch (error) {
+                                        console.error("Error during initial data sending:", error);
+                                        showNotification("Error during initial data sending.");
+                                    }
+                                } else {
+                                    console.error("Error during scenario device creation.");
+                                    showNotification("Error during scenario device creation.");
+                                }
+                            } else {                                 
                                 try {
-
-
                                     //INVIO DATI AL DB STATO INIT
                                     if (currentLoadedStatus == 'init') {
                                         initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData);
-                                        sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
-                                            "roadGraph": istanzedelgrafochestoconsiderando_forSaving,
-                                            "filters": list_filters,
-                                            "sensors": sensoriArray,
-                                            "restrictions": restrictions
-                                        }, ilDateObserved).then(data => {
-                                            console.log('Risposta dal server:', data);
-                                        }).catch(error => {
-                                            console.error('Si è verificato un errore:', error);
-                                        });
-                                    }
-
-                                    //INVIO DATI AL DB STATO ACC // TODO: TO BE REVISED!!!
-                                    if (currentLoadedStatus == 'acc') {
+                                        if (initdatainviati == "dati_init_si") {
+                                            sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
+                                                "roadGraph": istanzedelgrafochestoconsiderando_forSaving,
+                                                "filters": list_filters,
+                                                "sensors": sensoriArray,
+                                                "restrictions": restrictions
+                                            }, ilDateObserved).then(data => {
+                                                console.log('Risposta dal server:', data);
+                                                setTimeout(() => {
+                                                    showNotification("Scenario data successfully updated.");
+                                                }, 1000);
+                                            }).catch(error => {
+                                                console.error('Si è verificato un errore:', error);
+                                                showNotification("Error during scenario data updating.");
+                                            });
+                                        } else {
+                                            console.error("Error during data updating in device");
+                                            showNotification("Error during data updating in device.");
+                                        }
+                                    } else if (currentLoadedStatus == 'acc') { //INVIO DATI AL DB STATO ACC // TODO: TO BE REVISED!!!
                                         // // mi prendo la data attuale da mandare nel DB
                                         // ilDateObserved = new Date().toISOString();
                                         // // mentre per il dato che andrà sul device ci devo mettere + 2 ore
@@ -16009,175 +16133,163 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         // ilDateObserved2 = ilDateObserved2.toISOString();
                                         // scenarioData.metadata.dateObserved = ilDateObserved2; // lo devo aggiornare sennò prende lo stesso dell'acc che carico                                                                                        
                                         initdatainviati = await sendDataINIT(lAccessToken, ildevicename, scenarioData, questofather.value);
-                                        //NEW FORMAT DATA
-                                        let acc_pronto_per_il_risalvataggio = istanzedelgrafochestoconsiderando_forSaving.map(item => {
-                                            if(item.lanes.lanes != undefined){
-                                                let questaLenght = -1;
+                                        if (initdatainviati == "dati_init_si") {
+                                            //NEW FORMAT DATA
+                                            let acc_pronto_per_il_risalvataggio = istanzedelgrafochestoconsiderando_forSaving.map(item => {
+                                                if(item.lanes.lanes != undefined){
+                                                    let questaLenght = -1;
 
-                                                // ENRICO: qui ho l'AC dal db in loadedAccAC e mi prendo la length specifica
-                                                for (let i = 0; i < loadedAccAC.length; i++) {
-                                                    if(loadedAccAC[i]['segment'][0] == item.segment){
-                                                        if (loadedAccAC[i]['length'][0] != 0){
-                                                            questaLenght = loadedAccAC[i]['length'][0];
-                                                        }                                                                                                                
+                                                    // ENRICO: qui ho l'AC dal db in loadedAccAC e mi prendo la length specifica
+                                                    for (let i = 0; i < loadedAccAC.length; i++) {
+                                                        if(loadedAccAC[i]['segment'][0] == item.segment){
+                                                            if (loadedAccAC[i]['length'][0] != 0){
+                                                                questaLenght = loadedAccAC[i]['length'][0];
+                                                            }                                                                                                                
+                                                        }
                                                     }
+                                                    return {
+                                                        "road": [item.road],
+                                                        "segment": [item.segment],
+                                                        "type": [item.type],
+                                                        "nALat": [item.nALat],
+                                                        "nALong": [item.nALong],
+                                                        "nBLat": [item.nBLat],
+                                                        "nBLong": [item.nBLong],
+                                                        "dir": ["tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)"], // forzo a "tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)" che delle votle viene "none" su item.dir
+                                                        "length": [parseFloat(questaLenght)],//[parseInt(haversineDistance(item.nALat, item.nALong, item.nBLat, item.nBLong, R=6371000))], //[item.length], // e manca la lenght! come cacchio la sistemo ora ?!
+                                                        "nodeA": [item.nodeA],
+                                                        "nodeB": [item.nodeB],
+                                                        "lanes": {
+                                                            "1": [item.lanes.lanes[0]]  // va aggiustato qui
+                                                        }, 
+                                                        "elemType": {
+                                                            "1": item.elemType.elemType
+                                                        },  // questo Rimane uguale
+                                                        "sensor": ["0"],   // questo dovrebbe essere itm.sensor ma va messo a 0 forse li mette da qualche parte
+                                                        "considered": [0], //[item.considered], // lo mette a 1 ma dovrebbe essere 0 quindi imposto 0 per conformarmi a stefano
+                                                        "virtual": [0], //[item.virtual], // idem come sopra
+                                                        "recSeg": [item.recSeg],
+                                                        "recRoad": [item.recRoad],
+                                                        "realSegment": [item.realSegment],
+                                                        "realRoad": [item.realRoad],
+                                                        "weight": [parseFloat(item.weight)] ,
+                                                        "vmax": [parseFloat(item.roadElmSpeedLimit)*0.2777],
+                                                        "delta_x": [item.delta_x]
+                                                    };
+                                                }else{
+                                                    return {
+                                                        "road": [item.road],
+                                                        "segment": [item.segment],
+                                                        "type": [item.type],
+                                                        "nALat": [item.nALat],
+                                                        "nALong": [item.nALong],
+                                                        "nBLat": [item.nBLat],
+                                                        "nBLong": [item.nBLong],
+                                                        "dir": [item.dir],
+                                                        "length": [item.length],
+                                                        "nodeA": [item.nodeA],
+                                                        "nodeB": [item.nodeB],
+                                                        "lanes": {
+                                                            "1": [item.lanes]
+                                                        },
+                                                        "elemType": item.elemType,  // Rimane uguale
+                                                        "sensor": [item.sensor],
+                                                        "considered": [item.considered],
+                                                        "virtual": [item.virtual],
+                                                        "recSeg": [item.recSeg],
+                                                        "recRoad": [item.recRoad],
+                                                        "realSegment": [item.realSegment],
+                                                        "realRoad": [item.realRoad],
+                                                        "weight": [parseFloat(item.weight)],
+                                                        "vmax": [parseFloat(item.roadElmSpeedLimit)*0.2777],
+                                                        "delta_x": [item.delta_x]
+                                                    };
                                                 }
+                                            });
+
+                                            // Stampa il nuovo JSON
+                                            console.log(acc_pronto_per_il_risalvataggio);
+
+                                            // 
+                                            // riprendo i riferimenti che erano persi e gli aggiorno l'eventuale weight se è stato modificato sul segmento di riferimento
+                                            riferimentoSensoriAccorpato.forEach(sensorItem => {
+                                                // Trova l'elemento corrispondente in acc_pronto_per_il_risalvataggio
+                                                let correspondingItem = acc_pronto_per_il_risalvataggio.find(accItem => accItem.segment[0] === sensorItem.segment);
+                                                if (correspondingItem) {                                                
+                                                    if (correspondingItem.weight[0] !== sensorItem.weight) {                                                    
+                                                        sensorItem.weight = correspondingItem.weight[0]; // e qui gli aggiorno il weight
+                                                        //console.log(`Aggiornato weight per il segmento ${sensorItem.segment} da ${sensorItem.weight} a ${correspondingItem.weight[0]}`);
+                                                    }
+                                                    
+                                                }
+                                            });
+
+                                            // manca di convertire nel formato originale anche riferimentoSensoriAccorpato
+                                            // eh oh va ripetuto perchè tipo lanes ed eemtype sono diversi...
+                                            let riferimentoSensoriConvertito = riferimentoSensoriAccorpato.map(sensorItem => {
                                                 return {
-                                                    "road": [item.road],
-                                                    "segment": [item.segment],
-                                                    "type": [item.type],
-                                                    "nALat": [item.nALat],
-                                                    "nALong": [item.nALong],
-                                                    "nBLat": [item.nBLat],
-                                                    "nBLong": [item.nBLong],
-                                                    "dir": ["tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)"], // forzo a "tratto stradale aperto nella direzione positiva (da giunzione NOD_INI a giunzione NOD_FIN)" che delle votle viene "none" su item.dir
-                                                    "length": [parseFloat(questaLenght)],//[parseInt(haversineDistance(item.nALat, item.nALong, item.nBLat, item.nBLong, R=6371000))], //[item.length], // e manca la lenght! come cacchio la sistemo ora ?!
-                                                    "nodeA": [item.nodeA],
-                                                    "nodeB": [item.nodeB],
+                                                    "road": [sensorItem.road],
+                                                    "segment": [sensorItem.segment],
+                                                    "type": [sensorItem.type],
+                                                    "nALat": [sensorItem.nALat],
+                                                    "nALong": [sensorItem.nALong],
+                                                    "nBLat": [sensorItem.nBLat],
+                                                    "nBLong": [sensorItem.nBLong],
+                                                    "dir": [sensorItem.dir], // dovrebbe essere none
+                                                    "length": [sensorItem.length],
+                                                    "nodeA": [sensorItem.nodeA],
+                                                    "nodeB": [sensorItem.nodeB],
                                                     "lanes": {
-                                                        "1": [item.lanes.lanes[0]]  // va aggiustato qui
-                                                    }, 
-                                                    "elemType": {
-                                                        "1": item.elemType.elemType
-                                                    },  // questo Rimane uguale
-                                                    "sensor": ["0"],   // questo dovrebbe essere itm.sensor ma va messo a 0 forse li mette da qualche parte
-                                                    "considered": [0], //[item.considered], // lo mette a 1 ma dovrebbe essere 0 quindi imposto 0 per conformarmi a stefano
-                                                    "virtual": [0], //[item.virtual], // idem come sopra
-                                                    "recSeg": [item.recSeg],
-                                                    "recRoad": [item.recRoad],
-                                                    "realSegment": [item.realSegment],
-                                                    "realRoad": [item.realRoad],
-                                                    "weight": [parseFloat(item.weight)] ,
-                                                    "vmax": [parseFloat(item.roadElmSpeedLimit)*0.2777],
-                                                    "delta_x": [item.delta_x]
-                                                };
-                                            }else{
-                                                return {
-                                                    "road": [item.road],
-                                                    "segment": [item.segment],
-                                                    "type": [item.type],
-                                                    "nALat": [item.nALat],
-                                                    "nALong": [item.nALong],
-                                                    "nBLat": [item.nBLat],
-                                                    "nBLong": [item.nBLong],
-                                                    "dir": [item.dir],
-                                                    "length": [item.length],
-                                                    "nodeA": [item.nodeA],
-                                                    "nodeB": [item.nodeB],
-                                                    "lanes": {
-                                                        "1": [item.lanes]
+                                                        "lanes": sensorItem.lanes.lanes // Estrarre il valore giusto da 'lanes'
                                                     },
-                                                    "elemType": item.elemType,  // Rimane uguale
-                                                    "sensor": [item.sensor],
-                                                    "considered": [item.considered],
-                                                    "virtual": [item.virtual],
-                                                    "recSeg": [item.recSeg],
-                                                    "recRoad": [item.recRoad],
-                                                    "realSegment": [item.realSegment],
-                                                    "realRoad": [item.realRoad],
-                                                    "weight": [parseFloat(item.weight)],
-                                                    "vmax": [parseFloat(item.roadElmSpeedLimit)*0.2777],
-                                                    "delta_x": [item.delta_x]
+                                                    "elemType": {
+                                                        "elemType": sensorItem.elemType.elemType // Estrarre il valore giusto da 'elemType'
+                                                    },
+                                                    "sensor": [sensorItem.sensor],
+                                                    "considered": [sensorItem.considered],
+                                                    "virtual": [sensorItem.virtual],
+                                                    "recSeg": [sensorItem.recSeg],
+                                                    "recRoad": [sensorItem.recRoad],
+                                                    "realSegment": [sensorItem.realSegment],
+                                                    "realRoad": [sensorItem.realRoad],
+                                                    "weight": [parseFloat(sensorItem.weight)],
+                                                    "vmax": [parseFloat(sensorItem.roadElmSpeedLimit)*0.2777],
+                                                    "delta_x": [sensorItem.delta_x]
                                                 };
-                                            }
-                                        });
+                                            });
 
-                                        // Stampa il nuovo JSON
-                                        console.log(acc_pronto_per_il_risalvataggio);
+                                            // aggiorno pre invio .. forse
+                                            acc_pronto_per_il_risalvataggio = acc_pronto_per_il_risalvataggio.concat(riferimentoSensoriConvertito);
 
-                                        // 
-                                        // riprendo i riferimenti che erano persi e gli aggiorno l'eventuale weight se è stato modificato sul segmento di riferimento
-                                        riferimentoSensoriAccorpato.forEach(sensorItem => {
-                                            // Trova l'elemento corrispondente in acc_pronto_per_il_risalvataggio
-                                            let correspondingItem = acc_pronto_per_il_risalvataggio.find(accItem => accItem.segment[0] === sensorItem.segment);
-                                            if (correspondingItem) {                                                
-                                                if (correspondingItem.weight[0] !== sensorItem.weight) {                                                    
-                                                    sensorItem.weight = correspondingItem.weight[0]; // e qui gli aggiorno il weight
-                                                    //console.log(`Aggiornato weight per il segmento ${sensorItem.segment} da ${sensorItem.weight} a ${correspondingItem.weight[0]}`);
-                                                }
-                                                
-                                            }
-                                        });
-
-                                        // manca di convertire nel formato originale anche riferimentoSensoriAccorpato
-                                        // eh oh va ripetuto perchè tipo lanes ed eemtype sono diversi...
-                                        let riferimentoSensoriConvertito = riferimentoSensoriAccorpato.map(sensorItem => {
-                                            return {
-                                                "road": [sensorItem.road],
-                                                "segment": [sensorItem.segment],
-                                                "type": [sensorItem.type],
-                                                "nALat": [sensorItem.nALat],
-                                                "nALong": [sensorItem.nALong],
-                                                "nBLat": [sensorItem.nBLat],
-                                                "nBLong": [sensorItem.nBLong],
-                                                "dir": [sensorItem.dir], // dovrebbe essere none
-                                                "length": [sensorItem.length],
-                                                "nodeA": [sensorItem.nodeA],
-                                                "nodeB": [sensorItem.nodeB],
-                                                "lanes": {
-                                                    "lanes": sensorItem.lanes.lanes // Estrarre il valore giusto da 'lanes'
-                                                },
-                                                "elemType": {
-                                                    "elemType": sensorItem.elemType.elemType // Estrarre il valore giusto da 'elemType'
-                                                },
-                                                "sensor": [sensorItem.sensor],
-                                                "considered": [sensorItem.considered],
-                                                "virtual": [sensorItem.virtual],
-                                                "recSeg": [sensorItem.recSeg],
-                                                "recRoad": [sensorItem.recRoad],
-                                                "realSegment": [sensorItem.realSegment],
-                                                "realRoad": [sensorItem.realRoad],
-                                                "weight": [parseFloat(sensorItem.weight)],
-                                                "vmax": [parseFloat(sensorItem.roadElmSpeedLimit)*0.2777],
-                                                "delta_x": [sensorItem.delta_x]
-                                            };
-                                        });
-
-                                        // aggiorno pre invio .. forse
-                                        acc_pronto_per_il_risalvataggio = acc_pronto_per_il_risalvataggio.concat(riferimentoSensoriConvertito);
-
-                                        ///
-                                        sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
-                                            "roadGraph": loadedAccRoadGraph,
-                                            "filters": loadedAccFilters,
-                                            "sensors": loadedAccSensors,
-                                            "restrictions": loadedAccRestrictions,
-                                            "AC": acc_pronto_per_il_risalvataggio,
-                                            "JS20": loadedAccJS20,
-                                            "TDM": acc_pronto_per_il_risalvataggio                                            
-                                        }, ilDateObserved).then(data => {
-                                            console.log('Risposta dal server:', data);
-                                        }).catch(error => {
-                                            console.error('Si è verificato un errore:', error);
-                                        });
-                                    }
-
-                                    if (initdatainviati == "dati_init_si") {
-                                        showNotification("Initial data successully sended!");
-                                        console.log('currentLoadedStatus: ', currentLoadedStatus);
-                                        console.log('istanzedelgrafochestoconsiderando_forSaving', istanzedelgrafochestoconsiderando_forSaving);
-                                        setTimeout(() => {
-                                            //showNotification("Now you can modify them in NR.");
-                                        }, 1000);
-                                    } else {
-                                        console.error("Errore nell'invio dei dati iniziali:", error);
-                                        showNotification("Error during initial data sending. Try again later.");
-                                    }
+                                            ///
+                                            sendDataToDB("<?= $baseServiceURI; ?>" + ilbrokerdellorganizzazione + "/" + lorganizzazione + "/" + ildevicename, {
+                                                "roadGraph": loadedAccRoadGraph,
+                                                "filters": loadedAccFilters,
+                                                "sensors": loadedAccSensors,
+                                                "restrictions": loadedAccRestrictions,
+                                                "AC": acc_pronto_per_il_risalvataggio,
+                                                "JS20": loadedAccJS20,
+                                                "TDM": acc_pronto_per_il_risalvataggio                                            
+                                            }, ilDateObserved).then(data => {
+                                                console.log('Risposta dal server:', data);
+                                                showNotification("Scenario data successfully updated.");
+                                            }).catch(error => {
+                                                console.error('Si è verificato un errore:', error);
+                                                console.error("Errore nell'invio dei dati iniziali:", error);
+                                                showNotification("Error during scenario data updating.");
+                                            });
+                                        } else {
+                                            console.error("Error during data updating in device");
+                                            showNotification("Error during data updating in device.");
+                                        }
+                                    }                                    
                                 } catch (error) {
                                     console.error("Errore nell'invio dei dati iniziali:", error);
-                                    showNotification("Error during initial data sending. Try again later.");
+                                    showNotification("Error during data sending.");
                                 }
                             }
                         });
                     }
-
-                    // cancel function dei metadati del builder 
-                    // $("#scenario-cancel").click(function () {
-                    //     console.log("#scenario-cancel 3")
-                    //     console.log('CLICK ON CANCEL');
-                    //     pulisciTutto();                        
-                    // });
-
                 } catch (error) {
                     console.error("An error occurred:", error.message);
                 }
@@ -16860,6 +16972,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 scenary_selectorRemove.remove();
                 isSaveFinalSet = false;
             }
+
+            pulisciTutto();
         }
         //
     });
@@ -17035,7 +17149,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         weighting: weighting,
                                         startDatetime: startDatetime,
                                         // end Servlet params
-                                        geocoder: L.Control.Geocoder.nominatim(),
+                                        geocoder: "",    //L.Control.Geocoder.nominatim(),
                                         routeWhileDragging: false,
                                         reverseWaypoints: false,
                                         showAlternatives: false,
@@ -20244,7 +20358,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                                 // Setup map
                                 //       if (heatmapData && heatmapData.length > 0) {
-                                const timestamp = trafficData[0].dateTime;
+                                let timestamp = trafficData[0].dateTime;
                                 current_traffic_opacity = 1
                                 trafficMapName = trafficData[0].fluxName;
                                 trafficMapDate = timestamp.replace('T', ' ');
@@ -20260,6 +20374,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         pane: 'TrafficFlowManager:' + datasetName
                                     }).addTo(map.defaultMapRef);
                                 } else {
+                                    
+                                    timestamp = new Date(timestamp).toISOString().replace('Z', '');
                                     let apiOsUrl = "<?= $kbUrlSuperServiceMap; ?>" + "trafficflow/?scenario=" + trafficMapName + "&dateObservedStart=" + encodeURIComponent(timestamp) + "&dateObservedEnd=" + encodeURIComponent(timestamp) + "&kind=reconstructed";
                                     $.ajax({
                                         url: apiOsUrl,
@@ -20627,7 +20743,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     || event.passedData.includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow")) {
 
                     //        console.log("TrafficFlowManager addHeatmapFromClient INIT page=" + current_page_traffic);
-                    const animationWidth = event.passedData.includes("&width=") ? event.passedData.split("&width=")[1].split("&")[0] : "512";
+                    const animationWidth = event.passedData.includes("&width=") ? event.passedData.split("&width=")[1].split("&")[0] : "4000";
                     // const datasetName = event.passedData.split("WMS&layers=")[1].split("&")[0];
                     let datasetName = "";
                     if (event.passedData.includes("WMS&layers=")) {
@@ -20637,7 +20753,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                     map.defaultMapRef.createPane('TrafficFlowManager:' + datasetName);
                     map.defaultMapRef.getPane('TrafficFlowManager:' + datasetName).style.zIndex = 420;
-                    const timestamp = trafficData[current_page_traffic].dateTime;
+                    let timestamp = trafficData[current_page_traffic].dateTime;
                     heatmap.eventType = "traffic_heatmap";
                     //    if (timestamp != null) {
 
@@ -20657,6 +20773,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 pane: 'TrafficFlowManager:' + datasetName
                             }).addTo(map.defaultMapRef);
                         } else {
+                            timestamp = new Date(timestamp).toISOString().replace('Z', '');
                             let apiOsUrl = "<?= $kbUrlSuperServiceMap; ?>" + "trafficflow/?scenario=" + trafficMapName + "&dateObservedStart=" + encodeURIComponent(timestamp) + "&dateObservedEnd=" + encodeURIComponent(timestamp) + "&kind=reconstructed";
                             $.ajax({
                                 url: apiOsUrl,
@@ -21472,6 +21589,578 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         }
     });
 
+
+    //dBologna INIZIO VECTOR FLOW
+    $(document).on('resetVectorFlow', function(event){
+                let allCanvases = document.getElementsByTagName('canvas');
+                    while (allCanvases.length > 0) {
+                        allCanvases[0].remove();  // Rimuove il primo elemento della lista ogni volta
+                    }
+                    flowField = null;
+            });
+
+
+            $(document).on('addVectorFlow', function(event){
+    var token;
+    let nameVectorField= event.passedData.name;
+    $.ajax({
+        url: "../controllers/getAccessToken.php",
+        type: "GET",
+        dataType: 'json',
+        success: function(dataSso) {
+            token = dataSso.accessToken;
+            const metadataUrl= "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + event.passedData.query + "&format=json&accessToken="+token;
+            $.ajax({
+                url: metadataUrl,
+                method: "GET",
+                dataType: 'json',
+                success: function(data1) {
+                    const results = data1.realtime.results.bindings[0];
+                    const localCoordinates= data1.Service.features[0];
+                    const outputData = {
+                        //latitude: event.passedData.coordinates[0],
+                        //longitude: event.passedData.coordinates[1],
+                        latitude: localCoordinates.geometry.coordinates[1],
+                        longitude: localCoordinates.geometry.coordinates[0],
+                        nPointsLatitude: parseInt(results.nPointsLatitude.value),
+                        nPointsLongitude: parseInt(results.nPointsLongitude.value),
+                        stepLat: parseInt(results.stepLat.value),
+                        stepLong: parseInt(results.stepLong.value),
+                        //vectorLength: JSON.parse(results.vectorLength.value),
+                        vectorLength: results.vectorLength ? JSON.parse(results.vectorLength.value) : '',
+                        //angle: JSON.parse(results.angle.value),
+                        angle: results.angle ? JSON.parse(results.angle.value) : '',
+                        description: results.vectorDescription.value,
+                        scaleFactor: parseFloat(results.scaleFactor.value),
+                        legenda: results.legenda.value
+                    };
+                    console.log(outputData);
+                    try{
+                        initializeP5(outputData);
+                    }catch(e){
+                        console.error(e);
+                    }
+                    
+                    
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("Errore nella richiesta: " + textStatus);
+                }
+            });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error("Errore nel recupero del token: " + textStatus, errorThrown);
+        }
+    });
+
+    let flowField;
+
+    function initializeP5(data){
+        //console.log('initializeP5');
+    
+
+    // Definisco l'istanza p5.js
+    new p5(function(p) {
+        //
+        // Funzione di setup per p5
+        p.setup = function() {
+           // console.log('OK');
+           //
+           removeAllCanvas();
+           // Otteniamo la posizione del div contenente la mappa
+           //
+           let mapContainer = document.getElementById('<?= $_REQUEST['name_w'] ?>_map');
+            let rect = mapContainer.getBoundingClientRect();
+
+            // Ottieni la posizione e le dimensioni dell'elemento rispetto alla finestra del browser
+            let width = rect.width;         // Larghezza del div
+            let height = rect.height;       // Altezza del div
+            let top = rect.top;             // Distanza dall'angolo superiore del browser
+            let left = rect.left;           // Distanza dal lato sinistro del browser
+            let right = rect.right;         // Distanza dal lato destro del browser
+            let bottom = rect.bottom;       // Distanza dal lato inferiore del browser
+           //
+           let zoom = map.defaultMapRef.getZoom();
+           map.defaultMapRef.setView([data.latitude, data.longitude], zoom);
+           let mapWidth = mapContainer.offsetWidth;
+           let mapHeight = mapContainer.offsetHeight;
+           
+           //let canvas = p.createCanvas(mapWidth, mapHeight);
+           let canvas = p.createCanvas(rect.width, rect.height);
+
+           //canvas.position(mapContainer.offsetLeft, mapContainer.offsetTop);
+           canvas.position(rect.left, rect.top);
+           //
+           let bottomLeftPoint = map.defaultMapRef.latLngToLayerPoint([data.latitude, data.longitude]);
+            p.clear();
+
+            // Aggiunge un listener per ridisegnare il canvas quando la mappa si muove o viene fatto zoom
+            map.defaultMapRef.on('zoom move', () => {
+                p.redraw();  // Redraw ripete il ciclo di draw quando la mappa cambia
+            });
+
+            // Disabilita il loop automatico di p5.js, dato che vogliamo ridisegnare solo su richiesta
+            //p.noLoop();
+            initializeFlowField(data);
+        };
+
+        // Funzione di draw per p5.js
+        p.draw = function() {
+            p.clear();  // Rimuove il disegno precedente
+
+            if (flowField) {
+                flowField.display();
+            } else {
+                console.log('No flowField');
+            }
+        };
+    
+
+        p.initializeMap = function(data) {
+            initializeFlowField(data);
+        };
+
+    function adjustAngleForLatitude(angle) {
+            let latitudeReference = Math.PI / 2; 
+            return angle - latitudeReference;
+     }
+
+     function degreesToRadians(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+
+
+
+    function initializeFlowField(data) {
+        //
+        let zoom = map.defaultMapRef.getZoom();
+        //
+        let bottomLeftPoint = map.defaultMapRef.latLngToLayerPoint([data.latitude, data.longitude]);
+        let totalVectors = data.nPointsLatitude*data.nPointsLongitude;
+        let cols = data.nPointsLatitude;
+        let rows = data.nPointsLongitude;
+        //
+
+        //
+
+        if (cols > 0 && rows > 0) {
+            //
+            var vectorLength = data.vectorLength;
+            var angle = data.angle;
+            if((vectorLength == '')&&(angle =='')){
+                console.log(nameVectorField);
+                /////////////
+                var url = "<?= $endprocessloader; ?>" + `getOneSpecific.php?suri=${nameVectorField}&accessToken=${token}`;
+                //var url = `http://dashboard/processloader/api/bigdatafordevice/getOneSpecific.php?suri=${nameVectorField}&accessToken=${token}`;
+                $.ajax({
+                    type: 'GET',
+                    url: url,
+                    dataType: "json",
+                    data: { 'accessToken': token },
+                    contentType: 'application/json; charset=utf-8',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    async: false,
+                    success: function (data) {
+                        console.log('Load DATA',data);
+                        const json = JSON.parse(data[0].data);
+                        if( JSON.parse(data[0].data).grandidati !== undefined){
+                            var grandidati = JSON.parse(data[0].data).grandidati;
+                            vectorLength = JSON.parse(grandidati).magnitude;
+                            angle =JSON.parse(grandidati).angle;
+                        
+                        }else{
+                            vectorLength = JSON.parse(json.magnitude);
+                            angle = JSON.parse(json.angle);
+                        }
+                       
+                        
+                    }
+                });
+                ////////////
+            }
+            //
+            flowField = new FlowField(cols, rows, [data.latitude, data.longitude], angle, vectorLength, data.stepLat, data.stepLong, data.scaleFactor, data.description, data.legenda);
+        }
+    }
+
+    function removeAllCanvas() {
+        const canvases = document.querySelectorAll('canvas');
+        canvases.forEach((canvas) => {
+            canvas.parentNode.removeChild(canvas);
+        });
+    }
+
+        
+
+        function getLatLngAfterDistance(latA, lonA, distance, angle) {
+            // Raggio della Terra in km
+             const R = 6372.795477598;
+            // Convertire latitudine e longitudine iniziale in radianti
+            let latA_rad = p.radians(latA);
+            let lonA_rad = p.radians(lonA);
+            
+            // Calcolo della nuova latitudine latB
+            let latB_rad = Math.asin(
+                Math.sin(latA_rad) * Math.cos(distance / R) +
+                Math.cos(latA_rad) * Math.sin(distance / R) * Math.cos(angle)
+            );
+            
+            // Calcolo della nuova longitudine lonB
+            let lonB_rad = lonA_rad + Math.atan2(
+                Math.sin(angle) * Math.sin(distance / R) * Math.cos(latA_rad),
+                Math.cos(distance / R) - Math.sin(latA_rad) * Math.sin(latB_rad)
+            );
+            
+            // Convertire i risultati da radianti a gradi
+            let latB = p.degrees(latB_rad);
+            let lonB = p.degrees(lonB_rad);
+
+            return { latB, lonB };
+        }
+
+
+    class FlowField {
+        constructor(cols, rows, baseLatLng, angleMatrix, magnitudeMatrix, stepLat, stepLong, scaleFactor, description, legenda) {
+            this.cols = cols;
+            this.rows = rows;
+            this.baseLatLng = baseLatLng;
+            this.field = new Array(this.cols);
+            if (typeof angleMatrix === 'string') {
+                this.angleMatrix = JSON.parse(angleMatrix);
+            }else{
+                this.angleMatrix = angleMatrix;
+            }
+            if (typeof magnitudeMatrix === 'string') {
+                this.magnitudeMatrix = JSON.parse(magnitudeMatrix);
+            }else{
+                this.magnitudeMatrix = magnitudeMatrix;
+            }
+            //this.magnitudeMatrix = JSON.parse(magnitudeMatrix);
+            this.stepLong = stepLong;
+            this.stepLat = stepLat;
+            this.scaleFactor = scaleFactor;
+            this.description = description;
+            this.legenda = legenda;
+            console.log('magnitudeMatrix',this.magnitudeMatrix);
+            console.log('angleMatrix',this.angleMatrix);
+               /*let adjustedAngleMatrix = this.angleMatrix.map(row =>
+                    row.map(angle => adjustAngleForLatitude(degreesToRadians(angle)))
+                );
+            this.angleMatrix = adjustedAngleMatrix;
+           console.log(this.angleMatrix);*/
+           // Trova i valori massimo e minimo di magnitude
+        this.maxMagnitude = -Infinity;
+        this.minMagnitude = Infinity;
+
+            for (let i = 0; i < this.cols; i++) {
+                this.field[i] = new Array(this.rows);
+                for (let j = 0; j < this.rows; j++) {
+                    let angle = this.angleMatrix[i][j];
+                    let magnitude = this.magnitudeMatrix[i][j];
+                    // Trova i valori massimo e minimo di magnitude
+                    this.maxMagnitude = Math.max(this.maxMagnitude, magnitude);
+                    this.minMagnitude = Math.min(this.minMagnitude, magnitude);
+                    //
+            // Usa la funzione per calcolare la nuova posizione in base all'angolo e distanza
+                    let newLatLng = getLatLngAfterDistance(
+                                this.baseLatLng[0] + i * this.stepLat / 111320,  // Latitudine corrente
+                                this.baseLatLng[1] + j * this.stepLong / 111320, // Longitudine corrente
+                                magnitude,  // Distanza
+                                angle       // Angolo in radianti
+                            );
+                    //
+                    this.field[i][j] = p.createVector(newLatLng.latB, newLatLng.lonB);
+                    //this.field[i][j] = p.createVector(p.cos(angle), p.sin(angle));
+                    this.isHovered = false;
+                    this.hoverPosition = null;
+                }
+            }
+        }
+
+        //14_ottobre
+        // Funzione per calcolare il passo del campionamento basato sul livello di zoom
+            calculateSamplingStep(zoomLevel) {
+                if (zoomLevel > 18) return 1;
+                if (zoomLevel > 17) return 2;   // Zoom alto, più dettagli (passo piccolo)
+                if (zoomLevel > 15) return 4; 
+                if (zoomLevel > 13) return 8; 
+                if (zoomLevel > 12) return 16; 
+                if (zoomLevel > 11) return 32;
+                if (zoomLevel > 10) return 64;
+                if (zoomLevel > 9) return 128;  // Zoom medio, media dettagli (passo medio)
+                return 256;                      // Zoom basso, meno dettagli (passo grande)
+            }
+
+            // Funzione per calcolare un vettore medio per un gruppo di celle
+            calculateAveragedVector(i, j, step) {
+                    let sumX = 0;
+                    let sumY = 0;
+                    let count = 0;
+
+                    for (let x = i; x < i + step && x < this.cols; x++) {
+                        for (let y = j; y < j + step && y < this.rows; y++) {
+                            let v = this.field[x][y];
+                            sumX += v.x;
+                            sumY += v.y;
+                            count++;
+                        }
+                    }
+                    return p.createVector(sumX / count, sumY / count);
+            }
+
+                // Funzione per calcolare una magnitudine media per un gruppo di celle
+            calculateAveragedMagnitude(i, j, step) {
+                    let sum = 0;
+                    let count = 0;
+
+                    for (let x = i; x < i + step && x < this.cols; x++) {
+                        for (let y = j; y < j + step && y < this.rows; y++) {
+                            sum += this.magnitudeMatrix[x][y];
+                            count++;
+                        }
+                    }
+                    return sum / count;
+            }    
+            
+            // Funzione per mostrare le informazioni di hover
+                    showHoverInfo(scaledX, scaledY, magnitude) {
+                        let hoverText = `Value: ${magnitude}`;
+                        let hoverBoxWidth = p.textWidth(hoverText) + 20;
+                        let hoverBoxHeight = 30;
+
+                        // Disegna il riquadro di hover
+                        p.fill(255);
+                        p.stroke(0);
+                        p.strokeWeight(1);
+                        p.rect(scaledX + 10, scaledY - hoverBoxHeight - 10, hoverBoxWidth, hoverBoxHeight, 5);
+
+                        // Disegna il testo di hover
+                        p.fill(0);
+                        p.textSize(14);
+                        p.text(hoverText, scaledX + 15, scaledY - hoverBoxHeight + 5);
+                    }
+        //fine 14_ottobre
+
+
+        display() {
+            //
+                    let legendWidth = 200; // Larghezza del riquadro
+                    let legendHeight = 50; // Altezza del riquadro
+                    let legendText1 = ` ${this.description}`;
+                    let legendText2 = ` ${this.legenda}`;
+                    let arrayLegend;
+                    let arrayLegendSize = []; 
+                    let zoomLevel = map.defaultMapRef.getZoom(); // Ottieni il livello di zoom
+                    let samplingStep = this.calculateSamplingStep(zoomLevel); // Calcola il passo del campionamento
+                    let hoverInfo = [];
+                    //
+                    var finalPointA = 0;
+                    var finalPointB = 0;
+                    //        
+           for (let i = 0; i < this.cols; i += samplingStep) {
+                for (let j = 0; j < this.rows; j += samplingStep) {
+                    this.field[i][j].isHovered = false;
+                    this.field[i][j].hoverPosition = null;
+
+                    let latLng = this.getLatLngForCell(i, j);
+                    if (this.isPointInView(latLng)) {
+                        let mapPoint = map.defaultMapRef.latLngToContainerPoint(latLng);
+                        let scaledX = mapPoint.x;
+                        let scaledY = mapPoint.y;
+                        let v = this.calculateAveragedVector(i, j, samplingStep);
+                        let magnitude = this.calculateAveragedMagnitude(i, j, samplingStep);
+                        let maxArrowLength = magnitude;
+                        let zoomScale = p.map(zoomLevel, 5, 22, 0.2, 1); // Scala basata sullo zoom (valori adattabili)
+                        let scaledArrowLength = p.constrain(magnitude * zoomScale, 0, maxArrowLength); // Limita la lunghezza massima
+
+                            this.drawArrow(p.createVector(scaledX, scaledY), v, scaledArrowLength, this.scaleFactor);
+
+                            let d = p.dist(p.mouseX, p.mouseY, scaledX, scaledY);
+                            if (d < 10) {
+                                hoverInfo.push({ x: scaledX, y: scaledY, magnitude: magnitude });
+                            }
+                            //
+                        let latLngA = this.getLatLngForCell(v.y, v.x);  // Il punto A (origine del vettore)
+                        let latLngB = this.getLatLngForCell(v.y + 1, v.x + 1);  // Punto B per calcolare la direzione
+                        // Converte le coordinate LatLng in punti sulla mappa (in pixel)
+                        finalPointA = map.defaultMapRef.latLngToContainerPoint(latLngA);
+                        finalPointB = map.defaultMapRef.latLngToContainerPoint(latLngB);
+                            
+                        }
+
+                    }
+            }
+
+            if (legendText2 && legendText2.trim() !== "") {
+                      
+                      arrayLegend = JSON.parse(legendText2);  // Converti in JSON
+                          //console.log(arrayLegend); 
+                          for (let y = 0; y < arrayLegend.length; y++) {  
+                              legendText2 = legendText2 + arrayLegend[y];
+                          }        
+                  }     
+                  //
+                  //let legendBoxWidth = Math.max(p.textWidth(legendText1), p.textWidth(legendText2)) + 20; // Aggiungi margine di 20px
+                  let legendBoxWidth = legendWidth;
+                  let legendBoxHeight = 30+(arrayLegend.length)*30;
+                  ///
+                  let legendX = 20; // Posizione orizzontale del riquadro (angolo in basso a sinistra)
+                  let legendY = p.height - legendBoxHeight - 20; // Posizione verticale del riquadro
+                    // Disegna il riquadro bianco per la legenda
+                    p.fill(255); // Riempimento bianco
+                    p.stroke(0); // Bordo nero
+                    p.strokeWeight(1);
+                    p.rect(legendX -5, legendY -10, legendBoxWidth, legendBoxHeight, 5); // Riquadro con angoli arrotondati
+                    p.fill(0); // Colore del testo
+                    p.textSize(12);
+                    p.text(legendText1, legendX + 10, legendY + 10);
+                    //
+                    // Calcola la distanza in pixel tra i due punti
+                    
+                        //
+                        
+                    //
+                    //p.text(legendText2, legendX + 10, legendY + 30);
+                    var rapporto = this.calculateSamplingStep(zoomLevel);
+                    p.text('Scaled 1:'+rapporto, legendX + 10, legendY + 30);
+                    var count = 50;
+                    if (legendText2 && legendText2.trim() !== "") {
+                    for (let y = 0; y < arrayLegend.length; y++) {  
+                                p.text(arrayLegend[y], legendX + 10, legendY + count);
+                                let distanceInPixels = p.dist(finalPointA.x, finalPointA.y, finalPointB.x, finalPointB.y);
+                                let maxArrowLength = distanceInPixels * 0.7;
+                                let normalizedMagnitude = p.map(arrayLegend[y], this.minMagnitude, this.maxMagnitude, 5, maxArrowLength);
+                                ////////////
+                                // Disegna una freccia accanto al legendText2
+                                let arrowX = legendX + p.textWidth(arrayLegend[y]) + 20; // Posiziona la freccia accanto al testo
+                                let arrowY = legendY + count; // Allineamento verticale della freccia
+                                let arrowSize = parseFloat(arrayLegend[y]); // Dimensione della freccia
+                                if(arrowSize == NaN){
+                                    arrowSize = 0;
+                                }
+                                //let maxArrowLength = arrowSize * 0.7; 
+                                //let scaledArrowLengthLegend = p.constrain(arrowSize * rapporto, 0, maxArrowLength);
+                                let scaledArrowLengthLegend = p.map(arrowSize, 0, this.maxMagnitude, 2, 20);
+                                let arrowHeadSize = scaledArrowLengthLegend * 0.3
+                                p.stroke(0); // Colore della freccia
+                                p.strokeWeight(2);
+                                p.line(arrowX, arrowY, arrowX + normalizedMagnitude, arrowY);
+                                p.fill(0); // Riempimento nero per la punta
+                                p.triangle(
+                                    arrowX + normalizedMagnitude, arrowY - 2,
+                                    arrowX + normalizedMagnitude, arrowY + 2,
+                                    arrowX + normalizedMagnitude + 5, arrowY
+                                );
+                                count = count+20;
+                            }            
+                    }else{
+                            p.text(legendText2, legendX + 10, legendY + 30);
+                    }
+                //
+                //
+                //
+
+            for (let i = 0; i < hoverInfo.length; i++) {
+                this.showHoverInfo(hoverInfo[i].x, hoverInfo[i].y, hoverInfo[i].magnitude);
+            }
+
+            }
+
+
+
+
+            getLatLngForCell(col, row) {
+                // Calcola la distanza dalla base (in basso a sinistra) in termini di coordinate geografiche
+                let latLngOffset = [
+                    row * this.stepLong / 111320,  // 1 grado di latitudine è circa 111.32 km
+                    col * this.stepLat / (111320 * Math.cos(p.radians(this.baseLatLng[0])))
+                    //col * this.stepLat / (111320 * Math.cos((this.baseLatLng[0])))  // Corregge la longitudine per la latitudine
+                ];
+
+                // Ritorna la nuova LatLng per la cella
+                return [
+                    this.baseLatLng[0] + latLngOffset[0],  // Aggiunge la latitudine offset
+                    this.baseLatLng[1] + latLngOffset[1]   // Aggiunge la longitudine offset
+                ];
+            }
+
+            drawArrow(base, vec, magnitude, scaleFactor) {
+                
+                //
+                // Calcola la distanza in pixel tra due punti usando le coordinate sulla mappa
+                        let latLngA = this.getLatLngForCell(vec.y, vec.x);  // Il punto A (origine del vettore)
+                        let latLngB = this.getLatLngForCell(vec.y + 1, vec.x + 1);  // Punto B per calcolare la direzione
+                        // Converte le coordinate LatLng in punti sulla mappa (in pixel)
+                        let pointA = map.defaultMapRef.latLngToContainerPoint(latLngA);
+                        let pointB = map.defaultMapRef.latLngToContainerPoint(latLngB);
+                    
+                    // Calcola la distanza in pixel tra i due punti
+                    let distanceInPixels = p.dist(pointA.x, pointA.y, pointB.x, pointB.y);
+                    let maxArrowLength = distanceInPixels * 0.7;
+                //
+                let zoomLevel = map.defaultMapRef.getZoom();  // Ottieni il livello di zoom
+                //let maxZoom = 23;  // Imposta un livello di zoom massimo, ad esempio 18
+                //let minZoom = 5;   // Imposta un livello di zoom minimo, ad esempio 5
+                //let normalizedMagnitude = p.map(magnitude, 0, this.maxMagnitude, 2, 20);  // Scala tra 5 e 70 pixel
+                let normalizedMagnitude = p.map(magnitude, this.minMagnitude, this.maxMagnitude, 5, maxArrowLength);
+                // Scala la lunghezza della freccia in base allo zoom
+                let zoomScale = p.map(zoomLevel, this.minZoom, this.maxZoom, 0.2, 1);  // Valore tra 0.2 e 1
+                //let maxArrowLength = magnitude * 0.7;
+                //let scaledLength = magnitude * scaleFactor * zoomScale;
+                //let scaledLength = normalizedMagnitude * scaleFactor * zoomScale;
+                let scaledLength = Math.min(normalizedMagnitude, maxArrowLength);
+                //scaledLength *= zoomScale;
+                 let arrowSize = 3 * scaleFactor;
+                //let arrowSize = normalizedMagnitude * 0.2;
+
+                //scaledLength = Math.min(scaledLength, maxArrowLength);
+                //
+                // Normalizza la lunghezza della freccia in base ai valori di magnitude
+                if (scaledLength == NaN){
+                    scaledLength = 0;
+                }
+                //
+                //
+                p.push();
+                p.stroke(0);
+                p.strokeWeight(2);
+                p.fill(0);
+                p.translate(base.x, base.y);
+                p.rotate(vec.heading());
+                
+                //
+                if(magnitude > 0){
+                    p.line(0, 0, normalizedMagnitude, 0);
+                    p.translate(normalizedMagnitude, 0);
+                //p.triangle(0, normalizedMagnitude  / 3, 0, -normalizedMagnitude  / 3, normalizedMagnitude , 0);
+                    p.triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
+                }else{
+                    p.strokeWeight(3);
+                    p.line(1, 1, 1, 1);
+                }
+                //
+                p.pop();
+            }
+
+
+
+            // Funzione che controlla se un punto è visibile nella mappa
+            isPointInView(latLng) {
+                let bounds = map.defaultMapRef.getBounds();
+                return bounds.contains(L.latLng(latLng[0], latLng[1]));
+            }
+
+
+        // Le altre funzioni della classe FlowField
+    }
+});
+};
+});
+        //////////
+    
+    //dBologna FINE VECTOR FLOW
+
+    
     $(document).on('addOD', function (event) {
         if (event.target === map.mapName) {
 

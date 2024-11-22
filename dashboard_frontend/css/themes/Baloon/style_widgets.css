@@ -1073,7 +1073,7 @@ div.mapDiv, div.gisMapDiv
 {
     position: relative;
     overflow: hidden;
-    padding-top: 56.25%;
+    /* padding-top: 56.25%; */
 }
 
 .iframeZoomControls

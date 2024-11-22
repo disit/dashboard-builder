@@ -135,23 +135,48 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 			populateWidget(save_value_<?= $_REQUEST['name_w'] ?>_);
 			
 		}
-		
+
+		/*
 		$('#searchlabel_<?= $_REQUEST['name_w'] ?>').on('keyup', function() {
 					action_<?= $_REQUEST['name_w'] ?> = 'Searching';
 					var searchlabel_<?= $_REQUEST['name_w'] ?> = $('#searchlabel_<?= $_REQUEST['name_w'] ?>').val();
 					current_page_<?= $_REQUEST['name_w'] ?> = 0;
+					//
+					if (typeof searchlabel_<?= $_REQUEST['name_w'] ?> === 'string') {
 					$('#current_page_<?= $_REQUEST['name_w'] ?>').val(0);
 					$('#start_value_<?= $_REQUEST['name_w'] ?>').val(0);
-					//$('#tbody_<?= $_REQUEST['name_w'] ?>').empty();
-					//$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
-					console.log(save_value_<?= $_REQUEST['name_w'] ?>_);
-					//$('#maintable_<?= $_REQUEST['name_w'] ?>').empty();
 					$('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
-					//populateWidget(save_value_<?= $_REQUEST['name_w'] ?>_);
 					var search_end = $('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
 					change_page(0, search_end, 0);
-					
-				});
+					}
+				});*/
+		// Funzione debounce per ritardare l’esecuzione della ricerca
+			function debounce(func, delay) {
+				let debounceTimer;
+				return function() {
+					clearTimeout(debounceTimer);
+					debounceTimer = setTimeout(() => func.apply(this, arguments), delay);
+				};
+			}
+
+			// Funzione per eseguire la ricerca
+			function handleSearch() {
+				action_<?= $_REQUEST['name_w'] ?> = 'Searching';
+				let searchLabel = $('#searchlabel_<?= $_REQUEST['name_w'] ?>').val();
+				current_page_<?= $_REQUEST['name_w'] ?> = 0;
+
+				if (typeof searchLabel === 'string') {
+					$('#current_page_<?= $_REQUEST['name_w'] ?>').val(0);
+					$('#start_value_<?= $_REQUEST['name_w'] ?>').val(0);
+					$('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
+					let search_end = $('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
+					change_page(0, search_end, 0);
+				}
+			}
+
+			// Applicazione del debounce all’evento keyup con un ritardo di 300ms
+			$('#searchlabel_<?= $_REQUEST['name_w'] ?>').on('keyup', debounce(handleSearch, 300));
+
 				
 	
 
@@ -173,6 +198,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
         function createTable() {
 			//
+			const name_w = '<?= $_REQUEST['name_w'] ?>';
 			$('#maintable_<?= $_REQUEST['name_w'] ?>').empty();
 			//
 			var l = Object.keys(columnsToShow_<?= $_REQUEST['name_w'] ?>);
@@ -282,7 +308,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
 			
 			//$('#thead_<?= $_REQUEST['name_w'] ?> tr th').addClass('sorting_<?= $_REQUEST['name_w'] ?>');
-			$('#maintable_<?= $_REQUEST['name_w'] ?> thead tr th').addClass('sorting_<?= $_REQUEST['name_w'] ?>');
+						//$('#maintable_<?= $_REQUEST['name_w'] ?> thead tr th').addClass('sorting_<?= $_REQUEST['name_w'] ?>');
 			//$('#container').css( 'display', 'block' );
 
 			
@@ -322,11 +348,73 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             $("#maintable_<?= $_REQUEST['name_w'] ?>_filter").find("label").css("color", "black");
 			//console.log('current_page: '+current_page_<?= $_REQUEST['name_w'] ?>);
 			$('#current_page_<?= $_REQUEST['name_w'] ?>').val(current_page_<?= $_REQUEST['name_w'] ?>);
+
+			//////////
+			// Funzione generica per la gestione dell'ordinamento
+				function handleSorting(event, direction) {
+					const name_w = '<?= $_REQUEST['name_w'] ?>';
+					let text = $(event.target).text();
+
+					// Verifica se ci sono titoli personalizzati e imposta il testo corretto
+					if (columnTitles_<?= $_REQUEST['name_w'] ?>.length > 0) {
+						columnTitles_<?= $_REQUEST['name_w'] ?>.forEach(item => {
+							if (item.name === text) {
+								text = item.value;
+							}
+						});
+					}
+
+					// Trova l’indice della colonna da ordinare
+					let order_column_n = column_list_<?= $_REQUEST['name_w'] ?>.indexOf(text);
+					if (text === 'device') order_column_n = 0;
+
+					// Verifica se l'ordinamento è applicabile
+					if (order_column_n >= 0 || text !== 'Actions') {
+						$('#num_column_<?= $_REQUEST['name_w'] ?>').val(order_column_n);
+						$('#current_page_<?= $_REQUEST['name_w'] ?>').val(0);
+						$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
+						$('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
+
+						// Gestione della direzione di ordinamento
+						if (text === $('#order_column_<?= $_REQUEST['name_w'] ?>').val()) {
+							$('#order_<?= $_REQUEST['name_w'] ?>').val(direction === 'asc' ? 'desc' : 'asc');
+						} else {
+							$('#order_column_<?= $_REQUEST['name_w'] ?>').val(text);
+							$('#order_<?= $_REQUEST['name_w'] ?>').val(direction);
+						}
+
+						$('#start_value_<?= $_REQUEST['name_w'] ?>').val(0);
+						$('.paginate_button.active').removeClass('active');
+						$('#page_<?= $_REQUEST['name_w'] ?>0').addClass('active');
+						current_page_<?= $_REQUEST['name_w'] ?> = 0;
+
+						const n_rows_1 = $('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
+						change_page(0, n_rows_1, 0);
+					} else {
+						console.log('Do not sort on this');
+					}
+				}
+
+				// Assegnazione della funzione agli eventi, specificando la direzione
+				// Assegnazione della funzione agli eventi, specificando la direzione, con .off() per evitare duplicati
+				$(document).off('click', '.sorting_<?= $_REQUEST['name_w'] ?>').on('click', '.sorting_<?= $_REQUEST['name_w'] ?>', function(event) {
+					handleSorting(event, 'desc');
+				});
+				$(document).off('click', '.sorting_asc_<?= $_REQUEST['name_w'] ?>').on('click', '.sorting_asc_<?= $_REQUEST['name_w'] ?>', function(event) {
+					handleSorting(event, 'asc');
+				});
+				$(document).off('click', '.sorting_desc_<?= $_REQUEST['name_w'] ?>').on('click', '.sorting_desc_<?= $_REQUEST['name_w'] ?>', function(event) {
+					handleSorting(event, 'desc');
+				});
+
 			
 			//$('#example thead th').click(function() {
 			////////
-                    $('.sorting_<?= $_REQUEST['name_w'] ?>').off('click');
-					$('.sorting_<?= $_REQUEST['name_w'] ?>').click(function (){
+                   // $('.sorting_<?= $_REQUEST['name_w'] ?>').off('click');
+					//$('.sorting_<?= $_REQUEST['name_w'] ?>').click(function (){
+					/*$('.sorting').off('click');
+					$('.sorting_' + name_w).off('click');
+					$(document).on('click', '.sorting_' + name_w, function() {
 						//$('.sorting').off('click');
 						//$('.sorting').click(function() {
 						//console.log('click sorting');
@@ -383,12 +471,17 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 							console.log('Do not sort on this');
 							}
 						
-					});
+					});*/
 
 
 					//////////////////////SORTING ASC/////////////////
-					$('.sorting_asc').off('click');
-						$('.sorting_asc').click(function() {
+					//$('.sorting_asc_<?= $_REQUEST['name_w'] ?>').off('click');
+					//$('.sorting_asc_<?= $_REQUEST['name_w'] ?>').click(function() {
+					/*$('.sorting_asc').off('click');
+					$('.sorting_asc_'+ name_w).off('click');
+					$(document).on('click', '.sorting_asc_' + name_w, function() {
+					//$('.sorting_asc').off('click');
+						//$('.sorting_asc').click(function() {
 						//alert('click sorting_asc');
 						action_<?= $_REQUEST['name_w'] ?> = 'changedOrdering';
 						var text = $(this).text();
@@ -431,12 +524,19 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 							console.log('Do not sort on this');
 							}
 						
-					});
+					});*/
 					///////////////////END SORTING ASC //////////////
 
 					//////////////////////SORTING DESC/////////////////
-					$('.sorting_desc').off('click');
-						$('.sorting_desc').click(function() {
+
+					//$('.sorting_desc_<?= $_REQUEST['name_w'] ?>').off('click');
+					//$('.sorting_desc_<?= $_REQUEST['name_w'] ?>').click(function() {
+					/*$('.sorting_desc').off('click');
+					$('.sorting_desc_'+ name_w).off('click');
+					$(document).on('click', '.sorting_desc_' + name_w, function() {
+						console.log('DESC');
+					//$('.sorting_desc').off('click');
+						//$('.sorting_desc').click(function() {
 						//alert('click sorting_desc');
 						action_<?= $_REQUEST['name_w'] ?> = 'changedOrdering';
 						var text = $(this).text();
@@ -478,7 +578,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 							console.log('Do not sort on this');
 							}
 						
-					});
+					});*/
 					///////////////////END SORTING DeSC //////////////
 					
         }
@@ -544,6 +644,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 				if ($('#order_column_<?= $_REQUEST['name_w'] ?>').val() =="device"){
 					ordering_data = '&sortOnValue=deviceName:'+$('#order_<?= $_REQUEST['name_w'] ?>').val()+':string';
 				}
+
 			}else{
 				ordering_data = '&sortOnValue=deviceName:desc:string';
 			}
@@ -559,6 +660,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 			var query_corrected = query_filtered.replace(/&maxResults=[^&]*/g, '');
 			query_filtered = query_corrected +ordering_data+filter_start+filter_max+filter_text;
 			console.log(query_filtered);
+			
 			
 			//
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
@@ -1049,7 +1151,24 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         }
                     });
 
-          
+          ////
+		  $('th[aria-controls="maintable_<?= $_REQUEST['name_w'] ?>"]').each(function() {
+			$(this).removeClass('expand-content all dt-center');
+		  });
+		  //expand-content all dt-center 
+		  $('th.sorting[aria-controls="maintable_<?= $_REQUEST['name_w'] ?>"]').each(function() {
+				//$(this).removeClass('sorting').addClass('sorting_<?= $_REQUEST['name_w'] ?>');
+				$(this).addClass('sorting_<?= $_REQUEST['name_w'] ?>');
+			});
+			$('th.sorting_desc[aria-controls="maintable_<?= $_REQUEST['name_w'] ?>"]').each(function() {
+				//$(this).removeClass('sorting_desc').addClass('sorting_desc_<?= $_REQUEST['name_w'] ?>');
+				$(this).addClass('sorting_desc_<?= $_REQUEST['name_w'] ?>');
+			});
+			$('th.sorting_asc[aria-controls="maintable_<?= $_REQUEST['name_w'] ?>"]').each(function() {
+				//$(this).removeClass('sorting_asc').addClass('sorting_asc_<?= $_REQUEST['name_w'] ?>');
+				$(this).addClass('sorting_asc_<?= $_REQUEST['name_w'] ?>');
+			});
+		  ///
 
         }
 		
@@ -1103,7 +1222,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                     action: action
                 };
 
-                stdSend(dataToSend);
+               stdSend(dataToSend);
             });
 
             $('#maintable_<?= $_REQUEST['name_w'] ?>').on( 'order.dt', function () {

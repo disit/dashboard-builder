@@ -39,7 +39,7 @@ if (isset($_SESSION['loggedRole']) || isset($_SESSION['refreshToken'])) {
   $newLocation = "index.php";
 
   if (!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) {
-      setcookie("layout", "new_layout", time() + (86400), "/");
+      setcookie("layout", "new_layout", time() + (86400), "/", $cookieDomain);
   }
 
   $_SESSION = array();

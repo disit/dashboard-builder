@@ -107,22 +107,23 @@
 
 :root,
 :root {
-  --text-color: #FFFFFF;
-  --dash-bg-color: #1E2745;
-  --wdgt-bg-color: #464E67;
-  --menu-color: #FFFFFF;
+  --text-color: #5B6368;
+  /* --dash-bg-color: #DEE8F2; */
+  --dash-bg-color: #C1E1C1;
+  --wdgt-bg-color: #FFF;
+  --menu-color: #777D81;
   --acc-01-color: #E08120;
-  --acc-02-color: #f8e552;
+  --acc-02-color: #2E8B57; /* testo header e alcuni simboli di widget (il + nel dt)*/
   --sec-01-color: #C7C7C7;
   --sec-02-color: #FFECB3;
   --sec-03-color: #5C5C5C;
-  --sec-04-color: #050F2F;
+  --sec-04-color: #f7f8fa;
   --gradient-dark-color: #FDA331;
   --gradient-light-color: #FFE596;
-  --profileButton-bg-color: #5A6583;
-  --profileButton-color: #050F2F;
-  --scrollbar-color: #1E2745;
-  --scrollbar-bg-color: #5a6583;
+  --profileButton-bg-color: #FFFFFF;
+  --profileButton-color: #5B6368;
+  --scrollbar-color: #9cb5cd;
+  --scrollbar-bg-color: #FFF;
   --tab-text-color: #ADB8CC;
   --tab-active-text-color: #343A4D;
   --tab-active-border-color: #E08120;
@@ -375,7 +376,7 @@ div#headerLogo{
 
 .menu-btn{
   text-align: center;
-  background: #5A6583;
+  background: var(--wdgt-bg-color);
   border-radius: 50%;
   cursor: pointer;
   transition: left 0.4s ease;
@@ -416,17 +417,6 @@ nav#s4c-sidebar ul.main-menu{
   padding: 0;
   overflow: auto;
   margin-top: 6em;
-}
-
-nav#s4c-sidebar ul.main-menu::-webkit-scrollbar-track {
-  background: #5A6583!important;
-}
-
-nav#s4c-sidebar ul.main-menu::-webkit-scrollbar-thumb {
-  background-color: #1E2745!important;
-  border-radius: 20px;
-  border: 4px solid #5A6583!important;
-
 }
 
 nav#s4c-sidebar ul.main-menu li{
@@ -523,10 +513,6 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
   font-weight: 600;
 }
 
-.content{
-  color: white;
-}
-
 /* .content p{
   font-size: 30px;
   font-weight: 500;
@@ -537,7 +523,7 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
     height: 100%;
     flex-direction: column;
     width: 25vw;
-    background: #5A6583;
+    background: var(--wdgt-bg-color);
 }
 
 /* FOOTER */
@@ -581,6 +567,7 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
 
 .footerLogo img{
   max-width: 20vw;
+  mix-blend-mode: darken;
 }
 
 .profileButton a {
@@ -596,7 +583,7 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
 .profileButton a:hover {
     background: var(--acc-02-color);
     text-decoration: none;
-    color: #050F2F;
+    color: #fff;
 }
 
 .profileButton span{
@@ -750,8 +737,8 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
 
 #widgetInfoModalCancelBtnView
 {
-   background-color: transparent;
-   color: var(--acc-02-color);
+    background-color: transparent;
+    color: var(--acc-02-color);
 }
 
 #widgetInfoModalCancelBtnView:hover
@@ -801,7 +788,7 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
     top: 0px;
     z-index: 999;
 }
-.ui-datepicker
+.ui-datepicker 
 {
     position: relative;
     left: -130px;
@@ -813,39 +800,3 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
     height: auto;
 }
 
- /*.bootstrap-datetimepicker-widget {
-   background-color: var(--scrollbar-bg-color);
-   color:var(--tab-text-color);
- }*/
-
- /*.bootstrap-datetimepicker-widget ul {
-   display: flex;
-   justify-content: space-between;
-   flex-direction: row;
-   flex-wrap: nowrap;
- }*/
-
- .bootstrap-datetimepicker-widget ul li:first-child {
-   width: 100%;
-   background: var(--menu-color)!important;
- }
-
- .bootstrap-datetimepicker-widget ul li.picker-switch {
-   width: auto;
-   background: var(--menu-color)!important;
-   display: flex;
- }
-
- /*.bootstrap-datetimepicker-widget ul li.picker-switch table .glyphicon {
-   font-size: 2.5rem;
-   padding: 0 5px;
- }
-
- .bootstrap-datetimepicker-widget ul li.picker-switch table.table-condensed td {
-   display: flex;
-   flex-direction: column;
- }*/
-
- /*.datepicker td, .datepicker th {
-   font-size:12px;
- }*/

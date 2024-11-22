@@ -209,7 +209,7 @@
     <!-- Custom CSS -->
     <link href="../css/dashboard.css?v=<?php echo time();?>" rel="stylesheet">
     <link href="../css/dashboardView.css?v=<?php echo time();?>" rel="stylesheet">
-    <?php if($_SESSION['loggedRole'] == 'RootAdmin' && isset($useOpenSearch) && $useOpenSearch == "yes") { ?>
+    <?php if($_GET['editNewWizard'] == "true" && isset($useOpenSearch) && $useOpenSearch == "yes") { ?>
         <link href="../css/addWidgetWizardOS-W.css?v=<?php echo time();?>" rel="stylesheet">
     <?php } else { ?>
         <link href="../css/addWidgetWizard.css?v=<?php echo time();?>" rel="stylesheet">
@@ -464,26 +464,27 @@
         <div class="row">
             <a id="link_modifyDash" href="#" data-toggle="modal" data-target="#modalEditDashboard">
                 <div class="col-xs-6 col-sm-3 col-lg-1 col-lg-offset-1 dashEditMenuItemCnt">
-                    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-dashboard" style="color: #00cc66"></i></div>
+                    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-cogs" style="color: #00cc66"></i></div>
                     <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Properties")?></div>
                 </div>
             </a>
             <a id="link_start_wizard" href="#" data-toggle="modal">     
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
-                    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-magic" style="color: #66efff"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Wizard")?></div>
+                    <?php if($_GET['editNewWizard'] == "true" && isset($useOpenSearch) && $useOpenSearch == "yes") { ?>
+                        <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-magic" style="color: #4169e1"></i></div>
+                        <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("WizardOS")?></div>
+                    <?php } else { ?>
+                        <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-magic" style="color: #66efff"></i></div>
+                        <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Wizard")?></div>
+                    <?php } ?>
+
                 </div>
             </a>
-        <!--    <a id="link_start_wizardOS" href="#" data-toggle="modal">
-                <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
-                    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-magic" style="color: #4169e1"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("WizardOS")?></div>
-                </div>
-            </a>    -->
+
             <!-- csbl editor -->
             <a id="link_start_editor" href="#" data-toggle="modal" data-target="#flowEditor" onclick="openEditor();" style="display:none">
                 <div id="csbl_editor_button" class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
-                    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-magic" style="color: #8f00ff"></i></div>
+                    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-object-ungroup" style="color: #b366ff"></i></div>
                     <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("CSBL Editor")?></div>
                 </div>
             </a>
@@ -491,6 +492,12 @@
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                     <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-plus-circle" style="color: #ffcc00"></i></div>
                     <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Add widget")?></div>
+                </div>
+            </a>
+            <a id="import-widget" class="internalLink" href="#">
+                <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
+                <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-upload" style="color: white"></i></div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Import Widget")?></div>
                 </div>
             </a>
             <a id="link_add_separator" href="#" data-toggle="modal">
@@ -514,22 +521,17 @@
             </a>
             <a id="link_save_configuration" class="internalLink" href="#">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
-                <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-cubes" style="color: #ff9933"></i></div>
+                <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-floppy-o" style="color: #ff9933"></i></div>
                     <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Save")?></div>
                 </div>
             </a>
             <a id="export-dashboard" class="internalLink" href="#">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
                 <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-download" style="color: white"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Export Dashboard")?></div>
+                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Export")?></div>
                 </div>
             </a>
-            <a id="import-widget" class="internalLink" href="#">
-                <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
-                <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-upload" style="color: white"></i></div>
-                    <div class="dashEditMenuTxtCnt col-xs-10 centerWithFlex"><?= _("Import Widget")?></div>
-                </div>
-            </a>
+
             <a id="dashboardViewLink" href="#" target="_blank">
                 <div class="col-xs-6 col-sm-3 col-lg-1 dashEditMenuItemCnt">
 		    <div class="dashEditMenuIconCnt col-xs-2 centerWithFlex"><i class="fa fa-desktop" style="color: #ff0000"></i></div>
@@ -1225,7 +1227,7 @@
                 </div>
             
                 <div id="addWidgetWizardLabelBody" class="modal-body modalBody">
-                    <?php if($_SESSION['loggedRole'] == 'RootAdmin' && isset($useOpenSearch) && $useOpenSearch == "yes") {
+                    <?php if($_GET['editNewWizard'] == "true" && isset($useOpenSearch) && $useOpenSearch == "yes") {
                         include "addWidgetWizardInclusionCodeOS.php";
                     } else { 
                         include "addWidgetWizardInclusionCode.php";

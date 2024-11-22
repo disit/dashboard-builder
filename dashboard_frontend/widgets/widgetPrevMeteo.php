@@ -53,6 +53,7 @@
         var embedWidgetPolicy = '<?= escapeForJS($_REQUEST['embedWidgetPolicy']) ?>';	
         var headerHeight = 25;
         var showTitle = '<?= escapeForJS($_REQUEST['showTitle']) ?>';
+        var themes = ["baloon", "baloon-dark", "gea", "gea-night", "gea-green", "gea-orange", "newTheme", "customTheme"];
 
         console.log("Entrato in widgetPrevMeteo --> " + widgetName);
         
@@ -1913,7 +1914,7 @@
                                                     } 
                                                 }
 
-                                                if (hostFile != "baloon" && hostFile != "baloon-dark") {
+                                                if (!themes.includes(hostFile)) {
                                                     dateContainerSize = setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
                                                 } else {
                                                     dateContainerSize = 18;
@@ -1935,14 +1936,14 @@
                                                         } 
                                                     }
 
-                                                    if (hostFile != "baloon" && hostFile != "baloon-dark") {
+                                                    if (!themes.includes(hostFile)) {
                                                         dateContainerSize = setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_dateContainer'));
                                                     } else {
                                                         dateContainerSize = 18;
                                                     }
                                                 }, 600000);
 
-                                                if (hostFile != "baloon" && hostFile != "baloon-dark") {
+                                                if (!themes.includes(hostFile)) {
                                                     setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_cityContainer'));
                                                     setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_descContainer'));
                                                     setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_lammaContainer'));
@@ -1960,8 +1961,14 @@
                                                     $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("background-color", "transparent");
                                                     $('#<?= $_REQUEST['name_w'] ?>_iconContainer').addClass("centerWithFlex");
                                                     $('#<?= $_REQUEST['name_w'] ?>_iconContainer').html('<span style="display:block; color:' + fontColor + '"><i class="wi ' + todayDescAndIcon.icon + '"></i></span>');
-                                                    if (hostFile != "baloon" && hostFile != "baloon-dark") {
+                                                    if (!themes.includes(hostFile)) {
                                                         setAutoFontSize($('#<?= $_REQUEST['name_w'] ?>_iconContainer'));
+                                                    } else {
+                                                        $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("display", "flex");
+                                                        $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("text-align", "center");
+                                                        $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("align-items", "center");
+                                                        $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("justify-content", "center");
+                                                        $('#<?= $_REQUEST['name_w'] ?>_iconContainer').css("font-size", "40px");
                                                     }
                                                 }
 
