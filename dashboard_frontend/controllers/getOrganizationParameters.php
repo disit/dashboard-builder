@@ -35,7 +35,10 @@ if(isset($_SESSION['loggedUsername']) || @$_SESSION['isPublic'] === true)
         $ldapUsername = "cn=" . $_SESSION['loggedUsername'] . "," . $ldapBaseDN;
         $ds = ldap_connect($ldapServer, $ldapPort);
         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-        $bind = ldap_bind($ds);
+        if($ldapAdminDN)
+            $bind = ldap_bind($ds, $ldapAdminDN, $ldapAdminPwd);
+        else
+            $bind = ldap_bind($ds);
         $organization = checkLdapOrganization($ds, $ldapUsername, $ldapBaseDN);
         if (is_null($organization)) {
             $organization = "None";

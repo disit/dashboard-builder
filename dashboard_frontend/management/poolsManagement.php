@@ -188,7 +188,10 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                    {
                                                         $ds = ldap_connect($ldapServer, $ldapPort);
                                                         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-                                                        $bind = ldap_bind($ds);
+                                                        if($ldapAdminDN)
+                                                           $bind = ldap_bind($ds, $ldapAdminDN, $ldapAdminPwd);
+                                                        else
+                                                           $bind = ldap_bind($ds);
 
                                                         $result = ldap_search(
                                                                 $ds, $ldapBaseDN, 

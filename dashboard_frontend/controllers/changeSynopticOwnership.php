@@ -42,7 +42,10 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
 
     $ds = ldap_connect($ldapServer, $ldapPort);
     ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-    $bind = ldap_bind($ds);
+    if($ldapAdminDN)
+        $bind = ldap_bind($ds, $ldapAdminDN, $ldapAdminPwd);
+    else
+        $bind = ldap_bind($ds);
 
     if ($ds && $bind) {
         if (checkLdapMembership($ds, $ldapUsername, $ldapToolName, $ldapBaseDN)) {
@@ -112,7 +115,10 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
 				if(checkSynopticTplId($link, $templateId, $accessToken, $ownershipApiBaseUrl, $synTplOwnElmtType)) {					
 					$ds = ldap_connect($ldapServer, $ldapPort);
 					ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-					$bind = ldap_bind($ds);
+                    if($ldapAdminDN)
+                        $bind = ldap_bind($ds, $ldapAdminDN, $ldapAdminPwd);
+                    else
+                        $bind = ldap_bind($ds);
 					if($ds && $bind) {
 						if(!checkLdapRole($ds, $templateNewDelegated, "RootAdmin", $ldapBaseDN)) {
 							$templateAuthor = $_SESSION["loggedUsername"]; 

@@ -187,7 +187,10 @@
                 $ds = ldap_connect($ldapServer, $ldapPort);
                 ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
                 //Lasciamo questo bind anonimo, è solo un controllo sul ruolo dell'autore, a questo punto di codice non abbiamo credenziali utente
-                $bind = ldap_bind($ds);
+                if($ldapAdminDN)
+                    $bind = ldap_bind($ds, $ldapAdminDN, $ldapAdminPwd);
+                else
+                    $bind = ldap_bind($ds);
 
                 if(checkLdapRole($ds, $authorLdapUsername, "Manager", $ldapBaseDN))
                 {
