@@ -918,6 +918,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 color = this.typeColors['errorColor'].color;
             }
 
+            // imposto il colore viola se è stato impostato nell'accorpato come non ottimizzabile
+            if (segment.notOptimizable==true){
+                color = 'purple';
+            }
+
             if (this.selectedRestriction) {
                 if (this.selectedRestriction.from === segment.segment) {
                     color = 'green';
@@ -1020,7 +1025,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     } else if (this.selectedRestriction.from == segment.segment) {
                         color = this.typeColors['restrictionFrom'].color;
                     }
-                    segment.line.setStyle({ color, ...props });
+                    // collini anche qui per far rimanere vioe e non farlo tornare blu per gli non ottimizzabili
+                    if (segment.notOptimizable == true){
+                        color = "purple"                        
+                    }
+                    segment.line.setStyle({ color, ...props });                                       
                     segment.arrow.setStyle({
                         fillColor: color,
                         color,
@@ -1058,6 +1067,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         colorScheme = this.typeColors.default.bidirectional;
                     }
                     color = colorScheme.color;
+                    //collini-> cerco di risolvere l'hover che mi torna blu...
+                    if (segment.notOptimizable) {
+                        color = 'purple'; 
+                    }
                 } else if (this.selectedRestriction.to == segment.segment) {
                     color = this.typeColors['restrictionTo'].color;
                 } else if (this.selectedRestriction.from == segment.segment) {
@@ -10983,7 +10996,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         dir = 'Closed';
                     }
                     var segmentID= (strada.segment).split('/resource/')[1];
-                    descrStrada = ('<div id="headerDraggable" >Road:' + segmentID + '</div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table></div>');
+                    // collini probabilmente anche qui centra il giusto mettere l'opzione notOptimzabe ma va visto meglio... per ora lo lascio tanto il codice è replicato solo 6 volte...
+                    // OK QUESTA IN VIEW HA MENO ENTRIES QUINDI PROB NON è QUELLA GIUSTA.. LA LASCIO LO STESSO PER ORA
+                    //descrStrada = ('<div id="headerDraggable" >Road:' + segmentID + '</div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table></div>');
+            
                     
                     var width_popup = 450;
                     
@@ -11212,6 +11228,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     <tr>
                                         <td><input type="button" id="deleteRestriction" value="Delete resctriction" style="display: none;"/></td>
                                     </tr>
+                                    <tr>
+                                        <td><b>Not Optimizable: </b></td>
+                                        <td>
+                                            <input type="checkbox" id="updateNotOptimizable" value="true" ` + (strada.notOptimizable ? 'checked' : '') + ` />
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                             <input type="button" id="updateStreet" value="Update" />
@@ -11219,6 +11241,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                         descrStrada = descrStrada.replace('<option value="' + strada.type + '">' + strada.type + '</option>', '<option value="' + strada.type + '" selected>' + strada.type + '</option>');
                         descrStrada = descrStrada.replace('<option value="' + strada.dir + '">', '<option value="' + strada.dir + '" selected>');
+                        
                         //CHECK SUL restriction_span;
                         if (restriction_span != 'Not defined') {
                             //CHANGE DATA
@@ -11408,7 +11431,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             baseURL = "";
                         }
                         //descrStrada = ('<div style="padding: 5%; width: 450px;"><input type="text" id="segment" value="'+strada.segment+'" style="display: none"/><textarea id="stradajson" style="display:none">'+stradajson+'</textarea><span><b>Category Street: </b></span>'+strada.type+'<br /><span><b>Nr.Lanes: </b>'+strada.lanes+'</span><br /><b>Speed Limit (km/h): </b></span>'+strada.roadElmSpeedLimit+'<br /><span><span><b>Direction: </b></span>'+dir+'<br /><span><b>Restrictions: </b></span>'+restriction_span+'<br /><span></div>');
-                        descrStrada = ('<div id="headerDraggable">Road: </div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>BaseUrl:</b></td><td>'+baseURL+'</td></tr><tr><td><b>SegmentID: </b></td><td>' + segmentID + '</td></tr><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table></div>');
+                        // collini questa era quella precedente alla modifica per le strade notOptiimizable -> descrStrada = ('<div id="headerDraggable">Road: </div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>BaseUrl:</b></td><td>'+baseURL+'</td></tr><tr><td><b>SegmentID: </b></td><td>' + segmentID + '</td></tr><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr></tbody></table></div>');
+                        descrStrada = ('<div id="headerDraggable">Road: </div><div id="segmentLabel_view" style="padding:5%;width:400px"><input type="text" id="segment" value="' + strada.segment + '" style="display:none"><textarea id="stradajson" style="display:none">' + stradajson + '</textarea><table><tbody><tr><td><b>BaseUrl:</b></td><td>'+baseURL+'</td></tr><tr><td><b>SegmentID: </b></td><td>' + segmentID + '</td></tr><tr><td><b>Category Street:</b></td><td>' + strada.type + '</td></tr><tr><td><b>Nr.Lanes:</b></td><td>' + strada.lanes + '</td></tr><tr><td><b>Speed Limit (km/h):</b></td><td>' + strada.roadElmSpeedLimit + '</td></tr><tr><td><b>Weight:</b></td><td>' + strada_weight + '</td></tr><tr><td><b>Direction:</b></td><td>' + dir + '</td></tr><tr><td><b>Restrictions:</b></td><td>' + restriction_span + '</td></tr>'+ '<tr><td><b>Not Optimizable:</b></td><td>' + strada.notOptimizable + '</td></tr>'+ '</tbody></table></div>');
+
+                        
+                       
 
                         if (restriction_span !== 'Not defined') {
                             var string_restriciton = '';
@@ -11807,7 +11834,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         strada.lanes = $('#updateLanes').val();
                         strada.roadElmSpeedLimit = $('#updateSpeedLimit').val();
                         strada.dir = $('#updateDir').val();
-                        
+                        // collini aggiungo notOptimizable
+                        strada.notOptimizable = $('#updateNotOptimizable').prop('checked');                        
                         // roadElementGraph.draw();
                         
                         
@@ -14384,11 +14412,29 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 js20Data = JSON.parse(resDalDB[i].data).grandidati.JS20;
                                 console.log('tmpAcData', tmpAcData);
 
+                                
+
                                 tmpAcData.forEach(obj => {
                                     for (let key in obj) {
                                         if (Array.isArray(obj[key])) {
                                             obj[key] = obj[key][0];
                                         }
+                                    }
+                                });
+
+                                // collini x Sviluppo -> Assegna a random il 10% dei segmenti la proprietà 'notOptimizable'
+                                /*tmpAcData.forEach(obj => {
+                                    if (Math.random() < 0.1) {  // 10% probabilità
+                                        obj.notOptimizable = true;  // Questo segmento non è ottimizzabile
+                                    } else {
+                                        obj.notOptimizable = false; // Questo segmento è ottimizzabile
+                                    }
+                                });*/
+                                // collini: gestisco il caso mi arrivi accorpato da R senza valori per gli non ottimizzabili
+                                tmpAcData.forEach(obj => {
+                                    // Se la proprietà 'notOptimizable' non è definita, la imposta a false
+                                    if (obj.notOptimizable === undefined) {
+                                        obj.notOptimizable = false;
                                     }
                                 });
 
@@ -16174,7 +16220,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                         "realRoad": [item.realRoad],
                                                         "weight": [parseFloat(item.weight)] ,
                                                         "vmax": [parseFloat(item.roadElmSpeedLimit)*0.2777],
-                                                        "delta_x": [item.delta_x]
+                                                        "delta_x": [item.delta_x],
+                                                        "notOptimizable": [item.notOptimizable]
                                                     };
                                                 }else{
                                                     return {
@@ -16202,7 +16249,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                         "realRoad": [item.realRoad],
                                                         "weight": [parseFloat(item.weight)],
                                                         "vmax": [parseFloat(item.roadElmSpeedLimit)*0.2777],
-                                                        "delta_x": [item.delta_x]
+                                                        "delta_x": [item.delta_x],
+                                                        "notOptimizable": [item.notOptimizable]                                                        
                                                     };
                                                 }
                                             });
@@ -16254,7 +16302,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     "realRoad": [sensorItem.realRoad],
                                                     "weight": [parseFloat(sensorItem.weight)],
                                                     "vmax": [parseFloat(sensorItem.roadElmSpeedLimit)*0.2777],
-                                                    "delta_x": [sensorItem.delta_x]
+                                                    "delta_x": [sensorItem.delta_x],
+                                                    "notOptimizable": [sensorItem.notOptimizable]     
                                                 };
                                             });
 
@@ -19155,6 +19204,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                 map.cfg = JSON.parse(heatmapRangeObject[0].leafletConfigJSON);
                 //    map.cfg['blur'] = 0.85;
+                if (map.cfg == null) {
+                    map.cfg = {};
+                }
 
                 if (current_radius != null) {
                     map.cfg['radius'] = current_radius;
@@ -21594,13 +21646,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     $(document).on('resetVectorFlow', function(event){
                 let allCanvases = document.getElementsByTagName('canvas');
                     while (allCanvases.length > 0) {
-                        allCanvases[0].remove();  // Rimuove il primo elemento della lista ogni volta
+                        allCanvases[0].remove(); 
                     }
                     flowField = null;
-            });
+    });
 
 
-            $(document).on('addVectorFlow', function(event){
+    $(document).on('addVectorFlow', function(event){
     var token;
     let nameVectorField= event.passedData.name;
     $.ajax({
@@ -21881,7 +21933,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         // Funzione per calcolare il passo del campionamento basato sul livello di zoom
             calculateSamplingStep(zoomLevel) {
                 if (zoomLevel > 18) return 1;
-                if (zoomLevel > 17) return 2;   // Zoom alto, più dettagli (passo piccolo)
+                if (zoomLevel > 17) return 1;   // Zoom alto, più dettagli (passo piccolo)
                 if (zoomLevel > 15) return 4; 
                 if (zoomLevel > 13) return 8; 
                 if (zoomLevel > 12) return 16; 
@@ -22044,13 +22096,20 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 let arrowHeadSize = scaledArrowLengthLegend * 0.3
                                 p.stroke(0); // Colore della freccia
                                 p.strokeWeight(2);
-                                p.line(arrowX, arrowY, arrowX + normalizedMagnitude, arrowY);
-                                p.fill(0); // Riempimento nero per la punta
-                                p.triangle(
-                                    arrowX + normalizedMagnitude, arrowY - 2,
-                                    arrowX + normalizedMagnitude, arrowY + 2,
-                                    arrowX + normalizedMagnitude + 5, arrowY
-                                );
+                                //console.log('legendText2    '+legendText2);
+                                if(arrayLegend[y] == 0){
+                                    p.strokeWeight(3);
+                                    p.line(arrowX, arrowY, arrowX, arrowY);
+                                }else{
+                                     p.line(arrowX, arrowY, arrowX + normalizedMagnitude, arrowY);
+                                    p.fill(0); // Riempimento nero per la punta
+                                    p.triangle(
+                                        arrowX + normalizedMagnitude, arrowY - 2,
+                                        arrowX + normalizedMagnitude, arrowY + 2,
+                                        arrowX + normalizedMagnitude + 5, arrowY
+                                    );
+                                }
+                                
                                 count = count+20;
                             }            
                     }else{
@@ -22155,6 +22214,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     }
 });
 };
+/////////FUNZIONE AGGIUNGI RIQUADRO PER LO SCRORRIMENTO DEL TEMPO.///////
+
+//////////////////////////
 });
         //////////
     
@@ -27611,6 +27673,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                             map.cfg = JSON.parse(heatmapRangeObject[0].leafletConfigJSON);
                             //    map.cfg['blur'] = 0.85;
+                            if (map.cfg == null) {
+                                map.cfg = {};
+                            }
 
                             if (current_radius != null) {
                                 map.cfg['radius'] = current_radius;
