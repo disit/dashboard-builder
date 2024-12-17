@@ -10230,6 +10230,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             scenaryData = new L.geoJSON();
             scenaryData.type = "FeatureCollection";
             scenaryData.features = [];
+            scenaryData.subarea = [];
             currentLoadedScenario = '';
             currentLoadedStatus = '';
             //
@@ -10282,6 +10283,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 istanzedeisensorichestoconsiderando = []; // reinizializzo questa variabile
                 istanzedelgrafochestoconsiderando = []; // reinizializzo questa variabile
             }*/
+
+            // enable subarea cration after having saved a first scenario version
+            $('#selectSubAreas').prop('disabled', true);
+            $('#selectSubAreas').prop('checked', false);
 
             console.log('>>> DONE CLEANING <<<');
         }
@@ -11494,8 +11499,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
                     } // END POPUP CONSTRUCTION (BOTH IN EDIT AND IN VIEW)
 
-                    strada.line.bindPopup(descrStrada, { maxWidth: width_popup });
+                    strada.line.bindPopup(descrStrada, { maxWidth: width_popup }); //, autoPan: false, autoPanPadding: [50, 50], closeOnClick: false, autoClose: false });
                     strada.line.openPopup();
+                    
+                    // const popup = strada.line.getPopup();
+                    // const popupLatLng = popup.getLatLng();
+
+                    // // Check if the popup is within map bounds
+                    // const mapBounds = map.defaultMapRef.getBounds();
+                    // if (!mapBounds.contains(popupLatLng)) {
+                    //     // Pan the map to bring the popup into view
+                    //     map.defaultMapRef.panTo(popupLatLng);
+                    // }
 
                     //headerDraggable
                     dragPopup(document.getElementById('headerDraggable').parentElement.parentElement.parentElement, document.getElementById('headerDraggable'));
@@ -11505,25 +11520,28 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             if(roadElementGraph.selectedRestriction.hasOwnProperty('to')){    
                                 const tmpTo = roadElementGraph.selectedRestriction.to;
                                 const tmpFrom = roadElementGraph.selectedRestriction.from;
-                                // reset segment color
-                                roadElementGraph.segments[tmpTo].arrow.setStyle({
-                                    color: roadElementGraph.typeColors['default'].color,
-                                    fillColor: roadElementGraph.typeColors['default'].color
-                                });
+                                try{
+                                    // reset segment color
+                                    roadElementGraph.segments[tmpTo].arrow.setStyle({
+                                        color: roadElementGraph.typeColors['default'].color,
+                                        fillColor: roadElementGraph.typeColors['default'].color
+                                    });
 
-                                roadElementGraph.segments[tmpTo].line.setStyle({
-                                    color: roadElementGraph.typeColors['default'].color
-                                });
+                                    roadElementGraph.segments[tmpTo].line.setStyle({
+                                        color: roadElementGraph.typeColors['default'].color
+                                    });
 
-                                roadElementGraph.segments[tmpFrom].arrow.setStyle({
-                                    color: roadElementGraph.typeColors['default'].color,
-                                    fillColor: roadElementGraph.typeColors['default'].color
-                                });
+                                    roadElementGraph.segments[tmpFrom].arrow.setStyle({
+                                        color: roadElementGraph.typeColors['default'].color,
+                                        fillColor: roadElementGraph.typeColors['default'].color
+                                    });
 
-                                roadElementGraph.segments[tmpFrom].line.setStyle({
-                                    color: roadElementGraph.typeColors['default'].color
-                                });
-
+                                    roadElementGraph.segments[tmpFrom].line.setStyle({
+                                        color: roadElementGraph.typeColors['default'].color
+                                    });
+                                } catch {
+                                    console.log('error in accessing road segment style parameters')
+                                }
                                 roadElementGraph.selectedRestriction = {};
                                 
                                 //TODO: handle mouseover/mouseout on segment to reset the color in the drawsegment function.
@@ -12906,12 +12924,26 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     // Aggiorna i campi di input
                     $(popupElement).find('#select_ttt').val(this.trafficDensity);
                     $(popupElement).find('#select_ts').val(this.trafficSensor);
+                    if(this.assignedRoadElement){
+                        var assignedRoadElement = this.assignedRoadElement;
+                        var splitPoint = assignedRoadElement.indexOf('resource/') + 'resource/'.length;
+                        var beforeResource = assignedRoadElement.slice(0, splitPoint);  // Parte prima e inclusa 'resource/'
+                        var afterResource = assignedRoadElement.slice(splitPoint);
+                        $(popupElement).find('#AssignedRoad_').html(beforeResource + " <br /> " + afterResource);
+                    }
 
                 } else if (currentStatusEdit == 'view') {
                     $(popupElement).find('#sensorPopup_edit').css('display', 'none');
                     $(popupElement).find('#sensorPopup_view').css('display', 'inline');
                     $(popupElement).find('#current_ttt_text').text(this.trafficDensity);
                     $(popupElement).find('#current_ts_text').text(this.trafficSensor);
+                    if(this.assignedRoadElement){
+                        var assignedRoadElement = this.assignedRoadElement;
+                        var splitPoint = assignedRoadElement.indexOf('resource/') + 'resource/'.length;
+                        var beforeResource = assignedRoadElement.slice(0, splitPoint);  // Parte prima e inclusa 'resource/'
+                        var afterResource = assignedRoadElement.slice(splitPoint);
+                        $(popupElement).find('#currentAssignedRoad_').html(beforeResource + " <br /> " + afterResource);
+                    }
                 } else {
                     $(popupElement).find('#sensorPopup_edit').css('display', 'none');
                     $(popupElement).find('#sensorPopup_view').css('display', 'inline');
@@ -12980,7 +13012,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         </tr>
                                         <tr>
                                         <td><b>Assigned road:</b></td>
-                                        <td>
+                                        <td id="AssignedRoad_">
                                             `+beforeResource+` <br />
                                             `+afterResource+`
                                         </td>
@@ -13011,7 +13043,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         </tr>
                                         <tr>
                                         <td><b>Assigned road:</b></td>
-                                        <td>
+                                        <td id="currentAssignedRoad_">
                                             `+beforeResource+` <br />
                                             `+afterResource+`
                                         </td>
@@ -13110,6 +13142,218 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
     //################## appena inviato l'evento addTrafficScenary dal selettore ##########################
     $(document).on('addTrafficScenary', function (event) {
+
+        var scenario_modality = 'view';
+        function setSubAreaLayer(layer, isLoading){
+            layer.options.color = '#ff3300';
+            console.log('layer', layer);  
+
+            var curGeojson = layer.toGeoJSON();
+
+            if(!isLoading){      
+                if(!scenaryData.subarea){
+                    scenaryData.subarea = [];
+                }                    
+                scenaryData.subarea.push(curGeojson);
+            }
+            scenaryDrawnItems.addLayer(layer);
+
+            
+
+            // Bind a popup to the polygon
+            const formHTML = "";
+            layer.bindPopup(formHTML);
+
+            // Add a click event to open the popup
+            layer.on('click', function () {
+                //search in roadElementGraph i segmenti nell'area
+
+                if(scenario_modality == 'view'){
+                    descrStrada = "Go in edit modality to modify road element attributes."
+                } else if (scenario_modality == 'edit'){
+                    descrStrada = `
+                    <div id="headerDraggable_SubArea">Set options:</div>
+                    <div id="segmentLabel_edit_SubArea" style="padding: 5%; width: 400px;">   
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td><b>Category Street: </b></td>
+                                    <td>
+                                        <select id="updateType_SubArea" class="form-select" aria-label="Default select example">
+                                            <option value="nochange" selected> </option>
+                                            <option value="abandoned">abandoned</option>
+                                            <option value="bridleway">bridleway</option>
+                                            <option value="bus_guideway">bus_guideway</option>
+                                            <option value="bus_stop">bus_stop</option>
+                                            <option value="construction">construction</option>
+                                            <option value="corridor">corridor</option>
+                                            <option value="crossing">crossing</option>
+                                            <option value="cycleway">cycleway</option>
+                                            <option value="disused">disused</option>
+                                            <option value="elevator">elevator</option>
+                                            <option value="emergency_access_point">emergency_access_point</option>
+                                            <option value="emergency_bay">emergency_bay</option>
+                                            <option value="footway">footway</option>
+                                            <option value="island">island</option>
+                                            <option value="living_street">living_street</option>
+                                            <option value="motorway">motorway</option>
+                                            <option value="motorway_link">motorway_link</option>
+                                            <option value="no">no</option>
+                                            <option value="path">path</option>
+                                            <option value="pedestrian">pedestrian</option>
+                                            <option value="platform">platform</option>
+                                            <option value="primary">primary</option>
+                                            <option value="primary_link">primary_link</option>
+                                            <option value="private">private</option>
+                                            <option value="raceway">raceway</option>
+                                            <option value="razed">razed</option>
+                                            <option value="residential">residential</option>
+                                            <option value="rest_area">rest_area</option>
+                                            <option value="road">road</option>
+                                            <option value="secondary_link">secondary_link</option>
+                                            <option value="secondary">secondary</option>
+                                            <option value="service">service</option>
+                                            <option value="services">services</option>
+                                            <option value="steps">steps</option>
+                                            <option value="tertiary">tertiary</option>
+                                            <option value="tertiary_link">tertiary_link</option>
+                                            <option value="track">track</option>
+                                            <option value="traffic_island">traffic_island</option>
+                                            <option value="tram">tram</option>
+                                            <option value="trunk_link">trunk_link</option>
+                                            <option value="unclassified">unclassified</option>
+                                            <option value="via_ferrata">via_ferrata</option>
+                                            <option value="yes">yes</option>
+                                        </select>
+                                    </td>
+                                </tr>                                
+                                <tr>
+                                    <td><b>Speed Limit (km/h): </b></td>
+                                    <td><input type="number" id="updateSpeedLimit_SubArea"/></td>
+                                </tr> 
+                            </tbody>
+                        </table>
+                        <input type="button" id="updateStreet_SubArea" value="Update All" />
+                    </div>`;
+                }
+
+
+                layer.openPopup();
+                layer.getPopup().setContent(descrStrada);
+
+                dragPopup(document.getElementById('headerDraggable_SubArea').parentElement.parentElement.parentElement, document.getElementById('headerDraggable_SubArea'));
+
+                $('#updateStreet_SubArea').click(() => {
+                    function isLineSegmentInPolygon(polygonGeoJSON, start, end) {
+                        const polygonCoordinates = polygonGeoJSON.geometry.coordinates[0]; // Outer ring of the polygon
+                        // Helper function to check if two line segments intersect
+                        function doLineSegmentsIntersect(p1, p2, q1, q2) {
+                            // Calculate orientation
+                            function orientation(a, b, c) {
+                                const val = (b[1] - a[1]) * (c[0] - b[0]) - (b[0] - a[0]) * (c[1] - b[1]);
+                                if (val === 0) return 0; // Collinear
+                                return val > 0 ? 1 : 2; // Clockwise or counterclockwise
+                            }
+                            const o1 = orientation(p1, p2, q1);
+                            const o2 = orientation(p1, p2, q2);
+                            const o3 = orientation(q1, q2, p1);
+                            const o4 = orientation(q1, q2, p2);
+                            // General case
+                            if (o1 !== o2 && o3 !== o4) return true;
+                            // Special cases (collinear points)
+                            function onSegment(p, q, r) {
+                                return q[0] <= Math.max(p[0], r[0]) && q[0] >= Math.min(p[0], r[0]) &&
+                                        q[1] <= Math.max(p[1], r[1]) && q[1] >= Math.min(p[1], r[1]);
+                            }
+                            if (o1 === 0 && onSegment(p1, q1, p2)) return true;
+                            if (o2 === 0 && onSegment(p1, q2, p2)) return true;
+                            if (o3 === 0 && onSegment(q1, p1, q2)) return true;
+                            if (o4 === 0 && onSegment(q1, p2, q2)) return true;
+                            return false;
+                        }
+                        // Helper function to check if a point is inside a polygon
+                        function isPointInPolygon(point, polygon) {
+                            let count = 0;
+                            const [x, y] = point;
+                            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                                const [xi, yi] = polygon[i];
+                                const [xj, yj] = polygon[j];
+
+                                if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
+                                    count++;
+                                }
+                            }
+                            return count % 2 !== 0; // Odd count means point is inside
+                        }
+                        // Check if the line intersects any edge of the polygon
+                        for (let i = 0, len = polygonCoordinates.length - 1; i < len; i++) {
+                            const edgeStart = polygonCoordinates[i];
+                            const edgeEnd = polygonCoordinates[i + 1];
+                            if (doLineSegmentsIntersect(start, end, edgeStart, edgeEnd)) {
+                                return true;
+                            }
+                        }
+                        // Check if either endpoint of the line is inside the polygon
+                        if (isPointInPolygon(start, polygonCoordinates) || isPointInPolygon(end, polygonCoordinates)) {
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    layer.closePopup();
+
+                    const type = $('#updateType_SubArea').val();
+                    const speed = $('#updateSpeedLimit_SubArea').val();
+                    console.log([type, speed]);
+
+                    if(type != "nochange" || speed != "" ){
+                        for (const rei in roadElementGraph.segments){
+                            if(roadElementGraph.isSegmentVisualized(roadElementGraph.segments[rei])){
+                                const nALat = roadElementGraph.segments[rei].nALat;
+                                const nALong = roadElementGraph.segments[rei].nALong;
+                                const nBLat = roadElementGraph.segments[rei].nBLat;
+                                const nBLong = roadElementGraph.segments[rei].nBLong;
+                                const start = [nALong, nALat]; // Start of the line segment
+                                const end = [nBLong, nBLat];   // End of the line segment
+
+                                if(isLineSegmentInPolygon(curGeojson, start, end)){
+                                    var updateSaveLoadGraph = false;
+                                    var sLGidx = -1;
+                                    if (saveLoadGraph.length > 0) { 
+                                        // if roadElement is in saveLoadGraph, modify also its values 
+                                        // (required to comply with actions performed by the type selector: $('.checkRoadType').click)
+                                        sLGidx = saveLoadGraph.findIndex(obj => obj['segment'] === rei);
+                                        if(sLGidx !== -1){
+                                            updateSaveLoadGraph = true;
+                                        }
+                                    }
+                                    if(type != "nochange"){
+                                        roadElementGraph.segments[rei].type = type;
+                                        if(updateSaveLoadGraph){
+                                            saveLoadGraph[sLGidx].type = type;
+                                        }                                        
+                                    }
+                                    if(speed != ""){
+                                        roadElementGraph.segments[rei].roadElmSpeedLimit = speed;
+                                        if(updateSaveLoadGraph){
+                                            saveLoadGraph[sLGidx].roadElmSpeedLimit = speed;
+                                        }
+                                    }
+                                }  
+                            }                         
+                        }
+                        roadElementGraph.draw();
+                    }
+                });
+            });
+
+            
+
+
+
+            pippo_debug = 0;
+        }
+
         getLeAltreUserInfo();
         if (event.target === map.mapName) {
             // metto subito il layer dei markers                         
@@ -13173,181 +13417,201 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 map.defaultMapRef.addLayer(scenaryOtherSensors);
                 //
             });
-            ////FINE BOLOGNA
+            ////FINE BOLOGNA  
+
+            L.Draw.Polyline.prototype._onTouch = L.Util.falseFn;
+            
+            map.defaultMapRef.on('draw:drawstart', function (e) {
+                // Enable dragging and scroll zoom
+                map.defaultMapRef.dragging.enable();
+                map.defaultMapRef.scrollWheelZoom.enable();
+                map.defaultMapRef.doubleClickZoom.enable();
+            });
+
 
             map.defaultMapRef.on('draw:created', function (e) {
+
+                if ($('#selectSubAreas').is(":checked")){
+
+                    console.log('event draw: create scenario sub area'); 
+                    // metto un popup sul poligono attuale per riferimento
+                    var type = e.layerType,
+                        subarea_layer = e.layer;
+                    setSubAreaLayer(subarea_layer, false);                   
+
+                } else {
                 //
-                console.log('event draw:');     
+                    console.log('event draw: create scenario area of interest');     
 
-                $('#road_types').prop('disabled', true);
-                $('#view_mod').prop('disabled', true);
-                $('#edit_lines').prop('disabled', true);
+                    $('#road_types').prop('disabled', true);
+                    $('#view_mod').prop('disabled', true);
+                    $('#edit_lines').prop('disabled', true);
 
-                pulisciTutto();
-                currentLoadedStatus = "init";
-                riferimentoSensoriAccorpato = [];
-                loadedtmpAcData = '';
-                loadedAcData = '';
-                loadedjs20Data = '';
-                loadtmpRDGraph = '';
+                    pulisciTutto();
+                    currentLoadedStatus = "init";
+                    riferimentoSensoriAccorpato = [];
+                    loadedtmpAcData = '';
+                    loadedAcData = '';
+                    loadedjs20Data = '';
+                    loadtmpRDGraph = '';
 
-                // ENRICO svuoto di nuovo questi valori del db per il risalvataggio dell'acc
-                loadedAccAC = '';
-                loadedAccRoadGraph = '';
-                loadedAccFilters = '';
-                loadedAccSensors = '';
-                loadedAccRestrictions = '';
-                loadedAccJS20= '';
-                //
+                    // ENRICO svuoto di nuovo questi valori del db per il risalvataggio dell'acc
+                    loadedAccAC = '';
+                    loadedAccRoadGraph = '';
+                    loadedAccFilters = '';
+                    loadedAccSensors = '';
+                    loadedAccRestrictions = '';
+                    loadedAccJS20= '';
+                    //
 
-                
-                $('#jsonIstanze').text('');
-                
-                // metto un popup sul poligono attuale per riferimento
-                var type = e.layerType,
-                    layer = e.layer;
-                console.log('layer', layer);   
-                // mi prendo la geometria del poligono in formato geojson  
-                var curGeojson = layer.toGeoJSON();
-                // per il debug se vuoi scommenta sotto
-                // aggiungo la geometria allo scenaryData.features 
-                // e il layer al scenarydrawnitems per visualizzarlo su mappa
-                scenaryData.features.push(curGeojson);
-                scenaryDrawnItems.addLayer(layer);
-                // a questo punto faccio la richiesta sensori del traffico
-                // mi convertio la geometria in geojson in wkt
-                const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);
-                // adesso mi calcolo anche il poligono allargato per fare la query al grafo strade
-                // Dividi il poligono WKT in coppie di coordinate
-                const coordinates = polygonWKT
-                    .match(/\d+\.\d+\s\d+\.\d+/g)
-                    .map(coord => coord.split(' ').map(Number));
-                // Calcola il centroide
-                const centroid = coordinates.reduce(
-                    (acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
-                    [0, 0]
-                );
-                centroid[0] /= coordinates.length;
-                centroid[1] /= coordinates.length;
-                // Definisci la distanza di espansione in gradi
-                const enlargementDistance = 0.02; // Regola questa distanza come necessario
-                // Applica l'espansione alle coordinate
-                const enlargedCoordinates = coordinates.map(([lon, lat]) => [
-                    lon + (lon - centroid[0]) * enlargementDistance,
-                    lat + (lat - centroid[1]) * enlargementDistance
-                ]);
-                // Costruisci il poligono allargato come WKT
-                const enlargedPolygonWKT = `POLYGON ((${enlargedCoordinates
-                    .map(coord => coord.join(' '))
-                    .join(', ')}))`;                             
-                // per poi creare la url per fare la richiesta dei sensori del traffico 
-                const sensorURL = buildSensorAPIURL(polygonWKT);
+                    
+                    $('#jsonIstanze').text('');
+                    
+                    // metto un popup sul poligono attuale per riferimento
+                    var type = e.layerType,
+                        layer = e.layer;
+                    console.log('layer', layer);   
+                    // mi prendo la geometria del poligono in formato geojson  
+                    var curGeojson = layer.toGeoJSON();
+                    // per il debug se vuoi scommenta sotto
+                    // aggiungo la geometria allo scenaryData.features 
+                    // e il layer al scenarydrawnitems per visualizzarlo su mappa
+                    scenaryData.features.push(curGeojson);
+                    scenaryDrawnItems.addLayer(layer);
+                    // a questo punto faccio la richiesta sensori del traffico
+                    // mi convertio la geometria in geojson in wkt
+                    const polygonWKT = getPolygonWKTFromScenarioArea(scenaryData.features);
+                    // adesso mi calcolo anche il poligono allargato per fare la query al grafo strade
+                    // Dividi il poligono WKT in coppie di coordinate
+                    const coordinates = polygonWKT
+                        .match(/\d+\.\d+\s\d+\.\d+/g)
+                        .map(coord => coord.split(' ').map(Number));
+                    // Calcola il centroide
+                    const centroid = coordinates.reduce(
+                        (acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
+                        [0, 0]
+                    );
+                    centroid[0] /= coordinates.length;
+                    centroid[1] /= coordinates.length;
+                    // Definisci la distanza di espansione in gradi
+                    const enlargementDistance = 0.02; // Regola questa distanza come necessario
+                    // Applica l'espansione alle coordinate
+                    const enlargedCoordinates = coordinates.map(([lon, lat]) => [
+                        lon + (lon - centroid[0]) * enlargementDistance,
+                        lat + (lat - centroid[1]) * enlargementDistance
+                    ]);
+                    // Costruisci il poligono allargato come WKT
+                    const enlargedPolygonWKT = `POLYGON ((${enlargedCoordinates
+                        .map(coord => coord.join(' '))
+                        .join(', ')}))`;                             
+                    // per poi creare la url per fare la richiesta dei sensori del traffico 
+                    const sensorURL = buildSensorAPIURL(polygonWKT);
 
-                // ora faccio la richiesta sparql alla kb per prendere i dati del grafo strade ...
-                const enlargedPolygonBoundingBox = findBoundingBox(enlargedPolygonWKT);
-                sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(enlargedPolygonBoundingBox.maxY, enlargedPolygonBoundingBox.maxX, enlargedPolygonBoundingBox.minY, enlargedPolygonBoundingBox.minX);
-                svoltesparqlquery = buildSparqlQueryURLsvolte(enlargedPolygonWKT);
+                    // ora faccio la richiesta sparql alla kb per prendere i dati del grafo strade ...
+                    const enlargedPolygonBoundingBox = findBoundingBox(enlargedPolygonWKT);
+                    sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(enlargedPolygonBoundingBox.maxY, enlargedPolygonBoundingBox.maxX, enlargedPolygonBoundingBox.minY, enlargedPolygonBoundingBox.minX);
+                    svoltesparqlquery = buildSparqlQueryURLsvolte(enlargedPolygonWKT);
 
-                // execute query to KB
+                    // execute query to KB
 
-                // ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
+                    // ressvolte = fetchSparqlDataSvolte(svoltesparqlquery);
 
-                //BOLOGNA OtherSensors Level
-                var bounds = layer.getBounds();
-                var markersInShape = [];
-                // Itera attraverso tutti i marker e verifica se sono nell'area del rettangolo
-                map.defaultMapRef.eachLayer(function (layer) {
-                    if (layer instanceof L.Marker) {
-                        if (bounds.contains(layer.getLatLng())) {
-                            markersInShape.push(layer);
+                    //BOLOGNA OtherSensors Level
+                    var bounds = layer.getBounds();
+                    var markersInShape = [];
+                    // Itera attraverso tutti i marker e verifica se sono nell'area del rettangolo
+                    map.defaultMapRef.eachLayer(function (layer) {
+                        if (layer instanceof L.Marker) {
+                            if (bounds.contains(layer.getLatLng())) {
+                                markersInShape.push(layer);
+                            }
+                        }
+                    });
+
+                    for (var i = 0; i < markersInShape.length; i++) {
+                        //console.log(markersInRectangle[i].feature.properties.serviceUri);
+                        if (markersInShape[i].feature != undefined) {
+                            var su_marker = markersInShape[i].feature.properties.serviceUri;
+                            scenaryOtherSensors.push(su_marker);
                         }
                     }
-                });
 
-                for (var i = 0; i < markersInShape.length; i++) {
-                    //console.log(markersInRectangle[i].feature.properties.serviceUri);
-                    if (markersInShape[i].feature != undefined) {
-                        var su_marker = markersInShape[i].feature.properties.serviceUri;
-                        scenaryOtherSensors.push(su_marker);
+                    //FINE BOLOGNA
+                    // Create the loading box element and add it to the document
+                    const loadingBox = document.createElement("div");
+                    loadingBox.id = "loading-box";
+                    loadingBox.style.position = "absolute";
+                    loadingBox.style.top = "20%";
+                    loadingBox.style.left = "50%";
+                    loadingBox.style.transform = "translate(-50%, -50%)";
+                    loadingBox.style.backgroundColor = "#fff";
+                    loadingBox.style.border = "1px solid #ccc";
+                    loadingBox.style.padding = "20px";
+                    loadingBox.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.2)";
+                    loadingBox.style.zIndex = "9999";
+                    loadingBox.innerHTML = '<p style="color: black";>The road graph is loading...</p>';
+                    // Append the loading box to the map container
+                    const mapContainer = this.getContainer(); // Assuming `this` refers to the map object
+                    mapContainer.appendChild(loadingBox);                                                        
+                    // Before making the requests, show the loading box
+                    loadingBox.style.display = "block";
+                    loadingboxloaded = false;
+                    // Use Promise.all to fetch data concurrently
+                    if (($('#showStreetGraph').is(':checked')) && ($('#showTrafficSensors').is(':checked'))) {
+                        Promise.all([fetchTrafficSensorData(sensorURL), fetchSparqlData(sparqlQueryottimizzata, svoltesparqlquery, polygonWKT,null,null,'create')])
+                            .then((data) => {
+                                loadingBox.style.display = "none";
+                                mapContainer.removeChild(loadingBox);
+                                loadingboxloaded = true;
+                                handleIntersectionsAndSensors(polygonWKT);
+                            })
+                            .catch(error => {
+                                // Hide and remove the loading box in case of an error
+                                loadingBox.style.display = "none";
+                                mapContainer.removeChild(loadingBox);
+                                loadingboxloaded = false;
+
+                                console.error("Error:", error);
+                            });
+                    } else if (($('#showStreetGraph').is(':checked')) && (!$('#showTrafficSensors').is(':checked'))) {
+                        Promise.all(fetchSparqlData(sparqlQueryottimizzata, svoltesparqlquery, polygonWKT,null,null,'create'))
+                            .then(() => {
+                                loadingBox.style.display = "none";
+                                mapContainer.removeChild(loadingBox);
+                                loadingboxloaded = true;
+                                handleIntersectionsAndSensors(polygonWKT);
+
+                            })
+                            .catch(error => {
+                                // Hide and remove the loading box in case of an error
+                                loadingBox.style.display = "none";
+                                mapContainer.removeChild(loadingBox);
+                                loadingboxloaded = false;
+
+                                console.error("Error:", error);
+                            });
+                    } else if ((!$('#showStreetGraph').is(':checked')) && ($('#showTrafficSensors').is(':checked'))) {
+                        Promise.all([fetchTrafficSensorData(sensorURL)])
+                            .then(() => {
+                                loadingBox.style.display = "none";
+                                mapContainer.removeChild(loadingBox);
+                                loadingboxloaded = true;
+                                handleIntersectionsAndSensors(polygonWKT);
+                            })
+                            .catch(error => {
+                                // Hide and remove the loading box in case of an error
+                                loadingBox.style.display = "none";
+                                mapContainer.removeChild(loadingBox);
+                                loadingboxloaded = false;
+
+                                console.error("Error:", error);
+                            });
+                    } else {
+                        loadingBox.style.display = "none";
+                        mapContainer.removeChild(loadingBox);
+                        loadingboxloaded = false;
                     }
                 }
-
-                //FINE BOLOGNA
-                // Create the loading box element and add it to the document
-                const loadingBox = document.createElement("div");
-                loadingBox.id = "loading-box";
-                loadingBox.style.position = "absolute";
-                loadingBox.style.top = "20%";
-                loadingBox.style.left = "50%";
-                loadingBox.style.transform = "translate(-50%, -50%)";
-                loadingBox.style.backgroundColor = "#fff";
-                loadingBox.style.border = "1px solid #ccc";
-                loadingBox.style.padding = "20px";
-                loadingBox.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.2)";
-                loadingBox.style.zIndex = "9999";
-                loadingBox.innerHTML = '<p style="color: black";>The road graph is loading...</p>';
-                // Append the loading box to the map container
-                const mapContainer = this.getContainer(); // Assuming `this` refers to the map object
-                mapContainer.appendChild(loadingBox);                                                        
-                // Before making the requests, show the loading box
-                loadingBox.style.display = "block";
-                loadingboxloaded = false;
-                // Use Promise.all to fetch data concurrently
-                if (($('#showStreetGraph').is(':checked')) && ($('#showTrafficSensors').is(':checked'))) {
-                    Promise.all([fetchTrafficSensorData(sensorURL), fetchSparqlData(sparqlQueryottimizzata, svoltesparqlquery, polygonWKT,null,null,'create')])
-                        .then((data) => {
-                            loadingBox.style.display = "none";
-                            mapContainer.removeChild(loadingBox);
-                            loadingboxloaded = true;
-                            handleIntersectionsAndSensors(polygonWKT);
-                        })
-                        .catch(error => {
-                            // Hide and remove the loading box in case of an error
-                            loadingBox.style.display = "none";
-                            mapContainer.removeChild(loadingBox);
-                            loadingboxloaded = false;
-
-                            console.error("Error:", error);
-                        });
-                } else if (($('#showStreetGraph').is(':checked')) && (!$('#showTrafficSensors').is(':checked'))) {
-                    Promise.all(fetchSparqlData(sparqlQueryottimizzata, svoltesparqlquery, polygonWKT,null,null,'create'))
-                        .then(() => {
-                            loadingBox.style.display = "none";
-                            mapContainer.removeChild(loadingBox);
-                            loadingboxloaded = true;
-                            handleIntersectionsAndSensors(polygonWKT);
-
-                        })
-                        .catch(error => {
-                            // Hide and remove the loading box in case of an error
-                            loadingBox.style.display = "none";
-                            mapContainer.removeChild(loadingBox);
-                            loadingboxloaded = false;
-
-                            console.error("Error:", error);
-                        });
-                } else if ((!$('#showStreetGraph').is(':checked')) && ($('#showTrafficSensors').is(':checked'))) {
-                    Promise.all([fetchTrafficSensorData(sensorURL)])
-                        .then(() => {
-                            loadingBox.style.display = "none";
-                            mapContainer.removeChild(loadingBox);
-                            loadingboxloaded = true;
-                            handleIntersectionsAndSensors(polygonWKT);
-                        })
-                        .catch(error => {
-                            // Hide and remove the loading box in case of an error
-                            loadingBox.style.display = "none";
-                            mapContainer.removeChild(loadingBox);
-                            loadingboxloaded = false;
-
-                            console.error("Error:", error);
-                        });
-                } else {
-                    loadingBox.style.display = "none";
-                    mapContainer.removeChild(loadingBox);
-                    loadingboxloaded = false;
-                }
-
             });
 
             
@@ -13429,6 +13693,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     <tr>
                                         <td colspan="2">
                                             <input type="checkbox" id="showTrafficSensors" value="traffic" checked/> Show Traffic Sensors
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <input type="checkbox" id="selectSubAreas" value="traffic" disabled /> Draw sub-area
                                         </td>
                                     </tr>
                                     <! -- SELECT ROAD TYPE-->
@@ -14444,7 +14713,24 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         tmpAcData[index]['lanes'] = tmpAcData[index]['lanes'][1][0];
                                         tmpAcData[index]['roadElmSpeedLimit'] = Math.round(tmpAcData[index]['vmax']/0.2777);
                                     }
+                                }                                
+                                // ENRICO: non ci entra ma se ci entra è perchè c'è stato qualche problema nel salvataggio dell'accorpato
+                                for (let index = 0; index < tmpAcData.length; index++) {                                    
+                                    if(tmpAcData[index]['lanes']?.["1"]?.[0]==""){
+                                        // quando non è un sensore ma non ha lenght e lanes...
+                                        if (tmpAcData[index]['sensor'] != '0' && tmpAcData[index]['dir'] != 'none') {			
+                                            // Calcolare la distanza che non c'è più.. usando i dati nALat, nALong, nBLat, nBLong potrebbe generare errori di inconsistenza                                            
+                                            tmpAcData[index]['length'] = haversineDistance(tmpAcData[index]['nALat'], tmpAcData[index]['nALong'], tmpAcData[index]['nBLat'], tmpAcData[index]['nBLong']); 			
+                                            //ricerca le lanes dal segmento rappresentativo del sensore
+                                            for (let newindx = 0; newindx < tmpAcData.length; newindx++) {
+                                                if (tmpAcData[newindx]['sensor'] == '0' && tmpAcData[newindx]['segment'] == tmpAcData[index]['segment']) {
+                                                    tmpAcData[index]['lanes'] = tmpAcData[newindx]['lanes'];
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
+                                tmpAcData = tmpAcData.filter(item => !riferimentoSensoriAccorpato.includes(item));
 
                                 //
                             } else {
@@ -14616,6 +14902,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         if (selectedVersion.grandidati.restrictions){
                             restriction_data = selectedVersion.grandidati.restrictions;
                         }
+                        if (selectedVersion.grandidati.subareas){
+                            scenaryData.subarea = selectedVersion.grandidati.subareas;
+                        }
                     } else {
                         // since DB data are already fetched when creating the datetime list, 
                         // the flow should not enter in this block of code
@@ -14633,7 +14922,16 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         if (JSON.parse(resDalDB[l - 1].data).grandidati.restrictions){
                             restriction_data = JSON.parse(resDalDB[l - 1].data).grandidati.restrictions;
                         }
+                        if (JSON.parse(resDalDB[l - 1].data).grandidati.subareas){
+                            scenaryData.subarea = JSON.parse(resDalDB[l - 1].data).grandidati.subareas;
+                        }
+                    }
 
+                    // show subareas
+                    for(let subidx=0; subidx<scenaryData.subarea.length; subidx++){ 
+                        var geojson = scenaryData.subarea[subidx];
+                        var subarea_layer = L.polygon(geojson.geometry.coordinates.map(ring => ring.map(coord => [coord[1], coord[0]])));
+                        setSubAreaLayer(subarea_layer, true); 
                     }
 
                     //Set Checkbox
@@ -14760,6 +15058,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     showNotification("Error during scenario load");
                     console.error("Error", error)
                 }
+
+                // enable subarea cration when loading a scenario in init version
+                $('#selectSubAreas').prop('disabled', false);
+                $('#selectSubAreas').prop('checked', false);
 
             }
 
@@ -15465,6 +15767,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             //edit-lines
             $("#edit_lines").click(async function () {
                 console.log('edit modality');
+                scenario_modality = 'edit';
                 console.log('currentLoadedScenario', currentLoadedScenario);
                 var devNameLoadScenario = '';
                 var locationLoadScenario = '';
@@ -15595,6 +15898,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 });
                 map.defaultMapRef.addControl(drawerControl2);
+
+                
 
                 try {
                     ////
@@ -15844,6 +16149,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             
                             // get metadata
                             var scenarioareaOfInterest = scenaryData.features;
+                            var scenarioSubAreas = scenaryData.subarea;
                             var scenarioName = $("#scenario-name").val();
                             var scenarioLocation = $("#scenario-location").val();
                             var scenarioDescription = $("#scenario-description").val();
@@ -15957,6 +16263,29 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             
                             var sensoriArray = null;
                             if(istanzedeisensorichestoconsiderando){
+
+                                // remove sensors that are associated with road of a type not in ['primary', 'tertiary', 'residential', 'secondary', 'unclassified']
+                                var sensors_to_remove = [];
+                                for(let i=0; i<istanzedeisensorichestoconsiderando.length; i++){
+                                    if(
+                                        istanzedeisensorichestoconsiderando[i].assignedRoadElement != "" && 
+                                        !istanzedeisensorichestoconsiderando[i].idSensor.includes("virtual")
+                                    ){
+                                        var re = istanzedeisensorichestoconsiderando[i].assignedRoadElement;
+                                        var type = roadElementGraph.segments[re].type;
+                                        if(!['primary', 'tertiary', 'residential', 'secondary', 'unclassified'].includes(type)){
+                                            sensors_to_remove.push(i);
+                                        }
+                                    }
+                                }
+                                sensors_to_remove.sort((a, b) => b - a); // Sort indexes in descending order
+                                sensors_to_remove.forEach(index => {
+                                    if (index >= 0 && index < istanzedeisensorichestoconsiderando.length) {
+                                        istanzedeisensorichestoconsiderando.splice(index, 1); // Remove the element at the given index
+                                    }
+                                });
+
+
                                 sensoriArray = istanzedeisensorichestoconsiderando.map(ilSensore => {
                                     return {
                                         sensorUri: ilSensore.sensorUri,
@@ -16017,6 +16346,20 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 }
                                 return sensore;
                             });
+
+                            //update istanzedeisensorichestoconsiderando with assigned Road
+                            for(let i = 0; i < sensoriArray.length; i++){
+                                if(sensoriArray[i].assignedRoadElement){
+                                    const strada = istanzedelgrafochestoconsiderando.find(obj => obj["segment"] === sensoriArray[i].assignedRoadElement);
+                                    stradeAssegnate.add(strada);
+                                    sensoriArray[i].nearestRoad = strada;
+                                }
+                            }
+                            for(let sidx=0; sidx < istanzedeisensorichestoconsiderando.length; sidx++){
+                                var ssuri =  istanzedeisensorichestoconsiderando[sidx].sensorUri;
+                                var strada = sensoriArray.find(obj => obj['sensorUri'] === ssuri).nearestRoad;
+                                istanzedeisensorichestoconsiderando[sidx].assignedRoadElement = strada.segment;
+                            }
                             
                             if (scenaryOtherSensors == "") {
                                 scenaryOtherSensors = [];
@@ -16122,7 +16465,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                 "roadGraph": istanzedelgrafochestoconsiderando_forSaving,
                                                 "filters": list_filters,
                                                 "sensors": sensoriArray,
-                                                "restrictions": restrictions
+                                                "restrictions": restrictions,
+                                                "subareas": scenarioSubAreas
                                             }, ilDateObserved).then(data => {
                                                 console.log('Risposta dal server:', data);
                                                 console.log('currentLoadedStatus: ', currentLoadedStatus);
@@ -16156,7 +16500,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                 "roadGraph": istanzedelgrafochestoconsiderando_forSaving,
                                                 "filters": list_filters,
                                                 "sensors": sensoriArray,
-                                                "restrictions": restrictions
+                                                "restrictions": restrictions,
+                                                "subareas": scenarioSubAreas
                                             }, ilDateObserved).then(data => {
                                                 console.log('Risposta dal server:', data);
                                                 setTimeout(() => {
@@ -16316,6 +16661,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                 "filters": loadedAccFilters,
                                                 "sensors": loadedAccSensors,
                                                 "restrictions": loadedAccRestrictions,
+                                                "subareas": scenarioSubAreas,
                                                 "AC": acc_pronto_per_il_risalvataggio,
                                                 "JS20": loadedAccJS20,
                                                 "TDM": acc_pronto_per_il_risalvataggio                                            
@@ -16337,6 +16683,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     showNotification("Error during data sending.");
                                 }
                             }
+
+                            // enable subarea cration after having saved a first scenario version
+                            $('#selectSubAreas').prop('disabled', false);
+                            $('#selectSubAreas').prop('checked', false);
+
                         });
                     }
                 } catch (error) {
@@ -16626,7 +16977,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
 
             $("#view_mod").click(async function () {
-
+                scenario_modality = 'view';
                 goIntoViewMode();
 
                 // //$('input[name="scenario-type"][value="init"]').prop('checked', true).trigger('change');
@@ -20621,7 +20972,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     return div;
                                                 };
 
-                                                heatmapLegendColors.addTo(map.defaultMapRef);
+                                                if (heatmapRange[0] != null && heatmapRange[0].iconPath != null && heatmapRange[0].iconPath != "")
+                                                    heatmapLegendColors.addTo(map.defaultMapRef);
                                                 //  map.eventsOnMap.push(heatmap);
 
                                                 event.legendColors = heatmapLegendColors;
@@ -21140,7 +21492,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                         return div;
                                                     };
 
-                                                    heatmapLegendColors.addTo(map.defaultMapRef);
+                                                    if (heatmapRange[0] != null && heatmapRange[0].iconPath != null && heatmapRange[0].iconPath != "")
+                                                        heatmapLegendColors.addTo(map.defaultMapRef);
                                                     //    map.eventsOnMap.push(heatmap);
 
                                                     event.legendColors = heatmapLegendColors;
@@ -21238,7 +21591,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     return div;
                                                 };
 
-                                                heatmapLegendColors.addTo(map.defaultMapRef);
+                                                if (heatmapRange[0] != null && heatmapRange[0].iconPath != null && heatmapRange[0].iconPath != "")
+                                                    heatmapLegendColors.addTo(map.defaultMapRef);
                                                 map.eventsOnMap.push(heatmap);
                                                 event.legendColors = heatmapLegendColors;
                                                 map.eventsOnMap.push(event);
@@ -21494,8 +21848,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
                                                     return div;
                                                 };
-
-                                                heatmapLegendColors.addTo(map.defaultMapRef);
+                                                    
+                                                if (heatmapRange[0] != null && heatmapRange[0].iconPath != null && heatmapRange[0].iconPath != "")
+                                                    heatmapLegendColors.addTo(map.defaultMapRef);
                                                 //  map.eventsOnMap.push(heatmap);
 
                                                 event.legendColors = heatmapLegendColors;
