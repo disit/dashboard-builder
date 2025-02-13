@@ -30,13 +30,18 @@ $oidc->providerConfigParam(array('jwks_uri' => $ssoJwksUri));
 $oidc->providerConfigParam(array('issuer' => $ssoIssuer));
 $oidc->providerConfigParam(array('end_session_endpoint' => $ssoEndSessionEndpoint));
 
+$newLocation = $appUrl . "/management/" . (isset($_GET['thenLoginTo']) ? "ssoLogin.php?redirect=".urlencode($_GET['thenLoginTo']) : "index.php");
+
 if (isset($_SESSION['loggedRole']) || isset($_SESSION['refreshToken'])) {
-  
-  if(isset($_SESSION['refreshToken'])) 
+
+  if(isset($_SESSION['refreshToken']))
   {
     $refreshToken = $_SESSION['refreshToken'];
   }
-  $newLocation = "index.php";
+  if(isset($_SESSION['idToken']))
+  {
+    $idToken = $_SESSION['idToken'];
+  }
 
   if (!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) {
       setcookie("layout", "new_layout", time() + (86400), "/", $cookieDomain);
@@ -52,14 +57,21 @@ if (isset($_SESSION['loggedRole']) || isset($_SESSION['refreshToken'])) {
 
   session_destroy();
 
-  if (isset($refreshToken)) {
+  if(isset($idToken)){
+    //c'e' sessione attiva ma non ha refreshToken
+    $oidc->signOut($idToken, $newLocation);
+  } else if (isset($refreshToken)) {
     $tkn = $oidc->refreshToken($refreshToken);
     //Dev'essere assoluto, visto con Piero
-    $oidc->signOut($tkn->access_token, $appUrl . "/management/" . $newLocation);
+    $oidc->signOut($tkn->id_token, $newLocation);
+  } else {
+    //c'e' sessione attiva ma non ha refreshToken ne idToken
+    //$oidc->signOut("", $newLocation); //funziona solo su keycloak vecchio
   }
 
   header("Location: " . $newLocation);
 } else {
-  $newLocation = "index.php?sessionExpired=true";
-  header("Location: " . $newLocation);
+  //header("Location: " . $newLocation);
+  $oidc->signOut("", $newLocation);
 }
+
