@@ -146,6 +146,7 @@ if ($ldapOk) {
   $_SESSION['loggedType'] = "ldap";
   $_SESSION['refreshToken'] = $oidc->getRefreshToken();
   $_SESSION['accessToken'] = $oidc->getAccessToken();
+  $_SESSION['idToken'] = $oidc->getIdToken();
   $_SESSION['loggedOrganization'] = $organization;
   $_SESSION['loggedUserGroups'] = $groups;
   $_SESSION['loggedUserLevel'] = $userLevel;
