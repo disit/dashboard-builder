@@ -1616,7 +1616,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         const segment = this.segments[segmentID];
                         visibleNodeIdxs.push(this.segments[segmentID].nodeA);
                         visibleNodeIdxs.push(this.segments[segmentID].nodeB);
-                        this.drawSegment(segment);
+                        try{
+                            this.drawSegment(segment);
+                        } catch (error) {
+                            console.log("Error in drawSegment: " + error);
+                            continue;
+                        }
                     }
                 }
             }
@@ -1655,16 +1660,16 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     //Ogni "main" lato client di un widget è semple incluso nel risponditore ad evento ready del documento, così siamo sicuri di operare sulla pagina già caricata
     $(document).ready(function <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef, fromGisFakeId) {
 
-        if (localStorage.getItem("widgets") == null) {
+        if (sessionStorage.getItem("widgets") == null) {
             var widgets = [];
             widgets.push(widgetName);
-            localStorage.setItem("widgets", JSON.stringify(widgets));
+            sessionStorage.setItem("widgets", JSON.stringify(widgets));
         }
         else {
-            var widgets = JSON.parse(localStorage.getItem("widgets"));
+            var widgets = JSON.parse(sessionStorage.getItem("widgets"));
             if (!widgets.includes(widgetName)) {
                 widgets.push(widgetName);
-                localStorage.setItem("widgets", JSON.stringify(widgets));
+                sessionStorage.setItem("widgets", JSON.stringify(widgets));
             }
         }
         $(document).on('resetContent_' + widgetName, function () {
@@ -1962,27 +1967,27 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
             if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
                 let i = 1;
-                if (localStorage.getItem("events") == null) {
+                if (sessionStorage.getItem("events") == null) {
 
                     var events = [];
                     events.push("MapMarkerClick1");
-                    localStorage.setItem("events", JSON.stringify(events));
+                    sessionStorage.setItem("events", JSON.stringify(events));
                 }
                 else {
-                    var events = JSON.parse(localStorage.getItem("events"));
+                    var events = JSON.parse(sessionStorage.getItem("events"));
                     for (var e in events) {
                         if (events[e].slice(0, 9) == "MapMarker")
                             i = i + 1;
                     }
                     events.push("MapMarkerClick" + i);
-                    localStorage.setItem("events", JSON.stringify(events));
+                    sessionStorage.setItem("events", JSON.stringify(events));
                 }
                 let newId = "MapMarkerClick" + i;
                 $('#BIMenuCnt').append('<div id="' + newId + '" class="row" data-selected="false"></div>');
                 $('#' + newId).append('<div class="col-md-12 orgMenuSubItemCnt">' + newId + '</div>');
                 $('#' + newId).on("click", function () {
-                    var widgets = JSON.parse(localStorage.getItem("widgets"));
-                    var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                    var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                    var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                     for (var w in widgets) {
                         if (widgets[w] != null) {
                             $('body').trigger({
@@ -2744,27 +2749,27 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }
                 if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
                     let i = 1;
-                    if (localStorage.getItem("events") == null) {
+                    if (sessionStorage.getItem("events") == null) {
 
                         var events = [];
                         events.push("MapMarkerClick1");
-                        localStorage.setItem("events", JSON.stringify(events));
+                        sessionStorage.setItem("events", JSON.stringify(events));
                     }
                     else {
-                        var events = JSON.parse(localStorage.getItem("events"));
+                        var events = JSON.parse(sessionStorage.getItem("events"));
                         for (var e in events) {
                             if (events[e].slice(0, 9) == "MapMarker")
                                 i = i + 1;
                         }
                         events.push("MapMarkerClick" + i);
-                        localStorage.setItem("events", JSON.stringify(events));
+                        sessionStorage.setItem("events", JSON.stringify(events));
                     }
                     let newId = "MapMarkerClick" + i;
                     $('#BIMenuCnt').append('<div id="' + newId + '" class="row" data-selected="false"></div>');
                     $('#' + newId).append('<div class="col-md-12 orgMenuSubItemCnt">' + newId + '</div>');
                     $('#' + newId).on("click", function () {
-                        var widgets = JSON.parse(localStorage.getItem("widgets"));
-                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                        var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                        var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                         for (var w in widgets) {
                             if (widgets[w] != null) {
                                 $('body').trigger({
@@ -4501,27 +4506,27 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }
                 if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
                     let i = 1;
-                    if (localStorage.getItem("events") == null) {
+                    if (sessionStorage.getItem("events") == null) {
 
                         var events = [];
                         events.push("MapMarkerClick1");
-                        localStorage.setItem("events", JSON.stringify(events));
+                        sessionStorage.setItem("events", JSON.stringify(events));
                     }
                     else {
-                        var events = JSON.parse(localStorage.getItem("events"));
+                        var events = JSON.parse(sessionStorage.getItem("events"));
                         for (var e in events) {
                             if (events[e].slice(0, 9) == "MapMarker")
                                 i = i + 1;
                         }
                         events.push("MapMarkerClick" + i);
-                        localStorage.setItem("events", JSON.stringify(events));
+                        sessionStorage.setItem("events", JSON.stringify(events));
                     }
                     let newId = "MapMarkerClick" + i;
                     $('#BIMenuCnt').append('<div id="' + newId + '" class="row" data-selected="false"></div>');
                     $('#' + newId).append('<div class="col-md-12 orgMenuSubItemCnt">' + newId + '</div>');
                     $('#' + newId).on("click", function () {
-                        var widgets = JSON.parse(localStorage.getItem("widgets"));
-                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                        var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                        var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                         for (var w in widgets) {
                             if (widgets[w] != null) {
                                 $('body').trigger({
@@ -7018,7 +7023,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         if (widgetParameters.latLng[1] != null && widgetParameters.latLng[1] != '') {
             lngInit = widgetParameters.latLng[1];
         }
+
+        
         map.defaultMapRef = L.map(mapDivLocal).setView([latInit, lngInit], widgetParameters.zoom);
+        // getLeAltreUserInfo(); // get user info and set map the org location
 
         //Inserimento button per drill down
         if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && code) {
@@ -7065,28 +7073,28 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         selectedDataJson = JSON.stringify(selectedData);
 
                         let j = 1;
-                        if (localStorage.getItem("events") == null) {
+                        if (sessionStorage.getItem("events") == null) {
 
                             var events = [];
                             events.push("MapZoom1");
-                            localStorage.setItem("events", JSON.stringify(events));
+                            sessionStorage.setItem("events", JSON.stringify(events));
                         }
                         else {
-                            var events = JSON.parse(localStorage.getItem("events"));
+                            var events = JSON.parse(sessionStorage.getItem("events"));
                             for (var e in events) {
                                 if (events[e].slice(0, 7) == "MapZoom")
                                     j = j + 1;
                             }
                             events.push("MapZoom" + j);
-                            localStorage.setItem("events", JSON.stringify(events));
+                            sessionStorage.setItem("events", JSON.stringify(events));
                         }
 
                         let newId = "MapZoom" + j;
                         $('#BIMenuCnt').append('<div id="' + newId + '" class="row" data-selected="false"></div>');
                         $('#' + newId).append('<div class="col-md-12 orgMenuSubItemCnt">' + newId + '</div>');
                         $('#' + newId).on("click", function () {
-                            var widgets = JSON.parse(localStorage.getItem("widgets"));
-                            var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                            var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                            var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                             for (var w in widgets) {
                                 if (widgets[w] != null) {
                                     $('body').trigger({
@@ -9464,7 +9472,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         //
 
         //global variables........
-        const SENSOR_API_URL = "https://www.snap4city.org/superservicemap/api/v1/?";
+        const SENSOR_API_URL = '<?= $mainsuperservicemap; ?>' + "?";
         var lAccessToken = null; // variabile per tenere il mio access token per le richieste                
         var lorganizzazione = '<?= $scenaryEditorDefaultOrganization; ?>';
         var ilbrokerdellorganizzazione = '<?= $scenaryEditorDefaultOrgBroker; ?>';
@@ -9487,7 +9495,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         ///
         var jsonStreetGraph = '';
         //
-        //debugger;
         var scenaryOtherSensors = []; // layer di riferimento per gli altri sensori non traffic.
         //
         var scenarioRestrictions = []; //Array delle restrizioni nei segnmenti.
@@ -10027,7 +10034,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 var initScenarios0 = await getScenarios(scenarioType);
                 // //console.log('initScenarios',initScenarios);
                 var scenarioInitList = $("#scenario-init-list");
+                console.log("ACTUALLY SELECTED SCENARIO: " + $("#scenario-init-list").val());
 
+                const actualSelectedScenario = $("#scenario-init-list").val();
+                const actualSelectedDateTime = $("#scenario-version-list option:selected").text();
                 // var searchInput = $("#search-scenario-init");
                 // searchInput.on("input", function () {
                 //     var searchTerm = $(this).val().toLowerCase();
@@ -10041,15 +10051,17 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     //var optionText = optionValue + " -> " + scenario;
                     var optionText = optionValue;
                     var listItem = $("<option>").val(scenario).text(optionText);
+                    if(actualSelectedScenario == scenario){
+                        listItem = $("<option>").val(scenario).text(optionText).prop("selected", true);
+                    }                     
                     scenarioInitList.append(listItem);
                 });
-                await getScenarioDates($('#scenario-init-list').val(), $('#scenario-version-list'), 'init');
+                await getScenarioDates($('#scenario-init-list').val(), $('#scenario-version-list'), 'init', actualSelectedDateTime);
 
                 document.getElementById("scenario-init-list").disabled = false;
                 document.getElementById("scenario-version-list").disabled = false;
 
             } else if (selectedId === "acc-type-acc") {
-
                 document.getElementById("scenario-list").disabled = true;
                 document.getElementById("acc-list").disabled = true;
 
@@ -10248,8 +10260,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             loadedAccJS20= '';
             //
 
-            
-
+            console.log($('#currentStatusEdit').val());
             if($('#currentStatusEdit').val() == 'view'){
                 $('input[name="scenario-type"][value="init"]').prop('checked', true).trigger('change');
             }
@@ -10375,46 +10386,28 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         //function to get the access token
         async function getLAccessToken() {
             if ("<?= $_SESSION['refreshToken'] ?>" != null && "<?= $_SESSION['refreshToken'] ?>" != "") {
-                        //OLD
-
-                       /* const result = await $.ajax({
-                            url: "../controllers/getAccessToken.php",
-                            data: {
-                                refresh_token: "<?= $_SESSION['refreshToken'] ?>"
-            },
-            type: "GET",
-                async: true,
-                    dataType: 'json',
-                        success: function (dataSso) {
-                            lAccessToken = dataSso.accessToken;
-                            return lAccessToken;
+                //NEW
+                let result;
+                try {
+                    result = await $.ajax({
+                        url: "../controllers/getAccessToken.php",
+                        data: {
+                            refresh_token: "<?= $_SESSION['refreshToken'] ?>"
                         },
-            error: function (errorData) {
-                console.log("Error in AJAX request for access token.");
-            }
-        });*/
-
-        //NEW
-        let result;
-        try {
-            result = await $.ajax({
-                url: "../controllers/getAccessToken.php",
-                data: {
-                    refresh_token: "<?= $_SESSION['refreshToken'] ?>"
-                },
-                type: "GET"
-            });
-            //console.log('result',result);
-            return result;
-
-        } catch (error) {
-            console.error('Error: ', error);
-        }
-
-    }
+                        type: "GET"
+                    });
+                    //console.log('result',result);
+                    return result;
+                } catch (error) {
+                    console.error('Error: ', error);
                 }
+            }else{
+                console.log('No refresh token!');
+                alert("No user detected. Log into the platform before use the scnario editor!");
+            }
+        }
     
-    async function getScenarioDates(selectedOption, targetlist, mode) {
+    async function getScenarioDates(selectedOption, targetlist, mode, selectedDateTime = null) {
 
         targetlist[0].disabled = true;
         //var selectedOption = $(this).val();
@@ -10430,7 +10423,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 lAccessToken = listScen1.accessToken;
             }
         }
-
         $.ajax({
             type: 'GET',
             url: url,
@@ -10457,12 +10449,23 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     var localeDTstring = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
                     if ( ((acc1.AC) || (acc1.grandidati.AC)) && mode=='acc' ) { // get dates of scenarios in ACC
-                        targetlist.append(`<option value='` + obj[i].data + `'>` + localeDTstring + `</option>`);
-                    } else if ( !((acc1.AC) || (acc1.grandidati.AC)) && mode=='init' ){                        
-                        targetlist.append(`<option value='` + obj[i].data + `'>` + localeDTstring + `</option>`);
+                        if(selectedDateTime == localeDTstring){
+                            targetlist.append(`<option value='` + obj[i].data + `' selected>` + localeDTstring + `</option>`);
+                        }else{
+                            targetlist.append(`<option value='` + obj[i].data + `'>` + localeDTstring + `</option>`);
+                        }
+                    } else if ( !((acc1.AC) || (acc1.grandidati.AC)) && mode=='init' ){           
+                        if(selectedDateTime == localeDTstring){
+                            targetlist.append(`<option value='` + obj[i].data + `' selected>` + localeDTstring + `</option>`);
+                        }else{             
+                            targetlist.append(`<option value='` + obj[i].data + `'>` + localeDTstring + `</option>`);
+                        }
                     }
                 }
                 targetlist[0].disabled = false;
+            },
+            error: function (data) {
+                console.error(data);
             }
         });
     }
@@ -10485,12 +10488,30 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             "Authorization": `Bearer ${lAccessToken}`
         };
         try {
-            var url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model&maxResults=1000"; 
+            // https://www.disit.org/superservicemap/api/v1/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model&maxResults=1000
+            // domain + "           /superservicemap/api/v1/iot-search/?maxResults=" + maxResults + "&model=" + model;
+
+            const mapCenter = map.defaultMapRef.getCenter();
+            const mapCenterLat = mapCenter.lat.toFixed(4);
+            const mapCenterLon = mapCenter.lng.toFixed(4);
+            var url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TFRS-Model&maxResults=1000"; 
             if (currentStatus == 'All'){
-                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=43.7756;11.2490&maxDists=1000&model=TFRS-Model&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";;
+                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TFRS-Model&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";;
             }  else{
-                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=43.7756;11.2490&maxDists=1000&model=TFRS-Model&valueFilters=status:"+currentStatus+"&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";
-            }   
+                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TFRS-Model&valueFilters=status:"+currentStatus+"&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";
+            }
+            // var url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model&maxResults=1000"; 
+            // if (currentStatus == 'All'){
+            //     url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=43.7756;11.2490&maxDists=1000&model=TFRS-Model&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";;
+            // }  else{
+            //     url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=43.7756;11.2490&maxDists=1000&model=TFRS-Model&valueFilters=status:"+currentStatus+"&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";
+            // }   
+            // var url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?model=TFRS-Model&maxResults=1000"; 
+            // if (currentStatus == 'All'){
+            //     url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?model=TFRS-Model&maxResults=1000";
+            // }  else{
+            //     url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?model=TFRS-Model&maxResults=1000&valueFilters=status:"+currentStatus;
+            // } 
             const response = await fetch(url, { // oppure metti urlencoded
                 method: "GET",
                 headers: header
@@ -10500,6 +10521,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             }
             const jsonResponse = await response.json();
             console.log(jsonResponse);
+
             // Extract deviceName values from the features array 
             var deviceNames;
             if(currentStatus !== 'All'){                           
@@ -10533,6 +10555,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 success: function (dataSso) {
                     lorganizzazione = dataSso.orgName;
                     ilbrokerdellorganizzazione = dataSso.orgBroker;
+                    const orgLat = parseFloat(dataSso.orgGpsCentreLatLng.split(',')[0]);
+                    const orgLon = parseFloat(dataSso.orgGpsCentreLatLng.split(',')[1]);
+                    const orgZoom = parseInt(dataSso.orgZoomLevel);
+                    map.defaultMapRef.setView([orgLat, orgLon], orgZoom);
                 },
                 error: function (errorData) {
                     console.log("Error in AJAX request for organization parameters token.");
@@ -10544,9 +10570,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
     //funzione che mi serve per creare l'api per prendere i dati dai sensori reali all'interno di un poligono WKT
     function buildSensorAPIURL(polygonWKT) {
+        var category = "<?= $trafficSensorCategory; ?>";
+        if(category == ""){
+            category = "SensorSite";
+        }
         const params = new URLSearchParams({
             selection: `wkt:${polygonWKT}`,
-            categories: "SensorSite",
+            categories: category, //"SensorSite",
             maxResults: 100, // la puoi modificare per ora lascio 100
             lang: "it",
             geometry: false,
@@ -10627,7 +10657,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 throw new Error(`Error fetching sensor data: ${response.status}`);
             }
             const chesensorData = await response.json();
-            const sensorFeatures = chesensorData.SensorSites.features;
+            var sensorFeatures = null;
+            if(chesensorData.SensorSites){
+                sensorFeatures = chesensorData.SensorSites.features;
+            } else if(chesensorData.Services){
+                sensorFeatures = chesensorData.Services.features;
+            }
             const sensorInfo = sensorFeatures.map(feature => ({
                 serviceUri: feature.properties.serviceUri,
                 coordinates: feature.geometry.coordinates,
@@ -10810,6 +10845,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                 });
             }
+
+            // check that in restriction_data the FROM roadelement of the restriction is into the istanzedelgrafochestoconsiderando
+            
+            const transformREFn = segment => segment.replace("<?= $baseKm4CityUri; ?>","");
+            const filtered_restrictions_0=restriction_data.filter(obj1 => 
+                istanzedelgrafochestoconsiderando.some(obj2 => obj1.from.value === transformREFn(obj2.segment))
+            );
+            const filtered_restrictions_1=filtered_restrictions_0.filter(obj1 => 
+                istanzedelgrafochestoconsiderando.some(obj2 => obj1.to.value === transformREFn(obj2.segment))
+            );
+            restriction_data = filtered_restrictions_1;
+            ///
+
             /// FINE BOLOGNA-COLLINI
             var currentStatusEdit = $('#currentStatusEdit').val();
             ///ADREANI
@@ -13143,6 +13191,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     //################## appena inviato l'evento addTrafficScenary dal selettore ##########################
     $(document).on('addTrafficScenary', function (event) {
 
+        
+
         var scenario_modality = 'view';
         function setSubAreaLayer(layer, isLoading){
             layer.options.color = '#ff3300';
@@ -13346,12 +13396,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 });
             });
-
-            
-
-
-
-            pippo_debug = 0;
         }
 
         getLeAltreUserInfo();
@@ -13423,7 +13467,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             
             map.defaultMapRef.on('draw:drawstart', function (e) {
                 // Enable dragging and scroll zoom
-                map.defaultMapRef.dragging.enable();
+                //map.defaultMapRef.dragging.enable();
                 map.defaultMapRef.scrollWheelZoom.enable();
                 map.defaultMapRef.doubleClickZoom.enable();
             });
@@ -14232,6 +14276,28 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     //roadElementGraph.segments['http://www.disit.org/km4city/resource/OS00000000606RE/1'].line.setStyle({color: 'yellow'})
                     roadElementGraph.draw();
                 }
+
+                if(event.data.event === 'getMapInfo'){
+                    if(map.defaultMapRef){
+                        const mapCenter = map.defaultMapRef.getCenter();
+                        const mapBounds = map.defaultMapRef.getBounds();
+                        event.source.postMessage({ 
+                            event: "mapInfoResponse",
+                            status: "ok",                            
+                            message: "map coodinates",
+                            center: mapCenter, 
+                            bounds: mapBounds 
+                        }, "*");
+                    } else {
+                        event.source.postMessage({ 
+                            event: "mapInfoResponse",
+                            status: "ko",
+                            message: "map not ready yet",
+                            center: {}, 
+                            bounds: {} 
+                        }, "*");
+                    }
+                }
             }, false);
 
             
@@ -14244,7 +14310,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 $('#view_mod').prop('disabled', true);
                 $('#edit_lines').prop('disabled', true);
 
-                //debugger; // Execution will pause here if DevTools are open
                 // Ottieni l'ID del radio button selezionato
                 var selectedId = $(this).attr("id");
                 console.log('change: ' + selectedId);
@@ -14277,8 +14342,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     scenarioInitList.append(listItem);
                 });
 
-                var urlTTT = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=TTT-Model&maxResults=1000";
-                var Traffic_sensor_API = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=metrotrafficsensor&maxResults=1000";
+                const mapCenter = map.defaultMapRef.getCenter();
+                const mapCenterLat = mapCenter.lat.toFixed(4);
+                const mapCenterLon = mapCenter.lng.toFixed(4);
+                var urlTTT = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TTT-Model&maxResults=1000";
+                //var Traffic_sensor_API = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=metrotrafficsensor&maxResults=1000";
+                var category = "<?= $trafficSensorCategory; ?>";
+                if(category == ""){
+                    category = "Traffic_sensor";
+                }
+                var Traffic_sensor_API = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&categories=" + category + "&maxResults=1000";
+                                
+                // var urlTTT = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=TTT-Model&maxResults=1000";
+                // var Traffic_sensor_API = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=metrotrafficsensor&maxResults=1000";
                 
                 console.log(urlTTT);
                 const header = {
@@ -14328,6 +14404,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }).catch(error => {
                     console.error('Errore:', error);
                 });
+
+                
 
                 await getScenarioDates($('#scenario-init-list').val(), $('#scenario-version-list'), 'init');
                 
@@ -14603,6 +14681,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             maxX = coord[0]
                         }
                     }
+
+                    const scenarioCenterLat = minY + (maxY-minY)/2;
+                    const scnearioCenterLon = minX + (maxX-minX)/2;
+                    map.defaultMapRef.flyTo([scenarioCenterLat, scnearioCenterLon]);
                     //
                     scenaryData = new L.geoJSON();
                     scenaryData.type = "FeatureCollection";
@@ -14768,7 +14850,20 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
             //load Scenario
             async function loadScenario() {
+
+                // GET SCENARIO NAME AND VERSION BEFORE CALLING pulisciTutto(), SINCE IN THAT FUNCTION THE LOADING MENU IS RESETTED AND IF THE CALLS
+                // INVOKED IN  pulisciTutto ARE FASTER THAN THOSE INOVOKED HERE THE SCENARIO IS WRONGLY LOADED WITH SOME DATA FROM A SCENARIO, AND 
+                // OTHER DATA FROM A DIFFERENT SCENARIO!
+
                 var scenarioLoad = $('#scenario-init-list').val();
+
+                // Data from DB is fetched during the creation of the datetime list ('#scenario-version-list') 
+                // and appended in the <option> tag in the value field. Then the value field is red,
+                // parsed as a JSON as saved in the selectedVersion variable
+                var version = $('#scenario-version-list').val();
+
+                $('#currentStatusEdit').val('view');
+
                 pulisciTutto();
                 
                 console.log('load scenario function: ' + scenarioLoad);
@@ -14799,7 +14894,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 //////////END ADDING LOADING BOX//////////
 
                 //var selectScenario = $('#search-scenario-init').val();
-                var selectScenario = $('#scenario-init-list').val();
+                var selectScenario = scenarioLoad; // $('#scenario-init-list').val();                
+
                 getLAccessToken();
                 ildevicename = $("#scenario-list").val();
                 try {
@@ -14830,6 +14926,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     scenaryData = new L.geoJSON();
                     scenaryData.type = "FeatureCollection";
                     scenaryData.features = shape;
+
+                    const scenarioCenterLat = minY + (maxY-minY)/2;
+                    const scnearioCenterLon = minX + (maxX-minX)/2;
+                    map.defaultMapRef.flyTo([scenarioCenterLat, scnearioCenterLon]);
                     //
                     console.log('scenaryData.feature: ', scenaryData.features);
                     ///////////load sensors
@@ -14883,10 +14983,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     var filters = '';
                     var sensors = [];
 
-                    // Data from DB is fetched during the creation of the datetime list ('#scenario-version-list') 
-                    // and appended in the <option> tag in the value field. Then the value field is red,
-                    // parsed as a JSON as saved in the selectedVersion variable
-                    var version = $('#scenario-version-list').val();
+                    // // Data from DB is fetched during the creation of the datetime list ('#scenario-version-list') 
+                    // // and appended in the <option> tag in the value field. Then the value field is red,
+                    // // parsed as a JSON as saved in the selectedVersion variable
+                    // var version = $('#scenario-version-list').val();
                     var selectedVersion = JSON.parse(version);
                     console.log('version', selectedVersion);
                     if ((selectedVersion !== '') && (selectedVersion != null)) {
@@ -14928,10 +15028,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
 
                     // show subareas
-                    for(let subidx=0; subidx<scenaryData.subarea.length; subidx++){ 
-                        var geojson = scenaryData.subarea[subidx];
-                        var subarea_layer = L.polygon(geojson.geometry.coordinates.map(ring => ring.map(coord => [coord[1], coord[0]])));
-                        setSubAreaLayer(subarea_layer, true); 
+                    if(scenaryData.subarea){
+                        for(let subidx=0; subidx<scenaryData.subarea.length; subidx++){ 
+                            var geojson = scenaryData.subarea[subidx];
+                            var subarea_layer = L.polygon(geojson.geometry.coordinates.map(ring => ring.map(coord => [coord[1], coord[0]])));
+                            setSubAreaLayer(subarea_layer, true); 
+                        }
                     }
 
                     //Set Checkbox
@@ -15709,7 +15811,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                 // WHEN THIS EVENT IS RISEN?
                 console.error("IN [$('#updateStreetGraph').click(async function] :: CHECK CODE!");
-                debugger;  // Execution will pause here when the developer tools are open
                 //////////////////////////// 
 
                 var segment = $('#segment').val();
@@ -16041,6 +16142,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
                         scenaryControl2.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
                         ///
+
+                        $('#scenario-name').on('input', function () {
+                            var value = $(this).val();
+                            if(value.includes('_')){
+                                alert("Plase do not use underscore \"_\" in Scenario name");
+                                value = value.replaceAll("_", "");
+                                $('#scenario-name').val(value);
+                            }
+                        });
 
                         $("#scenario-cancel").click(function () {
                             console.log("#scenario-cancel 2")
@@ -19907,7 +20017,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 //  map.legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + map.testMetadata.metadata[0].mapName + '</div>';  // OLD-API
                 map.legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
                 if (!baseQuery.includes("heatmap.php")) {
-                    map.legendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
+                    if(event.passedParams.disableButton){
+                        map.legendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round" style="visibility: hidden"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
+                    }else{
+                        map.legendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
+                    }
                 } else {
                     map.legendHeatmapDiv.innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div>';
                 }
@@ -19936,19 +20050,35 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     '</div>';
 
                 // Heatmap Navigation Buttons (prev & next)
-                map.legendHeatmapDiv.innerHTML +=
-                    '<div id="heatmapNavigationCnt">' +
-                    //   '<a href="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
-                    //   '<a href="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
-                    //   '<a onClick="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
-                    //   '<a onClick="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
-                    '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButt" value="< Prev" style="float: left"/>' +
-                    '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButt" value="Next >" style="float: right"/>' +
-                    //  '<div id="heatMapDescr" style="text-align: center">' + map.testMetadata.metadata[0].date + '</p>' +   // OLD-API
-                    '<div id="<?= $_REQUEST['name_w'] ?>_heatMapDescr" style="text-align: center">' + mapDate + '</p>' +
-                    //  '<a href="#" id="prevHeatmapPage">&lt; Prev</a>'
-                    //  '<a href="#" id="nextHeatmapPage">Next &gt;</a>'
-                    '</div>';
+                if(event.passedParams.disableButton){
+                    map.legendHeatmapDiv.innerHTML +=
+                        '<div id="heatmapNavigationCnt">' +
+                        //   '<a href="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
+                        //   '<a href="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
+                        //   '<a onClick="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
+                        //   '<a onClick="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
+                        '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButt" value="< Prev" style="float: left; visibility: hidden"/>' +
+                        '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButt" value="Next >" style="float: right; visibility: hidden"/>' +
+                        //  '<div id="heatMapDescr" style="text-align: center">' + map.testMetadata.metadata[0].date + '</p>' +   // OLD-API
+                        '<div id="<?= $_REQUEST['name_w'] ?>_heatMapDescr" style="text-align: center">' + mapDate + '</p>' +
+                        //  '<a href="#" id="prevHeatmapPage">&lt; Prev</a>'
+                        //  '<a href="#" id="nextHeatmapPage">Next &gt;</a>'
+                        '</div>';
+                }else{
+                    map.legendHeatmapDiv.innerHTML +=
+                        '<div id="heatmapNavigationCnt">' +
+                        //   '<a href="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
+                        //   '<a href="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
+                        //   '<a onClick="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
+                        //   '<a onClick="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
+                        '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButt" value="< Prev" style="float: left"/>' +
+                        '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButt" value="Next >" style="float: right"/>' +
+                        //  '<div id="heatMapDescr" style="text-align: center">' + map.testMetadata.metadata[0].date + '</p>' +   // OLD-API
+                        '<div id="<?= $_REQUEST['name_w'] ?>_heatMapDescr" style="text-align: center">' + mapDate + '</p>' +
+                        //  '<a href="#" id="prevHeatmapPage">&lt; Prev</a>'
+                        //  '<a href="#" id="nextHeatmapPage">Next &gt;</a>'
+                        '</div>';
+                }
                 if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
                     map.legendHeatmapDiv.innerHTML +=
                         '<div id="radiusCnt">' +
@@ -19967,6 +20097,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     setTimeout(checkLegend, 500);
                 }
                         else {   */
+                    
                     if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
                         document.getElementById("<?= $_REQUEST['name_w'] ?>_sliderradius").addEventListener("input", function () { setOption('radius', this.value, 1) }, false);
                     }
@@ -19975,29 +20106,35 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").addEventListener("input", function () { setOption('maxOpacity', this.value, 2) }, false);
                     //document.getElementById("<?= $_REQUEST['name_w'] ?>_rangemaxOpacity").addEventListener("click", function(){ upSlider('maxOpacity', 0.01, 2, 0.8)}, false);
 
-                    if (!baseQuery.includes("heatmap.php")) {
-                        document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").addEventListener("click", function () { animateHeatmap() }, false);
-                    }
-                    document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").addEventListener("click", function () { prevHeatmapPage() }, false);
-                    document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").addEventListener("click", function () { nextHeatmapPage() }, false);
-
-                    if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
-                        document.getElementById("<?= $_REQUEST['name_w'] ?>_changeRad").addEventListener("change", function () { updateChangeRadiusOnZoom(this) }, false);
-                        document.getElementById("<?= $_REQUEST['name_w'] ?>_estimateRad").addEventListener("change", function () { computeRadiusOnData(this) }, false);
-                    }
-
-                    if (current_page == 0) {
+                    if(event.passedParams.disableButton){
                         document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "hidden";
-                    } else {
-                        document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "visible";
-                    }
-
-                    if (current_page == numHeatmapPages() - 1) {
                         document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "hidden";
+                        document.querySelector(".slider").style.visibility = "hidden"
                     } else {
-                        document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "visible";
-                    }
+                        if (!baseQuery.includes("heatmap.php")) {
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").addEventListener("click", function () { animateHeatmap() }, false);
+                        }
+                        document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").addEventListener("click", function () { prevHeatmapPage() }, false);
+                        document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").addEventListener("click", function () { nextHeatmapPage() }, false);
+
+                        if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_changeRad").addEventListener("change", function () { updateChangeRadiusOnZoom(this) }, false);
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_estimateRad").addEventListener("change", function () { computeRadiusOnData(this) }, false);
+                        }
+
+                        if (current_page == 0) {
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "hidden";
+                        } else {
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "visible";
+                        }
+
+                        if (current_page == numHeatmapPages() - 1) {
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "hidden";
+                        } else {
+                            document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "visible";
+                        }
                     //    }
+                    }
                 }
                 setTimeout(checkLegend, 500);
 
@@ -20778,7 +20915,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     }).addTo(map.defaultMapRef);
                                 } else {
                                     
-                                    timestamp = new Date(timestamp).toISOString().replace('Z', '');
+                                    timestamp = new Date(timestamp).toISOString(); //.replace('Z', '');
                                     let apiOsUrl = "<?= $kbUrlSuperServiceMap; ?>" + "trafficflow/?scenario=" + trafficMapName + "&dateObservedStart=" + encodeURIComponent(timestamp) + "&dateObservedEnd=" + encodeURIComponent(timestamp) + "&kind=reconstructed";
                                     $.ajax({
                                         url: apiOsUrl,
@@ -20853,6 +20990,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         wmsDatasetName = datasetNameAux.split("&metricName=")[0];
                         //    query = 'https://heatmap.snap4city.org/heatmap-metadata.php?dataset=' + wmsDatasetName + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
                         query = heatmapUrl + 'heatmap-metadata.php?dataset=' + wmsDatasetName + '&latitude_min=' + latitude_min + '&latitude_max=' + latitude_max + '&longitude_min=' + longitude_min + '&longitude_max=' + longitude_max;
+                    }
+                    
+                    if(event.passedParams.pageNum){
+                        current_page = event.passedParams.pageNum;
                     }
 
                     heatmapData = null;
@@ -20957,6 +21098,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                                                 // add legend to map
                                                 map.legendHeatmap.addTo(map.defaultMapRef);
+
+                                                if(event.passedParams.disableButton){
+                                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "hidden";
+                                                    document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButt").style.visibility = "hidden";
+                                                    document.querySelector(".slider").style.visibility = "hidden"
+                                                }
+
                                                 map.eventsOnMap.push(heatmap);
                                                 var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
 
@@ -21177,7 +21325,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 pane: 'TrafficFlowManager:' + datasetName
                             }).addTo(map.defaultMapRef);
                         } else {
-                            timestamp = new Date(timestamp).toISOString().replace('Z', '');
+                            timestamp = new Date(timestamp).toISOString(); //.replace('Z', '');
                             let apiOsUrl = "<?= $kbUrlSuperServiceMap; ?>" + "trafficflow/?scenario=" + trafficMapName + "&dateObservedStart=" + encodeURIComponent(timestamp) + "&dateObservedEnd=" + encodeURIComponent(timestamp) + "&kind=reconstructed";
                             $.ajax({
                                 url: apiOsUrl,
@@ -21996,344 +22144,637 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         }
     });
 
-
-    //dBologna INIZIO VECTOR FLOW
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // VECTOR FIELD VISUALIZER //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     $(document).on('resetVectorFlow', function(event){
-                let allCanvases = document.getElementsByTagName('canvas');
-                    while (allCanvases.length > 0) {
-                        allCanvases[0].remove(); 
-                    }
-                    flowField = null;
-    });
-
-
-    $(document).on('addVectorFlow', function(event){
-    var token;
-    let nameVectorField= event.passedData.name;
-    $.ajax({
-        url: "../controllers/getAccessToken.php",
-        type: "GET",
-        dataType: 'json',
-        success: function(dataSso) {
-            token = dataSso.accessToken;
-            const metadataUrl= "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + event.passedData.query + "&format=json&accessToken="+token;
-            $.ajax({
-                url: metadataUrl,
-                method: "GET",
-                dataType: 'json',
-                success: function(data1) {
-                    const results = data1.realtime.results.bindings[0];
-                    const localCoordinates= data1.Service.features[0];
-                    const outputData = {
-                        //latitude: event.passedData.coordinates[0],
-                        //longitude: event.passedData.coordinates[1],
-                        latitude: localCoordinates.geometry.coordinates[1],
-                        longitude: localCoordinates.geometry.coordinates[0],
-                        nPointsLatitude: parseInt(results.nPointsLatitude.value),
-                        nPointsLongitude: parseInt(results.nPointsLongitude.value),
-                        stepLat: parseInt(results.stepLat.value),
-                        stepLong: parseInt(results.stepLong.value),
-                        //vectorLength: JSON.parse(results.vectorLength.value),
-                        vectorLength: results.vectorLength ? JSON.parse(results.vectorLength.value) : '',
-                        //angle: JSON.parse(results.angle.value),
-                        angle: results.angle ? JSON.parse(results.angle.value) : '',
-                        description: results.vectorDescription.value,
-                        scaleFactor: parseFloat(results.scaleFactor.value),
-                        legenda: results.legenda.value
-                    };
-                    console.log(outputData);
-                    try{
-                        initializeP5(outputData);
-                    }catch(e){
-                        console.error(e);
-                    }
-                    
-                    
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    alert("Errore nella richiesta: " + textStatus);
-                }
-            });
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.error("Errore nel recupero del token: " + textStatus, errorThrown);
+        let allCanvases = document.getElementsByTagName('canvas');
+        while (allCanvases.length > 0) {
+            allCanvases[0].remove(); 
         }
-    });
-
-    let flowField;
-
-    function initializeP5(data){
-        //console.log('initializeP5');
-    
-
-    // Definisco l'istanza p5.js
-    new p5(function(p) {
-        //
-        // Funzione di setup per p5
-        p.setup = function() {
-           // console.log('OK');
-           //
-           removeAllCanvas();
-           // Otteniamo la posizione del div contenente la mappa
-           //
-           let mapContainer = document.getElementById('<?= $_REQUEST['name_w'] ?>_map');
-            let rect = mapContainer.getBoundingClientRect();
-
-            // Ottieni la posizione e le dimensioni dell'elemento rispetto alla finestra del browser
-            let width = rect.width;         // Larghezza del div
-            let height = rect.height;       // Altezza del div
-            let top = rect.top;             // Distanza dall'angolo superiore del browser
-            let left = rect.left;           // Distanza dal lato sinistro del browser
-            let right = rect.right;         // Distanza dal lato destro del browser
-            let bottom = rect.bottom;       // Distanza dal lato inferiore del browser
-           //
-           let zoom = map.defaultMapRef.getZoom();
-           map.defaultMapRef.setView([data.latitude, data.longitude], zoom);
-           let mapWidth = mapContainer.offsetWidth;
-           let mapHeight = mapContainer.offsetHeight;
-           
-           //let canvas = p.createCanvas(mapWidth, mapHeight);
-           let canvas = p.createCanvas(rect.width, rect.height);
-
-           //canvas.position(mapContainer.offsetLeft, mapContainer.offsetTop);
-           canvas.position(rect.left, rect.top);
-           //
-           let bottomLeftPoint = map.defaultMapRef.latLngToLayerPoint([data.latitude, data.longitude]);
-            p.clear();
-
-            // Aggiunge un listener per ridisegnare il canvas quando la mappa si muove o viene fatto zoom
-            map.defaultMapRef.on('zoom move', () => {
-                p.redraw();  // Redraw ripete il ciclo di draw quando la mappa cambia
-            });
-
-            // Disabilita il loop automatico di p5.js, dato che vogliamo ridisegnare solo su richiesta
-            //p.noLoop();
-            initializeFlowField(data);
-        };
-
-        // Funzione di draw per p5.js
-        p.draw = function() {
-            p.clear();  // Rimuove il disegno precedente
-
-            if (flowField) {
-                flowField.display();
-            } else {
-                console.log('No flowField');
+        flowField = null;
+        if (map.legendFlowField) {
+            map.legendFlowField.remove();
+        }
+        const heatmapName = event.passedData.name + "_heatmap";
+        parent.$('body').trigger({
+            "type": "removeHeatmap",
+            "target": "<?= $_REQUEST['name_w'] ?>",
+            "passedData": "https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers=" + heatmapName,
+            "passedParams": {
+                "desc": heatmapName,
+                "color1": "rgba(0,179,61,0)",
+                "color2": "rgba(114,235,133,1)"
             }
-        };
-    
+        });
+    });
 
-        p.initializeMap = function(data) {
-            initializeFlowField(data);
-        };
 
-    function adjustAngleForLatitude(angle) {
-            let latitudeReference = Math.PI / 2; 
-            return angle - latitudeReference;
-     }
+    $(document).on('addVectorFlow', async function(event){
 
-     function degreesToRadians(degrees) {
-            return degrees * (Math.PI / 180);
+        var loadHeatmap = false;
+        if(event.passedData.passedData){
+            loadHeatmap = event.passedData.passedData;
+        }
+        var initialPage = 0;
+        if(event.passedData.currentPage){
+            initialPage = event.passedData.currentPage;
         }
 
-
-
-    function initializeFlowField(data) {
-        //
-        let zoom = map.defaultMapRef.getZoom();
-        //
-        let bottomLeftPoint = map.defaultMapRef.latLngToLayerPoint([data.latitude, data.longitude]);
-        let totalVectors = data.nPointsLatitude*data.nPointsLongitude;
-        let cols = data.nPointsLatitude;
-        let rows = data.nPointsLongitude;
-        //
-
-        //
-
-        if (cols > 0 && rows > 0) {
-            //
-            var vectorLength = data.vectorLength;
-            var angle = data.angle;
-            if((vectorLength == '')&&(angle =='')){
-                console.log(nameVectorField);
-                /////////////
-                var url = "<?= $endprocessloader; ?>" + `getOneSpecific.php?suri=${nameVectorField}&accessToken=${token}`;
-                //var url = `http://dashboard/processloader/api/bigdatafordevice/getOneSpecific.php?suri=${nameVectorField}&accessToken=${token}`;
+        function getAccessToken() {
+            return new Promise((resolve, reject) => {
                 $.ajax({
-                    type: 'GET',
-                    url: url,
-                    dataType: "json",
-                    data: { 'accessToken': token },
-                    contentType: 'application/json; charset=utf-8',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    async: false,
-                    success: function (data) {
-                        console.log('Load DATA',data);
-                        const json = JSON.parse(data[0].data);
-                        if( JSON.parse(data[0].data).grandidati !== undefined){
-                            var grandidati = JSON.parse(data[0].data).grandidati;
-                            vectorLength = JSON.parse(grandidati).magnitude;
-                            angle =JSON.parse(grandidati).angle;
-                        
-                        }else{
-                            vectorLength = JSON.parse(json.magnitude);
-                            angle = JSON.parse(json.angle);
-                        }
-                       
-                        
+                    url: "../controllers/getAccessToken.php",
+                    type: "GET",
+                    dataType: 'json',
+                    success: function (dataSso) {
+                        resolve(dataSso.accessToken);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Errore nel recupero del token: " + textStatus, errorThrown);
+                        reject(errorThrown);
                     }
                 });
-                ////////////
-            }
-            //
-            flowField = new FlowField(cols, rows, [data.latitude, data.longitude], angle, vectorLength, data.stepLat, data.stepLong, data.scaleFactor, data.description, data.legenda);
+            });
         }
-    }
+        function getDevice(suri, token, requestedPage = 0){
+            const url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?serviceUri=" + suri + "&accessToken=" + token + "&fromTime=2023-01-01T00:00:00";
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: url,
+                    type: "GET",
+                    dataType: 'json',
+                    success: function (data1) {
+                        var outputData = null;
+                        if(data1.features.length >= 1){
+                            data1.features = data1.features.filter(feature => feature.properties.values.dateObserved !== "");
+                            data1.features.sort((a, b) => {
+                                const dateA = new Date(a.properties.values.dateObserved);
+                                const dateB = new Date(b.properties.values.dateObserved);
+                                // For descending order (most recent to oldest):
+                                return dateB.getTime() - dateA.getTime(); 
+                            });
+                            results = data1.features[requestedPage].properties.values;
+                            localCoordinates= data1.features[requestedPage].geometry.coordinates;  
+                            outputData = {
+                                deviceName: data1.features[requestedPage].properties.deviceName,
+                                latitude: localCoordinates[1],
+                                longitude: localCoordinates[0],
+                                nPointsLatitude: parseInt(results.rowNumberX),
+                                nPointsLongitude: parseInt(results.colNumberY),
+                                stepLat: parseInt(results.deltaX),
+                                stepLong: parseInt(results.deltaY),
+                                dateObserved: results.dateObserved,
+                                description: results.magnitudeDescription,
+                                scaleFactor: parseFloat(results.scaleFactor),
+                                legenda: results.legend,
+                                alphaAngle: parseFloat(results.alphaAngle),
+                                numEntries: data1.features.length,
+                                hasHeatmap: results.hasHeatmap
+                            };
+                        }
+                        console.log(outputData);
+                        resolve(outputData);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Errore nel recupero del device: " + textStatus, errorThrown);
+                        reject(errorThrown);
+                    }
+                });
+            });
+        }
+        // function numVectorFieldPages(){ // TODO vedi se si può fare update!!!
+        //     return 1;
+        // }
+        function checkButtonVisibility(){
+            if (currentPage == 0) {
+                document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButtVF").style.visibility = "hidden";
+            } else {
+                document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButtVF").style.visibility = "visible";
+            }
+            if (currentPage == (numVectorFieldPages - 1)) {
+                document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButtVF").style.visibility = "hidden";
+            } else {
+                document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButtVF").style.visibility = "visible";
+            }
+        }
 
-    function removeAllCanvas() {
-        const canvases = document.querySelectorAll('canvas');
-        canvases.forEach((canvas) => {
-            canvas.parentNode.removeChild(canvas);
-        });
-    }
+        async function prevVectorFieldPage(){
+            console.log("[PREV VF] Going from page " + currentPage + " to " + (currentPage+1));
+            currentPage = currentPage+1;
+            const token = await getAccessToken();
+            const deviceData = await getDevice(event.passedData.query, token, currentPage);
+            currentDate = deviceData.dateObserved;
+            $("#<?= $_REQUEST['name_w'] ?>_vectorFieldDescr").text(currentDate.split(".")[0].replace("T", " "));
+            checkButtonVisibility();
+            const VF = initializeP5(deviceData);
 
+            if(deviceData.hasHeatmap == "yes" && loadHeatmap){
+                const heatMapName = deviceData.deviceName + "_heatmap";
+                parent.$('body').trigger({
+                    "type": "addHeatmap",
+                    "target": "<?= $_REQUEST['name_w'] ?>",
+                    //"passedData": "https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers=" + heatMapName,
+                    "passedData": "WMS&layers=" + heatMapName, // "http://dashboard/geoserver/Snap4City/wms?service=WMS&layers=" + heatMapName,
+                    "passedParams": {
+                        "desc": heatMapName,
+                        "color1": "rgba(0,179,61,0)",
+                        "color2": "rgba(114,235,133,1)",
+                        "pageNum": currentPage,
+                        "disableButton": true
+                    }
+                });
+            }
+        }
+        async function nextVectorFieldPage(){
+            console.log("[NEXT VF] Going from page " + currentPage + " to " + (currentPage-1));
+            currentPage = currentPage-1;
+            const token = await getAccessToken();
+            const deviceData = await getDevice(event.passedData.query, token, currentPage);
+            currentDate = deviceData.dateObserved;
+            $("#<?= $_REQUEST['name_w'] ?>_vectorFieldDescr").text(currentDate.split(".")[0].replace("T", " "));
+            checkButtonVisibility();
+            const VF = initializeP5(deviceData);   
+            
+            if(deviceData.hasHeatmap == "yes" && loadHeatmap){
+                const heatMapName = deviceData.deviceName + "_heatmap";
+                parent.$('body').trigger({
+                    "type": "addHeatmap",
+                    "target": "<?= $_REQUEST['name_w'] ?>",
+                    //"passedData": "https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers=" + heatMapName,
+                    "passedData": "WMS&layers=" + heatMapName, // "http://dashboard/geoserver/Snap4City/wms?service=WMS&layers=" + heatMapName,
+                    "passedParams": {
+                        "desc": heatMapName,
+                        "color1": "rgba(0,179,61,0)",
+                        "color2": "rgba(114,235,133,1)",
+                        "pageNum": currentPage,
+                        "disableButton": true
+                    }
+                });
+            }
+        }
         
+        const nameVectorField= event.passedData.name;
+        const token = await getAccessToken();
+        const deviceData = await getDevice(event.passedData.query, token, initialPage);
 
-        function getLatLngAfterDistance(latA, lonA, distance, angle) {
-            // Raggio della Terra in km
-             const R = 6372.795477598;
-            // Convertire latitudine e longitudine iniziale in radianti
-            let latA_rad = p.radians(latA);
-            let lonA_rad = p.radians(lonA);
-            
-            // Calcolo della nuova latitudine latB
-            let latB_rad = Math.asin(
-                Math.sin(latA_rad) * Math.cos(distance / R) +
-                Math.cos(latA_rad) * Math.sin(distance / R) * Math.cos(angle)
-            );
-            
-            // Calcolo della nuova longitudine lonB
-            let lonB_rad = lonA_rad + Math.atan2(
-                Math.sin(angle) * Math.sin(distance / R) * Math.cos(latA_rad),
-                Math.cos(distance / R) - Math.sin(latA_rad) * Math.sin(latB_rad)
-            );
-            
-            // Convertire i risultati da radianti a gradi
-            let latB = p.degrees(latB_rad);
-            let lonB = p.degrees(lonB_rad);
+        const numVectorFieldPages = deviceData.numEntries;
+        var flowField;
+        var currentScaleFactor = deviceData.scaleFactor;
+        const maxScaleFactor = 1000;
+        var currentDate = deviceData.dateObserved;
+        var currentPage = initialPage;
 
-            return { latB, lonB };
-        }
-
-
-    class FlowField {
-        constructor(cols, rows, baseLatLng, angleMatrix, magnitudeMatrix, stepLat, stepLong, scaleFactor, description, legenda) {
-            this.cols = cols;
-            this.rows = rows;
-            this.baseLatLng = baseLatLng;
-            this.field = new Array(this.cols);
-            if (typeof angleMatrix === 'string') {
-                this.angleMatrix = JSON.parse(angleMatrix);
-            }else{
-                this.angleMatrix = angleMatrix;
-            }
-            if (typeof magnitudeMatrix === 'string') {
-                this.magnitudeMatrix = JSON.parse(magnitudeMatrix);
-            }else{
-                this.magnitudeMatrix = magnitudeMatrix;
-            }
-            //this.magnitudeMatrix = JSON.parse(magnitudeMatrix);
-            this.stepLong = stepLong;
-            this.stepLat = stepLat;
-            this.scaleFactor = scaleFactor;
-            this.description = description;
-            this.legenda = legenda;
-            console.log('magnitudeMatrix',this.magnitudeMatrix);
-            console.log('angleMatrix',this.angleMatrix);
-               /*let adjustedAngleMatrix = this.angleMatrix.map(row =>
-                    row.map(angle => adjustAngleForLatitude(degreesToRadians(angle)))
-                );
-            this.angleMatrix = adjustedAngleMatrix;
-           console.log(this.angleMatrix);*/
-           // Trova i valori massimo e minimo di magnitude
-        this.maxMagnitude = -Infinity;
-        this.minMagnitude = Infinity;
-
-            for (let i = 0; i < this.cols; i++) {
-                this.field[i] = new Array(this.rows);
-                for (let j = 0; j < this.rows; j++) {
-                    let angle = this.angleMatrix[i][j];
-                    let magnitude = this.magnitudeMatrix[i][j];
-                    // Trova i valori massimo e minimo di magnitude
-                    this.maxMagnitude = Math.max(this.maxMagnitude, magnitude);
-                    this.minMagnitude = Math.min(this.minMagnitude, magnitude);
-                    //
-            // Usa la funzione per calcolare la nuova posizione in base all'angolo e distanza
-                    let newLatLng = getLatLngAfterDistance(
-                                this.baseLatLng[0] + i * this.stepLat / 111320,  // Latitudine corrente
-                                this.baseLatLng[1] + j * this.stepLong / 111320, // Longitudine corrente
-                                magnitude,  // Distanza
-                                angle       // Angolo in radianti
-                            );
-                    //
-                    this.field[i][j] = p.createVector(newLatLng.latB, newLatLng.lonB);
-                    //this.field[i][j] = p.createVector(p.cos(angle), p.sin(angle));
-                    this.isHovered = false;
-                    this.hoverPosition = null;
+        if(deviceData.hasHeatmap == "yes" && loadHeatmap){
+            const heatMapName = deviceData.deviceName + "_heatmap";
+            parent.$('body').trigger({
+                "type": "addHeatmap",
+                "target": "<?= $_REQUEST['name_w'] ?>",
+                //"passedData": "https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers=" + heatMapName,
+                "passedData": "WMS&layers=" + heatMapName, // "http://dashboard/geoserver/Snap4City/wms?service=WMS&layers=" + heatMapName,
+                "passedParams": {
+                    "desc": heatMapName,
+                    "color1": "rgba(0,179,61,0)",
+                    "color2": "rgba(114,235,133,1)",
+                    "pageNum": currentPage,
+                    "disableButton": true
                 }
-            }
+            });
         }
+        const VF = initializeP5(deviceData);
 
-        //14_ottobre
-        // Funzione per calcolare il passo del campionamento basato sul livello di zoom
-            calculateSamplingStep(zoomLevel) {
-                if (zoomLevel > 18) return 1;
-                if (zoomLevel > 17) return 1;   // Zoom alto, più dettagli (passo piccolo)
-                if (zoomLevel > 15) return 4; 
-                if (zoomLevel > 13) return 8; 
-                if (zoomLevel > 12) return 16; 
-                if (zoomLevel > 11) return 32;
-                if (zoomLevel > 10) return 64;
-                if (zoomLevel > 9) return 128;  // Zoom medio, media dettagli (passo medio)
-                return 256;                      // Zoom basso, meno dettagli (passo grande)
+        // add legend to map
+        if (map.legendFlowField) {
+            map.legendFlowField.remove();
+        }
+        //if (!map.legendFlowField) {
+        map.legendFlowField = L.control({ position: 'bottomright' });  
+        map.legendFlowField.onAdd = function () {
+            map.legendFlowFieldDiv = L.DomUtil.create('div');
+            map.legendFlowFieldDiv.id = "vectorFieldLegend";
+
+            // disable interaction of this div with map
+            if (L.Browser.touch) {
+                L.DomEvent.disableClickPropagation(map.legendFlowFieldDiv);
+                L.DomEvent.on(map.legendFlowFieldDiv, 'mousewheel', L.DomEvent.stopPropagation);
+            } else {
+                L.DomEvent.on(map.legendFlowFieldDiv, 'click', L.DomEvent.stopPropagation);
             }
-
-            // Funzione per calcolare un vettore medio per un gruppo di celle
-            calculateAveragedVector(i, j, step) {
-                    let sumX = 0;
-                    let sumY = 0;
-                    let count = 0;
-
-                    for (let x = i; x < i + step && x < this.cols; x++) {
-                        for (let y = j; y < j + step && y < this.rows; y++) {
-                            let v = this.field[x][y];
-                            sumX += v.x;
-                            sumY += v.y;
-                            count++;
-                        }
-                    }
-                    return p.createVector(sumX / count, sumY / count);
-            }
-
-                // Funzione per calcolare una magnitudine media per un gruppo di celle
-            calculateAveragedMagnitude(i, j, step) {
-                    let sum = 0;
-                    let count = 0;
-
-                    for (let x = i; x < i + step && x < this.cols; x++) {
-                        for (let y = j; y < j + step && y < this.rows; y++) {
-                            sum += this.magnitudeMatrix[x][y];
-                            count++;
-                        }
-                    }
-                    return sum / count;
-            }    
+            map.legendFlowFieldDiv.style.width = "340px";
+            map.legendFlowFieldDiv.style.fontWeight = "bold";
+            map.legendFlowFieldDiv.style.background = "#cccccc";
+            map.legendFlowFieldDiv.style.padding = "10px";
             
-            // Funzione per mostrare le informazioni di hover
-                    showHoverInfo(scaledX, scaledY, magnitude) {
-                        let hoverText = `Value: ${magnitude}`;
-                        let hoverBoxWidth = p.textWidth(hoverText) + 20;
-                        let hoverBoxHeight = 30;
+            map.legendFlowFieldDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + nameVectorField + '</div>';
+            map.legendFlowFieldDiv.innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Vector Field Controls:"); ?></div>';
+
+            // max opacity
+            map.legendFlowFieldDiv.innerHTML +=
+                '<div id="vf_scaleFactorControl">' +
+                    '<div style="display:inline-block; vertical-align:super;">Scale factor: &nbsp;&nbsp;&nbsp;&nbsp;</div>' +
+                    '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_scaleFactorVF" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>' + 
+                    '&nbsp;&nbsp;&nbsp;' +
+                    '<input id="<?= $_REQUEST['name_w'] ?>_slidermaxScaleFactorVF" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="1" max="' + maxScaleFactor + '" value="' + currentScaleFactor + '" step="0.01">' +
+                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + 
+                    '<div id="<?= $_REQUEST['name_w'] ?>_upSlider_scaleFactorVF" style="display:inline-block;vertical-align:super; color: #0078A8">&#10095;</div>' + 
+                    '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
+                    '<span id="<?= $_REQUEST['name_w'] ?>_rangemaxScaleFactorVF" style="display:inline-block;vertical-align:super;">' + currentScaleFactor + '</span>' +
+                '</div>';
+
+            // Heatmap Navigation Buttons (prev & next)
+            map.legendFlowFieldDiv.innerHTML +=
+                '<div id="heatmapNavigationCnt">' +
+                    '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButtVF" value="< Prev" style="float: left"/>' +
+                    '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButtVF" value="Next >" style="float: right"/>' +
+                    '<div id="<?= $_REQUEST['name_w'] ?>_vectorFieldDescr" style="text-align: center">' + currentDate.split('.')[0].replace("T"," ") + '</p>' +
+                '</div>';
+
+            return map.legendFlowFieldDiv;
+        };           
+     
+
+        map.legendFlowField.addTo(map.defaultMapRef);
+        checkButtonVisibility();
+        document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxScaleFactorVF").addEventListener("input", function () { 
+            currentScaleFactor = this.value;
+            document.getElementById("<?= $_REQUEST['name_w'] ?>_rangemaxScaleFactorVF").innerHTML = currentScaleFactor;
+        }, false);
+        document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButtVF").addEventListener("click", function () { prevVectorFieldPage() }, false);
+        document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButtVF").addEventListener("click", function () { nextVectorFieldPage() }, false);
+        document.getElementById('vectorFieldLegend').style.zIndex = 1000;
+        
+        function initializeP5(data){
+            console.log('initializeP5');    
+
+            // Definisco l'istanza p5.js
+            const VF = new p5(function(p) {
+                // Funzione di setup per p5
+                p.setup = function() {
+                    // console.log('OK');
+                    removeAllCanvas();
+                    // Otteniamo la posizione del div contenente la mappa
+                    let mapContainer = document.getElementById('<?= $_REQUEST['name_w'] ?>_map');
+                    let rect = mapContainer.getBoundingClientRect();
+                    // Ottieni la posizione e le dimensioni dell'elemento rispetto alla finestra del browser
+                    let width = rect.width;         // Larghezza del div
+                    let height = rect.height;       // Altezza del div
+                    let top = rect.top;             // Distanza dall'angolo superiore del browser
+                    let left = rect.left;           // Distanza dal lato sinistro del browser
+                    let right = rect.right;         // Distanza dal lato destro del browser
+                    let bottom = rect.bottom;       // Distanza dal lato inferiore del browser
+                    let zoom = map.defaultMapRef.getZoom();
+                    map.defaultMapRef.setView([data.latitude, data.longitude], zoom);
+                    let mapWidth = mapContainer.offsetWidth;
+                    let mapHeight = mapContainer.offsetHeight;
+                                        
+                    //let canvas = p.createCanvas(mapWidth, mapHeight);
+                    let canvas = p.createCanvas(rect.width, rect.height);
+                    // canvas.parent('p5-container');
+                    // const p5Container = document.getElementById('p5-container');
+                    // p5Container.style.position = 'absolute'; // or 'relative' if you want it to take space
+                    // p5Container.style.zIndex = 400;
+                    // mapContainer.style.position = 'relative'; // or 'absolute'
+                    // mapContainer.style.zIndex = 1000;
+
+                    // canvas.elt.style.position = 'relative';
+                    // canvas.elt.style.zIndex = -1;
+
+                    //canvas.position(mapContainer.offsetLeft, mapContainer.offsetTop);
+                    canvas.position(rect.left, rect.top);
+
+                    // const canvasElement = document.querySelector('canvas');
+                    // canvasElement.style.zIndex = '500'; // Lower than the Leaflet control
+
+                    //
+                    let bottomLeftPoint = map.defaultMapRef.latLngToLayerPoint([data.latitude, data.longitude]);
+                    p.clear();
+
+                    // Aggiunge un listener per ridisegnare il canvas quando la mappa si muove o viene fatto zoom
+                    map.defaultMapRef.on('zoom move', () => {
+                        p.redraw();  // Redraw ripete il ciclo di draw quando la mappa cambia
+                    });
+
+                    // Disabilita il loop automatico di p5.js, dato che vogliamo ridisegnare solo su richiesta
+                    //p.noLoop();
+                    initializeFlowField(data);
+                };
+
+                // Funzione di draw per p5.js
+                p.draw = function() {
+                    p.clear();  // Rimuove il disegno precedente
+                    if (flowField) {
+                        flowField.display();
+                    } else {
+                        console.log('No flowField');
+                    }
+                };    
+
+                p.initializeMap = function(data) {
+                    initializeFlowField(data);
+                };
+
+                function adjustAngleForLatitude(angle) {
+                    let latitudeReference = Math.PI / 2; 
+                    return angle - latitudeReference;
+                }
+
+                function degreesToRadians(degrees) {
+                    return degrees * (Math.PI / 180);
+                }
+
+                function initializeFlowField(data) {
+                    let zoom = map.defaultMapRef.getZoom();
+                    let bottomLeftPoint = map.defaultMapRef.latLngToLayerPoint([data.latitude, data.longitude]);
+                    let totalVectors = data.nPointsLatitude*data.nPointsLongitude;
+                    let cols = data.nPointsLongitude; 
+                    let rows = data.nPointsLatitude;
+
+                    if (cols > 0 && rows > 0) {
+                        // var vectorLength = data.vectorLength;
+                        // var angle = data.angle;
+                        // if((vectorLength == '')&&(angle =='')){
+                        console.log(nameVectorField);
+                        // !!! $endprocessloader IS DEFINED IN dashboard-builder-conf/kbHost.ini
+                        const dateObserved = data.dateObserved.split('.')[0].replace('T', ' ');
+                        var url = "<?= $endprocessloader; ?>" + `getOneSpecific.php?suri=${nameVectorField}&accessToken=${token}&dateObserved=${dateObserved}`;
+                        //var url = `http://dashboard/processloader/api/bigdatafordevice/getOneSpecific.php?suri=${nameVectorField}&accessToken=${token}`;
+                        $.ajax({
+                            type: 'GET',
+                            url: url,
+                            dataType: "json",
+                            data: { 'accessToken': token },
+                            contentType: 'application/json; charset=utf-8',
+                            headers: { 'Authorization': `Bearer ${token}` },
+                            async: false,
+                            success: function (data) {
+                                console.log('Load DATA',data);
+                                const json = JSON.parse(data[0].data);
+                                if( json.grandidati !== undefined){
+                                    var grandidati = json.grandidati;
+                                    vectorLength = grandidati.magnitude;
+                                    angle = grandidati.angle;                                
+                                }else{
+                                    vectorLength = JSON.parse(json.magnitude);
+                                    angle = JSON.parse(json.angle);
+                                }
+                            }
+                        });
+                        // }
+                        flowField = new FlowField(cols, rows, [data.latitude, data.longitude], angle, vectorLength, data.stepLat, data.stepLong, data.scaleFactor, data.description, data.legenda, data.alphaAngle);
+
+                        
+                    }
+                }
+
+                function removeAllCanvas() {
+                    const canvases = document.querySelectorAll('canvas');
+                    canvases.forEach((canvas) => {
+                        canvas.parentNode.removeChild(canvas);
+                    });
+                }        
+
+                function getLatLngAfterDistance(latA, lonA, distance, angle) {
+                    // Raggio della Terra in km
+                    const R = 6372.795477598;
+                    // Convertire latitudine e longitudine iniziale in radianti
+                    let latA_rad = p.radians(latA);
+                    let lonA_rad = p.radians(lonA);
+                    
+                    // Calcolo della nuova latitudine latB
+                    let latB_rad = Math.asin(
+                        Math.sin(latA_rad) * Math.cos(distance / R) +
+                        Math.cos(latA_rad) * Math.sin(distance / R) * Math.cos(angle)
+                    );
+                    
+                    // Calcolo della nuova longitudine lonB
+                    let lonB_rad = lonA_rad + Math.atan2(
+                        Math.sin(angle) * Math.sin(distance / R) * Math.cos(latA_rad),
+                        Math.cos(distance / R) - Math.sin(latA_rad) * Math.sin(latB_rad)
+                    );
+                    
+                    // Convertire i risultati da radianti a gradi
+                    let latB = p.degrees(latB_rad);
+                    let lonB = p.degrees(lonB_rad);
+
+                    return { latB, lonB };
+                }
+
+                // // UTM Zones covering the Mediterranean Sea. Include more zone if needed!!!
+                // proj4.defs('EPSG:32629', '+proj=utm +zone=29 +datum=WGS84 +units=m +no_defs'); // Zone 29N: Portugal, western Spain
+                // proj4.defs('EPSG:32630', '+proj=utm +zone=30 +datum=WGS84 +units=m +no_defs'); // Zone 30N: Spain, western France
+                // proj4.defs('EPSG:32631', '+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs'); // Zone 31N: Eastern France, Italy, western Algeria
+                // proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs'); // Zone 32N: Italy, Tunisia
+                // proj4.defs('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs'); // Zone 33N: Eastern Italy, Croatia, Greece, Libya
+                // proj4.defs('EPSG:32634', '+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs'); // Zone 34N: Greece, Crete, western Turkey, western Egypt
+                // proj4.defs('EPSG:32635', '+proj=utm +zone=35 +datum=WGS84 +units=m +no_defs'); // Zone 35N: Eastern Turkey, Israel, central Egypt
+                // proj4.defs('EPSG:32636', '+proj=utm +zone=36 +datum=WGS84 +units=m +no_defs'); // Zone 36N: Eastern Egypt, Sinai Peninsula
+                // proj4.defs('EPSG:32732', '+proj=utm +zone=32 +south +datum=WGS84 +units=m +no_defs'); // Zone 32S: Southern Tunisia, western Libya
+                // proj4.defs('EPSG:32733', '+proj=utm +zone=33 +south +datum=WGS84 +units=m +no_defs'); // Zone 33S: Libya
+                // proj4.defs('EPSG:32734', '+proj=utm +zone=34 +south +datum=WGS84 +units=m +no_defs'); // Zone 34S: Western Egypt
+                // proj4.defs('EPSG:32735', '+proj=utm +zone=35 +south +datum=WGS84 +units=m +no_defs'); // Zone 35S: Central Egypt
+                // proj4.defs('EPSG:32736', '+proj=utm +zone=36 +south +datum=WGS84 +units=m +no_defs'); // Zone 36S: Eastern Egypt, Sudan
+
+                // class GridGenerator {
+                //     constructor() {
+                //         this.wgs84 = proj4('EPSG:4326'); // WGS84
+                //     }
+
+                //     // Helper to compute UTM zone based on longitude and hemisphere
+                //     getUTMProjection(lat, lon) {
+                //         const zone = Math.floor((lon + 180) / 6) + 1; // UTM zone calculation
+                //         const isNorthernHemisphere = lat >= 0; // Check if in the Northern Hemisphere
+                //         const epsgCode = isNorthernHemisphere ? `EPSG:326${zone}` : `EPSG:327${zone}`; // UTM zones
+                //         return proj4('EPSG:4326', epsgCode); // Return a projection from WGS84 to the specific UTM zone
+                //     }
+
+                //     // Generate a grid of points
+                //     generateGrid(initialLat, initialLon, bearing, deltaX, deltaY, numX, numY) {
+                //         // Dynamically set UTM projection based on starting coordinates
+                //         const utmProjection = this.getUTMProjection(initialLat, initialLon);
+                //         // Convert the initial lat/lon to UTM coordinates
+                //         const [startEasting, startNorthing] = utmProjection.forward([initialLon, initialLat]);
+                //         // Convert the bearing to radians
+                //         const radBearing = (bearing * Math.PI) / 180;
+                //         // Calculate the offsets for X and Y directions
+                //         const deltaEastX = Math.cos(radBearing) * deltaX;
+                //         const deltaNorthX = Math.sin(radBearing) * deltaX;
+                //         const deltaEastY = -Math.sin(radBearing) * -deltaY;
+                //         const deltaNorthY = Math.cos(radBearing) * -deltaY;
+                //         const grid = [];
+                //         for (let r = 0; r < numX; r++) {
+                //             const row = [];
+                //             for (let c = 0; c < numY; c++) {
+                //                 const easting = startEasting + r * deltaEastX + c * deltaEastY;
+                //                 const northing = startNorthing + r * deltaNorthX + c * deltaNorthY;
+                //                 const [lon, lat] = utmProjection.inverse([easting, northing]);
+                //                 row.push({lat: lat, lon: lon });
+                //             }
+                //             grid.push(row);
+                //         }
+                //         return grid;
+                //     }
+                // }
+
+
+                class FlowField {
+                    constructor(cols, rows, baseLatLng, angleMatrix, magnitudeMatrix, stepLat, stepLong, scaleFactor, description, legenda, alphaAngle) {
+                        this.earthRadius = 6378137; // Earth's radius in meters
+                        this.cols = cols;
+                        this.rows = rows;
+                        this.baseLatLng = baseLatLng;
+                        this.field = new Array(this.cols);
+                        if (typeof angleMatrix === 'string') {
+                            this.angleMatrix = JSON.parse(angleMatrix);
+                        }else{
+                            this.angleMatrix = angleMatrix;
+                        }
+                        if (typeof magnitudeMatrix === 'string') {
+                            this.magnitudeMatrix = JSON.parse(magnitudeMatrix);
+                        }else{
+                            this.magnitudeMatrix = magnitudeMatrix;
+                        }
+
+                        this.stepLong = stepLong;
+                        this.stepLat = stepLat;
+                        this.scaleFactor = scaleFactor;
+                        this.description = description;
+                        this.legenda = legenda;
+                        this.bearingAngle = alphaAngle;
+                        console.log('magnitudeMatrix',this.magnitudeMatrix);
+                        console.log('angleMatrix',this.angleMatrix);
+
+                        // Generate grid directly in lat/long (faster)
+                        const vectorFieldPointGrid = this.generateGrid(this.baseLatLng[0], this.baseLatLng[1], this.bearingAngle, this.stepLat, this.stepLong, this.rows, this.cols);
+                        
+                        // Generate grid passing in UTM to higher precision
+                        // const generator = new GridGenerator();
+                        // const correctedBearing = (90 - this.bearingAngle) % 360;
+                        // const vectorFieldPointGrid = generator.generateGrid(this.baseLatLng[0], this.baseLatLng[1], correctedBearing, this.stepLat, this.stepLong, this.rows, this.cols);
+
+                        const vectors = Array.from({ length: vectorFieldPointGrid.length }, () =>
+                            new Array(vectorFieldPointGrid[0].length).fill(0)
+                        );
+                        
+                        this.maxMagnitude = -Infinity;
+                        this.minMagnitude = Infinity;
+
+                        for(let row=0; row<vectorFieldPointGrid.length; row++){
+                            for(let col=0; col<vectorFieldPointGrid[row].length; col++){
+                                const vector = {
+                                    lat: vectorFieldPointGrid[row][col].lat,
+                                    lon: vectorFieldPointGrid[row][col].lon,
+                                    //magnitude: this.scaleFactor*this.magnitudeMatrix[row][col]/1000, // from meters to kilometers
+                                    magnitude: this.magnitudeMatrix[row][col]/1000, // from meters to kilometers
+                                    angle: this.toRadians(90 - this.bearingAngle - this.angleMatrix[row][col]),
+                                    isHovered: false,
+                                    hoverPosition: null
+                                };
+                                vectors[row][col] = vector;
+
+                                this.maxMagnitude = Math.max(this.maxMagnitude, vector.magnitude);
+                                this.minMagnitude = Math.min(this.minMagnitude, vector.magnitude);
+                            }
+                        }
+
+                        this.vectors = vectors;
+                        this.isHovered = false;
+                        this.hoverPosition = null;
+                    }
+
+                    generateGrid(initialLat, initialLon, bearing, deltaX, deltaY, numX, numY) {
+                        const grid = [];
+                        // Direction perpendicular to the bearing for Y-axis
+                        const bearingY = (bearing + 90) % 360;
+                        for (let r = 0; r < numX; r++) {
+                            const row = [];
+                            for (let c = 0; c < numY; c++) {
+                                const xOffset = r * deltaX;
+                                const yOffset = c * deltaY;
+                                // Step along the X-axis
+                                const xPoint = this.destinationPoint(initialLat, initialLon, xOffset, bearing);
+                                // Step along the Y-axis from the X-axis point
+                                const gridPoint = this.destinationPoint(xPoint.lat, xPoint.lon, yOffset, bearingY);
+                                row.push(gridPoint);
+                            }
+                            grid.push(row);
+                        }
+                        return grid;
+                    }
+
+                    // Calculate the destination point given a starting point, distance, and bearing
+                    destinationPoint(lat, lon, distance, bearing) {
+                        const radLat = this.toRadians(lat);
+                        const radLon = this.toRadians(lon);
+                        const radBearing = this.toRadians(bearing);
+                        const newLat = Math.asin(
+                            Math.sin(radLat) * Math.cos(distance / this.earthRadius) +
+                            Math.cos(radLat) * Math.sin(distance / this.earthRadius) * Math.cos(radBearing)
+                        );
+                        const newLon = radLon + Math.atan2(
+                            Math.sin(radBearing) * Math.sin(distance / this.earthRadius) * Math.cos(radLat),
+                            Math.cos(distance / this.earthRadius) - Math.sin(radLat) * Math.sin(newLat)
+                        );
+                        return { lat: this.toDegrees(newLat), lon: this.toDegrees(newLon) };
+                    }
+
+                    toRadians(degrees) {
+                        return degrees * Math.PI / 180;
+                    }
+
+                    toDegrees(radians) {
+                        return radians * 180 / Math.PI;
+                    }
+
+                    // Funzione per calcolare il passo del campionamento basato sul livello di zoom
+                    calculateSamplingStep(zoomLevel) {
+                        if (zoomLevel > 18) return 1;
+                        if (zoomLevel > 17) return 4;   // Zoom alto, più dettagli (passo piccolo)
+                        if (zoomLevel > 15) return 16; 
+                        if (zoomLevel > 13) return 32; 
+                        if (zoomLevel > 12) return 64; 
+                        if (zoomLevel > 11) return 128;
+                        if (zoomLevel > 10) return 256;
+                        if (zoomLevel > 9) return 512;  // Zoom medio, media dettagli (passo medio)
+                        return 256;                      // Zoom basso, meno dettagli (passo grande)
+                    }
+
+                    // // Funzione per calcolare un vettore medio per un gruppo di celle
+                    // calculateAveragedVector(i, j, step) {
+                    //     let sumX = 0;
+                    //     let sumY = 0;
+                    //     let count = 0;
+
+                    //     for (let x = i; x < i + step && x < this.cols; x++) {
+                    //         for (let y = j; y < j + step && y < this.rows; y++) {
+                    //             let v = this.field[x][y];
+                    //             sumX += v.x;
+                    //             sumY += v.y;
+                    //             count++;
+                    //         }
+                    //     }
+                    //     return p.createVector(sumX / count, sumY / count);
+                    // }
+
+                    // Funzione per calcolare una magnitudine media per un gruppo di celle
+                    // calculateAveragedMagnitude(i, j, step) {
+                    //         let sum = 0;
+                    //         let count = 0;
+
+                    //         for (let x = i; x < i + step && x < this.cols; x++) {
+                    //             for (let y = j; y < j + step && y < this.rows; y++) {
+                    //                 sum += this.magnitudeMatrix[x][y];
+                    //                 count++;
+                    //             }
+                    //         }
+                    //         return sum / count;
+                    // }    
+                
+                    // Funzione per mostrare le informazioni di hover
+                    showHoverInfo(scaledX, scaledY, magnitude, angle) {
+                        const hoverTextM = `Magnitude: ${magnitude}`; 
+                        const hoverTextA = `Angle: ${angle}`;
+                        const hoverBoxWidth = Math.max(p.textWidth(hoverTextM), p.textWidth(hoverTextA)) + 20;
+                        const hoverBoxHeight = 50;
 
                         // Disegna il riquadro di hover
                         p.fill(255);
@@ -22342,239 +22783,146 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         p.rect(scaledX + 10, scaledY - hoverBoxHeight - 10, hoverBoxWidth, hoverBoxHeight, 5);
 
                         // Disegna il testo di hover
-                        p.fill(0);
+                        p.fill(0); // Colore del testo
+                        p.stroke(0); // Bordo nero
+                        p.strokeWeight(0);
                         p.textSize(14);
-                        p.text(hoverText, scaledX + 15, scaledY - hoverBoxHeight + 5);
+                        p.text(hoverTextM, scaledX + 15, scaledY - hoverBoxHeight + 5);
+                        p.text(hoverTextA, scaledX + 15, scaledY - hoverBoxHeight + 20);
                     }
-        //fine 14_ottobre
 
-
-        display() {
-            //
-                    let legendWidth = 200; // Larghezza del riquadro
-                    let legendHeight = 50; // Altezza del riquadro
-                    let legendText1 = ` ${this.description}`;
-                    let legendText2 = ` ${this.legenda}`;
-                    let arrayLegend;
-                    let arrayLegendSize = []; 
-                    let zoomLevel = map.defaultMapRef.getZoom(); // Ottieni il livello di zoom
-                    let samplingStep = this.calculateSamplingStep(zoomLevel); // Calcola il passo del campionamento
-                    let hoverInfo = [];
-                    //
-                    var finalPointA = 0;
-                    var finalPointB = 0;
-                    //        
-           for (let i = 0; i < this.cols; i += samplingStep) {
-                for (let j = 0; j < this.rows; j += samplingStep) {
-                    this.field[i][j].isHovered = false;
-                    this.field[i][j].hoverPosition = null;
-
-                    let latLng = this.getLatLngForCell(i, j);
-                    if (this.isPointInView(latLng)) {
-                        let mapPoint = map.defaultMapRef.latLngToContainerPoint(latLng);
-                        let scaledX = mapPoint.x;
-                        let scaledY = mapPoint.y;
-                        let v = this.calculateAveragedVector(i, j, samplingStep);
-                        let magnitude = this.calculateAveragedMagnitude(i, j, samplingStep);
-                        let maxArrowLength = magnitude;
-                        let zoomScale = p.map(zoomLevel, 5, 22, 0.2, 1); // Scala basata sullo zoom (valori adattabili)
-                        let scaledArrowLength = p.constrain(magnitude * zoomScale, 0, maxArrowLength); // Limita la lunghezza massima
-
-                            this.drawArrow(p.createVector(scaledX, scaledY), v, scaledArrowLength, this.scaleFactor);
-
-                            let d = p.dist(p.mouseX, p.mouseY, scaledX, scaledY);
-                            if (d < 10) {
-                                hoverInfo.push({ x: scaledX, y: scaledY, magnitude: magnitude });
-                            }
-                            //
-                        let latLngA = this.getLatLngForCell(v.y, v.x);  // Il punto A (origine del vettore)
-                        let latLngB = this.getLatLngForCell(v.y + 1, v.x + 1);  // Punto B per calcolare la direzione
-                        // Converte le coordinate LatLng in punti sulla mappa (in pixel)
-                        finalPointA = map.defaultMapRef.latLngToContainerPoint(latLngA);
-                        finalPointB = map.defaultMapRef.latLngToContainerPoint(latLngB);
-                            
+                    display() {
+                        let legendWidth = 200; // Larghezza del riquadro
+                        let legendHeight = 50; // Altezza del riquadro
+                        let legendText1 = ` ${this.description}`;
+                        let legendText2 = ` ${this.legenda}`;
+                        let arrayLegend;
+                        let arrayLegendSize = []; 
+                        let zoomLevel = map.defaultMapRef.getZoom(); // Ottieni il livello di zoom
+                        let samplingStep = 1;
+                        if(this.cols*this.rows > 100000){
+                            samplingStep = this.calculateSamplingStep(zoomLevel); // Calcola il passo del campionamento
                         }
+                        let hoverInfo = [];
+       
+                        //let pointCounter = 0;
+                        const mapBounds = map.defaultMapRef.getBounds();
+                        for (let i = 0; i < this.cols; i += samplingStep) {
+                            for (let j = 0; j < this.rows; j += samplingStep) {
 
-                    }
-            }
+                                const point = this.vectors[j][i];
+                                const start = map.defaultMapRef.latLngToContainerPoint([point.lat, point.lon]);
 
-            if (legendText2 && legendText2.trim() !== "") {
-                      
-                      arrayLegend = JSON.parse(legendText2);  // Converti in JSON
-                          //console.log(arrayLegend); 
-                          for (let y = 0; y < arrayLegend.length; y++) {  
-                              legendText2 = legendText2 + arrayLegend[y];
-                          }        
-                  }     
-                  //
-                  //let legendBoxWidth = Math.max(p.textWidth(legendText1), p.textWidth(legendText2)) + 20; // Aggiungi margine di 20px
-                  let legendBoxWidth = legendWidth;
-                  let legendBoxHeight = 30+(arrayLegend.length)*30;
-                  ///
-                  let legendX = 20; // Posizione orizzontale del riquadro (angolo in basso a sinistra)
-                  let legendY = p.height - legendBoxHeight - 20; // Posizione verticale del riquadro
-                    // Disegna il riquadro bianco per la legenda
-                    p.fill(255); // Riempimento bianco
-                    p.stroke(0); // Bordo nero
-                    p.strokeWeight(1);
-                    p.rect(legendX -5, legendY -10, legendBoxWidth, legendBoxHeight, 5); // Riquadro con angoli arrotondati
-                    p.fill(0); // Colore del testo
-                    p.textSize(12);
-                    p.text(legendText1, legendX + 10, legendY + 10);
-                    //
-                    // Calcola la distanza in pixel tra i due punti
-                    
-                        //
-                        
-                    //
-                    //p.text(legendText2, legendX + 10, legendY + 30);
-                    var rapporto = this.calculateSamplingStep(zoomLevel);
-                    p.text('Scaled 1:'+rapporto, legendX + 10, legendY + 30);
-                    var count = 50;
-                    if (legendText2 && legendText2.trim() !== "") {
-                    for (let y = 0; y < arrayLegend.length; y++) {  
-                                p.text(arrayLegend[y], legendX + 10, legendY + count);
-                                let distanceInPixels = p.dist(finalPointA.x, finalPointA.y, finalPointB.x, finalPointB.y);
-                                let maxArrowLength = distanceInPixels * 0.7;
-                                let normalizedMagnitude = p.map(arrayLegend[y], this.minMagnitude, this.maxMagnitude, 5, maxArrowLength);
-                                ////////////
-                                // Disegna una freccia accanto al legendText2
-                                let arrowX = legendX + p.textWidth(arrayLegend[y]) + 20; // Posiziona la freccia accanto al testo
-                                let arrowY = legendY + count; // Allineamento verticale della freccia
-                                let arrowSize = parseFloat(arrayLegend[y]); // Dimensione della freccia
-                                if(arrowSize == NaN){
-                                    arrowSize = 0;
-                                }
-                                //let maxArrowLength = arrowSize * 0.7; 
-                                //let scaledArrowLengthLegend = p.constrain(arrowSize * rapporto, 0, maxArrowLength);
-                                let scaledArrowLengthLegend = p.map(arrowSize, 0, this.maxMagnitude, 2, 20);
-                                let arrowHeadSize = scaledArrowLengthLegend * 0.3
-                                p.stroke(0); // Colore della freccia
-                                p.strokeWeight(2);
-                                //console.log('legendText2    '+legendText2);
-                                if(arrayLegend[y] == 0){
-                                    p.strokeWeight(3);
-                                    p.line(arrowX, arrowY, arrowX, arrowY);
-                                }else{
-                                     p.line(arrowX, arrowY, arrowX + normalizedMagnitude, arrowY);
-                                    p.fill(0); // Riempimento nero per la punta
-                                    p.triangle(
-                                        arrowX + normalizedMagnitude, arrowY - 2,
-                                        arrowX + normalizedMagnitude, arrowY + 2,
-                                        arrowX + normalizedMagnitude + 5, arrowY
-                                    );
+                                if(!mapBounds.contains(L.latLng(point.lat, point.lon))){
+                                    continue;
                                 }
                                 
-                                count = count+20;
-                            }            
-                    }else{
-                            p.text(legendText2, legendX + 10, legendY + 30);
+                                
+                                    const dx = point.magnitude * Math.cos(point.angle) * currentScaleFactor;
+                                    const dy = point.magnitude * Math.sin(point.angle) * currentScaleFactor;
+
+                                    const endLat = point.lat + (dy * (180 / Math.PI)) / (this.earthRadius/1000);
+                                    const endLon = point.lon + (dx * (180 / Math.PI)) / ((this.earthRadius/1000) * Math.cos(this.toRadians(point.lat)));
+                                    const end = map.defaultMapRef.latLngToContainerPoint([endLat, endLon]);
+
+                                    const scaledX = start.x;
+                                    const scaledY = start.y;
+                                    let d = p.dist(p.mouseX, p.mouseY, scaledX, scaledY);
+                                    if (d < 10) {
+                                        hoverInfo.push({ x: scaledX, y: scaledY, magnitude: this.magnitudeMatrix[j][i], angle: this.angleMatrix[j][i] });
+                                    }
+
+                                    if(this.magnitudeMatrix[j][i]<=0){
+                                        p.stroke(0, 0, 0);
+                                        p.strokeWeight(5);
+                                        p.point(start.x, start.y);
+                                    } else {
+                                        p.stroke(0, 0, 0);
+                                        p.strokeWeight(2);
+                                        p.line(start.x, start.y, end.x, end.y);
+
+                                        const arrowSize = 5;
+                                        p.push();
+                                        p.translate(end.x, end.y);
+                                        p.rotate(Math.atan2(end.y - start.y, end.x - start.x));
+                                        p.triangle(0, 0, -arrowSize, -arrowSize / 2, -arrowSize, arrowSize / 2);
+                                        p.pop();
+                                    }
+                                // pointCounter += 1;
+                            }
+                            // console.log("Rendered vectors: " + pointCounter);                            
+                        }
+
+                        if (legendText2 && legendText2.trim() !== "") {                      
+                            arrayLegend = JSON.parse(legendText2);  // Converti in JSON      
+                        }   
+
+                        let legendBoxWidth = legendWidth;
+                        let legendBoxHeight = 30+(arrayLegend.length)*30;
+                        let legendX = 20; // Posizione orizzontale del riquadro (angolo in basso a sinistra)
+                        let legendY = 150; // p.height - legendBoxHeight - 20; // Posizione verticale del riquadro
+                        // Disegna il riquadro bianco per la legenda
+                        p.fill(255); // Riempimento bianco
+                        p.stroke(0); // Bordo nero
+                        p.strokeWeight(1);
+                        p.rect(legendX -5, legendY -10, legendBoxWidth, legendBoxHeight, 5); // Riquadro con angoli arrotondati
+                        p.fill(0); // Colore del testo
+                        p.stroke(0); // Bordo nero
+                        p.strokeWeight(0);
+                        p.textSize(12);
+                        p.text(legendText1, legendX + 10, legendY + 10);
+                        //p.text('Scaled 1:'+samplingStep, legendX + 10, legendY + 30);
+                        // draw arrow in legend
+                        var count = 50;
+                        for (let y = 0; y < arrayLegend.length; y++) {
+                            p.fill(0); // Colore del testo
+                            p.stroke(0); // Bordo nero
+                            p.strokeWeight(0);
+                            p.textSize(12);
+                            p.text(arrayLegend[y], legendX + 10, legendY + count);
+                            const arrowStartX = legendX + p.textWidth(arrayLegend[y]) + 20; // Posiziona la freccia accanto al testo
+                            const arrowStartY = legendY + count; // Allineamento verticale della freccia
+                            const startPoint = map.defaultMapRef.containerPointToLatLng({x:arrowStartX, y:arrowStartY});
+                            const arrowLength = currentScaleFactor*arrayLegend[y]/1000;
+                            const endLat = startPoint.lat;
+                            const endLon = startPoint.lng + (arrowLength * (180 / Math.PI)) / ((this.earthRadius/1000) * Math.cos(this.toRadians(startPoint.lat)));
+                            const endPoint = map.defaultMapRef.latLngToContainerPoint([endLat, endLon]);
+                            const arrowEndX = endPoint.x;
+                            const arrowEndY = endPoint.y;
+                            if(arrayLegend[y] == 0){
+                                p.stroke(0, 0, 0);
+                                p.strokeWeight(2);
+                                p.line(arrowStartX, arrowStartY, arrowEndX, arrowEndY);
+                            }else{
+                                p.stroke(0, 0, 0);
+                                p.strokeWeight(2);
+                                p.line(arrowStartX, arrowStartY, arrowEndX, arrowEndY);
+                                p.fill(0); // Riempimento nero per la punta
+                                p.triangle(
+                                    arrowEndX, arrowEndY - 2,
+                                    arrowEndX, arrowEndY + 2,
+                                    arrowEndX + 5, arrowEndY
+                                );
+                            }
+                            count = count+20;
+                        }
+
+                        for (let i = 0; i < hoverInfo.length; i++) {
+                            this.showHoverInfo(hoverInfo[i].x, hoverInfo[i].y, hoverInfo[i].magnitude, hoverInfo[i].angle);
+                        }
                     }
-                //
-                //
-                //
 
-            for (let i = 0; i < hoverInfo.length; i++) {
-                this.showHoverInfo(hoverInfo[i].x, hoverInfo[i].y, hoverInfo[i].magnitude);
-            }
-
-            }
-
-
-
-
-            getLatLngForCell(col, row) {
-                // Calcola la distanza dalla base (in basso a sinistra) in termini di coordinate geografiche
-                let latLngOffset = [
-                    row * this.stepLong / 111320,  // 1 grado di latitudine è circa 111.32 km
-                    col * this.stepLat / (111320 * Math.cos(p.radians(this.baseLatLng[0])))
-                    //col * this.stepLat / (111320 * Math.cos((this.baseLatLng[0])))  // Corregge la longitudine per la latitudine
-                ];
-
-                // Ritorna la nuova LatLng per la cella
-                return [
-                    this.baseLatLng[0] + latLngOffset[0],  // Aggiunge la latitudine offset
-                    this.baseLatLng[1] + latLngOffset[1]   // Aggiunge la longitudine offset
-                ];
-            }
-
-            drawArrow(base, vec, magnitude, scaleFactor) {
-                
-                //
-                // Calcola la distanza in pixel tra due punti usando le coordinate sulla mappa
-                        let latLngA = this.getLatLngForCell(vec.y, vec.x);  // Il punto A (origine del vettore)
-                        let latLngB = this.getLatLngForCell(vec.y + 1, vec.x + 1);  // Punto B per calcolare la direzione
-                        // Converte le coordinate LatLng in punti sulla mappa (in pixel)
-                        let pointA = map.defaultMapRef.latLngToContainerPoint(latLngA);
-                        let pointB = map.defaultMapRef.latLngToContainerPoint(latLngB);
-                    
-                    // Calcola la distanza in pixel tra i due punti
-                    let distanceInPixels = p.dist(pointA.x, pointA.y, pointB.x, pointB.y);
-                    let maxArrowLength = distanceInPixels * 0.7;
-                //
-                let zoomLevel = map.defaultMapRef.getZoom();  // Ottieni il livello di zoom
-                //let maxZoom = 23;  // Imposta un livello di zoom massimo, ad esempio 18
-                //let minZoom = 5;   // Imposta un livello di zoom minimo, ad esempio 5
-                //let normalizedMagnitude = p.map(magnitude, 0, this.maxMagnitude, 2, 20);  // Scala tra 5 e 70 pixel
-                let normalizedMagnitude = p.map(magnitude, this.minMagnitude, this.maxMagnitude, 5, maxArrowLength);
-                // Scala la lunghezza della freccia in base allo zoom
-                let zoomScale = p.map(zoomLevel, this.minZoom, this.maxZoom, 0.2, 1);  // Valore tra 0.2 e 1
-                //let maxArrowLength = magnitude * 0.7;
-                //let scaledLength = magnitude * scaleFactor * zoomScale;
-                //let scaledLength = normalizedMagnitude * scaleFactor * zoomScale;
-                let scaledLength = Math.min(normalizedMagnitude, maxArrowLength);
-                //scaledLength *= zoomScale;
-                 let arrowSize = 3 * scaleFactor;
-                //let arrowSize = normalizedMagnitude * 0.2;
-
-                //scaledLength = Math.min(scaledLength, maxArrowLength);
-                //
-                // Normalizza la lunghezza della freccia in base ai valori di magnitude
-                if (scaledLength == NaN){
-                    scaledLength = 0;
+                    // Funzione che controlla se un punto è visibile nella mappa
+                    isPointInView(latLng) {
+                        let bounds = map.defaultMapRef.getBounds();
+                        return bounds.contains(L.latLng(latLng[0], latLng[1]));
+                    }
                 }
-                //
-                //
-                p.push();
-                p.stroke(0);
-                p.strokeWeight(2);
-                p.fill(0);
-                p.translate(base.x, base.y);
-                p.rotate(vec.heading());
-                
-                //
-                if(magnitude > 0){
-                    p.line(0, 0, normalizedMagnitude, 0);
-                    p.translate(normalizedMagnitude, 0);
-                //p.triangle(0, normalizedMagnitude  / 3, 0, -normalizedMagnitude  / 3, normalizedMagnitude , 0);
-                    p.triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
-                }else{
-                    p.strokeWeight(3);
-                    p.line(1, 1, 1, 1);
-                }
-                //
-                p.pop();
-            }
+            });
 
-
-
-            // Funzione che controlla se un punto è visibile nella mappa
-            isPointInView(latLng) {
-                let bounds = map.defaultMapRef.getBounds();
-                return bounds.contains(L.latLng(latLng[0], latLng[1]));
-            }
-
-
-        // Le altre funzioni della classe FlowField
-    }
-});
-};
-/////////FUNZIONE AGGIUNGI RIQUADRO PER LO SCRORRIMENTO DEL TEMPO.///////
-
-//////////////////////////
-});
-        //////////
-    
+            return VF;
+        };        
+    });
     //dBologna FINE VECTOR FLOW
 
     
@@ -29561,7 +29909,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         margin: 0;
         line-height: 1.5;
         width: auto !important;
-        max-width: 400px;
+        max-width: 100%;
     }
 
     .leaflet-popup-tip-container {
@@ -29569,7 +29917,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     }
 
     .leaflet-popup-content-wrapper {
-        width: auto;
+        width: 400px;
     }
 
     .draggable {
@@ -29667,6 +30015,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 </div>	--> <!-- FINE Layers & 3D CORTI -->
 
             </div>
+            <div id="p5-container"></div>
         </div>
     </div>
     <div id="<?= $_REQUEST['name_w'] ?>_code"></div>

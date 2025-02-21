@@ -364,6 +364,7 @@
             var infoMsgPopupFlag = false;
             var infoMsgText = null;
 
+            $('#open_BIMenu').hide();
             $('#orgMenu').hide();
             $('#orgMenuCnt a.mainMenuLink').attr('data-submenuVisible', 'false');
             $('#orgMenuCnt a.orgMenuSubItemLink').hide();
@@ -1316,7 +1317,7 @@
                         };
                     }
                 }).data('gridster').disable();//Fine creazione Gridster
-                
+                sessionStorage.clear();
                 for(var i = 0; i < dashboardWidgets.length; i++)
                 {
                     var time = 0;
@@ -1694,16 +1695,21 @@
                     dataType: 'json',
                     success: function (response) 
                     {
-                        scaleFactorFlag = response.dashboardParams.scaleFactor;
-                        if (scaleFactorFlag == "yes") {
-                            scaleFactorW = 78 / newScaledGridsterCellW;
-                            scaleFactorH = 39 / newScaledGridsterCellH;
-                        //    scaleFactorH = scaleFactorW;
-                            //    dashboardParams.num_columns = Math.round(scaleFactorW * dashboardParams.num_columns);
-                        //    response.dashboardParams.num_columns = Math.round(scaleFactorW * (response.dashboardParams.num_columns) + scaleFactorW);
-                        } else if (scaleFactorFlag == null) {
-                            scaleFactorW = 1;
-                            scaleFactorH = 1;
+                        if (response.detail != 'Ko') {
+                            if (checkBIDash(response.dashboardWidgets)) {
+                                $('#open_BIMenu').show();
+                            }
+                            scaleFactorFlag = response.dashboardParams.scaleFactor;
+                            if (scaleFactorFlag == "yes") {
+                                scaleFactorW = 78 / newScaledGridsterCellW;
+                                scaleFactorH = 39 / newScaledGridsterCellH;
+                                //    scaleFactorH = scaleFactorW;
+                                //    dashboardParams.num_columns = Math.round(scaleFactorW * dashboardParams.num_columns);
+                                //    response.dashboardParams.num_columns = Math.round(scaleFactorW * (response.dashboardParams.num_columns) + scaleFactorW);
+                            } else if (scaleFactorFlag == null) {
+                                scaleFactorW = 1;
+                                scaleFactorH = 1;
+                            }
                         }
                         switch(response.visibility)
                         {
@@ -1781,13 +1787,29 @@
                                     break;
                                     
                                     default:
-                                        /*$("#dashboardViewMainContainer").hide();
+                                        $("#dashboardViewMainContainer").hide();
+                                        //$("#dashboardViewHeaderContainer").css("display", "contents");
                                         $("#authFormMessage").html("User not allowed to see this dashboard");
                                         $('body').addClass("dashboardViewBodyAuth");
                                         $('#authFormDarkBackground').show();
                                         $('#authFormContainer').show();
-                                        $("#authBtn").click(authUser); */
-                                        location.href = "../management/viewLogout.php?dashboardId=<?= escapeForJS($_REQUEST['iddasboard'])?>";
+                                        $("#authBtn").click(authUser);
+                                        $("#headerLogoImg").hide();
+                                        $("#clock").hide();
+                                        $("#fullscreenBtnContainer").hide();
+                                        $("#footerPolicyId").hide();
+                                        $("#headerLogo").hide();
+                                        $("#footerLogoImg").css("float", "left");
+                                        $("#footerLogoImg").css("margin-left", "15%");
+                                        $("#loginMainTitle").css("color", "white");
+                                        $("#loginMainTitle").css("text-align", "center");
+                                        $("#loginMainTitle").css("font-size", "24px");
+                                        $("#loginMainTitle").css("padding", "1%");
+                                        $("#loginFormTitle").css("text-align", "center");
+                                        $("#loginFormTitle").css("font-size", "18px");
+                                        $("#loginFormTitle").css("text-align", "center");
+                                        $("#loginFormTitle").css("color", "white");
+                                        //location.href = "../management/viewLogout.php?dashboardId=<?= escapeForJS($_REQUEST['iddasboard'])?>";
                                         break;
 
                                     /*case "Ko": 
@@ -1885,8 +1907,40 @@
                   <span id="tick2"><?php include('../widgets/time.php'); ?></span>
               </div>
               <div id="fullscreenBtnContainer" data-status="normal">
-                    <span id="fullscreenButton" class="material-icons">zoom_out_map</span>
-                    <span id="restorescreenButton" class="material-icons">zoom_in_map</span>
+                    <span id="spanCnt">
+                    <i id="fullscreenButton" class="fa fa-window-maximize"></i>
+                    <i id="restorescreenButton" class="fa fa-window-restore"></i>
+                    <i id="open_BIMenu" class="fa fa-history"></i>
+                    <script  type="text/javascript">
+
+                        $('#spanCnt').append('<div id="BIMenuCnt" class="applicationCtxMenu fullCtxMenu container-fluid dashboardCtxMenu" style="display: block; margin-left: -70px;"></div>');
+                        $('#BIMenuCnt').hide();
+                        $('#open_BIMenu').on("click", function(){
+                            $('#BIMenuCnt').show();
+                        });
+                        $('#BIMenuCnt').append('<div id="quit" class="col-md-12 orgMenuSubItemCnt">Quit</div>');
+                        $( "#quit" ).mouseover(function() {
+                            $('#quit').css('cursor', 'pointer');
+                        });
+                        $('#quit').on("click", function(){
+                            $('#BIMenuCnt').hide();
+                        });
+                        $('#BIMenuCnt').append('<div id="start" class="col-md-12 orgMenuSubItemCnt">Start</div>');
+                        $( "#start" ).mouseover(function() {
+                            $('#start').css('cursor', 'pointer');
+                        });
+                        $('#start').on("click", function(){
+                            var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                            for(var w in widgets){
+                                if(widgets[w] != null){
+                                    $('body').trigger({
+                                        type: "resetContent_"+widgets[w]
+                                    });
+                                }
+                            }
+                        });
+                    </script>
+                    </span>
               </div>
             </div>
             <div id="header_main_PA" class="header_main">
@@ -2188,9 +2242,10 @@
         </div>
         
         <div class="row">
-            <div id="authFormContainer" class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-4 col-md-offset-4">
-                <div class="col-xs-12" id="loginFormTitle" style="margin-top: 15px">
-                   Restricted access dashboard
+            <div id="authFormContainer" class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-4 col-md-offset-4" style="padding-left: 0; padding-right: 0">
+                <div class="col-xs-12" id="loginFormTitle" style="text-align: center">
+                    Restricted access dashboard
+                    <a href="../management/logout.php?thenLoginTo=<?= $_SERVER['REQUEST_URI']?>">LOGOUT</a>
                 </div>
 <?php /*              
                 <form id="authForm" class="form-signin" role="form" method="post" action="">

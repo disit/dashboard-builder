@@ -106,33 +106,33 @@
                                     //////////////////////////////
                                     console.log(widgetName);
                                     if(event.targetWidget === widgetName) {
-                                                if(localStorage.getItem("widgets") == null){
+                                                if(sessionStorage.getItem("widgets") == null){
                                                     var widgets = [];
                                                     widgets.push(widgetName);
-                                                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                                                    sessionStorage.setItem("widgets", JSON.stringify(widgets));
                                                 }
                                                 else{
-                                                    var widgets = JSON.parse(localStorage.getItem("widgets"));
+                                                    var widgets = JSON.parse(sessionStorage.getItem("widgets"));
                                                     if(!widgets.includes(widgetName)){
                                                         widgets.push(widgetName);
-                                                        localStorage.setItem("widgets", JSON.stringify(widgets));
+                                                        sessionStorage.setItem("widgets", JSON.stringify(widgets));
                                                     }
                                                 }
                                             }
                                     let newId = '';
                                             var events = [];
                                             var times = []; 
-                                                    if(localStorage.getItem("events") == null){
+                                                    if(sessionStorage.getItem("events") == null){
                                                             newId = "PieChartSelectTime";        
                                                             events.push("PieChartSelectTime1");
                                                             times.push(dateChoice);
-                                                            localStorage.setItem("events", JSON.stringify(events));
-                                                            localStorage.setItem("times", JSON.stringify(times));
+                                                            sessionStorage.setItem("events", JSON.stringify(events));
+                                                            sessionStorage.setItem("times", JSON.stringify(times));
                                                             $('#BIMenuCnt').append('<div id="PieChartSelectTime1" class="row" data-selected="false"></div>');
                                                             $('#PieChartSelectTime1').append('<div class="col-md-12 orgMenuSubItemCnt">PieChartSelectTime1</div>' );
                                                     }
-                                                            events = JSON.parse(localStorage.getItem("events"));
-                                                            times = JSON.parse(localStorage.getItem("times"));
+                                                            events = JSON.parse(sessionStorage.getItem("events"));
+                                                            times = JSON.parse(sessionStorage.getItem("times"));
                                                             console.log(events.length);
                                                             var count_events = events.length;
                                                                 let j=1;
@@ -147,18 +147,18 @@
                                                                     times.push(dateChoice);
                                                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
-                                                                    localStorage.setItem("times", JSON.stringify(times));
-                                                                    localStorage.setItem("events", JSON.stringify(events));
+                                                                    sessionStorage.setItem("times", JSON.stringify(times));
+                                                                    sessionStorage.setItem("events", JSON.stringify(events));
                                                                     }
                                                                 }
                                                             $('#'+newId).on( "click", function() {
-                                                                var events = JSON.parse(localStorage.getItem("events"));
-                                                                var times = JSON.parse(localStorage.getItem("times"));
+                                                                var events = JSON.parse(sessionStorage.getItem("events"));
+                                                                var times = JSON.parse(sessionStorage.getItem("times"));
                                                                 
                                                                 for(var e =0; e<events.length; e++){ 
                                                                         if(events[e].includes("PieChartSelectTime")){   
-                                                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                                        var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                                                        var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                                                         var curr_data = times[index];
                                                                         
                                                                         //var widget_list = widgets.length;
@@ -189,16 +189,16 @@
                         }
                     /////////
             
-            if(localStorage.getItem("widgets") == null){
+            if(sessionStorage.getItem("widgets") == null){
                 var widgets = [];
                 widgets.push(widgetName);
-                localStorage.setItem("widgets", JSON.stringify(widgets));
+                sessionStorage.setItem("widgets", JSON.stringify(widgets));
             }
             else{
-                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                var widgets = JSON.parse(sessionStorage.getItem("widgets"));
                 if(!widgets.includes(widgetName)){
                     widgets.push(widgetName);
-                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                    sessionStorage.setItem("widgets", JSON.stringify(widgets));
                 }
             }
             clearInterval(countdownRef);
@@ -222,32 +222,32 @@
                 emptyLegendFlagFromWs = true;
                 $("#" + widgetName + "_loading").css("display", "block");
                 
-                var test = localStorage.getItem("passedData");
-                if(localStorage.getItem("passedData") == null || localStorage.getItem("passedData") == "[object Object]"){
+                var test = sessionStorage.getItem("passedData");
+                if(sessionStorage.getItem("passedData") == null || sessionStorage.getItem("passedData") == "[object Object]"){
                     var init = [];
                     var firstEl = {};
                     firstEl.passedData = event.passedData;
                     firstEl.name = widgetName;
-                    if (localStorage.getItem("events") == null) {
+                    if (sessionStorage.getItem("events") == null) {
                         firstEl.eventIndex = 0;
                     } else {
-                        firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                        firstEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length - 1;
                     }
                     init.push(firstEl);
-                    localStorage.setItem("passedData", JSON.stringify(init));
+                    sessionStorage.setItem("passedData", JSON.stringify(init));
                 }
                 else{
                     var newEl = {};
                     newEl.passedData = event.passedData;
                     newEl.name = widgetName;
-                    if (localStorage.getItem("events") == null) {
+                    if (sessionStorage.getItem("events") == null) {
                         newEl.eventIndex = 0;
                     } else {
-                        newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                        newEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length - 1;
                     }
-                    var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                    var oldElement = JSON.parse(sessionStorage.getItem("passedData"));
                     oldElement.push(newEl);
-                    localStorage.setItem("passedData", JSON.stringify(oldElement));
+                    sessionStorage.setItem("passedData", JSON.stringify(oldElement));
                 }
                 populateWidget();
             }
@@ -256,7 +256,7 @@
     /////
     	 $(document).off('reloadPreviousContent_' + widgetName);
         $(document).on('reloadPreviousContent_' + widgetName, function(event){
-            var passedData = JSON.parse(localStorage.getItem("passedData"));
+            var passedData = JSON.parse(sessionStorage.getItem("passedData"));
             var j = 0;
             var t = -1;
             while(passedData[j].eventIndex <= event.index && j < passedData.length - 1){
@@ -1096,28 +1096,28 @@
                                             }
                                         }
                                         let j=1;
-                                        if(localStorage.getItem("events") == null){
+                                        if(sessionStorage.getItem("events") == null){
 
                                             var events = [];
                                             events.push("PieChartClick1");
-                                            localStorage.setItem("events", JSON.stringify(events));
+                                            sessionStorage.setItem("events", JSON.stringify(events));
                                         }
                                         else{
-                                            var events = JSON.parse(localStorage.getItem("events"));
+                                            var events = JSON.parse(sessionStorage.getItem("events"));
                                             for(var e in events){
                                                 if(events[e].slice(0,13) == "PieChartClick")
                                                     j = j+1;
                                             }
                                             events.push("PieChartClick" + j);
-                                            localStorage.setItem("events", JSON.stringify(events));
+                                            sessionStorage.setItem("events", JSON.stringify(events));
                                         }
 
                                         let newId = "PieChartClick"+j;
                                         $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                         $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                         $('#'+newId).on( "click", function() {
-                                            var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                            var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                            var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                            var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                             for(var w in widgets){
                                                 if(widgets[w] != null){
                                                     $('body').trigger({

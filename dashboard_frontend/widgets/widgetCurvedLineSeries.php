@@ -146,17 +146,17 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     var times = [];
                     //////////////////////////////
                     let j=1;
-                    if(localStorage.getItem("events") == null){
+                    if(sessionStorage.getItem("events") == null){
                         newId = "CurvedLineSelectTime";
                         events.push("CurvedLineSelectTime");
                         times.push(dateChoice);
-                        localStorage.setItem("events", JSON.stringify(events));
-                        localStorage.setItem("times", JSON.stringify(times));
+                        sessionStorage.setItem("events", JSON.stringify(events));
+                        sessionStorage.setItem("times", JSON.stringify(times));
                     }else{
                        // var events = [];
                         //    var times = [];
-                        events = JSON.parse(localStorage.getItem("events"));
-                        times = JSON.parse(localStorage.getItem("times"));
+                        events = JSON.parse(sessionStorage.getItem("events"));
+                        times = JSON.parse(sessionStorage.getItem("times"));
                         for(var e in events){
                             //if(events[e].slice(0,20) == "CurvedLineSelectTime"){
                             if(events[e].includes("CurvedLineSelectTime")){
@@ -166,24 +166,24 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             events.push("CurvedLineSelectTime" + j);
                             times.push(dateChoice);
 
-                            localStorage.setItem("times", JSON.stringify(times));
-                            localStorage.setItem("events", JSON.stringify(events));
+                            sessionStorage.setItem("times", JSON.stringify(times));
+                            sessionStorage.setItem("events", JSON.stringify(events));
                             //console.log(times);
                             //console.log(events);
                         }
                     }
 
                     if(event.targetWidget === widgetName) {
-                        if(localStorage.getItem("widgets") == null){
+                        if(sessionStorage.getItem("widgets") == null){
                             var widgets = [];
                             widgets.push(widgetName);
-                            localStorage.setItem("widgets", JSON.stringify(widgets));
+                            sessionStorage.setItem("widgets", JSON.stringify(widgets));
                         }
                         else{
-                            var widgets = JSON.parse(localStorage.getItem("widgets"));
+                            var widgets = JSON.parse(sessionStorage.getItem("widgets"));
                             if(!widgets.includes(widgetName)){
                                 widgets.push(widgetName);
-                                localStorage.setItem("widgets", JSON.stringify(widgets));
+                                sessionStorage.setItem("widgets", JSON.stringify(widgets));
                             }
                         }
                     }
@@ -193,8 +193,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             //console.log(localStorage);
                             //if(events[e].slice(0,20) == "CurvedLineSelectTime"){
                             if(events[e].includes("CurvedLineSelectTime")){
-                            var widgets = JSON.parse(localStorage.getItem("widgets"));
-                            var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                            var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                            var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                             var curr_data = times[index];
                             console.log(widgets);
                                 for(var w in widgets){
@@ -240,21 +240,21 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 set_time(event.datetime);
                 populateWidget(event.datetime);
             }
-            if(event.passedData != null && event.t1 == null && event.t2 == null){     //nuovi valori da mostrare da memorizzare nel localstorage
+            if(event.passedData != null && event.t1 == null && event.t2 == null){     //nuovi valori da mostrare da memorizzare nel sessionStorage
                 if(event.passedData[0].metricHighLevelType == 'Dynamic'){
-                    localStorage.setItem(widgetName, JSON.stringify(event.passedData));
+                    sessionStorage.setItem(widgetName, JSON.stringify(event.passedData));
                 }
             }
-            if(localStorage.getItem("widgets") == null){
+            if(sessionStorage.getItem("widgets") == null){
                 var widgets = [];
                 widgets.push(widgetName);
-                localStorage.setItem("widgets", JSON.stringify(widgets));
+                sessionStorage.setItem("widgets", JSON.stringify(widgets));
             }
             else{
-                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                var widgets = JSON.parse(sessionStorage.getItem("widgets"));
                 if(!widgets.includes(widgetName)){
                     widgets.push(widgetName);
-                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                    sessionStorage.setItem("widgets", JSON.stringify(widgets));
                 }
             }
             if(event.targetWidget === widgetName)
@@ -298,7 +298,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     }
                     //if(event.t1 != null && event.t2 != null){
                     if((event.t1 != null && event.t2 != null)&&((event.event !== "reset zoom"))){      //zoom nel caso dynamic, si popola il widget solo con i valori interni alla finestra temporale
-                        var oldRowParam = JSON.parse(localStorage.getItem(widgetName))
+                        var oldRowParam = JSON.parse(sessionStorage.getItem(widgetName))
                         if(oldRowParam[0].metricHighLevelType == "Dynamic"){
                             var newRowParam = [];
                             for(var p in oldRowParam){
@@ -324,66 +324,66 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             rowParameters = newRowParam;
                         }
                                 
-                        if(localStorage.getItem("passedData") == null || localStorage.getItem("passedData") == "[object Object]"){
+                        if(sessionStorage.getItem("passedData") == null || sessionStorage.getItem("passedData") == "[object Object]"){
                             var init = [];
                             var firstEl = {};
-                            firstEl.passedData = JSON.parse(localStorage.getItem(widgetName));
+                            firstEl.passedData = JSON.parse(sessionStorage.getItem(widgetName));
                             firstEl.name = widgetName;
                             firstEl.t1 = event.t1;
                             firstEl.t2 = event.t2;
-                            if (localStorage.getItem("events") == null) {
+                            if (sessionStorage.getItem("events") == null) {
                                 firstEl.eventIndex = 0;
                             } else {
-                                firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                                firstEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length - 1;
                             }
                             init.push(firstEl);
-                            localStorage.setItem("passedData", JSON.stringify(init));
+                            sessionStorage.setItem("passedData", JSON.stringify(init));
                         }
                         else{
                             var newEl = {};
-                            newEl.passedData = JSON.parse(localStorage.getItem(widgetName));
+                            newEl.passedData = JSON.parse(sessionStorage.getItem(widgetName));
                             newEl.name = widgetName;
                             newEl.t1 = event.t1;
                             newEl.t2 = event.t2;
-                            if (localStorage.getItem("events") == null) {
+                            if (sessionStorage.getItem("events") == null) {
                                 newEl.eventIndex = 0;
                             } else {
-                                newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                                newEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length - 1;
                             }
-                            var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                            var oldElement = JSON.parse(sessionStorage.getItem("passedData"));
                             oldElement.push(newEl);
-                            localStorage.setItem("passedData", JSON.stringify(oldElement));
+                            sessionStorage.setItem("passedData", JSON.stringify(oldElement));
                         }
                         //if (event.event !== "reset zoom"){
                         populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2);
                         //}
                     }
                     else{
-                        if(localStorage.getItem("passedData") == null){
+                        if(sessionStorage.getItem("passedData") == null){
                             var init = [];
                             var firstEl = {};
                             firstEl.passedData = event.passedData;
                             firstEl.name = widgetName;
-                            if (localStorage.getItem("events") == null) {
+                            if (sessionStorage.getItem("events") == null) {
                                 firstEl.eventIndex = 0;
                             } else {
-                                firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length;
+                                firstEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length;
                             }
                             init.push(firstEl);
-                            localStorage.setItem("passedData", JSON.stringify(init));
+                            sessionStorage.setItem("passedData", JSON.stringify(init));
                         }
                         else{
                             var newEl = {};
                             newEl.passedData = event.passedData;
                             newEl.name = widgetName;
-                            if (localStorage.getItem("events") == null) {
+                            if (sessionStorage.getItem("events") == null) {
                                 newEl.eventIndex = 0;
                             } else {
-                                newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length;
+                                newEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length;
                             }
-                            var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                            var oldElement = JSON.parse(sessionStorage.getItem("passedData"));
                             oldElement.push(newEl);
-                            localStorage.setItem("passedData", JSON.stringify(oldElement));
+                            sessionStorage.setItem("passedData", JSON.stringify(oldElement));
                         }
                         if (event.event !== "reset zoom") {
                             populateWidget(true, timeRange, null, timeNavCount, null, event.t1, event.t2, true);
@@ -405,11 +405,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 	
 	$(document).off('reloadPreviousContent_' + widgetName);
         $(document).on('reloadPreviousContent_' + widgetName, function(event){
-            var passedData = JSON.parse(localStorage.getItem("passedData"));
+            var passedData = JSON.parse(sessionStorage.getItem("passedData"));
             var j = 0;
             var t = -1;
             console.log(passedData, event);
-            console.log(JSON.parse(localStorage.getItem("passedData")));
+            console.log(JSON.parse(sessionStorage.getItem("passedData")));
             while(passedData[j].eventIndex <= event.index && j < passedData.length - 1){
                 if(passedData[j].name === widgetName){
                     t = j;
@@ -1385,28 +1385,28 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         }
                                         if(styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code){
                                             let j=1;
-                                            if(localStorage.getItem("events") == null){
+                                            if(sessionStorage.getItem("events") == null){
 
                                                 var events = [];
                                                 events.push("CurvedLinesZoom1");
-                                                localStorage.setItem("events", JSON.stringify(events));
+                                                sessionStorage.setItem("events", JSON.stringify(events));
                                             }
                                             else{
-                                                var events = JSON.parse(localStorage.getItem("events"));
+                                                var events = JSON.parse(sessionStorage.getItem("events"));
                                                 for(var e in events){
                                                     if(events[e].slice(0,15) == "CurvedLinesZoom")
                                                         j = j+1;
                                                 }
                                                 events.push("CurvedLinesZoom" + j);
-                                                localStorage.setItem("events", JSON.stringify(events));
+                                                sessionStorage.setItem("events", JSON.stringify(events));
                                             }
 
                                             let newId = "CurvedLinesZoom"+j;
                                             $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                             $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                             $('#'+newId).on( "click", function() {
-                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                                var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                                 for(var w in widgets){
                                                     if(widgets[w] != null){
                                                         $('body').trigger({
@@ -1813,31 +1813,31 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         }
 
                                         let j=1;
-                                        if(localStorage.getItem("events") == null){
+                                        if(sessionStorage.getItem("events") == null){
 
                                             var events = [];
                                             events.push("CurvedLineLegendClick1");
-                                            localStorage.setItem("events", JSON.stringify(events));
+                                            sessionStorage.setItem("events", JSON.stringify(events));
                                         }
                                         else{
-                                            var events = JSON.parse(localStorage.getItem("events"));
+                                            var events = JSON.parse(sessionStorage.getItem("events"));
                                             for(var e in events){
                                                 //console.log(events[e]);
                                                 if(events[e].slice(0,14) == "CurvedLineLegendClick")
                                                     j = j+1;
                                             }
                                             events.push("CurvedLineLegendClick" + j);
-                                            localStorage.setItem("events", JSON.stringify(events));
+                                            sessionStorage.setItem("events", JSON.stringify(events));
                                         }
                                         let newId = "CurvedLineLegendClick"+j;
                                         $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                         $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                         $('#'+newId).on( "click", function() {
-                                        /*    let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                            var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                                        /*    let eventIndex = JSON.parse(sessionStorage.events).indexOf(newId);
+                                            var selectedDataJson = JSON.stringify(JSON.parse(sessionStorage.passedData)[eventIndex]);
                                             execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson); */
-					    var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+					    var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                                var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                                 for(var w in widgets){
                                                     if(widgets[w] != null){
                                                         $('body').trigger({
@@ -1954,28 +1954,28 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         }
                                         if(styleParameters.enableCKEditor && styleParameters.enableCKEditor == "ckeditor" && code){
                                             let j=1;
-                                            if(localStorage.getItem("events") == null){
+                                            if(sessionStorage.getItem("events") == null){
 
                                                 var events = [];
                                                 events.push("CurvedLinesZoom1");
-                                                localStorage.setItem("events", JSON.stringify(events));
+                                                sessionStorage.setItem("events", JSON.stringify(events));
                                             }
                                             else{
-                                                var events = JSON.parse(localStorage.getItem("events"));
+                                                var events = JSON.parse(sessionStorage.getItem("events"));
                                                 for(var e in events){
                                                     if(events[e].slice(0,15) == "CurvedLinesZoom")
                                                         j = j+1;
                                                 }
                                                 events.push("CurvedLinesZoom" + j);
-                                                localStorage.setItem("events", JSON.stringify(events));
+                                                sessionStorage.setItem("events", JSON.stringify(events));
                                             }
                                             
                                             let newId = "CurvedLinesZoom"+j;
                                             $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                             $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                             $('#'+newId).on( "click", function() {
-                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                                var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                                 for(var w in widgets){
                                                     if(widgets[w] != null){
                                                         $('body').trigger({
@@ -2357,31 +2357,31 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         }
 
                                         let j=1;
-                                        if(localStorage.getItem("events") == null){
+                                        if(sessionStorage.getItem("events") == null){
 
                                             var events = [];
                                             events.push("CurvedLineLegendClick1");
-                                            localStorage.setItem("events", JSON.stringify(events));
+                                            sessionStorage.setItem("events", JSON.stringify(events));
                                         }
                                         else{
-                                            var events = JSON.parse(localStorage.getItem("events"));
+                                            var events = JSON.parse(sessionStorage.getItem("events"));
                                             for(var e in events){
                                                 //console.log(events[e]);
                                                 if(events[e].slice(0,21) == "CurvedLineLegendClick")
                                                     j = j+1;
                                             }
                                             events.push("CurvedLineLegendClick" + j);
-                                            localStorage.setItem("events", JSON.stringify(events));
+                                            sessionStorage.setItem("events", JSON.stringify(events));
                                         }
                                         let newId = "CurvedLineLegendClick"+j;
                                         $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                         $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                         $('#'+newId).on( "click", function() {
-                                        /*    let eventIndex = JSON.parse(localStorage.events).indexOf(newId);
-                                            var selectedDataJson = JSON.stringify(JSON.parse(localStorage.passedData)[eventIndex]);
+                                        /*    let eventIndex = JSON.parse(sessionStorage.events).indexOf(newId);
+                                            var selectedDataJson = JSON.stringify(JSON.parse(sessionStorage.passedData)[eventIndex]);
                                             execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson); */
-					    var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+					    var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                                var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                                 for(var w in widgets){
                                                     if(widgets[w] != null){
                                                         $('body').trigger({
@@ -3547,8 +3547,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         rowParamLength = rowParameters.length;
                     }
                 }
-                if(t1 != null && t2 != null && JSON.parse(localStorage.getItem(widgetName))[0].metricHighLevelType != "Dynamic"){
-                    rowParameters = JSON.parse(localStorage.getItem(widgetName));
+                if(t1 != null && t2 != null && JSON.parse(sessionStorage.getItem(widgetName))[0].metricHighLevelType != "Dynamic"){
+                    rowParameters = JSON.parse(sessionStorage.getItem(widgetName));
                     
                     if(rowParameters.length == undefined)   
                         rowParamLength = 1;
@@ -3771,7 +3771,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     }
 
                 } else {
-                    localStorage.setItem(widgetName, JSON.stringify(rowParameters));
+                    sessionStorage.setItem(widgetName, JSON.stringify(rowParameters));
 
                     for (var i = 0; i < rowParamLength; i++) {
                         aggregationGetData[i] = false;

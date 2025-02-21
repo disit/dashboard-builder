@@ -87,18 +87,18 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             let newId = '';
                                             var events = [];
                                             var times = []; 
-                                            //console.log(localStorage);
-                                                    if(localStorage.getItem("events") == null){
+                                            //console.log(sessionStorage);
+                                                    if(sessionStorage.getItem("events") == null){
                                                             newId = "BarSerieSelectTime";        
                                                             events.push("BarSerieSelectTime1");
                                                             times.push(dateChoice);
-                                                            localStorage.setItem("events", JSON.stringify(events));
-                                                            localStorage.setItem("times", JSON.stringify(times));
+                                                            sessionStorage.setItem("events", JSON.stringify(events));
+                                                            sessionStorage.setItem("times", JSON.stringify(times));
                                                             $('#BIMenuCnt').append('<div id="BarSerieSelectTime1" class="row" data-selected="false"></div>');
                                                             $('#BarSerieSelectTime1').append('<div class="col-md-12 orgMenuSubItemCnt">BarSerieSelectTime1</div>' );
                                                     }
-                                                            events = JSON.parse(localStorage.getItem("events"));
-                                                            times = JSON.parse(localStorage.getItem("times"));
+                                                            events = JSON.parse(sessionStorage.getItem("events"));
+                                                            times = JSON.parse(sessionStorage.getItem("times"));
                                                             console.log(events.length);
                                                             var count_events = events.length;
                                                                 let j=1;
@@ -113,20 +113,20 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                                     times.push(dateChoice);
                                                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
-                                                                    localStorage.setItem("times", JSON.stringify(times));
-                                                                    localStorage.setItem("events", JSON.stringify(events));
+                                                                    sessionStorage.setItem("times", JSON.stringify(times));
+                                                                    sessionStorage.setItem("events", JSON.stringify(events));
                                                                     }
                                                                 }
                                                             
                                                             
                                                             $('#'+newId).on( "click", function() {
-                                                                var events = JSON.parse(localStorage.getItem("events"));
-                                                                var times = JSON.parse(localStorage.getItem("times"));
+                                                                var events = JSON.parse(sessionStorage.getItem("events"));
+                                                                var times = JSON.parse(sessionStorage.getItem("times"));
                                                                 if(newId.includes("BarSerieSelectTime")){
                                                                 for(var e =0; e<events.length; e++){
                                                                 if(events[e].includes("BarSerieSelectTime")){
-                                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                                var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                                                var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                                                 var curr_data = times[index];
                                                                 console.log(widgets);
                                                                         for(var w in widgets){
@@ -150,50 +150,52 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                 $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime); 
                             }
                             timeNavCount = 0;
-                            var oldElement = JSON.parse(localStorage.getItem("passedData"));
-                            localStorage.setItem("passedData", JSON.stringify(oldElement))            
+                            var oldElement = JSON.parse(sessionStorage.getItem("passedData"));
+                            sessionStorage.setItem("passedData", JSON.stringify(oldElement))            
                         }
                     /////////
 
 	    if(event.targetWidget === widgetName) {
             //console.log(event);
-            if (localStorage.getItem("widgets") == null) {
+            if (sessionStorage.getItem("widgets") == null) {
                 var widgets = [];
                 widgets.push(widgetName);
-                localStorage.setItem("widgets", JSON.stringify(widgets));
+                sessionStorage.setItem("widgets", JSON.stringify(widgets));
             } else {
-                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                var widgets = JSON.parse(sessionStorage.getItem("widgets"));
                 if (!widgets.includes(widgetName)) {
                     widgets.push(widgetName);
-                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                    sessionStorage.setItem("widgets", JSON.stringify(widgets));
                 }
             }
 
-            if (localStorage.getItem("passedData") == null || localStorage.getItem("passedData") == "[object Object]") {
+            if (sessionStorage.getItem("passedData") == null || sessionStorage.getItem("passedData") == "[object Object]") {
                 var init = [];
                 var firstEl = {};
                 firstEl.passedData = event.passedData;
                 firstEl.name = widgetName;
-                if (localStorage.getItem("events") == null) {
+                if (sessionStorage.getItem("events") == null) {
                     firstEl.eventIndex = 0;
                 } else {
-                    firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    firstEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length - 1;
                 }
                 init.push(firstEl);
-                localStorage.setItem("passedData", JSON.stringify(init));
+                sessionStorage.setItem("passedData", JSON.stringify(init));
             } else {
                 var newEl = {};
                 newEl.passedData = event.passedData;
                 newEl.name = widgetName;
-                if (localStorage.getItem("events") == null) {
+                if (sessionStorage.getItem("events") == null) {
                     newEl.eventIndex = 0;
                 } else {
-                    newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                    newEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length - 1;
                 }
-                var oldElement = JSON.parse(localStorage.getItem("passedData"));
-                oldElement.push(newEl);
-                localStorage.setItem("passedData", JSON.stringify(oldElement));
-                //console.log(localStorage);
+                var oldElement = JSON.parse(sessionStorage.getItem("passedData"));
+                if (oldElement) {
+                    oldElement.push(newEl);
+                    sessionStorage.setItem("passedData", JSON.stringify(oldElement));
+                }
+                //console.log(sessionStorage);
             }
             var newValue = event.passedData;
             rowParameters = newValue;
@@ -204,7 +206,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         });
 	$(document).off('reloadPreviousContent_' + widgetName);
         $(document).on('reloadPreviousContent_' + widgetName, function(event){
-            var passedData = JSON.parse(localStorage.getItem("passedData"));
+            var passedData = JSON.parse(sessionStorage.getItem("passedData"));
                     if (passedData === null) {
                     console.log("The value is null");
                     if(t == -1){
@@ -802,22 +804,22 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         }
 
                                         let j=1;
-                                        if(localStorage.getItem("events") == null){
+                                        if(sessionStorage.getItem("events") == null){
 
                                             newId = "BarClick1";
                                             var events = [];
                                             events.push("BarClick1");
-                                            localStorage.setItem("events", JSON.stringify(events));
+                                            sessionStorage.setItem("events", JSON.stringify(events));
                                         }
                                         else{
-                                            var events = JSON.parse(localStorage.getItem("events"));
+                                            var events = JSON.parse(sessionStorage.getItem("events"));
                                             for(var e in events){
                                                 if(events[e].slice(0,8) == "BarClick")
                                                     j = j+1;
                                             }
                                             newId = "BarClick"+j;
                                             events.push("BarClick" + j);
-                                            localStorage.setItem("events", JSON.stringify(events));
+                                            sessionStorage.setItem("events", JSON.stringify(events));
                                             //console.log(selectedDataJson);
                                         }
 
@@ -826,8 +828,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                     $('#'+newId).on( "click", function() {
-                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                        var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                        var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                         for(var w in widgets){
                                             if(widgets[w] != null){
                                                 $('body').trigger({
@@ -869,28 +871,28 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         }
                                     }
                                     let j=1;
-                                    if(localStorage.getItem("events") == null){
+                                    if(sessionStorage.getItem("events") == null){
 
                                         var events = [];
                                         events.push("BarLegendClick1");
-                                        localStorage.setItem("events", JSON.stringify(events));
+                                        sessionStorage.setItem("events", JSON.stringify(events));
                                     }
                                     else{
-                                        var events = JSON.parse(localStorage.getItem("events"));
+                                        var events = JSON.parse(sessionStorage.getItem("events"));
                                         for(var e in events){
                                             if(events[e].slice(0,14) == "BarLegendClick")
                                                 j = j+1;
                                         }
                                         events.push("BarLegendClick" + j);
-                                        localStorage.setItem("events", JSON.stringify(events));
+                                        sessionStorage.setItem("events", JSON.stringify(events));
                                     }
 
                                     let newId = "BarLegendClick"+j;
                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                     $('#'+newId).on( "click", function() {
-                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                        var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                        var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                         for(var w in widgets){
                                             if(widgets[w] != null){
                                                 $('body').trigger({
@@ -941,28 +943,28 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     }                                    
 
                                     let j=1;
-                                    if(localStorage.getItem("events") == null){
+                                    if(sessionStorage.getItem("events") == null){
 
                                         var events = [];
                                         events.push("BarLegendClick1");
-                                        localStorage.setItem("events", JSON.stringify(events));
+                                        sessionStorage.setItem("events", JSON.stringify(events));
                                     }
                                     else{
-                                        var events = JSON.parse(localStorage.getItem("events"));
+                                        var events = JSON.parse(sessionStorage.getItem("events"));
                                         for(var e in events){
                                             if(events[e].slice(0,14) == "BarLegendClick")
                                                 j = j+1;
                                         }
                                         events.push("BarLegendClick" + j);
-                                        localStorage.setItem("events", JSON.stringify(events));
+                                        sessionStorage.setItem("events", JSON.stringify(events));
                                     }
 
                                     let newId = "BarLegendClick"+j;
                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                     $('#'+newId).on( "click", function() {
-                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                        var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                        var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                         for(var w in widgets){
                                             if(widgets[w] != null){
                                                 $('body').trigger({
@@ -1093,7 +1095,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
             let aggregationFlag = false;
             if (rowParameters != null) {
-                if (rowParameters[0].metricHighLevelType == "Sensor" || rowParameters[0].metricHighLevelType == "MyKPI" || rowParameters[0].metricHighLevelType == "IoT Device Variable" || rowParameters[0].metricHighLevelType == "Data Table Variable" || rowParameters[0].metricHighLevelType == "Mobile Device Variable") {
+                if (rowParameters[0] != null && (rowParameters[0].metricHighLevelType == "Sensor" || rowParameters[0].metricHighLevelType == "MyKPI" || rowParameters[0].metricHighLevelType == "IoT Device Variable" || rowParameters[0].metricHighLevelType == "Data Table Variable" || rowParameters[0].metricHighLevelType == "Mobile Device Variable")) {
                     aggregationFlag = true;
                 }
             }

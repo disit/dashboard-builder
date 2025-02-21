@@ -95,17 +95,17 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     let newId = '';
                                             var events = [];
                                             var times = []; 
-                                                    if(localStorage.getItem("events") == null){
+                                                    if(sessionStorage.getItem("events") == null){
                                                             newId = "RadarSerieSelectTime";        
                                                             events.push("RadarSerieSelectTime1");
                                                             times.push(dateChoice);
-                                                            localStorage.setItem("events", JSON.stringify(events));
-                                                            localStorage.setItem("times", JSON.stringify(times));
+                                                            sessionStorage.setItem("events", JSON.stringify(events));
+                                                            sessionStorage.setItem("times", JSON.stringify(times));
                                                             $('#BIMenuCnt').append('<div id="RadarSerieSelectTime1" class="row" data-selected="false"></div>');
                                                             $('#RadarSerieSelectTime1').append('<div class="col-md-12 orgMenuSubItemCnt">RadarSerieSelectTime1</div>' );
                                                     }
-                                                            events = JSON.parse(localStorage.getItem("events"));
-                                                            times = JSON.parse(localStorage.getItem("times"));
+                                                            events = JSON.parse(sessionStorage.getItem("events"));
+                                                            times = JSON.parse(sessionStorage.getItem("times"));
                                                             console.log(events.length);
                                                             var count_events = events.length;
                                                                 let j=1;
@@ -120,18 +120,18 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                                     times.push(dateChoice);
                                                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
-                                                                    localStorage.setItem("times", JSON.stringify(times));
-                                                                    localStorage.setItem("events", JSON.stringify(events));
+                                                                    sessionStorage.setItem("times", JSON.stringify(times));
+                                                                    sessionStorage.setItem("events", JSON.stringify(events));
                                                                     }
                                                                 }
                                                             $('#'+newId).on( "click", function() {
-                                                                var events = JSON.parse(localStorage.getItem("events"));
-                                                                var times = JSON.parse(localStorage.getItem("times"));
+                                                                var events = JSON.parse(sessionStorage.getItem("events"));
+                                                                var times = JSON.parse(sessionStorage.getItem("times"));
                                                                 for(var e =0; e<events.length; e++){
 
                                                                 if(events[e].includes("RadarSerieSelectTime")){
-                                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                                var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                                                var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                                                 var curr_data = times[index];
                                                                         for(var w in widgets){
                                                                             if(widgets[w] != null){
@@ -158,16 +158,16 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         }
                     /////////
 
-            if(localStorage.getItem("widgets") == null){
+            if(sessionStorage.getItem("widgets") == null){
                 var widgets = [];
                 widgets.push(widgetName);
-                localStorage.setItem("widgets", JSON.stringify(widgets));
+                sessionStorage.setItem("widgets", JSON.stringify(widgets));
             }
             else{
-                var widgets = JSON.parse(localStorage.getItem("widgets"));
+                var widgets = JSON.parse(sessionStorage.getItem("widgets"));
                 if(!widgets.includes(widgetName)){
                     widgets.push(widgetName);
-                    localStorage.setItem("widgets", JSON.stringify(widgets));
+                    sessionStorage.setItem("widgets", JSON.stringify(widgets));
                 }
             }
 
@@ -179,32 +179,32 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 $("#" + widgetName + "_loading").css("display", "block");
             
             
-                if(localStorage.getItem("passedData") == null || localStorage.getItem("passedData") == "[object Object]"){
+                if(sessionStorage.getItem("passedData") == null || sessionStorage.getItem("passedData") == "[object Object]"){
                     var init = [];
                     var firstEl = {};
                     firstEl.passedData = event.passedData;
                     firstEl.name = widgetName;
-                    if (localStorage.getItem("events") == null) {
+                    if (sessionStorage.getItem("events") == null) {
                         firstEl.eventIndex = 0;
                     } else {
-                        firstEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                        firstEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length - 1;
                     }
                     init.push(firstEl);
-                    localStorage.setItem("passedData", JSON.stringify(init));
+                    sessionStorage.setItem("passedData", JSON.stringify(init));
                 }
                 else{
                     var newEl = {};
                     newEl.passedData = event.passedData;
                     newEl.name = widgetName;
-                    if (localStorage.getItem("events") == null) {
+                    if (sessionStorage.getItem("events") == null) {
                         newEl.eventIndex = 0;
                     } else {
-                        newEl.eventIndex = JSON.parse(localStorage.getItem("events")).length - 1;
+                        newEl.eventIndex = JSON.parse(sessionStorage.getItem("events")).length - 1;
                     }
-                    var oldElement = JSON.parse(localStorage.getItem("passedData"));
+                    var oldElement = JSON.parse(sessionStorage.getItem("passedData"));
                     oldElement.push(newEl);
-                    localStorage.setItem("passedData", JSON.stringify(oldElement));
-                    console.log(localStorage)
+                    sessionStorage.setItem("passedData", JSON.stringify(oldElement));
+                    //console.log(localStorage)
                 }
                 rowParameters = event.passedData;
                 populateWidget(null, true);
@@ -213,7 +213,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 		
         $(document).off('reloadPreviousContent_' + widgetName);
         $(document).on('reloadPreviousContent_' + widgetName, function(event){
-            var passedData = JSON.parse(localStorage.getItem("passedData"));
+            var passedData = JSON.parse(sessionStorage.getItem("passedData"));
             var j = 0;
             var t = -1;
             while(passedData[j].eventIndex <= event.index && j < passedData.length - 1){
@@ -1196,28 +1196,28 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     }
 
                                     let j=1;
-                                    if(localStorage.getItem("events") == null){
+                                    if(sessionStorage.getItem("events") == null){
 
                                         var events = [];
                                         events.push("RadarLegendClick1");
-                                        localStorage.setItem("events", JSON.stringify(events));
+                                        sessionStorage.setItem("events", JSON.stringify(events));
                                     }
                                     else{
-                                        var events = JSON.parse(localStorage.getItem("events"));
+                                        var events = JSON.parse(sessionStorage.getItem("events"));
                                         for(var e in events){
                                             if(events[e].slice(0,16) == "RadarLegendClick")
                                                 j = j+1;
                                         }
                                         events.push("RadarLegendClick" + j);
-                                        localStorage.setItem("events", JSON.stringify(events));
+                                        sessionStorage.setItem("events", JSON.stringify(events));
                                     }
 
                                     let newId = "RadarLegendClick"+j;
                                     $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                     $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>');
                                     $('#'+newId).on( "click", function() {
-                                        var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                        var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                        var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                        var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                         for(var w in widgets){
                                             if(widgets[w] != null){
                                                 $('body').trigger({
@@ -1277,28 +1277,28 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         try {
                                             execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
                                             let j=1;
-                                            if(localStorage.getItem("events") == null){
+                                            if(sessionStorage.getItem("events") == null){
 
                                                 var events = [];
                                                 events.push("RadarClick1");
-                                                localStorage.setItem("events", JSON.stringify(events));
+                                                sessionStorage.setItem("events", JSON.stringify(events));
                                             }
                                             else{
-                                                var events = JSON.parse(localStorage.getItem("events"));
+                                                var events = JSON.parse(sessionStorage.getItem("events"));
                                                 for(var e in events){
                                                     if(events[e].slice(0,10) == "RadarClick")
                                                         j = j+1;
                                                 }
                                                 events.push("RadarClick" + j);
-                                                localStorage.setItem("events", JSON.stringify(events));
+                                                sessionStorage.setItem("events", JSON.stringify(events));
                                             }
 
                                             let newId = "RadarClick"+j;
                                             $('#BIMenuCnt').append('<div id="'+newId+'" class="row" data-selected="false"></div>');
                                             $('#'+newId).append('<div class="col-md-12 orgMenuSubItemCnt">'+newId+'</div>' );
                                             $('#'+newId).on( "click", function() {
-                                                var widgets = JSON.parse(localStorage.getItem("widgets"));
-                                                var index = JSON.parse(localStorage.getItem("events")).indexOf(newId);
+                                                var widgets = JSON.parse(sessionStorage.getItem("widgets"));
+                                                var index = JSON.parse(sessionStorage.getItem("events")).indexOf(newId);
                                                 for(var w in widgets){
                                                     if(widgets[w] != null){
                                                         $('body').trigger({

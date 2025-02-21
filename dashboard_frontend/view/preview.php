@@ -985,9 +985,8 @@ dashboardWidgets = [
                             size_y: wgd.size_y
                         };
                     }
-                }).data('gridster').disable();//Fine creazione Gridster
-                localStorage.clear();
-                //console.log(dashboardWidgets.length);
+                }).data('gridster').disable();
+                // localStorage.clear();
                 for(var i = 0; i < dashboardWidgets.length; i++)
                 {
                     var widget = ['<li data-widgetType="widgetMap" data-widgetId="map" id="map"></li>', 55, 67, 1, 1];
