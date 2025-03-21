@@ -10612,7 +10612,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         //NEW
         //const query = `SELECT ?status ?strada ?elementostradale ?roadElmSpeedLimit ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
         // questa ha funzionato -> const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:inMunicipalityOf ?municip. ?municip foaf:name "Firenze". ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )} LIMIT 16000`;
-        const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )}`; // LIMIT 100000`;
+        
+        
+        // const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?strada a km4c:Road. ?strada km4c:containsElement ?elementostradale. ?elementostradale km4c:endsAtNode ?endnode.  OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?startnode rdfsn:lat ?startlat. ?startnode rdfsn:long ?startlong. ?startnode geo:geometry ?p. ?elementostradale km4c:endsAtNode ?endnode. ?endnode rdfsn:lat ?endlat. ?endnode rdfsn:long ?endlong. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante.} FILTER ( (?startlat %3E ${minX} %26%26 ?startlat %3C ${maxX} %26%26 ?startlong %3E ${minY} %26%26 ?startlong %3C ${maxY}) || (?endlat %3E ${minX} %26%26 ?endlat %3C ${maxX} %26%26 ?endlong %3E ${minY} %26%26 ?endlong %3C ${maxY}) )}`; // LIMIT 100000`;
+        
+        // FAST QUERY 2025-02-28
+        const query = `SELECT ?status ?strada ?elementostradale (IF(bound(?roadElmSpeedLimit), ?roadElmSpeedLimit, "50") as ?roadElmSpeedLimit) ?roadMaxSpeed ?highwaytype (xsd:string(?startlat) as ?startlat) (xsd:string(?startlong) as ?startlong) (xsd:string(?endlat) as ?endlat) (xsd:string(?endlong) as ?endlong) ?compositiontipo ?operatingstatus ?latrafficDir ?lalunghezza ?startnode ?endnode ?elementtype (IF(bound(?quante), ?quante, 1) as ?quante) WHERE { ?n a km4c:Node. ?n geo:geometry ?gn. FILTER(bif:st_intersects(?gn,bif:st_geomfromtext('POLYGON ((${minY} ${minX}, ${minY} ${maxX}, ${maxY} ${maxX}, ${maxY} ${minX}, ${minY} ${minX}))'))) ?elementostradale km4c:startsAtNode|km4c:endsAtNode ?n. OPTIONAL{?elementostradale km4c:speedLimit ?roadElmSpeedLimit.} ?elementostradale km4c:elementType ?elementtype. ?elementostradale km4c:highwayType|km4c:railwayType ?highwaytype. ?elementostradale km4c:composition ?compositiontipo. ?elementostradale km4c:operatingStatus ?operatingstatus. ?elementostradale km4c:trafficDir ?latrafficDir. ?elementostradale km4c:length ?lalunghezza. ?elementostradale km4c:startsAtNode ?startnode. ?elementostradale km4c:endsAtNode ?endnode. ?startnode rdfsn:lat ?startlat; rdfsn:long ?startlong. ?endnode rdfsn:lat ?endlat; rdfsn:long ?endlong. ?strada km4c:containsElement ?elementostradale. OPTIONAL{ ?strada km4c:lanes ?lanes. ?lanes km4c:lanesCount ?numerolanes. ?numerolanes km4c:undesignated ?quante. } }`;
+        
         return sparqlEndpoint + query;
     }
 
@@ -10849,13 +10855,24 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             // check that in restriction_data the FROM roadelement of the restriction is into the istanzedelgrafochestoconsiderando
             
             const transformREFn = segment => segment.replace("<?= $baseKm4CityUri; ?>","");
-            const filtered_restrictions_0=restriction_data.filter(obj1 => 
-                istanzedelgrafochestoconsiderando.some(obj2 => obj1.from.value === transformREFn(obj2.segment))
-            );
-            const filtered_restrictions_1=filtered_restrictions_0.filter(obj1 => 
-                istanzedelgrafochestoconsiderando.some(obj2 => obj1.to.value === transformREFn(obj2.segment))
-            );
-            restriction_data = filtered_restrictions_1;
+            if(existentRoadGraph && existentRoadGraph.length > 0){
+                const filtered_restrictions_0=restriction_data.filter(obj1 => 
+                    existentRoadGraph.some(obj2 => obj1.from.value === transformREFn(obj2.segment))
+                );
+                const filtered_restrictions_1=filtered_restrictions_0.filter(obj1 => 
+                    existentRoadGraph.some(obj2 => obj1.to.value === transformREFn(obj2.segment))
+                );
+                restriction_data = filtered_restrictions_1;
+            } else if(istanzedelgrafochestoconsiderando && istanzedelgrafochestoconsiderando.length > 0) {
+                const filtered_restrictions_0=restriction_data.filter(obj1 => 
+                    istanzedelgrafochestoconsiderando.some(obj2 => obj1.from.value === transformREFn(obj2.segment))
+                );
+                const filtered_restrictions_1=filtered_restrictions_0.filter(obj1 => 
+                    istanzedelgrafochestoconsiderando.some(obj2 => obj1.to.value === transformREFn(obj2.segment))
+                );
+                restriction_data = filtered_restrictions_1;
+            }
+            
             ///
 
             /// FINE BOLOGNA-COLLINI
@@ -13410,7 +13427,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             scenaryGrafo = new L.FeatureGroup();
             map.defaultMapRef.addLayer(scenaryGrafo);
             //aggiungo anche il tool per disegnare su mappa 
+            // FIX MENTINA, aggiunto position:"topright", non chiaro quando viene creato
             drawerControl = new L.Control.Draw({
+                position:"topright",
                 edit: {
                     featureGroup: scenaryDrawnItems,
                     edit: false,
@@ -13668,6 +13687,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 ////Aggiunta pulsanti editing
                 var div1 = L.DomUtil.create('div');
                 div1.id = "scenary_selector";
+                div1.classList.add("extraInfo", "scenaryDiv")	// FIX MENTINA
                 div1.innerHTML = `
                     <div id="menu-lines" style="max-width: 55px;" hidden>
                         <div id="scenario-div">
@@ -14040,15 +14060,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
             //################## poi mi metto subito lo scenary control #################################                       
             var scenaryControl = L.control({
-                position: 'topright'
+                    position: 'bottomright' //FIX MENTINA, spostato da topright a bottomright
             });
-
-            scenaryControl.onAdd = function (map) {
-                var div = L.DomUtil.create('div');
+                // FIX MENTINA, view caricato di base, credo uguale al 3
+                // COMMENTATO SOTTO ON ADD E addTo, modificato per integrare
+                $(".scenaryDiv:not(.extraInfo)").remove()
+                map.scenaryDiv = $("<div id='modality-load' class='scenaryDiv'></div>");
                 //currentStatusEdit MANAGE STATUS//
-                div.id = "modality-load";
-                div.innerHTML = `
-                    <div id="scenario-div">
+                let innerHTML = `
                         <div id="notification" style="display: none;">
                             <p id="notification-message">bells</p>
                         </div>                                    
@@ -14129,19 +14148,23 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     </tr>
                                 </table>
                             </div>
-                        </div>                                
                     </div>`;
+                map.scenaryDiv.html(innerHTML)
+                $("#deck-info-content").append(map.scenaryDiv)
+                $("#scenary-info-btn").css('display', 'block');
+                // $("#scenary-info-btn")[0].className = "deck-btn-active";
+                $("#scenary-info-btn").click();
 
-                // Disabilita l'interazione di questo div con la mappa per evitare conflitti
-                if (L.Browser.touch) {
-                    L.DomEvent.disableClickPropagation(div);
-                    L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
-                } else {
-                    L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
-                }
-                return div;
-            };
-            scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+                //     // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+                //     if (L.Browser.touch) {
+                //         L.DomEvent.disableClickPropagation(div);
+                //         L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
+                //     } else {
+                //         L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
+                //     }
+                //     return div;
+                // };
+                // scenaryControl.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
 
             ////////Creazione del LoadFIlters (invisibile)
             /////////////////////////////////////////
@@ -14341,6 +14364,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     var listItem = $("<option>").val(scenario).text(optionText);
                     scenarioInitList.append(listItem);
                 });
+
+                $('#scenario-content').css("width","100%")
 
                 const mapCenter = map.defaultMapRef.getCenter();
                 const mapCenterLat = mapCenter.lat.toFixed(4);
@@ -15948,7 +15973,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                 $('#menu-lines').show();
                 $('#currentStatusEdit').val('streets');
-                var drawControl = document.querySelector('.leaflet-draw');
+                // FIX MENTINA, modificata query aggiungendo :not(#drawControl)
+                var drawControl = document.querySelector('.leaflet-draw:not(#drawControl)');
                 if (drawControl) {
                     drawControl.parentNode.removeChild(drawControl);
                     isSaveFinalSet = false;
@@ -15982,7 +16008,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 map.defaultMapRef.addLayer(scenaryMarkers);
                 scenaryGrafo = new L.FeatureGroup();
                 map.defaultMapRef.addLayer(scenaryGrafo);
+                // FIX MENTINA, aggiunto position:"bottomright", QUESTO QUANDO SI PREME EDIT DA SCENARY
                 drawerControl2 = new L.Control.Draw({
+                    position:"topleft",
                     edit: {
                         featureGroup: scenaryDrawnItems,
                         edit: false,
@@ -15999,7 +16027,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 });
                 map.defaultMapRef.addControl(drawerControl2);
-
+                    let container = drawerControl2._container
+                    container.classList.add("extraInfo", "scenaryDiv")
+                    container.id = "scenaryEditDraw"
                 
 
                 try {
@@ -16017,10 +16047,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
 
                         var scenaryControl2 = L.control({
-                            position: 'topright'
+                            position: 'bottomright' //FIX MENTINA, spostato da topright a bottomright (Quando premi edit)
                         });
 
-                        var scenarioToRemove = document.getElementById("scenario-edit-form");
+                        var scenarioToRemove = document.getElementById("scenaryEditDiv-content");
                         console.log(scenarioToRemove);
                         
                         //check if logged
@@ -16032,18 +16062,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
 
                         if (!scenarioToRemove) {
-                            scenaryControl2.onAdd = function (map) {
-                                var div2 = L.DomUtil.create('div');
-                                div2.id = 'scenario-edit-form';
-                                div2.innerHTML = `
-                                    <div id="scenario-div">
+                            // FIX MENTINA, cambiata creazione e modificato sotto
+                            map.scenaryControlEdit = $("<div id='scenaryEditDiv-content' class='scenaryDiv'/>")
+                            let isSummaryOpen = $("#summary-table").length
+                            if(isSummaryOpen) {
+                            	$("#summary-table").show()
+                            	$("#scenaryEditDraw").css("top", $("#summary-table").prop("clientHeight"))
+                            	$("#scenaryEditDraw").css("right", $("#summary-table").prop("clientWidth"))
+                        	}
+                        	let innerHTML = `
                                         <div id="notification" style="display: none;">
                                             <p id="notification-message">bells</p>
                                         </div>
                                         <div id="scenario-content">
-                                            <div id="complete-content">
+                                            <div id="complete-content" style="width: 100%">
                                                 <!-- Contenuto per la modalità completa -->
-                                                <table>
+                                                <table style="width: 100%">
                                                     <tr>
                                                         <td><label for="scenario-name">Scenario name:</label></td>
                                                         <td><input id="scenario-name" type="text" name="name" placeholder="Scenario name" value="`+ devNameLoadScenario + `"></td>
@@ -16120,28 +16154,36 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     <tr>
                                                         <td colspan="2">
                                                             <input type="button" id="scenario-save" value="Save" `+ check_save + `/>
-                                                            <button id="scenario-summary">Show Summary</button>
+                                                            <button id="scenario-summary">${(isSummaryOpen)?"Hide":"Show"} Summary</button>
                                                             <button id="scenario-cancel" type="button">Cancel</button>
                                                         </td>
                                                     </tr>
                                                 </table>
                                             </div>                                        
-                                        </div>                                
                                     </div>`;
                                 ////
-                                // Disabilita l'interazione di questo div con la mappa per evitare conflitti
-                                if (L.Browser.touch) {
-                                    L.DomEvent.disableClickPropagation(div2);
-                                    L.DomEvent.on(div2, 'mousewheel', L.DomEvent.stopPropagation);
-                                } else {
-                                    L.DomEvent.on(div2, 'click', L.DomEvent.stopPropagation);
-                                }
-                                return div2;
-                                ////
-                            }
+                                map.scenaryControlEdit.html(innerHTML)
+                                //     // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+                                //     if (L.Browser.touch) {
+                                //         L.DomEvent.disableClickPropagation(div2);
+                                //         L.DomEvent.on(div2, 'mousewheel', L.DomEvent.stopPropagation);
+                                //     } else {
+                                //         L.DomEvent.on(div2, 'click', L.DomEvent.stopPropagation);
+                                //     }
+                                //     return div2;
+                                //     ////
+                                // }
                         }
-                        scenaryControl2.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
+                        // FIX MENTINA, commentato
+                        // scenaryControl2.addTo(map.defaultMapRef); // e chiudo con l'inserimento di qusto nella mappa
                         ///
+                        // $(".scenaryDiv:not(.extraInfo)").remove()
+                        $("#deck-info-content").append(map.scenaryControlEdit)
+                        $("#scenary-info-btn").css('display', 'block');
+                        $("#scenary-info-btn")[0].className = "deck-btn-active";
+                        $("#scenary-info-btn").dblclick();
+                            
+                            // $("#scenaryEditDraw").show()
 
                         $('#scenario-name').on('input', function () {
                             var value = $(this).val();
@@ -16158,7 +16200,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             pulisciTutto();
                         });
 
-                        $('#scenario-summary').click(async function () {
+                        $('button#scenario-summary').click(async function () {
                             //alert('SCENARIO SUMMARY');
                             console.log('istanzedeisensorichestoconsiderando', istanzedeisensorichestoconsiderando);
                             var counts_segments = istanzedelgrafochestoconsiderando.length;
@@ -16193,6 +16235,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             if (elementToRemove) {
                                 elementToRemove.remove();
                                 $('#scenario-summary').text('Show Summary');
+                                    $("#scenaryEditDraw").css("top", "0px")
+                                    $("#scenaryEditDraw").css("right", "0px")
                             } else {
                                 var scenaryControlSummary = L.control({
                                     position: 'bottomright'
@@ -16205,7 +16249,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     div.id = "summary-table";
 
                                     div.innerHTML = `
-                                        <div id="scenario-summary" style="margin: 10px; background-color: white; color: black">
+                                        <div id="scenario-summary" class="extraInfo scenaryDiv" style="margin: 10px; background-color: white; color: black">
                                             <div id="scenario-div">
                                                 <table>
                                                     <tbody style="margin-right: 5px; margin-left: 5px;">
@@ -16251,6 +16295,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     div.css('display', 'none');
                                 };
                                 scenaryControlSummary.addTo(map.defaultMapRef); 
+                                let container = scenaryControlSummary._container
+                                $("#scenaryEditDraw").prependTo(container.parentElement)
+                                $("#scenaryEditDraw").css("top", container.clientHeight)
+                                $("#scenaryEditDraw").css("right", container.clientWidth)
                             }
                         });
 
@@ -16807,7 +16855,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
             async function goIntoViewMode(){
                 //$('input[name="scenario-type"][value="init"]').prop('checked', true).trigger('change');
-                
+                $("div#summary-table").hide()
                 $('#segmentLabel').hide();
                 $('#menu-lines').hide();
                 if (roadElementGraph) {
@@ -16821,9 +16869,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 $("#view_mod").css('color', 'white');
                 $("#edit_lines").css('background-color', '');
                 $("#edit_lines").css('color', 'black');
-                //scenario-edit-form
+                //scenaryEditDiv-content
                 // Trova l'elemento con la classe "leaflet-draw" nell'intero documento
-                var drawControl = document.querySelector('.leaflet-draw');
+                // FIX MENTINA, modificata query aggiungendo :not(#drawControl)
+                var drawControl = document.querySelector('.leaflet-draw:not(#drawControl)');
                 if (drawControl) {
                     drawControl.parentNode.removeChild(drawControl);
                 }
@@ -16834,7 +16883,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     isSaveFinalSet = false;
                 }
                 //$('#showStreetGraph').hide();
-                var scenarioToRemove = document.getElementById("scenario-edit-form");
+                var scenarioToRemove = document.getElementById("scenaryEditDiv-content");
 
                 console.log(scenarioToRemove);
                 if (scenarioToRemove) {
@@ -16850,14 +16899,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
 
                         var scenaryControl3 = L.control({
-                            position: 'topright'
+                            position: 'bottomright' //FIX MENTINA, spostato da topright a bottomright (quando premi view)
                         });
-                        scenaryControl3.onAdd = function (map) {
-                            var div3 = L.DomUtil.create('div');
-                            var currentStatusEdit = $('#currentStatusEdit').val();
-                            div3.id = "modality-load";
-                            div3.innerHTML = `
-                                <div id="scenario-div">
+                        // FIX MENTINA, view caricato di base, credo uguale al 3
+                        // COMMENTATO SOTTO ON ADD E addTo, modificato per integrare
+                        $(".scenaryDiv:not(.extraInfo)").remove()
+                        map.scenaryDiv = $("<div id='modality-load' class='scenaryDiv'></div>");
+                        //currentStatusEdit MANAGE STATUS//
+                            let innerHTML = `
                                     <div id="notification" style="display: none;">
                                         <p id="notification-message">bells</p>
                                     </div>
@@ -16933,20 +16982,24 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                 </tr>
                                             </table>
                                         </div>
-                                    </div>
                                 </div>`;
                             
-                            // Disabilita l'interazione di questo div con la mappa per evitare conflitti
-                            if (L.Browser.touch) {
-                                L.DomEvent.disableClickPropagation(div3);
-                                L.DomEvent.on(div3, 'mousewheel', L.DomEvent.stopPropagation);
-                            } else {
-                                L.DomEvent.on(div3, 'click', L.DomEvent.stopPropagation);
-                            }
-                            return div3;
-                            ////   
-                        }
-                        scenaryControl3.addTo(map.defaultMapRef);
+                                map.scenaryDiv.html(innerHTML)
+                            	$("#deck-info-content").append(map.scenaryDiv)
+                            	$("#scenary-info-btn").css('display', 'block');
+                            	$("#scenary-info-btn")[0].className = "deck-btn-active";
+                            	$("#scenary-info-btn").dblclick();
+                            //     // Disabilita l'interazione di questo div con la mappa per evitare conflitti
+                            //     if (L.Browser.touch) {
+                            //         L.DomEvent.disableClickPropagation(div3);
+                            //         L.DomEvent.on(div3, 'mousewheel', L.DomEvent.stopPropagation);
+                            //     } else {
+                            //         L.DomEvent.on(div3, 'click', L.DomEvent.stopPropagation);
+                            //     }
+                            //     return div3;
+                            //     ////   
+                            // }
+                            // scenaryControl3.addTo(map.defaultMapRef);
                         
                         getInits();
                     
@@ -17411,6 +17464,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             //map.defaultMapRef.removeControl(scenaryControl);
             map.defaultMapRef.off('draw:created');
 
+            // FIX MENTINA, modificata rimozione
+            $('#scenary-info-btn').css('display', 'none');
+            $('#scenary-info-btn')[0].className = "deck-btn";
+            switchToFirstActiveInfoMenu();
             //var modalityToRemove = document.getElementById("scenario-div");
             var modalityToRemove = document.getElementById("modality-load");
             if (modalityToRemove) {
@@ -17420,14 +17477,17 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             //
             var scenarioToRemove = document.getElementById("select-modality");
             //var modalityToRemove = document.getElementById("modality-load");
-            var scenarioEditRemove = document.getElementById("scenario-edit-form");
+            var scenarioEditRemove = document.getElementById("scenaryEditDiv-content");
             var scenary_selectorRemove = document.getElementById("scenary_selector");
+            // FIX MENTINA, aggiunta rimozione
+            $("#summary-table").remove()
             //
             var menulines = document.getElementById("menu-lines");
 
             var jsonIstanze = document.getElementById("jsonIstanze");
             //
-            var drawControl = document.querySelector('.leaflet-draw');
+            // FIX MENTINA, modificata query aggiungendo :not(#drawControl)
+            var drawControl = document.querySelector('.leaflet-draw:not(#drawControl)');
             //
             var filterList = document.getElementById("filter-list");
             //
@@ -17869,7 +17929,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     // Cristiano : Dynamic Routing
     var scenarioLayer = null;
     var scenarioControl = null;
-    var drawerControl = null;
+    // FIX MENTINA, aggiunto "Scenario" al nome
+    var drawerControlScenario = null;
     var geocoderControl = null;
     var scenarioDrawnItems = null;
     var scenarioData = new L.geoJSON();
@@ -17883,7 +17944,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             // create drawer layer/control and add them to map
             scenarioDrawnItems = new L.FeatureGroup();
             map.defaultMapRef.addLayer(scenarioDrawnItems);
-            drawerControl = new L.Control.Draw({
+            // FIX MENTINA, aggiunto position:"topleft",
+                drawerControlScenario = new L.Control.Draw({
+                    position:"topleft",
                 edit: {
                     featureGroup: scenarioDrawnItems,
                     edit: false,
@@ -17900,7 +17963,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 }
             });
-            map.defaultMapRef.addControl(drawerControl);
+            map.defaultMapRef.addControl(drawerControlScenario);
+            // FIX MENTINA, aggiunto id e classe
+            drawerControlScenario._container.id = "drawControl"
+            drawerControlScenario._container.classList.add("extraInfo", "scenarioDiv")
+            // FINE FIX MENTINA
 
 
 
@@ -17931,8 +17998,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             });
 
             // create geocoder control and add to map
+            // FIX MENTINA, spostato geocoder inserendo position: topleft e aggiunta classe ed id
             var geocoder = L.Control.Geocoder.nominatim();
             geocoderControl = L.Control.geocoder({
+                position: "topleft",
                 geocoder: geocoder,
                 defaultMarkGeocode: false
             }).addTo(map.defaultMapRef)
@@ -17940,13 +18009,26 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     map.defaultMapRef.panTo(e.geocode.center);
                     map.defaultMapRef.setZoom(18);
                 });
+            geocoderControl._container.classList.add("extraInfo")
+            geocoderControl._container.id= "searchControl"
 
+            // FIX MENTINA Commentato onAdd e L.control
             // create scenario control and add to map
-            scenarioControl = L.control({ position: 'topleft' });
-            scenarioControl.onAdd = function (map) {
-                var div = L.DomUtil.create('div');
+                // scenarioControl = L.control({ position: 'bottomright' });
+                // scenarioControl.onAdd = function (map) {
+                //     var div = L.DomUtil.create('div');
 
-                div.innerHTML = '<div id="scenario-div">' +
+                //     div.innerHTML = '<div id="scenario-div">' +
+                // // AGGIUNTA FIX MENTINA
+                if ($('#scenario-info-btn').css('display') === 'block') {
+                    animationOn = false;
+                    $('#scenario-info-content').remove();
+                }
+                $('#scenario-info-btn').css('display', 'block');
+                $('#scenario-info-btn').click();
+                map.scenarioControlDiv = $('<div id="scenario-info-content" class="scenarioDiv"></div>');
+
+                map.scenarioControlDiv.html('<div id="scenarioContent-div">' +
                     '<input id="scenario-name" type="text" placeholder="Scenario name" name="name">' +
                     '<input id="scenario-description" type="text" placeholder="Scenario description" name="description">' +
                     '<span><input id="scenario-visibility" type="checkbox" name="public" value="Public"> Public visibility</span>' +
@@ -17958,18 +18040,17 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     '<input type="button" id="scenario-save" value="Save"/>' +
                     '<button id="scenario-cancel" type="button">Cancel</button>' +
                     '</div>' +
-                    '</div>';
+                    '</div>');
                 // disable interaction of this div with map
-                if (L.Browser.touch) {
+              /*  if (L.Browser.touch) {
                     L.DomEvent.disableClickPropagation(div);
                     L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
                 } else {
                     L.DomEvent.on(div, 'click', L.DomEvent.stopPropagation);
-                }
-
-                return div;
-            };
-            scenarioControl.addTo(map.defaultMapRef);
+                }*/
+		$('#deck-info-content').append(map.scenarioControlDiv);
+		
+                //FINE AGGIUNTA E FIX MENTINA
 
             // $("#scenario-save").click(function () {
             //     console.error("SAVE SCENARIO 3 [15468]");
@@ -18045,15 +18126,21 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     $(document).on('removeScenario', function (event) {
         if (event.target === map.mapName) {
             map.defaultMapRef.removeLayer(scenarioLayer);
-            map.defaultMapRef.removeControl(scenarioControl);
+            // FIX MENTINA, commentata riga sotto e aggiunto il remove
+            // map.defaultMapRef.removeControl(scenarioControl);
+            $('#scenario-info-btn').css('display', 'none');
+            $("#scenario-info-content").remove()
+            $('#scenario-info-btn')[0].className = "deck-btn"
+            switchToFirstActiveInfoMenu();
+            // FINE FIX MENTINA
             map.defaultMapRef.removeControl(geocoderControl);
-            map.defaultMapRef.removeControl(drawerControl);
+                map.defaultMapRef.removeControl(drawerControlScenario);
             map.defaultMapRef.removeLayer(scenarioDrawnItems);
         }
     });
 
     var whatifLayer = null;
-    var whatifControl = null;
+        // var whatifControl = null; COMMENTATO FIX MENTINA
     var whatifDrawnItems = null;
     var lrmControl = null;
     var vehicle = "car";
@@ -18070,11 +18157,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             whatifDrawnItems = new L.FeatureGroup();
             map.defaultMapRef.addLayer(whatifDrawnItems);
             // create what-if control and add to map, populate scenarios
-            whatifControl = L.control({ position: 'topright' });
-            whatifControl.onAdd = function (map) {
-                var div = L.DomUtil.create('div');
+            // FIX MENTINA Commentato onAdd e L.control e map.whatifControl => whatifControl
+            // map.whatifControl = L.control({ position: 'topright' });
+            // whatifControl.onAdd = function (map) {
+            //     var div = L.DomUtil.create('div');
 
-                div.innerHTML = '<div id="selection">' +
+            //     div.innerHTML = '<div id="selection">' +
+                    // AGGIUNTA FIX MENTINA
+                    if ($('#whatif-info-btn').css('display') === 'block') {
+                    	animationOn = false;
+                    	$('#whatif-control').remove();
+                    }
+                    $('#whatif-info-btn').css('display', 'block');
+                    $('#whatif-info-btn').click();
+                    map.whatifControlDiv = $('<div id="whatif-control" class="whatifDiv"></div>');
+
+                    map.whatifControlDiv.html('<div id="selection" style="border: none">'+
                     '<input type="radio" name="choice" value="scenario" checked> Select scenario<br>' +
                     '<input type="radio" name="choice" value="studio"> Select studio<br>' +
                     '<select style="margin-top:6px" class="form-control" id="choice-select"></select>' +
@@ -18109,8 +18207,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     '<img id="bus_button" src="../img/dynamic_routing/bus.svg" alt="Bus">' +
                     '</button>' +
                     '</span>' +
-                    '</div>';
-                // disable interaction of this div with map
+                    '</div>');
+           /*     // disable interaction of this div with map
                 if (L.Browser.touch) {
                     L.DomEvent.disableClickPropagation(div);
                     L.DomEvent.on(div, 'mousewheel', L.DomEvent.stopPropagation);
@@ -18122,8 +18220,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             };
             whatifControl.addTo(map.defaultMapRef);
             // Hide datetime picker
-            $("#routing-datetime").hide();
-
+            $("#routing-datetime").hide();*/
+		
+	    $('#deck-info-content').append(map.whatifControlDiv);
+                //FINE AGGIUNTA FIX MENTINA
+			
             // populate scenarios select (initially scenario choice is checked)
             $.getJSON('../controllers/scenarioProxy.php?method=GET&opt=name', function (data) {
                 $("#choice-select").html("<option selected disabled hidden style='display: none' value=''></option>");
@@ -19353,7 +19454,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     $(document).on('removeWhatif', function (event) {
         if (event.target === map.mapName) {
             map.defaultMapRef.removeLayer(whatifLayer);
-            map.defaultMapRef.removeControl(whatifControl);
+            map.defaultMapRef.removeControl(map.whatifControlDiv);	// FIX MENTINA
             map.defaultMapRef.removeLayer(whatifDrawnItems);
             if (lrmControl) {
                 lrmControl.remove(map);
@@ -19366,6 +19467,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 map.defaultMapRef.removeControl(studioControl);
                 studioControl = null;
             }
+            //FIX MENTINA
+            $('#whatif-info-btn').css('display', 'none');
+            $('#whatif-control').remove();
+            $('#whatif-info-btn')[0].className = "deck-btn"
+            switchToFirstActiveInfoMenu();
+            // FINE FIX MENTINA
         }
     });
     // end Cristiano
@@ -19971,23 +20078,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     $("#<?= $_REQUEST['name_w'] ?>_changeRad").attr('disabled', false);
                 }
             }
-
-            map.legendHeatmap.onAdd = function () {
-                map.legendHeatmapDiv = L.DomUtil.create('div');
-                map.legendHeatmapDiv.id = "heatmapLegend";
-                // disable interaction of this div with map
-                if (L.Browser.touch) {
-                    L.DomEvent.disableClickPropagation(map.legendHeatmapDiv);
-                    L.DomEvent.on(map.legendHeatmapDiv, 'mousewheel', L.DomEvent.stopPropagation);
-                } else {
-                    L.DomEvent.on(map.legendHeatmapDiv, 'click', L.DomEvent.stopPropagation);
-                }
-                map.legendHeatmapDiv.style.width = "340px";
-                map.legendHeatmapDiv.style.fontWeight = "bold";
-                map.legendHeatmapDiv.style.background = "#cccccc";
-                //  map.legendHeatmapDiv.style.background = "rgba(255,255,255,0.5)";
-                //map.legendHeatmap.style.background = "-webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#cccccc))";
-                map.legendHeatmapDiv.style.padding = "10px";
+                //FIX MENTINA aggiunti create per legendHeatmap e trafficLegendHeatmap
+                map.legendHeatmap.create = function () {
+                    map.legendHeatmapDiv = $('<div id="heatmapLegend" class="heatmapDiv"></div>');
+                    // disable interaction of this div with map
+                    // if (L.Browser.touch) {
+                    //     L.DomEvent.disableClickPropagation(map.legendHeatmapDiv);
+                    //     L.DomEvent.on(map.legendHeatmapDiv, 'mousewheel', L.DomEvent.stopPropagation);
+                    // } else {
+                    //     L.DomEvent.on(map.legendHeatmapDiv, 'click', L.DomEvent.stopPropagation);
+                    // }
+                    // map.legendHeatmapDiv.css("width","340px");
+                    map.legendHeatmapDiv.css("fontWeight","bold");
+                    // map.legendHeatmapDiv.css("background","#cccccc");
+                    map.legendHeatmapDiv.css("padding","15px");
+                    //  map.legendHeatmapDiv.style.background = "rgba(255,255,255,0.5)";
+                    //map.legendHeatmap.style.background = "-webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#cccccc))";
 
                 //categories = ['blue', 'cyan', 'green', 'yellowgreen', 'yellow', 'gold', 'orange', 'darkorange', 'tomato', 'orangered', 'red'];
                 let colors = [];
@@ -20014,21 +20120,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 colors_value['tomato'] = '#FF6347';
                 colors_value['orangered'] = '#FF4500';
                 colors_value['red'] = '#FF0000';
+                    let innerHTML = ""
                 //  map.legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + map.testMetadata.metadata[0].mapName + '</div>';  // OLD-API
-                map.legendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
+                    innerHTML += '<div class="textTitle" style="text-align:center">' + mapName + '</div>';
                 if (!baseQuery.includes("heatmap.php")) {
                     if(event.passedParams.disableButton){
-                        map.legendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round" style="visibility: hidden"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
+                        innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round" style="visibility: hidden"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
                     }else{
-                        map.legendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
+                        innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation"><div class="slider round"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
                     }
                 } else {
-                    map.legendHeatmapDiv.innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div>';
+                        innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Heatmap Controls:"); ?></div>';
                 }
                 //    map.legendHeatmapDiv.innerHTML += '</div>';
                 // radius
                 if (baseQuery.includes("heatmap.php")) {    // OLD HEATMAP
-                    map.legendHeatmapDiv.innerHTML +=
+                        innerHTML +=
                         '<div id="heatmapRadiusControl" style="margin-top:10px">' +
                         '<div style="display:inline-block; vertical-align:super;">Radius (px):&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>' +
                         '<div id= "<?= $_REQUEST['name_w'] ?>_downSlider_radius" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
@@ -20040,7 +20147,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         '</div>';
                 }
                 // max opacity
-                map.legendHeatmapDiv.innerHTML +=
+                    innerHTML +=
                     '<div id="heatmapOpacityControl">' +
                     '<div style="display:inline-block; vertical-align:super;">Max Opacity: &nbsp;&nbsp;&nbsp;&nbsp;</div>' +
                     '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_opacity" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
@@ -20051,7 +20158,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                 // Heatmap Navigation Buttons (prev & next)
                 if(event.passedParams.disableButton){
-                    map.legendHeatmapDiv.innerHTML +=
+                    innerHTML +=
                         '<div id="heatmapNavigationCnt">' +
                         //   '<a href="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
                         //   '<a href="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
@@ -20065,7 +20172,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         //  '<a href="#" id="nextHeatmapPage">Next &gt;</a>'
                         '</div>';
                 }else{
-                    map.legendHeatmapDiv.innerHTML +=
+                    innerHTML +=
                         '<div id="heatmapNavigationCnt">' +
                         //   '<a href="javascript:prevHeatmapPage()" id="btn_prev">Prev</a>'
                         //   '<a href="javascript:nextHeatmapPage()" id="btn_next">Next</a>'
@@ -20080,12 +20187,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         '</div>';
                 }
                 if (baseQuery.includes("heatmap.php")) {   // OLD HEATMAP
-                    map.legendHeatmapDiv.innerHTML +=
+                        innerHTML +=
                         '<div id="radiusCnt">' +
                         // '<input type="checkbox" name="checkfield" id="g01-01" onchange="updateChangeRadiusOnZoom(this)"/> Change Radius on Zoom' +
                         '<input type="checkbox" name="checkfield" id="<?= $_REQUEST['name_w'] ?>_changeRad"/> Change Radius on Zoom' +
                         '</div>';
-                    map.legendHeatmapDiv.innerHTML +=
+                        innerHTML +=
                         '<div id="radiusEstCnt"">' +
                         // '<input type="checkbox" name="checkfield" id="g01-01" onchange="updateChangeRadiusOnZoom(this)"/> Change Radius on Zoom' +
                         '<input type="checkbox" name="checkfield" id="<?= $_REQUEST['name_w'] ?>_estimateRad" disabled="true"/> Estimate Radius Based on Data' +
@@ -20137,24 +20244,25 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 }
                 setTimeout(checkLegend, 500);
-
+                    map.legendHeatmapDiv.html(innerHTML)
+                    console.log('map.legendHeatmapDiv :>> ', map.legendHeatmapDiv);
+                    $('#deck-info-content').append(map.legendHeatmapDiv);
                 return map.legendHeatmapDiv;
             };
 
             // INIZIO TRAFFICFLOWMANAGER GESTIONE LEGENDA + SLIDER OPACITA', PAGINE E ANIMAZIONE
-            map.trafficLegendHeatmap.onAdd = function () {
-                map.trafficLegendHeatmapDiv = L.DomUtil.create('div');
-                map.trafficLegendHeatmapDiv.id = "trafficHeatmapLegend";
-                if (L.Browser.touch) {
-                    L.DomEvent.disableClickPropagation(map.trafficLegendHeatmapDiv);
-                    L.DomEvent.on(map.trafficLegendHeatmapDiv, 'mousewheel', L.DomEvent.stopPropagation);
-                } else {
-                    L.DomEvent.on(map.trafficLegendHeatmapDiv, 'click', L.DomEvent.stopPropagation);
-                }
-                map.trafficLegendHeatmapDiv.style.width = "340px";
-                map.trafficLegendHeatmapDiv.style.fontWeight = "bold";
-                map.trafficLegendHeatmapDiv.style.background = "#cccccc";
-                map.trafficLegendHeatmapDiv.style.padding = "10px";
+            map.trafficLegendHeatmap.create = function () {
+            	map.trafficLegendHeatmapDiv = $('<div id="trafficHeatmapLegend" class="trafficDiv"></div>');
+                // if (L.Browser.touch) {
+                //     L.DomEvent.disableClickPropagation(map.trafficLegendHeatmapDiv);
+                //     L.DomEvent.on(map.trafficLegendHeatmapDiv, 'mousewheel', L.DomEvent.stopPropagation);
+                // } else {
+                //     L.DomEvent.on(map.trafficLegendHeatmapDiv, 'click', L.DomEvent.stopPropagation);
+                // }
+                // map.trafficLegendHeatmapDiv.css("width","340px");
+                map.trafficLegendHeatmapDiv.css("fontWeight","bold");
+                // map.trafficLegendHeatmapDiv.css("background","#cccccc");
+                map.trafficLegendHeatmapDiv.css("padding","15px");
 
                 let colors = [];
                 colors['blue'] = '#0000FF';
@@ -20180,12 +20288,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 colors_value['tomato'] = '#FF6347';
                 colors_value['orangered'] = '#FF4500';
                 colors_value['red'] = '#FF0000';
-                map.trafficLegendHeatmapDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + trafficMapName + '</div>';
-                map.trafficLegendHeatmapDiv.innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:50%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Traffic Heatmap Controls:"); ?></div><div class="text" style="width:50%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation_traffic"><div class="slider round"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
+                var innerHTML = ""
+                innerHTML += '<div class="textTitle" style="text-align:center">' + trafficMapName + '</div>';
+                // FIX MENTINA, cambiate width in 65% e 35% da 50% e 50%
+                innerHTML += '<div id="<?= $_REQUEST['name_w'] ?>_controlsContainer" style="height:20px"><div class="text"  style="width:65%; float:left">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Traffic Heatmap Controls:"); ?></div><div class="text" style="width:35%; float:right"><label class="switch"><input type="checkbox" id="<?= $_REQUEST['name_w'] ?>_animation_traffic"><div class="slider round"><span class="animationOn"></span><span class="animationOff" style="color: black; text-align: right">24H</span><span class="animationOn" style="color: black; text-align: right">Static</span></div></label></div></div>';
 
                 // max opacity
-                map.trafficLegendHeatmapDiv.innerHTML +=
-                    '<div id="trafficHeatmapOpacityControl">' +
+                innerHTML +=
+                        '<div id="trafficHeatmapOpacityControl">' +
                     '<div style="display:inline-block; vertical-align:super;">Max Opacity: &nbsp;&nbsp;&nbsp;&nbsp;</div>' +
                     '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_opacity_traffic" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>&nbsp;&nbsp;&nbsp;' +
                     '<input id="<?= $_REQUEST['name_w'] ?>_slidermaxTrafficOpacity" style="display:inline-block; vertical-align:baseline; width:auto" type="range" min="0" max="1" value="' + current_traffic_opacity + '" step="0.01">' +
@@ -20194,7 +20304,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     '</div>';
 
                 // Traffic Heatmap Navigation Buttons (prev & next)
-                map.trafficLegendHeatmapDiv.innerHTML +=
+                    innerHTML +=
                     '<div id="heatmapNavigationCnt_traffic">' +
                     '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButt_traffic" value="< Prev" style="float: left"/>' +
                     '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButt_traffic" value="Next >" style="float: right"/>' +
@@ -20220,6 +20330,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 }
                 setTimeout(checkLegend, 500);
+                    map.trafficLegendHeatmapDiv.html(innerHTML)
+                    console.log('map.trafficLegendHeatmapDiv :>> ', map.trafficLegendHeatmapDiv);
+                    $('#deck-info-content').append(map.trafficLegendHeatmapDiv);
                 return map.trafficLegendHeatmapDiv;
             };
 
@@ -20236,8 +20349,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 }
                 map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
-                map.defaultMapRef.removeControl(map.eventsOnMap[index + 1].legendColors);
-                map.eventsOnMap.splice(index, 2);
+                if (map.eventsOnMap[index + 1] != null && map.eventsOnMap[index + 1].legendColors != null) {
+                    map.defaultMapRef.removeControl(map.eventsOnMap[index + 1].legendColors);
+                    map.eventsOnMap.splice(index, 2);
+                } else {
+                    map.eventsOnMap.splice(index, 1);
+                }
             }
 
             function nextTrafficHeatmapPage() {
@@ -20779,9 +20896,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     current_page_traffic = 0;
                                     break;
                                 }
-                            } else if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
+                            } /*else if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
                                 // logica per evitare di rimuovere layer di trafficflowmanager
-                            } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate") && map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
+                            } */else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate") && map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
                                 // logica per evitare di rimuovere layer di trafficflowmanager
                             } else if (i > 0 && map.eventsOnMap[i - 1]._url && map.eventsOnMap[i - 1]._url.includes("animate") && map.eventsOnMap[i - 1].options.pane.includes("TrafficFlowManager")) {
                                 // logica per evitare di rimuovere layer di trafficflowmanager
@@ -20812,9 +20929,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     map.defaultMapRef.removeControl(map.flowInfo);
                                     map.eventsOnMap.splice(i, 1);
                                 } else if (map.eventsOnMap[i].type === 'addOD') {
+                                    $('#od-info-btn').css('display', 'none');
+                                    $('#odLegend').remove();
+                                    $('#od-info-btn')[0].className = "deck-btn"
                                     current_page = 0;
                                     map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
                                     map.eventsOnMap.splice(i, 1);
+                                    map.defaultMapRef.off('click', odmapClick);
                                 } else if (map.eventsOnMap[i].type === 'addPolyStat') {
                                     map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
                                     map.eventsOnMap.splice(i, 1);
@@ -20935,13 +21056,25 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 }
 
                                 // Add Legend
-                                map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+                                // FIX MENTINA commentato addTo sotto ed aggiunta codice
+                                if ($('#traffic-info-btn').css('display') === 'block') {
+                                    animationOn = false;
+                                    $('#trafficHeatmapLegend').remove();
+                                }
+                                $('#traffic-info-btn').css('display', 'block');
+                                $('#traffic-info-btn').click();
+                                // if ($('#trafficHeatmapLegend').length != 0)
+                                //     $('#trafficHeatmapLegend').css('display', 'none');
+                                map.trafficLegendHeatmap.create();
+                                // map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+                                //FINE FIX MENTINA
                                 map.eventsOnMap.push(heatmap);
-                                const heatmapLegendColors = L.control({ position: 'bottomright' });
+                                    const heatmapLegendColors = L.control({ position: 'bottomleft' });
                                 heatmapLegendColors.onAdd = function () {
-                                    const div = L.DomUtil.create('div', 'info legend');
+                                    const div = L.DomUtil.create('div', 'info legend extraInfo trafficDiv');
                                     const legendImgPath = "../trafficRTDetails/legend.png";
-                                    div.innerHTML += " <img src=" + legendImgPath + " height='120'" + '<br style="margin-bottom:20px;">';
+                                    div.innerHTML += " <img src=" + legendImgPath + " height='120'>";
+                                    div.id = "trafficLegendColors"
                                     return div;
                                 };
                                 heatmapLegendColors.addTo(map.defaultMapRef);
@@ -21096,8 +21229,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                                                 //    current_opacity = 0.5;
 
+                                                // FIX MENTINA commentato map.legendHeatmap.addTo e aggiunto codice per info-btn
+                                                if ($('#heatmap-info-btn').css('display') === 'block') {
+                                                	animationOn = false;
+                                                        $('#heatmapLegend').remove();
+                                                }
+                                                $('#heatmap-info-btn').css('display', 'block');
+                                                $('#heatmap-info-btn').click();
+                                                // if ($('#trafficHeatmapLegend').length != 0)
+                                                //     $('#trafficHeatmapLegend').css('display', 'none');
+                                                map.legendHeatmap.create();
                                                 // add legend to map
-                                                map.legendHeatmap.addTo(map.defaultMapRef);
+                                                // map.legendHeatmap.addTo(map.defaultMapRef);
 
                                                 if(event.passedParams.disableButton){
                                                     document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButt").style.visibility = "hidden";
@@ -21112,11 +21255,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                                                 heatmapLegendColors.onAdd = function (map) {
 
-                                                    var div = L.DomUtil.create('div', 'info legend'),
+                                                    var div = L.DomUtil.create('div', 'info legend extraInfo heatmapDiv'),
                                                         grades = ["Legend"];
                                                     //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
                                                     var legendImgPath = heatmapRange[0].iconPath; // OLD-API
                                                     div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
+                                                    div.id = "heatmapLegendColors"
                                                     return div;
                                                 };
 
@@ -21343,9 +21487,29 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             });
 
                         }
-
+			
                         // Add legend and heatmap
-                        map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+			// FIX MENTINA commentato addTo sotto ed aggiunta codice
+			if ($('#traffic-info-btn').css('display') === 'block') {
+				animationOn = false;
+				$('#trafficHeatmapLegend').remove();
+			}
+			$('#traffic-info-btn').css('display', 'block');
+			$('#traffic-info-btn').click();
+			// if ($('#trafficHeatmapLegend').length != 0)
+			//     $('#trafficHeatmapLegend').css('display', 'none');
+			map.trafficLegendHeatmap.create();
+			// map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+			//FINE FIX MENTINA
+			map.eventsOnMap.push(heatmap);
+				const heatmapLegendColors = L.control({ position: 'bottomleft' });
+			heatmapLegendColors.onAdd = function () {
+				const div = L.DomUtil.create('div', 'info legend extraInfo trafficDiv');
+				const legendImgPath = "../trafficRTDetails/legend.png";
+				div.innerHTML += " <img src=" + legendImgPath + " height='120'>";
+				div.id = "trafficLegendColors"
+				return div;
+			};
                         map.eventsOnMap.push(heatmap);
 
                     } else {
@@ -21408,8 +21572,27 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             pane: 'TrafficFlowManager:' + datasetName
                         }).addTo(map.defaultMapRef);
 
-                        // Add legend (w/ correct options) and animated layer to the maps
-                        map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+                        // FIX MENTINA commentato addTo sotto ed aggiunta codice
+			if ($('#traffic-info-btn').css('display') === 'block') {
+				animationOn = false;
+				$('#trafficHeatmapLegend').remove();
+			}
+			$('#traffic-info-btn').css('display', 'block');
+			$('#traffic-info-btn').click();
+			// if ($('#trafficHeatmapLegend').length != 0)
+			//     $('#trafficHeatmapLegend').css('display', 'none');
+			map.trafficLegendHeatmap.create();
+			// map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+			//FINE FIX MENTINA
+			map.eventsOnMap.push(heatmap);
+				const heatmapLegendColors = L.control({ position: 'bottomleft' });
+			heatmapLegendColors.onAdd = function () {
+				const div = L.DomUtil.create('div', 'info legend extraInfo trafficDiv');
+				const legendImgPath = "../trafficRTDetails/legend.png";
+				div.innerHTML += " <img src=" + legendImgPath + " height='120'>";
+				div.id = "trafficLegendColors"
+				return div;
+			};
                         document.getElementById("<?= $_REQUEST['name_w'] ?>_animation_traffic").checked = true;
                         $("<?= $_REQUEST['name_w'] ?>_slidermaxTrafficOpacity").slider('disable');
                         map.eventsOnMap.push(animatedLayer);
@@ -21621,8 +21804,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                                                     }
 
+                                                    // FIX MENTINA commentato map.legendHeatmap.addTo e aggiunto codice per info-btn
+                                                    if ($('#heatmap-info-btn').css('display') === 'block') {
+                                                        animationOn = false;
+                                                        $('#heatmapLegend').remove();
+                                                    }
+                                                    $('#heatmap-info-btn').css('display', 'block');
+                                                    $('#heatmap-info-btn').click();
+                                                    // if ($('#trafficHeatmapLegend').length != 0)
+                                                    //     $('#trafficHeatmapLegend').css('display', 'none');
+                                                    map.legendHeatmap.create();
                                                     // add legend to map
-                                                    map.legendHeatmap.addTo(map.defaultMapRef);
+                                                    // map.legendHeatmap.addTo(map.defaultMapRef);
                                                     map.eventsOnMap.push(heatmap);
                                                     var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
 
@@ -21632,11 +21825,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                                                     heatmapLegendColors.onAdd = function (map) {
 
-                                                        var div = L.DomUtil.create('div', 'info legend'),
+                                                        var div = L.DomUtil.create('div', 'info legend extraInfo heatmapDiv'),
                                                             grades = ["Legend"];
                                                         //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
                                                         var legendImgPath = heatmapRange[0].iconPath; // OLD-API
                                                         div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
+							div.id = "heatmapLegendColors"
                                                         return div;
                                                     };
 
@@ -21725,17 +21919,28 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     pane: 'Snap4City:' + wmsDatasetName	// CORTI
                                                 }).addTo(map.defaultMapRef);
 
+                                                // FIX MENTINA commentato map.legendHeatmap.addTo e aggiunto codice per info-btn
+                                                if ($('#heatmap-info-btn').css('display') === 'block') {
+                                                animationOn = false;
+                                                    $('#heatmapLegend').remove();
+                                                }
+                                                $('#heatmap-info-btn').css('display', 'block');
+                                                $('#heatmap-info-btn').click();
+                                                // if ($('#trafficHeatmapLegend').length != 0)
+                                                //     $('#trafficHeatmapLegend').css('display', 'none');
+                                                map.legendHeatmap.create();
                                                 // add legend to map
-                                                map.legendHeatmap.addTo(map.defaultMapRef);
+                                                // map.legendHeatmap.addTo(map.defaultMapRef);
                                                 var heatmapLegendColors = L.control({ position: 'bottomleft' });
 
                                                 heatmapLegendColors.onAdd = function (map) {
 
-                                                    var div = L.DomUtil.create('div', 'info legend'),
+                                                    var div = L.DomUtil.create('div', 'info legend extraInfo heatmapDiv'),
                                                         grades = ["Legend"];
                                                     //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
                                                     var legendImgPath = heatmapRange[0].iconPath;         // OLD-API
                                                     div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    // OLD-API
+						    div.id = "heatmapLegendColors"
                                                     return div;
                                                 };
 
@@ -21974,8 +22179,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                 // ANIMATED GIF LAYER
                                                 var animatedLayer = L.imageOverlay(imageUrl, imageBounds, { opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName }).addTo(map.defaultMapRef);
 
+						// FIX MENTINA commentato map.legendHeatmap.addTo e aggiunto codice per info-btn
+                                                if ($('#heatmap-info-btn').css('display') === 'block') {
+                                                    animationOn = false;
+                                                    $('#heatmapLegend').remove();
+                                                }
+                                                $('#heatmap-info-btn').css('display', 'block');
+                                                $('#heatmap-info-btn').click();
+                                                // if ($('#trafficHeatmapLegend').length != 0)
+                                                //     $('#trafficHeatmapLegend').css('display', 'none');
+                                                map.legendHeatmap.create();
                                                 // add legend to map
-                                                map.legendHeatmap.addTo(map.defaultMapRef);
+                                                //map.legendHeatmap.addTo(map.defaultMapRef);
                                                 //    $("<?= $_REQUEST['name_w'] ?>_animation").prop("checked",true);
                                                 document.getElementById("<?= $_REQUEST['name_w'] ?>_animation").checked = true;
                                                 //     $("<?= $_REQUEST['name_w'] ?>_slidermaxOpacity").slider({ disabled: "true" });
@@ -21989,11 +22204,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                                                 heatmapLegendColors.onAdd = function (map) {
 
-                                                    var div = L.DomUtil.create('div', 'info legend'),
+                                                    var div = L.DomUtil.create('div', 'info legend extraInfo heatmapDiv'),
                                                         grades = ["Legend"];
                                                     //    labels = ["http://localhost/dashboardSmartCity/trafficRTDetails/legend.png"];
                                                     var legendImgPath = heatmapRange[0].iconPath; // OLD-API
                                                     div.innerHTML += " <img src=" + legendImgPath + " height='100%'" + '<br>';    /// OLD-API
+						    div.id = "heatmapLegendColors"
                                                     return div;
                                                 };
                                                     
@@ -22829,7 +23045,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     const scaledY = start.y;
                                     let d = p.dist(p.mouseX, p.mouseY, scaledX, scaledY);
                                     if (d < 10) {
-                                        hoverInfo.push({ x: scaledX, y: scaledY, magnitude: this.magnitudeMatrix[j][i], angle: this.angleMatrix[j][i] });
+                                        hoverInfo.push({ x: scaledX, y: scaledY, magnitude: this.magnitudeMatrix[j][i], angle: this.bearingAngle + this.angleMatrix[j][i] });
                                     }
 
                                     if(this.magnitudeMatrix[j][i]<=0){
@@ -23151,11 +23367,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 map.defaultMapRef.removeControl(map.eventsOnMap[index].legendColors);
             }
 
+            // FIX MENTINA, legendOdDiv.onAdd e modificato in create, incorporato anche map.flowInfo.onAdd
 
-
-            map.legendOd.onAdd = function () {
-                map.legendOdDiv = L.DomUtil.create('div');
-                map.legendOdDiv.id = "odLegend";
+            map.legendOd.create = () => {
+            	map.mainOdDiv = $("<div id=mainOdDiv class=odDiv/>")[0]
+                map.legendOdDiv = $("<div id=odLegend/>")[0]
                 // disable interaction of this div with map
                 if (L.Browser.touch) {
                     L.DomEvent.disableClickPropagation(map.legendOdDiv);
@@ -23163,9 +23379,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 } else {
                     L.DomEvent.on(map.legendOdDiv, 'click', L.DomEvent.stopPropagation);
                 }
-                map.legendOdDiv.style.width = panelWidth; //"340px";
+            	map.legendOdDiv.style.width = "100%"; //panelWidth"340px";
                 map.legendOdDiv.style.fontWeight = "bold";
-                map.legendOdDiv.style.background = panelBackgroundColor; //"#cccccc";
+                // map.legendOdDiv.style.background = panelBackgroundColor; //"#cccccc";
                 map.legendOdDiv.style.padding = "10px";
                 map.legendOdDiv.style.color = panelFontColor;
                 map.legendOdDiv.style.fontSize = panelFontSize;
@@ -23459,10 +23675,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }
 
                 setTimeout(checkLegend, 500);
-                return map.legendOdDiv;
-            };
+                //    return map.legendOdDiv;
+                //};
+	    	    $("#deck-info-content").append(map.mainOdDiv)
+                $(map.mainOdDiv).append(map.legendOdDiv)
+                map.flowInfoDiv = $("<div class='info'/>")[0]
 
-            map.flowInfo.onAdd = function () {
+          /*  map.flowInfo.onAdd = function () {
                 map.flowInfoDiv = L.DomUtil.create('div', 'info');
                 // disable interaction of this div with map
                 if (L.Browser.touch) {
@@ -23470,16 +23689,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     L.DomEvent.on(map.flowInfoDiv, 'mousewheel', L.DomEvent.stopPropagation);
                 } else {
                     L.DomEvent.on(map.flowInfoDiv, 'click', L.DomEvent.stopPropagation);
-                }
-                map.flowInfoDiv.style.width = dataPanelWidth; // "240px" //"170px";
+                }*/
+                map.flowInfoDiv.style.width = "100%"; //dataPanelWidth // "240px" //"170px";
                 map.flowInfoDiv.style.fontWeight = "bold";
-                map.flowInfoDiv.style.background = panelBackgroundColor; //"#cccccc";
+                // map.flowInfoDiv.style.background = panelBackgroundColor; //"#cccccc";
                 map.flowInfoDiv.style.color = panelFontColor;
                 map.flowInfoDiv.style.fontSize = dataPanelFontSize;
                 map.flowInfoDiv.style.padding = "10px";
-                this.update();
-                return map.flowInfoDiv;
-            };
+                map.flowInfo.update();
+                $(map.mainOdDiv).append(map.flowInfoDiv)
+                // return map.flowInfoDiv;
+                return map.legendOdDiv;
+
+          }
+         //       this.update();
+         //       return map.flowInfoDiv;
+         //   };
 
             map.flowInfo.update = function (props) {
                 // map.flowInfoDiv.innerHTML = '<div>OD Flows<br />' + (props ?
@@ -23804,11 +24029,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     if (map.eventsOnMap[i].eventType === 'od') {
                                         removeOd(false);
                                         map.eventsOnMap.splice(i, 1);
-                                    } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                                        if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
-                                            map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                                            map.eventsOnMap.splice(i, 1);
-                                        }
+                                            // FIX MENTINA, commentato else if
+                                        // } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                                        //     if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                                        //         map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                                        //         map.eventsOnMap.splice(i, 1);
+                                        //     }
                                     }
                                 }
 
@@ -24056,7 +24282,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             removeOd(false);
                             map.eventsOnMap.splice(i, 1);
                         } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                            if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                            //if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                            if (map.eventsOnMap[i].type == 'addOD') {
                                 map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                                 map.eventsOnMap.splice(i, 1);
                             }
@@ -24117,10 +24344,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             removeOd(false);
                             map.eventsOnMap.splice(i, 1);
                         } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                            if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                            //if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
+                        /*    if (map.eventsOnMap[i].type == 'addOD') {
                                 map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                                 map.eventsOnMap.splice(i, 1);
-                            }
+                            }*/
                         }
                     }
 
@@ -24749,10 +24977,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             } else if (map.eventsOnMap[i].eventType === 'heatmap') {
                                 map.defaultMapRef.removeLayer(wmsLayer);
                                 map.defaultMapRef.removeControl(map.legendHeatmap);
+                                // FIX MENTINA, conflitto tra odm e heatmap
+                                $('#heatmap-info-btn').css('display', 'none');
+                                $('#heatmapLegend').remove();
+                                $('#heatmap-info-btn')[0].className = "deck-btn"
                                 map.eventsOnMap.splice(i, 1);
                             } else if (map.eventsOnMap[i].type === 'addHeatmap') {
-                                map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
-                                map.eventsOnMap.splice(i, 1);
+                            	// FIX MENTINA, commentato
+                            	// map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
+                                // map.eventsOnMap.splice(i, 1);
                             }
                         }
                     }
@@ -24848,17 +25081,25 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 }
                                 shapeTypes = data;
 
+                                // FIX MENTINA, aggiunto create e commentato addTo
+                                if ($('#od-info-btn').css('display') === 'block') {
+                                    animationOn = false;
+                                    $('#mainOdDiv').remove();
+                                }
+                                $('#od-info-btn').css('display', 'block');
+                                $('#od-info-btn').click();
+                                map.legendOd.create()
                                 // add legend to map
-                                map.legendOd.addTo(map.defaultMapRef);
+                                // map.legendOd.addTo(map.defaultMapRef);
                                 document.getElementById("<?= $_REQUEST['name_w'] ?>_odDescr").style.cursor = 'pointer';
-                                map.flowInfo.addTo(map.defaultMapRef);
+                                // map.flowInfo.addTo(map.defaultMapRef);
                                 map.eventsOnMap.push(od);
 
 
                                 var legendColors = L.control({ position: 'bottomleft' });
 
                                 legendColors.onAdd = function () {
-                                    var div = L.DomUtil.create('div', 'info_legend'),
+                                    var div = L.DomUtil.create('div', 'info_legend extraInfo odInfo'),
                                         labels = [],
                                         from, to;
                                     div.id = "info_legend_id";
@@ -25038,11 +25279,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             //if(mapDate !== null){
             load();
             //}
-
+            // FIX MENTINA, aggiunto create e commentato addTo
+            if ($('#od-info-btn').css('display') === 'block') {
+                animationOn = false;
+                $('#mainOdDiv').remove();
+            }
+            $('#od-info-btn').css('display', 'block');
+            $('#od-info-btn').click();
+            map.legendOd.create()
             // add legend to map
-            map.legendOd.addTo(map.defaultMapRef);
+            // map.legendOd.addTo(map.defaultMapRef);
             document.getElementById("<?= $_REQUEST['name_w'] ?>_odDescr").style.cursor = 'pointer';
-            map.flowInfo.addTo(map.defaultMapRef);
+            // map.flowInfo.addTo(map.defaultMapRef);
             map.eventsOnMap.push(od);
 
                             /*loadingDiv.empty();
@@ -26123,6 +26371,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }
                 map.defaultMapRef.removeLayer(wmsLayer);
                 map.defaultMapRef.removeControl(map.legendHeatmap);
+                //FIX MENTINA
+                $('#heatmap-info-btn').css('display', 'none');
+                $('#heatmapLegend').remove();
+                $('#heatmap-info-btn')[0].className = "deck-btn"
+                switchToFirstActiveInfoMenu();
+                // FINE FIX MENTINA
             }
         }
 
@@ -26171,8 +26425,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             newTfrLayer = null;
                         }
                         map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
-                        map.defaultMapRef.removeControl(map.eventsOnMap[i + 1].legendColors);
-                        map.eventsOnMap.splice(i, 2);
+                        if (i < map.eventsOnMap.length-1 && map.eventsOnMap[i + 1].passedData 
+                                && map.eventsOnMap[i + 1].passedData.includes("&trafficflowmanager=true")) {
+                            map.defaultMapRef.removeControl(map.eventsOnMap[i + 1].legendColors);
+                            map.eventsOnMap.splice(i, 2);
+                        } else {
+                            map.eventsOnMap.splice(i, 1);
+                        }
+			// FIX MENTINA
+                        $('#traffic-info-btn').css('display', 'none');
+                        $('#trafficHeatmapLegend').remove();
+                        $('#traffic-info-btn')[0].className = "deck-btn"
+			// END FIX MENTINA
+                        switchToFirstActiveInfoMenu();
                         break;
                     } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate")) {
                         map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
@@ -26182,9 +26447,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         break;
                     }
 
-                } else if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
+                } /*else if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
                     // logica per evitare di rimuovere layer di trafficflowmanager
-                } else if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
+                } */else if (map.eventsOnMap[i].eventType === 'traffic_heatmap') {
                     // logica per evitare di rimuovere layer di trafficflowmanager
                 } else if (i > 0 && map.eventsOnMap[i - 1]._url && map.eventsOnMap[i - 1]._url.includes("animate") && map.eventsOnMap[i - 1].options.pane.includes("TrafficFlowManager")) {
                     // logica per evitare di rimuovere layer di trafficflowmanager
@@ -26194,6 +26459,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     removeHeatmap(true);
                     map.eventsOnMap.splice(i, 1);
                 } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                    $('#heatmap-info-btn').css('display', 'none');
+                    //$('#heatmapLegend').remove();
+                    $('#heatmap-info-btn')[0].className = "deck-btn"
                     removeHeatmapColorLegend(i, true);
                     map.eventsOnMap.splice(i, 1);
                 } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
@@ -26214,13 +26482,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             if (resetPageFlag == true) {
                 current_page = 0;
             }
-            if (geojson_layer !== null) {
+            if (geojson_layer !== null && geojson_layer !== undefined) {
                 map.defaultMapRef.removeLayer(geojson_layer);
             }
-            if (geojson_layer_all !== null) {
+            if (geojson_layer_all !== null && geojson_layer_all !== undefined) {
                 map.defaultMapRef.removeLayer(geojson_layer_all);
             }
-            if (sourcePolygon !== null) {
+            if (sourcePolygon !== null && sourcePolygon !== undefined) {
                 map.defaultMapRef.removeLayer(sourcePolygon);
             }
             map.defaultMapRef.removeControl(map.legendOd);
@@ -26244,12 +26512,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 } else if (map.eventsOnMap[i].type === 'addOD') {
                     removeOdColorLegend(i, true);
                     map.eventsOnMap.splice(i, 1);
-                } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                    if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
-                        map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
-                        map.eventsOnMap.splice(i, 1);
-                        removeOd(true);
-                    }
+                    // FIX MENTINA, commentato else if
+                // } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
+                //     if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
+                //         map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                //         map.eventsOnMap.splice(i, 1);
+                //         removeOd(true);
+                //     }
                 }
             }
         }
@@ -26262,6 +26531,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         map.defaultMapRef.off('zoomend', showAllPolyOdMapZoomend);
         map.defaultMapRef.off('moveend', showAllPolyOdMapMoveend);
         map.defaultMapRef.off('newOdDatetime', newOdDateTimeFunc);
+        //FIX MENTINA
+        $('#od-info-btn').css('display', 'none');
+        $('#od-info-btn')[0].className = "deck-btn"
+        $('#mainOdDiv').remove();
+        $('#odLegend').remove();
+        switchToFirstActiveInfoMenu();
+        removeOd(true)
+        // FINE FIX MENTINA
 
     });
 
@@ -29858,9 +30135,54 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     }
 
 
-                    ////////
+        function unselectInfo() {
+            const tabs = $('#deck-info-tab').children();
+            tabs.addClass('deck-btn').removeClass('deck-btn-active deck-btn-collapsed');
 
-        });//Fine document ready
+            const contents = $('#deck-info-content').children().hide();
+
+            // FIX MENTINA, nascondi extraInfo
+            $(".extraInfo").hide()
+        }
+
+        function selectFirstInfoTabAvaiable() {
+            const tabs = $('#deck-info-tab a');
+            for (let i = 0; i < tabs.length; i++) {
+                if (tabs[i].style.display !== 'none') {
+                    tabs[i].click();
+                    break;
+                }
+            }
+        }
+
+        // FIX MENTINA cambiata logica per selezionare firstActive
+        function switchToFirstActiveInfoMenu() {
+            let active = $(".deck-btn-active:visible:first")
+            if(active.length) active.dblclick()
+            else $(".deck-btn:visible:first").click()
+            
+            // if ($('#heatmap-info-btn').css('display') === 'block')
+            //     $('#heatmap-info-btn').click();
+            // else if ($('#traffic-info-btn').css('display') === 'block')
+            //     $('#traffic-info-btn').click();
+        }
+        
+        // FIX MENTINA, eventi onClick
+        $('#deck-info-tab > a').click((event) => {
+            console.log('event.currentTarget :>> ', event.currentTarget);
+            let btn = event.currentTarget
+            if(btn.className.includes("active")){
+                // Già attivo
+                btn.className = "deck-btn-collapsed"
+                $(`.${btn.id.split("-")[0]+"Div"}:not(.extraInfo)`).hide()
+            }else{
+                unselectInfo()
+                btn.className = "deck-btn-active"
+                $(`.${btn.id.split("-")[0]+"Div"}`).show()
+            }
+        })
+
+    });//Fine document ready
 
      
 
@@ -29928,6 +30250,177 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         -webkit-user-select: none;
         -ms-user-select: none;
         user-drag: element;
+    }
+
+    /* CSS FIX MENTINA */
+    #mainOdDiv *:is(select, button, input) {
+        color: black;
+    }
+
+    #mainOdDiv *:not(input, button, select) {
+        color: var(--text-color);
+    }
+    #scenarioContent-div, .scenaryDiv:not(.extraInfo) > * {
+        min-width: 5vw !important;
+        display: flex;
+        flex-direction: column !important;
+        color: #333333;
+        /* background-color: white; */
+        padding: 10px !important;
+        border: 0px solid rgba(0, 0, 0, 0.2) !important;
+        border-radius: 4px !important;
+        background-clip: padding-box !important;
+    }
+
+    .scenaryDiv:not(.extraInfo) > * {
+        min-width: 20vw !important;
+    }
+
+    #scenarioContent-div > *:not(input, div), .scenaryDiv:not(.extraInfo) > #scenario-content > [id*=-content] > table > tbody> tr> td>*:not(input, button, select) {
+        color: var(--text-color);
+    }
+
+    #selection {
+        color: var(--text-color);
+    }
+
+    .leaflet-bottom.leaflet-left {
+        display: flex;
+        align-items: flex-end;
+    }
+
+    #universal-map-container{
+        position: relative !important;
+        top: -100% !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        pointer-events: none;
+    }
+    
+    #universal-map-controls {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        z-index: 1050;
+        height: 100%;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    #universal-top-left,
+    #universal-bottom-left,
+    #universal-top-middle,
+    #universal-bottom-middle,
+    #universal-top-right,
+    #universal-bottom-right {
+        position: absolute;
+        pointer-events: none;
+        margin: 1vh 0.5vw;
+    }
+
+    #universal-top-left *,
+    #universal-bottom-left *,
+    #universal-top-middle *,
+    #universal-bottom-middle *,
+    #universal-top-right *,
+    #universal-bottom-right * {
+        pointer-events: auto;
+    }
+
+    #universal-top-left {
+        top: 0;
+        left: 0;
+    }
+
+    #universal-bottom-left {
+        bottom: 0;
+        left: 0;
+    }
+
+    #universal-top-middle {
+        top: 0;
+        left: 33.3%;
+        right: 33.3%;
+    }
+
+    #universal-bottom-middle {
+        bottom: 0;
+        left: 33.3%;
+        right: 33.3%;
+    }
+
+    #universal-top-right {
+        top: 0;
+        right: 0;
+        background-color: white;
+        /* FIX MENTINA, messo 0px !important da 30px */
+        border-radius: 0px !important;
+    }
+
+    #universal-bottom-right {
+        bottom: 0;
+        right: 0;
+    }
+
+    #deck-info-tab {
+        height: 42px;
+        margin-bottom: 10px;
+    }
+
+    /* FIX MENTINA, commentato text-decoration, border e margin-left, messo radius a 0px !important da 30px */
+    #deck-info-tab a {
+        float: left;
+        /* font-size: 2em; */
+        /* text-decoration: none; */
+        display: block;
+        color: black;
+        padding: 8px 0px;
+        text-align: center;
+        border-radius: 0px !important;
+        margin-bottom: 15px;
+        /* border: 1px solid rgba(0, 0, 0, 0.1); */
+        width: 100px;
+        /* margin-left: 10px; */
+    }
+
+    #deck-info-content > *{
+        border-radius: 30px;
+    }
+
+    #deck-info-content #selection {
+        background: none;
+    }
+
+    #deck-info-content .leaflet-routing-geocoders {
+        color: black;
+    }
+
+    /* FIX MENTINA, cambiato da 0.1 opacità a 0 */
+    .deck-btn {
+        box-shadow: 0px 10px rgba(0, 0, 0, 0) !important;
+    }
+
+    .deck-btn:hover {
+        box-shadow: 0px 8px rgba(0, 0, 0, 0.25) !important;
+        transform: translate(0px, 2px);
+    }
+
+    .deck-btn-active {
+        box-shadow: 0px 5px rgba(0, 0, 0, 0) !important;
+        transform: translate(0px, 5px);
+        /* FIX MENTINA, AGGIUNTE 2 REGOLE */
+        background-color: rgba(150, 150, 150, 0.5);
+        text-decoration: underline;
+    }
+    /* FIX MENTINA AGGIUNTA CLASSE */
+    .deck-btn-collapsed {
+        box-shadow: 0px 5px rgba(0, 0, 0, 0) !important;
+        transform: translate(0px, 5px);
+        /* FIX MENTINA, AGGIUNTE 2 REGOLE */
+        background-color: rgba(0, 0, 0, 0.2);
+        text-decoration: underline;
     }
 </style>
 <!-- FINE OD POPUP STYLE -->
@@ -30013,9 +30506,31 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 <!--    <div id="3DMapContainer" style="height: 500px">
                     <div id="3DMap" style="height: 500px"></div>
                 </div>	--> <!-- FINE Layers & 3D CORTI -->
+                <!--FIX MENTINA  -->
+                <!-- Controlli universali -->
+                <div id="universal-map-container">
 
-            </div>
-            <div id="p5-container"></div>
+                    <div id="universal-map-controls">
+                        <div id="universal-top-left"></div>
+                        <div id="universal-bottom-left"></div>
+                        <div id="universal-top-middle"></div>
+                        <div id="universal-bottom-middle"></div>
+                        <div id="universal-top-right">
+                            <div id="deck-info-tab">
+                                <a id="heatmap-info-btn" class="deck-btn" style="display: none;" href="#">Heatmap</a>
+                                <a id="traffic-info-btn" class="deck-btn" style="display: none;" href="#">Traffic</a>
+                                <a id="scenario-info-btn" class="deck-btn" style="display: none;" href="#">Scenario</a>
+                                <a id="whatif-info-btn" class="deck-btn" style="display: none;" href="#">What-If</a>
+                                <a id="scenary-info-btn" class="deck-btn" style="display: none;" href="#">Scenary</a>
+                                <a id="od-info-btn" class="deck-btn" style="display: none;" href="#">ODM</a>
+                            </div>
+                            <div id="deck-info-content"></div>
+                        </div>
+                        <div id="universal-bottom-right"></div>
+                    </div>
+                </div>
+                <!-- FINE FIX MENTINA -->
+            <div id="p5-container"></div></div>
         </div>
     </div>
     <div id="<?= $_REQUEST['name_w'] ?>_code"></div>

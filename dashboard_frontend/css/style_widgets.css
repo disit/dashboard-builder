@@ -4265,3 +4265,12 @@ p.gisMapLoadingDivTextPar
     display: flex;
     align-items: center;
 }
+div#heatmapLegend, div#trafficHeatmapLegend, div#mainOdDiv, .scenarioDiv, .whatifDiv{
+    background: rgb(204, 204, 204);
+    border-radius: 0 !important;
+}
+
+#deck-info-tab, #scenario-content {
+    background: rgb(204, 204, 204);
+    margin-bottom: 1px !important;
+}

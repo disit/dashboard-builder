@@ -3888,15 +3888,32 @@
                         if(isset($_POST['parametersM']) && ($_POST['parametersM']!="")) {
                             $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
                             $parametersArray = json_decode($parametersM);
+                            if ($parametersArray->dropdownMenu) {
+                                // if an orthomap json already exists, update only latLng and zoom
                                 $latLngCenterMap = $parametersArray->latLng;
                                 $zoomMap = $parametersArray->zoom;
                                 $parametersArray->latLng = $latLngCenterMap;
                                 $parametersArray->zoom = $zoomMap;
                                 $parametersM = json_encode($parametersArray);
+                            } else {
+                                // if there isn't any orthomap json, create it using the organization template
+                                $tempParametersArray = $parametersArray;
+                                $latLngCenterMap = $tempParametersArray->latLng;
+                                $zoomMap = $tempParametersArray->zoom;
+                                $orthomapJsonArray['latLng'] = $latLngCenterMap;
+                                $orthomapJsonArray['zoom'] = $zoomMap;
+                                $parametersM = json_encode($orthomapJsonArray);
+                            }
                         }
 
                     } else if ($showOrthomapsM == "no") {
                         if(isset($_POST['parametersM']) && ($_POST['parametersM']!="")) {
+                            $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
+                            $tempParametersArray = json_decode($parametersM);
+                            $latLngCenterMap = $tempParametersArray->latLng;
+                            $zoomMap = $tempParametersArray->zoom;
+                            $parametersArray = array('latLng' => $latLngCenterMap, 'zoom' => $zoomMap);
+                            $parametersM = json_encode($parametersArray);
                             $infoJsonM = "no";
                         }
                     }

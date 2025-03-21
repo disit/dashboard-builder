@@ -224,10 +224,12 @@ div.widgetSeparator
 
 .map2dContainer
 {
-  width: calc(100% + 25px);
+    /* FIX MENTINA 04.02.25 commentate queste 2 regole per sistemare width */
+  /* width: calc(100% + 25px); */
+  /* overflow-y: scroll; */
+  width: 100%;
   height: 100%;
   margin: 0 auto;
-  overflow-y: scroll;
   background: var(--wdgt-bg-color);
   -webkit-transition: background 0.5s ease-in-out;
   -ms-transition:     background 0.5s ease-in-out;
@@ -492,12 +494,13 @@ div#heatmapLegend, div#trafficHeatmapLegend{
     background: var(--dash-bg-color)!important;
 }
 
+/* FIX MENTINA 05.02.25 Cambiato color da #fff a black */
 div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button]{
     border: none!important;
     border-radius: 5px;
     background: var(--acc-02-color);
     padding: 5px 10px;
-    color: #fff;
+    color: black;
 }
 
 .mapOptions{
@@ -511,8 +514,9 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     left: 30px!important;
 }
 
+/* FIX MENTINA 05.02.25 Cambiato background-color da var(--bg-color) a white */
 #universal-top-right {
-    background-color: var(--dash-bg-color)!important;
+    background-color: white !important;
     border-radius: 10px!important;
 }
 

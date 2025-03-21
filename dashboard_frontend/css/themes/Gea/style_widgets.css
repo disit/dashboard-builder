@@ -211,10 +211,12 @@ div.widgetSeparator
 
 .map2dContainer
 {
-  width: calc(100% + 25px);
+    /* FIX MENTINA 04.02.25 commentate queste 2 regole per sistemare width */
+  /* width: calc(100% + 25px); */
+  /* overflow-y: scroll; */
+  width: 100%;
   height: 100%;
   margin: 0 auto;
-  overflow-y: scroll;
   background: var(--wdgt-bg-color);
   -webkit-transition: background 0.5s ease-in-out;
   -ms-transition:     background 0.5s ease-in-out;
@@ -554,6 +556,8 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
 .deck-btn-active {
     box-shadow: 0px 5px rgba(0, 0, 0, 0.1)!important;
     transform: translate(0px, 5px);
+    /* FIX MENTINA MAPPA 2D */
+    background-color: rgba(0, 0, 0, 0.15) !important;
 }
 
 .deck-btn-set > button, #deck-zoom-box {

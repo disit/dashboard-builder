@@ -224,10 +224,12 @@ div.widgetSeparator
 
 .map2dContainer
 {
-  width: calc(100% + 25px);
+    /* FIX MENTINA 04.02.25 commentate queste 2 regole per sistemare width */
+  /* width: calc(100% + 25px); */
+  /* overflow-y: scroll; */
+  width: 100%;
   height: 100%;
   margin: 0 auto;
-  overflow-y: scroll;
   background: var(--wdgt-bg-color);
   -webkit-transition: background 0.5s ease-in-out;
   -ms-transition:     background 0.5s ease-in-out;
@@ -3717,10 +3719,14 @@ atafLastUpdateWrapper
 div.gisRollerContainer
 {
    width: 100%;
-   overflow-y: hidden;
+   /* FIX SELECTOR 24.12.24*/
+   /*Prima era hidden*/
+   overflow-y: auto;
    display: flex;
    flex-direction: column;
-   flex-wrap: wrap;
+   /* FIX SELECTOR 24.12.24*/
+   /*Non era commentato*/
+   /* flex-wrap: wrap; */
 }
 
 div.gisRollerContainer .selectorRow{
@@ -3736,8 +3742,17 @@ div.gisRollerContainer .selectorRow:after{
   color: var(--sec-01-color);
 }
 
-.selectorNew{
+/* FIX SELECTOR 24.12.24*/
+/*Non era commentato*/
+/* .selectorNew{
 	overflow-y: scroll;
+} */
+
+/* FIX SELECTOR 24.12.24*/
+/*Non c'era*/
+.poolIcon img[src] {
+    height: 5rem !important;
+    padding: 1rem;
 }
 
 div.gisMapPtrContainer
@@ -4530,4 +4545,9 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
 
 .table-list-header-pag ul.pagination{
     margin: 0 auto!important;
+}
+
+#deck-info-tab, #scenario-content {
+    background: var(--dash-bg-color) !important;
+    margin-bottom: 1px !important;
 }

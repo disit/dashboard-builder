@@ -19157,6 +19157,8 @@ if (!isset($_SESSION)) {
     #universal-top-right {
         top: 0;
         right: 0;
+        /* FIX MENTINA, messo 0px !important da 30px */
+        border-radius: 0px !important;
     }
 
     #universal-bottom-right {
@@ -19320,19 +19322,20 @@ if (!isset($_SESSION)) {
         margin-bottom: 10px;
     }
 
+    /* FIX MENTINA, commentato text-decoration, border e margin-left, messo radius a 0px !important da 30px */
     #deck-info-tab a {
         float: left;
         /* font-size: 2em; */
-        text-decoration: none;
+        /* text-decoration: none; */
         display: block;
         color: black;
         padding: 10px 0px;
         text-align: center;
-        border-radius: 30px;
+        border-radius: 0px !important;
         margin-bottom: 20px;
-        border: 1px solid rgba(0, 0, 0, 0.1);
+        /* border: 1px solid rgba(0, 0, 0, 0.1); */
         width: 100px;
-        margin-left: 10px;
+        /* margin-left: 10px; */
     }
 
     #deck-info-content #selection {
@@ -19368,8 +19371,9 @@ if (!isset($_SESSION)) {
         cursor: pointer;
     }
 
+    /* FIX MENTINA, cambiato da 0.1 opacità a 0 */
     .deck-btn {
-        box-shadow: 0px 10px rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0px 10px rgba(0, 0, 0, 0) !important;
     }
 
     .deck-btn:hover {
@@ -19380,6 +19384,9 @@ if (!isset($_SESSION)) {
     .deck-btn-active {
         box-shadow: 0px 5px rgba(0, 0, 0, 0.1) !important;
         transform: translate(0px, 5px);
+        /* FIX MENTINA, AGGIUNTE 2 REGOLE */
+        background-color: rgba(0, 0, 0, 0.5);
+        text-decoration: underline;
     }
 
     .leaflet-bottom.leaflet-left {

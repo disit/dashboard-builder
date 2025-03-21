@@ -2796,6 +2796,81 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                             });
                         });
 
+                        $('.editDashBtnCardNew').hover(
+                            function () {
+                                const popup = $('<div></div>')
+                                    .html('Edit with New<br> Opensearch Wizard (BETA)')
+                                    .css({
+                                        'position': 'absolute',
+                                        'background-color': '#ffffff',
+                                        'color': '#000',
+                                        'padding': '6px',
+                                        'border-radius': '8px',
+                                        'font-size': '12px',
+                                        'white-space': 'normal',
+                                        'box-shadow': '0px 4px 8px rgba(0, 0, 0, 0.1)',
+                                        'z-index': '10',
+                                        'max-width': '200px',
+                                        'text-align': 'center'
+                                    })
+                                    .attr('id', 'hoverPopup');
+
+                                $('body').append(popup);
+                                const offset = $(this).offset();
+                                popup.css({
+                                    top: offset.top + $(this).outerHeight() + 5 + 'px',
+                                    left: offset.left + 'px'
+                                });
+                            },
+                            function () {
+                                $('#hoverPopup').remove();
+                            }
+                        );
+
+                        $(this).find('.editDashBtnCardNew').off('click');
+                        $(this).find('.editDashBtnCardNew').click(function ()
+                        {
+                            var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
+                            var dashboardTitle = $(this).parents('div.dashboardsListCardDiv').attr('data-dashTitle');
+
+                            $.ajax({
+                                url: "../controllers/getDashboardEditPermissions.php",
+                                type: "GET",
+                                data: {
+                                    openDashboardToEdit: true,
+                                    dashboardId: dashboardId
+                                },
+                                async: true,
+                                dataType: 'json',
+                                success: function (data)
+                                {
+                                    switch (data['detail'])
+                                    {
+                                        case "Ok":
+                                            window.open("../management/dashboard_configdash.php?dashboardId=" + dashboardId + "&dashboardAuthorName=" + encodeURI(data.dashboardAuthorName) + "&dashboardEditorName=" + encodeURI("<?= @$_SESSION['loggedUsername']? : '' ?>" + "&dashboardTitle=" + encodeURI(dashboardTitle)) + "&editNewWizard=true");
+                                            break;
+
+                                        case "missingParam":
+                                            //TBD modale
+                                            break;
+
+                                        case "unauthorized":
+                                            //TBD modale
+                                            break;
+
+                                        default:
+                                            //TBD modale
+                                            break;
+                                    }
+                                },
+                                error: function (errorData)
+                                {
+                                    console.log("Error editing dashboard");
+                                    console.log(errorData);
+                                }
+                            });
+                        });
+
                         $(this).find('.dashboardsListCardOverlayTxt').off('click');
                         $(this).find('.dashboardsListCardOverlayTxt').click(function ()
                         {

@@ -216,12 +216,14 @@ div.widgetSeparator
 
 .map2dContainer
 {
-    width: calc(100% + 25px);
-    height: 100%;
-    margin: 0 auto;
-    overflow-y: scroll;
-    background: var(--wdgt-bg-color);
-    -webkit-transition: background 0.5s ease-in-out;
+    /* FIX MENTINA 04.02.25 commentate queste 2 regole per sistemare width */
+  /* width: calc(100% + 25px); */
+  /* overflow-y: scroll; */
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  background: var(--wdgt-bg-color);
+  -webkit-transition: background 0.5s ease-in-out;
   -ms-transition:     background 0.5s ease-in-out;
   transition:         background 0.5s ease-in-out;
 }
