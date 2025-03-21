@@ -26,7 +26,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 //http://heatmap-api:8080/insertArray
-//$external_url = 'http://192.168.0.59';
+
 $url = $heatmapInsert;
 $info_heatmap = []; // Inizializza l'array per evitare avvisi
 
