@@ -2257,15 +2257,15 @@ function sendMapSURI(port_name, jsonData){
         csblTrigger("ListSURI", port_name, data, jsonData.event, null, null, jsonData.connections);
     } else if (Object.keys(jsonData.layers).length > 1) {
         getSmartCityAPIData = fetchAjax(configVars['kbUrlSuperServiceMap'] + "iot-search/?selection=" + jsonData.bounds._southWest.lat + ";" + jsonData.bounds._southWest.lng + ";" + jsonData.bounds._northEast.lat + ";" + jsonData.bounds._northEast.lng + ";&categories=" + jsonData.layers[0].tipo + "&maxResults=200&format=json", null, "GET", 'json', true, 0);
-        getSmartCityAPIData.done(function(jsonData) {
-            var metrics = Object.keys(jsonData.features[0].properties.values);
-            for (var l in jsonData.features) {
+        getSmartCityAPIData.done(function(json_data) {
+            var metrics = Object.keys(json_data.features[0].properties.values);
+            for (var l in json_data.features) {
                 for (var m in metrics) {
                     data[h] = {};
-                    data[h].serviceUri = jsonData.features[l].properties.serviceUri;
-                    data[h].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + jsonData.features[l].properties.serviceUri;
+                    data[h].serviceUri = json_data.features[l].properties.serviceUri;
+                    data[h].metricId = configVars['kbUrlSuperServiceMap'] + "?serviceUri=" + json_data.features[l].properties.serviceUri;
                     data[h].metricHighLevelType = "Sensor";
-                    data[h].metricName = jsonData.features[0].properties.organization + ":" + jsonData.features[0].properties.serviceUri.split("resource/iot/")[1].split("/")[0] + ":" + jsonData.features[l].properties.deviceName;
+                    data[h].metricName = json_data.features[0].properties.organization + ":" + json_data.features[0].properties.serviceUri.split("resource/iot/")[1].split("/")[0] + ":" + json_data.features[l].properties.deviceName;
                     data[h].metricType = metrics[m];
                     h++;
                 }
