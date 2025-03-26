@@ -1828,6 +1828,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         var trafficWmsLayer = null;
         var newTfrLayer = null;
         var wmsLayerFullscreen = null;
+        var animatedLayer = null;
         var iconsFileBuffer = [];
         var bubbleSelectedMetric = [];
         var bubbles = [];
@@ -16027,9 +16028,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 });
                 map.defaultMapRef.addControl(drawerControl2);
-                    let container = drawerControl2._container
-                    container.classList.add("extraInfo", "scenaryDiv")
-                    container.id = "scenaryEditDraw"
+                let container = drawerControl2._container
+                container.classList.add("extraInfo", "scenaryDiv")
+                container.id = "scenaryEditDraw"
                 
 
                 try {
@@ -19131,7 +19132,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         if (!studioControl) {
             // add studio div (if not present yet)
             //                                            studioControl = L.control({position: 'bottomleft'});
-            studioControl = L.control({ position: 'bottomright' });
+            studioControl = L.control({ position: 'bottomleft' });
             studioControl.onAdd = function (map) {
                 var div = L.DomUtil.create('div');
 
@@ -20244,9 +20245,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 }
                 setTimeout(checkLegend, 500);
-                    map.legendHeatmapDiv.html(innerHTML)
-                    console.log('map.legendHeatmapDiv :>> ', map.legendHeatmapDiv);
-                    $('#deck-info-content').append(map.legendHeatmapDiv);
+                map.legendHeatmapDiv.html(innerHTML)
+                console.log('map.legendHeatmapDiv :>> ', map.legendHeatmapDiv);
+                $('#deck-info-content').append(map.legendHeatmapDiv);
                 return map.legendHeatmapDiv;
             };
 
@@ -20330,9 +20331,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 }
                 setTimeout(checkLegend, 500);
-                    map.trafficLegendHeatmapDiv.html(innerHTML)
-                    console.log('map.trafficLegendHeatmapDiv :>> ', map.trafficLegendHeatmapDiv);
-                    $('#deck-info-content').append(map.trafficLegendHeatmapDiv);
+                map.trafficLegendHeatmapDiv.html(innerHTML)
+                console.log('map.trafficLegendHeatmapDiv :>> ', map.trafficLegendHeatmapDiv);
+                $('#deck-info-content').append(map.trafficLegendHeatmapDiv);
                 return map.trafficLegendHeatmapDiv;
             };
 
@@ -20348,6 +20349,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         newTfrLayer = null;
                     }
                 }
+                
                 map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
                 if (map.eventsOnMap[index + 1] != null && map.eventsOnMap[index + 1].legendColors != null) {
                     map.defaultMapRef.removeControl(map.eventsOnMap[index + 1].legendColors);
@@ -20418,6 +20420,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             // FINE TRAFFICFLOWMANAGER GESTIONE LEGENDA + SLIDER OPACITA', PAGINE E ANIMAZIONE
 
             function nextHeatmapPage() {
+                if (animationFlag) {
+                    return;
+                }
                 animationFlag = false;
                 if (current_page > 0) {
                     current_page--;
@@ -20517,7 +20522,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         removeHeatmap(false);
                         map.eventsOnMap.splice(i, 1);
                     } else if (map.eventsOnMap[i].type === 'addHeatmap') {
-                        event = map.eventsOnMap[i]; // aggiorna evento corretto in caso di più heatmap	
+                        event = map.eventsOnMap[i]; // aggiorna evento corretto in caso di più heatmap
                         removeHeatmapColorLegend(i, false);
                         map.eventsOnMap.splice(i, 1);
                     } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
@@ -20548,6 +20553,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
             //   window.nextHeatmapPage = function()
             function prevHeatmapPage() {
+                if (animationFlag) {
+                    return;
+                }
                 animationFlag = false;
                 if (current_page < numHeatmapPages() - 1) {
                     current_page++;
@@ -20920,18 +20928,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         map.eventsOnMap.splice(i, 1);
                                     }
                                 } else if (map.eventsOnMap[i].eventType === 'od') {
-                                    map.defaultMapRef.removeLayer(geojson_layer);
+                                    if (geojson_layer !== null && geojson_layer !== undefined) {
+                                    	map.defaultMapRef.removeLayer(geojson_layer);
+                                    }
                                     if (geojson_layer_all) {
                                         map.defaultMapRef.removeLayer(geojson_layer_all);
                                     }
                                     map.defaultMapRef.removeLayer(sourcePolygon);
                                     map.defaultMapRef.removeControl(map.legendOd);
                                     map.defaultMapRef.removeControl(map.flowInfo);
+                                    // FIX MENTINA, conflitto tra odm e heatmap
+                                    $('#od-info-btn').css('display', 'none');
+                                    $('#mainOdDiv').remove();
+                                    $('#od-info-btn')[0].className = "deck-btn"
+                                    // FINE FIX MENTINA
                                     map.eventsOnMap.splice(i, 1);
                                 } else if (map.eventsOnMap[i].type === 'addOD') {
-                                    $('#od-info-btn').css('display', 'none');
-                                    $('#odLegend').remove();
-                                    $('#od-info-btn')[0].className = "deck-btn"
                                     current_page = 0;
                                     map.defaultMapRef.removeControl(map.eventsOnMap[i].legendColors);
                                     map.eventsOnMap.splice(i, 1);
@@ -21489,28 +21501,43 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
 			
                         // Add legend and heatmap
-			// FIX MENTINA commentato addTo sotto ed aggiunta codice
-			if ($('#traffic-info-btn').css('display') === 'block') {
-				animationOn = false;
-				$('#trafficHeatmapLegend').remove();
-			}
-			$('#traffic-info-btn').css('display', 'block');
-			$('#traffic-info-btn').click();
-			// if ($('#trafficHeatmapLegend').length != 0)
-			//     $('#trafficHeatmapLegend').css('display', 'none');
-			map.trafficLegendHeatmap.create();
-			// map.trafficLegendHeatmap.addTo(map.defaultMapRef);
-			//FINE FIX MENTINA
-			map.eventsOnMap.push(heatmap);
-				const heatmapLegendColors = L.control({ position: 'bottomleft' });
-			heatmapLegendColors.onAdd = function () {
-				const div = L.DomUtil.create('div', 'info legend extraInfo trafficDiv');
-				const legendImgPath = "../trafficRTDetails/legend.png";
-				div.innerHTML += " <img src=" + legendImgPath + " height='120'>";
-				div.id = "trafficLegendColors"
-				return div;
-			};
+                        // FIX MENTINA commentato addTo sotto ed aggiunta codice
+                        if ($('#traffic-info-btn').css('display') === 'block') {
+                            animationOn = false;
+                            $('#trafficHeatmapLegend').remove();
+                        }
+                        $('#traffic-info-btn').css('display', 'block');
+                        $('#traffic-info-btn').click();
+                        // if ($('#trafficHeatmapLegend').length != 0)
+                        //     $('#trafficHeatmapLegend').css('display', 'none');
+                        map.trafficLegendHeatmap.create();
+                        // map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+                        //FINE FIX MENTINA
                         map.eventsOnMap.push(heatmap);
+                            const heatmapLegendColors = L.control({ position: 'bottomleft' });
+                        heatmapLegendColors.onAdd = function () {
+                            const div = L.DomUtil.create('div', 'info legend extraInfo trafficDiv');
+                            const legendImgPath = "../trafficRTDetails/legend.png";
+                            div.innerHTML += " <img src=" + legendImgPath + " height='120'>";
+                            div.id = "trafficLegendColors"
+                            return div;
+                        };
+                        //map.eventsOnMap.push(heatmap);
+			// Done!
+	                loadingDiv.empty();
+	                loadingDiv.append(loadOkText);
+	                parHeight = loadOkText.height();
+	                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+	                loadOkText.css("margin-top", parMarginTop + "px");
+	                setTimeout(function () {
+	                    loadingDiv.css("opacity", 0);
+	                    setTimeout(function () {
+	                    	loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+	                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+	                        });
+	                        loadingDiv.remove();
+	                    }, 350);
+	                }, 1000);
 
                     } else {
 
@@ -21567,35 +21594,55 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         //   const imageUrl = geoServerUrl + 'geoserver/wms/animate?layers=' + trafficData[current_page_traffic].layerName + '&aparam=layers&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:500&transparent=true&bbox=' + bbox;
                         const imageUrl = geoServerUrl + 'geoserver/wms/animate?layers=' + trafficData[current_page_traffic].layerName + '&aparam=layers&avalues=' + animationStringTimestamp + '&format=image/gif;subtype=animated&format_options=gif_loop_continuosly:true;layout:message;gif_frames_delay:1000&transparent=true&bbox=' + bbox + '&width=' + animationWidth;
                         const imageBounds = [[latitude_min, longitude_min], [latitude_max, longitude_max]];
-                        const animatedLayer = L.imageOverlay(imageUrl, imageBounds, {
+                        animatedLayer = L.imageOverlay(imageUrl, imageBounds, {
                             opacity: current_traffic_opacity,
                             pane: 'TrafficFlowManager:' + datasetName
-                        }).addTo(map.defaultMapRef);
+                        });
+
+                        animatedLayer.on('load', function() {
+                            // Done!
+                            loadingDiv.empty();
+                            loadingDiv.append(loadOkText);
+                            parHeight = loadOkText.height();
+                            parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                            loadOkText.css("margin-top", parMarginTop + "px");
+                            setTimeout(function () {
+                                loadingDiv.css("opacity", 0);
+                                setTimeout(function () {
+                                    loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                        $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                    });
+                                    loadingDiv.remove();
+                                }, 350);
+                            }, 1000);
+                        });
+                        
+                        animatedLayer.addTo(map.defaultMapRef);
 
                         // FIX MENTINA commentato addTo sotto ed aggiunta codice
-			if ($('#traffic-info-btn').css('display') === 'block') {
-				animationOn = false;
-				$('#trafficHeatmapLegend').remove();
-			}
-			$('#traffic-info-btn').css('display', 'block');
-			$('#traffic-info-btn').click();
-			// if ($('#trafficHeatmapLegend').length != 0)
-			//     $('#trafficHeatmapLegend').css('display', 'none');
-			map.trafficLegendHeatmap.create();
-			// map.trafficLegendHeatmap.addTo(map.defaultMapRef);
-			//FINE FIX MENTINA
-			map.eventsOnMap.push(heatmap);
-				const heatmapLegendColors = L.control({ position: 'bottomleft' });
-			heatmapLegendColors.onAdd = function () {
-				const div = L.DomUtil.create('div', 'info legend extraInfo trafficDiv');
-				const legendImgPath = "../trafficRTDetails/legend.png";
-				div.innerHTML += " <img src=" + legendImgPath + " height='120'>";
-				div.id = "trafficLegendColors"
-				return div;
-			};
+                        if ($('#traffic-info-btn').css('display') === 'block') {
+                            animationOn = false;
+                            $('#trafficHeatmapLegend').remove();
+                        }
+                        $('#traffic-info-btn').css('display', 'block');
+                        $('#traffic-info-btn').click();
+                        // if ($('#trafficHeatmapLegend').length != 0)
+                        //     $('#trafficHeatmapLegend').css('display', 'none');
+                        map.trafficLegendHeatmap.create();
+                        // map.trafficLegendHeatmap.addTo(map.defaultMapRef);
+                        //FINE FIX MENTINA
+                        map.eventsOnMap.push(heatmap);
+                            const heatmapLegendColors = L.control({ position: 'bottomleft' });
+                        heatmapLegendColors.onAdd = function () {
+                            const div = L.DomUtil.create('div', 'info legend extraInfo trafficDiv');
+                            const legendImgPath = "../trafficRTDetails/legend.png";
+                            div.innerHTML += " <img src=" + legendImgPath + " height='120'>";
+                            div.id = "trafficLegendColors"
+                            return div;
+                        };
                         document.getElementById("<?= $_REQUEST['name_w'] ?>_animation_traffic").checked = true;
                         $("<?= $_REQUEST['name_w'] ?>_slidermaxTrafficOpacity").slider('disable');
-                        map.eventsOnMap.push(animatedLayer);
+                        //map.eventsOnMap.push(animatedLayer);
                     }
 
                     // Setup Legend
@@ -21609,22 +21656,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     heatmapLegendColors.addTo(map.defaultMapRef);
                     event.legendColors = heatmapLegendColors;
                     map.eventsOnMap.push(event);
-
-                    // Done!
-                    loadingDiv.empty();
-                    loadingDiv.append(loadOkText);
-                    parHeight = loadOkText.height();
-                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                    loadOkText.css("margin-top", parMarginTop + "px");
-                    setTimeout(function () {
-                        loadingDiv.css("opacity", 0);
-                        setTimeout(function () {
-                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                            });
-                            loadingDiv.remove();
-                        }, 350);
-                    }, 1000);
 
                     return;
                     //    }
@@ -22043,130 +22074,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     }
                                                 });
 
-                                                /*    var bboxPage = "https://wmsserver.snap4city.org/"
-                                                    var bboxHtmlContent = "";
-                                                    $.get("test.php", function(htmlData){
-                                                        bboxHtmlContent = htmlData;
-                                                    });  */
-
-                                                /*       var args = {
-
-                                                                // reference to your leaflet map
-                                                                map: map.defaultMapRef,
-
-                                                                // WMS endpoint
-                                                                url: 'https://wmsserver.snap4city.org/geoserver/Snap4City/wms',
-
-                                                                // time slices to create (u probably want more than 2)
-                                                                times: ["2019-04-18T11:06:18.000Z", "2019-04-18T09:06:18.000Z", "2019-04-18T07:06:18.000Z", "2019-04-18T05:06:18.000Z", "2019-04-18T03:06:18.000Z", "2019-04-18T01:06:18.000Z"],
-
-                                                                // the bounds for the entire target WMS layer
-                                                                bbox: ["24.90215", "60.1615000000001", "24.98005", "60.1959"],
-
-                                                                // how long to show each frame in the animation
-                                                                timeoutMs: 300,
-
-                                                                frames: [
-                                                                    {
-                                                                        "time": "2019-04-18T11:06:18.000Z",
-                                                                         "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T110618Z"
-                                                                       // "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAwwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7djRCcJAEEXRrdaeUssUNyKYD8HAohHMvnNkGhi4s8Qxfq9vowcQ59G+/iG3fTcA9G8jkNm+GwDZ7bsBEN5/6R/i2q/XsSnIbF//ENJ/HY+NQWb7+oeF+6+JaTcAUtvfxwbhou3XZO8H7esfgvrv92OTkNm+/iG3fTcAFu5/pv39B2S2r3/Ibd8NgDX6/7R9/UNu+24AXLf/M9rXP+S2vz0HyGxf//Af/fdc39590L7vfdC+//kht3/dg/Y1D8HtAxH96x7y2tc8ZPave8hr38Zglfg1D95+vUPq228ZEGRrzQMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHzhDpylbKQ="
-                                                                     },
-                                                                     {
-                                                                        "time": "2019-04-18T09:06:18.000Z",
-                                                                         "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T090618Z"
-                                                                      //   "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAxwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dXRCcMwEERBVeueUouKu5DkJwKDHWKDrZ2Ba2DhSa2dr5ZWDYjzal//kNu+NwD0bxHIbN8bANntewNA/xaCzParf85SENR+H89aENJ/Xz+LQWb7+ofJ++/bZzm4eft9X+veAND+cKV/iOu/xrMkZLavf8ht3xsAAf3X9lkWJmu/9p91IbP9d//eAJij/1+71z9kt+8NgPv2Xwe0r3+4Vvvf3Z7153sD4NrtH3BN/xDZv+5B+5qHjPZ1D5n96x60r3nIaF/3kNm/7iG4fSCuf8tBVvsWg1ni1zz4+/UOqX+/MSDIozQPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwhycnMYt0"
-                                                                     },
-                                                                    {
-                                                                        "time": "2019-04-18T07:06:18.000Z",
-                                                                         "img": https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T070618Z
-                                                                    //    "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAzwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dbRDYJAEEVRqqUna9nixighJCofupLAvnNgGpjkDkzT8er5Amke7esfctuveRkbgaD+5619/UNu+24AZLfvBoD+bQgy23cDILv9avqHyP7bNjYGIe2397E1COi/7Y/NQWb7bgBcvP214x+61z8M0n/n2CQEtl/L2CZktu8GQFD/tT82C5nt6x9y23cDYMD+67uxZQhtf32A6/ZfHe3rH3LbdwPgPO2/9np09/qH8/b/6Rb8s33g/O2Xf33Qfkf7wPD96x7C2wdi2tc9ZPave8hr3wYhr3+bg6z2bQxGiV/z4Nuvd0j99lsGBLmV5gEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADrcAd+SmZk="
-                                                                    },
-                                                                    {
-                                                                        "time": "2019-04-18T05:06:18.000Z",
-                                                                         "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T050618Z"
-                                                                     //   "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAA1AEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dvRCYNAEEVRq7Wn1LLFTUggSIgYRQJx3jnrNDBwd7+cpt+r5wekebSvf8ht3x0A4f3P+oe49uf3sRlo3v782b07APSvf8ht3x0A2e3rH7L7r+EOgLj2xzK2BiH9j/WxOWjc/vg+NgjN2h/7xxbhov2PY627A0D7+gftVy1jqxDSf62PzULj9mt7bBcatl/7x5ahSf91fGwZLt5+nRvbhgv2f7b71wH+p/063/au7t0BENP+5gFa9q97yGtf85DXvu4hr3/dQ177moe89nUPef3rHvLa1zz07n/XAdq+/ZqHxm7+ywFvv/9wIfXttwxIar80DwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcMIdCPB4EA=="
-                                                                    },
-                                                                    {
-                                                                        "time": "2019-04-18T03:06:18.000Z",
-                                                                         "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T030618Z"
-                                                                    //    "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAwwEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7dfBCcMwEEVBVZueVEuK2xDwJSEQG1tg6c+IbUDwVnZr49WjVQPi1LPVe9wEZLZvB4D+3Qhktm8HQHb7dgDo3w1BZvt2AAS2X5/jtmDh/uv/uDFYrP3aP24NFum/jrVvB0B2+3YAZLevfwjv3w6AnH/+XwdYsv3dB5i+/1MHmK79yw4wTftDDnDr/oce4JbtDz99G+BmC2Bg798DrNd+PzDA3O33EwPM03+/aIA52tc85LWve8jrX/eQ177mIa993UMW3/iQ+/ZrHrz9ugdvv+Zh/Xe/NA/efr1D5NsPJD38mgcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADjhBT9JH44="
-                                                                    },
-                                                                    {
-                                                                        "time": "2019-04-18T01:06:18.000Z",
-                                                                         "img": "https://heatmap.snap4city.org/base64.php?layer="+wmsDatasetName+"&date=20190418T010618Z"
-                                                                      //  "img": "SUkqAAgAAAATAAABAwABAAAAJwAAAAEBAwABAAAAJwAAAAIBAwAEAAAA8gAAAAMBAwABAAAACAAAAAYBAwABAAAAAgAAABUBAwABAAAABAAAABwBAwABAAAAAQAAAD0BAwABAAAAAQAAAEIBAwABAAAAAAEAAEMBAwABAAAAAAEAAEQBBAABAAAAogEAAEUBBAABAAAAvgEAAFIBAwABAAAAAgAAAFMBAwAEAAAA+gAAAA6DDAADAAAAAgEAAIKEDAAGAAAAGgEAAK+HAwAgAAAASgEAALCHDAACAAAAigEAALGHAgAIAAAAmgEAAAAAAAAIAAgACAAIAAEAAQABAAEAg3TCSFm1Xz+4fMraslFMPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA20/G+DDnOEAug5NwBhlOQAAAAAAAAAAAAQABAAAABwAABAAAAQACAAEEAAABAAEAAAgAAAEA5hABCLGHBwAAAAYIAAABAI4jCQiwhwEAAQALCLCHAQAAAIhtdJYdpHJAAAAAQKZUWEFXR1MgODR8AHja7ddbCsJAEEXB2f8OerUjIkI+FJOY59yqpjcgnOnY2v56b70BcZ7t6x9y2/cGgP79IpDZvjcAstv3BkDw7X8PkPGf/9sAw7b/c4Dh+l80wCDxrxggt39vAOS27w2A7Pb1D5n912SBjPbrwwLjtl8zFhir/1q4wP3br5UL3LP92miB+/RfGy9w/fZrxwWu2f+e3Vd/LXCt9o/ofrrA+Y5sXv8weP+6h7z2NQ9Z7bv1kNe/7iGvfc1DVvtuPeT1r3vIa1/zkNe/7iH39msexmy/z/vuB3JuP5Bz+4EgvukBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+8QDzyKb4"
-                                                                    }
-                                                                     ],
-
-                                                            // OPTIONAL - only required if you are not providing your own frames
-                                                            // **See defining image request for more info**
-                                                            // due to CORS restrictions, you need to define an async function to ask your proxy server to make the WMS
-                                                            // GetMap request and resolve the result (as a base64 encoded string). This example is using a call to a server function called
-                                                            // 'getImage' (in MeteorJS). Note that if your target WMS is CORS enabled, you can just define a direct HTTP request here instead.
-                                                            proxyFunction: function(requestUrl, time, resolve, reject){
-
-                                                                $.ajax({
-                                                                    type: "GET",
-                                                                    url: requestUrl,
-                                                                    beforeSend: function (xhr) {
-                                                                        xhr.overrideMimeType('text/plain; charset=x-user-defined');
-                                                                    },
-                                                                    success: function (result, textStatus, jqXHR) {
-                                                                        if(result.length < 1){
-                                                                            alert("The thumbnail doesn't exist");
-                                                                            $("#thumbnail").attr("src", "data:image/png;base64,");
-                                                                            return
-                                                                        }
-
-                                                                        var binary = "";
-                                                                        var responseText = jqXHR.responseText;
-                                                                        var responseTextLen = responseText.length;
-
-                                                                        for ( i = 0; i < responseTextLen; i++ ) {
-                                                                            binary += String.fromCharCode(responseText.charCodeAt(i) & 255)
-                                                                        }
-                                                                     //   $("#thumbnail").attr("src", "data:image/png;base64,"+btoa(binary));
-                                                                        resolve({ time: time, img: btoa(binary) });
-                                                                    },
-                                                                    error: function(xhr, textStatus, errorThrown){
-                                                                        alert("Error in getting document "+textStatus);
-                                                                    }
-                                                                });
-
-                                                            },
-
-                                                            // OPTIONAL - only required if you are not providing your own frames
-                                                            // your WMS query params
-                                                            params: {
-                                                                BBOX: "24.90215,60.1615000000001,24.98005,60.1959",
-                                                                LAYERS: "Snap4City:" + wmsDatasetName,
-                                                                SRS: "EPSG:4326",
-                                                                VERSION: "1.1.1",
-                                                                WIDTH: 256,
-                                                                HEIGHT: 256,
-                                                                transparent: true,
-
-                                                                // ncWMS params (optional)
-                                                            //    abovemaxcolor: "extend",
-                                                            //    belowmincolor: "extend",
-                                                            //    colorscalerange: "10.839295,13.386014",
-                                                            //    elevation: "-5.050000000000001",
-                                                                format: "image/png",
-                                                            //    logscale: false,
-                                                            //    numcolorbands: "50",
-                                                                opacity: current_opacity,
-                                                            //    styles: "boxfill/rainbow"
-                                                            }
-
-                                                         };
-
-                                                        LeafletWmsAnimator.initAnimation(args, function(frames){
-
-                                                            // if you didn't provide your own frames this callback function returns the
-                                                            // array of images with their respective time stamps (e.g. you can use timestamps in UI)
-                                                        });  */
-
                                                 var upEastLat = parseFloat(bboxJson['maxy']);
                                                 var upEastLon = parseFloat(bboxJson['maxx']);
                                                 var bottomWestLat = parseFloat(bboxJson['miny']);
@@ -22177,9 +22084,30 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                 var overlayOpacity = current_opacity;
 
                                                 // ANIMATED GIF LAYER
-                                                var animatedLayer = L.imageOverlay(imageUrl, imageBounds, { opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName }).addTo(map.defaultMapRef);
+                                                animatedLayer = L.imageOverlay(imageUrl, imageBounds, { opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName });
 
-						// FIX MENTINA commentato map.legendHeatmap.addTo e aggiunto codice per info-btn
+                                                animatedLayer.on('load', function() {
+                                                    loadingDiv.empty();
+                                                    loadingDiv.append(loadOkText);
+
+                                                    parHeight = loadOkText.height();
+                                                    parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                                                    loadOkText.css("margin-top", parMarginTop + "px");
+
+                                                    setTimeout(function () {
+                                                        loadingDiv.css("opacity", 0);
+                                                        setTimeout(function () {
+                                                            loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                                                $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                                                            });
+                                                            loadingDiv.remove();
+                                                        }, 350);
+                                                    }, 1000);
+                                                });
+
+                                                animatedLayer.addTo(map.defaultMapRef);
+
+						                        // FIX MENTINA commentato map.legendHeatmap.addTo e aggiunto codice per info-btn
                                                 if ($('#heatmap-info-btn').css('display') === 'block') {
                                                     animationOn = false;
                                                     $('#heatmapLegend').remove();
@@ -22220,22 +22148,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                 event.legendColors = heatmapLegendColors;
                                                 map.eventsOnMap.push(event);
 
-                                                loadingDiv.empty();
-                                                loadingDiv.append(loadOkText);
-
-                                                parHeight = loadOkText.height();
-                                                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
-                                                loadOkText.css("margin-top", parMarginTop + "px");
-
-                                                setTimeout(function () {
-                                                    loadingDiv.css("opacity", 0);
-                                                    setTimeout(function () {
-                                                        loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
-                                                            $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
-                                                        });
-                                                        loadingDiv.remove();
-                                                    }, 350);
-                                                }, 1000);
                                             }
                                         }
 
@@ -24282,11 +24194,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             removeOd(false);
                             map.eventsOnMap.splice(i, 1);
                         } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                            //if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
-                            if (map.eventsOnMap[i].type == 'addOD') {
+                            /*if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
                                 map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                                 map.eventsOnMap.splice(i, 1);
-                            }
+                            }*/
                         }
                     }
 
@@ -24344,8 +24255,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             removeOd(false);
                             map.eventsOnMap.splice(i, 1);
                         } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                            //if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
-                        /*    if (map.eventsOnMap[i].type == 'addOD') {
+                            /*if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails' && map.eventsOnMap[i].type !== 'addOD') {
                                 map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                                 map.eventsOnMap.splice(i, 1);
                             }*/
@@ -24970,7 +24880,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                                 map.eventsOnMap.splice(i, 1);
                             } else if (map.eventsOnMap[i]._url) {
-                                if (map.eventsOnMap[i]._url.includes("animate")) {
+                                if (map.eventsOnMap[i]._url.includes("animate") && !map.eventsOnMap[i].options.pane.includes("TrafficFlowManager")) {
                                     map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                                     map.eventsOnMap.splice(i, 1);
                                 }
@@ -26420,6 +26330,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         if (trafficWmsLayer != null) {
                             map.defaultMapRef.removeLayer(trafficWmsLayer);
                             trafficWmsLayer = null;
+                        } else if (animatedLayer!= null) {
+                            map.defaultMapRef.removeLayer(animatedLayer);
+                            animatedLayer = null;
                         } else if (newTfrLayer != null) {
                             map.defaultMapRef.removeLayer(newTfrLayer);
                             newTfrLayer = null;
@@ -26440,11 +26353,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         switchToFirstActiveInfoMenu();
                         break;
                     } else if (map.eventsOnMap[i]._url && map.eventsOnMap[i]._url.includes("animate")) {
-                        map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
+                    /*    map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                         map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
                         map.defaultMapRef.removeControl(map.eventsOnMap[i + 1].legendColors);
                         map.eventsOnMap.splice(i, 2);
-                        break;
+                        break;*/
                     }
 
                 } /*else if (i > 0 && map.eventsOnMap[i - 1].eventType === 'traffic_heatmap') {
@@ -28362,7 +28275,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     var overlayOpacity = current_opacity;
 
                                                     // ANIMATED GIF LAYER
-                                                    var animatedLayer = L.imageOverlay(imageUrl, imageBounds, { opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName }).addTo(fullscreendefaultMapRef);
+                                                    animatedLayer = L.imageOverlay(imageUrl, imageBounds, { opacity: overlayOpacity, pane: 'Snap4City:' + wmsDatasetName }).addTo(fullscreendefaultMapRef);
 
                                                     // add legend to map
                                                     map.legendHeatmap.addTo(map.defaultMapRef);
@@ -28670,6 +28583,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
 
                         function nextHeatmapPage() {
+                            if (animationFlag) {
+                                return;
+                            }
                             animationFlag = false;
                             if (current_page > 0) {
                                 current_page--;
@@ -28744,6 +28660,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                         //   window.nextHeatmapPage = function()
                         function prevHeatmapPage() {
+                            if (animationFlag) {
+                                return;
+                            }
                             animationFlag = false;
                             if (current_page < numHeatmapPages() - 1) {
                                 current_page++;

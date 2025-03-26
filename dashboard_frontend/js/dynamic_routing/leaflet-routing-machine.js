@@ -16174,6 +16174,12 @@ module.exports={
 							this.fire('routesfound', {waypoints: wps, routes: routes});
                             console.log("Fired routesfound");
 							this.setAlternatives(routes);
+                        //    $('#deck-info-content').append($("#leaflet-routing-container-tab"));
+                            $('#whatif-control').append($("#leaflet-routing-container-tab"));
+                            var height_routing_container = $("div[id$='_map']").height() - $("#deck-info-tab").height() - $("#deck-info-content").height() - 50;
+                            $("#leaflet-routing-container-tab").css("height", height_routing_container);
+                            $("#leaflet-routing-container-tab").css("width", "100%");
+                            $("#leaflet-routing-geocoders-tab").css("height", "100px");
 						} else {
 							var selectedRoute = routes.splice(0,1)[0];
 							this._routeSelected({route: selectedRoute, alternatives: routes});
@@ -16757,6 +16763,7 @@ module.exports = L.Routing = {
 				(!this.options.show ? 'leaflet-routing-container-hide ' : '') +
 				(collapsible ? 'leaflet-routing-collapsible ' : '') +
 				this.options.containerClassName);
+            this._container.id = 'leaflet-routing-container-tab';
 			this._altContainer = this.createAlternativesContainer();
 			this._container.appendChild(this._altContainer);
 			L.DomEvent.disableClickPropagation(this._container);
@@ -18431,7 +18438,7 @@ module.exports = L.Routing = {
 				waypoints = this._waypoints,
 			    addWpBtn,
 			    reverseBtn;
-
+            container.id = 'leaflet-routing-geocoders-tab';
 			this._geocoderContainer = container;
 			this._geocoderElems = [];
 
