@@ -14077,8 +14077,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 <!-- ONLOAD VERSIONE -->
                                 <table>
                                     <tr>
-                                        <td><label>Load Scenario:</label></td>
                                         <td>
+                                            <label>Load Scenario:</label>
                                             <input type="radio" id="acc-type-init" name="scenario-type" value="init" checked>
                                             <label for="acc-type-init">Init</label>
 
@@ -14086,7 +14086,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                             <label for="acc-type-acc">Acc</label>
 
                                             <!-- <input type="radio" id="acc-type-tdm" name="scenario-type" value="tdm">
-                                            <label for="acc-type-tdm">tfr</label> -->
+                                            <label for="acc-type-tdm">tfr</label> -->                                        
+                                        </td>
+                                        <td>
+
                                         </td>
                                     </tr>
                                     <td id="scenario-init-row">                                                    
@@ -14104,17 +14107,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     <tr class="scenario-list-row" style="display: none;">
                                         <td>
                                             <label for="scenario-list">Scenario List:</label>
+                                            <select id="scenario-list" name="scenario-list"></select>
                                         </td>
                                         <td>
-                                            <select id="scenario-list" name="scenario-list"></select>
+                                            
                                         </td>
                                     </tr>
                                     <tr class="scenario-list-row" style="display: none;">
                                         <td>
                                             <label for="acc-list">acc version:</label>
+                                            <select id="acc-list" name="acc-list"></select>
                                         </td>
                                         <td>
-                                            <select id="acc-list" name="acc-list"></select>
+                                            
                                         </td>
                                     </tr>
                                     <tr class="scenario-list-row" style="display: none;">
@@ -16917,14 +16922,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                 <tr>
                                                     <td>
                                                         <label>Load Scenario:</label>
-                                                    </td>
-                                                    <td>
                                                         <input type="radio" id="acc-type-init" name="scenario-type" value="init" checked>
                                                         <label for="acc-type-init">Init</label>
                                                         <input type="radio" id="acc-type-acc" name="scenario-type" value="acc">
                                                         <label for="acc-type-acc">Acc</label>
                                                         <!-- <input type="radio" id="acc-type-tdm" name="scenario-type" value="tdm">
                                                         <label for="acc-type-tdm">tfr</label> -->
+                                                    </td>
+                                                    <td>
+
                                                     </td>
                                                 </tr>
                                                 <td id="scenario-init-row">
@@ -16941,18 +16947,20 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                 <tr class="scenario-list-row" style="display: none;">
                                                     <td>
                                                         <label for="scenario-list">Scenario List:</label>
+                                                        <select id="scenario-list" name="scenario-list"></select>
                                                     </td>
                                                     <td>
-                                                        <select id="scenario-list" name="scenario-list"></select>
+                                                        
                                                     </td>
                                                 </tr>
                                                 <tr class="scenario-list-row" style="display: none;">
                                                     <td>
                                                         <label for="acc-list">acc version:</label>
+                                                        <select id="acc-list" name="acc-list"></select>
                                                     </td>
-                                                <td>
-                                                    <select id="acc-list" name="acc-list"></select>
-                                                </td>
+                                                    <td>
+                                                        
+                                                    </td>
                                                 <tr class="scenario-list-row" style="display: none;">
                                                     <td colspan="2">
                                                         <button id="scenario-check-acc1">Load ACC</button>
