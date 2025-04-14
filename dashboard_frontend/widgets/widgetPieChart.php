@@ -2163,10 +2163,15 @@
 
         if(widgetParameters !== null && widgetParameters !== undefined)
         {
-            if(widgetParameters.hasOwnProperty("thresholdObject"))
-            {
-              thresholdObject = JSON.parse(widgetParameters.thresholdObject);
+            if (widgetParameters.hasOwnProperty("thresholdObject")) {
+                try {
+                    thresholdObject = JSON.parse(widgetParameters.thresholdObject);
+                } catch (error) {
+                    console.error("Error in parsing di thresholdObject:", error);
+                    thresholdObject = null;
+                }
             }
+
         }
 
         if(('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== 'null')&&('<?= sanitizeJsonRelaxed2($_REQUEST['infoJson']) ?>' !== ''))
