@@ -351,6 +351,7 @@ if (($hide_menu != "hide")) {
                                                 <option value="ClearMLSporadic">ClearML Sporadic</option>
                                                 <option value="SUMOAPI">SUMO API</option>
                                                 <option value="GraphHopper">GraphHopper</option>
+                                                <option value="Generic">Generic</option>
                                                 <option value="Other">Other</option>
                                                  
                                           </select>
@@ -605,6 +606,7 @@ if (($hide_menu != "hide")) {
                                                 <option value="ClearMLSporadic">ClearML Sporadic</option>
                                                 <option value="SUMOAPI">SUMO API</option>
                                                 <option value="GraphHopper">GraphHopper</option>
+                                                <option value="Generic">Generic</option>
                                                 <option value="Other">Other</option>
                                                  
                                             </select>
