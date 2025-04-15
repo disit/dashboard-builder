@@ -33432,9 +33432,9 @@
                                                 newInnerDiv.append(newSelect);
                                                 newFormRow.append(newLabel);
                                                 newFormRow.append(newInnerDiv);
-                                                newLabel.show();
-                                                newInnerDiv.show();
-                                                newSelect.show();
+                                                newLabel.hide();
+                                                newInnerDiv.hide();
+                                                newSelect.hide();
 
                                                 //Listener per settaggio/desettaggio soglie relativo alla select "Set thresholds"
                                                 $('#alrThrSelM').change(alrThrFlagMListenerSimple);
@@ -33495,9 +33495,9 @@
                                                 newInnerDiv.append(newSelect);
                                                 newFormRow.append(newLabel);
                                                 newFormRow.append(newInnerDiv);
-                                                newLabel.show();
-                                                newInnerDiv.show();
-                                                newSelect.show();
+                                                newLabel.hide();
+                                                newInnerDiv.hide();
+                                                newSelect.hide();
 
                                                 //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
                                                 newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
@@ -33623,9 +33623,9 @@
                                             newInnerDiv.append(newSelect);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
-                                            newLabel.show();
-                                            newInnerDiv.show();
-                                            newSelect.show();
+                                            newLabel.hide();
+                                            newInnerDiv.hide();
+                                            newSelect.hide();
 
                                             //Threshold target select - Questa select viene nascosta o mostrata a seconda che nella "Set thresholds" si selezioni yes o no.
                                             newLabel = $('<label for="alrAxisSelM" class="col-md-2 control-label"><?php echo _("Thresholds target set"); ?></label>');
@@ -33669,25 +33669,29 @@
                                                 $('#alrAxisSelM').hide();
                                                 $('#parametersM').val('');
                                             } else {
-												if (currentParams.hasOwnProperty(thresholdObject)){
-                                                //ESPOSIZIONE DEI CAMPI
-                                                $('#alrThrSelM').val("yes");
-                                                $('#alrAxisSelM').val(currentParams.thresholdObject.target);
-                                                $("label[for='alrAxisSelM']").show();
-                                                $('#alrAxisSelM').parent().show();
-                                                $('#alrAxisSelM').show();
-                                                $("label[for='alrFieldSelM']").show();
-                                                $('#alrFieldSelM').parent().show();
-                                                $('#alrFieldSelM').show();
-                                                //POPOLAMENTO DELLA SELECT DEI CAMPI
-                                                alrAxisSelMListener();
-                                                $('#addWidgetRangeTableContainerM').show();
-                                                $('#parametersM').val(JSON.stringify(currentParams));
-                                                //Listener per settaggio/desettaggio campi in base ad asse selezionato
-                                                $('#alrAxisSelM').change(alrAxisSelMListener);
-                                                //Listener per selezione campo
-                                                $('#alrFieldSelM').change(alrFieldSelMListener);
-												}
+                                                try {
+                                                    if (currentParams.hasOwnProperty(thresholdObject)){
+                                                        //ESPOSIZIONE DEI CAMPI
+                                                        $('#alrThrSelM').val("yes");
+                                                        $('#alrAxisSelM').val(currentParams.thresholdObject.target);
+                                                        $("label[for='alrAxisSelM']").show();
+                                                        $('#alrAxisSelM').parent().show();
+                                                        $('#alrAxisSelM').show();
+                                                        $("label[for='alrFieldSelM']").show();
+                                                        $('#alrFieldSelM').parent().show();
+                                                        $('#alrFieldSelM').show();
+                                                        //POPOLAMENTO DELLA SELECT DEI CAMPI
+                                                        alrAxisSelMListener();
+                                                        $('#addWidgetRangeTableContainerM').show();
+                                                        $('#parametersM').val(JSON.stringify(currentParams));
+                                                        //Listener per settaggio/desettaggio campi in base ad asse selezionato
+                                                        $('#alrAxisSelM').change(alrAxisSelMListener);
+                                                        //Listener per selezione campo
+                                                        $('#alrFieldSelM').change(alrFieldSelMListener);
+                                                    }
+                                                } catch (error) {
+                                                    console.error("Error: not valid thresholdObject:", error);
+                                                }
                                             }
                                         }
                                         //Rimozione eventuali campi del subform general per widget process
