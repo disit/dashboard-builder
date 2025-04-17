@@ -9396,7 +9396,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         popupText = "<span class='mapPopupLine'>" + textHtml + "</span>";
 
                         map.defaultMapRef.addLayer(marker);
-                        lastPopup = marker.bindPopup(popupText, { offset: [0, 0] }).openPopup();
+                        if (textHtml != null && textHtml != "")
+                            lastPopup = marker.bindPopup(popupText, { offset: [0, 0] }).openPopup();
 
                         map.eventsOnMap.push(passedData[j]);
 
@@ -18046,8 +18047,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     '<label for="scenario-endDatetime">To:</label>' +
                     '<input id="scenario-endDatetime" type="datetime-local" name="datetimeTo">' +
                     '<div>' +
-                    '<input type="button" id="scenario-save" value="Save"/>' +
-                    '<button id="scenario-cancel" type="button">Cancel</button>' +
+                    '<input type="button" id="whatif-scenario-save" value="Save"/>' +
+                    '<button id="whatif-scenario-cancel" type="button">Cancel</button>' +
                     '</div>' +
                     '</div>');
                 // disable interaction of this div with map
@@ -18061,74 +18062,74 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 		
                 //FINE AGGIUNTA E FIX MENTINA
 
-            // $("#scenario-save").click(function () {
-            //     console.error("SAVE SCENARIO 3 [15468]");
-            //     if ($("#scenario-name").val() !== "" && scenarioData.features.length > 0 && $("#scenario-name").val().indexOf("(") == -1) {
-            //         delete scenarioData.options;
-            //         delete scenarioData.layers;
-            //         delete scenarioData._initHooksCalled;
-            //         delete scenarioData._layers;
-            //         scenarioData.scenarioName = $("#scenario-name").val();
-            //         scenarioData.scenarioDescription = $("#scenario-description").val();
-            //         scenarioData.scenarioDatetimeStart = $("#scenario-startDatetime").val();
-            //         scenarioData.scenarioDatetimeEnd = $("#scenario-endDatetime").val();
-            //         scenarioData.isPublic = $("#scenario-visibility").is(':checked');
+            $("#whatif-scenario-save").click(function () {
+                console.error("SAVE SCENARIO 3 [15468]");
+                if ($("#scenario-name").val() !== "" && scenarioData.features.length > 0 && $("#scenario-name").val().indexOf("(") == -1) {
+                    delete scenarioData.options;
+                    delete scenarioData.layers;
+                    delete scenarioData._initHooksCalled;
+                    delete scenarioData._layers;
+                    scenarioData.scenarioName = $("#scenario-name").val();
+                    scenarioData.scenarioDescription = $("#scenario-description").val();
+                    scenarioData.scenarioDatetimeStart = $("#scenario-startDatetime").val();
+                    scenarioData.scenarioDatetimeEnd = $("#scenario-endDatetime").val();
+                    scenarioData.isPublic = $("#scenario-visibility").is(':checked');
 
-            //         var ajaxData = {
-            //             "method": "POST",
-            //             "geojson": JSON.stringify(scenarioData)
-            //         };
+                    var ajaxData = {
+                         "method": "POST",
+                        "geojson": JSON.stringify(scenarioData)
+                    };
 
-            //         $.ajax({
-            //             type: 'GET',
-            //             url: '../controllers/scenarioProxy.php',
-            //             dataType: "json",
-            //             contentType: 'application/json; charset=utf-8',
-            //             async: true,
-            //             data: ajaxData,
-            //             success: function (resp) {
-            //                 if (resp == "-1") {
-            //                     alert("Scenario name already exists.");
-            //                 }
-            //                 else if (resp == "-2") {
-            //                     alert("You must be logged in in order to create new scenarios.");
-            //                 }
-            //                 else {
-            //                     alert("Scenario '" + $("#scenario-name").val() + "' saved");
-            //                     $("#scenario-cancel").trigger("click");
-            //                 }
-            //             },
-            //             error: function (errorData) {
-            //                 console.log(errorData);
-            //             }
-            //         });
-            //     }
-            //     else if ($("#scenario-name").val() === "") {
-            //         alert("You must enter a name for the current scenario.")
-            //     }
-            //     else if (scenarioData.features.length == 0) {
-            //         alert("You must add at least one barrier for the current scenario.")
-            //     }
-            //     else if ($("#scenario-name").val().indexOf("(") > -1) {
-            //         alert("You cannot enter special char '(' in the current scenario's name.");
-            //     }
-            // });
+                    $.ajax({
+                        type: 'GET',
+                        url: '../controllers/scenarioProxy.php',
+                        dataType: "json",
+                        contentType: 'application/json; charset=utf-8',
+                        async: true,
+                        data: ajaxData,
+                        success: function (resp) {
+                            if (resp == "-1") {
+                                alert("Scenario name already exists.");
+                            }
+                            else if (resp == "-2") {
+                                alert("You must be logged in in order to create new scenarios.");
+                            }
+                            else {
+                                alert("Scenario '" + $("#scenario-name").val() + "' saved");
+                                $("#scenario-cancel").trigger("click");
+                            }
+                        },
+                        error: function (errorData) {
+                            console.log(errorData);
+                        }
+                    });
+                }
+                else if ($("#scenario-name").val() === "") {
+                    alert("You must enter a name for the current scenario.")
+                }
+                else if (scenarioData.features.length == 0) {
+                    alert("You must add at least one barrier for the current scenario.")
+                }
+                else if ($("#scenario-name").val().indexOf("(") > -1) {
+                    alert("You cannot enter special char '(' in the current scenario's name.");
+                }
+            });
 
-            // $("#scenario-cancel").click(function () {
-            //     console.log("#scenario-cancel 4")
-            //     map.defaultMapRef.removeLayer(scenarioDrawnItems);
-            //     scenarioDrawnItems = new L.FeatureGroup();
-            //     map.defaultMapRef.addLayer(scenarioDrawnItems);
-            //     $("#scenario-name").val("");
-            //     $("#scenario-description").val("");
-            //     $("#scenario-startDatetime").val("");
-            //     $("#scenario-endDatetime").val("");
-            //     $("#scenario-visibility").prop('checked', false);
+            $("#whatif-scenario-cancel").click(function () {
+                console.log("#scenario-cancel 4")
+                map.defaultMapRef.removeLayer(scenarioDrawnItems);
+                scenarioDrawnItems = new L.FeatureGroup();
+                map.defaultMapRef.addLayer(scenarioDrawnItems);
+                $("#scenario-name").val("");
+                $("#scenario-description").val("");
+                $("#scenario-startDatetime").val("");
+                $("#scenario-endDatetime").val("");
+                $("#scenario-visibility").prop('checked', false);
 
-            //     scenarioData = new L.geoJSON();
-            //     scenarioData.type = "FeatureCollection";
-            //     scenarioData.features = [];
-            // });
+                scenarioData = new L.geoJSON();
+                scenarioData.type = "FeatureCollection";
+                scenarioData.features = [];
+            });
         }
     });
 
@@ -26379,18 +26380,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 } else if (map.eventsOnMap[i].eventType === 'heatmap') {
                     removeHeatmap(true);
                     map.eventsOnMap.splice(i, 1);
-                } else if (map.eventsOnMap[i].type === 'addHeatmap') {
+                } else if (map.eventsOnMap[i].type === 'addHeatmap' && !map.eventsOnMap[i].passedData.includes("&trafficflowmanager=true")) {
                     $('#heatmap-info-btn').css('display', 'none');
                     //$('#heatmapLegend').remove();
                     $('#heatmap-info-btn')[0].className = "deck-btn"
                     removeHeatmapColorLegend(i, true);
                     map.eventsOnMap.splice(i, 1);
                 } else if (map.eventsOnMap[i] !== null && map.eventsOnMap[i] !== undefined) {
-                    if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
+                  /*  if (map.eventsOnMap[i].eventType != 'trafficRealTimeDetails') {
                         map.defaultMapRef.removeLayer(map.eventsOnMap[i]);
                         map.eventsOnMap.splice(i, 1);
                         removeHeatmap(true);
-                    }
+                    }*/
                 }
             }
         }
