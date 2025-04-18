@@ -4055,53 +4055,57 @@
                        $("#<?= $_REQUEST['name_w'] ?>_defaultMapDiv").hide(); 
                        $("#<?= $_REQUEST['name_w'] ?>_gisMapDiv").hide();
                        $("#<?= $_REQUEST['name_w'] ?>_wrapper").show();
-                       widgetParameters = JSON.parse(widgetProperties.param.parameters);
-                       if (widgetParameters && widgetParameters['mode'] == "ckeditor" && widgetParameters['svgCKEditor'] !=="svgMode") {
-                           if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
-                               let code = widgetProperties.param.code;
-                               var text_ck_area = document.createElement("text_ck_area");
-                               text_ck_area.innerHTML = code;
-                               var newInfoDecoded = text_ck_area.innerText;
-                               const getBlobURL = (code, type) => {
-                                   const blob = new Blob([code], {type})
-                                   return URL.createObjectURL(blob)
+                       try {
+                           widgetParameters = JSON.parse(widgetProperties.param.parameters);
+                           if (widgetParameters && widgetParameters['mode'] == "ckeditor" && widgetParameters['svgCKEditor'] !=="svgMode") {
+                               if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
+                                   let code = widgetProperties.param.code;
+                                   var text_ck_area = document.createElement("text_ck_area");
+                                   text_ck_area.innerHTML = code;
+                                   var newInfoDecoded = text_ck_area.innerText;
+                                   const getBlobURL = (code, type) => {
+                                       const blob = new Blob([code], {type})
+                                       return URL.createObjectURL(blob)
+                                   }
+                                   let htmlData = getBlobURL(newInfoDecoded, 'text/html');
+                                   //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", "data:text/html;charset=utf-8," + encodeURI(rowParams));
+                                   //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + encodeURI(rowParams));
+                                   $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", htmlData);
+                                   $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + htmlData);
                                }
-                               let htmlData = getBlobURL(newInfoDecoded, 'text/html');
-                               //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", "data:text/html;charset=utf-8," + encodeURI(rowParams));
-                               //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + encodeURI(rowParams));
-                               $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", htmlData);
-                               $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + htmlData);
+                           } else if(widgetParameters && widgetParameters['svgCKEditor'] == "svgMode"){
+                                           $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
+                                          $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", url);
+                                        //
+                                        var $iframe ='';
+                                        var d1 = url.split('?id=');
+                                        var svg_id= d1[1];
+                                        var url_svg = "../img/synoptics/" + svg_id+".svg";
+                                           var content_svg_html = '<object type="image/svg+xml" id="svg_object_<?= $_REQUEST['name_w'] ?>" data="'+url_svg+'?param1=param_data"><param id="inputsvg_<?= $_REQUEST['name_w'] ?>" name="param_data" value="" /></object>';
+
+                                         $('#<?= $_REQUEST['name_w'] ?>_svgcontent').html(content_svg_html);
+                                          $('#<?= $_REQUEST['name_w'] ?>_iFrame').css("display", "none");
+
+
+                                           if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
+                                                                    let code = widgetProperties.param.code;
+                                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                                    text_ck_area.innerHTML = code;
+                                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                                    var elem = document.createElement('script');
+                                                                    elem.type = 'text/javascript';
+                                                                    elem.innerHTML = newInfoDecoded;
+                                                                    $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+                                                                    $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                                                                    //
+                                             }
+                                        //
+                           } else {
+                               $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
+                               $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", url);
                            }
-                        } else if(widgetParameters && widgetParameters['svgCKEditor'] == "svgMode"){
-                                       $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
-                                      $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", url);
-                                    //
-                                    var $iframe ='';
-                                    var d1 = url.split('?id=');
-                                    var svg_id= d1[1];
-                                    var url_svg = "../img/synoptics/" + svg_id+".svg";
-                                       var content_svg_html = '<object type="image/svg+xml" id="svg_object_<?= $_REQUEST['name_w'] ?>" data="'+url_svg+'?param1=param_data"><param id="inputsvg_<?= $_REQUEST['name_w'] ?>" name="param_data" value="" /></object>';
-                                       
-                                     $('#<?= $_REQUEST['name_w'] ?>_svgcontent').html(content_svg_html);
-                                      $('#<?= $_REQUEST['name_w'] ?>_iFrame').css("display", "none");
-                                      
-                                                
-                                       if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
-                                                                let code = widgetProperties.param.code;
-                                                                var text_ck_area = document.createElement("text_ck_area");
-                                                                text_ck_area.innerHTML = code;
-                                                                var newInfoDecoded = text_ck_area.innerText;
-                                                                var elem = document.createElement('script');
-                                                                elem.type = 'text/javascript';
-                                                                elem.innerHTML = newInfoDecoded;
-                                                                $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
-                                                                $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
-                                                                //
-                                         }
-                                    //
-                       } else {
-                           $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
-                           $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", url);
+                       } catch (ex) {
+                           console.error("Exception: ", ex);
                        }
 					   
                        metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>"; 	
