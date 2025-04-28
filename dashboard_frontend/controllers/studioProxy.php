@@ -266,7 +266,7 @@ else if(isset($_SESSION['refreshToken'])) {
                     $curName = json_decode($d->variableValue, true)['studioName'] . ":" . 
                             json_decode($d->variableValue, true)['scenarioName'];
                     if( json_decode($d->variableValue, true)['isPublic'] == "true" )
-                        $curName .= " (publ)";
+                        $curName .= " (Public)";
                     else
                         $curName .= " (Private)";
                     

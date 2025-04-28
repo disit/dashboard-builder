@@ -552,12 +552,8 @@ var serviceMapUrlForTrendApi = '<?= $serviceMapUrlForTrendApi ?>';
 var processloader_uri_filemanager = '<?= $processloader_uri_filemanager ?>';
 console.log('processloader_uri_filemanager: '+processloader_uri_filemanager);
 
-if ("<?= $_SESSION['refreshToken'] ?>" != null && "<?= $_SESSION['refreshToken'] ?>" != "") {
 $.ajax({
 url: "../controllers/getAccessToken.php",
-data: {
-refresh_token: "<?= $_SESSION['refreshToken'] ?>"
-},
 
 type: "GET",
 async: false,
@@ -566,7 +562,6 @@ success: function (dataSso) {
 accessToken = dataSso.accessToken;
 }
 });
-}
 
 var url_devices = serviceMapUrlForTrendApi + '?selection=43.76871;11.25137&categories=&maxResults=100&maxDists=200&format=json&lang=&geometry=&model=TTT-Model&appID=iotapp&accessToken='+accessToken;
 $.ajax({

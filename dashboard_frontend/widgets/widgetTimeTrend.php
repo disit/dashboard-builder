@@ -57,8 +57,6 @@
         var isoDate = new Date(nowUTC).toISOString();
         var isoDateTrimmed = now.getFullYear()+"-"+(101+now.getMonth()+"").slice(-2)+"-"+(100+now.getDate()+"").slice(-2)+"T"+(100+now.getHours()+"").slice(-2)+":"+(100+now.getMinutes()+"").slice(-2);
         var myKPIFromTimeRange = "";
-        var refreshToken = "<?= $_SESSION['refreshToken'] ?>";
-        var accessToken = "<?= $_SESSION['accessToken'] ?>";
         var dayTracker = fromTrackerDay;
         var flagTracker = fromTrackerFlag;
         var upperTimeLimitISOTrimmed = null;

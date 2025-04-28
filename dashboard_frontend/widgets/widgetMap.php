@@ -10387,25 +10387,17 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
         //function to get the access token
         async function getLAccessToken() {
-            if ("<?= $_SESSION['refreshToken'] ?>" != null && "<?= $_SESSION['refreshToken'] ?>" != "") {
-                //NEW
-                let result;
-                try {
-                    result = await $.ajax({
-                        url: "../controllers/getAccessToken.php",
-                        data: {
-                            refresh_token: "<?= $_SESSION['refreshToken'] ?>"
-                        },
-                        type: "GET"
-                    });
-                    //console.log('result',result);
-                    return result;
-                } catch (error) {
-                    console.error('Error: ', error);
-                }
-            }else{
-                console.log('No refresh token!');
-                alert("No user detected. Log into the platform before use the scnario editor!");
+            //NEW
+            let result;
+            try {
+                result = await $.ajax({
+                    url: "../controllers/getAccessToken.php",
+                    type: "GET"
+                });
+                //console.log('result',result);
+                return result;
+            } catch (error) {
+                console.error('Error: ', error);
             }
         }
     
@@ -10545,29 +10537,24 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
     //function to get the organization and broker name
     async function getLeAltreUserInfo() {
-        if ("<?= $_SESSION['refreshToken'] ?>" != null && "<?= $_SESSION['refreshToken'] ?>" != "") {
-            const result = await $.ajax({
-                url: "../controllers/getOrganizationParameters.php?action=getAllParameters",
-                data: {
-                    refresh_token: "<?= $_SESSION['refreshToken'] ?>"
-                },
-                type: "GET",
-                async: true,
-                dataType: 'json',
-                success: function (dataSso) {
-                    lorganizzazione = dataSso.orgName;
-                    ilbrokerdellorganizzazione = dataSso.orgBroker;
-                    const orgLat = parseFloat(dataSso.orgGpsCentreLatLng.split(',')[0]);
-                    const orgLon = parseFloat(dataSso.orgGpsCentreLatLng.split(',')[1]);
-                    const orgZoom = parseInt(dataSso.orgZoomLevel);
-                    map.defaultMapRef.setView([orgLat, orgLon], orgZoom);
-                },
-                error: function (errorData) {
-                    console.log("Error in AJAX request for organization parameters token.");
-                }
-            });
-            return result;
-        }
+        const result = await $.ajax({
+            url: "../controllers/getOrganizationParameters.php?action=getAllParameters",
+            type: "GET",
+            async: true,
+            dataType: 'json',
+            success: function (dataSso) {
+                lorganizzazione = dataSso.orgName;
+                ilbrokerdellorganizzazione = dataSso.orgBroker;
+                const orgLat = parseFloat(dataSso.orgGpsCentreLatLng.split(',')[0]);
+                const orgLon = parseFloat(dataSso.orgGpsCentreLatLng.split(',')[1]);
+                const orgZoom = parseInt(dataSso.orgZoomLevel);
+                map.defaultMapRef.setView([orgLat, orgLon], orgZoom);
+            },
+            error: function (errorData) {
+                console.log("Error in AJAX request for organization parameters token.");
+            }
+        });
+        return result;
     }
 
     //funzione che mi serve per creare l'api per prendere i dati dai sensori reali all'interno di un poligono WKT
@@ -29518,31 +29505,26 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 socket.on('connect', () => {
                     try {
                         console.log("New WS Connected. Socket ID: " + socket.id);
-
-                        if ("<?= $_SESSION['refreshToken'] ?>" != null && "<?= $_SESSION['refreshToken'] ?>" != "") {
-                            tryingAuth = true;
-                            $.ajax({
-                                url: "../controllers/getAccessToken.php",
-                                data: {
-                                    refresh_token: "<?= $_SESSION['refreshToken'] ?>"
-                                },
-                                type: "GET",
-                                async: true,
-                                dataType: 'json',
-                                success: function (dataSso) {
-                                    try {
-                                        if (socket != null && socket.connected) {
-                                            socket.emit("authenticate", dataSso.accessToken);
-                                        }
-                                    } catch (errajax) {
-                                        console.log("Error in ajax authencticate: " + errajax.message);
+                        
+                        tryingAuth = true;
+                        $.ajax({
+                            url: "../controllers/getAccessToken.php",
+                            type: "GET",
+                            async: true,
+                            dataType: 'json',
+                            success: function (dataSso) {
+                                try {
+                                    if (socket != null && socket.connected) {
+                                        socket.emit("authenticate", dataSso.accessToken);
                                     }
-                                },
-                                error: function (errorData) {
-
+                                } catch (errajax) {
+                                    console.log("Error in ajax authencticate: " + errajax.message);
                                 }
-                            });
-                        }
+                            },
+                            error: function (errorData) {
+
+                            }
+                        });
 
                         socket.on("authenticate", function (data) {
                             try {

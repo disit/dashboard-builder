@@ -24,30 +24,32 @@ session_start();
 
 $proceed = false;
 //OK - Utente collegato all'applicazione
-if(isset($_SESSION['loggedUsername']))
-{
-    //Controlliamo se è autore
-    if($_SESSION['loggedUsername'] == $authorUsername)
-    {
-        $proceed = true;
-    }
-    else {
+if(isset($_SESSION['loggedUsername'])) {
 
-        if (isset($_SESSION['refreshToken'])) {
-            //1) Reperimento elenco sue dashboard tramite chiamata ad api di ownership
-            $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
-            $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
+    if (isset($_SESSION['refreshToken'])) {
+        // 1) Reperimento elenco sue dashboard tramite chiamata ad API di ownership
+        $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+        $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
 
-            $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+        $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
 
-            $accessToken = $tkn->access_token;
-            $_SESSION['refreshToken'] = $tkn->refresh_token;
+        $accessToken = $tkn->access_token;
+
+        $_SESSION['refreshToken'] = $tkn->refresh_token;
+
+        $response["detail"] = "Ok";
+        $response["accessToken"] = $accessToken;
+
+        if (isset($_GET['includeRefresh']) && $_GET['includeRefresh'] === 'true') {
+            $response["refreshToken"] = $_SESSION['refreshToken'];
         }
+
+    } else {
+        $response["detail"] = "Ko! No authentication.";
     }
 
+} else {
+    $response["detail"] = "Ko! Session not valid.";
 }
-
-$response["detail"] = "Ok";
-$response["accessToken"] = $accessToken;
 
 echo json_encode($response);

@@ -3889,19 +3889,16 @@
                             $parametersM = sanitizeJsonRelaxed($_POST['parametersM']);
                             $parametersArray = json_decode($parametersM);
                             if ($parametersArray->dropdownMenu) {
-                                // if an orthomap json already exists, update only latLng and zoom
-                                $latLngCenterMap = $parametersArray->latLng;
-                                $zoomMap = $parametersArray->zoom;
-                                $parametersArray->latLng = $latLngCenterMap;
-                                $parametersArray->zoom = $zoomMap;
                                 $parametersM = json_encode($parametersArray);
                             } else {
                                 // if there isn't any orthomap json, create it using the organization template
                                 $tempParametersArray = $parametersArray;
                                 $latLngCenterMap = $tempParametersArray->latLng;
                                 $zoomMap = $tempParametersArray->zoom;
+                                $modeMap = $tempParametersArray->mode;
                                 $orthomapJsonArray['latLng'] = $latLngCenterMap;
                                 $orthomapJsonArray['zoom'] = $zoomMap;
+                                $orthomapJsonArray['mode'] = $modeMap;
                                 $parametersM = json_encode($orthomapJsonArray);
                             }
                         }
@@ -3912,7 +3909,8 @@
                             $tempParametersArray = json_decode($parametersM);
                             $latLngCenterMap = $tempParametersArray->latLng;
                             $zoomMap = $tempParametersArray->zoom;
-                            $parametersArray = array('latLng' => $latLngCenterMap, 'zoom' => $zoomMap);
+                            $modeMap = $tempParametersArray->mode;
+                            $parametersArray = array('latLng' => $latLngCenterMap, 'zoom' => $zoomMap, 'mode' => $modeMap);
                             $parametersM = json_encode($parametersArray);
                             $infoJsonM = "no";
                         }

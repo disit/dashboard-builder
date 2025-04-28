@@ -697,7 +697,6 @@ if (!isset($_SESSION)) {
         var iconTextMod = "null";
         var keycloak, socket = null;
         var subscribeFlag, tryingAuth, srvFailure = false;
-        var refreshToken = "<?= $_SESSION['refreshToken'] ?>";
         var payload = [];
         var subscribedWsDevices = [];
         var wsConnect = null;
@@ -18387,33 +18386,28 @@ if (!isset($_SESSION)) {
                     socket.on('connect', () => {
                         try {
                             console.log("New WS Connected. Socket ID: " + socket.id);
-
-                            if (refreshToken != null && refreshToken != "") {
-                                tryingAuth = true;
-                                $.ajax({
-                                    url: "../controllers/getAccessToken.php",
-                                    data: {
-                                        refresh_token: refreshToken
-                                    },
-                                    type: "GET",
-                                    async: true,
-                                    dataType: 'json',
-                                    success: function(dataSso) {
-                                        try {
-                                            if (socket != null && socket.connected) {
-                                                socket.emit("authenticate", dataSso
-                                                    .accessToken);
-                                            }
-                                        } catch (errajax) {
-                                            console.log("Error in ajax authencticate: " +
-                                                errajax.message);
+                            
+                            tryingAuth = true;
+                            $.ajax({
+                                url: "../controllers/getAccessToken.php",
+                                type: "GET",
+                                async: true,
+                                dataType: 'json',
+                                success: function(dataSso) {
+                                    try {
+                                        if (socket != null && socket.connected) {
+                                            socket.emit("authenticate", dataSso
+                                                .accessToken);
                                         }
-                                    },
-                                    error: function(errorData) {
-
+                                    } catch (errajax) {
+                                        console.log("Error in ajax authencticate: " +
+                                            errajax.message);
                                     }
-                                });
-                            }
+                                },
+                                error: function(errorData) {
+
+                                }
+                            });
 
                             socket.on("authenticate", function(data) {
                                 try {

@@ -430,6 +430,14 @@ checkSession('Manager');
                             $('#addExternalServiceBtnRow').show();
                             $('#addExternalServiceForm')[0].reset();
                         });
+                    } else if (data.result === 'Ko-Ext') {
+                        $('#addExternalServiceResultBtns').hide();
+                        $('#addExternalServiceResultMsg').html("Error adding new external service: Only png and jpg file image are allowed.");
+                        setTimeout(function(){
+                            $('#addExternalServiceResultsRow').hide();
+                            $('#addExternalServiceResultBtns').show();
+                            $('#addExternalServiceBtnRow').show();
+                        }, 2000);
                     }
                     else
                     {

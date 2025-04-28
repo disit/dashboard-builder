@@ -475,7 +475,7 @@ $lastUsedColors = null;
 
 
                     <div class="input-group"><span class="input-group-addon"><?= _("Subnature") ?>:</span>
-                        <select id="edit_subnature" name="subnature" class="form-control">
+                        <select id="edit_subnature" name="subnature" class="form-control" readonly disabled>
                         </select>
                     </div><br />
 
@@ -771,6 +771,28 @@ $lastUsedColors = null;
 //******FINE MAPPA******//
     $(document).ready(function () {
         console.log('filemanager ready');
+$('#loading_div').modal("show");
+var showed_elements = $('#value_table_length').val();
+var table = $('#value_table').DataTable({
+    "processing": true,
+    "serverSide": true,
+    "searching": true,
+    "paging": true,
+    "ordering": true,
+    "info": true,
+    "responsive": true,
+    "lengthMenu": [5, 10, 20, 50],
+    "iDisplayLength": 5,
+    "pagingType": "full_numbers",
+    "ajax": function (data, callback, settings) {
+        var columnName = $('#value_table thead th').eq(data.order[0].column).text().trim().toLowerCase();
+        if((columnName == 'name')||(columnName == 'size')){
+            columnName = 'file'+columnName;
+        }
+        if(columnName == 'date'){
+            columnName = 'dateObserved';   
+        }
+
 
         $.ajax({
             async: true,
@@ -778,7 +800,114 @@ $lastUsedColors = null;
             dataType: 'json',
             url: 'getfiledata.php',
             data: {
-                action: 'get_my_files'
+                action: 'get_my_files',
+                showed_elements: data.length,  // Numero di elementi richiesti
+                page: (data.start / data.length) + 1, // Calcola la pagina richiesta
+                search_value: data.search.value,  // Aggiunto per il search
+                order_column: columnName,  // Indice della colonna ordinata
+                order_dir: data.order[0].dir  // Direzione dell'ordinamento (asc/desc) 
+            },
+            success: function (response) {
+                $('#loading_div').modal("hide");
+                if (response.code === '200') {
+                    var total_number = response.fullCount; // Ottieni il numero totale di righe
+                    var records = response.message; // I dati reali della tabella
+
+                    //var validRecords = records.filter(item => item.filename && item.deviceid);
+                    var validRecords = records;
+                    if (validRecords.length === 0) {
+                        callback({
+                            draw: data.draw,
+                            recordsTotal: total_number,
+                            recordsFiltered: total_number,
+                            data: []
+                        });
+                        return;
+                    }
+
+                    // Costruisci il dataset per DataTables
+                    var formattedData = validRecords.map(function(item) {
+                        var edit_button = '&nbsp;';
+                        var delete_button = '&nbsp;';
+                        var view_button = '&nbsp;';
+                        var management_button = '&nbsp;';
+
+                        if (loggedRole === 'RootAdmin' || item.visibility === 'MyOwnPublic' || item.visibility === 'MyOwnPrivate') {
+                            edit_button = '<button type="button" class="editDashBtn edit_file" onclick="func_edit(\'' + item.deviceid + '\', \'' + item.description + '\', \'' + item.subnature + '\', \'' + item.filename + '\', \'' + item.language + '\', \'' + item.filesize + '\', \'' + item.filetype + '\', \'' + item.date + '\', \'' + item.latitude + '\', \'' + item.longitude + '\',\''+ item.newfileid +'\')">EDIT</button>';
+                            delete_button = '<button type="button" class="delDashBtn delete_file" onclick="func_del(\'' + item.deviceid + '\',\'' + item.contextbroker + '\',\'' + item.newfileid + '\',\'' + item.filetype + '\')">DELETE</button>';
+                        }
+
+                        if (loggedRole === 'RootAdmin' || item.visibility === 'MyOwnPublic' || item.visibility === 'MyOwnPrivate' || item.visibility === 'public' || item.visibility === 'delegated') {
+                            view_button = '<button type="button" class="viewDashBtn" onclick="func_view(\'' + item.newfileid + '\',\'' + item.filetype + '\',\'' + item.filename + '\')" data-target="#view_file" data-toggle="modal">VIEW</button>';
+                        }
+
+                        if (item.visibility === 'MyOwnPrivate') {
+                            management_button = '<button type="button" class="delDashBtn" onclick="func_management(\'' + item.filename + '\',\'' + item.deviceid + '\',\'' + item.contextbroker + '\',\'' + item.visibility + '\',\'' + item.k1 + '\',\'' + item.k2 + '\', \'' + item.description + '\', \'' + item.subnature + '\', \'' + item.filename + '\', \'' + item.language + '\', \'' + item.filesize + '\', \'' + item.filetype + '\', \'' + item.date + '\', \'' + item.latitude + '\', \'' + item.longitude + '\',\''+ item.newfileid +'\')">' + item.visibility + '</button>';
+                        } else if (item.visibility === 'MyOwnPublic') {
+                            management_button = '<button type="button" class="editDashBtn" onclick="func_management(\'' + item.filename + '\',\'' + item.deviceid + '\',\'' + item.contextbroker + '\',\'' + item.visibility + '\',\'' + item.k1 + '\',\'' + item.k2 + '\', \'' + item.description + '\', \'' + item.subnature + '\', \'' + item.filename + '\', \'' + item.language + '\', \'' + item.filesize + '\', \'' + item.filetype + '\', \'' + item.date + '\', \'' + item.latitude + '\', \'' + item.longitude + '\',\''+ item.newfileid +'\')">' + item.visibility + '</button>';
+                        } else if (item.visibility === 'public') {
+                            management_button = '<div class="publicBtn">' + item.visibility + '</div>';
+                        } else {
+                            management_button = '<div class="delegatedBtn">' + item.visibility + '</div>';
+                        }
+
+                        var position_button = '<div class="addMapBtn"><i data-toggle="modal" data-target="#addMapShow" onclick="drawMap(\''+ item.latitude + '\',\'' + item.longitude + '\', \'' + item.filename + '\', \'addDeviceMapModalBodyShow\')" class="fa fa-globe" style="font-size:36px; color: #0000ff"></i></div>';
+
+                        return [
+                            item.filename,
+                            item.description || '',
+                            item.subnature || '',
+                            item.language || '',
+                            item.filesize || '',
+                            item.date || '',
+                            item.organization || '',
+                            position_button,
+                            edit_button,
+                            view_button,
+                            delete_button,
+                            management_button
+                        ];
+                    });
+
+                    // Passiamo i dati filtrati a DataTables
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: total_number,
+                        recordsFiltered: total_number,
+                        data: formattedData
+                    });
+
+                } else {
+                    $('#loading_div').modal("hide");
+                    console.log(response.message);
+                    alert(response.message);
+                }
+            },
+            error: function (xhr, error, thrown) {
+                console.log("Errore nel caricamento AJAX", error);
+            }
+        });
+    },
+    "language": {
+        "paginate": {
+            "first": "First",
+            "last": "Last",
+            "next": "Next >>",
+            "previous": "<< Prev"
+        },
+        "lengthMenu": "Show _MENU_ "
+    }
+});
+
+      /*  $.ajax({
+            async: true,
+            type: 'GET',
+            dataType: 'json',
+            url: 'getfiledata.php',
+            data: {
+                action: 'get_my_files',
+                showed_elements: 5,
+                page: 1
                 //              action: 'list_files'
             },
             error: function (data) { console.log(data);},
@@ -788,6 +917,8 @@ $lastUsedColors = null;
                 if (data['code'] === '200'){
                     var data = data['message'];
                     var len = data.length;
+                    var total_number = data['fullCount'];
+                    console.log(total_number);
 
                 for (var i = 0; i < len; i++) {
                     var subnature = '';
@@ -838,8 +969,9 @@ $lastUsedColors = null;
                     else{
                         var view_button='&nbsp;';
                     }
-
+                    if(deviceid !== null){
                     $('#value_table tbody').append('<tr><td>' + filename + '</td><td>' + description + '</td><td>' + subnature + '</td><td>' + language + '</td><td>' + filesize + '</td><td>' + date + '</td><td>' + organization + '</td><td>' + position_button + '</td><td>' + edit_button + '</td><td>'+ view_button + '</td><td>' + delete_button + '</td><td>' + management_button + '</td></tr>');
+                    }
                 }
 
                 }else{
@@ -863,10 +995,12 @@ $lastUsedColors = null;
                             "previous": "<< Prev"
                         },
                         "lengthMenu": "Show     _MENU_ "
-                    }
+                    },
+                    "deferLoading": total_number
                 });
+                $('#loading_div').modal("hide");
               }
-        });
+        });*/
         //API LIST
         $('#button_conf_new').click(function () {
             $('#myModal_new').modal('hide');
@@ -919,6 +1053,9 @@ $lastUsedColors = null;
             var form = document.getElementById('formElement');
             var form_data = new FormData(form);
             form_data.append('action', 'upload_file');
+            var data_user = getLeAltreUserInfo();
+            console.log(data_user);
+            form_data.append('iotbroker', data_user);
             $('#loading_div').modal('show');
             //
             $.ajax({
@@ -935,6 +1072,7 @@ $lastUsedColors = null;
                                         $('#loading_div').modal('hide');
                                         var code = data['code'];
                                         if (code == '200'){
+
                                                 window.location.reload();
                                         }else{
                                                 alert(data['message']);
@@ -1146,13 +1284,17 @@ $lastUsedColors = null;
         var fileInput = document.getElementById('new_file');
 
         var chosenExtension =  $('#new_filetype').val();//extension chosen in the form by the user
-        var fileExtension = getFileExtension(fileInput.value);
-
+        var fileExtension_value = getFileExtension(fileInput.value);
+        var fileExtension = fileExtension_value.toLowerCase(fileExtension_value);
 
         if (chosenExtension !== fileExtension) {
             alert('Invalid file type');
             fileInput.value = '';
             return false;
+        }
+        
+        else {
+            document.getElementById('new_filetype').disabled = true;
         }
     }
 
@@ -1165,6 +1307,7 @@ $lastUsedColors = null;
         $('#delete_broker').val(broker);
         $('#delete_fileid').val(fileid);
         $('#delete_filetype').val(filetype);
+        $('#delete_file').modal('show');
     }
 
     function func_view(fileid, filetype, filename) {
@@ -1258,10 +1401,9 @@ $lastUsedColors = null;
                         $('#edit_subnature').append('<option value="' + array_subnature[i]['value'] + '">' + array_subnature[i]['value'] + '</option>');
                         }
                     }
-
+                    $('#edit_file').modal('show');
                 }
             });
-
     };
 
 
@@ -1279,7 +1421,7 @@ $lastUsedColors = null;
 
 //   START TO CHANGE THE VISIBILITY  & OWNERSHIP
 
-    function func_management(name, deviceid, contextbroker, visibility, k1, k2) {
+    function func_management(name, deviceid, contextbroker, visibility, k1, k2,description,subnature,filename,language,filesize,filetype,date,latitude,longitude,newfileid) {
         $("#delegationsModal").modal('show');
         $("#delegationHeadModalLabel").html("File - " + name);
         var newVisibility = '';
@@ -1327,9 +1469,39 @@ $lastUsedColors = null;
 
                             setTimeout(function()
                                                 {
-                                                        $('#devicesTable').DataTable().destroy();
+                                                $('#loading_div').modal('show');
+                                                        //$('#devicesTable').DataTable().destroy();
                                                         //fetch_data(true);
-                                                        location.reload();
+                                                         //CHANGE_EDIT
+                                                            //func_edit(deviceid, description, subnature, filename, language, filesize, filetype, date, latitude, longitude, newfileid)
+                                                            $.ajax({
+                                                                            async: true,
+                                                                            type: 'POST',
+                                                                            dataType: 'json',
+                                                                            url: 'getfiledata.php',
+                                                                            data: {
+                                                                                action: 'edit_file',
+                                                                                id: deviceid,
+                                                                                description: description,
+                                                                                subnature: subnature,
+                                                                                latitude: latitude,
+                                                                                longitude: longitude,
+                                                                                filename: filename,
+                                                                                language: language,
+                                                                                filesize: filesize,
+                                                                                filetype: filetype,
+                                                                                date: date,
+                                                                                newfileid: newfileid
+
+                                                                            },
+                                                                            success: function (data) {
+                                                                                console.log(data['message']);
+                                                                                $('#loading_div').modal('hide');
+                                                                                window.location.reload();
+                                                                            }
+                                                                        });
+                                                        //
+                                                        //location.reload();
                                                 }, 3000);
                         }
                         else if (data["status"] === 'ko')
@@ -1393,6 +1565,7 @@ $lastUsedColors = null;
                                                 {
                                                         $('#devicesTable').DataTable().destroy();
                                                         //fetch_data(true);
+                                                        //func_edit(deviceid, description, subnature, filename, language, filesize, filetype, date, latitude, longitude, newfileid);
                                                         location.reload();
                                                 }, 3000);
                                         }
@@ -2020,6 +2193,25 @@ function get_mimetype(filetype){
         }
     return mimetype;
 }
+
+function getLeAltreUserInfo() {
+        var orgB = '';
+        const result = $.ajax({
+            url: "../controllers/getOrganizationParameters.php?action=getAllParameters",
+            type: "GET",
+            async: false,
+            dataType: 'json',
+            success: function (dataSso) {
+                lorganizzazione = dataSso.orgName;
+                ilbrokerdellorganizzazione = dataSso.orgBroker;
+                orgB = ilbrokerdellorganizzazione;
+            },
+            error: function (errorData) {
+                console.log("Error in AJAX request for organization parameters token.");
+            }
+        });
+        return orgB;
+    }
 
 </script>
 </body>

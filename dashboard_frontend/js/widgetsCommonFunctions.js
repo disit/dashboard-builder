@@ -126,7 +126,7 @@ function showWidgetContent(widgetName)
 function setWidgetLayout(hostFile, widgetName, widgetContentColor, widgetHeaderColor, widgetHeaderFontColor, showHeader, headerHeight, hasTimer)
 {
     var titleWidth, contentHeight = null;
-    var newLayout = (hostFile === 'baloon' || hostFile === 'baloon-dark' || hostFile === 'gea' || hostFile === 'gea-night' || hostFile === 'pa') ? true : false;
+    var newLayout = (hostFile === 'baloon' || hostFile === 'baloon-dark' || hostFile === 'gea' || hostFile === 'gea-night' || hostFile === 'gea-green' || hostFile === 'gea-orange' || hostFile === 'pa') ? true : false;
 
     if((!widgetName.includes('widgetExternalContent'))&&(!widgetName.includes('widgetMap'))&&(!widgetName.includes('widgetGisWFS')))
     {
