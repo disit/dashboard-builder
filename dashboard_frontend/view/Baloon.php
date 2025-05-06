@@ -1874,6 +1874,16 @@
 
         }
 
+        function updateAccess(){
+            $.getJSON('../controllers/dashDailyAccessController.php?updateAccess=true',
+                {
+                    dashId: <?= escapeForJS(base64_decode($_GET['iddasboard'])) ?>
+                },
+                function (data) {
+                });
+        }
+        updateAccess();
+
     </script>
 </head>
 <body>
@@ -2522,38 +2532,3 @@
     </div>  -->
 </body>
 </html>
-<?php
-    //Query $iddasboard=NzU2
-$link = mysqli_connect($host, $username, $password);
-mysqli_select_db($link, $dbname);
-$queryAccess = "SELECT * FROM Dashboard.IdDashDailyAccess WHERE IdDashboard = $dashId ORDER BY date DESC;";
-$resultAccess = mysqli_query($link, $queryAccess);
-$currentDate = date("Y-m-d");
-//$currentDate = '2018-07-21';
-$nameDash = $row['name_dashboard'];
-
-//if($resultAccess) {
-    if (mysqli_num_rows($resultAccess) > 0) {
-
-        $rowAcc = mysqli_fetch_array($resultAccess);
-        if ($rowAcc['date'] === $currentDate) {     // CHECK ON LAST DATE
-        // $dashboardWidgets = [];
-            $queryUpdate = "UPDATE Dashboard.IdDashDailyAccess SET nAccessPerDay = nAccessPerDay + 1 WHERE IdDashboard = $dashId AND date = '$currentDate';";
-            $resultUpdate = mysqli_query($link, $queryUpdate);
-
-        } else {
-            // insert in mysql
-            $queryInsert = "INSERT INTO Dashboard.IdDashDailyAccess " .
-                "(IdDashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nAccessPerDay = nAccessPerDay + 1;";
-            $resultInsert = mysqli_query($link, $queryInsert);
-        }
-    } else {
-        // insert in mysql
-        $queryInsert = "INSERT INTO Dashboard.IdDashDailyAccess " .
-            "(IdDashboard, date, nAccessPerDay, nMinutesPerDay) VALUES ('$dashId', '$currentDate', 1, 0) ON DUPLICATE KEY UPDATE nAccessPerDay = nAccessPerDay + 1;";
-        $resultInsert = mysqli_query($link, $queryInsert);
-    }
-//}
-mysqli_close($link);
-
-?>
