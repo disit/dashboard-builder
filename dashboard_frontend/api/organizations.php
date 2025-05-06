@@ -15,7 +15,7 @@
 
   include '../config.php';
   header('Access-Control-Allow-Origin: *');
-
+  header('Content-Type: application/json');
   $link = mysqli_connect($host, $username, $password);
   mysqli_select_db($link, $dbname);
   //error_reporting(E_ERROR | E_NOTICE);
@@ -34,7 +34,7 @@
           $users = ' ,users';
       }
   }
-  $query = "SELECT organizationName,kbUrl, gpsCentreLatLng, zoomLevel".$users." FROM Organizations WHERE ".$cond;
+  $query = "SELECT organizationName,kbUrl, kbIP, broker, gpsCentreLatLng, zoomLevel".$users." FROM Organizations WHERE ".$cond;
   $result = mysqli_query($link, $query);
   $response = [];
   if($result) {
@@ -43,8 +43,10 @@
       //$response[]=$row;
         $response[$i]['organizationName']=$row['organizationName'];
         $response[$i]['kbUrl']=$row['kbUrl'];
+        $response[$i]['kbIP']=$row['kbIP'];
         $response[$i]['gpsCentreLatLng']=$row['gpsCentreLatLng'];
         $response[$i]['zoomLevel']=$row['zoomLevel'];
+        $response[$i]['broker']=$row['broker'];
         if (isset($_GET['includeUsers'])){
             $array_users=[];
             if (isset($row['users'])){
