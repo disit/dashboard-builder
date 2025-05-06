@@ -473,7 +473,7 @@ div.singleBtnContainer
   font-family: 'Roboto Condensed', sans-serif!important;
 }
 
-div#heatmapLegend, div#trafficHeatmapLegend{
+div#heatmapLegend, div#trafficHeatmapLegend, div#vectorFieldLegend{
     color: var(--text-color);
     border-radius: 10px;
     padding: 20px!important;
@@ -481,7 +481,7 @@ div#heatmapLegend, div#trafficHeatmapLegend{
     background: var(--dash-bg-color)!important;
 }
 
-div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button]{
+div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button], div#vectorFieldLegend input[type=button]{
     border: none!important;
     border-radius: 5px;
     background: var(--acc-02-color);
@@ -505,7 +505,7 @@ div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button
     border-radius: 10px!important;
 }
 
-#universal-top-right div#heatmapLegend, #universal-top-right div#trafficHeatmapLegend {
+#universal-top-right div#heatmapLegend, #universal-top-right div#trafficHeatmapLegend, #universal-top-right div#vectorFieldLegend {
     margin: 0!important;
 }
 

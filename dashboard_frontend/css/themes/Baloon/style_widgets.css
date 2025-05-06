@@ -478,13 +478,13 @@ div.singleBtnContainer
   font-family: 'Exo 2', sans-serif!important;
 }
 
-div#heatmapLegend, div#trafficHeatmapLegend{
+div#heatmapLegend, div#trafficHeatmapLegend, div#vectorFieldLegend{
     color: #000;
     border-radius: 30px;
     padding: 20px!important;
 }
 
-div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button]{
+div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button], div#vectorFieldLegend input[type=button]{
     border: none!important;
     border-radius: 30px;
     background: var(--acc-01-color);

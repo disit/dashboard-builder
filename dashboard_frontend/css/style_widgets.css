@@ -4265,7 +4265,7 @@ p.gisMapLoadingDivTextPar
     display: flex;
     align-items: center;
 }
-div#heatmapLegend, div#trafficHeatmapLegend, div#mainOdDiv, .scenarioDiv, .whatifDiv{
+div#heatmapLegend, div#trafficHeatmapLegend, div#mainOdDiv, .scenarioDiv, .whatifDiv, div#vectorFieldLegend{
     background: rgb(204, 204, 204);
     border-radius: 0 !important;
 }

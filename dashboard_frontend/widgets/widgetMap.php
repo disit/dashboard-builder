@@ -10009,6 +10009,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             // Mostra la notifica
             notification.style.display = "block";
             notification.style.width = '220px';
+
+            notification.style.setProperty('color', 'var(--text-color)');
             // Nasconde la notifica dopo 5 secondi (5000 millisecondi)
             setTimeout(() => {
                 notification.style.display = "none";
@@ -21295,6 +21297,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                         loadingDiv.remove();
                                                     }, 350);
                                                 }, 1000);
+
+
+                                                parent.$('body').trigger({
+                                                    "type": "heatmapVFLoaded",
+                                                    "target": "<?= $_REQUEST['name_w'] ?>"
+                                                });   
+
                                                 //  } else {
 
                                                 //  }    // FINE ELSE ANIMATION
@@ -22280,6 +22289,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         if (map.legendFlowField) {
             map.legendFlowField.remove();
         }
+
+        if (map.legendFlowField) {
+            map.legendFlowField.remove();            
+        }
+        $('#vectorFieldLegend').remove();
+        $('#vectorField-info-btn').css('display', 'none');
+        $('#vectorField-info-btn')[0].className = "deck-btn";
+        switchToFirstActiveInfoMenu();
+
         const heatmapName = event.passedData.name + "_heatmap";
         parent.$('body').trigger({
             "type": "removeHeatmap",
@@ -22290,7 +22308,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 "color1": "rgba(0,179,61,0)",
                 "color2": "rgba(114,235,133,1)"
             }
-        });
+        });        
     });
 
 
@@ -22437,6 +22455,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 });
             }
         }
+
+        $(document).on('heatmapVFLoaded', function (event) {
+            $(`.vectorField`).show();
+            $('#vectorField-info-btn').click();
+            console.log("Heatmap loaded by vector field!");
+        });
         
         const nameVectorField= event.passedData.name;
         const token = await getAccessToken();
@@ -22470,30 +22494,36 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         // add legend to map
         if (map.legendFlowField) {
             map.legendFlowField.remove();
+            $('#vectorFieldLegend').remove();
         }
-        //if (!map.legendFlowField) {
-        map.legendFlowField = L.control({ position: 'bottomright' });  
-        map.legendFlowField.onAdd = function () {
-            map.legendFlowFieldDiv = L.DomUtil.create('div');
-            map.legendFlowFieldDiv.id = "vectorFieldLegend";
 
-            // disable interaction of this div with map
-            if (L.Browser.touch) {
-                L.DomEvent.disableClickPropagation(map.legendFlowFieldDiv);
-                L.DomEvent.on(map.legendFlowFieldDiv, 'mousewheel', L.DomEvent.stopPropagation);
-            } else {
-                L.DomEvent.on(map.legendFlowFieldDiv, 'click', L.DomEvent.stopPropagation);
+        if (!map.legendFlowField) {
+            map.legendFlowField = L.control({ position: 'topright' });
+        }
+        
+        function formatNumber(number, integerDigits, decimalDigits) {
+            number = Number(number);
+            let parts = number.toFixed(decimalDigits).split('.');
+            let integerPart = parts[0];
+            let decimalPart = parts[1];
+
+            // Pad integer part
+            while (integerPart.length < integerDigits) {
+                integerPart = '\u00A0' + integerPart;
             }
-            map.legendFlowFieldDiv.style.width = "340px";
-            map.legendFlowFieldDiv.style.fontWeight = "bold";
-            map.legendFlowFieldDiv.style.background = "#cccccc";
-            map.legendFlowFieldDiv.style.padding = "10px";
-            
-            map.legendFlowFieldDiv.innerHTML += '<div class="textTitle" style="text-align:center">' + nameVectorField + '</div>';
-            map.legendFlowFieldDiv.innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Vector Field Controls:"); ?></div>';
+
+            return integerPart + '.' + decimalPart;
+        }
+        map.legendFlowField.create = function () {
+            map.legendFlowFieldDiv = $('<div id="vectorFieldLegend" class="vectorFieldDiv"></div>');
+            map.legendFlowFieldDiv.css("fontWeight","bold");
+            map.legendFlowFieldDiv.css("padding","15px");
+            let innerHTML = "";
+            innerHTML += '<div class="textTitle" style="text-align:center">' + nameVectorField + '</div>';
+            innerHTML += '<div class="text">' + '<?php echo ucfirst(isset($_REQUEST["profile"]) ? $_REQUEST["profile"] : "Vector Field Controls:"); ?></div>';
 
             // max opacity
-            map.legendFlowFieldDiv.innerHTML +=
+            innerHTML +=
                 '<div id="vf_scaleFactorControl">' +
                     '<div style="display:inline-block; vertical-align:super;">Scale factor: &nbsp;&nbsp;&nbsp;&nbsp;</div>' +
                     '<div id="<?= $_REQUEST['name_w'] ?>_downSlider_scaleFactorVF" style="display:inline-block; vertical-align:super; color: #0078A8">&#10094;</div>' + 
@@ -22502,26 +22532,32 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + 
                     '<div id="<?= $_REQUEST['name_w'] ?>_upSlider_scaleFactorVF" style="display:inline-block;vertical-align:super; color: #0078A8">&#10095;</div>' + 
                     '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' +
-                    '<span id="<?= $_REQUEST['name_w'] ?>_rangemaxScaleFactorVF" style="display:inline-block;vertical-align:super;">' + currentScaleFactor + '</span>' +
+                    '<span id="<?= $_REQUEST['name_w'] ?>_rangemaxScaleFactorVF" style="display:inline-block;vertical-align:super;width: 4em;text-align: right;">' + formatNumber(currentScaleFactor, 4, 2) + '</span>' +
                 '</div>';
 
             // Heatmap Navigation Buttons (prev & next)
-            map.legendFlowFieldDiv.innerHTML +=
-                '<div id="heatmapNavigationCnt">' +
+            innerHTML +=
+                '<div id="vf_NavigationCnt">' +
                     '<input type="button" id="<?= $_REQUEST['name_w'] ?>_prevButtVF" value="< Prev" style="float: left"/>' +
                     '<input type="button" id="<?= $_REQUEST['name_w'] ?>_nextButtVF" value="Next >" style="float: right"/>' +
-                    '<div id="<?= $_REQUEST['name_w'] ?>_vectorFieldDescr" style="text-align: center">' + currentDate.split('.')[0].replace("T"," ") + '</p>' +
-                '</div>';
-
+                    '<div id="<?= $_REQUEST['name_w'] ?>_vectorFieldDescr" style="text-align: center">' + currentDate.split('.')[0].replace("T"," ") +
+                '</div><p></p>';
+            
+            map.legendFlowFieldDiv.html(innerHTML)
+            console.log('map.legendFlowFieldDiv :>> ', map.legendFlowFieldDiv);
+            $('#deck-info-content').append(map.legendFlowFieldDiv);
             return map.legendFlowFieldDiv;
-        };           
-     
+        };
 
-        map.legendFlowField.addTo(map.defaultMapRef);
+        // Add Legend
+        $('#vectorField-info-btn').css('display', 'block');
+        $('#vectorField-info-btn').click();
+        map.legendFlowField.create();
+
         checkButtonVisibility();
         document.getElementById("<?= $_REQUEST['name_w'] ?>_slidermaxScaleFactorVF").addEventListener("input", function () { 
             currentScaleFactor = this.value;
-            document.getElementById("<?= $_REQUEST['name_w'] ?>_rangemaxScaleFactorVF").innerHTML = currentScaleFactor;
+            document.getElementById("<?= $_REQUEST['name_w'] ?>_rangemaxScaleFactorVF").innerHTML = formatNumber(currentScaleFactor, 4, 2);
         }, false);
         document.getElementById("<?= $_REQUEST['name_w'] ?>_prevButtVF").addEventListener("click", function () { prevVectorFieldPage() }, false);
         document.getElementById("<?= $_REQUEST['name_w'] ?>_nextButtVF").addEventListener("click", function () { nextVectorFieldPage() }, false);
@@ -30429,6 +30465,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             <div id="deck-info-tab">
                                 <a id="heatmap-info-btn" class="deck-btn" style="display: none;" href="#">Heatmap</a>
                                 <a id="traffic-info-btn" class="deck-btn" style="display: none;" href="#">Traffic</a>
+                                <a id="vectorField-info-btn" class="deck-btn" style="display: none;" href="#">Vector Field</a>
                                 <a id="scenario-info-btn" class="deck-btn" style="display: none;" href="#">Scenario</a>
                                 <a id="whatif-info-btn" class="deck-btn" style="display: none;" href="#">What-If</a>
                                 <a id="scenary-info-btn" class="deck-btn" style="display: none;" href="#">Scenary</a>
