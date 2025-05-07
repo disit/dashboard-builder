@@ -1,9 +1,8 @@
 <?php
-// debug output
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-session_start();
+include('../config.php');
+if (!isset($_SESSION)) {
+  session_start();
+}
 if (empty($_SESSION['accessToken']) || empty($_POST['route'])) {
     header("Location: ..");
     exit;
@@ -34,7 +33,8 @@ if (! empty($parsed['query'])) {
 }
 
 
-$api_base = "https://rodi.snap4.eu/userstats/";
+$protocol = parse_url($appUrl, PHP_URL_SCHEME);
+$api_base = $protocol . "://" . $appHost . "/userstats/";
 $full_url = $api_base . ltrim($route, '/');
 
 // call the API
