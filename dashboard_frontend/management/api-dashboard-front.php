@@ -19,8 +19,6 @@ include('../config.php');
 session_start();
 checkSession("RootAdmin");
 
-if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
-
 //manageLegacy();
 
 ///// SHOW FRAME PARAMETER /////
@@ -35,7 +33,7 @@ if (isset($_REQUEST['showFrame'])) {
 //// SHOW FRAME PARAMETER  ////
 
 if (!isset($_GET['pageTitle'])) {
-    $default_title = "Experimental API Manager";
+    $default_title = "API Manager";
 } else {
     $default_title = "";
 }
@@ -59,7 +57,7 @@ $accessToken = "";
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Snap4City IoT Directory</title>
+        <title>Snap4City Api Manager</title>
 
         <!-- Bootstrap Core CSS -->
         <link href="../css/bootstrap.css" rel="stylesheet">
@@ -82,6 +80,15 @@ $accessToken = "";
         <link href="../bootstrapToggleButton/css/bootstrap-toggle.min.css" rel="stylesheet">
         <script src="../bootstrapToggleButton/js/bootstrap-toggle.min.js"></script>
 
+        <!-- Bootstrap editable tables -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
+
+        <!-- Bootstrap table -->
+        <link rel="stylesheet" href="../boostrapTable/dist/bootstrap-table.css">
+        <script src="../boostrapTable/dist/bootstrap-table.js"></script>
+		<script src="../boostrapTable/dist/extensions/filter-control/bootstrap-table-filter-control.js"></script>
+
         <!-- DataTables -->
         <script src="../js/DataTables/datatables.js"></script>
         <link rel="stylesheet" type="text/css" href="../js/DataTables/datatables.css">
@@ -94,6 +101,8 @@ $accessToken = "";
         <link rel="stylesheet" type="text/css" href="../css/DataTables/responsive.bootstrap.min.css">
         <link rel="stylesheet" type="text/css" href="../css/DataTables/jquery.dataTables.min.css">
 
+        <!-- Questa inclusione viene sempre DOPO bootstrap-table.js -->
+        <script src="../boostrapTable/dist/locale/bootstrap-table-en-US.js"></script>
         
      
         <!-- Bootstrap slider -->
@@ -209,7 +218,7 @@ if (($hide_menu != "hide")) {
                                 <div id="dashboardTotPrivateCnt" class="col-md-3 mainContentCellCnt">
                                     <div class="col-md-12 centerWithFlex pageSingleDataCnt">
                                         <?php
-                                        $query = "select (select count(*) from operative_apitable left join ratelimit on ratelimit.resource=operative_apitable.idapi where apideletiondate  = 0)-(select count(*) from operative_apitable left join ratelimit on ratelimit.resource=operative_apitable.idapi where kind_of_limit is not null and apideletiondate  = 0) as result";
+                                        $query = "select (select count(*) from operative_apitable left join ratelimit on ratelimit.resource=operative_apitable.idapi where apideletiondate = 0)-(select count(*) from operative_apitable left join ratelimit on ratelimit.resource=operative_apitable.idapi where kind_of_limit is not null and apideletiondate = 0) as result";
                                         $result = mysqli_query($link, $query);
                                         if ($result) {
                                             $row = $result->fetch_assoc();
@@ -246,7 +255,7 @@ if (($hide_menu != "hide")) {
                                             </thead>
 					    <tbody>
 						<?php
-							$query = 'select idapi, apiname, apikind, apiinfo, apiinternalurl, apiexternalurl, apistatus, "Edit", "Rules", "Delete", apiadditionalinfo from operative_apitable where apideletiondate is NULL;';
+							$query = 'select idapi, apiname, apikind, apiinfo, apiinternalurl, apiexternalurl, apistatus, "Edit", "Rules", "Delete", apiadditionalinfo  from operative_apitable where apideletiondate = 0;';
 							$result = mysqli_query($link, $query);
 							if ($result) {
 								$fields = mysqli_fetch_fields($result);
@@ -258,10 +267,12 @@ if (($hide_menu != "hide")) {
         								echo '<tr>';
         								foreach ($columns as $col) {
             									$value = htmlspecialchars($row[$col]);
-								            	if (stripos($col, 'url') !== false) {
-                									$value = '<a href="' . $value . '" target="_blank">' . $value . '</a>';
+								            	if (stripos($col, 'internalurl') !== false) {
+                									$value = '<a class="url-link" href="' . $value . '" target="_blank">Follow internal url</a>';
+            									} elseif (stripos($col, 'externalurl') !== false) {
+                									$value = '<a class="url-link" href="' . $basepath.$value . '" target="_blank">Follow external url</a>';
             									} elseif (stripos($col, 'edit') !== false) {
-                									$value = "<button class='editDashBtn editbuttonmodal' data-toggle='modal' data-target='#modalfourth' data-id=".$row['idapi']." data-name='".$row['apiname']."' data-kind='".$row['apikind']."' data-info='".$row['apiinfo']."' data-apiinternalurl='".$row['apiinternalurl']."' data-apiexternalurl='".$row['apiexternalurl']."' data-status='".$row['apistatus']."'>edit</button>";
+                									$value = "<button class='editDashBtn editbuttonmodal' data-toggle='modal' data-target='#modalfourth' data-id=".$row['idapi']." data-name='".$row['apiname']."' data-kind='".$row['apikind']."' data-info='".$row['apiinfo']."' data-apiinternalurl='".$row['apiinternalurl']."' data-apiexternalurl='".$row['apiexternalurl']."' data-status='".$row['apistatus']."' data-additional='".htmlspecialchars($row['apiadditionalinfo'], ENT_QUOTES, 'UTF-8')."'>edit</button>";
             									} elseif (stripos($col, 'delete') !== false) {
                 									$value = "<button class='delDashBtn deleteapibuttonmodal' data-toggle='modal' data-target='#modalDeleteApi' data-id=".$row['idapi']." data-name=".$row['apiname'].">delete</button>";
             									} elseif (stripos($col, 'view') !== false) {
@@ -289,7 +300,37 @@ if (($hide_menu != "hide")) {
                 </div>
             </div>
         </div>
+		<!-- this is the mouseover for the links -->
+		<style>
+			#url-tooltip {
+			  display: none;
+			  position: absolute;
+			  background-color: rgba(0, 0, 0, 0.7);
+			  color: white;
+			  padding: 5px;
+			  border-radius: 5px;
+			  font-size: 14px;
+			}
+		</style>
+		<div id="url-tooltip"></div>
+		<script>
+			const links = document.querySelectorAll('.url-link');
+			const tooltip = document.getElementById('url-tooltip');
+			
+			// Loop through each link
+			links.forEach(link => {
+			  link.addEventListener('mouseover', function(event) {
+				tooltip.textContent = link.href;  // Set the tooltip text to the link's URL
+				tooltip.style.display = 'block';   // Show the tooltip
+				tooltip.style.left = `${event.pageX + 10}px`;  // Position the tooltip based on mouse X
+				tooltip.style.top = `${event.pageY + 10}px`;   // Position the tooltip based on mouse Y
+			  });
 
+			  link.addEventListener('mouseout', function() {
+				tooltip.style.display = 'none';   // Hide the tooltip when mouse leaves the link
+			  });
+			});
+		</script>
         <!-- Adding a new api -->
 		<div class="modal fade" id="modalfirst" tabindex="-1" role="dialog" >
             <div class="modal-dialog modal-lg" role="document">
@@ -307,7 +348,7 @@ if (($hide_menu != "hide")) {
                                 <div class="row">
                                     <div class="col-xs-12 col-md-6 modalCell">
                                         <div class="modalFieldCnt">
-                                            <input type="text" class="modalInputTxt" name="inputNameAPI" id="inputNameAPI"> 
+                                            <input type="text" class="modalInputTxt" name="inputNameAPI" id="inputNameAPI" placeholder = "name"> 
                                         </div>
                                         <div class="modalFieldLabelCnt">API Identifier</div>
                                         <div id="inputNameAPIMsg" class="modalFieldMsgCnt">&nbsp;</div>
@@ -316,11 +357,11 @@ if (($hide_menu != "hide")) {
                                         <div class="modalFieldCnt">
                                           <select id="selectAPIkind" name="selectAPIkind" class="modalInputTxt" onchange="generateAPIForm()">
 												<option disabled selected>Select an option</option>
+                                                <option value="Generic">Generic</option>
                                                 <option value="ClearMLStable">ClearML Stable</option>
                                                 <option value="ClearMLSporadic">ClearML Sporadic</option>
                                                 <option value="SUMOAPI">SUMO API</option>
                                                 <option value="GraphHopper">GraphHopper</option>
-                                                <option value="Generic">Generic</option>
                                                 <option value="Other">Other</option>
                                                  
                                           </select>
@@ -334,15 +375,15 @@ if (($hide_menu != "hide")) {
                                 <div class="row">
                                     <div class="col-xs-12 col-md-6 modalCell">
                                         <div class="modalFieldCnt">
-                                            <input type="text" class="modalInputTxt" name="inputInternalAPIUrl" id="inputInternalAPIUrl"> 
+                                            <input type="text" class="modalInputTxt" name="inputInternalAPIUrl" id="inputInternalAPIUrl" placeholder="protocol://host:port/path"> 
                                         </div>
-                                        <div class="modalFieldLabelCnt">Internal API URL</div>
+                                        <div class="modalFieldLabelCnt">Internal API URL (port optional if it matches standard port of protocol)</div>
                                         <div id="inputInternalAPIUrlMsg" class="modalFieldMsgCnt">&nbsp;</div>
                                     </div>
 
                                     <div class="col-xs-12 col-md-6 modalCell">
                                         <div class="modalFieldCnt">
-                                            <input type="text" class="modalInputTxt" name="inputExternalAPIUrl" id="inputExternalAPIUrl"> 
+                                            <input type="text" class="modalInputTxt" name="inputExternalAPIUrl" id="inputExternalAPIUrl" placeholder="/path"> 
                                         </div>
                                         <div class="modalFieldLabelCnt">External API URL</div>
                                         <div id="inputExternalAPIUrlMsg" class="modalFieldMsgCnt">&nbsp;</div>
@@ -351,7 +392,7 @@ if (($hide_menu != "hide")) {
                                 <div class="row">
                                     <div class="col-xs-12 col-md-12 modalCell">
                                         <div class="modalFieldCnt">
-                                            <input type="text" class="modalInputTxt" name="inputAPIInfo" id="inputAPIInfo"> 
+                                            <input type="text" class="modalInputTxt" name="inputAPIInfo" id="inputAPIInfo" placeholder="Some text details"> 
                                         </div>
                                         <div class="modalFieldLabelCnt">API Info</div>
                                         <div id="inputAPIInfoMsg" class="modalFieldMsgCnt">&nbsp;</div>
@@ -401,7 +442,7 @@ if (($hide_menu != "hide")) {
                             <div id="addInfoTabRuleSecond" class="tab-pane fade in active">
                                 <div class="row">
                                     <div class="col-xs-12 col-md-6 modalCell">
-                                        <input type="text" class="modalInputTxt" name="addRuleUserFieldSecond" id="addRuleUserFieldSecond">
+                                        <input type="text" class="modalInputTxt" name="addRuleUserFieldSecond" id="addRuleUserFieldSecond" placeholder="anonymous">
                                         <div class="modalFieldLabelCnt">Select User</div>
                                         <div id="addRuleUserFieldSecondMsg" class="modalFieldMsgCnt">&nbsp;</div>
                                     </div>
@@ -412,6 +453,11 @@ if (($hide_menu != "hide")) {
                                     </div>
                                 </div>
 								
+								<div class="row">
+									<div class="col-xs-12">
+										You may put multuple users in the form, separated by commas (spaces optionals); a rule will be created for each of them. Putting "anonymous" (no quotes) as the only user creates an unauthenticated rule.
+									</div>
+								</div>
 								<div class="row">
                                     <div class="col-xs-12 col-md-6 modalCell">
                                         <input type="datetime-local" id="addRuleStartingOfValidity" class="form-control">
@@ -457,6 +503,84 @@ if (($hide_menu != "hide")) {
                             <div  align="right">
                                 <button type="text" id="addNewRuleCancelBtnSecond" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
                                 <button type="text" id="addNewRuleConfirmBtnSecond" name="addNewRuleConfirmBtn" class="btn confirmBtn internalLink" onclick="createRuleSecond()">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<!-- edit a rule -->
+		<div class="modal fade" id="modaleditrule" tabindex="-1" role="dialog" >
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modalHeader centerWithFlex">
+                        Edit rule
+                    </div>
+
+                    <div id="addRuleModalBodySecond">
+
+                        <div class="tab-content">
+
+                            <!-- Info tab -->
+                            <div id="addInfoTabRuleSecond" class="tab-pane fade in active">
+                                <div class="row">
+                                    <div class="col-xs-12 col-md-6 modalCell">
+                                        <input type="text" class="modalInputTxt" name="editRuleUserField" id="editRuleUserField" placeholder="anonymous">
+                                        <div class="modalFieldLabelCnt">Select User ('anonymous' will skip authentication)</div>
+                                        <div id="editRuleUserFieldMsg" class="modalFieldMsgCnt">&nbsp;</div>
+                                    </div>
+                                    <div class="col-xs-12 col-md-6 modalCell">
+                                        <input type="text" class="modalInputTxt" name="editRuleResourceField" id="editRuleResourceField" disabled>
+                                        <div class="modalFieldLabelCnt">Selected Resource</div>
+                                        <div id="editRuleResourceFieldMsg" class="modalFieldMsgCnt">&nbsp;</div>
+                                    </div>
+                                </div>
+								
+								<div class="row">
+                                    <div class="col-xs-12 col-md-6 modalCell">
+                                        <input type="datetime-local" id="editRuleStartingOfValidity" class="form-control">
+                                        <div class="modalFieldLabelCnt">Rule is valid from</div>
+                                        <div id="editRuleStartingOfValidityMsg" class="modalFieldMsgCnt">&nbsp;</div>
+                                    </div>
+                                    <div class="col-xs-12 col-md-6 modalCell">
+                                        <input type="datetime-local" id="editRuleEndingOfValidity" class="form-control">
+                                        <div class="modalFieldLabelCnt">Rule is valid until</div>
+                                        <div id="editRuleEndingOfValidityMsg" class="modalFieldMsgCnt">&nbsp;</div>
+                                    </div>
+
+                                </div>
+								
+                                <div class="row">
+                                    <div class="col-xs-12 col-md-12 modalCell">
+                                        <select id="editRuleKind" name="editRuleKind" class="modalInputTxt" onClick="editRuleFormSecond()">
+											<option disabled selected value="invalid">Select an option</option>
+											<option value="ContemporaryAccess">Contemporary access</option>
+											<option value="AccessesOverTime">Accesses over time</option>
+											<option value="TotalAccesses">Total Accesses</option>
+										</select>
+                                    </div>
+                                </div>
+								
+								<div class="row" id="editRuleDiv">
+                                </div>
+                                
+                            </div>
+
+                        </div>
+
+                    </div> 	
+
+
+                    <div id="addRuleModalFooterSecond" class="modal-footer">
+                        <div class="row">
+
+                            <div align="left">
+                                <div id="addRuleCheckExternalLoadingIcon" style="display:none;">
+                                    <i class="fa fa-circle-o-notch fa-spin" style="font-size:36px;"></i> <i>checking...</i> </div>
+                            </div>
+                            <div  align="right">
+                                <button type="text" id="addNewRuleCancelBtnSecond" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
+                                <button type="text" id="addNewRuleConfirmBtnSecond" name="addNewRuleConfirmBtn" class="btn confirmBtn internalLink" onclick="editRule()">Confirm</button>
                             </div>
                         </div>
                     </div>
@@ -571,11 +695,11 @@ if (($hide_menu != "hide")) {
                                         <div class="modalFieldCnt">
                                             <select id="editselectAPIkind" name="editselectAPIkind" class="modalInputTxt" disabled>
 												<option disabled selected >Select an option</option>
+                                                <option value="Generic">Generic</option>
                                                 <option value="ClearMLStable">ClearML Stable</option>
                                                 <option value="ClearMLSporadic">ClearML Sporadic</option>
                                                 <option value="SUMOAPI">SUMO API</option>
                                                 <option value="GraphHopper">GraphHopper</option>
-                                                <option value="Generic">Generic</option>
                                                 <option value="Other">Other</option>
                                                  
                                             </select>
@@ -594,15 +718,15 @@ if (($hide_menu != "hide")) {
                                 <div class="row">
                                     <div class="col-xs-12 col-md-6 modalCell">
                                         <div class="modalFieldCnt">
-                                            <input type="text" class="modalInputTxt" name="editInternalAPIUrl" id="editInternalAPIUrl"> 
+                                            <input type="text" class="modalInputTxt" name="editInternalAPIUrl" id="editInternalAPIUrl" placeholder="protocol://host:port/path"> 
                                         </div>
-                                        <div class="modalFieldLabelCnt">Internal API URL</div>
+                                        <div class="modalFieldLabelCnt">Internal API URL (port optional if it matches standard port of protocol)</div>
                                         <div id="editInternalAPIUrlMsg" class="modalFieldMsgCnt">&nbsp;</div>
                                     </div>
 
                                     <div class="col-xs-12 col-md-6 modalCell">
                                         <div class="modalFieldCnt">
-                                            <input type="text" class="modalInputTxt" name="editExternalAPIUrl" id="editExternalAPIUrl"> 
+                                            <input type="text" class="modalInputTxt" name="editExternalAPIUrl" id="editExternalAPIUrl" placeholder="/path"> 
                                         </div>
                                         <div class="modalFieldLabelCnt">External API URL</div>
                                         <div id="editExternalAPIUrlMsg" class="modalFieldMsgCnt">&nbsp;</div>
@@ -612,9 +736,9 @@ if (($hide_menu != "hide")) {
 									
                                     <div class="col-xs-12 col-md-9 modalCell">
                                         <div class="modalFieldCnt">
-                                            <input type="text" class="modalInputTxt" name="editAPIInfo" id="editAPIInfo"> 
+                                            <input type="text" class="modalInputTxt" name="editAPIInfo" id="editAPIInfo" placeholder="Some text details> 
                                         </div>
-                                        <div class="modalFieldLabelCnt">API Information</div>
+                                        <div class="modalFieldLabelCnt">API Info</div>
                                         <div id="editAPIInfoMsg" class="modalFieldMsgCnt">&nbsp;</div>
                                     </div>
 									<div class="col-xs-12 col-md-2 modalCell">
@@ -624,6 +748,9 @@ if (($hide_menu != "hide")) {
 										</label>
 									</div>
                                 </div>
+								<div class="row" id="editRuleAdditionalData">
+									
+								</div>
                                 <input type="hidden" class="modalInputTxt" name="editAPIID" id="editAPIID">
                             </div>
 
@@ -653,126 +780,161 @@ if (($hide_menu != "hide")) {
 	<script>
 		//populates edit modal
 		const btns = document.querySelectorAll('.editbuttonmodal');
+		function editModalButtonFunction()	{
+			document.getElementById("editinputNameAPI").value=event.target.getAttribute('data-name');
+			document.getElementById("editselectAPIkind").value=event.target.getAttribute('data-kind');
+			document.getElementById("editAPIInfo").value=event.target.getAttribute('data-info');
+			document.getElementById("editInternalAPIUrl").value=event.target.getAttribute('data-apiinternalurl');
+			document.getElementById("editExternalAPIUrl").value=event.target.getAttribute('data-apiexternalurl');
+			document.getElementById("editAPIID").value=event.target.getAttribute('data-id');
+			if (event.target.getAttribute('data-status')=='inactive') {
+				document.getElementById("isAPIActive").checked=false;
+			}
+			else if (event.target.getAttribute('data-status')=='active' || event.target.getAttribute('data-status')=='ready') {
+				document.getElementById("isAPIActive").checked=true;
+			}
+			else {
+				alert("Api doesn't have an expected status");
+				document.getElementById("isAPIActive").checked=false;
+			}
+			document.getElementById("editRuleAdditionalData").innerHTML="";
+			if (document.getElementById("editselectAPIkind").value == "ClearMLSporadic" || document.getElementById("editselectAPIkind").value == "ClearMLStable") {
+				document.getElementById("editRuleAdditionalData").innerHTML=`<div class="col-xs-12 col-md-12 modalCell">
+					<div class="modalFieldCnt">
+						<input class="modalInputTxt" name="editAPICMLData" id="editAPICMLData" required>
+						<input class="modalInputTxt" name="editAPICMLDataKongPlugin" id="editAPICMLDataKongPlugin" type="hidden">							
+					</div>
+					<div class="modalFieldLabelCnt">Machine Id for ClearML</div>
+					<div id="editAPICMLData2Msg" class="modalFieldMsgCnt">&nbsp;</div>
+					</div>`;
+				document.getElementById("editAPICMLData").value=JSON.parse(event.target.getAttribute('data-additional').replace(/'/g, '"')).ClearMLValue;
+				document.getElementById("editAPICMLDataKongPlugin").value=JSON.parse(event.target.getAttribute('data-additional').replace(/'/g, '"')).KongPluginID;
+			}
+		}
 		btns.forEach(btn => {
-
-			btn.addEventListener('click', event => {
-				document.getElementById("editinputNameAPI").value=event.target.getAttribute('data-name');
-				document.getElementById("editselectAPIkind").value=event.target.getAttribute('data-kind');
-				document.getElementById("editAPIInfo").value=event.target.getAttribute('data-info');
-				document.getElementById("editInternalAPIUrl").value=event.target.getAttribute('data-apiinternalurl');
-				document.getElementById("editExternalAPIUrl").value=event.target.getAttribute('data-apiexternalurl');
-				document.getElementById("editAPIID").value=event.target.getAttribute('data-id');
-				if (event.target.getAttribute('data-status')=='inactive') {
-					document.getElementById("isAPIActive").checked=false;
-				}
-				else if (event.target.getAttribute('data-status')=='active' || event.target.getAttribute('data-status')=='ready') {
-					document.getElementById("isAPIActive").checked=true;
-				}
-				else {
-					alert("Api doesn't have an expected status");
-					document.getElementById("isAPIActive").checked=false;
-				}
-			});
-
+			btn.addEventListener('click', editModalButtonFunction);
 		});
+		
+		function deleteApiButtonFunction() {
+			document.getElementById("deleteApiText").innerHTML="<h3>Are you sure you want to delete the API " + event.target.getAttribute('data-name') + "? This will also delete any related rule.</h3>";
+			document.getElementById("viewAccessCloseBtn").setAttribute("data-id",event.target.getAttribute('data-id'));
+		};
 		
 		const deletebtns = document.querySelectorAll('.deleteapibuttonmodal');
 		deletebtns.forEach(btn => {
-			btn.addEventListener('click', event => {
-				document.getElementById("deleteApiText").innerHTML="<h3>Are you sure you want to delete the API " + event.target.getAttribute('data-name') + "? This will also delete any related rule.</h3>";
-				document.getElementById("viewAccessCloseBtn").setAttribute("data-id",event.target.getAttribute('data-id'));
-			});
+			btn.addEventListener('click', deleteApiButtonFunction);
 		});
 		
 		
-		//go read the rules for a given resource
-		document.querySelectorAll(".searchRule").forEach(button => {
-			button.addEventListener("click", function () {
-				const searchValue = this.getAttribute("ruleitem");
-				
-				if (!searchValue.trim()) {
-					alert("Please enter a search term.");
+		function searchRuleFunction() {
+			const searchValue = this.getAttribute("ruleitem");
+			
+			if (!searchValue.trim()) {
+				alert("Please enter a search term.");
+				return;
+			}
+			
+			fetch("./api-dashboard-back.php", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({ query: searchValue, action: "getRules" })
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.error) {
+					console.error("Error:", data.error);
+					alert("An error occurred while fetching results: " + data.error);
 					return;
 				}
-				
-				fetch("./api-dashboard-back.php", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json"
-					},
-					body: JSON.stringify({ query: searchValue, action: "getRules" })
-				})
-				.then(response => response.json())
-				.then(data => {
-					if (data.error) {
-						console.error("Error:", data.error);
-						alert("An error occurred while fetching results: " + data.error);
-						return;
-					}
-					document.getElementById('openModalCreateRuleButton').setAttribute('api-data',searchValue);
-					document.getElementById('openModalCreateRuleButton').setAttribute('idapi',searchValue);
-					const existingTable = document.getElementById("rulesTable");
-					if (existingTable) {
-						$("#rulesTable").DataTable().destroy();
-						existingTable.remove();
-					}
-					const table = document.createElement("table");
-					table.id = "rulesTable";
-					const thead = document.createElement("thead");
-					const tbody = document.createElement("tbody");
+				document.getElementById('openModalCreateRuleButton').setAttribute('api-data',searchValue);
+				document.getElementById('openModalCreateRuleButton').setAttribute('idapi',searchValue);
+				const existingTable = document.getElementById("rulesTable");
+				if (existingTable) {
+					$("#rulesTable").DataTable().destroy();
+					existingTable.remove();
+				}
+				const table = document.createElement("table");
+				table.id = "rulesTable";
+				const thead = document.createElement("thead");
+				const tbody = document.createElement("tbody");
 
-					const columns = ["Resource name", "User", "Kind of rule", "Valid from", "Valid to", "Details of rules", "Delete", "View Accesses"];
+				const columns = ["Resource name", "User", "Kind of rule", "Valid from", "Valid to", "Details of rules", "Delete", "View Accesses", "Edit"];
 
-					const headerRow = document.createElement("tr");
-					columns.forEach(key => {
-						const th = document.createElement("th");
-						th.textContent = key;
-						headerRow.appendChild(th);
-					});
-					thead.appendChild(headerRow);
-					data.results.forEach(item => {
-						const row = document.createElement("tr");
-						["Resource name", "User", "Kind of rule", "Valid from", "Valid to", "Details of rules"].forEach(key => {
-							const cell = document.createElement("td");
-							cell.textContent = item[key];
-							row.appendChild(cell);
-						});
-						const deleteCell = document.createElement("td");
-						const deleteButton = document.createElement("button");
-						deleteButton.classList.add('delDashBtn');
-						deleteButton.textContent = 'Delete rule';
-						deleteButton.setAttribute('data-deletion-id',item['Resource id']);
-						deleteButton.setAttribute('data-deletion-user',item['User']);
-						deleteButton.setAttribute('onClick','callDelete(this)');
-						deleteCell.appendChild(deleteButton);
-						row.appendChild(deleteCell);
-						const viewCell = document.createElement("td");
-						const viewButton = document.createElement("button");
-						viewButton.classList.add('viewDashBtn');
-						viewButton.textContent = 'View Accesses';
-						viewButton.setAttribute('data-view-id',item['Resource id']);
-						viewButton.setAttribute('data-view-user',item['User']);
-						viewButton.setAttribute('data-toggle',"modal");
-						viewButton.setAttribute('data-target',"#modalviewaccess");
-						viewButton.setAttribute('data-dismiss',"modal");
-						viewButton.addEventListener("click", showAccesses, false);
-						viewCell.appendChild(viewButton);
-						row.appendChild(viewCell);
-						tbody.appendChild(row);
-					});
-
-					table.appendChild(thead);
-					table.appendChild(tbody);
-					document.getElementById("showRulesdiv").appendChild(table);
-					$(document).ready(function () {
-						$("#rulesTable").DataTable();
-					});
-						})
-				.catch(error => {
-					console.error("Fetch error:", error);
-					alert("Failed to retrieve data.");
+				const headerRow = document.createElement("tr");
+				columns.forEach(key => {
+					const th = document.createElement("th");
+					th.textContent = key;
+					headerRow.appendChild(th);
 				});
+				thead.appendChild(headerRow);
+				data.results.forEach(item => {
+					const row = document.createElement("tr");
+					["Resource name", "User", "Kind of rule", "Valid from", "Valid to", "Details of rules"].forEach(key => {
+						const cell = document.createElement("td");
+						cell.textContent = item[key];
+						row.appendChild(cell);
+					});
+					const deleteCell = document.createElement("td");
+					const deleteButton = document.createElement("button");
+					deleteButton.classList.add('delDashBtn');
+					deleteButton.textContent = 'Delete rule';
+					deleteButton.setAttribute('data-deletion-id',item['Resource id']);
+					deleteButton.setAttribute('data-deletion-user',item['User']);
+					deleteButton.setAttribute('onClick','callDelete(this)');
+					deleteCell.appendChild(deleteButton);
+					row.appendChild(deleteCell);
+					
+					const viewCell = document.createElement("td");
+					const viewButton = document.createElement("button");
+					viewButton.classList.add('viewDashBtn');
+					viewButton.textContent = 'View Accesses';
+					viewButton.setAttribute('data-view-id',item['Resource id']);
+					viewButton.setAttribute('data-view-user',item['User']);
+					viewButton.setAttribute('data-toggle',"modal");
+					viewButton.setAttribute('data-target',"#modalviewaccess");
+					viewButton.setAttribute('data-dismiss',"modal");
+					viewButton.addEventListener("click", showAccesses, false);
+					viewCell.appendChild(viewButton);
+					row.appendChild(viewCell);
+					
+					const editCell = document.createElement("td");
+					const editButton = document.createElement("button");
+					editButton.classList.add('editDashBtn');
+					editButton.textContent = 'Edit Rule';
+					editButton.setAttribute('data-view-id',item['Resource id']);
+					editButton.setAttribute('data-view-user',item['User']);
+					editButton.setAttribute('data-view-rulekind',item['Kind of rule']);
+					editButton.setAttribute('data-view-validfrom',item['Valid from']);
+					editButton.setAttribute('data-view-validto',item['Valid to']);
+					editButton.setAttribute('data-view-details',item['Details of rules']);
+					editButton.setAttribute('data-toggle',"modal");
+					editButton.setAttribute('data-target',"#modaleditrule");
+					editButton.setAttribute('data-dismiss',"modal");
+					editButton.addEventListener("click", editRuleForm, false);
+					editCell.appendChild(editButton);
+					row.appendChild(editCell);
+					
+					tbody.appendChild(row);
+				});
+
+				table.appendChild(thead);
+				table.appendChild(tbody);
+				document.getElementById("showRulesdiv").appendChild(table);
+				$(document).ready(function () {
+					$("#rulesTable").DataTable();
+				});
+					})
+			.catch(error => {
+				console.error("Fetch error:", error);
+				alert("Failed to retrieve data.");
 			});
+		}
+		
+		//go read the rules for a given resource
+		document.querySelectorAll(".searchRule").forEach(button => {
+			button.addEventListener("click", searchRuleFunction);
 		});
 		
 		//make the main table a datatable
@@ -845,6 +1007,48 @@ if (($hide_menu != "hide")) {
 				
 				});
 		}
+		
+		
+		function editRule() {
+			const container = document.getElementById("modaleditrule");
+			if (!container) return null;
+
+			const values = {};
+			let hasInvalidOrEmpty = false;
+
+			// Get all input and select elements inside the div
+			container.querySelectorAll('input, select').forEach(element => {
+				const value = element.value.trim(); // Trim to remove unnecessary spaces
+				values[element.name || element.id] = value;
+
+				// Check for "invalid" or empty values
+				if (value === "invalid" || value === "") {
+					hasInvalidOrEmpty = true;
+				}
+			});
+
+			if (hasInvalidOrEmpty) {
+				alert("Invalid or empty value detected!");
+				return null;
+			}
+			fetch("./api-dashboard-back.php", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({ ...values, action: "editRule" })
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.error) {
+					console.error("Error:", data.error);
+					alert("An error occurred while fetching results: " + data.error);
+					return;
+				}
+				alert("Rule edited successfully");
+				window.location.reload();
+			});
+		};
 		
 		function showAccesses(evt) {
 				
@@ -928,59 +1132,6 @@ if (($hide_menu != "hide")) {
 					window.location.reload();
 				});
 		};
-		/*
-		function generateRuleForm() {
-			var a = document.getElementById('selectRuleKind');
-			document.getElementById('createRuleDiv').innerHTML = "";
-			if (a.value == 'ContemporaryAccess') {
-				document.getElementById('createRuleDiv').innerHTML = `
-				<div class="col-xs-12 col-md-12 modalCell">
-					<div class="modalFieldCnt">
-						<input type="number" min="1" class="modalInputTxt" name="createRuleAmount" id="createRuleAmount" required> 
-					</div>
-					<div class="modalFieldLabelCnt">Amount of contemporary accesses allowed</div>
-					<div id="inputRule1Msg" class="modalFieldMsgCnt">&nbsp;</div>
-				</div>
-				`;
-			} else if (a.value == 'AccessesOverTime') {
-				document.getElementById('createRuleDiv').innerHTML = `
-				<div class="col-xs-12 col-md-6 modalCell">
-					<div class="modalFieldCnt">
-						<input type="number" min="1" class="modalInputTxt" name="createRuleAmount" id="createRuleAmount" required> 
-					</div>
-					<div class="modalFieldLabelCnt">Amount of accesses</div>
-					<div id="inputRule1Msg" class="modalFieldMsgCnt">&nbsp;</div>
-				</div>
-				<div class="col-xs-12 col-md-6 modalCell">
-					<div class="modalFieldCnt">
-						<select id="selectRuleTimePeriod" name="selectRuleTimePeriod" class="modalInputTxt">
-							<option disabled selected>Select an option</option>
-							<option value="0">Each Day</option>
-							<option value="1">Each Week</option>
-							<option value="2">Each Month</option>
-							<option value="3">Each Year</option>
-						</select>
-					</div>
-					<div class="modalFieldLabelCnt">Frequency of limit renewal</div>
-					<div id="selectRuleTimePeriodMsg" class="modalFieldMsgCnt">&nbsp;</div>
-				</div>
-				`;
-			} else if (a.value == "TotalAccesses") {
-				document.getElementById('createRuleDiv').innerHTML = `
-				<div class="col-xs-12 col-md-12 modalCell">
-					<div class="modalFieldCnt">
-						<input type="number" min="1" class="modalInputTxt" name="createRuleAmount" id="createRuleAmount" required> 
-					</div>
-					<div class="modalFieldLabelCnt">Amount of total accesses allowed</div>
-					<div id="inputRule1Msg" class="modalFieldMsgCnt">&nbsp;</div>
-				</div>
-				`;
-			} else if (a.value == "invalid") {
-				return;
-			} else { alert("invalid choice for limit");}
-			
-		};
-		*/
 		
 		function generateRuleFormSecond() {
 			var a = document.getElementById('selectRuleKindSecond');
@@ -1028,6 +1179,119 @@ if (($hide_menu != "hide")) {
 					<div id="inputRule1Msg" class="modalFieldMsgCnt">&nbsp;</div>
 				</div>
 				`;
+			} else if (a.value == "invalid") {
+				return;
+			} else { alert("invalid choice for limit");}
+			
+		};
+		
+		function editRuleFormSecond() {
+			var a = document.getElementById('editRuleKind');
+			document.getElementById('editRuleDiv').innerHTML = "";
+			if (a.value == 'ContemporaryAccess') {
+				document.getElementById('editRuleDiv').innerHTML = `
+				<div class="col-xs-12 col-md-12 modalCell">
+					<div class="modalFieldCnt">
+						<input type="number" min="1" class="modalInputTxt" name="editRuleAmount" id="editRuleAmount" required> 
+					</div>
+					<div class="modalFieldLabelCnt">Amount of contemporary accesses allowed</div>
+					<div id="inputRule1Msg" class="modalFieldMsgCnt">&nbsp;</div>
+				</div>
+				`;
+			} else if (a.value == 'AccessesOverTime') {
+				document.getElementById('editRuleDiv').innerHTML = `
+				<div class="col-xs-12 col-md-6 modalCell">
+					<div class="modalFieldCnt">
+						<input type="number" min="1" class="modalInputTxt" name="editRuleAmount" id="editRuleAmount" required> 
+					</div>
+					<div class="modalFieldLabelCnt">Amount of accesses</div>
+					<div id="inputRule1Msg" class="modalFieldMsgCnt">&nbsp;</div>
+				</div>
+				<div class="col-xs-12 col-md-6 modalCell">
+					<div class="modalFieldCnt">
+						<select id="editSelectRuleTimePeriod" name="editSelectRuleTimePeriod" class="modalInputTxt">
+							<option disabled selected>Select an option</option>
+							<option value="0">Each Day</option>
+							<option value="1">Each Week</option>
+							<option value="2">Each Month</option>
+							<option value="3">Each Year</option>
+						</select>
+					</div>
+					<div class="modalFieldLabelCnt">Frequency of limit renewal</div>
+					<div id="selectRuleTimePeriodMsg" class="modalFieldMsgCnt">&nbsp;</div>
+				</div>
+				`;
+			} else if (a.value == "TotalAccesses") {
+				document.getElementById('editRuleDiv').innerHTML = `
+				<div class="col-xs-12 col-md-12 modalCell">
+					<div class="modalFieldCnt">
+						<input type="number" min="1" class="modalInputTxt" name="editRuleAmount" id="editRuleAmount" required> 
+					</div>
+					<div class="modalFieldLabelCnt">Amount of total accesses allowed</div>
+					<div id="inputRule1Msg" class="modalFieldMsgCnt">&nbsp;</div>
+				</div>
+				`;
+			} else if (a.value == "invalid") {
+				return;
+			} else { alert("invalid choice for limit");}
+			
+		};
+		
+		function editRuleForm(evt) {
+			document.getElementById("editRuleUserField").value=evt.currentTarget.dataset.viewUser;
+			document.getElementById("editRuleResourceField").value=value=evt.currentTarget.dataset.viewId;
+			document.getElementById("editRuleStartingOfValidity").value=evt.currentTarget.dataset.viewValidfrom;
+			document.getElementById("editRuleEndingOfValidity").value=evt.currentTarget.dataset.viewValidto;
+			document.getElementById("editRuleKind").value=evt.currentTarget.dataset.viewRulekind;
+			var a = document.getElementById('editRuleKind');
+			document.getElementById('editRuleDiv').innerHTML = "";
+			if (a.value == 'ContemporaryAccess') {
+				document.getElementById('editRuleDiv').innerHTML = `
+				<div class="col-xs-12 col-md-12 modalCell">
+					<div class="modalFieldCnt">
+						<input type="number" min="1" class="modalInputTxt" name="editRuleAmount" id="editRuleAmount" required> 
+					</div>
+					<div class="modalFieldLabelCnt">Amount of contemporary accesses allowed</div>
+					<div id="inputRule1Msg" class="modalFieldMsgCnt">&nbsp;</div>
+				</div>
+				`;
+				document.getElementById('editRuleAmount').value=JSON.parse(evt.currentTarget.dataset.viewDetails).amount;
+			} else if (a.value == 'AccessesOverTime') {
+				document.getElementById('editRuleDiv').innerHTML = `
+				<div class="col-xs-12 col-md-6 modalCell">
+					<div class="modalFieldCnt">
+						<input type="number" min="1" class="modalInputTxt" name="editRuleAmount" id="editRuleAmount" required> 
+					</div>
+					<div class="modalFieldLabelCnt">Amount of accesses</div>
+					<div id="editRuleAmountMsg" class="modalFieldMsgCnt">&nbsp;</div>
+				</div>
+				<div class="col-xs-12 col-md-6 modalCell">
+					<div class="modalFieldCnt">
+						<select id="editSelectRuleTimePeriod" name="editSelectRuleTimePeriod" class="modalInputTxt">
+							<option disabled selected>Select an option</option>
+							<option value="0">Each Day</option>
+							<option value="1">Each Week</option>
+							<option value="2">Each Month</option>
+							<option value="3">Each Year</option>
+						</select>
+					</div>
+					<div class="modalFieldLabelCnt">Frequency of limit renewal</div>
+					<div id="editSelectRuleTimePeriodMsg" class="modalFieldMsgCnt">&nbsp;</div>
+				</div>
+				`;
+				document.getElementById('editRuleAmount').value=JSON.parse(evt.currentTarget.dataset.viewDetails).amount;
+				document.getElementById('editSelectRuleTimePeriod').value=JSON.parse(evt.currentTarget.dataset.viewDetails).period;
+			} else if (a.value == "TotalAccesses") {
+				document.getElementById('editRuleDiv').innerHTML = `
+				<div class="col-xs-12 col-md-12 modalCell">
+					<div class="modalFieldCnt">
+						<input type="number" min="1" class="modalInputTxt" name="editRuleAmount" id="editRuleAmount" required> 
+					</div>
+					<div class="modalFieldLabelCnt">Amount of total accesses allowed</div>
+					<div id="editRuleAmountMsg" class="modalFieldMsgCnt">&nbsp;</div>
+				</div>
+				`;
+				document.getElementById('editRuleAmount').value=JSON.parse(evt.currentTarget.dataset.viewDetails).amount;
 			} else if (a.value == "invalid") {
 				return;
 			} else { alert("invalid choice for limit");}
@@ -1155,7 +1419,7 @@ if (($hide_menu != "hide")) {
 			document.getElementById('addRuleResourceFieldSecond').value=caller.getAttribute('api-data');
 			let now = new Date();
             let nextDay = new Date(now);
-            nextDay.setDate(nextDay.getDate() + 1);
+            nextDay.setDate(nextDay.getDate() + 365);
             
             let formatDateTime = (date) => date.toISOString().slice(0, 16);
             
@@ -1219,13 +1483,48 @@ if (($hide_menu != "hide")) {
 				window.location.reload();
 			});
 		};
+		// forces button to have listeners through "zooms"
+		const handlers = {
+		  deleteapibuttonmodal: deleteApiButtonFunction,
+		  editbuttonmodal: editModalButtonFunction,
+		  searchRule: searchRuleFunction
+		};
+
+		// Safely attach the appropriate handler by class name
+		function safelyAddClickListener(el) {
+		  for (const className in handlers) {
+			if (el.classList.contains(className)) {
+			  el.removeEventListener('click', handlers[className]);
+			  el.addEventListener('click', handlers[className]);
+			}
+		  }
+		}
+
+		// Initial binding for existing elements
+		Object.keys(handlers).forEach(className => {
+		  document.querySelectorAll('.' + className).forEach(safelyAddClickListener);
+		});
+
+		// Observe dynamically added elements
+		const observer = new MutationObserver(mutations => {
+		  for (const mutation of mutations) {
+			for (const node of mutation.addedNodes) {
+			  if (node.nodeType !== 1) continue;
+
+			  if (node instanceof Element) {
+				for (const className in handlers) {
+				  if (node.classList.contains(className)) {
+					safelyAddClickListener(node);
+				  }
+				  node.querySelectorAll?.('.' + className).forEach(safelyAddClickListener);
+				}
+			  }
+			}
+		  }
+		});
+
+		observer.observe(document.body, { childList: true, subtree: true });
 	</script>
 
     </body>
 </html>		
-
-
-
-<?php } else {
-    include('../s4c-legacy-management/api-dashboard-front-legacy.php');
-}
