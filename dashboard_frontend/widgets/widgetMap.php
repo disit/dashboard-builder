@@ -8489,7 +8489,62 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             }
                         } else if (passedData.query.includes("/iot/") && !passedData.query.includes("/api/v1/")) {
                             query = "<?= $superServiceMapProxy; ?>api/v1/?serviceUri=" + passedData.query + "&format=json";
-                        } else {
+                        } else if (passedData.query.includes("wfs") || passedData.query.includes("WFS")) {
+                            //Manage WFS START
+                            query = passedData.query;
+                            var desc = passedData.desc;
+                            var query_text =query.toLowerCase();
+                            var url = new URL(query);
+                            var srsname = url.searchParams.get("srsname");
+                            //caricaLayer(url);                 
+                                    //function caricaLayer(url) {
+                                            const wfsUrl = '../widgets/proxyGisWFS.php?url='+url + '&outputFormat=application/json&srsname=EPSG:4326';
+                                            console.log('URL di richiesta WFS:', wfsUrl);
+                                            fetch(wfsUrl)
+                                                .then(response => {
+                                                if (!response.ok) {
+                                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                                }
+                                                return response.json();
+                                                })
+                                                .then(json => {
+                                                // crea un GeoJSON layer Leaflet a partire dal JSON WFS
+                                                const geojsonLayer = L.geoJSON(json, {
+                                                    style: 'wfs',
+                                                    pointToLayer: (feature, latlng) => {
+                                                    return L.circleMarker(latlng, {
+                                                        radius: 5,
+                                                        color: color1,
+                                                        fillColor: color2,
+                                                        fillOpacity: 0.7,
+                                                        weight: 1
+                                                    });
+                                                    },
+                                                    onEachFeature: (feature, layer) => {
+                                                    const props = feature.properties;
+                                                    feature.query = wfsUrl;
+                                                    const html = createPopup(props, color1, color2);
+                                                    layer.bindPopup(html);
+                                                    },
+                                                    style: feature => ({
+                                                    color: color1,
+                                                    weight: 1,
+                                                    fillColor: color2,
+                                                    fillOpacity: 0.4
+                                                    })
+                                                });
+                                                geojsonLayer.addTo(map.defaultMapRef);
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadOkText);
+                                                })
+                                                .catch(err => {
+                                                console.error('Errore nel fetch o parsing:', err);
+                                                loadingDiv.empty();
+                                                loadingDiv.append(loadKoText);
+                                                });
+                                           // } 
+                          //Manage WFS END
+                        }else {
                             if (passedData.query.includes("iot-search")) {
                                 var lastPartQuery = passedData.query.split("selection=")[1];
                                 var newSplit = lastPartQuery.split('&');
@@ -8566,6 +8621,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                          }   */
                     console.log('dataForApi:');
                     console.log(dataForApi);
+                    if (passedData.query.includes("wfs")||passedData.query.includes("WFS")) {
+                             apiUrl = '../widgets/proxyGisWFS.php?url=' + passedData.query +'&outputFormat=application/json&srsname=EPSG:4326';
+                             queryType = 'wfs';
+                         } 
                     $.ajax({
                         //    url: query + "&geometry=true&fullCount=false",
                         url: apiUrl,
@@ -8665,6 +8724,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 }
                                 fatherGeoJsonNode.type = "FeatureCollection";
                             }
+                            else if (queryType === "wfs"){
+                                fatherGeoJsonNode.features = [];
+                                    console.log('Entrato in WFS');
+                                    console.log(geoJsonData);
+                                    fatherGeoJsonNode.type = "FeatureCollection";
+                                    fatherGeoJsonNode.features = geoJsonData.features;
+                            }
                             else {
                                 /*   var countObjKeys = 0;
                                    var objContainer = {};
@@ -8734,7 +8800,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                             map.eventsOnMap.push(dataObj);
 
-                            if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
+                            if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')&& (queryType !== 'wfs')) {
                                 gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
                                     pointToLayer: gisPrepareCustomMarker,
                                     onEachFeature: onEachFeatureSpiderify
@@ -25993,6 +26059,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
             var desc = passedData.desc;
             var display = passedData.display;
+                        //
+                        if ((passedData.query).includes('WFS')||(passedData.query).includes('wfs')){
+                map.defaultMapRef.eachLayer(function(layer) {
+                    if(layer.feature){
+                        var current_features_query = layer.feature.query;
+                        if (current_features_query.includes(passedData.query)){
+                            map.defaultMapRef.removeLayer(layer);
+                        }
+                    }   
+                });
+            }
+            //
 
             if (desc == "") {
                 desc = passedData.query;
@@ -30130,7 +30208,83 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
     });//Fine document ready
 
-     
+     ///CHECK URL WFS
+     function createPopup(properties, color1, color2) {
+        let html = `<table class="gisPopupGeneralDataTable">
+            <thead>
+            <tr>
+                <th style="background: ${color1}">Description</th>
+                <th style="background: ${color1}">Value</th>
+            </tr>
+            </thead>
+            <tbody>`;
+        for (let key in properties) {
+            if (properties.hasOwnProperty(key)) {
+            let value = properties[key];
+            if (Array.isArray(value)) {
+                value = value.join(", ");
+            } else if (typeof value === "object" && value !== null) {
+                value = JSON.stringify(value);
+            }
+            html += `<tr><td>${key.toUpperCase()}</td><td>${value}</td></tr>`;
+            }
+        }
+        html += `</tbody></table>`;
+        return html;
+        }
+     function doesURLcorrect(urlToFile,desc) {
+        var urlLow = urlToFile.toLowerCase();
+        var controlForm = urlLow.includes('getfeature');
+        if(controlForm){
+            $.ajax({
+                    type: 'HEAD',
+                    url: "../widgets/proxyGisWFS.php?url="+urlToFile,
+                    complete: function (xhr){
+                            if (xhr.status === 404){
+                                alert('Error during Selector: "'+desc+'" Execution. Check if url is correct');
+                                loadingDiv.empty();
+                                loadingDiv.append(loadKoText);
+                                return false; // Not found
+                            }else{
+                                         //
+                                var patt1 = /version=[0-9].[0-9].[0-9]/;
+                                var cerca = query.match(patt1);
+                                var matched= cerca[0];
+                                if (matched !== "version=1.1.0"){
+                                        alert('Error during Selector: "'+desc+'" Execution. WFS Version must be "1.1.0"');
+                                        loadingDiv.empty();
+                                        loadingDiv.append(loadKoText);
+                                        return false;
+                                }else{
+                                        var xmlHttp = null;
+                                         xmlHttp = new XMLHttpRequest();
+                                               xmlHttp.open("GET", "../widgets/proxyGisWFS.php?url="+urlToFile, false );
+                                               xmlHttp.send( null );
+                                               var type = xmlHttp.responseXML;
+                                               if(type === null){
+                                                   return false;
+                                               }else{
+                                               var content = xmlHttp.responseXML.childNodes[0].nodeName;
+                                               if ((content.includes('FeatureCollection') == false)){
+                                                   alert('Error during Selector: "'+desc+'" Execution. Projection type not supported by GisWFS Widget.');
+                                                   loadingDiv.empty();
+                                                   loadingDiv.append(loadKoText);
+                                                   return false;
+                                               }else{
+                                                  return true; 
+                                               }
+                                            }  
+                                        }
+                                }
+                        }
+                    });
+                }else{
+                    alert('Error during Selector: "'+desc+'" Execution. WFS API is not correct.');
+                        loadingDiv.empty();
+                        loadingDiv.append(loadKoText);
+                        return false; 
+                }  
+     }
 
 </script>
 
