@@ -18,6 +18,7 @@ include('../config.php');
 
 session_start();
 checkSession("RootAdmin");
+if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLayout'] === true) || ($_SESSION['isPublic'] && $_COOKIE['layout'] == "new_layout")) {
 
 //manageLegacy();
 
@@ -270,7 +271,7 @@ if (($hide_menu != "hide")) {
 								            	if (stripos($col, 'internalurl') !== false) {
                 									$value = '<a class="url-link" href="' . $value . '" target="_blank">Follow internal url</a>';
             									} elseif (stripos($col, 'externalurl') !== false) {
-                									$value = '<a class="url-link" href="' . $basepath.$value . '" target="_blank">Follow external url</a>';
+                									$value = '<a class="url-link" href="' . $basepath.$apiManagerPath.$value . '" target="_blank">Follow external url</a>';
             									} elseif (stripos($col, 'edit') !== false) {
                 									$value = "<button class='editDashBtn editbuttonmodal' data-toggle='modal' data-target='#modalfourth' data-id=".$row['idapi']." data-name='".$row['apiname']."' data-kind='".$row['apikind']."' data-info='".$row['apiinfo']."' data-apiinternalurl='".$row['apiinternalurl']."' data-apiexternalurl='".$row['apiexternalurl']."' data-status='".$row['apistatus']."' data-additional='".htmlspecialchars($row['apiadditionalinfo'], ENT_QUOTES, 'UTF-8')."'>edit</button>";
             									} elseif (stripos($col, 'delete') !== false) {
@@ -1528,3 +1529,6 @@ if (($hide_menu != "hide")) {
 
     </body>
 </html>		
+<?php } else {
+	include('..\s4c-legacy-management/api-dashboard-front-legacy.php');
+}

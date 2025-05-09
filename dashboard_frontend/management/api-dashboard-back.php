@@ -146,7 +146,7 @@ switch ($choice){
 
 		// Close the database connection
 		mysqli_close($link);
-		exit;
+		exit();
 		break;
 	case "deleteRule":
 		$deletionid = isset($input['deletionid']) ? $input['deletionid'] : '';
@@ -201,7 +201,7 @@ switch ($choice){
 
 		// Close the database connection
 		mysqli_close($link);
-		exit;
+		exit();
 		break;
 	
 	case "getAccesses":
@@ -226,13 +226,13 @@ switch ($choice){
 			http_response_code(500);
 			echo json_encode(["error" => "Query preparation failed: ". mysqli_error($link)]);
 			mysqli_close($link);
-			exit;
+			exit();
 			break;
 		}
 
 		// Close the database connection
 		mysqli_close($link);
-		exit;
+		exit();
 		break;
 	case "editApi":	
 	
@@ -268,7 +268,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Name of api not found for kong deletion"]);
 				mysqli_close($link);
-				exit;
+				exit();
 			}
 			//edit service-kong
 
@@ -312,7 +312,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Could not edit kong service ".$orig_api_name."-service. Code ".$http_code_response_1.", reason: ".$http_response_1]);
 				mysqli_close($link);
-				exit;
+				exit();
 			}
 
 
@@ -345,7 +345,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Could not edit kong route ".$orig_api_name."-service. Code ".$http_code_response_2.", reason: ".$http_response_2]);
 				mysqli_close($link);
-				exit;
+				exit();
 			}
 			
 			//fix plugin start
@@ -354,7 +354,7 @@ switch ($choice){
 					http_response_code(400);
 					echo json_encode(["error" => "Missing ClearML parameters"]);
 					mysqli_close($link);
-					exit;
+					exit();
 				}
 				$curl_3 = curl_init();
 
@@ -380,7 +380,7 @@ switch ($choice){
 					http_response_code(500);
 					echo json_encode(["error" => "Could not edit kong plugin. Code ".$http_code_response_3.", reason: ".$http_response_3, "body" => '{"name":"request-transformer","enabled":true,"protocols":["http"],"config": {"add":{"body":["machine_id:'.$editAPICMLData.'"],"headers":[],"querystring":[]},"append":{"body":[],"headers":[],"querystring":[]},"remove":{"body":[],"headers":[],"querystring":[]},"rename":{"body":[],"headers":[],"querystring":[]},"replace":{"body":[],"headers":[],"querystring":[]}}}']);
 					mysqli_close($link);
-					exit;
+					exit();
 				}
 			}
 			else if ($editselectAPIkind == "ClearMLSporadic"){
@@ -388,7 +388,7 @@ switch ($choice){
 					http_response_code(400);
 					echo json_encode(["error" => "Missing ClearML parameters"]);
 					mysqli_close($link);
-					exit;
+					exit();
 				}
 				$curl_3 = curl_init();
 
@@ -414,14 +414,8 @@ switch ($choice){
 					http_response_code(500);
 					echo json_encode(["error" => "Could not edit kong plugin. Code ".$http_code_response_3.", reason: ".$http_response_3, "body" => '{"name":"request-transformer","enabled":true,"protocols":["http"],"config": {"add":{"body":["machine_id:'.$editAPICMLData.'"],"headers":[],"querystring":[]},"append":{"body":[],"headers":[],"querystring":[]},"remove":{"body":[],"headers":[],"querystring":[]},"rename":{"body":[],"headers":[],"querystring":[]},"replace":{"body":[],"headers":[],"querystring":[]}}}']);
 					mysqli_close($link);
-					exit;
+					exit();
 				}
-			}
-			else {
-				http_response_code(500);
-				echo json_encode(["error" => "$editselectAPIkind"]);
-				mysqli_close($link);
-				exit;
 			}
 			//fix plugin end
 			
@@ -429,7 +423,7 @@ switch ($choice){
 		} else {
 			http_response_code(500);
 			echo json_encode(["error" => "Query preparation failed: ". mysqli_error($link)]);
-			exit;
+			exit();
 		}
 		mysqli_stmt_close($stmt_2);
 		$sql = "";
@@ -452,7 +446,7 @@ switch ($choice){
 			}
 			mysqli_stmt_execute($stmt);
 			if (mysqli_stmt_affected_rows($stmt) > 0) {
-				echo json_encode(["results" => "status set to " . $settingStatus . "; then ".$extra_data]);
+				echo json_encode(["results" => "status set to " . $settingStatus]);
 			}
 			else {
 				http_response_code(500);
@@ -465,7 +459,7 @@ switch ($choice){
 
 		// Close the database connection
 		mysqli_close($link);
-		exit;
+		exit();
 		break;
 		
 	case "editRule":
@@ -498,7 +492,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Ldap bind failed"]);
 				ldap_unbind($ldap_conn);
-				exit;
+				exit();
 			}
 			$base_dn = $ldapBaseDN; // Adjust as needed
 			$filter = "(objectClass=inetOrgPerson)"; // 
@@ -509,7 +503,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Ldap search failed"]);
 				ldap_unbind($ldap_conn);
-				exit;
+				exit();
 			}
 
 			// Fetch entries
@@ -528,7 +522,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "User does not exist"]);
 				ldap_unbind($ldap_conn);
-				exit;
+				exit();
 		}
 		//end check user
 		}
@@ -571,7 +565,7 @@ switch ($choice){
 		mysqli_stmt_close($stmt_1);
 		echo json_encode(["results" => "Rule edited"]);
 		mysqli_close($link);
-		exit;
+		exit();
 		break;
 		
 	case "makeApi":
@@ -814,7 +808,7 @@ switch ($choice){
 
 		// Close the database connection
 		mysqli_close($link);
-		exit;
+		exit();
 		break;
 	case "makeRuleOld":
 		$createRuleAmount = isset($input['createRuleAmount']) ? $input['createRuleAmount'] : '';
@@ -853,7 +847,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Ldap bind failed"]);
 				ldap_unbind($ldap_conn);
-				exit;
+				exit();
 			}
 			$base_dn = $ldapBaseDN; // Adjust as needed
 			$filter = "(objectClass=inetOrgPerson)"; // 
@@ -864,7 +858,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Ldap search failed"]);
 				ldap_unbind($ldap_conn);
-				exit;
+				exit();
 			}
 
 			// Fetch entries
@@ -883,7 +877,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "User does not exist"]);
 				ldap_unbind($ldap_conn);
-				exit;
+				exit();
 			}
 		//end check user
 		}
@@ -936,7 +930,7 @@ switch ($choice){
 
 		// Close the database connection
 		mysqli_close($link);
-		exit;
+		exit();
 		break;
 
 	case "makeRule":
@@ -977,7 +971,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Ldap bind failed"]);
 				ldap_unbind($ldap_conn);
-				exit;
+				exit();
 			}
 			$base_dn = $ldapBaseDN; // Adjust as needed
 			$filter = "(objectClass=inetOrgPerson)"; // 
@@ -988,7 +982,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Ldap search failed"]);
 				ldap_unbind($ldap_conn);
-				exit;
+				exit();
 			}
 
 			// Fetch entries
@@ -1018,12 +1012,12 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "At least one user of the provided list does not exist"]);
 				ldap_unbind($ldap_conn);
-				exit;
+				exit();
 			}
 		//end check users
 		}
 		else {
-			$usernames = array_map('trim', explode(',', $selectUserRule));
+			$selectedUsers = ["anonymous"];
 		}
 		//make a rule for each user, works even if it's a single user since at this point it would be an array of users with length 1
 		$resultsToBeReturned = [];
@@ -1094,7 +1088,7 @@ switch ($choice){
 
 		// Close the database connection
 		mysqli_close($link);
-		exit;
+		exit();
 		break;
 
 	case "deleteAPI":
@@ -1118,7 +1112,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Name of api not found for kong deletion"]);
 				mysqli_close($link);
-				exit;
+				exit();
 			}
 			mysqli_stmt_close($stmt);
 			
@@ -1148,7 +1142,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Could not delete kong route ".$value."-route because of: ". $curl_route_delete_response]);
 				mysqli_close($link);
-				exit;
+				exit();
 			}
 			// end delete route block
 			
@@ -1179,7 +1173,7 @@ switch ($choice){
 				http_response_code(500);
 				echo json_encode(["error" => "Could not delete kong service ".$value."-service. Expect inconsistencies, as the route was deleted. Http code ".$http_code_service_delete]);
 				mysqli_close($link);
-				exit;
+				exit();
 			}
 			// end delete service block
 			
@@ -1282,12 +1276,12 @@ switch ($choice){
 
 		// Close the database connection
 		mysqli_close($link);
-		exit;
+		exit();
 		break;
 	default:
 		http_response_code(500);
 		echo json_encode(["error" => "No action provided"]);
-		exit;
+		exit();
 		break;
 }
 ?>
