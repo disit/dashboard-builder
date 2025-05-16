@@ -1530,5 +1530,5 @@ if (($hide_menu != "hide")) {
     </body>
 </html>		
 <?php } else {
-	include('..\s4c-legacy-management/api-dashboard-front-legacy.php');
+	include('../s4c-legacy-management/api-dashboard-front-legacy.php');
 }

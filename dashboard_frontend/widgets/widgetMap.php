@@ -2800,7 +2800,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                 }
 
-                if (altViewMode == "BimShapePopup") {
+                if ((altViewMode == "BimShapePopup")||(altViewMode == "wfsShapePopup")) {
                     event.target.unbindPopup();
                     newpopup = null;
                     var popupText, realTimeData, measuredTime, rtDataAgeSec, targetWidgets, color1, color2 = null;
@@ -2846,7 +2846,24 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     fatherNode = geoJsonServiceData.Service;
                                 }
                             }
-
+                            if(altViewMode == "wfsShapePopup"){
+                                    fatherNode = {
+                                                type: "FeatureCollection",
+                                                features: [
+                                                {
+                                                    // conserva il type/id originali
+                                                    type: feature.type,
+                                                    id: feature.id,
+                                                    // geometry e properties così come sono
+                                                    geometry: feature.geometry,
+                                                    properties: feature.properties,
+                                                    serviceType: feature.id
+                                                    // se ti servono altri campi (e.g. geometry_name) puoi aggiungerli qui
+                                                }
+                                                ]
+                                            };
+                            }
+                if(altViewMode !== "wfsShapePopup"){
                             var serviceProperties = fatherNode.features[0].properties;
                             var underscoreIndex = serviceProperties.serviceType.indexOf("_");
                             var serviceClass = serviceProperties.serviceType.substr(0, underscoreIndex);
@@ -2859,7 +2876,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             targetWidgets = feature.properties.targetWidgets;
                             color1 = feature.properties.color1;
                             color2 = feature.properties.color2;
-
+                        }else{
+                            var serviceProperties = fatherNode.features[0].properties;
+                            serviceProperties.name = fatherNode.features[0].id;
+                            color1 = feature.color1;
+                            color2 = feature.color2;
+                        }
                             //Popup nuovo stile uguali a quelli degli eventi ricreativi
                             popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
                             /*    if ((serviceProperties.serviceUri !== '') && (serviceProperties.serviceUri !== undefined) && (serviceProperties.serviceUri !== 'undefined') && (serviceProperties.serviceUri !== null) && (serviceProperties.serviceUri !== 'null')) {
@@ -8500,48 +8522,58 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     //function caricaLayer(url) {
                                             const wfsUrl = '../widgets/proxyGisWFS.php?url='+url + '&outputFormat=application/json&srsname=EPSG:4326';
                                             console.log('URL di richiesta WFS:', wfsUrl);
+                                            altViewMode = "wfsShapePopup";
                                             fetch(wfsUrl)
-                                                .then(response => {
-                                                if (!response.ok) {
-                                                    throw new Error(`HTTP error! status: ${response.status}`);
-                                                }
-                                                return response.json();
-                                                })
-                                                .then(json => {
-                                                // crea un GeoJSON layer Leaflet a partire dal JSON WFS
-                                                const geojsonLayer = L.geoJSON(json, {
-                                                    style: 'wfs',
-                                                    pointToLayer: (feature, latlng) => {
-                                                    return L.circleMarker(latlng, {
-                                                        radius: 5,
-                                                        color: color1,
-                                                        fillColor: color2,
-                                                        fillOpacity: 0.7,
-                                                        weight: 1
-                                                    });
-                                                    },
-                                                    onEachFeature: (feature, layer) => {
-                                                    const props = feature.properties;
-                                                    feature.query = wfsUrl;
-                                                    const html = createPopup(props, color1, color2);
-                                                    layer.bindPopup(html);
-                                                    },
-                                                    style: feature => ({
-                                                    color: color1,
-                                                    weight: 1,
-                                                    fillColor: color2,
-                                                    fillOpacity: 0.4
+                                                    .then(response => {
+                                                        if (!response.ok) {
+                                                            throw new Error(`HTTP error! status: ${response.status}`);
+                                                        }
+                                                        return response.json();
                                                     })
-                                                });
-                                                geojsonLayer.addTo(map.defaultMapRef);
-                                                loadingDiv.empty();
-                                                loadingDiv.append(loadOkText);
-                                                })
-                                                .catch(err => {
-                                                console.error('Errore nel fetch o parsing:', err);
-                                                loadingDiv.empty();
-                                                loadingDiv.append(loadKoText);
-                                                });
+                                                    .then(json => {
+                                                        const geojsonLayer = L.geoJSON(json, {
+                                                            pointToLayer: (feature, latlng) => {
+                                                                return L.circleMarker(latlng, {
+                                                                    radius: 5,
+                                                                    color: color1,
+                                                                    fillColor: color2,
+                                                                    fillOpacity: 0.7,
+                                                                    weight: 1
+                                                                });
+                                                            },
+                                                            onEachFeature: (feature, layer) => {
+                                                                feature.query = wfsUrl;
+                                                                feature.color1 = color1;
+                                                                feature.color2 = color2;
+
+                                                               /* if (typeof createPopup === "function") {
+                                                                    const html = createPopup(feature.properties, color1, color2);
+                                                                    layer.bindPopup(html);
+                                                                }*/
+
+                                                                if (typeof onMapEntityClick === "function") {
+                                                                    onMapEntityClick(feature, layer);
+                                                                }
+                                                            },
+                                                            style: feature => ({
+                                                                color: color1,
+                                                                weight: 1,
+                                                                fillColor: color2,
+                                                                fillOpacity: 0.4
+                                                            })
+                                                        });
+
+                                                        geojsonLayer.query = wfsUrl;
+                                                        geojsonLayer.addTo(map.defaultMapRef);
+                                                        loadingDiv.empty();
+                                                        loadingDiv.append(loadOkText);
+                                                    })
+                                                    .catch(err => {
+                                                        console.error('Errore nel fetch o parsing:', err);
+                                                        loadingDiv.empty();
+                                                        loadingDiv.append(loadKoText);
+                                                    });
+
                                            // } 
                           //Manage WFS END
                         }else {
@@ -26064,9 +26096,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 map.defaultMapRef.eachLayer(function(layer) {
                     if(layer.feature){
                         var current_features_query = layer.feature.query;
-                        if (current_features_query.includes(passedData.query)){
-                            map.defaultMapRef.removeLayer(layer);
-                        }
+                        if(current_features_query !== undefined){
+                                if (current_features_query.includes(passedData.query)){
+                                    map.defaultMapRef.removeLayer(layer);
+                                }
+                            }
                     }   
                 });
             }

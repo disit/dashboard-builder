@@ -1,4 +1,13 @@
 <?php
+
+/*TLDR: 2 possible routes: canSeeAdmin or not
+1:canSeeAdmin are RootAdmins and AreaManager that have at least 1 org in their ResourceconsumptionDB.users.delegated_orgs
+2:else you can just see info about yourself.
+expects: $_SESSION['loggedRole'], $_SESSION['loggedUsername'],$_SESSION['loggedOrganization'], connection to $resourcesconsumptionHost
+would be nice to change: cdn.jsdelivr to static files (bootstrap.min.css), finding a way to get org list
+*/
+
+
 include('../config.php');
 if (!isset($_SESSION)) {
     session_start();
@@ -8,6 +17,28 @@ checkSession('Manager');
 
 $role = $_SESSION['loggedRole'];
 $canSeeAdmin = ($role === 'RootAdmin');
+
+//get org list
+$protocol = parse_url($appUrl, PHP_URL_SCHEME);
+$org_list_api_url = $protocol . "://" . $appHost . "/dashboardSmartCity/api/organizations.php";
+
+$organizations_list = [];
+$ch = curl_init($org_list_api_url);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER     => [
+        'Accept: application/json'
+    ],
+    CURLOPT_CONNECTTIMEOUT => 10,
+    CURLOPT_TIMEOUT        => 15,
+]);
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+if ($httpCode === 200) {
+  $data = json_decode($response, true);
+  $organizations_list = array_column($data, 'organizationName');
+}
 
 // fetch delegated orgs if AreaManager
 $delegatedOrgs = [];
@@ -208,6 +239,17 @@ if ($canSeeAdmin) {
 
     <?php else: ?>
       <!-- Admin form -->
+      <?php
+        if (!empty($delegatedOrgs) && is_array($delegatedOrgs)) {
+            $delegatedOrgsText = implode(', ', $delegatedOrgs);
+        } else {
+            $delegatedOrgsText = 'all';
+        }
+      ?>
+      <h4>
+        Delegated orgs:
+        <?= htmlspecialchars($delegatedOrgsText, ENT_QUOTES) ?>
+      </h4>
       <form id="adminForm" method="post"
             action="resourcesconsumptionFetch.php"
             class="card p-4 shadow-sm">
@@ -249,9 +291,9 @@ if ($canSeeAdmin) {
                  placeholder="Select or enter org">
           <datalist id="orgs">
             <?php if ($role === 'RootAdmin'): ?>
-              <!-- TODO: trovare lista di org -->
-              <option value="Organization">
-              <option value="OrgB">
+              <?php foreach ($organizations_list as $o): ?>
+              <option value="<?= htmlspecialchars($o, ENT_QUOTES) ?>">
+              <?php endforeach; ?>
             <?php else: ?>
               <?php foreach ($delegatedOrgs as $o): ?>
                 <option value="<?= htmlspecialchars($o, ENT_QUOTES) ?>">

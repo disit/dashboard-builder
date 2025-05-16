@@ -1,4 +1,12 @@
 <?php
+
+/*TLDR: get route from post, get data from API endpoint, make tables for data if data and charts if at least 2 dates in data
+expects: $_SESSION['accessToken'], $_POST['route'], connection to userstats API at $resourcesconsumptionLocation
+extra: $_SESSION['loggedOrganization'] (it's not used by the api by default.... it uses directly the token with ou in it, but if you have a realm where ou is not defined/passed
+  in the access token then it can use this as fallback. )
+would be nice to change: cdn.jsdelivr to static files (bootstrap.min.css, chart.js)
+*/
+
 include('../config.php');
 if (!isset($_SESSION)) {
   session_start();
@@ -13,6 +21,7 @@ $route     = $_POST['route'];
 $loggedorg = $_SESSION['loggedOrganization'];
 
 $parsed = parse_url($route);
+/*
 if (! empty($parsed['query'])) {
     parse_str($parsed['query'], $qp);
 
@@ -31,10 +40,10 @@ if (! empty($parsed['query'])) {
         }
     }
 }
-
+*/
 
 $protocol = parse_url($appUrl, PHP_URL_SCHEME);
-$api_base = $protocol . "://" . $appHost . "/userstats/";
+$api_base = $protocol . "://" . $appHost . $resourcesconsumptionLocation;
 $full_url = $api_base . ltrim($route, '/');
 
 // call the API
@@ -75,6 +84,10 @@ $data = json_decode($response, true);
 <div class="container py-5" style='margin-right: 0px;margin-left: 5%;'>
   <h4 class="mb-3">🔎 Endpoint: <code><?= htmlspecialchars($route) ?></code></h4>
   <a href="resourcesconsumption.php" class="btn btn-secondary mb-4">⬅️ Back</a>
+  <a class="btn btn-secondary mb-4" id="btn_activity_table">Hide Activity table</a>
+  <a class="btn btn-secondary mb-4" id="btn_charts">Hide Charts</a>
+  <a class="btn btn-secondary mb-4" id="btn_dashboards">Hide Dashboard Tables</a>
+  <a class="btn btn-secondary mb-4" id="btn_api_table">Hide API Usage Tables</a>
 
   <?php if ($http_code === 200 && is_array($data) && count($data) > 0): ?>
     <?php
@@ -90,7 +103,7 @@ $data = json_decode($response, true);
     ?>
 
     <!-- Data Table -->
-    <div class="main-table mb-4">
+    <div class="main-table mb-4" id="activity_table">
      <table class="table table-striped">
        <thead>
          <tr><th>Date</th>
@@ -113,73 +126,198 @@ $data = json_decode($response, true);
     </div>
     <!-- Only show charts if more than one date -->
     <?php if ($multiDay): ?>
-      <?php foreach (array_chunk($metrics, 2) as $pair): ?>
-        <div class="row">
-          <?php foreach ($pair as $m): ?>
-            <div class="col-md-6 chart-container">
-              <canvas id="chart_<?= htmlspecialchars($m) ?>"></canvas>
-            </div>
-          <?php endforeach; ?>
-        </div>
-      <?php endforeach; ?>
+      <div id="charts">
+        <?php foreach (array_chunk($metrics, 2) as $pair): ?>
+          <div class="row">
+            <?php foreach ($pair as $m): ?>
+              <div class="col-md-6 chart-container">
+                <canvas id="chart_<?= htmlspecialchars($m) ?>"></canvas>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php endforeach; ?>
+      </div>
     <?php endif; ?>
     <!-- Dashboard Activity Summary -->
-  <?php foreach ($dates as $date):
-      // 1) Dashboards *used* by this org or user
-      $dashUsed = $data[$date]['dashboard_used_by_org']
-                   ?? $data[$date]['dashboard_activity_summary']
-                   ?? [];
-      // 2) Dashboards *owned* by this org or user
-      $dashOwned = $data[$date]['owned_dashboard_activity']
-                    ?? $data[$date]['owned_dashboard_usage']
-                    ?? [];
-  ?>
+    <?php
+  $dashboards_used_by_date  = [];
+  $dashboards_owned_by_date = [];
 
-    <?php if (is_array($dashUsed) && count($dashUsed) > 0): ?>
-      <h5 class="mt-4">📊 Dashboards Used on <?= htmlspecialchars($date) ?></h5>
-      <table class="table table-sm table-bordered mb-4">
-        <thead>
+  foreach ($dates as $date) {
+    $dashboards_used_by_date[$date]  = $data[$date]['dashboard_used_by_org']
+                                      ?? $data[$date]['dashboard_activity_summary']
+                                      ?? [];
+    $dashboards_owned_by_date[$date] = $data[$date]['owned_dashboard_activity']
+                                      ?? $data[$date]['owned_dashboard_usage']
+                                      ?? [];
+  }
+?>
+<div id="dashboards">
+  <?php if (!empty($dashboards_used_by_date)): ?>
+    <h5 class="mt-4">📊 Dashboards Used by users</h5>
+    <h6 class="mt-4">These are dashboards that users have accessed.</h6>
+    <table class="table table-sm table-bordered mb-5">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Dashboards (ID: Accesses, Minutes)</th>
+          <th class="text-center">Total Accesses</th>
+          <th class="text-center">Total Minutes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($dashboards_used_by_date as $date => $entries): ?>
+          <?php 
+            $totalAccesses = 0;
+            $totalMinutes  = 0;
+          ?>
           <tr>
-            <th>Dashboard ID</th>
-            <th>Accesses</th>
-            <th>Minutes</th>
+            <td><?= htmlspecialchars($date) ?></td>
+            <td>
+              <ul class="mb-0 ps-3">
+                <?php foreach ($entries as $e): 
+                  $a = (int)$e['nAccessPerDay'];
+                  $m = (int)$e['nMinutesPerDay'];
+                  $totalAccesses += $a;
+                  $totalMinutes  += $m;
+                ?>
+                  <li>
+                    ID <strong><?= htmlspecialchars($e['idDashboard']) ?></strong>:
+                    <strong><?= $a ?></strong> access<?= $a!==1?'es':'' ?>,
+                    <strong><?= $m ?></strong> minute<?= $m!==1?'s':'' ?>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            </td>
+            <td class="text-center"><strong><?= $totalAccesses ?></strong></td>
+            <td class="text-center"><strong><?= $totalMinutes ?></strong></td>
           </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($dashUsed as $entry): ?>
-            <tr>
-              <td><?= htmlspecialchars($entry['idDashboard']) ?></td>
-              <td><?= htmlspecialchars($entry['nAccessPerDay']) ?></td>
-              <td><?= htmlspecialchars($entry['nMinutesPerDay']) ?></td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    <?php endif; ?>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  <?php endif; ?>
 
-    <?php if (is_array($dashOwned) && count($dashOwned) > 0): ?>
-      <h5 class="mt-4">📂 Owned Dashboard Activity on <?= htmlspecialchars($date) ?></h5>
+  <?php if (!empty($dashboards_owned_by_date)): ?>
+    <h5 class="mt-4">📂 Dashboards Owned</h5>
+    <h6 class="mt-4">These are accesses to dashboards that are owned by the users.</h6>
+    <table class="table table-sm table-bordered mb-5">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Dashboards (ID: Accesses, Minutes)</th>
+          <th class="text-center">Total Accesses</th>
+          <th class="text-center">Total Minutes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($dashboards_owned_by_date as $date => $entries): ?>
+          <?php 
+            $totalAccesses = 0;
+            $totalMinutes  = 0;
+          ?>
+          <tr>
+            <td><?= htmlspecialchars($date) ?></td>
+            <td>
+              <ul class="mb-0 ps-3">
+                <?php foreach ($entries as $dashId => $e):
+                  // for owned, $e has keys ['total_accesses','total_minutes']
+                  $a = (int)$e['total_accesses'];
+                  $m = (int)$e['total_minutes'];
+                  $totalAccesses += $a;
+                  $totalMinutes  += $m;
+                ?>
+                  <li>
+                    ID <strong><?= htmlspecialchars($dashId) ?></strong>:
+                    <strong><?= $a ?></strong> access<?= $a!==1?'es':'' ?>,
+                    <strong><?= $m ?></strong> minute<?= $m!==1?'s':'' ?>
+                  </li>
+                <?php endforeach; ?>
+              </ul>
+            </td>
+            <td class="text-center"><strong><?= $totalAccesses ?></strong></td>
+            <td class="text-center"><strong><?= $totalMinutes ?></strong></td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  <?php endif; ?>
+</div>
+  <?php
+  $api_manager_usage = [];
+  $ascapi_usage      = [];
+  
+  foreach ($dates as $date):
+  // API usage 
+      $api_manager_usage[$date] = $data[$date]['api_manager'];
+      $ascapi_usage[$date] = $data[$date]['ascapi'];
+  endforeach;
+  ?>
+  <div id="api_table">
+    <?php if (! empty($api_manager_usage)): ?>
+      <div class="tablediv" id="apimanager_table">
+        <h5 class="mt-4">📊 API Manager Usage</h5>
+        <h6 class="mt-4">These accesses from users to APIs contained in SUMO.</h6>
+        <table class="table table-sm table-bordered mb-5">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>APIs and Accesses</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($api_manager_usage as $date => $apis): ?>
+              <tr>
+                <td><?= htmlspecialchars($date) ?></td>
+                <td>
+                  <ul class="mb-0 ps-3">
+                    <?php foreach ($apis as $apiName => $count): ?>
+                      <li>
+                        <?= htmlspecialchars($apiName) ?>:
+                        <strong><?= htmlspecialchars($count) ?></strong>
+                      </li>
+                    <?php endforeach; ?>
+                  </ul>
+                </td>
+                <td class="text-center"><strong><?= htmlspecialchars(array_sum($apis)) ?></strong></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+    <?php if (! empty($ascapi_usage)): ?>
+      <h5 class="mt-4">📊 Ascapi Usage</h5>
+      <h6 class="mt-4">These accesses from users to APIs ASCAPI.</h6>
       <table class="table table-sm table-bordered mb-5">
         <thead>
           <tr>
-            <th>Dashboard ID</th>
-            <th>Total Accesses</th>
-            <th>Total Minutes</th>
+            <th>Date</th>
+            <th>APIs and Accesses</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($dashOwned as $dashId => $entry): ?>
+          <?php foreach ($ascapi_usage as $date => $apis): ?>
             <tr>
-              <td><?= htmlspecialchars($dashId) ?></td>
-              <td><?= htmlspecialchars($entry['total_accesses']) ?></td>
-              <td><?= htmlspecialchars($entry['total_minutes']) ?></td>
+              <td><?= htmlspecialchars($date) ?></td>
+              <td>
+                <ul class="mb-0 ps-3">
+                  <?php foreach ($apis as $apiName => $count): ?>
+                    <li>
+                      <?= htmlspecialchars($apiName) ?>:
+                      <strong><?= htmlspecialchars($count) ?></strong>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+              </td>
+              <td class="text-center"><strong><?= htmlspecialchars(array_sum($apis)) ?></strong></td>
             </tr>
           <?php endforeach; ?>
         </tbody>
       </table>
     <?php endif; ?>
-
-  <?php endforeach; ?>
+  </div>
 
   <?php else: ?>
     <div class="alert alert-danger">
@@ -223,6 +361,35 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   });
 });
+const btns = [
+    'btn_activity_table',
+    'btn_charts',
+    'btn_dashboards',
+    'btn_api_table'
+  ];
+
+  btns.forEach(id => {
+    const btn = document.getElementById(id);
+    btn.addEventListener('click', function() {
+      toggle_visibility(this);
+    });
+  });
+
+  function toggle_visibility(button) {
+    const divId = button.id.replace(/^btn_/, '');
+    const div = document.getElementById(divId);
+    if (!div) {
+      console.warn(`No element found with id="${divId}"`);
+      return;
+    }
+    
+    const isHidden = div.style.display === 'none';
+    div.style.display = isHidden ? '' : 'none';
+    button.textContent = button.textContent.replace(
+      /^(Hide|Show)/,
+      matched => matched === 'Hide' ? 'Show' : 'Hide'
+    );
+  }
 </script>
 <?php endif; ?>
 </body>
