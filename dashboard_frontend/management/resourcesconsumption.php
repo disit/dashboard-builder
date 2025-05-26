@@ -90,18 +90,21 @@ if ($canSeeAdmin) {
         $params = [];
         $types  = "";
 
-        if ($role === 'AreaManager' && !empty($delegatedOrgs)) {
-            $ph     = implode(',', array_fill(0, count($delegatedOrgs), '?'));
-            $sqlU  .= " WHERE organization IN ($ph)";
-            $types  = str_repeat('s', count($delegatedOrgs));
-            $params = $delegatedOrgs;
-        }
-
+        if ($role === 'AreaManager' && ! empty($delegatedOrgs)) {
+          $conds = array_fill(0, count($delegatedOrgs), "FIND_IN_SET(?, org)");
+          $sqlU .= " WHERE " . implode(" OR ", $conds);
+      
+          $types  = str_repeat('s', count($delegatedOrgs));
+          $params = $delegatedOrgs;
+          }
+          
         $stmtU = mysqli_prepare($link2, $sqlU);
-        if ($stmtU && !empty($params)) {
+        if (! $stmtU) {
+            throw new Exception("prepare failed: " . mysqli_error($link2));
+        }
+        if (! empty($params)) {
             mysqli_stmt_bind_param($stmtU, $types, ...$params);
         }
-
         mysqli_stmt_execute($stmtU);
         mysqli_stmt_bind_result($stmtU, $encOwner);
         while (mysqli_stmt_fetch($stmtU)) {
