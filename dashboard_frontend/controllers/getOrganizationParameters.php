@@ -142,7 +142,7 @@ if(isset($_SESSION['loggedUsername']) || @$_SESSION['isPublic'] === true)
                 }
                 $orgParamsQuery = "SELECT * FROM Dashboard.Organizations" . $orgSqlAdd;
                 $r = mysqli_query($link, $orgParamsQuery);
-                $response['sql'] = $orgParamsQuery;
+                //$response['sql'] = $orgParamsQuery;
 
                 if($r)
                 {
