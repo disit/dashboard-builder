@@ -20,608 +20,861 @@ require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 
 session_start();
-if (isset($_SESSION['loggedUsername'])) {
-    /*     * ************** */
-    if (isset($_SESSION['refreshToken'])) {
-        $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
-        $oidc->providerConfigParam(array('token_endpoint' => $ssoTokenEndpoint));
-        $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
-        $accessToken = $tkn->access_token;
-        $_SESSION['refreshToken'] = $tkn->refresh_token;
+requireAdmin();
 
-        //error_reporting(E_ERROR);
-$link = mysqli_connect($host, $username, $password);
-        //error_reporting(E_ALL);
-        //ini_set('display_errors', 1);
-        //error_reporting(-1);
-        mysqli_select_db($link, $dbname);
-        if (isset($_SESSION['loggedRole'])) {
-            $role_session_active = $_SESSION['loggedRole'];
+$link = getDbLink();       
+$ldap = getLdapConn();   
 
-      
-            if ($role_session_active == "RootAdmin") {
+$action = $_REQUEST['action'];
+switch ($action) {
+    case 'get_list':
+        header('Content-Type: application/json');
+        echo json_encode(buildUserList($link, $ldap));
+        break;
 
-                function hash_password($password) { // SSHA with random 4-character salt
-                    $salt = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 4)), 0, 4);
-                    return '{SSHA}' . base64_encode(sha1($password . $salt, TRUE) . $salt);
-                }
+    case 'add_user':
+        AddUser($link, $ldap);
+        break;
 
-                function control_mail($ldapServer, $ldapPort, $ldapBaseDN, $mail) {
-                    $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
-                    $attr = array('mail');
-                    //$mail
-                    $filter = "(mail=" . $mail . ")";
-                    //$attr['mail'] =  $mail;
-                    $resultldap = ldap_search($connection, $ldapBaseDN, $filter, $attr);
-    $entries = ldap_get_entries($connection, $resultldap);
-                    $count = $entries["count"];
-                    $control_mail = $count;
-    
-                    return $control_mail;
-	}
+    case 'edit_user':
+        EditUser($link, $ldap);
+        break;
 
-                $link = mysqli_connect($host, $username, $password);
+    case 'list_org':
+        ListOrg($ldap);
+        break;
 
+    case 'delete_user':
+        DeleteUser($ldap);
+        break;
 
-                $action = $_REQUEST['action'];
-                if ($action == 'get_list') {
+    case 'get_groups':
+        GetGroups($link, $ldap);
+        break;
 
-                    //
-                    //
-                    //LISTA DEGLI UTENTI
-                    $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
-                    ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                    $bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
-                    $resultldap = ldap_search($connection, $ldapBaseDN, '(cn=Dashboard)');
-                    $entries = ldap_get_entries($connection, $resultldap);
-
-
-                    //
-                    $list_users = $entries[0]['memberuid'];
-
-                    //LISTA DELLE ORGANIZZAZIONI
-                    $resultldapOrg = ldap_search($connection, $ldapBaseDN, '(objectClass=organizationalUnit)');
-                    $entriesOrg = ldap_get_entries($connection, $resultldapOrg);
-                    //echo($list_org);
-                    //
-      //
-     //LISTA DEI RUOLI ToolAdmin
-                    $resultldapToolAdmin = ldap_search($connection, $ldapBaseDN, '(cn=ToolAdmin)');
-                    $entriesToolAdmin = ldap_get_entries($connection, $resultldapToolAdmin);
-                    $array_toolAdmin = array_map('strtolower', $entriesToolAdmin[0]['roleoccupant']);
-                    //
-                    //
-     //
-      $resultldapRootAdmin = ldap_search($connection, $ldapBaseDN, '(cn=RootAdmin)');
-                    $entriesRootAdmin = ldap_get_entries($connection, $resultldapRootAdmin);
-                    $array_RootAdmin = array_map('strtolower', $entriesRootAdmin[0]['roleoccupant']);
-                    //
-                    //
-     //
-      $resultldapManager = ldap_search($connection, $ldapBaseDN, '(cn=Manager)');
-                    $entriesManager = ldap_get_entries($connection, $resultldapManager);
-                    $array_manager = array_map('strtolower', $entriesManager[0]['roleoccupant']);
-                    //
-                    //
-     //
-     $resultldapAreaManager = ldap_search($connection, $ldapBaseDN, '(cn=AreaManager)');
-                    $entriesAreaManager = ldap_get_entries($connection, $resultldapAreaManager);
-                    $array_AreaManger = array_map('strtolower', $entriesAreaManager[0]['roleoccupant']);
-//
-    $resultldapObserver = ldap_search($connection, $ldapBaseDN, '(cn=Observer)');
-                    $entriesObserver = ldap_get_entries($connection, $resultldapObserver);
-                    $array_Observer = array_map('strtolower', $entriesObserver[0]['roleoccupant']);
-                    //
-                    //
-     
-    $array_users = array();
-                    //
-                    $lenght = $list_users["count"];
-                    for ($i = 0; $i < $lenght; $i++) {
-                        $user = strval($list_users[$i]);
-                        $pass = "";
-                        //
-                        //
-        $rest01 = explode('cn=', $user);
-                        $rest02 = explode(',dc=', $rest01[1]);
-                        $final_username = $rest02[0];
-                        //
-                        //
-        $resultldap0 = ldap_search($connection, $ldapBaseDN, '(cn=' . $final_username . ')');
-                        $entries0 = ldap_get_entries($connection, $resultldap0);
-                        if (isset($entries0[0]['mail'][0])) {
-                            $pass = $entries0[0]['mail'][0];
-        	}
-                        //
-                        //
-                        $org = null;
-                        $role = null;
-                        //
-                        $lenghtOrg = $entriesOrg['count'];
-                        //
-                        for ($y = 0; $y < $lenghtOrg; $y++) {
-                            $array_ut = $entriesOrg[$y]['l'];
-                            $user_min = strtolower($user);
-                            if (in_array($user, $array_ut)) {
-                                $org = $entriesOrg[$y]['ou'][0];
-	}	
-                        }
-                        //
-                        //RUOLO
-                        if (in_array($user, $array_toolAdmin)) {
-                            $role = 'ToolAdmin';
-                        }
-                        if (in_array($user, $array_RootAdmin)) {
-                            $role = 'RootAdmin';
-                        }
-                        if (in_array($user, $array_manager)) {
-                            $role = 'Manager';
-                        }
-                        if (in_array($user, $array_AreaManger)) {
-                            $role = 'AreaManager';
-                        }
-                        if (in_array($user, $array_Observer)) {
-                            $role = 'Observer';
-                        }
-                        //
-                        $array_users[$i]["IdUser"] = strval($i);
-                        $array_users[$i]["username"] = $final_username;
-                        $array_users[$i]["organization"] = $org;
-                        $array_users[$i]["status"] = null;
-                        $array_users[$i]["reg_data"] = null;
-                        $array_users[$i]["password"] = null;
-                        $array_users[$i]["mail"] = $pass;
-                        $array_users[$i]["admin"] = $role;
-                        $array_users[$i]["cn"] = $list_users[$i];
-
-                        //
-                    }
-
-                    echo json_encode($array_users);
-                    /*                     * ** */
-                } else if ($action == 'add_user') {
-                    //ADD USER
-                    $results = array();
-                    //
-                    //***************************//
-                    //$ldapAdminDN = $ldapAdminDN;
-                    //error_reporting(E_ERROR | E_PARSE);
-                    //
-                    //LISTA DEGLI UTENTI
-                    $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
-                    ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                    $bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd)or die("ERROR IN BIND");
-                    //**************************//
-                    if (isset($_POST['new_username']) && ($_POST['new_username'] != "")) {
-                        $new_username = htmlspecialchars($_POST['new_username']);
-                        $newPassw = htmlspecialchars($_POST['new_password']);
-                        $mail = htmlspecialchars($_POST['new_email']);
-                        $org = htmlspecialchars($_POST['org']);
-                        $new_userType = htmlspecialchars($_POST['new_userType']);
-                        //
-                        //$group =  htmlspecialchars($_POST['group']);
-                        $group = $_POST['group'];
-                        //
-                        if (($new_userType == "") || ($new_userType == null)) {
-                            $new_userType = "Manager";
-                        }
-                        //
-                        $uid = encryptOSSL($new_username, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
-                        //$ldapBaseDN = $ldapBaseDN;
-                        $data = array();
-                        $data['objectClass'][0] = 'inetOrgPerson';
-                        $data['sn'] = strtolower($new_username);
-                        $data['userPassword'] = hash_password($newPassw);
-                        $data['uid']= $uid;
-                        $data['ou']=  $org;
-
-                        $control_mail = control_mail($ldapServer, $ldapPort, $ldapBaseDN, $mail);
-                        if ($control_mail == 0) {
-                            if (!ldap_add($connection, "cn=" . strtolower($new_username) . "," . $ldapBaseDN . "", $data)) {
-
-                                $results['result'] = 'error';
-                                echo json_encode($results);
-                                //
-                            } else {
-                                //AGGIUNGI PARAMTERI
-                                $serverctrls02['mail'] = $mail;
-                                //
-                                $dn = "cn=" . strtolower($new_username) . "," . $ldapBaseDN . "";
-                                ldap_mod_add($connection, "cn=" . $new_userType . "," . $ldapBaseDN . "", array('roleOccupant' => $dn));
-                                ///
-                                $array_group = explode(',', $ldapToolGroups);
-                                foreach ($array_group as $value_group) {
-                                    ldap_mod_add($connection, "cn=" . $value_group . "," . $ldapBaseDN . "", array('memberUid' => $dn));
-                                }
-                                //
-                                ldap_mod_add($connection, "ou=" . $org . "," . $ldapBaseDN . "", array('l' => $dn));
-                                ldap_mod_replace($connection, $dn, $serverctrls02);
-                                ////
-                                //GROUP
-                                if ($group !=""){
-                                    $numeroElementi = count($_POST['group']);
-                                    for($u=0; $u<$numeroElementi; $u++){
-                                        $curr_group = $group[$u];
-                                    $groupDn =  "cn=$curr_group,ou=$org,dc=ldap,dc=organization,dc=com";
-                                        if (ldap_mod_add($connection, $groupDn, ['member' => $dn])) {
-                                                //echo "Utente aggiunto come membro del gruppo con successo.";
-                                        } else {
-                                                $ldapErrorNo = ldap_errno($connection);
-                                                $ldapErrorStr = ldap_err2str($ldapErrorNo);
-                                              // echo "Errore nell'aggiunta dell'utente come membro del gruppo (Codice: $ldapErrorNo, Messaggio: $ldapErrorStr).";
-                                        }
-                                    }
-                                }
-
-                                ///
-                                //$mail
-                                $results['result'] = 'success';
-                                echo json_encode($results);
-                                /////
-                            }
-                        } else {
-                            $results['result'] = 'not data';
-                            echo json_encode($results);
-                        }
-                        //**************************//
-                    } else {
-                        $results['result'] = 'password yet used';
-                        echo json_encode($results);
-                    }
-                } else if ($action == 'edit user') {
-                    //
-                    //error_reporting(E_ERROR);
-                    //LISTA DEGLI UTENTI
-                    $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
-                    ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                    $bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
-                    $data_2 = array();
-
-                    $values = "";
-                    $new_username = htmlspecialchars($_POST['user']);
-                    $result = array();
-                    //if(isset($_POST['user'])){
-                    $result['index'] = 1;
-                    $result['password'] = "not modified";
-                    //echo($new_username);
-                    $dn = "cn=" . strtolower($new_username) . "," . $ldapBaseDN;
-                    $dn_role = "cn=" . $new_username . "," . $ldapBaseDN;
-                    //
-                    //
-                    //MODIFY UID
-                    $new_uid = encryptOSSL($new_username, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
-                    $serverctrls['uid'] = $new_uid;
-                    if (isset($_POST['org'])) {
-                        $new_org = htmlspecialchars($_POST['org']);
-                        $serverctrls['ou'] = $new_org;
-                    }
-                    ///////////
-                    $del_uid = ldap_mod_replace($connection, $dn, $serverctrls);
-                     if ($del_uid) {
-                                        $result['uid'] = "OK";
-                                        $result['index'] = 1;
-                                } else {
-                                    $result['uid'] = "error during uid or ou attribute modifying";
-                                    $result['index'] = 0;
-                                }
-                    ////
-                    //
-                    //ROLE
-                    if ((isset($_POST['role'])) && (isset($_POST['old_role']))) {
-                        $old_userType = htmlspecialchars($_POST['old_role']);
-                        $new_userType = htmlspecialchars($_POST['role']);
-                        if ($new_userType !== $old_userType) {
-
-                            if ($old_userType !== '-') {
-                                $del = ldap_mod_del($connection, "cn=" . $old_userType . "," . $ldapBaseDN, array('roleOccupant' => $dn_role));
-                            } else {
-                                $del = true;
-                            }
-                            if ($del) {
-                                $add = ldap_mod_add($connection, "cn=" . $new_userType . "," . $ldapBaseDN, array('roleOccupant' => $dn_role));
-                                if ($add) {
-
-                                    $result['role'] = "OK";
-                                    $result['index'] = 1;
-                                } else {
-
-                                    $result['role'] = "error modify role";
-                                    $result['index'] = 0;
-                                }
-                            } else {
-
-                                $result['role'] = "error deleting old role";
-                                $result['index'] = 0;
-                            }
-                        } else {
-
-                            $result['role'] = "not modified";
-                        }
-                    }
-                    //
-                    //PASSWORD
-                    //password
-                    if ((isset($_POST['password'])) && (isset($_POST['old_pass']))) {
-
-                        //
-                        if (($_POST['password'] != "") && ($_POST['password'] != null) && ($_POST['old_pass'] != "") && ($_POST['old_pass'] != null)) {
-                            if ($_POST['old_pass'] == $_POST['password']) {
-
-                                $old_pass = hash_password($_POST['old_pass']);
-                                $new_pass = hash_password($_POST['password']);
-                                $serverctrls = array();
-                                $serverctrls['userPassword'] = $new_pass;
-                                //
-                                $pass = ldap_mod_replace($connection, $dn, $serverctrls);
-                                if ($pass) {
-                                    $result['password'] = 'OK';
-                                    $result['index'] = 1;
-                                } else {
-                                    $result['password'] = 'Error during password creation';
-                                    $result['index'] = 0;
-                                }
-                                ////
-                            } else {
-                                $result['password'] = 'Password not correct';
-                                $result['index'] = 0;
-                            }
-                        } else {
-                            $result['password'] = 'not modified';
-                        }
-                    }
-                    //
-                    /////OLD GROUPS
-                    if((isset($_POST['old_groups']))){
-                                ////
-                                $old_groups = $_POST['old_groups'];
-                               // echo($old_groups);
-                              // $groupArray = json_decode($old_groups);
-                               $numberOldGroup = count($_POST['old_groups']);
-                               if($numberOldGroup > 0){
-                                for($y=0; $y<$numberOldGroup; $y++){
-                                    $curr_group = ($old_groups[$y]);
-                                    //
-                                    $userDn = '';
-                                    $new_org = htmlspecialchars($_POST['org']);
-                                    $groupDn =  "cn=$curr_group,ou=$new_org,dc=ldap,dc=organization,dc=com";
-                                    //                   
-                                    if (ldap_mod_del($connection, $groupDn, ['member' => $dn])) {
-                                        $result['delete_group'] = "OK";
-                                    } else {
-                                        $result['delete_group'] = "Error";
-                                    }
-                                    //
-                                }
-                               }
-                               ////////
-                    }
-                    //ORG
-                    if ((isset($_POST['org'])) && (isset($_POST['old_org']))) {
-                        $old_org = htmlspecialchars($_POST['old_org']);
-                        $new_org = htmlspecialchars($_POST['org']);
-                        if (($old_org == '-') || ($old_org == '') || ($old_org == null)) {
-                            $add_org = ldap_mod_add($connection, "ou=" . $new_org . "," . $ldapBaseDN . "", array('l' => $dn));
-                            if ($add_org) {
-
-                                $result['org'] = "OK";
-                                $result['index'] = 1;
-                            } else {
-
-                                $result['org'] = "error during updating new organization";
-                                $result['index'] = 0;
-                            }
-                        } else {
-                            if ($new_org !== $old_org) {
-                                $del_org = ldap_mod_del($connection, "ou=" . $old_org . "," . $ldapBaseDN . "", array('l' => $dn));
-                                if ($del_org) {
-                                    $add_org = ldap_mod_add($connection, "ou=" . $new_org . "," . $ldapBaseDN . "", array('l' => $dn));
-                                    if ($add_org) {
-
-                                        $result['org'] = "OK";
-                                        $result['index'] = 1;
-                                    } else {
-
-                                        $result['org'] = "error during updating new organization";
-                                        $result['index'] = 0;
-                                    }
-                                } else {
-
-                                    $result['org'] = "error during deleting old organization";
-                                    $result['index'] = 0;
-                                }
-                            }
-                        }
-                    } else {
-                        $result['org'] = "not modified";
-                    }
-                    //
-                    //GROUP
-                    if ((isset($_POST['mail'])) && (isset($_POST['old_mail']))) {
-                        $old_ldapMail = htmlspecialchars($_POST['old_mail']);
-                        $new_ldapMail = htmlspecialchars($_POST['mail']);
-                        if ($new_ldapMail !== $old_ldapMail) {
-                            //$mod = ldap_mod_replace;
-                            $control_mail = control_mail($ldapServer, $ldapPort, $ldapBaseDN, $new_ldapMail);
-                            if ($control_mail == 0) {
-                                $serverctrls02['mail'] = $new_ldapMail;
-                                $mail_mod = ldap_mod_replace($connection, $dn, $serverctrls02);
-                                if ($mail_mod) {
-                                    $result['mail'] = 'OK';
-                                    $result['index'] = 1;
-                                } else {
-                                    $result['mail'] = 'error';
-                                    $result['index'] = 0;
-                                }
-                            } else {
-                                $result['mail'] = 'Mail yet used';
-                                $result['index'] = 0;
-                            }
-                        } else {
-                            $result['mail'] = 'not modified';
-                        }
-                    } else {
-                        //echo('ERROR CAMBIO MAIL');
-                    }
-
-                    ///////////SELECT A GROUP//////////
-                    //$group = htmlspecialchars($_POST['group']);
-                    $group = $_POST['group'];
-                    //echo($group);
-                    //GROUP
-                    if ($group !=""){
-                        $numeroElementi = count($_POST['group']);
-                        for($u=0; $u<$numeroElementi; $u++){
-                            $curr_group = $group[$u];
-                        $groupDn =  "cn=$curr_group,ou=$new_org,dc=ldap,dc=organization,dc=com";
-                            if (ldap_mod_add($connection, $groupDn, ['member' => $dn])) {
-                                    //echo "Utente aggiunto come membro del gruppo con successo.";
-                            } else {
-                                    $ldapErrorNo = ldap_errno($connection);
-                                    $ldapErrorStr = ldap_err2str($ldapErrorNo);
-                                  // echo "Errore nell'aggiunta dell'utente come membro del gruppo (Codice: $ldapErrorNo, Messaggio: $ldapErrorStr).";
-                            }
-                        }
-                    }
-                    //////////////////////////////////                   
-    echo json_encode($result);
-                    //
-                } else if ($action == 'list_org') {
-                    //
-                    error_reporting(E_ERROR);
-                    //LISTA DEGLI UTENTI
-                    $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
-                    ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                    $bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
-                    $resultldap = ldap_search($connection, $ldapBaseDN, '(cn=Dashboard)');
-                    $resultldapOrg = ldap_search($connection, $ldapBaseDN, '(objectClass=organizationalUnit)');
-                    $entriesOrg = ldap_get_entries($connection, $resultldapOrg);
-                    ///
-                    $array_org = array();
-                    //
-                    $lenght = $entriesOrg["count"];
-                    for ($i = 0; $i < $lenght; $i++) {
-                        $org = strval($entriesOrg[$i]['ou'][0]);
-                        //
-                        $org01 = explode('cn=', $org);
-                        $org02 = explode(',dc=', $org01[1]);
-                        $final = $org02[0];
-                        $array_org[$i] = $org;
+    default:
+        break;
 }
+exit;
 
-                    ////
-                    echo json_encode($array_org);
-                    //*******//
-                } else if ($action == 'delete_user') {
-                    //
-                    //error_reporting(E_ERROR | E_PARSE);
-                    //
-                    $results = array();
-                    $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
-                    ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                    $bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
-
-                    if (isset($_POST['username'])) {
-                        $username = htmlspecialchars($_POST['username']);
-                        //
-                        $role = htmlspecialchars($_POST['role']);
-                        $org = htmlspecialchars($_POST['org']);
-                        $dn = "cn=" . strtolower($username) . "," . $ldapBaseDN;
-                        $dn_role = "cn=" . $username . "," . $ldapBaseDN;
-
-                        if ($role != "-") {
-                            $del_role = ldap_mod_del($connection, "cn=" . $role . "," . $ldapBaseDN, array('roleOccupant' => $dn_role));
-                            if ($del_role) {
-                                $results['role'] = 'success';
-                            } else {
-                                $results['role'] = 'failure';
-                            }
-                        }
-
-                        if ($org != "-") {
-                            $del_org = ldap_mod_del($connection, "ou=" . $org . "," . $ldapBaseDN, array('l' => $dn));
-                            if ($del_org) {
-                                $results['org'] = 'success';
-                            } else {
-                                $results['org'] = 'failure';
-                            }
-                        }
-
-                        $array_group = explode(',', $ldapToolGroups);
-                        foreach ($array_group as $value_group) {
-                            $del_dash = ldap_mod_del($connection, "cn=" . $value_group . "," . $ldapBaseDN, array('memberUid' => $dn));
-                            if ($del_dash) {
-                                $results['dash'] = 'success';
-                            } else {
-                                $results['dash'] = 'failure';
-                            }
-                        }
-                        $result = ldap_delete($connection, $dn);
-                        if ($result) {
-                            //
-                            //return result code, if delete fails
-                            $results['result'] = 'success';
-                        } else {
-                            $results['result'] = 'error';
-                        }
-                    }
-                    echo json_encode($results);
-                } else if($action == 'get_groups') { 
-                    //  
-                    $groups = [];
-                        $organization = mysqli_real_escape_string($link, $_REQUEST['org']);
-                        $username = mysqli_real_escape_string($link, $_REQUEST['username']);
-                        $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
-                        if ($connection) {
-                            ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
-                            $bind = ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
-                            $searchFilter = "(objectClass=*)"; 
-                            $searchResult = ldap_search($connection, $ldapBaseDN, '(objectClass=*)');
-                            $entriesOrg = ldap_get_entries($connection, $searchResult);
-                            if ($entriesOrg){
-                                $lenght = $entriesOrg["count"];
-                                for ($i = 0; $i < $lenght; $i++) {
-                                    $org = $entriesOrg[$i]; 
-                                    if($org['member']){
-                                        //
-                                        if ($org['ou']['0'] == $organization){
-                                              $count = $org['member']['count'];
-                                              for($y=0; $y < $count; $y++){
-                                                $membership = ($org['member'][$y]);
-                                                //
-                                                if (strpos($membership, $username) !== false) {
-                                                    array_push($groups, $org['cn']['0']);
-                                                }
-                                                //
-                                              }
-                                          }
-                                    }
-                                }
-                                echo json_encode($groups);
-                            //////////LA MEMBERSHIP ANDREBBE TESTATA QUI//////////
-                          // $searchFilter = "(&(objectClass=groupOfNames)(cn=$subgroupCn))";
-                             //$searchResult = ldap_search($ldapConn, $ldapBaseDn, $searchFilter);
-                            ///////////////////////
-                            }else{
-                                //NOTIHING
-                            }
-                        }
-                    //
-                }else {
-                    exit();
-                }
-            } else {
-                echo ("You are not authorized to access ot this data!");
-                exit;
-            }
-        } else {
-            echo ("You are not authorized to access ot this data!");
-            exit;
-        }
-    } else {
-        echo ("You are not authorized to access ot this data!");
+function requireAdmin() {
+    if (
+        empty($_SESSION['loggedUsername'])
+        || empty($_SESSION['refreshToken'])
+        || empty($_SESSION['loggedRole'])
+        || $_SESSION['loggedRole'] !== 'RootAdmin'
+    ) {
+        echo "You are not authorized to access ot this data!";
         exit;
     }
-} else {
-    echo ("You are not authorized to access ot this data!");
-    exit;
+    global $ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint;
+    $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+    $oidc->providerConfigParam(['token_endpoint' => $ssoTokenEndpoint]);
+    $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+    $_SESSION['refreshToken'] = $tkn->refresh_token;
+}
+
+function getDbLink() {
+    global $host, $username, $password, $dbname;
+    $link = mysqli_connect($host, $username, $password, $dbname)
+        or die("MySQL connect error: " . mysqli_error($link));
+    return $link;
+}
+
+function getLdapConn() {
+    global $ldapServer, $ldapPort, $ldapBaseDN, $ldapAdminDN, $ldapAdminPwd;
+    $conn = ldap_connect($ldapServer, $ldapPort)
+        or die("That LDAP-URI was not parseable");
+    ldap_set_option($conn, LDAP_OPT_PROTOCOL_VERSION, 3);
+    ldap_bind($conn, $ldapAdminDN, $ldapAdminPwd)
+        or die("ERROR IN BIND");
+    return $conn;
+}
+
+function hash_password($password) { // SSHA with random 4-character salt
+    $salt = substr(str_shuffle(str_repeat(
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 4
+    )), 0, 4);
+    return '{SSHA}' . base64_encode(sha1($password . $salt, TRUE) . $salt);
+}
+
+function control_mail($ldapServer, $ldapPort, $ldapBaseDN, $mail) {
+    $connection = ldap_connect($ldapServer, $ldapPort)
+        or die("That LDAP-URI was not parseable");
+    $attr   = ['mail'];
+    $filter = "(mail=" . $mail . ")";
+    $result = ldap_search($connection, $ldapBaseDN, $filter, $attr);
+    $entries = ldap_get_entries($connection, $result);
+    return $entries['count'];
+}
+
+function check_csbl($link, $user) {
+    $sql = "SELECT 1 FROM TrustedUsers WHERE userName = ? LIMIT 1";
+    if (! $stmt = mysqli_prepare($link, $sql)) {
+        error_log("check_csbl(): prepare failed: " . mysqli_error($link));
+        return mysqli_error($link);
+    }
+    mysqli_stmt_bind_param($stmt, 's', $user);
+    if (! mysqli_stmt_execute($stmt)) {
+        error_log("check_csbl(): execute failed: " . mysqli_error($link));
+        return mysqli_error($link);
+    }
+    mysqli_stmt_store_result($stmt);
+    $exists = mysqli_stmt_num_rows($stmt) > 0;
+    mysqli_stmt_close($stmt);
+    return $exists;
+}
+
+function add_csbl($link, $user, $add) {
+    if ($add === "true") {
+        if (check_csbl($link, $user) === false) {
+            $sql = "INSERT INTO TrustedUsers (userName) VALUES (?)";
+        } else {
+            return true; // already present
+        }
+    } else {
+        $sql = "DELETE FROM TrustedUsers WHERE userName = ?";
+    }
+    if (! $stmt = mysqli_prepare($link, $sql)) {
+        error_log("add_csbl(): prepare failed: " . mysqli_error($link));
+        return mysqli_error($link);
+    }
+    mysqli_stmt_bind_param($stmt, 's', $user);
+    if (! mysqli_stmt_execute($stmt)) {
+        error_log("add_csbl(): execute failed: " . mysqli_error($link));
+        mysqli_stmt_close($stmt);
+        return mysqli_error($link);
+    }
+    mysqli_stmt_close($stmt);
+    return true;
+}
+
+function check_data_table_user($link, $user) {
+    $sql = "
+        SELECT organizationName
+        FROM Organizations
+        WHERE FIND_IN_SET(?, users)
+    ";
+    if (! $stmt = mysqli_prepare($link, $sql)) {
+        error_log("check_data_table_user(): prepare failed: " . mysqli_error($link));
+        return mysqli_error($link);
+    }
+    mysqli_stmt_bind_param($stmt, 's', $user);
+    if (! mysqli_stmt_execute($stmt)) {
+        error_log("check_data_table_user(): execute failed: " . mysqli_error($link));
+        mysqli_stmt_close($stmt);
+        return mysqli_error($link);
+    }
+    mysqli_stmt_bind_result($stmt, $orgName);
+    $orgs = [];
+    while (mysqli_stmt_fetch($stmt)) {
+        $orgs[] = $orgName;
+    }
+    mysqli_stmt_close($stmt);
+    return empty($orgs) ? false : $orgs;
+}
+
+function add_data_table_user($link, $user, $add, $orgs) {
+    if (! is_array($orgs) || empty($orgs)) {
+        return "No organizations";
+    }
+    if ($add === "true") {
+        $current = check_data_table_user($link, $user);
+        if (is_string($current)) {
+            return $current;
+        }
+        $currentOrgs = $current === false ? [] : $current;
+        $toAdd    = array_values(array_diff($orgs,       $currentOrgs));
+        $toRemove = array_values(array_diff($currentOrgs, $orgs));
+
+        if (! empty($toRemove)) {
+            $ph = implode(',', array_fill(0, count($toRemove), '?'));
+            $sql = "
+                UPDATE Organizations
+                SET users = NULLIF(
+                    TRIM(BOTH ',' FROM REPLACE(
+                        CONCAT(',', COALESCE(users, ''), ','), 
+                        CONCAT(',', ?, ','), 
+                        ','
+                    )),
+                    ''
+                )
+                WHERE organizationName IN ($ph)
+            ";
+            $stmt = mysqli_prepare($link, $sql)
+                or error_log("add_data_table_user(): remove prepare failed: " . mysqli_error($link));
+            $types  = 's' . str_repeat('s', count($toRemove));
+            $values = array_merge([$user], $toRemove);
+            $bind   = [$types];
+            foreach ($values as $i => &$v) {
+                $bind[] = &$values[$i];
+            }
+            call_user_func_array([$stmt, 'bind_param'], $bind);
+            if (! mysqli_stmt_execute($stmt)) {
+                error_log("add_data_table_user(): remove execute failed: " . mysqli_error($link));
+                mysqli_stmt_close($stmt);
+                return mysqli_error($link);
+            }
+            mysqli_stmt_close($stmt);
+        }
+
+        if (! empty($toAdd)) {
+            $ph = implode(',', array_fill(0, count($toAdd), '?'));
+            $sql = "
+                UPDATE Organizations
+                SET users = CASE
+                    WHEN users IS NULL OR users = '' THEN ?
+                    ELSE CONCAT(users, ',', ?)
+                END
+                WHERE organizationName IN ($ph)
+                  AND (users IS NULL OR users = '' OR NOT FIND_IN_SET(?, users))
+            ";
+            $stmt = mysqli_prepare($link, $sql)
+                or error_log("add_data_table_user(): add prepare failed: " . mysqli_error($link));
+            $types  = str_repeat('s', 2 + count($toAdd) + 1);
+            $values = array_merge([$user, $user], $toAdd, [$user]);
+            $bind   = [$types];
+            foreach ($values as $i => &$v) {
+                $bind[] = &$values[$i];
+            }
+            call_user_func_array([$stmt, 'bind_param'], $bind);
+            if (! mysqli_stmt_execute($stmt)) {
+                error_log("add_data_table_user(): add execute failed: " . mysqli_error($link));
+                mysqli_stmt_close($stmt);
+                return mysqli_error($link);
+            }
+            mysqli_stmt_close($stmt);
+        }
+
+        return true;
+    } else {
+        // remove from all
+        $sql = "
+            UPDATE Organizations
+            SET users = NULLIF(
+                TRIM(BOTH ',' FROM REPLACE(
+                    CONCAT(',', COALESCE(users, ''), ','), 
+                    CONCAT(',', ?, ','), 
+                    ','
+                )),
+                ''
+            )
+        ";
+        $stmt = mysqli_prepare($link, $sql)
+            or error_log("add_data_table_user(): prepare failed: " . mysqli_error($link));
+        mysqli_stmt_bind_param($stmt, 's', $user);
+        if (! mysqli_stmt_execute($stmt)) {
+            error_log("add_data_table_user(): execute failed: " . mysqli_error($link));
+            mysqli_stmt_close($stmt);
+            return mysqli_error($link);
+        }
+        mysqli_stmt_close($stmt);
+        return true;
+    }
+}
+function get_user_ldap_groups($ldapConn, $baseDn, $username) {
+    // escape for use in a filter
+    $uFilter   = ldap_escape($username, '', LDAP_ESCAPE_FILTER);
+    $uFilterlower   = ldap_escape(strtolower($username), '', LDAP_ESCAPE_FILTER);
+    // build the full DN and escape that too
+    $userDn    = 'cn=' . ldap_escape($username, '', LDAP_ESCAPE_DN) . ',' . $baseDn;
+    $userDnlower    = 'cn=' . ldap_escape(strtolower($username), '', LDAP_ESCAPE_DN) . ',' . $baseDn;
+    $dnFilter  = ldap_escape($userDn, '', LDAP_ESCAPE_FILTER);
+    $dnFilterlower  = ldap_escape($userDnlower, '', LDAP_ESCAPE_FILTER);
+    // Look for any of the three common group types,
+    // matching either memberUid=username, memberUid=fullDN, member=fullDN, or uniqueMember=fullDN
+    $filter = '(&(|(objectClass=groupOfNames)'
+                       . '(objectClass=posixGroup)'
+                       . '(objectClass=groupOfUniqueNames))'
+                  . '(|(memberUid='   . $uFilter  . ')'
+                  . '(memberUid='   . $uFilterlower  . ')'
+                  . '(memberUid='   . $dnFilter . ')'
+                  . '(memberUid='   . $dnFilterlower . ')'
+                  . '(member='      . $dnFilter . ')'
+                  . '(uniqueMember='. $dnFilter . ')))';
+    $attrs = ['cn'];
+    $sr = @ldap_search($ldapConn, $baseDn, $filter, $attrs);
+    if ($sr === false) {
+        return ldap_error($ldapConn);
+    }
+
+    $entries = ldap_get_entries($ldapConn, $sr);
+    $groups = [];
+    for ($i = 0; $i < $entries['count']; $i++) {
+        if (!empty($entries[$i]['cn'][0])) {
+            $groups[] = $entries[$i]['cn'][0];
+        }
+    }
+    return $groups;
+}
+function set_delegated_userstats_orgs(string $owner, array $orgs){
+    global $resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort;
+    $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort);
+    $csv = implode(',', $orgs);
+    $sql = "UPDATE `users` 
+            SET `delegated_orgs` = ? 
+            WHERE `owner` = ?";
+    if (! $stmt = mysqli_prepare($link2, $sql)) {
+        error_log("setDelegatedOrgs(): prepare failed: " . mysqli_error($link2));
+        return mysqli_error($link2);
+    }
+    mysqli_stmt_bind_param($stmt, 'ss', $csv, $owner);
+    if (! mysqli_stmt_execute($stmt)) {
+        error_log("setDelegatedOrgs(): execute failed: " . mysqli_error($link2));
+        mysqli_stmt_close($stmt);
+        return mysqli_error($link2);
+    }
+    mysqli_stmt_close($stmt);
+    return true;
+}
+function get_delegated_userstats_orgs(string $owner, bool $encrypted){
+    global $resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort,
+           $encryptionInitKey, $encryptionIvKey, $encryptionMethod;
+    if(!$encrypted){
+        $owner = encryptOSSL($owner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+    }
+    $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort);
+    $sql = "SELECT delegated_orgs
+            FROM `users`
+            WHERE `owner` = ?";
+    if (! $stmt = mysqli_prepare($link2, $sql)) {
+        error_log("getDelegatedOrgs(): prepare failed: " . mysqli_error($link2));
+        return [];
+    }
+    mysqli_stmt_bind_param($stmt, 's', $owner);
+    if (! mysqli_stmt_execute($stmt)) {
+        error_log("getDelegatedOrgs(): execute failed: " . mysqli_error($link2));
+        mysqli_stmt_close($stmt);
+        return [];
+    }
+    mysqli_stmt_bind_result($stmt, $csv);
+    $orgs = [];
+    if (mysqli_stmt_fetch($stmt) && $csv !== null && $csv !== '') {
+        $orgs = array_map('trim', explode(',', $csv));
+    }
+    mysqli_stmt_close($stmt);
+    return $orgs;
+}
+
+
+//Action handlers
+
+function buildUserList($link, $ldap) {
+    global $ldapBaseDN, $ldapToolGroups, $dbname, $userMonitoring;
+    //role to dn map
+    $roles = ['ToolAdmin','RootAdmin','Manager','AreaManager','Observer'];
+    $roleMembers = [];
+    foreach ($roles as $r) {
+        $rRes = ldap_search($ldap, $ldapBaseDN, "(cn=$r)", ['roleOccupant']);
+        $rEnt = ldap_get_entries($ldap, $rRes);
+        $roleMembers[$r] = array_map('strtolower', $rEnt[0]['roleoccupant'] ?? []);
+    }
+
+    mysqli_select_db($link, $dbname);
+    //get all users
+    $srUsers = ldap_search(
+        $ldap,
+        $ldapBaseDN,
+        '(objectClass=inetOrgPerson)',
+        ['cn','mail']
+    );
+    if ($srUsers === false) {
+        error_log("buildUserList(): could not fetch users: " . ldap_error($ldap));
+        return [];
+    }
+    $entriesUsers = ldap_get_entries($ldap, $srUsers);
+
+    $usersOut = [];
+    for ($i = 0; $i < $entriesUsers['count']; $i++) {
+        $e  = $entriesUsers[$i];
+        $dn = $e['dn'] ?? '';
+        if (! preg_match('/^cn=([^,]+)/i', $dn, $m)) {
+            continue;
+        }
+        $username = $m[1];
+        $email    = $e['mail'][0] ?? '';
+        //fetch orgs via 'l' from OUs
+        $dnFilter  = ldap_escape($dn, '', LDAP_ESCAPE_FILTER);
+        $orgFilter = '(&(objectClass=organizationalUnit)(l=' . $dnFilter . '))';
+        $srOrgs = @ldap_search($ldap, $ldapBaseDN, $orgFilter, ['ou']);
+        $orgs   = [];
+        if ($srOrgs !== false) {
+            $entriesOrgs = ldap_get_entries($ldap, $srOrgs);
+            for ($j = 0; $j < $entriesOrgs['count']; $j++) {
+                if (!empty($entriesOrgs[$j]['ou'][0])) {
+                    $orgs[] = $entriesOrgs[$j]['ou'][0];
+                }
+            }
+        } else {
+            error_log("buildUserList() OU search failed: " . ldap_error($ldap));
+        }
+        $orgString = implode(', ', $orgs);
+        //role
+        $dnLower = strtolower($dn);
+        $role    = null;
+        foreach ($roleMembers as $rName => $dns) {
+            if (in_array($dnLower, $dns, true)) {
+                $role = $rName;
+                break;
+            }
+        }
+        $has_csbl        = (check_csbl($link, $username) === true);
+        $data_table_user = is_array(check_data_table_user($link, $username));
+        $groups          = get_user_ldap_groups($ldap, $ldapBaseDN, $username);
+        if($userMonitoring == 'true'){
+            $delegated_userstats_orgs = get_delegated_userstats_orgs($username, false);
+        }
+        $usersOut[] = [
+            "IdUser"       => (string)$i,
+            "username"     => $username,
+            "organization" => $orgString,
+            "status"       => null,
+            "reg_data"     => null,
+            "password"     => null,
+            "mail"         => $email,
+            "admin"        => $role ?? 'Observer',
+            "cn"           => $dn,
+            "csbl"         => $has_csbl,
+            "data_table"   => $data_table_user,
+            "groups"       => $groups,
+            "delegated_userstats_orgs" => $delegated_userstats_orgs,
+        ];
+    }
+    return $usersOut;
+}
+
+function AddUser($link, $ldap) {
+    global $ldapServer, $ldapPort, $ldapBaseDN, $ldapAdminDN, $ldapAdminPwd,
+           $encryptionInitKey, $encryptionIvKey, $encryptionMethod, $ldapToolGroups, $dbname, $userMonitoring;
+
+    $results = [];
+    // basic input checks
+    if (empty($_POST['new_username']) || trim($_POST['new_username']) === '') {
+        $results['result'] = 'nousername';
+        echo json_encode($results);
+        return;
+    }
+    if (empty($_POST['new_password']) || trim($_POST['new_password']) === '') {
+        $results['result'] = 'nopassword';
+        echo json_encode($results);
+        return;
+    }
+    if (empty($_POST['new_email']) || trim($_POST['new_email']) === '') {
+        $results['result'] = 'noemail';
+        echo json_encode($results);
+        return;
+    }
+
+    // sanitize
+    $new_username = htmlspecialchars($_POST['new_username']);
+    $newPassw     = htmlspecialchars($_POST['new_password']);
+    $mail         = htmlspecialchars($_POST['new_email']);
+    $new_userType = ! empty($_POST['new_userType'])
+                 ? htmlspecialchars($_POST['new_userType'])
+                 : 'Manager';
+    $group = (isset($_POST['group']) && is_array($_POST['group']))
+           ? $_POST['group'] : [];
+
+    $orgs = isset($_POST['org']) ? $_POST['org'] : [];
+    if (! is_array($orgs)) {
+        $orgs = [$orgs];
+    }
+    if (empty($orgs)) {
+        $results['result'] = 'noorg';
+        echo json_encode($results);
+        return;
+    }
+    $primaryOrg = $orgs[0];
+
+    if (control_mail($ldapServer, $ldapPort, $ldapBaseDN, $mail) !== 0) {
+        $results['result'] = 'emailnotunique';
+        echo json_encode($results);
+        return;
+    }
+
+    // build LDAP entry
+    $uid = encryptOSSL($new_username, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+    $data = [
+        'objectClass'   => ['inetOrgPerson'],
+        'sn'            => strtolower($new_username),
+        'uid'           => $uid,
+        'userPassword'  => hash_password($newPassw),
+        'ou'            => $orgs,
+    ];
+    $dn = "cn=" . strtolower($new_username) . ",{$ldapBaseDN}";
+
+    if (! @ldap_add($ldap, $dn, $data)) {
+        $results['result']    = 'error';
+        $results['ldapErrNo'] = ldap_errno($ldap);
+        $results['ldapMsg']   = ldap_error($ldap);
+        echo json_encode($results);
+        return;
+    }
+
+    // link in OUs and role/groups
+    foreach ($orgs as $o) {
+        @ldap_mod_add($ldap, "ou={$o},{$ldapBaseDN}", ['l' => $dn]);
+    }
+    if ($new_userType !== 'Observer') {
+        @ldap_mod_add($ldap, "cn={$new_userType},{$ldapBaseDN}", ['roleOccupant' => $dn]);
+    }
+    foreach (explode(',', $ldapToolGroups) as $tg) {
+        @ldap_mod_add($ldap, "cn={$tg},{$ldapBaseDN}", ['memberUid' => $dn]);
+    }
+    if (! empty($group)) {
+        foreach ($group as $g) {
+            @ldap_mod_add(
+                $ldap,
+                "cn={$g},ou={$primaryOrg},{$ldapBaseDN}",
+                ['member' => $dn]
+            );
+        }
+    }
+    @ldap_mod_replace($ldap, $dn, ['mail' => $mail]);
+
+    $results['result'] = 'success';
+    $csbl          = $_POST['csbl'] ?? '';
+    $data_ingestion= $_POST['data_ingestion'] ?? '';
+
+    if ($csbl === "true") {
+        $results['add_csbl'] = add_csbl($link, $new_username, $csbl);
+    }
+    if ($data_ingestion === "true") {
+        $results['data_ingestion'] = add_data_table_user(
+            $link, $new_username, $data_ingestion, $orgs
+        );
+    }
+    if($userMonitoring == 'true'){
+        $delegated_userstats_orgs = $_POST['delegated_userstats_orgs'];
+        if($delegated_userstats_orgs && $delegated_userstats_orgs != ''){
+            $res['userstats'] = set_delegated_userstats_orgs($uid,$delegated_userstats_orgs);
+        }
+    }
+    echo json_encode($results);
+}
+
+function EditUser($link, $ldap) {
+    global $ldapBaseDN, $encryptionInitKey, $encryptionIvKey,
+           $encryptionMethod, $dbname, $userMonitoring;
+
+    $res = [
+        'index'    => 1,
+        'uid'      => 'not modified',
+        'role'     => 'not modified',
+        'password' => 'not modified',
+        'mail'     => 'not modified',
+        'org'      => 'not modified',
+        'group'    => 'not modified',
+        'debug'    => []
+    ];
+    $res['debug']['raw_post'] = $_POST;
+
+    $user = strtolower(htmlspecialchars($_POST['user'] ?? ''));
+    $dn   = "cn={$user},{$ldapBaseDN}";
+
+    $search = ldap_search($ldap, $ldapBaseDN, "(cn=$user)", ['cn','ou']);
+    $entries = ldap_get_entries($ldap, $search);
+    $currentOrgs = [];
+    if ($entries['count'] > 0 && isset($entries[0]['ou'])) {
+        for ($i = 0; $i < $entries[0]['ou']['count']; $i++) {
+            $currentOrgs[] = $entries[0]['ou'][$i];
+        }
+    }
+    $res['debug']['currentOrgs'] = $currentOrgs;
+
+    // update uid
+    $newUid = encryptOSSL($user, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+    if (@ldap_mod_replace($ldap, $dn, ['uid' => $newUid])) {
+        $res['uid'] = 'OK';
+    } else {
+        $res['uid'] = 'error updating uid';
+        $res['ldapError'] = ldap_error($ldap);
+        $res['index'] = 0;
+    }
+    // parse new & old orgs from POST
+    $newOrgs = [];
+    if (isset($_POST['org'])) {
+        if (is_string($_POST['org']) && substr($_POST['org'],0,1)==='[') {
+            $newOrgs = json_decode($_POST['org'], true) ?: [];
+        } elseif (is_array($_POST['org'])) {
+            $newOrgs = $_POST['org'];
+        } else {
+            $newOrgs = [$_POST['org']];
+        }
+    }
+    $oldOrgs = ! empty($currentOrgs)
+             ? $currentOrgs
+             : (isset($_POST['old_org']) 
+                ? (is_string($_POST['old_org']) && substr($_POST['old_org'],0,1)==='['
+                    ? json_decode($_POST['old_org'], true) ?: []
+                    : (is_array($_POST['old_org']) ? $_POST['old_org'] : [$_POST['old_org']])
+                  )
+                : []
+               );
+
+    $res['debug']['oldOrgs'] = $oldOrgs;
+    $res['debug']['newOrgs'] = $newOrgs;
+
+    $orgsDiffer = (count(array_diff($oldOrgs, $newOrgs)) > 0)
+               || (count(array_diff($newOrgs, $oldOrgs)) > 0);
+    $res['debug']['orgsDiffer'] = $orgsDiffer;
+
+    if ($orgsDiffer && ! empty($newOrgs)) {
+        if (@ldap_mod_replace($ldap, $dn, ['ou' => $newOrgs])) {
+            $res['org'] = 'OK';
+            foreach ($oldOrgs as $o) {
+                @ldap_mod_del($ldap, "ou={$o},{$ldapBaseDN}", ['l' => $dn]);
+            }
+            foreach ($newOrgs as $o) {
+                $r = @ldap_mod_add($ldap, "ou={$o},{$ldapBaseDN}", ['l' => $dn]);
+                $res['debug']["add_l_{$o}"] = $r ? "success" : ldap_error($ldap);
+            }
+        } else {
+            $res['org'] = 'error modifying OU';
+            $res['ldapOrgError'] = ldap_error($ldap);
+            $res['index'] = 0;
+        }
+    }
+
+    //role swap
+    $oldRole = $_POST['old_role'] ?? '';
+    $newRole = $_POST['role']     ?? '';
+
+    //If Observer or blank → remove roles
+    if ($newRole === 'Observer' || $newRole === '') {
+        if ($oldRole && $oldRole !== '-') {
+            @ldap_mod_del(
+                $ldap,
+                "cn={$oldRole},{$ldapBaseDN}",
+                ['roleOccupant' => $dn]
+            );
+            $res['role'] = 'removed';
+        } else {
+            $res['role'] = 'none';
+        }
+    //else change
+    } elseif ($newRole !== $oldRole) {
+        if ($oldRole !== '-' && $oldRole !== '') {
+            @ldap_mod_del(
+                $ldap,
+                "cn={$oldRole},{$ldapBaseDN}",
+                ['roleOccupant' => $dn]
+            );
+        }
+        if (@ldap_mod_add(
+                $ldap,
+                "cn={$newRole},{$ldapBaseDN}",
+                ['roleOccupant' => $dn]
+            )) {
+            $res['role'] = 'OK';
+        } else {
+            $res['role']      = 'error modifying role';
+            $res['ldapRoleError'] = ldap_error($ldap);
+            $res['index']     = 0;
+        }
+    }
+
+    // password change
+    $confirmPass = $_POST['conf_password'] ?? '';
+    $newPass     = $_POST['password']      ?? '';
+    if ($newPass !== '' && $confirmPass !== '' && $newPass === $confirmPass) {
+        $hash = hash_password($newPass);
+        if (@ldap_mod_replace($ldap, $dn, ['userPassword' => $hash])) {
+            $res['password'] = 'OK';
+        } else {
+            $res['password'] = 'error updating password';
+            $res['ldapPassError'] = ldap_error($ldap);
+            $res['index'] = 0;
+        }
+    }
+
+    // mail change
+    $oldMail = htmlspecialchars($_POST['old_mail'] ?? '');
+    $newMail = htmlspecialchars($_POST['mail']     ?? '');
+    if ($newMail && $newMail !== $oldMail) {
+        if (control_mail($GLOBALS['ldapServer'], $GLOBALS['ldapPort'], $GLOBALS['ldapBaseDN'], $newMail) === 0
+         && @ldap_mod_replace($ldap, $dn, ['mail' => $newMail])
+        ) {
+            $res['mail'] = 'OK';
+        } else {
+            $res['mail'] = 'error updating mail';
+            $res['ldapMailError'] = ldap_error($ldap);
+            $res['index'] = 0;
+        }
+    }
+    //group changes
+    $newGroups = [];
+    if (isset($_POST['group'])) {
+        if (is_string($_POST['group']) && substr($_POST['group'],0,1)==='[') {
+            $newGroups = json_decode($_POST['group'], true) ?: [];
+        } elseif (is_array($_POST['group'])) {
+            $newGroups = $_POST['group'];
+        } else {
+            $newGroups = [$_POST['group']];
+        }
+    }
+    $oldGroups = isset($_POST['old_groups'])
+        ? (is_string($_POST['old_groups']) && substr($_POST['old_groups'],0,1)==='[')
+            ? (json_decode($_POST['old_groups'], true) ?: [])
+            : (is_array($_POST['old_groups'])
+                ? $_POST['old_groups']
+                : [$_POST['old_groups']])
+        : [];
+    $res['debug']['oldGroups'] = $oldGroups;
+    $res['debug']['newGroups'] = $newGroups;
+
+    $toAdd    = array_diff($newGroups, $oldGroups);
+    $toRemove = array_diff($oldGroups, $newGroups);
+
+    foreach ($toRemove as $grp) {
+        $r = @ldap_mod_del(
+            $ldap,
+            "cn={$grp},{$ldapBaseDN}",
+            ['memberUid' => $dn]
+        );
+        $res['debug']["remove_group_{$grp}"] = $r ? "removed" : ldap_error($ldap);
+    }
+
+    foreach ($toAdd as $grp) {
+        $r = @ldap_mod_add(
+            $ldap,
+            "cn={$grp},{$ldapBaseDN}",
+            ['memberUid' => $dn]
+        );
+        $res['debug']["add_group_{$grp}"] = $r ? "added" : ldap_error($ldap);
+    }
+    $res['group'] = 'OK';
+
+    // verify final OU set
+    $vsearch = ldap_search($ldap, $ldapBaseDN, "(cn=$user)", ['ou']);
+    $vent    = ldap_get_entries($ldap, $vsearch);
+    $verifiedOrgs = [];
+    if ($vent['count'] > 0 && isset($vent[0]['ou'])) {
+        for ($i = 0; $i < $vent[0]['ou']['count']; $i++) {
+            $verifiedOrgs[] = $vent[0]['ou'][$i];
+        }
+    }
+    $res['debug']['verifiedOrgs'] = $verifiedOrgs;
+
+    $csbl          = $_POST['csbl']           ?? '';
+    $data_ingestion= $_POST['data_ingestion'] ?? '';
+
+    if ($csbl) {
+        $res['add_csbl'] = add_csbl($link, $user, $csbl);
+    }
+    if ($data_ingestion) {
+        $res['data_ingestion'] = add_data_table_user(
+            $link, $user, $data_ingestion, $verifiedOrgs
+        );
+    }
+    if($userMonitoring == 'true'){
+        $delegated_userstats_orgs = $_POST['delegated_userstats_orgs'];
+        if($delegated_userstats_orgs && $delegated_userstats_orgs != ''){
+            $res['userstats'] = set_delegated_userstats_orgs($newUid,$delegated_userstats_orgs);
+        }
+    }
+
+    echo json_encode($res);
+}
+
+function ListOrg($ldap) {
+    global $ldapBaseDN;
+    error_reporting(E_ERROR);
+    $search = ldap_search($ldap, $ldapBaseDN, '(objectClass=organizationalUnit)');
+    $entriesOrg = ldap_get_entries($ldap, $search);
+    $array_org = [];
+    for ($i = 0; $i < $entriesOrg['count']; $i++) {
+        $org = strval($entriesOrg[$i]['ou'][0]);
+        $array_org[] = $org;
+    }
+    echo json_encode($array_org);
+}
+
+function DeleteUser($ldap) {
+    global $ldapBaseDN, $ldapToolGroups;
+    $results = [];
+    //username → DN
+    if (empty($_POST['username'])) {
+        echo json_encode(['error'=>'nousername']);
+        return;
+    }
+    $username = htmlspecialchars($_POST['username']);
+    $dn       = "cn=" . strtolower($username) . ",{$ldapBaseDN}";
+    //remove roles
+    $roles = ['ToolAdmin','RootAdmin','Manager','AreaManager','Observer'];
+    $results['roles'] = [];
+    foreach ($roles as $role) {
+        $roleDn = "cn={$role},{$ldapBaseDN}";
+        $ok = @ldap_mod_del($ldap, $roleDn, ['roleOccupant' => $dn]);
+        $results['roles'][$role] = $ok ? 'success' : 'failure';
+    }
+    //remove from orgs
+    $dnFilter = ldap_escape($dn, '', LDAP_ESCAPE_FILTER);
+    $ouFilter = "(&(objectClass=organizationalUnit)(l={$dnFilter}))";
+    $srOus = @ldap_search($ldap, $ldapBaseDN, $ouFilter, ['ou']);
+    $results['orgs'] = [];
+    if ($srOus !== false) {
+        $entries = ldap_get_entries($ldap, $srOus);
+        for ($i = 0; $i < $entries['count']; $i++) {
+            if (!empty($entries[$i]['ou'][0])) {
+                $ou   = $entries[$i]['ou'][0];
+                $ouDn = "ou={$ou},{$ldapBaseDN}";
+                $ok   = @ldap_mod_del($ldap, $ouDn, ['l' => $dn]);
+                $results['orgs'][$ou] = $ok ? 'success' : 'failure';
+            }
+        }
+    } else {
+        $results['orgs']['error'] = ldap_error($ldap);
+    }
+    //remove tool groups
+    $results['toolGroups'] = [];
+    foreach (explode(',', $ldapToolGroups) as $tg) {
+        $tg = trim($tg);
+        if ($tg === '') continue;
+        $tgDn = "cn={$tg},{$ldapBaseDN}";
+        $ok   = @ldap_mod_del($ldap, $tgDn, ['memberUid' => $dn]);
+        $results['toolGroups'][$tg] = $ok ? 'success' : 'failure';
+    }
+    //Remove from all other LDAP groups (posixGroup, groupOfNames, groupOfUniqueNames)
+    $groups = get_user_ldap_groups($ldap, $ldapBaseDN, $username);
+    $results['groups'] = [];
+    if (is_array($groups)) {
+        foreach ($groups as $g) {
+            $gDn   = "cn={$g},{$ldapBaseDN}";
+            $ok1   = @ldap_mod_del($ldap, $gDn, ['memberUid'   => $dn]);
+            $ok2   = @ldap_mod_del($ldap, $gDn, ['member'      => $dn]);
+            $ok3   = @ldap_mod_del($ldap, $gDn, ['uniqueMember'=> $dn]);
+            $results['groups'][$g] = ($ok1 || $ok2 || $ok3) ? 'success' : 'failure';
+        }
+    } else {
+        // get_user_ldap_groups returned an error string
+        $results['groups']['error'] = $groups;
+    }
+    //delete the user entry itself
+    $okDel = @ldap_delete($ldap, $dn);
+    $results['result'] = $okDel ? 'success' : 'error';
+    echo json_encode($results);
+}
+
+function GetGroups($link, $ldap) {
+    global $ldapBaseDN;
+    //filter for groups
+    $filter = '(|(objectClass=groupOfNames)'
+            . '(objectClass=posixGroup)'
+            . '(objectClass=groupOfUniqueNames))';
+    $attrs = ['cn'];
+    $sr = @ldap_search($ldap, $ldapBaseDN, $filter, $attrs);
+    if ($sr === false) {
+        //error
+        echo json_encode([]);
+        return;
+    }
+    $entries = ldap_get_entries($ldap, $sr);
+    $groups  = [];
+    for ($i = 0; $i < $entries['count']; $i++) {
+        if (!empty($entries[$i]['cn'][0])) {
+            $groups[] = $entries[$i]['cn'][0];
+        }
+    }
+    echo json_encode($groups);
 }

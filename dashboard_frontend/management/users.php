@@ -128,6 +128,58 @@ include('process-form.php');
 #addUserGroupsRow{
     display: none;
 }
+.modalInputTxt{
+    color: black !important;
+}
+#addUserDelOrgsTable thead th,
+#editUserDelOrgsTable thead th {
+  background: rgba(0, 162, 211, 1);
+  color: white;
+}
+
+#addUserDelOrgsTable, 
+#addUserDelOrgsTable tr, 
+#addUserDelOrgsTable td,
+#editUserDelOrgsTable, 
+#editUserDelOrgsTable tr, 
+#editUserDelOrgsTable td {
+  width: 100%;
+  border: none;
+}
+
+#addUserDelOrgsTable tr:nth-child(odd),
+#editUserDelOrgsTable tr:nth-child(odd) {
+  background-color: white;
+}
+
+#addUserDelOrgsTable tr:nth-child(even),
+#editUserDelOrgsTable tr:nth-child(even) {
+  background-color: rgb(230, 249, 255);
+}
+
+#addUserDelOrgsTable th,
+#editUserDelOrgsTable th {
+  text-align: center;
+}
+
+#addUserDelOrgsTable td.checkboxCell,
+#editUserDelOrgsTable td.checkboxCell {
+  width: 20%;
+  text-align: center;
+}
+
+#addUserDelOrgsTable td.orgNameCell,
+#editUserDelOrgsTable td.orgNameCell {
+  width: 60%;
+  text-align: center;
+}
+
+#addUserDelOrgsRow,
+#editUserDelOrgsRowMod {
+  display: none;
+}
+
+
         </style>
     </head>
     <body class="guiPageBody">
@@ -267,6 +319,21 @@ include('process-form.php');
                                     <div class="modalFieldLabelCnt">Account Role</div>
                                     <div id="usertypeMsg" class="modalFieldMsgCnt">&nbsp;</div>
                                 </div>
+                                <div class="col-xs-12 col-md-6 modalCell">
+                                <div class="modalFieldCnt">
+                                    CSBL Active? <input type="checkbox" id="CSBL_CheckC" name="CSBL" class=""> |
+                                    Data-Ingestion Table Active? <input type="checkbox" id="Data-IngestionC" name="Data-Ingestion" class=""> |
+                                    <!--Advisor Active? <input type="checkbox" id="AdvisorC" name="Advisor" class="">-->
+                                    <hr style="margin-top: 5px; margin-bottom: 5px;" />   
+                                    <div class="modalFieldLabelCnt">Authorizations</div>
+                                </div>
+                                </div>
+                                <!--<div class="col-xs-12 col-md-6 modalCell">
+                                    <div class="modalFieldCnt">
+                                        <input type="text" id="SubitemsC" name="Subitems" class="modalInputTxt" pattern="^\d+(?:,\d+)*$" title="Enter menu numbers (comma-separated)">
+                                    </div>
+                                    <div class="modalFieldLabelCnt">Subitem menus numbers(comma-separated)</div>
+                                </div>-->
 
 
                                 <div class="row" id="addUserPoolsRow">
@@ -290,7 +357,24 @@ include('process-form.php');
                                     </div>
                                 </div>
                             </div>
-                             <!-- END MANAGE GROUP -->
+                            <!-- END MANAGE GROUP -->
+                            <!-- MANAGE USERSTATS DELEGATED ORGS -->
+                            <?php if($userMonitoring == 'true'): ?>
+                            <div class="row" id="addUserDelOrgsRow" style="display:none;">
+                            <div class="col-xs-12">
+                                <table id="addUserDelOrgsTable">
+                                <thead>
+                                    <tr>
+                                    <th>Make member</th>
+                                    <th>Delegated userstats orgs</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                </table>
+                            </div>
+                            </div>
+                            <?php endif; ?>
+                             <!-- END MANAGE USERSTATS -->
                         </form>    
                         <div class="row" id="addWidgetTypeLoadingMsg">
                             <div class="col-xs-12 centerWithFlex">Adding widget type, please wait</div>
@@ -419,19 +503,14 @@ include('process-form.php');
 
     <!-- MODAL DI MODIFCA DI UN UTENTE -->
     <div class="modal fade" id="editNewUserModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div id="editNewUserModalLabel" class="modalHeader centerWithFlex">
                     Edit User
                 </div>
-
-                <div id="editNewUserModalUpdating" class="modal-body container-fluid">
-
-                </div>  
                 <div id="editNewUserModalBody" class="modal-body modalBody">
                     <form id="NeweditNewUserForm" name="editUserForm" role="form" method="post" action="process-form.php" data-toggle="validator">
                         <div class="row">
-
                             <div class="col-xs-12 col-md-6 modalCell">
                                 <div class="modalFieldCnt">
                                     <input type="password" id="passwordM" name="passwordM" class="modalInputTxt" pattern="[A-Za-z0-9_]+" title="Numbers, letters and _ are admitted">
@@ -473,7 +552,21 @@ include('process-form.php');
                                 <div class="modalFieldLabelCnt">Role</div>
                                 <div id="NewusertypeMsgM" class="modalFieldMsgCnt">&nbsp;</div>
                             </div>
-
+                            <div class="col-xs-12 col-md-6 modalCell">
+                                <div class="modalFieldCnt">
+                                    CSBL Active? <input type="checkbox" id="CSBL_Check" name="CSBL" class=""> |
+                                    Data-Ingestion Table Active? <input type="checkbox" id="Data-Ingestion" name="Data-Ingestion" class=""> |
+                                    <!--Advisor Active? <input type="checkbox" id="Advisor" name="Advisor" class="">-->
+                                    <hr style="margin-top: 5px; margin-bottom: 5px;" />   
+                                    <div class="modalFieldLabelCnt">Authorizations</div>
+                                </div>
+                            </div>
+                            <!--<div class="col-xs-12 col-md-6 modalCell">
+                                <div class="modalFieldCnt">
+                                    <input type="text" id="Subitems" name="Subitems" class="modalInputTxt" pattern="^\d+(?:,\d+)*$" title="Enter menu numbers (comma-separated)">
+                                </div>
+                                <div class="modalFieldLabelCnt">Subitem menus numbers(comma-separated)</div>
+                            </div>-->
                             <div class="col-xs-12 col-md-6 modalCell" style="display:none;">
                                 <div class="modalFieldCnt">
                                     <input type="text" id="NeworganizationM" name="organizationM" class="modalInputTxt">
@@ -517,6 +610,21 @@ include('process-form.php');
                                     </div>
                                 </div> 
                             </div>
+                            <?php if($userMonitoring == 'true'): ?>
+                            <div class="row" id="editUserDelOrgsRowMod" style="display:none;">
+                            <div class="col-xs-12">
+                                <table id="editUserDelOrgsTable">
+                                <thead>
+                                    <tr>
+                                    <th>Make member</th>
+                                    <th>Delegated userstats orgs</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                </table>
+                            </div>
+                            </div>
+                            <?php endif; ?>
                             <!--</div>-->
                         </div>
 
@@ -538,6 +646,9 @@ include('process-form.php');
 
 <script type='text/javascript'>
     $(document).ready(function () {
+        var cachedOrgs = null;
+        var cachedGroups = null;
+        var get_list = null;
 
 
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
@@ -622,9 +733,6 @@ include('process-form.php');
         setGlobals(admin, existingPoolsJson);
 
         /*** * ADD NEW USER CONFIRM * ***/
-
-        
-
         $("#addNewUserConfirmBtn2").click(function () {
             //Chiamata API di inserimento nuovo utente
             var new_username = $('#username').val();
@@ -632,11 +740,23 @@ include('process-form.php');
             var new_userType = $('#userType').val();
             var new_email = $('#email').val();
             var new_group = '';
+            var csbl = $('#CSBL_CheckC')[0].checked 
+            var data_ingestion = $('#Data-IngestionC')[0].checked 
+            //var advisor = $('#AdvisorC')[0].checked
+            //var subitems = $('#SubitemsC').val()
             //
             //
-            var addUserPoolsTable = $('.check_org:checked').val();
+            //var addUserPoolsTable = $('.check_org:checked').val();
+            var addUserPoolsTable = $('.check_org:checked').map(function() {
+            return this.value;
+            }).get();
            // new_group = $('.check_group:checked').val();
-           new_group = $('.check_group:checked').map(function() {
+            if ($('#addUserDelOrgsTable').length) {
+            var delegated_userstats_orgs = $('.check_delorg:checked').map(function() {
+            return this.value;
+            }).get();
+            }
+            new_group = $('.check_group:checked').map(function() {
                     return this.value;
                 }).get();
             //
@@ -648,7 +768,12 @@ include('process-form.php');
                     new_userType: new_userType,
                     new_email: new_email,
                     org: addUserPoolsTable,
-                    group: new_group
+                    group: new_group,
+                    csbl: csbl,
+                    data_ingestion: data_ingestion,
+                    advisor: false,
+                    subitems: "",
+                    delegated_userstats_orgs: delegated_userstats_orgs,
                 },
                 type: "POST",
                 async: true,
@@ -667,8 +792,17 @@ include('process-form.php');
                             buildMainTable(true);
                         }, 2000);
                         //
-                    } else if(des==='password yet used') {
-                        $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + new_username + '</b> couldn\'t be registered because this password is yet used, please try again</h5>');
+                    } else if(des==='nousername') {
+                        $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + new_username + '</b> couldn\'t be registered, username error, please try again</h5>');
+                        $("#addUserKoModal").modal('show');
+                    }else if(des==='nopassword') {
+                        $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + new_username + '</b> couldn\'t be registered, password error, please try again</h5>');
+                        $("#addUserKoModal").modal('show');
+                    }else if(des==='noemail') {
+                        $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + new_username + '</b> couldn\'t be registered, email error, please try again</h5>');
+                        $("#addUserKoModal").modal('show');
+                    }else if(des==='noorg') {
+                        $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + new_username + '</b> couldn\'t be registered, organization error, please try again</h5>');
                         $("#addUserKoModal").modal('show');
                     }else{
                         $("#addUserKoModalInnerDiv1").html('<h5>User <b>' + new_username + '</b> couldn\'t be registered because of failure while inserting data, please try again</h5>');
@@ -796,10 +930,10 @@ include('process-form.php');
                 data: {action: "get_list"},
                 type: "GET",
                 async: true,
-                datatype: 'json',
-                success: function (data) {
-                    var mydata = $.parseJSON(data);
+                dataType: 'json',
+                success: function (mydata) {
                     var lun_json = mydata.length;
+                    get_list = mydata;
                     $('#usersTable').bootstrapTable({
                         data: mydata,
                         search: true,
@@ -886,44 +1020,91 @@ include('process-form.php');
                         }
                     });
 
-                    //
+                    //new user
                     $('#addUserBtn').click(function () {
-                        //$("#editUserModalUpdating").hide();
-                        $.ajax({
+                        $('#addUserGroupsRow').show();
+                        if (!cachedOrgs) {
+                            $.ajax({
                             url: "dashboardUserControllers.php",
-                            data: {action: "list_org"},
+                            data: { action: "list_org" },
                             type: "GET",
-                            async: true,
-                            datatype: 'json',
-                            success: function (data) {
-                                //****//
-                                var jdata = $.parseJSON(data);
-                                var lun_json = jdata.length;
-                                for (var i = 0; i < lun_json; i++) {
-                                    $('#addUserPoolsTable tbody').append('<tr><td class="checkboxCell addUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + jdata[i] + '" type="checkbox" class="check_org" value="' + jdata[i] + '" onclick="listgroups(\''+ jdata[i] +'\')"/></td><td class="poolNameCell">' + jdata[i] + '</td></tr>');
-                                }
+                            dataType: "json",
+                            success: function (jdata) {
+                                cachedOrgs = jdata;                   // store organizations
+                                populateOrgsTable(cachedOrgs);
+                                populateDelOrgsTable(cachedOrgs);
                             }
+                            });
+                        } else {
+                            populateOrgsTable(cachedOrgs);
+                            populateDelOrgsTable(cachedOrgs);
+                        }
+                        if (!cachedGroups) {
+                            $.ajax({
+                            url: "dashboardUserControllers.php",
+                            data: { action: "get_groups" },
+                            type: "GET",
+                            dataType: "json",
+                            success: function (jdata) {
+                                cachedGroups = jdata;                   // store groups
+                                populateGroupsTable(cachedGroups);
+                            }
+                            });
+                        } else {
+                            populateGroupsTable(cachedGroups);
+                        }
                         });
-                    });
 
+                        // helper to rebuild the table from an array of org names
+                        function populateOrgsTable(orgs) {
+                        var $tb = $('#addUserPoolsTable tbody').empty();
+                        orgs.forEach(function (orgName) {
+                            $tb.append(
+                            '<tr>'
+                            + '<td class="checkboxCell"><input type="checkbox" class="check_org" value="' + orgName + '"/></td>'
+                            + '<td class="poolNameCell">' + orgName + '</td>'
+                            + '</tr>'
+                            );
+                        });
+                        }
+                        function populateGroupsTable(groups) {
+                        var $tb = $('#addUserGroupsTable tbody').empty();
+                        groups.forEach(function (groupName) {
+                            $tb.append(
+                            '<tr>'
+                            + '<td class="checkboxCell"><input type="checkbox" class="check_group" value="' + groupName + '"/></td>'
+                            + '<td class="poolNameCell">' + groupName + '</td>'
+                            + '</tr>'
+                            );
+                        });
+                        }
+                        function populateDelOrgsTable(orgs) {
+                        if (! $('#addUserDelOrgsRow').length) return; // if userstats isn't active
+                        var $tb = $('#addUserDelOrgsTable tbody').empty();
+                        orgs.forEach(function(o){
+                            $tb.append(
+                            '<tr>' +
+                                '<td class="checkboxCell">' +
+                                '<input type="checkbox" class="check_delorg" value="' + o + '"/>' +
+                                '</td>' +
+                                '<td class="orgNameCell">' + o + '</td>' +
+                            '</tr>'
+                            );
+                        });
+                        $('#addUserDelOrgsRow').show();
+                        }
 
 
                     $('#addNewUserCancelBtn').click(function () {
                         $('#addUserPoolsTable tbody').empty();
+                        $('#addUserGroupsTable tbody').empty();
+                        $('#addUserDelOrgsTable tbody').empty();
                     });
 
-                    $('#addUserModal').on('hidden.bs.modal', function () {
-                        $('#addUserPoolsTable tbody').empty();
-                    });
-                    // do something…
-
-
-                    /******/
                     $('#usersTable thead').css("background", "rgba(0, 162, 211, 1)");
                     $('#usersTable thead').css("color", "white");
                     $('#usersTable thead').css("font-size", "1em");
 
-                    ///////***********///////////
                     $('#usersTable button.delDashBtn').off('hover');
                     $('#usersTable button.delDashBtn').hover(function () {
                         $(this).css('background', '#ffcc00');
@@ -957,113 +1138,182 @@ include('process-form.php');
         });
 
 
+        // Edit User: open modal and render multi-org checkboxes
         $(document).on('click', '.editUser', function () {
-            $("#editNewUserModal").modal('show');
-            $("#editUserModalUpdating").hide();
-            $("#editUserModalBody").show();
-            $("#editUserModalFooter").show();
-            $("#editUserGroupsTable tbody tr").remove();
-            var username = $(this).parents('tr').children('td:eq(0)').text();
-            var role = $(this).parents('tr').children('td:eq(1)').text();
-            var org = $(this).parents('tr').children('td:eq(2)').text();
-            var mail = $(this).parents('tr').children('td:eq(3)').text();
-            //
-            $("#editNewUserModalLabel").html("Edit account - " + username);
-            $("#emailM").val(mail);
-            $("#NewuserTypeM").val(role);
-            //
-            $("#old_passwordM").val('');
-            $("#old_emailM").val(mail);
-            $("#old_organizationM").val(org);
-            $("#old_roleM").val(role);
-           
-            if (org !== '-') {
-                $("#NeworganizationM").val(org);
+            var $tr       = $(this).closest('tr'),
+                username  = $tr.find('td').eq(0).text(),
+                role      = $tr.find('td').eq(1).text(),
+                orgText   = $tr.find('td').eq(2).text(),
+                mail      = $tr.find('td').eq(3).text(),
+                user      = get_list.find(u => u.username === username),
+                userOrgs  = orgText.split(',').map(s => s.trim()).filter(Boolean),
+                userGroups = user.groups || [];
+            //pop fields
+            console.log(user);
+            $('#editNewUserModalLabel').text('Edit account - ' + username);
+            $('#emailM').val(mail);
+            $('#old_emailM').val(mail);
+            $('#NewuserTypeM').val(role);
+            $('#old_roleM').val(role);
+            $('#old_organizationM').val(orgText);
+            $('#passwordM, #Confirm_passwordM').val('');
+            $('#Confirm_passwordM').siblings('.modalFieldLabelCnt').text('Confirm Password');
+            $('#confirm_passwordMsg').text('');
+            $('#CSBL_Check')[0].checked      = user.csbl;
+            $('#Data-Ingestion')[0].checked  = user.data_table;
+            $('#editUserPoolsTable tbody').empty();
+            $('#editUserGroupsTable tbody').empty();
+            //ou & gropus
+            function renderOrgs(orgs) {
+                var $tb = $('#editUserPoolsTable tbody').empty();
+                orgs.forEach(function(o){
+                var checked = userOrgs.indexOf(o) !== -1 ? 'checked' : '';
+                $tb.append(
+                    '<tr>' +
+                    '<td class="checkboxCell">' +
+                        '<input type="checkbox" class="check_editorg" value="' + o + '" ' + checked + ' />' +
+                    '</td>' +
+                    '<td class="poolNameCell">' + o + '</td>' +
+                    '</tr>'
+                );
+                });
             }
-            /**************/
+            function renderGroups(groups) {
+                var $tb = $('#editUserGroupsTable tbody').empty();
+                groups.forEach(function(g){
+                var checked = userGroups.indexOf(g) !== -1 ? 'checked' : '';
+                $tb.append(
+                    '<tr>' +
+                    '<td class="checkboxCell">' +
+                        '<input type="checkbox" class="check_editgroup" value="' + g + '" ' + checked + ' />' +
+                    '</td>' +
+                    '<td class="groupNameCell">' + g + '</td>' +
+                    '</tr>'
+                );
+                });
+            }
+            function renderDelOrgs(orgs) {
+            if (! $('#editUserDelOrgsRowMod').length) return;
+            var $tb = $('#editUserDelOrgsTable tbody').empty();
+            orgs.forEach(function(o){
+                var checked = user.delegated_userstats_orgs && user.delegated_userstats_orgs.indexOf(o) !== -1
+                            ? 'checked' : '';
+                $tb.append(
+                '<tr>' +
+                    '<td class="checkboxCell">' +
+                    '<input type="checkbox" class="check_editdelorg" value="' + o + '" ' + checked + '/>' +
+                    '</td>' +
+                    '<td class="orgNameCell">' + o + '</td>' +
+                '</tr>'
+                );
+            });
+            $('#editUserDelOrgsRowMod').show();
+            }
+            // fetch orgs+ groups
+            if (!cachedOrgs) {
+                $.getJSON('dashboardUserControllers.php', { action: 'list_org' })
+                .done(function(orgs){
+                cachedOrgs = orgs;
+                renderOrgs(orgs);
+                renderDelOrgs(orgs);
+                });
+            } else {
+                renderOrgs(cachedOrgs);
+                renderDelOrgs(cachedOrgs);
+            }
+            if (!cachedGroups) {
+                $.getJSON('dashboardUserControllers.php', { action: 'get_groups' })
+                .done(function(groups){
+                cachedGroups = groups;
+                renderGroups(groups);
+                });
+            } else {
+                renderGroups(cachedGroups);
+            }
+            $('#editNewUserModal').modal('show');
+            });
+
+        $(document).on('click', '#editUserConfirmBtn', function () {
+            var username = $('#editNewUserModalLabel').text()
+                            .replace('Edit account - ', '');
+            var user      = get_list.find(u => u.username === username);
+            var mail     = $('#emailM').val();
+            var role     = $('#NewuserTypeM').val();
+            var password = $('#passwordM').val();
+            var oldMail  = user.mail;
+            var oldRole  = user.admin;
+            var oldOrgs  = user.organization;
+
+            var orgs       = $('.check_editorg:checked').map(function(){ return this.value; }).get();
+            var groups     = $('.check_editgroup:checked').map(function(){ return this.value; }).get();
+            var oldGroups  = user.groups || [];
+            var csbl = $('#CSBL_Check')[0].checked 
+            var data_ingestion = $('#Data-Ingestion')[0].checked 
+            //var advisor = $('#Advisor')[0].checked
+            //var subitems = $('#Subitems').val()
+            if ($('#editUserDelOrgsTable').length) {
+            var delegated_userstats_orgs = $('.check_editdelorg:checked').map(function() {
+            return this.value;
+            }).get();
+            }
+            var old_delegated_userstats_orgs = user.delegated_userstats_orgs || [];
+            console.log($('#editUserDelOrgsTable').length)
             $.ajax({
                 url: "dashboardUserControllers.php",
-                data: {action: "list_org"},
-                type: "GET",
-                async: true,
-                datatype: 'json',
-                success: function (data) {
-                    //****//
-                    var jdata = $.parseJSON(data);
-                    var lun_json = jdata.length;
-                    for (var i = 0; i < lun_json; i++) {
-                        if (jdata[i] == org) {
-                            $('#editUserPoolsTable tbody').append('<tr><td class="checkboxCell addUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + jdata[i] + '" type="checkbox" class="check_editorg" value="' + jdata[i] + '" checked onclick="editGroup(\''+ jdata[i] +'\')"/></td><td class="poolNameCell">' + jdata[i] + '</td></tr>');
-                        } else {
-                            $('#editUserPoolsTable tbody').append('<tr><td class="checkboxCell addUserPoolsTableMakeMemberCheckbox"><input data-poolId="' + jdata[i] + '" type="checkbox" class="check_editorg" value="' + jdata[i] + '" onclick="editGroup(\''+ jdata[i] +'\')" /></td><td class="poolNameCell">' + jdata[i] + '</td></tr>');
-                        }
+                dataType: "json",
+                type: "POST",
+                data: {
+                    action:     'edit_user',
+                    user:       username,
+                    mail:       mail,
+                    role:       role,
+                    org:        orgs,
+                    password:   password,
+                    old_org:    oldOrgs,
+                    old_mail:   oldMail,
+                    conf_password:   $('#Confirm_passwordM').val(),
+                    old_role:   oldRole,
+                    group:      groups,
+                    old_groups: oldGroups,
+                    csbl: csbl,
+                    data_ingestion: data_ingestion,
+                    advisor: false,
+                    subitems: "",
+                    delegated_userstats_orgs: delegated_userstats_orgs,
+                    old_delegated_userstats_orgs: old_delegated_userstats_orgs,
+                },
+                success: function (jdata) {
+                    if (jdata.index === 1) {
+                        $('#editUserOkModalInnerDiv1').text('User data successfully modified');
+                        $('#editUserOkModal').modal('show');
+                        $("#editNewUserModal").modal('hide');
+                        setTimeout(function () { buildMainTable(true); }, 2000);
+                    } else {
+                        $('#editUserKoModal').modal('show');
+                        $("#editNewUserModal").modal('hide');
+                        var msg = '';
+                        if (jdata.password === 'Error during password creation')      msg = 'Error during password updating.';
+                        else if (jdata.role === 'error modify role')                  msg = 'Error updating Role.';
+                        else if (jdata.role === 'error deleting old role')           msg = 'Error deleting old role.';
+                        else if (jdata.org === 'error during updating new organization') msg = 'Error updating organization.';
+                        else if (jdata.org === 'error during deleting old organization') msg = 'Error removing old organization.';
+                        else if (jdata.mail === 'Mail yet used')                     msg = "This mail is already used.";
+                        else if (jdata.password === 'Password not correct')          msg = "Password not correct.";
+                        $('#editUserKoModalInnerDiv1').text(msg);
                     }
-                    ////LIST GROUPS////
-                    var org_search = $('.check_editorg:checked').val();
-                    console.log('List of groups:'+org_search);
-                   // $('#addUserGroupsRow').css('display','inline');
-                     // $("#editUserGroupsTable tbody tr").remove();
-                     //////////////////////////
-                    $.ajax({
-                        url: 'editorganization.php',
-                        data: {
-                            action: 'get_gropus',
-                            org: org_search
-                        },
-                        type: "POST",
-                        async: false,
-                        success: function (data) {
-                            //alert(data);
-                            var obj = JSON.parse(data);
-                            var array = obj;
-                            var len = array.length;
-                            //window.location.reload();
-                            
-                            for (var y = 0; y < len; y++) {
-                                var current = array[y];
-                                $('#editUserGroupsTable tbody').append('<tr><td class="checkboxCell editUserGroupsTableMakeMemberCheckbox"><input data-poolId="' + current + '" type="checkbox" class="check_group" value="' + current + '" /></td><td class="poolNameCell">' + current + '</td></tr>');
-                            }
-                        }
-                       });
-                    ////////LIST OF MEMBERS? CHECKMEMBERSHIP/////
-                    $.ajax({
-                        url: 'dashboardUserControllers.php',
-                        data: {
-                            action: 'get_groups',
-                            org: org_search,
-                            username: username
-                        },
-                        type: "POST",
-                        async: false,
-                        success: function (data1) {
-                            console.log(data1);
-                            $('#old_GroupsM').val(data1);
-                            var obj1 = JSON.parse(data1);
-                            var l1 = obj1.length; 
-                            //console.log(l1);
-                            for (var y = 0; y < l1; y++) {
-                                var valore2 = (obj1[y]);
-                                $(".check_group[value='"+valore2+"']").prop("checked", true);
-                            }
-                            //////////                      
-                        }
-                       });
-
-                    /////////////////////////////////////////////
                 }
             });
-            /*************/
         });
-
         $(document).on('click', '#editUserCancelBtn', function () {
             $("#NeworganizationM").val('');
             $("#emailM").val('');
             $("#NewuserTypeM").val('');
             $("#editNewUserModalLabel").html("Edit account - ");
             $("#editUserPoolsTable tbody").empty();
+            $('#CSBL_Check')[0].checked = false;
+            $('#Data-Ingestion')[0].checked = false;
+            //$('#Advisor')[0].checked = false;
         });
-
-        //************//
         $('#editNewUserModal').on('hidden.bs.modal', function () {
         // Mostra un alert quando il modal si chiude
             $("#NeworganizationM").val('');
@@ -1071,103 +1321,18 @@ include('process-form.php');
             $("#NewuserTypeM").val('');
             $("#editNewUserModalLabel").html("Edit account - ");
             $("#editUserPoolsTable tbody").empty();
-            ////
+            $('#CSBL_Check')[0].checked = false;
+            $('#Data-Ingestion')[0].checked = false;
+            //$('#Advisor')[0].checked = false;
         });
 
-        //*******************//
-        $(document).on('click', '#editUserConfirmBtn', function () {
-            //
-            var password = $("#passwordM").val();
-            var user = $("#editNewUserModalLabel").val();
-            var mail = $("#emailM").val();
-            var role = $("#NewuserTypeM").val();
-            var str = $('#editNewUserModalLabel').text();
-            var user = str.replace('Edit account - ', '');
-            var org = $('.check_editorg:checked').val();
-            ////
-            var old_pass = $("#Confirm_passwordM").val();
-            var old_mail = $("#old_emailM").val();
-            var old_org = $("#old_organizationM").val();
-            var old_role = $("#old_roleM").val();
-            ////
-            //var old_groups = $('#old_GroupsM').val();
-            //var group = $('.check_group:checked').val();
-            var group = $('.check_group:checked').map(function() {
-                    return this.value;
-                }).get();
-
-                var old_groups = $('.check_group:not(:checked)').map(function() {
-                    return this.value;
-                }).get();
-            ////
-            $.ajax({
-                url: "dashboardUserControllers.php",
-                data: {action: 'edit user',
-                    user: user,
-                    mail: mail,
-                    role: role,
-                    org: org,
-                    password: password,
-                    old_org: old_org,
-                    old_mail: old_mail,
-                    old_pass: old_pass,
-                    old_role: old_role,
-                    group: group,
-                    old_groups: old_groups
-                },
-                type: "POST",
-                async: true,
-                success: function (data) {
-                    //
-                    
-                    var jdata = $.parseJSON(data);
-                    if (jdata['index'] === 1) {
-                        $('#editUserOkModalInnerDiv1').text('User data successfully modified');
-                        $('#editUserOkModal').modal('show');
-                        $("#editNewUserModal").modal('hide');
-                        setTimeout(function ()
-                        {
-                            buildMainTable(true);
-                        }, 2000);
-                    } else {
-                        //
-                        //$('#editUserKoModalInnerDiv1').text('Error during execution');
-                        $('#editUserKoModal').modal('show');
-                        $("#editNewUserModal").modal('hide');
-                        if(jdata['password']==='Error during password creation'){
-                            $('#editUserKoModalInnerDiv1').text('Error during password updating.');
-                        }
-                        if(jdata['role']==='error modify role'){
-                            $('#editUserKoModalInnerDiv1').text('Error updating Role.');
-                        }
-                        if(jdata['role']==='error deleting old role'){
-                            $('#editUserKoModalInnerDiv1').text('Error Deleting old role.');
-                        }
-                        if(jdata['org']==='error during updating new organization'){
-                            $('#editUserKoModalInnerDiv1').text('Error during updating new organization');
-                        }
-                        if(jdata['org']==='error during deleting old organization'){
-                            $('#editUserKoModalInnerDiv1').text('Error during deleting old organization');
-                        }
-                        if(jdata['mail']==='Mail yet used'){
-                            $('#editUserKoModalInnerDiv1').text("This Mail is yet used, you can't use it");
-                        }
-                        if(jdata['password']==='Password not correct'){
-                            $('#editUserKoModalInnerDiv1').text("Password not correct");
-                        }
-                    }
-                    //
-                }
-            });
-        });
-        //******************//
         $(document).on('click', 'delete_user', function () {
             var role = $(this).parents('tr').children('td:eq(1)').text();
             var org = $(this).parents('tr').children('td:eq(2)').text();
             $('#del_org').val(org);
             $('#del_role').val(role);
         });
-        //*******************//
+
         $("#Confirm_passwordM").change(function () {
             var pass = $('#passwordM').val();
             var pass_c = $("#Confirm_passwordM").val();
@@ -1182,9 +1347,6 @@ include('process-form.php');
             }
             //
         });
-        //*********************//
-
-        //*******************//
         $("#confirm_password").change(function () {
             var pass = $('#password').val();
             var pass_c = $("#confirm_password").val();
@@ -1199,7 +1361,6 @@ include('process-form.php');
             }
             //
         });
-        //************//
         //addNewUserCancelBtn
         $(document).on('click','#addNewUserCancelBtn', function () {
             $('#addUserGroupsRow').css('display','none');
@@ -1215,7 +1376,6 @@ include('process-form.php');
             $('#editUserKoModal').modal('hide');
             $("#editNewUserModal").modal('show');
         });
-        //*********************//
         $(document).on('click', '#deleteUserConfirmBtn', function () {
             var username = $("#deleteUserModal span").attr("data-username");
 
@@ -1284,71 +1444,8 @@ include('process-form.php');
                 }
             });
         });
-      
-        //*********************///
     });
 
-
-    function editGroup(value){
-    //////////////////////////
-    $(".check_editorg:not([value='"+value+"']").prop("checked", false);
-        $("#editUserGroupsTable tbody tr").remove();
-         $.ajax({
-                        url: 'editorganization.php',
-                        data: {
-                            action: 'get_gropus',
-                            org: value
-                        },
-                        type: "POST",
-                        async: false,
-                        success: function (data) {
-                            //alert(data);
-                            var obj = JSON.parse(data);
-                            var array = obj;
-                            var len = array.length;
-                            //window.location.reload();
-                            
-                            for (var y = 0; y < len; y++) {
-                                var current = array[y];
-                                $('#editUserGroupsTable tbody').append('<tr><td class="checkboxCell editUserGroupsTableMakeMemberCheckbox"><input data-poolId="' + current + '" type="checkbox" class="check_group" value="' + current + '" /></td><td class="poolNameCell">' + current + '</td></tr>');
-                            }
-                        }
-         });
-/////////////////////////
-    }
-
-    function listgroups(value){
-                //alert(value);
-                $('#addUserGroupsRow').css('display','inline');
-                $("#addUserGroupsTable tbody tr").remove();
-                //////////////////////////
-                $(".check_org:not([value='"+value+"']").prop("checked", false);
-                $.ajax({
-                        url: 'editorganization.php',
-                        data: {
-                            action: 'get_gropus',
-                            org: value
-                        },
-                        type: "POST",
-                        async: false,
-                        success: function (data) {
-                            //alert(data);
-                            var obj = JSON.parse(data);
-                            var array = obj;
-                            var len = array.length;
-                            //window.location.reload();
-                            
-                            for (var i = 0; i < len; i++) {
-                                var current = array[i];
-                               // var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#" onclick="delete_group(\'' + current + '\',\'' + org + '\')"  data-toggle="modal">DELETE</button>';
-                                //$("#group_table").append('<tr><td>' + current + ' ' + button_del + '</td></tr>');
-                                $('#addUserGroupsTable tbody').append('<tr><td class="checkboxCell addUserGroupsTableMakeMemberCheckbox"><input data-poolId="' + current + '" type="checkbox" class="check_group" value="' + current + '" /></td><td class="poolNameCell">' + current + '</td></tr>');
-                            }
-                            /////////
-                        }
-        });
-                /////////////////////////////
-        }
 </script>
 
 <?php } else {
