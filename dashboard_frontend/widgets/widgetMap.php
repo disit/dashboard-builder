@@ -22409,6 +22409,23 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         });        
     });
 
+    function getAccessToken() {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "../controllers/getAccessToken.php",
+                type: "GET",
+                dataType: 'json',
+                success: function (dataSso) {
+                    resolve(dataSso.accessToken);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("Errore nel recupero del token: " + textStatus, errorThrown);
+                    reject(errorThrown);
+                }
+            });
+        });
+    }
+
 
     $(document).on('addVectorFlow', async function(event){
 
@@ -22421,22 +22438,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             initialPage = event.passedData.currentPage;
         }
 
-        function getAccessToken() {
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    url: "../controllers/getAccessToken.php",
-                    type: "GET",
-                    dataType: 'json',
-                    success: function (dataSso) {
-                        resolve(dataSso.accessToken);
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.error("Errore nel recupero del token: " + textStatus, errorThrown);
-                        reject(errorThrown);
-                    }
-                });
-            });
-        }
         function getDevice(suri, token, requestedPage = 0){
             const url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?serviceUri=" + suri + "&accessToken=" + token + "&fromTime=2023-01-01T00:00:00";
             return new Promise((resolve, reject) => {
@@ -23184,7 +23185,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     //dBologna FINE VECTOR FLOW
 
     
-    $(document).on('addOD', function (event) {
+    $(document).on('addOD', async function (event) {
         if (event.target === map.mapName) {
 
             if (newOdTargetData != null) {
@@ -23238,6 +23239,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             var popupPanelFontSize = "12px"
             var cmFontSize = "12px";
             mapName = "Origin-Destination Map";
+            //Naldi 10/06/2025 -> add new parameter
+            var contextbroker = ""
 
             for (n = 0; n < parameters.length; n++) {
                 if (parameters[n].split("=")[0] == "latitude") {
@@ -23289,7 +23292,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     popupPanelFontSize = parameters[n].split("=")[1];
                 } else if (parameters[n].split("=")[0] == "cm_font_size") {
                     cmFontSize = parameters[n].split("=")[1];
+                }else if (parameters[n].split("=")[0] == "contextbroker") {
+                    contextbroker = parameters[n].split("=")[1];
                 }
+            }
+
+            //Naldi 10/06/2025 -> in order to be backward compatible old od has no broker passed, so it's read from passed organization parameters
+            if(contextbroker===""){
+                let orgParam = await $.ajax({
+                    url:`http://dashboard/dashboardSmartCity/api/organizations.php?org=${organization}`,
+                    method:'GET'
+                });
+                contextbroker = orgParam[0].broker;
             }
 
             var sourcePolyID = null; //[];
@@ -23815,7 +23829,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
             }
 
-            function getAllPolyOdMap(async) {
+            async function getAllPolyOdMap(async) {
                 bbox = map.defaultMapRef.getBounds();
                 //console.log(bbox);
 
@@ -23828,17 +23842,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     type = "mgrs";
                 }
                 if (type != "mgrs") {
+                    const token = await getAccessToken(); //Naldi 10/06/2025 -> add token for private device
                     $.ajax({
                         url: odUrl + 'get_all_polygons',
                         async: async == 'False' ? false : true,
                         type: "get",
+                        headers:{
+                            Authorization: `Bearer ${token}`
+                        },
                         data: {
                             latitude_ne: bbox['_northEast']['lat'],
                             longitude_ne: bbox['_northEast']['lng'],
                             latitude_sw: bbox['_southWest']['lat'],
                             longitude_sw: bbox['_southWest']['lng'],
                             type: type,
-                            organization: organization
+                            organization: organization,
+                            contextbroker: contextbroker //Naldi 10/06/2025 -> add new param
                         },
                         success: function (response) {
                             // remove old layer
@@ -24578,7 +24597,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }
             }
 
-            function load(setView, async) {  /// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOOK HERE
+            
+            async function load(setView, async) {  /// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< LOOK HERE
                 // get OD data
                 var dataQuery = "";
                 var polygonQuery = "";
@@ -24601,10 +24621,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 sourcePolyName = [];
                 console.log('odUrl dataQuery mapDate:');
                 console.log(mapDate);
+                const token = await getAccessToken(); //Naldi 10/06/2025 -> add token for private device
                 $.ajax({
                     url: odUrl + dataQuery,
                     async: async == 'False' ? false : true,
                     type: "get",
+                    headers:{
+                        Authorization: `Bearer ${token}`
+                    },
                     data: {
                         latitude: latitude,
                         longitude: longitude,
@@ -24613,7 +24637,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         organization: organization,
                         inflow: inflow,
                         od_id: odID,
-                        perc: getPerc
+                        perc: getPerc,
+                        contextbroker: contextbroker //Naldi 10/06/2025 -> add new param
                     },
                     success: function (response) {
                         // remove old layer
@@ -24644,12 +24669,16 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 $.ajax({
                     url: odUrl + polygonQuery,
                     type: "get",
+                    headers:{
+                        Authorization: `Bearer ${token}`
+                    },
                     data: {
                         precision: precision,
                         latitude: latitude,
                         longitude: longitude,
                         type: type, // TODO controlla retrocompatibilità
-                        organization: organization
+                        organization: organization,
+                        contextbroker: contextbroker  //Naldi 10/06/2025 -> add new param
                     },
                     success: function (response) {
                         // remove old layer
