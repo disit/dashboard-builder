@@ -59,7 +59,10 @@
 						
 						if (newWsValue.dataOperation){
 							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("display", "none");
-							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", "100%");
+                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").show()
+                            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert").hide()
+							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date").css("display", "none");
+							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", "90%");
                             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").css("width", $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").width());
 							$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(newWsValue.dataOperation);
 						}else{
@@ -86,6 +89,7 @@
                             // clearInterval(countdownRef);
                             // $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content").hide();
                             // <?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>(true, metricName, event.widgetTitle, event.color1, "black", true, event.serviceUri, event.field, null, /*event.randomSingleGeoJsonIndex,*/ event.marker, event.mapRef, event.fakeId);
+                            fromGisExternalContent = undefined
                             loadData();
 						}
 
@@ -336,6 +340,17 @@
                         else
                         {
                          //   if(udm !== null && udm != '' && udm != ' ')
+                            dateHeight = 0
+                            if(metricData.data[0].commit.author.date_time != undefined && styleParameters && styleParameters.showDateObserved == "yes"){
+                                let date_time = moment(metricData.data[0].commit.author.date_time).format("L HH:mm:ssZ")
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date span").html(date_time);
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date").show();
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").css("overflow-y", "hidden");
+                                dateHeight = 10
+
+                            }else{
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date").hide()
+                            }
                             if(udm !== null && udm != '')
                             {
                                if(udmPos === 'next')
@@ -345,14 +360,15 @@
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").show();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").show();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").hide();
-                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", "100%");             
+                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", 100-dateHeight+"%");             
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("alignItems", "center"); 
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(value + udm);
                                   }
                                   else
                                   {
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").hide();
-                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").hide(); 
+                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").hide();
+                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date").hide();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                      $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                   }
@@ -364,15 +380,16 @@
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").show();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").show();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").show();
-                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", "60%");
+                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", 60-(dateHeight/2)+"%");
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(value);
-                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("height", "40%");
+                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("height", 40-(dateHeight/2)+"%");
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm span").html(udm);
                                   }
                                   else
                                   {
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").hide();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").hide();
+                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date").hide();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").hide();
                                      $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                   }
@@ -383,7 +400,7 @@
                                 if((value !== null) && (value !== "") && (value !== undefined))
                                 {
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("display", "none");
-                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", "100%");
+                                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", 100-dateHeight+"%");
                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(value);
                                 }
                                 else
@@ -392,7 +409,6 @@
                                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                 }
                             }
-
                             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("color", fontColor);
                             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("color", fontColor);
                             
@@ -403,10 +419,12 @@
                             if(fontSize < parseInt($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span').css('font-size').replace('px', '')))
                             {
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").css('font-size', fontSize + 'px');
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date span").css('font-size', fontSize/2)
                             }
                             else
                             {
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").css('font-size', parseInt($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span').css('font-size').replace('px', ''))*0.8);
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date span").css('font-size', parseInt($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span').css('font-size').replace('px', ''))*0.4)
                             }
                             
                             $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css('font-size', parseInt($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span').css('font-size').replace('px', ''))*0.45);
@@ -510,6 +528,8 @@
                         sm_based = "yes";
                     } else if (JSON.parse(rowParameters).metricHighLevelType == "MyKPI") {
                         sm_based = "myKPI";
+                    } else if (JSON.parse(rowParameters).metricHighLevelType == "MyData") {
+                        sm_based = "myData";
                     }
                     sm_field = JSON.parse(rowParameters).metricType;
                 }
@@ -576,7 +596,8 @@
                                             "field1Desc": null,
                                             "field2Desc": null,
                                             "field3Desc": null,
-                                            "hasNegativeValues": "1"
+                                            "hasNegativeValues": "1",
+                                            "date_time": null
                                         }
                                     }
                                 }
@@ -615,9 +636,12 @@
                             metricData.data[0].commit.author.value_text = geoJsonServiceData.realtime.results.bindings[0][fromGisExternalContentField].value;
                             metricData.data[0].commit.author.metricType = "Testuale";
                         }
-                        /*    if (serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit) {
-                                udm = serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit;
-                            }   */
+                        if (fromGisExternalContentField != "dateObserved" && geoJsonServiceData.realtime.results.bindings[0].dateObserved.value){
+                            metricData.data[0].commit.author.date_time = geoJsonServiceData.realtime.results.bindings[0].dateObserved.value
+                        }
+                        if (serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit) {
+                            udm = serviceProperties.realtimeAttributes[fromGisExternalContentField].value_unit;
+                        }
                     },
                     error: function (errorData) {
                         console.log("Error in data retrieval");
@@ -697,7 +721,8 @@
                                                     field1Desc: null,
                                                     field2Desc: null,
                                                     field3Desc: null,
-                                                    hasNegativeValues: "1"
+                                                    hasNegativeValues: "1",
+                                                    date_time: null
                                                 }
                                             }
                                         }
@@ -721,6 +746,10 @@
                                             metricData.data[0].commit.author.value_text = data.realtime.results.bindings[0][sm_field].value;
                                         }
                                         break;
+                                }
+
+                                if(sm_field != "dateObserved" && data.realtime.results.bindings[0].dateObserved.value != ""){
+                                    metricData.data[0].commit.author.date_time = data.realtime.results.bindings[0].dateObserved.value
                                 }
 
                                 $("#" + widgetName + "_loading").css("display", "none");
@@ -753,10 +782,10 @@
                             async: true,
                             dataType: 'json',
                             success: function (data) {
-			    	// console.log('data: ');
-				// console.log(data);
                                 metricData = data;
-                                needWebSocket = metricData.data[0].needWebSocket;
+                                if (metricData.data != null && metricData.data.length > 0) {
+                                    needWebSocket = metricData.data[0].needWebSocket;
+                                }
                                 $("#" + widgetName + "_loading").css("display", "none");
                                 $("#" + widgetName + "_content").css("display", "block");
                                 populateWidget();
@@ -935,7 +964,8 @@
                                                         field1Desc: null,
                                                         field2Desc: null,
                                                         field3Desc: null,
-                                                        hasNegativeValues: "1"
+                                                        hasNegativeValues: "1",
+                                                        date_time: null
                                                     }
                                                 }
                                             }
@@ -958,7 +988,11 @@
                                             metricData.data[0].commit.author.value_text = data[0].value;
                                             break;
                                     }
-
+                                    if(data[0].date_time && data[0].date_time != ""){
+                                        metricData.data[0].commit.author.date_time = data[0].date_time;
+                                    } else if (data[0].dataTime && data[0].dataTime != "") {
+                                        metricData.data[0].commit.author.date_time = data[0].dataTime;
+                                    }
                                     $("#" + widgetName + "_loading").css("display", "none");
                                     $("#" + widgetName + "_content").css("display", "block");
                                     populateWidget();
@@ -1042,6 +1076,22 @@
                     showHeader = true;
                 }
 
+                if (widgetData.params.styleParameters != null && JSON.parse(widgetData.params.styleParameters) != null) {
+                    styleParameters = JSON.parse(widgetData.params.styleParameters);
+                }
+
+                if(widgetData.params.parameters && JSON.parse(widgetData.params.parameters) != null) {
+                    widgetParameters = JSON.parse(widgetData.params.parameters);
+                }
+
+                if (widgetData.params.udm != null) {
+                    udm = widgetData.params.udm;
+                }
+
+                if(widgetData.params.udmPos) {
+                    udmPos = widgetData.params.udmPos;
+                }
+
                 if((metricNameFromDriver === "undefined")||(metricNameFromDriver === undefined)||(metricNameFromDriver === "null")||(metricNameFromDriver === null))
                 {
                     metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
@@ -1051,8 +1101,6 @@
                     udm = widgetData.params.udm;
                     udmPos = widgetData.params.udmPos;
                     sizeRowsWidget = parseInt(widgetData.params.size_rows);
-                    styleParameters = JSON.parse(widgetData.params.styleParameters);
-                    widgetParameters = JSON.parse(widgetData.params.parameters);
                 }
                 else
                 {
@@ -1340,7 +1388,8 @@
                 </div>
             </div>
             <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer" class="chartContainer">
-                <div id='<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value' class="singleContentValue"><span></span></div>
+                <div id='<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date' class="singleContentDate" style="text-align: center; padding-top: 5px;"><span></span></div>
+                <div id='<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value' class="singleContentValue"><span></span></div> 
                 <div id='<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm' class="singleContentUdm"><span></span></div>
             </div>
         </div>

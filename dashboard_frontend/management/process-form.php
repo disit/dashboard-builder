@@ -4301,6 +4301,10 @@
                     $showContentLoadM = mysqli_real_escape_string($link, sanitizePostString('showContentLoadM'));
                     $styleParametersArray['showContentLoadM'] = $showContentLoadM;
                 }
+
+                if ($type_widget_m == "widgetSingleContent") {
+                    $styleParametersArray['showDateObserved'] = mysqli_real_escape_string($link, sanitizePostString('showDateObserved'));
+                }
             }
             $styleParametersM = json_encode($styleParametersArray);
         }

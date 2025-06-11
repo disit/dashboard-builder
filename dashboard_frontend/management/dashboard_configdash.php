@@ -32464,6 +32464,24 @@
                                         newSelect.show();
 
                                         $("#specificParamsM").append(newFormRow);
+
+                                        newFormRow = $('<div class="row"></div>');
+
+                                        // Show DateObservced
+                                        newLabel = $('<label for="showDateObserved" class="col-md-2 control-label"><?php echo _("Show date observed"); ?></label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="showDateObserved" name="showDateObserved">');
+                                        newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                        newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
+                                        newSelect.val(styleParameters.showDateObserved);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+
+                                        $("#specificParamsM").append(newFormRow);
                                         newLabel.show();
                                         newInnerDiv.show();
                                         break;
