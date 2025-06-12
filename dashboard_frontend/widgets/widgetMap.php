@@ -23300,7 +23300,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             //Naldi 10/06/2025 -> in order to be backward compatible old od has no broker passed, so it's read from passed organization parameters
             if(contextbroker===""){
                 let orgParam = await $.ajax({
-                    url:`http://dashboard/dashboardSmartCity/api/organizations.php?org=${organization}`,
+                    url:`../api/organizations.php?org=${organization}`,
                     method:'GET'
                 });
                 contextbroker = orgParam[0].broker;
@@ -23829,6 +23829,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
             }
 
+            let queryAllPolygons = false;
+
             async function getAllPolyOdMap(async) {
                 bbox = map.defaultMapRef.getBounds();
                 //console.log(bbox);
@@ -23843,13 +23845,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }
                 if (type != "mgrs") {
                     const token = await getAccessToken(); //Naldi 10/06/2025 -> add token for private device
+                    let headers;
+                    if(token!== undefined)
+                        headers = {Authorization: `Bearer ${token}`}
+                    queryAllPolygons = true;
                     $.ajax({
                         url: odUrl + 'get_all_polygons',
                         async: async == 'False' ? false : true,
                         type: "get",
-                        headers:{
-                            Authorization: `Bearer ${token}`
-                        },
+                        headers:headers,
                         data: {
                             latitude_ne: bbox['_northEast']['lat'],
                             longitude_ne: bbox['_northEast']['lng'],
@@ -23875,6 +23879,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             if (geojson_layer) {
                                 geojson_layer.bringToFront()
                             }
+                            queryAllPolygons = false;
                         }
                     });
                 }
@@ -23888,6 +23893,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     $("#slider_poly")[0].style.backgroundColor = panelFontColor;
                     getAllPolyOdMap();
                 } else {
+                    if(queryAllPolygons){ //Naldi 10/06/2025 -> do not deactivate the all poly view while is quering the db
+                        document.getElementById("<?= $_REQUEST['name_w'] ?>_show_all").checked = true;
+                        return;
+                    }
                     showAllPolygonFlag = false;
                     $("#show_allText").text("ON");
                     $("#show_allText")[0].style.color = "black";
@@ -24622,13 +24631,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 console.log('odUrl dataQuery mapDate:');
                 console.log(mapDate);
                 const token = await getAccessToken(); //Naldi 10/06/2025 -> add token for private device
+                let headers;
+                if(token!== undefined)
+                    headers = {Authorization: `Bearer ${token}`}
                 $.ajax({
                     url: odUrl + dataQuery,
                     async: async == 'False' ? false : true,
                     type: "get",
-                    headers:{
-                        Authorization: `Bearer ${token}`
-                    },
+                    headers:headers,
                     data: {
                         latitude: latitude,
                         longitude: longitude,
@@ -24669,9 +24679,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 $.ajax({
                     url: odUrl + polygonQuery,
                     type: "get",
-                    headers:{
-                        Authorization: `Bearer ${token}`
-                    },
+                    headers:headers,
                     data: {
                         precision: precision,
                         latitude: latitude,
