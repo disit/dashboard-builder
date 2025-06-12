@@ -1263,7 +1263,8 @@ dashboardWidgets = [
                                                     "color1": "#33cc33",
                                                     "color2": "#adebad"
                                                 };
-                                                var coordsAndType = "https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers="+layers;
+                                                var geoServerUrl = "<?= $geoServerUrl ?>";
+                                                var coordsAndType = geoServerUrl + "geoserver/Snap4City/wms?service=WMS&layers="+layers;
                                                 console.log(coordsAndType);
                                                 setTimeout(function() {
                                                                 try {
@@ -1422,7 +1423,8 @@ dashboardWidgets = [
                                                     "color1": "#33cc33",
                                                     "color2": "#adebad"
                                                 };
-                                                    var coordsAndType = "https://wmsserver.snap4city.org/geoserver/Snap4City/wms?service=WMS&layers="+trafficFlow+"&request=GetMap&trafficflowmanager=true";
+                                                    var geoServerUrl = "<?= $geoServerUrl ?>";
+                                                    var coordsAndType = geoServerUrl + "geoserver/Snap4City/wms?service=WMS&layers="+trafficFlow+"&request=GetMap&trafficflowmanager=true";
                                                     console.log(coordsAndType);
                                                     ////////////////******************////////////// */
                                                     setTimeout(function() {
