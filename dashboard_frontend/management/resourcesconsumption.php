@@ -17,7 +17,7 @@ checkSession('Manager');
 
 $role = $_SESSION['loggedRole'];
 $canSeeAdmin = ($role === 'RootAdmin');
-
+$rootadmin = ($role === 'RootAdmin');
 //get org list
 $protocol = parse_url($appUrl, PHP_URL_SCHEME);
 $org_list_api_url = $protocol . "://" . $appHost . "/dashboardSmartCity/api/organizations.php";
@@ -272,6 +272,13 @@ if ($canSeeAdmin) {
                      name="queryType" id="byOrg" value="org">
               <span class="form-check-label">Organization</span>
             </label>
+            <?php if ($rootadmin): ?>
+              <label class="form-check form-check-inline">
+                <input class="form-check-input" type="radio"
+                      name="queryType" id="byAll" value="org">
+                <span class="form-check-label">All</span>
+              </label>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -355,6 +362,7 @@ if ($canSeeAdmin) {
       (function(){
         const byUser    = document.getElementById('byUser');
         const byOrg     = document.getElementById('byOrg');
+        const byAll     = document.getElementById('byAll');
         const byDay     = document.getElementById('byDay');
         const byMonth   = document.getElementById('byMonth');
         const byRange   = document.getElementById('byRange');
@@ -376,9 +384,35 @@ if ($canSeeAdmin) {
         const form          = document.getElementById('adminForm');
 
         function toggleFields(){
-          // user vs org
-          userSel.style.display   = byUser.checked  ? 'block' : 'none';
-          orgSel.style.display    = byOrg.checked   ? 'block' : 'none';
+          // user / org / all
+          if (byAll.checked) {
+          userSel.style.display = 'none';
+          orgSel.style.display  = 'none';
+
+          // disable/clear both inputs
+          userInput.required = false;
+          userInput.disabled = true;
+          orgInput.required  = false;
+          orgInput.disabled  = true;
+          }
+          else if (byUser.checked) {
+            userSel.style.display = 'block';
+            orgSel.style.display  = 'none';
+
+            userInput.required    = true;
+            userInput.disabled    = false;
+            orgInput.required     = false;
+            orgInput.disabled     = true;
+          }
+          else { // byOrg.checked
+            userSel.style.display = 'none';
+            orgSel.style.display  = 'block';
+
+            userInput.required    = false;
+            userInput.disabled    = true;
+            orgInput.required     = true;
+            orgInput.disabled     = false;
+          }
           // period type
           dayCont.style.display   = byDay.checked   ? 'block' : 'none';
           monCont.style.display   = byMonth.checked ? 'block' : 'none';
@@ -400,7 +434,7 @@ if ($canSeeAdmin) {
           endDate.disabled    = !byRange.checked;
         }
 
-        [byUser,byOrg,byDay,byMonth,byRange].forEach(el=>
+        [byUser,byOrg,byAll,byDay,byMonth,byRange].forEach(el=>
           el.addEventListener('change', toggleFields)
         );
 
@@ -417,7 +451,7 @@ if ($canSeeAdmin) {
                     + `&start_date=${startDate.value}`
                     + `&end_date=${endDate.value}`;
             }
-          } else {
+          } else if (byOrg.checked){
             const org = encodeURIComponent(orgInput.value);
             if (byDay.checked) {
               route = `org/usage?org=${org}&date=${dateDay.value}`;
@@ -425,6 +459,16 @@ if ($canSeeAdmin) {
               route = `org/usage?org=${org}&date=${dateMon.value}`;
             } else {
               route = `org/usage?org=${org}`
+                    + `&start_date=${startDate.value}`
+                    + `&end_date=${endDate.value}`;
+            }
+          } else { // byAll.checked
+            if (byDay.checked) {
+              route = `all/usage?&date=${dateDay.value}`;
+            } else if (byMonth.checked) {
+              route = `all/usage?&date=${dateMon.value}`;
+            } else {
+              route = `org/usage?`
                     + `&start_date=${startDate.value}`
                     + `&end_date=${endDate.value}`;
             }
