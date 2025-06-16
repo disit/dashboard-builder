@@ -1812,6 +1812,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         var svgContainerArray = [];
         var oms = {}    // OverlappingMarkerSpiderfier for Leaflet
 
+        //Naldi 07/05/2025 -> adding a variable to toggle triggers functionality
+        var disabledTriggers = []
+
         //Definizioni di funzione
 
         console.log("entrato in widgetMap. WidgetName = " + widgetName);
@@ -4109,6 +4112,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             //console.log(routing);
             if (routing) {
                 ghoptions = routing.length;
+                //Naldi ->04/06/2025 add some base cases
+                if(ghoptions === 0)
+                    throw new Error('At least one router is needed!');
+                if(ghoptions === 1)
+                    return routing[0].ghUrl + "route";
                 //console.log(ghoptions);
                 for (let i = 0; i < ghoptions; i++) {
                     let routing_lat = routing[i].centreLatLng[0];
@@ -9485,9 +9493,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         let lat = passedData[j].lat;
                         let lng = passedData[j].lng;
                         let textHtml = passedData[j].textHtml;
+                        //Naldi 22/05/2025 -> add custom icon if present
+                        let iconUrl = passedData[j].iconUrl;
+                        let icon;
+                        if(iconUrl !== undefined)
+                            icon = L.icon({
+                                iconUrl: iconUrl,
+                                iconSize: [32, 32],
+                                iconAnchor: [16, 32],
+                                popupAnchor: [0, -32]
+                            });
 
                         let markerLocation = new L.LatLng(lat, lng);
-                        let marker = new L.Marker(markerLocation);
+                        let marker = icon !== undefined ? new L.Marker(markerLocation, {icon: icon}) : new L.Marker(markerLocation);
                         passedData[j].marker = marker;
 
                         //Creazione del popup per il pin appena creato
@@ -15987,6 +16005,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             //edit-lines
             $("#edit_lines").click(async function () {
                 console.log('edit modality');
+                //Naldi 05/06/2025 -> on edit mode disable addPinByPopup for what-if routing dashboard
+                $.event.trigger({
+                    type: 'toggleTriggers',
+                    target: map.mapName,
+                    passedData: [{'addPinByPopup':true}]
+                });
                 scenario_modality = 'edit';
                 console.log('currentLoadedScenario', currentLoadedScenario);
                 var devNameLoadScenario = '';
@@ -17237,6 +17261,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
 
             $("#view_mod").click(async function () {
+                //Naldi 05/06/2025 -> on edit mode enable addPinByPopup for what-if routing dashboard
+                $.event.trigger({
+                    type: 'toggleTriggers',
+                    target: map.mapName,
+                    passedData: [{'addPinByPopup':false}]
+                });
                 scenario_modality = 'view';
                 goIntoViewMode();
 
@@ -17659,6 +17689,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     }
     $(document).on('addCustomTrajectory', function (event) {
         if (event.target === map.mapName) {
+            if(disabledTriggers.includes(event.type)){
+                alert("No trajectory will be drawn!");
+                return
+            }
             async function addCustomTrajectoryToMap() {
                 // prendo i passed data
                 let passedData = event.passedData;
@@ -17676,7 +17710,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     let prevlng = -1;
 
                     for (let o = 0; o < points.length; o++) { // per ogni punto 
-                        await delay(0.1).then(() => {
+                        await delay(0.1).then(async () => {
                             let position = points[o].position;
                             let mode = points[o].mode;
                             let colore = points[o].color;
@@ -17710,6 +17744,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 lng = parseFloat(position.gps.lng);
                                 name = "Trajectory point " + o;
                                 //console.log(icona);
+                                //Naldi 23/05/2025 -> icons are not strictly required
                                 if (icona.length > 1) {
                                     var greenIcon = new LeafIcon({
                                         iconUrl: icona,
@@ -17718,17 +17753,16 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         iconAnchor: [5, 5],
                                         popupAnchor: [0, -5]
                                     })
+                                    //console.log(lat,lng)
+                                    let markerLocation = new L.LatLng(lat, lng); //mi creo il marker
+                                    let marker = new L.Marker(markerLocation, { icon: greenIcon });
+                                    //passedData[j].marker = marker;
+                                    //Creazione del popup per il pin appena creato
+                                    popupText = "<div>" + name + "</div>";
+                                    map.defaultMapRef.addLayer(marker.bindPopup(popupText, { offset: [0, 0] }));
+                                    traj_markers.push(marker);
+                                    //console.log("added marker");
                                 }
-
-                                //console.log(lat,lng)
-                                let markerLocation = new L.LatLng(lat, lng); //mi creo il marker
-                                let marker = new L.Marker(markerLocation, { icon: greenIcon });
-                                //passedData[j].marker = marker;
-                                //Creazione del popup per il pin appena creato
-                                popupText = "<div>" + name + "</div>";
-                                map.defaultMapRef.addLayer(marker.bindPopup(popupText, { offset: [0, 0] }));
-                                traj_markers.push(marker);
-                                //console.log("added marker");
                             } else {
                                 //console.log("object" + o + " suri") // si usa la service uri
                                 let suri = position.serviceUri;
@@ -17800,46 +17834,173 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     prevlat = lat;
                                     prevlng = lng;
                                 } else { //vai col graphopper
-                                    vehicle = mode.routing.graphhopper.type;
-                                    weighting = $('#whatIf-weighting').val();   // Get the selected weighting
-                                    startDatetime = $('#whatIf-startDatetime').val();   // Get the selected datetime
-                                    //console.log("prev" + prevlat + " " +prevlng)
-                                    //console.log("current" + lat + " " +lng)
-                                    serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
-                                    var lrmtraj = L.Routing.control({
-                                        // Servlet params
-                                        serviceUrl: serviceUrl,
-                                        waypoints: [L.latLng(prevlat, prevlng),
-                                        L.latLng(lat, lng)],
-                                        avoid_area: "%7B%22type%22%3A%22FeatureCollection%22%2C%22features%22%3A%5B%7B%22type%22%3A%22Feature%22%2C%22properties%22%3A%7B%7D%2C%22geometry%22%3A%7B%22type%22%3A%22Polygon%22%2C%22coordinates%22%3A%5B%5B%5B11.279826%2C43.770474%5D%2C%5B11.276307%2C43.767561%5D%2C%5B11.27871%2C43.766135%5D%2C%5B11.281285%2C43.768491%5D%2C%5B11.279826%2C43.770474%5D%5D%5D%7D%7D%5D%2C%22scenarioName%22%3A%22prova%22%2C%22isPublic%22%3Atrue%7D",
-                                        vehicle: vehicle,
-                                        weighting: weighting,
-                                        startDatetime: startDatetime,
-                                        // end Servlet params
-                                        geocoder: "",    //L.Control.Geocoder.nominatim(),
-                                        routeWhileDragging: false,
-                                        reverseWaypoints: false,
-                                        showAlternatives: false,
-                                        show: false,
-                                        waypointMode: 'snap',
-                                        createMarker: function () { }
-                                    });
+                                    let drawMethod = passedData[j].drawMethod;
+                                    if(drawMethod === undefined)
+                                        drawMethod = 'default';
+                                    if(drawMethod === 'default'){
+                                        vehicle = mode.routing.graphhopper.type;
+                                        weighting = $('#whatIf-weighting').val();   // Get the selected weighting
+                                        startDatetime = $('#whatIf-startDatetime').val();   // Get the selected datetime
+                                        //console.log("prev" + prevlat + " " +prevlng)
+                                        //console.log("current" + lat + " " +lng)
+                                        serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
+                                        var lrmtraj = L.Routing.control({
+                                            // Servlet params
+                                            serviceUrl: serviceUrl,
+                                            waypoints: [L.latLng(prevlat, prevlng),
+                                            L.latLng(lat, lng)],
+                                            avoid_area: "%7B%22type%22%3A%22FeatureCollection%22%2C%22features%22%3A%5B%7B%22type%22%3A%22Feature%22%2C%22properties%22%3A%7B%7D%2C%22geometry%22%3A%7B%22type%22%3A%22Polygon%22%2C%22coordinates%22%3A%5B%5B%5B11.279826%2C43.770474%5D%2C%5B11.276307%2C43.767561%5D%2C%5B11.27871%2C43.766135%5D%2C%5B11.281285%2C43.768491%5D%2C%5B11.279826%2C43.770474%5D%5D%5D%7D%7D%5D%2C%22scenarioName%22%3A%22prova%22%2C%22isPublic%22%3Atrue%7D",
+                                            vehicle: vehicle,
+                                            weighting: weighting,
+                                            startDatetime: startDatetime,
+                                            // end Servlet params
+                                            geocoder: "",    //L.Control.Geocoder.nominatim(),
+                                            routeWhileDragging: false,
+                                            reverseWaypoints: false,
+                                            showAlternatives: false,
+                                            show: false,
+                                            waypointMode: 'snap',
+                                            createMarker: function () { }
+                                        });
 
-                                    //console.log(points[0].color);
-                                    lrmtraj.on('routeselected', function (e) {
-                                        let traie = L.polyline(e.route.coordinates).setStyle({ color: points[o].color }).bindPopup(optionalhtmltrajpopup, { offset: [0, 0] });
-                                        traie.addTo(map.defaultMapRef);
-                                        traj_trajects.push(traie);
-                                        //map.removeControl(control);
-                                    });
-                                    lrmtraj.addTo(map.defaultMapRef);
-                                    traj_controls.push(lrmtraj);
-                                    // e aggiorno le nuove precendenti latitudine e longitudine
-                                    prevlat = lat;
-                                    prevlng = lng;
+                                        //console.log(points[0].color);
+                                        lrmtraj.on('routeselected', function (e) {
+                                            let traie = L.polyline(e.route.coordinates).setStyle({ color: points[o].color }).bindPopup(optionalhtmltrajpopup, { offset: [0, 0] });
+                                            traie.addTo(map.defaultMapRef);
+                                            traj_trajects.push(traie);
+                                            //map.removeControl(control);
+                                        });
+                                        lrmtraj.addTo(map.defaultMapRef);
+                                        traj_controls.push(lrmtraj);
+                                        // e aggiorno le nuove precendenti latitudine e longitudine
+                                        prevlat = lat;
+                                        prevlng = lng;
 
-                                    if ($('.leaflet-routing-container').length) {
-                                        $(".leaflet-routing-container").remove();//Class()
+                                        if ($('.leaflet-routing-container').length) {
+                                            $(".leaflet-routing-container").remove();//Class()
+                                        }
+                                    } else {
+                                        //Naldi 23/05/2025 -> add new way to draw new trajectory
+                                        let vehicle = mode.routing.graphhopper.type;
+                                        let weighting = mode.routing.graphhopper.weighting;
+                                        let startDatetime = mode.routing.graphhopper.startDatetime;
+                                        let avoid_area = mode.routing.graphhopper.avoid_area;
+                                        if(avoid_area === undefined)
+                                            avoid_area = ''
+                                        let serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()["_northEast"]);
+                                        let waypoints = `${prevlng},${prevlat};${lng},${lat}`;
+                                        try {
+                                            const params = new URLSearchParams({
+                                                vehicle: vehicle,
+                                                waypoints: waypoints,
+                                                weighting: weighting,
+                                                startDatetime: startDatetime,
+                                                avoid_area: avoid_area,
+                                                wkt:true
+                                            });
+                                            const response = await fetch(`${serviceUrl}?${params}`);
+                                            const result = await response.json();
+                                            if (!response.ok)
+                                                throw new Error(`HTTP error! Status: ${result.exception}`);
+                                            //wkt parser
+                                            const parseWKT = (wkt) => {
+                                                const coordsText = wkt.substring(wkt.indexOf('(')).replace(/[()]/g, '').trim();
+                                                return coordsText.split(',').map(pair => {
+                                                    const [lng, lat] = pair.trim().split(/\s+/).map(Number);
+                                                    return [lat, lng];
+                                                })
+                                            }
+                                            let multipleLines = passedData[j].multipleLines;
+                                            const paths = result.paths;
+                                            let multimodal = passedData[j].multimodal;
+
+                                            let iterationStart = paths.length-1;
+                                            //if you do not want to draw more lines
+                                            if(multipleLines === undefined || !multipleLines)
+                                               iterationStart = 0;
+
+                                            const drawPolyline = (pts, color) =>{
+                                                let traie = L.polyline(pts).setStyle({ color: color }).bindPopup(optionalhtmltrajpopup, { offset: [0, 0] });
+                                                traie.addTo(map.defaultMapRef);
+                                                traj_trajects.push(traie);
+                                            }
+
+                                            for(let i=iterationStart; i>-1; i--){
+                                                //parse wkt
+                                                const path = paths[i];
+                                                const wkt = path.wkt;
+                                                const pts = parseWKT(wkt);
+                                                paths[i]['coordinates'] = pts;
+                                                if(multimodal === undefined){
+                                                    //choose color
+                                                    let color = points[o].color[i];
+                                                    if(color === undefined)
+                                                        color = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');
+                                                    paths[i]['colors'] = [color];
+                                                    //draw line
+                                                    drawPolyline(pts, color);
+                                                }else{
+                                                    paths[i]['colors'] = [multimodal.lineColors.pedestrian, multimodal.lineColors.bus];
+                                                    //search for pt_trip
+                                                    const ptTripNodes = path.instructions.filter((i)=>i.leg !== undefined);
+                                                    if(ptTripNodes.length>0){
+                                                        //break pts into the subpaths
+                                                        let s = 0;
+                                                        let f = path.coordinates.length-1;
+                                                        for(let ptTripNode of ptTripNodes){
+                                                            let [ptNodeStart, ptNodeFinish] = ptTripNode.interval;
+                                                            //pedestrian
+                                                            if(ptNodeStart !== s)
+                                                                drawPolyline(pts.slice(s, ptNodeStart+1), multimodal.lineColors.pedestrian);
+                                                            //bus
+                                                            drawPolyline(pts.slice(ptNodeStart, ptNodeFinish+1), multimodal.lineColors.bus);
+                                                            //add bus pins
+                                                            for(let idx of ptTripNode.interval){
+                                                                let coords = path.coordinates[idx];
+                                                                let icon = new L.Icon({
+                                                                    iconUrl: multimodal.icon,
+                                                                    iconSize: [35, 35],
+                                                                    iconAnchor: [5, 5],
+                                                                    popupAnchor: [0, -5]
+                                                                });
+                                                                let marker = new L.Marker(new L.LatLng(...coords),  { icon: icon });
+                                                                popupText = "<div>Bus Stop</div>";
+                                                                map.defaultMapRef.addLayer(marker.bindPopup(popupText, { offset: [0, 0] }));
+                                                                traj_markers.push(marker);
+                                                            }
+                                                            //update index
+                                                            s = ptNodeFinish;
+                                                        }
+                                                        //last subpath if needed
+                                                        if(s < f)
+                                                            drawPolyline(pts.slice(s, f+1), multimodal.lineColors.pedestrian);
+                                                    }else{
+                                                        let color = iterationStart === 0 ? multimodal.lineColors.pedestrian : multimodal.lineColors.modal;
+                                                        paths[i]['colors'] = [color];
+                                                        //draw line
+                                                        drawPolyline(pts, color);
+                                                    }
+                                                }
+                                            }
+                                            //return
+                                            let returnInstructionTrigger = passedData[j].returnInstructionTrigger;
+                                            if(returnInstructionTrigger !== undefined){
+                                                let instructionData = paths.map(({distance, instructions, time, coordinates, colors})=>({distance, instructions, time, coordinates, colors}));
+                                                if(multipleLines === undefined || !multipleLines)
+                                                    instructionData = instructionData.slice(0,1);
+                                                $('body').trigger({
+                                                    type: returnInstructionTrigger,
+                                                    target: map.mapName,
+                                                    passedData: JSON.stringify({sender:'addCustomTrajectory', data: instructionData})
+                                                });
+                                            }
+                                        }catch(error) {
+                                            console.error('Routing error:', error);
+                                            alert('Routing error: '+ error);
+                                        }                                        
+                                        // e aggiorno le nuove precendenti latitudine e longitudine
+                                        prevlat = lat;
+                                        prevlng = lng;
                                     }
 
                                 }
@@ -18035,6 +18196,20 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     scenarioData.features = [];
     $(document).on('addScenario', function (event) {
         if (event.target === map.mapName) {
+            //Naldi 08/05/2025 -> 
+            //if we are in whatif-router dashboard and a scenario/studio is loaded 
+            //do not let create a new one
+            if(disabledTriggers.includes(event.type)){
+                alert("It's possible that a studio is loaded. If it is the case, please trigger removeScenario, clear the scenario/studio loaded and trigger addScenario again!");
+                return
+            }
+            //if we are in whatif-router dashboard and no scenario/studio is loaded disable addPinByPopup
+            $.event.trigger({
+                type: 'toggleTriggers',
+                target: map.mapName,
+                passedData: [{'addPinByPopup':true}]
+            });
+
             // create scenario layer and add to map
             scenarioLayer = new L.FeatureGroup();
             map.defaultMapRef.addLayer(scenarioLayer);
@@ -18222,6 +18397,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
     $(document).on('removeScenario', function (event) {
         if (event.target === map.mapName) {
+            //Naldi 08/05/2025 -> if we are in whatif-router dashboard enable addPinByPopup
+            $.event.trigger({
+                type: 'toggleTriggers',
+                target: map.mapName,
+                passedData: [{'addPinByPopup':false}]
+            });
+
             map.defaultMapRef.removeLayer(scenarioLayer);
             // FIX MENTINA, commentata riga sotto e aggiunto il remove
             // map.defaultMapRef.removeControl(scenarioControl);
@@ -22467,6 +22649,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 stepLong: parseInt(results.deltaY),
                                 dateObserved: results.dateObserved,
                                 description: results.magnitudeDescription,
+                                angle_description: results.angleDescription,
                                 scaleFactor: parseFloat(results.scaleFactor),
                                 legenda: results.legend,
                                 alphaAngle: parseFloat(results.alphaAngle),
@@ -22510,6 +22693,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             checkButtonVisibility();
             const VF = initializeP5(deviceData);
 
+            $('body').trigger({
+                type: "updateVFDetails",
+                target: "<?= $_REQUEST['name_w'] ?>",
+                passedData: deviceData
+            });
+
             if(deviceData.hasHeatmap == "yes" && loadHeatmap){
                 const heatMapName = deviceData.deviceName + "_heatmap";
                 parent.$('body').trigger({
@@ -22537,6 +22726,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             checkButtonVisibility();
             const VF = initializeP5(deviceData);   
             
+            $('body').trigger({
+                type: "updateVFDetails",
+                target: "<?= $_REQUEST['name_w'] ?>",
+                passedData: deviceData
+            });
+
             if(deviceData.hasHeatmap == "yes" && loadHeatmap){
                 const heatMapName = deviceData.deviceName + "_heatmap";
                 parent.$('body').trigger({
@@ -26055,6 +26250,277 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         }
     });
 
+    // Naldi 29/04/2025 -> add new trigger to draw polygons
+    // Draw polygons on map
+    $(document).on('addPolygon', function(event){
+        if(event.target === map.mapName){
+            if(disabledTriggers.includes(event.type)){
+                alert('No polygon will be drawn!')
+                return
+            }
+            function addPolygonToMap(){
+                const passedData = event.passedData;
+                const polygons = passedData.polygons;
+                const style = passedData.style;
+            
+                //draw polygons
+                const polyItems = new L.FeatureGroup();
+                L.geoJson(polygons, {
+                    onEachFeature: drawPolygon,
+                    style: style
+                });
+            
+                //draw single polygon
+                function drawPolygon(feature, layer){
+                    if(feature.geometry.type === "Point" && feature.properties.radius !== undefined){
+                        //circle
+                        const center = L.latLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
+                        const circle = L.circle(center, {
+                            radius: feature.properties.radius,
+                            ...style
+                        });
+                        circle.addTo(polyItems);
+                    }else{
+                     	//polygon
+                        polyItems.addLayer(layer);
+                    }                    
+                }
+                //add layer to map
+                polyItems.addTo(map.defaultMapRef)
+                //add the event to map
+                passedData['layer'] = polyItems;
+                map.eventsOnMap.push(passedData);
+            }
+        
+            if (addMode === 'additive') {
+                addPolygonToMap();
+            }
+        
+            if (addMode === 'exclusive') {
+                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                    if (map.eventsOnMap[i].type !== 'polygonEvent') {
+                        map.defaultMapRef.eachLayer(function (layer) {
+                            map.defaultMapRef.removeLayer(layer);
+                        });
+                        map.eventsOnMap.length = 0;
+                        break;
+                    }
+                }
+                //Remove WidgetAlarm active pins
+                $.event.trigger({
+                    type: "removeAlarmPin",
+                });
+                //Remove WidgetEvacuationPlans active pins
+                $.event.trigger({
+                    type: "removeEvacuationPlanPin",
+                });
+                //Remove WidgetSelector active pins
+                $.event.trigger({
+                    type: "removeSelectorEventPin",
+                });
+                //Remove WidgetEvents active pins
+                $.event.trigger({
+                    type: "removeEventFIPin",
+                });
+                //Remove WidgetResources active pins
+                $.event.trigger({
+                    type: "removeResourcePin",
+                });
+                //Remove WidgetOperatorEvents active pins
+                $.event.trigger({
+                    type: "removeOperatorEventPin",
+                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                    maxZoom: leafletMaxZoom,
+                    maxNativeZoom: leafletNativeMaxZoom
+                }).addTo(map.defaultMapRef);
+            
+                addPolygonToMap();
+            }
+        }
+    });
+
+    // Naldi 05/05/2025 -> add new trigger to add a pin to map guided by popup interaction.
+    // Used in What If dashboard
+    // Add pins by popup to map
+    $(document).on('addPinByPopup', function(event){
+        if(event.target === map.mapName){
+            if(disabledTriggers.includes(event.type))
+                return
+            //set right id
+            function setId(type){
+                const canHaveMultipleInstances = event.passedData.canHaveMultipleInstances;
+                if(canHaveMultipleInstances !== undefined){
+                    if(canHaveMultipleInstances.includes(type)){
+                        let ev = map.eventsOnMap.find((e)=>e.id === event.passedData.id && e.eventType === event.passedData.eventType);
+                        //case 1: no pins at all
+                        if(ev === undefined){
+                            return type + '-1'
+                        }else{
+                            //case 2: at least one pin exists, check it's id
+                            ev = map.eventsOnMap.find((e)=>e.id === event.passedData.id && e.eventType === event.passedData.eventType);
+                            const num = Math.max(...ev.markers
+                            .filter(item => item.options.id.startsWith(type + '-'))
+                            .map(item => parseInt(item.options.id.split('-')[1], 10))
+                            );
+                            let lastIdx = num > 0 ? num : 0;
+                            return type + '-' + (++lastIdx);
+                        }
+                    }
+                }
+                //remove previous pin
+                $.event.trigger({
+                    type: 'removePinByPopup',
+                    target: map.mapName,
+                    passedData: {
+                        id: event.passedData.id,
+                        eventType: event.passedData.eventType,
+                        pinId: type
+                    }
+                });
+                return type;
+            }
+            //create waypoint
+            function setWayPoint(type, lat, lng, iconPath, triggerName){
+                //close popup
+                map.defaultMapRef.closePopup();
+                //add new pin
+                let icon = L.icon({
+                    iconUrl: iconPath,
+                    iconSize: [35, 35],
+                    iconAnchor: [5, 5],
+                    popupAnchor: [0, -5]
+                });
+                let markerLocation = new L.LatLng(lat, lng);
+                let name = 'Unknown location';
+                let id = setId(type);
+                let marker = new L.Marker(markerLocation, {icon: icon, id: id, name: name});
+                marker.bindPopup(`<p>${type}</p>`, {offset: [0, 0]});
+                map.defaultMapRef.addLayer(marker);
+                let ev = map.eventsOnMap.find((e)=>e.id === event.passedData.id && e.eventType === event.passedData.eventType);
+                //add event on map if not already exists
+                if(ev === undefined){
+                    event.passedData['markers'] = new Array();
+                    map.eventsOnMap.push(event.passedData);
+                    ev = map.eventsOnMap.find((e)=>e.id === event.passedData.id && e.eventType === event.passedData.eventType);
+                }
+                ev.markers.push(marker);
+                if(triggerName !== undefined){
+                    //return waypoints to map's ckeditor code
+                    const markerData = {
+                        options: marker.options,
+                        latLng: marker.getLatLng(),
+                        name: marker.options.name,
+                        _initHooksCalled: marker._initHooksCalled
+                    }
+                    $('body').trigger({
+                        type: triggerName,
+                        target: map.mapName,
+                        passedData: JSON.stringify({sender:"addPinByPopup", data:markerData})
+                    });
+                }
+            }
+            function addPinByPopupToMap(){
+                const passedData = event.passedData;
+                const coords = passedData.coords;
+                const popupHtml = passedData.popupHtml;
+                let popupStyle = passedData.popupStyle
+                const pinIcons = passedData.pinIcons;
+                const anchors = passedData.anchors;
+                const triggerName = passedData.triggerName;
+                const pinId = passedData.pinId;
+
+                //if pinId is not undefined is the case that i need a pin but i do not want pass through the popup because i already have the id
+                if(pinId !== undefined){
+                    setWayPoint(pinId, ...coords, pinIcons[pinId.split('-')[0]], triggerName);
+                    return;
+                }
+
+                //default style
+                if(popupStyle === undefined){
+                    popupStyle = {
+                        textAlign: 'center',
+                    }
+                }
+                //add popup
+                const popupDiv = document.createElement('div');
+                Object.assign(popupDiv.style, popupStyle);
+                popupDiv.innerHTML = popupHtml;
+                const selectors = anchors.map(id => `#${id}`).join(', ');
+                $(popupDiv).find(selectors).on('click', function () {
+                    const type = this.id;
+                    setWayPoint(type, ...coords, pinIcons[type], triggerName);
+                });
+                L.popup().setLatLng(coords).setContent(popupDiv).openOn(map.defaultMapRef);
+            }
+            if (addMode === 'additive') {
+                addPinByPopupToMap();
+            }
+            if (addMode === 'exclusive') {
+                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                    if (map.eventsOnMap[i].type !== 'pinByPopupEvent') {
+                        map.defaultMapRef.eachLayer(function (layer) {
+                            map.defaultMapRef.removeLayer(layer);
+                        });
+                        map.eventsOnMap.length = 0;
+                        break;
+                    }
+                }
+                //Remove WidgetAlarm active pins
+                $.event.trigger({
+                    type: "removeAlarmPin",
+                });
+                //Remove WidgetEvacuationPlans active pins
+                $.event.trigger({
+                    type: "removeEvacuationPlanPin",
+                });
+                //Remove WidgetSelector active pins
+                $.event.trigger({
+                    type: "removeSelectorEventPin",
+                });
+                //Remove WidgetEvents active pins
+                $.event.trigger({
+                    type: "removeEventFIPin",
+                });
+                //Remove WidgetResources active pins
+                $.event.trigger({
+                    type: "removeResourcePin",
+                });
+                //Remove WidgetOperatorEvents active pins
+                $.event.trigger({
+                    type: "removeOperatorEventPin",
+                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                    maxZoom: leafletMaxZoom,
+                    maxNativeZoom: leafletNativeMaxZoom
+                }).addTo(map.defaultMapRef);
+                addPinByPopupToMap();
+            }
+        }
+    });
+
+    //Naldi 07/05/2025 -> add new trigger to toggle other triggers
+    $(document).on('toggleTriggers', function(event){
+        if(event.target === map.mapName){
+            function toggleTriggers(){
+                const passedData = event.passedData;
+                for(let trigger of passedData){
+                    const triggerName = Object.keys(trigger)[0];
+                    const disable = trigger[triggerName];
+                    if(disable){
+                        if(!disabledTriggers.includes(triggerName))
+                            disabledTriggers.push(triggerName);
+                    }else{
+                        disabledTriggers = disabledTriggers.filter((t)=>t!==triggerName);
+                    }
+                }
+            }
+            toggleTriggers();
+        }
+    });
+
     $(document).on('removeBimShape', function (event) {
 
         function removeBimShape(resetPageFlag) {
@@ -26367,7 +26833,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             //console.log(map.eventsOnMap.length);
             for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
                 //console.log(map.eventsOnMap[i]); //cerco gli enventi gisusti sulla mappa
-                if (map.eventsOnMap[i][0].eventType === event.passedData[0].eventType && map.eventsOnMap[i][0].id === event.passedData[0].id) {
+                //Naldi 19/04/2025 -> trajectory events are array type with eventType and id properties, filter on this condition
+                let mapEvent = map.eventsOnMap[i];
+                if(!Array.isArray(mapEvent))
+                    continue;
+                if(!(mapEvent[0].eventType !== undefined && mapEvent[0].id !== undefined))
+                    continue;
+                if (mapEvent[0].eventType === event.passedData[0].eventType && mapEvent[0].id === event.passedData[0].id) {
                     for (marker of map.eventsOnMap[i].markers) { //rimuovo i marker
                         map.defaultMapRef.removeLayer(marker);
                         //map.eventsOnMap.splice(i, 1);
@@ -26380,6 +26852,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         controls.remove(); //map.defaultMapRef.removeLayer(trajects);
                         //map.eventsOnMap.splice(i, 1);
                     }
+                    map.eventsOnMap.splice(i, 1);
                 }
             }
         }
@@ -26634,6 +27107,58 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         removeOd(true)
         // FINE FIX MENTINA
 
+    });
+
+    // Naldi 05/05/2025 -> add new trigger to remove polygons
+    // Remove polygons from map
+    $(document).on('removePolygon', function(event){
+        if (event.target === map.mapName) {
+            const passedData = event.passedData;
+            for(let i = map.eventsOnMap.length - 1; i >= 0; i--){
+                if(map.eventsOnMap[i].id === passedData.id && map.eventsOnMap[i].eventType === passedData.eventType){
+                    //remove layer from map
+                    map.defaultMapRef.removeLayer(map.eventsOnMap[i].layer);
+                    //remove event from events
+                    map.eventsOnMap.splice(i, 1);
+                }
+            }
+        }
+    });
+
+    // Naldi 06/05/2025 -> add new trigger to remove a single pin or all pins added with addPinByPopup.
+    // Used in What If dashboard
+    // Remove pins by popup from map
+    $(document).on('removePinByPopup', function(event){
+        if (event.target === map.mapName) {
+            const passedData = event.passedData;
+            //close popup
+            map.defaultMapRef.closePopup();
+            for(let i = map.eventsOnMap.length - 1; i >= 0; i--){
+                if(map.eventsOnMap[i].id === passedData.id && map.eventsOnMap[i].eventType === passedData.eventType){
+                    let pinId = passedData.pinId;
+                    let markers = map.eventsOnMap[i].markers;
+                    // remove single pin
+                    if(pinId !== undefined){
+                        let marker = markers.find((m)=>m.options.id === pinId);
+                        if(marker !== undefined){
+                            //remove layer from map
+                            map.defaultMapRef.removeLayer(marker);
+                            //remove marker from markers
+                            map.eventsOnMap[i].markers = map.eventsOnMap[i].markers.filter((m)=>m.options.id !== pinId)
+                        }
+                    }
+                    //remove all pins
+                    else{
+                        for(let marker of markers){
+                            //remove layer from map
+                            map.defaultMapRef.removeLayer(marker);
+                        }
+                         //remove event from events
+                         map.eventsOnMap.splice(i, 1);
+                    }
+                }
+            }
+        }
     });
 
     $(document).on('toggleAddMode', function (event) {
